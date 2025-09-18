@@ -23,6 +23,10 @@
 - api/status.js - App status checker
 - api/test.js - Environment variables test
 - api/install.js - OAuth installation
+- api/products.js - Product creation and cart management
+- api/transform.js - AI image transformation
+- public/shopify-embed.html - Main UI and cart integration
+- public/shopify-script.js - Shopify theme integration
 - vercel.json - Vercel configuration
 
 ## Project Goal
@@ -52,3 +56,28 @@ Customify is a Shopify app that allows customers to:
 - Error handling in functions
 - Response formatting
 - CORS configuration
+
+## Recent Fixes (December 2024)
+### Cart Add Functionality Fix
+- **Problem**: `net::ERR_FAILED` and `TypeError: Failed to fetch` when adding products to cart
+- **Root Cause**: ID mismatch between created product and cart add request + CORS issues with fetch()
+- **Solution**: 
+  - Added detailed logging in `api/products.js` to debug Shopify API responses
+  - Changed cart add method from `fetch()` to `window.location.href` to avoid CORS
+  - Added `productId` to API response for better debugging
+  - Simplified cart add process to prevent network errors
+- **Files Modified**: `api/products.js`, `public/shopify-embed.html`
+- **Status**: ✅ Fixed and deployed
+
+### Cart Integration Details
+- **Method**: Direct navigation to cart URL instead of fetch requests
+- **URL Format**: `https://{shop}/cart/add?id={variantId}&quantity=1&properties[...]`
+- **Properties**: Original Image, AI Style, Original Product, Customization Type
+- **Variant ID**: Use `product.variants[0].id` from Shopify API response
+- **Product ID**: Use `product.id` for reference (not for cart add)
+
+### Debugging Tips
+- Check browser console for detailed logs with `[PRODUCTS.JS]` and `[SHOPIFY-EMBED.HTML]` prefixes
+- Verify variant ID vs product ID usage
+- Monitor network tab for failed requests
+- Use direct navigation instead of fetch for cart operations
