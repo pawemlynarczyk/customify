@@ -69,7 +69,7 @@ module.exports = async (req, res) => {
         prompt: `GHIBLI anime style, ${prompt}`,
         go_fast: true,
         guidance_scale: 10,
-        prompt_strength: 0.77,
+        prompt_strength: 0.4,
         num_inference_steps: 38
       },
       'cyberpunk': {
