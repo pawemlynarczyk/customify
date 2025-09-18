@@ -38,19 +38,58 @@ module.exports = async (req, res) => {
     // Convert base64 to data URL for Replicate
     const imageUrl = `data:image/jpeg;base64,${imageData}`;
 
-    // Use Replicate for AI image transformation
-    const output = await replicate.run(
-      "stability-ai/stable-diffusion:db21e45d3f7023abc2e46a38e7e5df2717954a28",
-      {
-        input: {
-          image: imageUrl,
-          prompt: prompt,
-          num_inference_steps: 20,
-          guidance_scale: 7.5,
-          strength: 0.8
-        }
+    // Use Replicate for AI image transformation with different models based on style
+    let model, inputParams;
+    
+    // Map styles to appropriate models and parameters
+    const styleConfig = {
+      'van gogh': {
+        model: "tencentarc/photomaker:ddfc2b08d209f9fa8c1eca692712918bd449f695dabb4a958da31802a9570fe4",
+        prompt: `in the style of Vincent van Gogh, ${prompt}, oil painting, thick brushstrokes, vibrant colors, post-impressionist`,
+        strength: 0.8
+      },
+      'picasso': {
+        model: "tencentarc/photomaker:ddfc2b08d209f9fa8c1eca692712918bd449f695dabb4a958da31802a9570fe4",
+        prompt: `in the style of Pablo Picasso, ${prompt}, cubist, abstract, geometric shapes, bold colors`,
+        strength: 0.8
+      },
+      'monet': {
+        model: "tencentarc/photomaker:ddfc2b08d209f9fa8c1eca692712918bd449f695dabb4a958da31802a9570fe4",
+        prompt: `in the style of Claude Monet, ${prompt}, impressionist, soft brushstrokes, light and color, water lilies style`,
+        strength: 0.8
+      },
+      'anime': {
+        model: "tencentarc/photomaker:ddfc2b08d209f9fa8c1eca692712918bd449f695dabb4a958da31802a9570fe4",
+        prompt: `anime style, ${prompt}, manga, japanese animation, cel shading, vibrant colors, detailed eyes`,
+        strength: 0.7
+      },
+      'cyberpunk': {
+        model: "tencentarc/photomaker:ddfc2b08d209f9fa8c1eca692712918bd449f695dabb4a958da31802a9570fe4",
+        prompt: `cyberpunk style, ${prompt}, neon lights, futuristic, high tech, dark atmosphere, glowing effects`,
+        strength: 0.8
+      },
+      'watercolor': {
+        model: "tencentarc/photomaker:ddfc2b08d209f9fa8c1eca692712918bd449f695dabb4a958da31802a9570fe4",
+        prompt: `watercolor painting, ${prompt}, soft colors, flowing brushstrokes, artistic, delicate`,
+        strength: 0.7
       }
-    );
+    };
+
+    // Get style from prompt or use default
+    const style = Object.keys(styleConfig).find(s => prompt.toLowerCase().includes(s)) || 'anime';
+    const config = styleConfig[style] || styleConfig['anime'];
+
+    console.log(`Using style: ${style}, model: ${config.model}`);
+
+    const output = await replicate.run(config.model, {
+      input: {
+        image: imageUrl,
+        prompt: config.prompt,
+        num_inference_steps: 20,
+        guidance_scale: 7.5,
+        strength: config.strength
+      }
+    });
 
     res.json({ 
       success: true, 
