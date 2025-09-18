@@ -1,14 +1,46 @@
 {
   "version": 2,
   "functions": {
-    "api/index.js": {
+    "api/install.js": {
+      "maxDuration": 10
+    },
+    "api/auth/callback.js": {
+      "maxDuration": 15
+    },
+    "api/upload.js": {
       "maxDuration": 30
+    },
+    "api/transform.js": {
+      "maxDuration": 60
+    },
+    "api/products.js": {
+      "maxDuration": 15
     }
   },
   "routes": [
     {
+      "src": "/install",
+      "dest": "/api/install.js"
+    },
+    {
+      "src": "/auth/callback",
+      "dest": "/api/auth/callback.js"
+    },
+    {
+      "src": "/api/upload",
+      "dest": "/api/upload.js"
+    },
+    {
+      "src": "/api/transform",
+      "dest": "/api/transform.js"
+    },
+    {
+      "src": "/api/products",
+      "dest": "/api/products.js"
+    },
+    {
       "src": "/(.*)",
-      "dest": "/api/index.js"
+      "dest": "/public/$1"
     }
   ],
   "env": {

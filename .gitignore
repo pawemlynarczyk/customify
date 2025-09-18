@@ -11,9 +11,8 @@ yarn-error.log*
 .env.test.local
 .env.production.local
 
-# Uploads
-uploads/*
-!uploads/.gitkeep
+# Uploads (not needed for serverless)
+# uploads/*
 
 # Logs
 logs
