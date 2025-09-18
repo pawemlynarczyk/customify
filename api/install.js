@@ -34,16 +34,32 @@ module.exports = (req, res) => {
     shop,
     clientId,
     redirectUri,
-    appUrl: process.env.APP_URL
+    appUrl: process.env.APP_URL,
+    scopes
   });
+  
+  // Validate required parameters
+  if (!clientId) {
+    console.error('❌ Missing SHOPIFY_API_KEY');
+    return res.status(500).send('Missing SHOPIFY_API_KEY environment variable');
+  }
+  
+  if (!process.env.APP_URL) {
+    console.error('❌ Missing APP_URL');
+    return res.status(500).send('Missing APP_URL environment variable');
+  }
+  
+  // Ensure HTTPS
+  const httpsRedirectUri = redirectUri.replace('http://', 'https://');
   
   const installUrl = `https://${shop}/admin/oauth/authorize?` + querystring.stringify({
     client_id: clientId,
     scope: scopes,
-    redirect_uri: redirectUri
+    redirect_uri: httpsRedirectUri
   });
   
   console.log('🔗 Generated install URL:', installUrl);
+  console.log('🔗 Redirect URI used:', httpsRedirectUri);
   
   res.setHeader('Content-Type', 'text/html');
   res.send(`
@@ -68,10 +84,22 @@ module.exports = (req, res) => {
             
             <div class="info">
                 <strong>Sklep:</strong> ${shop}<br>
-                <strong>Client ID:</strong> ${clientId}<br>
-                <strong>Redirect URI:</strong> ${redirectUri}<br>
-                <strong>App URL:</strong> ${process.env.APP_URL}<br>
+                <strong>Client ID:</strong> ${clientId || 'MISSING!'}<br>
+                <strong>Redirect URI:</strong> ${httpsRedirectUri}<br>
+                <strong>App URL:</strong> ${process.env.APP_URL || 'MISSING!'}<br>
+                <strong>Scopes:</strong> ${scopes}<br>
+                <strong>HTTPS Redirect:</strong> ${httpsRedirectUri}<br>
                 <strong>URL autoryzacji:</strong> <a href="${installUrl}" target="_blank">${installUrl}</a>
+            </div>
+            
+            <div style="background: #fff3cd; padding: 15px; border-radius: 5px; margin: 20px 0; text-align: left;">
+                <h4>🔍 Debug Info:</h4>
+                <p><strong>Expected Shopify Partner Dashboard settings:</strong></p>
+                <ul>
+                    <li><strong>App URL:</strong> ${process.env.APP_URL || 'MISSING!'}</li>
+                    <li><strong>Allowed redirection URLs:</strong> ${httpsRedirectUri}</li>
+                    <li><strong>Client ID:</strong> ${clientId || 'MISSING!'}</li>
+                </ul>
             </div>
             
             <a href="${installUrl}" class="btn">🚀 Zainstaluj aplikację</a>
