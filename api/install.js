@@ -23,7 +23,17 @@ module.exports = (req, res) => {
   }
 
   const shop = process.env.SHOP_DOMAIN || '4b4k1d-fy.myshopify.com';
-  const installUrl = `${process.env.APP_URL}/auth?shop=${shop}`;
+  
+  // Generate direct Shopify OAuth URL (no redirect through /auth)
+  const scopes = 'write_products,read_orders,write_orders';
+  const redirectUri = `${process.env.APP_URL}/auth/callback`;
+  const clientId = process.env.SHOPIFY_API_KEY;
+  
+  const installUrl = `https://${shop}/admin/oauth/authorize?` + querystring.stringify({
+    client_id: clientId,
+    scope: scopes,
+    redirect_uri: redirectUri
+  });
   
   res.setHeader('Content-Type', 'text/html');
   res.send(`
