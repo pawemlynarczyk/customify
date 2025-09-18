@@ -566,6 +566,9 @@
                     const result = await response.json();
 
                     if (result.success) {
+                        // Hide loading first
+                        this.hideLoading();
+                        
                         this.showSuccess('✅ ' + (result.message || 'Produkt został utworzony!'));
                         console.log('Product created:', result.product);
                         
@@ -584,13 +587,14 @@
                             }, 1000);
                         }
                     } else {
+                        // Hide loading on error too
+                        this.hideLoading();
                         this.showError('❌ Błąd podczas tworzenia produktu: ' + (result.error || 'Nieznany błąd'));
                     }
                 } catch (error) {
                     console.error('Add to cart error:', error);
-                    this.showError('❌ Błąd połączenia z serwerem');
-                } finally {
                     this.hideLoading();
+                    this.showError('❌ Błąd połączenia z serwerem');
                 }
             }
 
