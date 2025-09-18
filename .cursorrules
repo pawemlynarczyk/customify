@@ -33,7 +33,18 @@ Customify is a Shopify app that allows customers to:
 4. Add the customized product to cart for printing
 5. Pay for the physical printed version
 
-The app integrates with Shopify for product management and uses Vercel for API processing.
+## Product Customization Logic
+- **Original product** = only template/example image
+- **Final product** = user's photo transformed by AI in selected style
+- **Price depends on size** (small, medium, large, xlarge)
+- **User pays for physical print** of their AI-transformed photo
+- **Process**: Upload → Select style → Select size → AI transform → Create new product → Add to cart
+- **For store**: Order contains AI image for printing + original user photo + style/size info
+
+## Communication Rules
+- If you have doubts about requirements, ASK QUESTIONS before implementing
+- Always clarify the exact business logic before writing code
+- Focus on understanding the complete user journey before coding
 
 ## Common Issues to Check
 - Function syntax and exports

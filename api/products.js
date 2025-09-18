@@ -15,35 +15,122 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const { title, description, price, images, variantTitle } = req.body;
+    const { 
+      originalImage, 
+      transformedImage, 
+      style, 
+      size, 
+      originalProductTitle,
+      originalProductId 
+    } = req.body;
 
-    if (!title || !price) {
-      return res.status(400).json({ error: 'Title and price are required' });
+    if (!transformedImage || !style || !size) {
+      return res.status(400).json({ 
+        error: 'Missing required fields: transformedImage, style, size' 
+      });
     }
 
-    // This would typically use Shopify's GraphQL Admin API
-    // For demo purposes, we'll return a mock response
-    const product = {
-      id: Date.now(),
-      title: title,
-      body_html: description || '',
-      vendor: 'Customify',
-      product_type: 'Custom Product',
-      variants: [{
-        id: Date.now() + 1,
-        title: variantTitle || 'Default Title',
-        price: price,
-        inventory_quantity: 100
-      }],
-      images: images || []
+    // Size pricing
+    const sizePrices = {
+      'small': 0,
+      'medium': 25,
+      'large': 50,
+      'xlarge': 75
     };
+
+    // Style pricing
+    const stylePrices = {
+      'van gogh': 50,
+      'picasso': 75,
+      'monet': 60,
+      'anime': 40,
+      'cyberpunk': 80,
+      'watercolor': 45
+    };
+
+    const basePrice = 29.99; // Base price for custom product
+    const totalPrice = basePrice + (sizePrices[size] || 0) + (stylePrices[style] || 0);
+
+    // Create product in Shopify
+    const shop = process.env.SHOP_DOMAIN || 'customiffyy.myshopify.com';
+    const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
+
+    if (!accessToken) {
+      return res.status(500).json({ error: 'Shopify access token not configured' });
+    }
+
+    const productData = {
+      product: {
+        title: `Spersonalizowany ${originalProductTitle || 'Produkt'} - Styl ${style}`,
+        body_html: `
+          <p><strong>Spersonalizowany produkt z AI</strong></p>
+          <p><strong>Styl:</strong> ${style}</p>
+          <p><strong>Rozmiar:</strong> ${size}</p>
+          <p><strong>Oryginalny produkt:</strong> ${originalProductTitle || 'N/A'}</p>
+          <p>Twoje zdjęcie zostało przekształcone przez AI w stylu ${style} i będzie wydrukowane w rozmiarze ${size}.</p>
+        `,
+        vendor: 'Customify',
+        product_type: 'Custom AI Product',
+        tags: ['custom', 'ai', 'personalized', style, size],
+        variants: [{
+          title: `${style} - ${size}`,
+          price: totalPrice.toString(),
+          inventory_quantity: 100,
+          inventory_management: 'shopify',
+          fulfillment_service: 'manual'
+        }],
+        images: [{
+          src: transformedImage,
+          alt: `AI transformed image in ${style} style`
+        }],
+        options: [
+          {
+            name: 'Style',
+            values: [style]
+          },
+          {
+            name: 'Size', 
+            values: [size]
+          }
+        ]
+      }
+    };
+
+    // Create product via Shopify Admin API
+    const response = await fetch(`https://${shop}/admin/api/2023-10/products.json`, {
+      method: 'POST',
+      headers: {
+        'X-Shopify-Access-Token': accessToken,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(productData)
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Shopify API error:', errorText);
+      return res.status(500).json({ 
+        error: 'Failed to create product in Shopify',
+        details: errorText
+      });
+    }
+
+    const createdProduct = await response.json();
+    const product = createdProduct.product;
 
     res.json({ 
       success: true, 
-      product: product 
+      product: product,
+      variantId: product.variants[0].id,
+      message: 'Produkt został utworzony! Możesz go teraz dodać do koszyka.',
+      cartUrl: `https://${shop}/cart/add?id=${product.variants[0].id}&quantity=1&properties[Original Image]=${encodeURIComponent(originalImage || '')}&properties[AI Style]=${encodeURIComponent(style)}&properties[Size]=${encodeURIComponent(size)}&properties[Original Product]=${encodeURIComponent(originalProductTitle || '')}&properties[Customization Type]=AI Generated`
     });
+
   } catch (error) {
     console.error('Product creation error:', error);
-    res.status(500).json({ error: 'Product creation failed' });
+    res.status(500).json({ 
+      error: 'Product creation failed',
+      details: error.message 
+    });
   }
 };

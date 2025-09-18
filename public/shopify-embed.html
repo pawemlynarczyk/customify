@@ -112,6 +112,35 @@
             color: white;
         }
 
+        .customify-size-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .customify-size-btn {
+            padding: 10px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        .customify-size-btn:hover {
+            border-color: #007bff;
+            background-color: #f8f9ff;
+        }
+
+        .customify-size-btn.active {
+            border-color: #007bff;
+            background-color: #007bff;
+            color: white;
+        }
+
         .customify-actions {
             display: flex;
             gap: 10px;
@@ -237,12 +266,25 @@
         </div>
 
         <div class="customify-styles" id="stylesArea" style="display: none;">
-            <div class="customify-style-btn" data-style="van gogh">Van Gogh</div>
-            <div class="customify-style-btn" data-style="picasso">Picasso</div>
-            <div class="customify-style-btn" data-style="monet">Monet</div>
-            <div class="customify-style-btn" data-style="anime">Anime</div>
-            <div class="customify-style-btn" data-style="cyberpunk">Cyberpunk</div>
-            <div class="customify-style-btn" data-style="watercolor">Akwarela</div>
+            <h4>Wybierz styl AI:</h4>
+            <div class="customify-style-buttons">
+                <div class="customify-style-btn" data-style="van gogh">Van Gogh (+50 zł)</div>
+                <div class="customify-style-btn" data-style="picasso">Picasso (+75 zł)</div>
+                <div class="customify-style-btn" data-style="monet">Monet (+60 zł)</div>
+                <div class="customify-style-btn" data-style="anime">Anime (+40 zł)</div>
+                <div class="customify-style-btn" data-style="cyberpunk">Cyberpunk (+80 zł)</div>
+                <div class="customify-style-btn" data-style="watercolor">Akwarela (+45 zł)</div>
+            </div>
+        </div>
+
+        <div class="customify-size-selector" id="sizeArea" style="display: none;">
+            <h4>Wybierz rozmiar:</h4>
+            <div class="customify-size-buttons">
+                <div class="customify-size-btn" data-size="small">Mały (+0 zł)</div>
+                <div class="customify-size-btn" data-size="medium">Średni (+25 zł)</div>
+                <div class="customify-size-btn" data-size="large">Duży (+50 zł)</div>
+                <div class="customify-size-btn" data-size="xlarge">Bardzo duży (+75 zł)</div>
+            </div>
         </div>
 
         <div class="customify-actions" id="actionsArea" style="display: none;">
@@ -284,6 +326,7 @@
                 this.previewArea = document.getElementById('previewArea');
                 this.previewImage = document.getElementById('previewImage');
                 this.stylesArea = document.getElementById('stylesArea');
+                this.sizeArea = document.getElementById('sizeArea');
                 this.actionsArea = document.getElementById('actionsArea');
                 this.loadingArea = document.getElementById('loadingArea');
                 this.resultArea = document.getElementById('resultArea');
@@ -293,6 +336,7 @@
                 
                 this.uploadedFile = null;
                 this.selectedStyle = null;
+                this.selectedSize = null;
                 this.transformedImage = null;
                 
                 this.init();
@@ -333,6 +377,13 @@
                 this.stylesArea.addEventListener('click', (e) => {
                     if (e.target.classList.contains('customify-style-btn')) {
                         this.selectStyle(e.target);
+                    }
+                });
+
+                // Size selection
+                this.sizeArea.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('customify-size-btn')) {
+                        this.selectSize(e.target);
                     }
                 });
 
@@ -383,7 +434,8 @@
             }
 
             showStyles() {
-                this.stylesArea.style.display = 'grid';
+                this.stylesArea.style.display = 'block';
+                this.sizeArea.style.display = 'block';
                 this.actionsArea.style.display = 'flex';
             }
 
@@ -398,9 +450,20 @@
                 this.selectedStyle = styleBtn.dataset.style;
             }
 
+            selectSize(sizeBtn) {
+                // Remove active class from all buttons
+                this.sizeArea.querySelectorAll('.customify-size-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                
+                // Add active class to selected button
+                sizeBtn.classList.add('active');
+                this.selectedSize = sizeBtn.dataset.size;
+            }
+
             async transformImage() {
-                if (!this.uploadedFile || !this.selectedStyle) {
-                    this.showError('Proszę wybrać zdjęcie i styl');
+                if (!this.uploadedFile || !this.selectedStyle || !this.selectedSize) {
+                    this.showError('Proszę wybrać zdjęcie, styl i rozmiar');
                     return;
                 }
 
@@ -446,8 +509,8 @@
             }
 
             async addToCart() {
-                if (!this.transformedImage) {
-                    this.showError('Brak przekształconego obrazu');
+                if (!this.transformedImage || !this.selectedStyle || !this.selectedSize) {
+                    this.showError('Brak przekształconego obrazu, stylu lub rozmiaru');
                     return;
                 }
 
@@ -455,6 +518,10 @@
                 this.hideError();
 
                 try {
+                    // Get original product info
+                    const originalImage = await this.fileToBase64(this.uploadedFile);
+                    const originalProductTitle = document.querySelector('h1, .product-title, .view-product-title')?.textContent?.trim() || 'Produkt';
+                    
                     // Create product with transformed image
                     const response = await fetch('https://customify-s56o.vercel.app/api/products', {
                         method: 'POST',
@@ -462,26 +529,51 @@
                             'Content-Type': 'application/json',
                         },
                         body: JSON.stringify({
-                            title: `Spersonalizowany produkt - ${this.selectedStyle}`,
-                            description: `Produkt z Twoim zdjęciem w stylu ${this.selectedStyle}`,
-                            price: '29.99',
-                            images: [this.transformedImage],
-                            variantTitle: 'Custom AI Art'
+                            originalImage: originalImage,
+                            transformedImage: this.transformedImage,
+                            style: this.selectedStyle,
+                            size: this.selectedSize,
+                            originalProductTitle: originalProductTitle,
+                            originalProductId: document.querySelector('[data-product-id]')?.dataset?.productId || null
                         })
                     });
 
                     const result = await response.json();
 
                     if (result.success) {
-                        this.showSuccess('Produkt został dodany do koszyka!');
-                        // Here you would typically redirect to cart or show cart modal
+                        this.showSuccess('✅ ' + (result.message || 'Produkt został utworzony!'));
                         console.log('Product created:', result.product);
+                        
+                        // Add to cart using the provided URL
+                        if (result.cartUrl) {
+                            try {
+                                const cartResponse = await fetch(result.cartUrl, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/x-www-form-urlencoded',
+                                    }
+                                });
+                                
+                                if (cartResponse.ok) {
+                                    this.showSuccess('✅ Produkt został dodany do koszyka!');
+                                    // Redirect to cart after 2 seconds
+                                    setTimeout(() => {
+                                        window.location.href = '/cart';
+                                    }, 2000);
+                                } else {
+                                    this.showError('❌ Błąd podczas dodawania do koszyka');
+                                }
+                            } catch (cartError) {
+                                console.error('Cart error:', cartError);
+                                this.showError('❌ Błąd podczas dodawania do koszyka');
+                            }
+                        }
                     } else {
-                        this.showError('Błąd podczas dodawania do koszyka: ' + (result.error || 'Nieznany błąd'));
+                        this.showError('❌ Błąd podczas tworzenia produktu: ' + (result.error || 'Nieznany błąd'));
                     }
                 } catch (error) {
                     console.error('Add to cart error:', error);
-                    this.showError('Błąd połączenia z serwerem');
+                    this.showError('❌ Błąd połączenia z serwerem');
                 } finally {
                     this.hideLoading();
                 }
@@ -502,11 +594,13 @@
             reset() {
                 this.uploadedFile = null;
                 this.selectedStyle = null;
+                this.selectedSize = null;
                 this.transformedImage = null;
                 
                 this.fileInput.value = '';
                 this.previewArea.style.display = 'none';
                 this.stylesArea.style.display = 'none';
+                this.sizeArea.style.display = 'none';
                 this.actionsArea.style.display = 'none';
                 this.resultArea.style.display = 'none';
                 this.hideError();
@@ -514,6 +608,11 @@
                 
                 // Reset style buttons
                 this.stylesArea.querySelectorAll('.customify-style-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                
+                // Reset size buttons
+                this.sizeArea.querySelectorAll('.customify-size-btn').forEach(btn => {
                     btn.classList.remove('active');
                 });
             }
