@@ -122,16 +122,21 @@
 
     // Alternative: Load as inline content
     function loadCustomifyInline(container) {
-        log('Loading Customify inline...');
+        console.log('🚀 Loading Customify inline...');
         
         // Fetch embed content
         fetch(CUSTOMIFY_CONFIG.embedUrl)
-            .then(response => response.text())
+            .then(response => {
+                console.log('📡 Fetch response:', response.status);
+                return response.text();
+            })
             .then(html => {
+                console.log('📄 HTML received, length:', html.length);
                 // Extract body content
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(html, 'text/html');
                 const bodyContent = doc.body.innerHTML;
+                console.log('🔍 Body content extracted, length:', bodyContent.length);
                 
                 // Create wrapper
                 const wrapper = createElement('div', {
@@ -237,9 +242,11 @@
 
         // Load embed (try inline first, fallback to iframe)
         try {
+            console.log('🚀 Trying inline loading...');
             loadCustomifyInline(container);
+            console.log('✅ Inline loading successful');
         } catch (e) {
-            log('Inline loading failed, using iframe:', e);
+            console.log('❌ Inline loading failed, using iframe:', e);
             loadCustomifyEmbed(container);
         }
 
