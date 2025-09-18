@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customify - AI Product Customization</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .upload-section, .preview-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #4a5568;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+        }
+
+        .upload-area {
+            border: 3px dashed #cbd5e0;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .upload-area:hover {
+            border-color: #667eea;
+            background-color: #f7fafc;
+        }
+
+        .upload-area.dragover {
+            border-color: #667eea;
+            background-color: #edf2f7;
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            color: #a0aec0;
+            margin-bottom: 15px;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .image-preview {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 8px;
+            margin: 15px 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .product-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-top: 30px;
+        }
+
+        .product-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .product-form {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎨 Customify</h1>
+            <p>Transformuj swoje produkty za pomocą sztucznej inteligencji</p>
+        </div>
+
+        <div class="main-content">
+            <div class="upload-section">
+                <h2 class="section-title">📤 Wgraj obraz</h2>
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📁</div>
+                    <p>Kliknij lub przeciągnij obraz tutaj</p>
+                    <p style="color: #a0aec0; font-size: 0.9rem;">Maksymalny rozmiar: 10MB</p>
+                    <input type="file" id="fileInput" class="file-input" accept="image/*">
+                </div>
+                <button class="btn" onclick="document.getElementById('fileInput').click()">
+                    Wybierz plik
+                </button>
+            </div>
+
+            <div class="preview-section">
+                <h2 class="section-title">👁️ Podgląd</h2>
+                <div id="imagePreview"></div>
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Przetwarzanie obrazu...</p>
+                </div>
+                <div id="transformedPreview"></div>
+            </div>
+        </div>
+
+        <div class="product-section">
+            <h2 class="section-title">🛍️ Utwórz produkt</h2>
+            <form id="productForm" class="product-form">
+                <div class="form-group">
+                    <label for="productTitle">Nazwa produktu</label>
+                    <input type="text" id="productTitle" required>
+                </div>
+                <div class="form-group">
+                    <label for="productPrice">Cena (PLN)</label>
+                    <input type="number" id="productPrice" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="productDescription">Opis</label>
+                    <textarea id="productDescription" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="aiPrompt">Prompt AI</label>
+                    <input type="text" id="aiPrompt" placeholder="np. 'Zmień kolor na niebieski'">
+                </div>
+                <div class="form-group">
+                    <button type="button" class="btn" onclick="transformImage()">
+                        ✨ Transformuj obraz
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="createProduct()">
+                        🛒 Utwórz produkt
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div id="alerts"></div>
+    </div>
+
+    <script>
+        let uploadedFile = null;
+        let transformedImageUrl = null;
+
+        // File upload handling
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const imagePreview = document.getElementById('imagePreview');
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+        uploadArea.addEventListener('dragover', handleDragOver);
+        uploadArea.addEventListener('dragleave', handleDragLeave);
+        uploadArea.addEventListener('drop', handleDrop);
+        fileInput.addEventListener('change', handleFileSelect);
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        }
+
+        function handleDragLeave(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        }
+
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) {
+                handleFile(file);
+            }
+        }
+
+        function handleFile(file) {
+            if (!file.type.startsWith('image/')) {
+                showAlert('Proszę wybrać plik obrazu', 'error');
+                return;
+            }
+
+            if (file.size > 10 * 1024 * 1024) {
+                showAlert('Plik jest za duży. Maksymalny rozmiar to 10MB', 'error');
+                return;
+            }
+
+            uploadedFile = file;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                imagePreview.innerHTML = `<img src="${e.target.result}" class="image-preview" alt="Podgląd">`;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function transformImage() {
+            if (!uploadedFile) {
+                showAlert('Proszę najpierw wgrać obraz', 'error');
+                return;
+            }
+
+            const prompt = document.getElementById('aiPrompt').value;
+            if (!prompt) {
+                showAlert('Proszę wprowadzić prompt AI', 'error');
+                return;
+            }
+
+            const loading = document.getElementById('loading');
+            const transformedPreview = document.getElementById('transformedPreview');
+            
+            loading.style.display = 'block';
+            transformedPreview.innerHTML = '';
+
+            try {
+                // Upload file first
+                const formData = new FormData();
+                formData.append('image', uploadedFile);
+
+                const uploadResponse = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const uploadResult = await uploadResponse.json();
+                
+                if (!uploadResult.success) {
+                    throw new Error(uploadResult.error);
+                }
+
+                // Transform image
+                const transformResponse = await fetch('/api/transform', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        imageUrl: uploadResult.filePath,
+                        prompt: prompt
+                    })
+                });
+
+                const transformResult = await transformResponse.json();
+                
+                if (!transformResult.success) {
+                    throw new Error(transformResult.error);
+                }
+
+                transformedImageUrl = transformResult.transformedImage;
+                transformedPreview.innerHTML = `
+                    <h3>Przekształcony obraz:</h3>
+                    <img src="${transformedImageUrl}" class="image-preview" alt="Przekształcony obraz">
+                `;
+
+                showAlert('Obraz został pomyślnie przekształcony!', 'success');
+
+            } catch (error) {
+                console.error('Transform error:', error);
+                showAlert('Błąd podczas przekształcania obrazu: ' + error.message, 'error');
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        async function createProduct() {
+            const title = document.getElementById('productTitle').value;
+            const price = document.getElementById('productPrice').value;
+            const description = document.getElementById('productDescription').value;
+
+            if (!title || !price) {
+                showAlert('Nazwa produktu i cena są wymagane', 'error');
+                return;
+            }
+
+            try {
+                const images = [];
+                if (transformedImageUrl) {
+                    images.push({ src: transformedImageUrl });
+                }
+
+                const response = await fetch('/api/products', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        title: title,
+                        description: description,
+                        price: price,
+                        images: images,
+                        variantTitle: 'Customized'
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    showAlert('Produkt został pomyślnie utworzony!', 'success');
+                    // Reset form
+                    document.getElementById('productForm').reset();
+                    imagePreview.innerHTML = '';
+                    document.getElementById('transformedPreview').innerHTML = '';
+                    uploadedFile = null;
+                    transformedImageUrl = null;
+                } else {
+                    throw new Error(result.error);
+                }
+
+            } catch (error) {
+                console.error('Product creation error:', error);
+                showAlert('Błąd podczas tworzenia produktu: ' + error.message, 'error');
+            }
+        }
+
+        function showAlert(message, type) {
+            const alertsContainer = document.getElementById('alerts');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            alertsContainer.appendChild(alert);
+
+            // Remove alert after 5 seconds
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
