@@ -99,10 +99,15 @@ module.exports = async (req, res) => {
     const createdProduct = await response.json();
     const product = createdProduct.product;
 
+    console.log('🔍 [PRODUCTS.JS] Created product response:', JSON.stringify(product, null, 2));
+    console.log('🔍 [PRODUCTS.JS] Variant ID:', product.variants[0].id);
+    console.log('🔍 [PRODUCTS.JS] Product ID:', product.id);
+
     res.json({ 
       success: true, 
       product: product,
       variantId: product.variants[0].id,
+      productId: product.id,
       message: 'Produkt został utworzony! Możesz go teraz dodać do koszyka.',
       cartUrl: `https://${shop}/cart/add?id=${product.variants[0].id}&quantity=1&properties[Original Image]=${encodeURIComponent(originalImage || '')}&properties[AI Style]=${encodeURIComponent(style)}&properties[Original Product]=${encodeURIComponent(originalProductTitle || '')}&properties[Customization Type]=AI Generated`
     });

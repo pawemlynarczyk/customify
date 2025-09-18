@@ -571,27 +571,17 @@
                         
                         // Add to cart using the provided URL
                         if (result.cartUrl) {
-                            try {
-                                const cartResponse = await fetch(result.cartUrl, {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/x-www-form-urlencoded',
-                                    }
-                                });
-                                
-                                if (cartResponse.ok) {
-                                    this.showSuccess('✅ Produkt został dodany do koszyka!');
-                                    // Redirect to cart after 2 seconds
-                                    setTimeout(() => {
-                                        window.location.href = '/cart';
-                                    }, 2000);
-                                } else {
-                                    this.showError('❌ Błąd podczas dodawania do koszyka');
-                                }
-                            } catch (cartError) {
-                                console.error('Cart error:', cartError);
-                                this.showError('❌ Błąd podczas dodawania do koszyka');
-                            }
+                            console.log('🛒 [SHOPIFY-EMBED.HTML] Attempting to add to cart with URL:', result.cartUrl);
+                            console.log('🛒 [SHOPIFY-EMBED.HTML] Variant ID:', result.variantId);
+                            console.log('🛒 [SHOPIFY-EMBED.HTML] Product ID:', result.productId);
+                            
+                            // Use direct navigation instead of fetch to avoid CORS issues
+                            this.showSuccess('✅ Produkt został utworzony! Przekierowuję do koszyka...');
+                            
+                            // Redirect directly to cart URL (simpler approach)
+                            setTimeout(() => {
+                                window.location.href = result.cartUrl;
+                            }, 1000);
                         }
                     } else {
                         this.showError('❌ Błąd podczas tworzenia produktu: ' + (result.error || 'Nieznany błąd'));
