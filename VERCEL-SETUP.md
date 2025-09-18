@@ -23,6 +23,10 @@ Name: SHOP_DOMAIN
 Value: customiffyy.myshopify.com
 Environment: Production, Preview, Development
 
+Name: SHOPIFY_ACCESS_TOKEN
+Value: your_access_token_here
+Environment: Production, Preview, Development
+
 Name: REPLICATE_API_TOKEN
 Value: leave_empty_for_now
 Environment: Production, Preview, Development
