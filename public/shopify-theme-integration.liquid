@@ -463,10 +463,12 @@
             const result = await response.json();
 
             if (result.success) {
+              console.log('✅ [SHOPIFY-THEME-INTEGRATION.LIQUID] AI transformation successful:', result.transformedImage);
               this.transformedImage = result.transformedImage;
               this.showResult(result.transformedImage);
               this.showSuccess('Zdjęcie zostało pomyślnie przekształcone!');
             } else {
+              console.error('❌ [SHOPIFY-THEME-INTEGRATION.LIQUID] AI transformation failed:', result.error);
               this.showError('Błąd podczas transformacji: ' + (result.error || 'Nieznany błąd'));
             }
           } catch (error) {
@@ -478,11 +480,11 @@
         }
 
         showResult(imageUrl) {
-          console.log('🎯 showResult called with:', imageUrl);
-          console.log('🎯 this.result element:', this.result);
+          console.log('🎯 [SHOPIFY-THEME-INTEGRATION.LIQUID] showResult called with:', imageUrl);
+          console.log('🎯 [SHOPIFY-THEME-INTEGRATION.LIQUID] this.result element:', this.result);
           this.resultImage.src = imageUrl;
           this.result.style.display = 'block';
-          console.log('🎯 result display set to block');
+          console.log('🎯 [SHOPIFY-THEME-INTEGRATION.LIQUID] result display set to block');
         }
 
         async addToCart() {
