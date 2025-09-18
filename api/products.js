@@ -82,17 +82,7 @@ module.exports = async (req, res) => {
         images: [{
           src: transformedImage,
           alt: `AI transformed image in ${style} style`
-        }],
-        options: [
-          {
-            name: 'Style',
-            values: [style]
-          },
-          {
-            name: 'Size', 
-            values: [size]
-          }
-        ]
+        }]
       }
     };
 
