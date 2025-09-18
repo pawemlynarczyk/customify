@@ -23,7 +23,7 @@ module.exports = (req, res) => {
   }
 
   const shop = process.env.SHOP_DOMAIN || '4b4k1d-fy.myshopify.com';
-  const installUrl = `${process.env.APP_URL}/auth/callback?shop=${shop}`;
+  const installUrl = `${process.env.APP_URL}/auth?shop=${shop}`;
   
   res.setHeader('Content-Type', 'text/html');
   res.send(`
