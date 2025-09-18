@@ -20,6 +20,10 @@
       "dest": "/api/install.js"
     },
     {
+      "src": "/status",
+      "dest": "/api/status.js"
+    },
+    {
       "src": "/auth",
       "dest": "/api/auth.js"
     },
