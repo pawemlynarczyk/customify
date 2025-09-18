@@ -1,6 +1,12 @@
 const crypto = require('crypto');
 
 module.exports = async (req, res) => {
+  console.log('🚀 Status endpoint called:', {
+    method: req.method,
+    url: req.url,
+    headers: req.headers
+  });
+  
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -28,7 +34,10 @@ module.exports = async (req, res) => {
     tokenLength: accessToken ? accessToken.length : 0,
     tokenStart: accessToken ? accessToken.substring(0, 10) + '...' : 'none',
     shop,
-    clientId: !!clientId
+    clientId: !!clientId,
+    allEnvKeys: Object.keys(process.env).filter(key => key.includes('SHOPIFY')),
+    nodeEnv: process.env.NODE_ENV,
+    vercelEnv: process.env.VERCEL_ENV
   });
   
   let installationStatus = 'unknown';
