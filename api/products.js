@@ -63,7 +63,7 @@ module.exports = async (req, res) => {
         vendor: 'Customify',
         product_type: 'Custom AI Product',
         tags: ['custom', 'ai', 'personalized', style, 'hidden'],
-        published: false, // UKRYJ W KATALOGU
+        published: true, // OPUBLIKUJ PRODUKT
         published_scope: 'web', // TYLKO WEB (nie w API)
         variants: [{
           title: `Styl ${style}`,
@@ -106,6 +106,8 @@ module.exports = async (req, res) => {
     console.log('🔍 [PRODUCTS.JS] Created product response:', JSON.stringify(product, null, 2));
     console.log('🔍 [PRODUCTS.JS] Variant ID:', product.variants[0].id);
     console.log('🔍 [PRODUCTS.JS] Product ID:', product.id);
+    console.log('🔍 [PRODUCTS.JS] Product published:', product.published);
+    console.log('🔍 [PRODUCTS.JS] Product status:', product.status);
 
     res.json({ 
       success: true, 
