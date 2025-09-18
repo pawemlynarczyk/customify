@@ -108,6 +108,8 @@ module.exports = async (req, res) => {
     console.log('🔍 [PRODUCTS.JS] Product ID:', product.id);
     console.log('🔍 [PRODUCTS.JS] Product published:', product.published);
     console.log('🔍 [PRODUCTS.JS] Product status:', product.status);
+    console.log('🔍 [PRODUCTS.JS] Product images:', product.images);
+    console.log('🔍 [PRODUCTS.JS] Transformed image URL:', transformedImage);
 
     res.json({ 
       success: true, 
