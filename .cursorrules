@@ -81,3 +81,10 @@ Customify is a Shopify app that allows customers to:
 - Verify variant ID vs product ID usage
 - Monitor network tab for failed requests
 - Use direct navigation instead of fetch for cart operations
+
+### Deployment Process
+- **ALWAYS push changes to GitHub after fixes**
+- Use `git add . && git commit -m "description" && git push origin main`
+- Vercel automatically deploys from GitHub
+- Test changes on live site after deployment
+- Update cursor rules with new fixes and learnings
