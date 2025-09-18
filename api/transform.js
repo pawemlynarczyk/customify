@@ -44,34 +44,25 @@ module.exports = async (req, res) => {
     // Map styles to appropriate models and parameters
     const styleConfig = {
       'van gogh': {
-        model: "black-forest-labs/flux-dev:latest",
+        model: "stability-ai/stable-diffusion:db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf",
         prompt: `in the style of Vincent van Gogh, ${prompt}, oil painting, thick brushstrokes, vibrant colors, post-impressionist`,
-        model_type: "dev",
-        guidance_scale: 3.5,
-        num_inference_steps: 28,
-        aspect_ratio: "1:1",
-        output_format: "webp",
-        output_quality: 90
+        guidance_scale: 7.5,
+        num_inference_steps: 50,
+        strength: 0.8
       },
       'picasso': {
-        model: "black-forest-labs/flux-dev:latest",
+        model: "stability-ai/stable-diffusion:db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf",
         prompt: `in the style of Pablo Picasso, ${prompt}, cubist, abstract, geometric shapes, bold colors`,
-        model_type: "dev",
-        guidance_scale: 3.5,
-        num_inference_steps: 28,
-        aspect_ratio: "1:1",
-        output_format: "webp",
-        output_quality: 90
+        guidance_scale: 7.5,
+        num_inference_steps: 50,
+        strength: 0.8
       },
       'monet': {
-        model: "black-forest-labs/flux-dev:latest",
+        model: "stability-ai/stable-diffusion:db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf",
         prompt: `in the style of Claude Monet, ${prompt}, impressionist, soft brushstrokes, light and color, water lilies style`,
-        model_type: "dev",
-        guidance_scale: 3.5,
-        num_inference_steps: 28,
-        aspect_ratio: "1:1",
-        output_format: "webp",
-        output_quality: 90
+        guidance_scale: 7.5,
+        num_inference_steps: 50,
+        strength: 0.8
       },
       'anime': {
         model: "aaronaftab/mirage-ghibli:166efd159b4138da932522bc5af40d39194033f587d9bdbab1e594119eae3e7f",
@@ -82,24 +73,18 @@ module.exports = async (req, res) => {
         num_inference_steps: 38
       },
       'cyberpunk': {
-        model: "black-forest-labs/flux-dev:latest",
+        model: "stability-ai/stable-diffusion:db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf",
         prompt: `cyberpunk style, ${prompt}, neon lights, futuristic, high tech, dark atmosphere, glowing effects`,
-        model_type: "dev",
-        guidance_scale: 3.5,
-        num_inference_steps: 28,
-        aspect_ratio: "1:1",
-        output_format: "webp",
-        output_quality: 90
+        guidance_scale: 7.5,
+        num_inference_steps: 50,
+        strength: 0.8
       },
       'watercolor': {
-        model: "black-forest-labs/flux-dev:latest",
+        model: "stability-ai/stable-diffusion:db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf",
         prompt: `watercolor painting, ${prompt}, soft colors, flowing brushstrokes, artistic, delicate`,
-        model_type: "dev",
-        guidance_scale: 3.5,
-        num_inference_steps: 28,
-        aspect_ratio: "1:1",
-        output_format: "webp",
-        output_quality: 90
+        guidance_scale: 7.5,
+        num_inference_steps: 50,
+        strength: 0.8
       }
     };
 
@@ -125,21 +110,8 @@ module.exports = async (req, res) => {
         prompt_strength: config.prompt_strength,
         num_inference_steps: config.num_inference_steps
       };
-    } else if (config.model.includes('flux')) {
-      // Flux model parameters
-      inputParams = {
-        ...inputParams,
-        image: imageUrl,
-        model: config.model_type,
-        guidance_scale: config.guidance_scale,
-        num_inference_steps: config.num_inference_steps,
-        aspect_ratio: config.aspect_ratio,
-        output_format: config.output_format,
-        output_quality: config.output_quality,
-        prompt_strength: 0.8
-      };
     } else {
-      // Stable Diffusion model parameters (fallback)
+      // Stable Diffusion model parameters (default)
       inputParams = {
         ...inputParams,
         image: imageUrl,
