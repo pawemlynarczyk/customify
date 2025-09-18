@@ -25,6 +25,16 @@
 - api/install.js - OAuth installation
 - vercel.json - Vercel configuration
 
+## Project Goal
+Customify is a Shopify app that allows customers to:
+1. Upload their own photos on product pages
+2. Use AI (Replicate API) to transform/modify the photos with various styles
+3. Preview the AI-modified image
+4. Add the customized product to cart for printing
+5. Pay for the physical printed version
+
+The app integrates with Shopify for product management and uses Vercel for API processing.
+
 ## Common Issues to Check
 - Function syntax and exports
 - API endpoint routing
