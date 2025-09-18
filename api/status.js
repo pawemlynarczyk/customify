@@ -23,6 +23,14 @@ module.exports = async (req, res) => {
   // Check if we have access token (app is installed)
   const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
   
+  console.log('🔍 Status debug:', {
+    hasAccessToken: !!accessToken,
+    tokenLength: accessToken ? accessToken.length : 0,
+    tokenStart: accessToken ? accessToken.substring(0, 10) + '...' : 'none',
+    shop,
+    clientId: !!clientId
+  });
+  
   let installationStatus = 'unknown';
   let shopInfo = null;
   let error = null;
@@ -93,6 +101,8 @@ module.exports = async (req, res) => {
                 <p><strong>Client ID:</strong> ${clientId || 'MISSING!'}</p>
                 <p><strong>App URL:</strong> ${appUrl || 'MISSING!'}</p>
                 <p><strong>Access Token:</strong> ${accessToken ? '✅ Ustawiony' : '❌ Brak'}</p>
+                ${accessToken ? `<p><strong>Token (pierwsze 10 znaków):</strong> ${accessToken.substring(0, 10)}...</p>` : ''}
+                <p><strong>Długość tokenu:</strong> ${accessToken ? accessToken.length : 0} znaków</p>
             </div>
 
             ${shopInfo ? `
