@@ -11,8 +11,9 @@ if (process.env.REPLICATE_API_TOKEN && process.env.REPLICATE_API_TOKEN !== 'leav
 module.exports = async (req, res) => {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  res.setHeader('Access-Control-Max-Age', '86400');
 
   if (req.method === 'OPTIONS') {
     res.status(200).end();
@@ -39,7 +40,6 @@ module.exports = async (req, res) => {
     const imageUrl = `data:image/jpeg;base64,${imageData}`;
 
     // Use Replicate for AI image transformation with different models based on style
-    let model, inputParams;
     
     // Map styles to appropriate models and parameters
     const styleConfig = {
