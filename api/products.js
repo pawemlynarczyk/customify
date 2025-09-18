@@ -24,19 +24,11 @@ module.exports = async (req, res) => {
       originalProductId 
     } = req.body;
 
-    if (!transformedImage || !style || !size) {
+    if (!transformedImage || !style) {
       return res.status(400).json({ 
-        error: 'Missing required fields: transformedImage, style, size' 
+        error: 'Missing required fields: transformedImage, style' 
       });
     }
-
-    // Size pricing
-    const sizePrices = {
-      'small': 0,
-      'medium': 25,
-      'large': 50,
-      'xlarge': 75
-    };
 
     // Style pricing
     const stylePrices = {
@@ -49,7 +41,7 @@ module.exports = async (req, res) => {
     };
 
     const basePrice = 29.99; // Base price for custom product
-    const totalPrice = basePrice + (sizePrices[size] || 0) + (stylePrices[style] || 0);
+    const totalPrice = basePrice + (stylePrices[style] || 0);
 
     // Create product in Shopify
     const shop = process.env.SHOP_DOMAIN || 'customiffyy.myshopify.com';
@@ -65,15 +57,14 @@ module.exports = async (req, res) => {
         body_html: `
           <p><strong>Spersonalizowany produkt z AI</strong></p>
           <p><strong>Styl:</strong> ${style}</p>
-          <p><strong>Rozmiar:</strong> ${size}</p>
           <p><strong>Oryginalny produkt:</strong> ${originalProductTitle || 'N/A'}</p>
-          <p>Twoje zdjęcie zostało przekształcone przez AI w stylu ${style} i będzie wydrukowane w rozmiarze ${size}.</p>
+          <p>Twoje zdjęcie zostało przekształcone przez AI w stylu ${style}.</p>
         `,
         vendor: 'Customify',
         product_type: 'Custom AI Product',
-        tags: ['custom', 'ai', 'personalized', style, size],
+        tags: ['custom', 'ai', 'personalized', style],
         variants: [{
-          title: `${style} - ${size}`,
+          title: `Styl ${style}`,
           price: totalPrice.toString(),
           inventory_quantity: 100,
           inventory_management: 'shopify',
@@ -113,7 +104,7 @@ module.exports = async (req, res) => {
       product: product,
       variantId: product.variants[0].id,
       message: 'Produkt został utworzony! Możesz go teraz dodać do koszyka.',
-      cartUrl: `https://${shop}/cart/add?id=${product.variants[0].id}&quantity=1&properties[Original Image]=${encodeURIComponent(originalImage || '')}&properties[AI Style]=${encodeURIComponent(style)}&properties[Size]=${encodeURIComponent(size)}&properties[Original Product]=${encodeURIComponent(originalProductTitle || '')}&properties[Customization Type]=AI Generated`
+      cartUrl: `https://${shop}/cart/add?id=${product.variants[0].id}&quantity=1&properties[Original Image]=${encodeURIComponent(originalImage || '')}&properties[AI Style]=${encodeURIComponent(style)}&properties[Original Product]=${encodeURIComponent(originalProductTitle || '')}&properties[Customization Type]=AI Generated`
     });
 
   } catch (error) {
