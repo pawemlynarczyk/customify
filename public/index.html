@@ -290,6 +290,29 @@
     </div>
 
     <script>
+        // OAuth Callback Handler
+        function handleOAuthCallback() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const shop = urlParams.get('shop');
+            const hmac = urlParams.get('hmac');
+            const host = urlParams.get('host');
+            const timestamp = urlParams.get('timestamp');
+            
+            if (shop && hmac) {
+                console.log('🔐 OAuth callback detected:', { shop, hmac, host, timestamp });
+                
+                // Show OAuth success message
+                showAlert(`OAuth successful! Shop: ${shop}`, 'success');
+                
+                // Clean URL (remove OAuth parameters)
+                const cleanUrl = window.location.origin + window.location.pathname;
+                window.history.replaceState({}, document.title, cleanUrl);
+            }
+        }
+        
+        // Call OAuth handler on page load
+        document.addEventListener('DOMContentLoaded', handleOAuthCallback);
+        
         let uploadedFile = null;
         let transformedImageUrl = null;
 
