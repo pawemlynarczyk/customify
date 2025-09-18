@@ -28,6 +28,10 @@
       "dest": "/api/status.js"
     },
     {
+      "src": "/test",
+      "dest": "/api/test.js"
+    },
+    {
       "src": "/auth",
       "dest": "/api/auth.js"
     },
