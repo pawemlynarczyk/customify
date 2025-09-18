@@ -20,7 +20,7 @@ Value: 40e832d641a2ac8c6a2acf1945a34436
 Environment: Production, Preview, Development
 
 Name: SHOP_DOMAIN
-Value: 4b4k1d-fy.myshopify.com
+Value: customiffyy.myshopify.com
 Environment: Production, Preview, Development
 
 Name: REPLICATE_API_TOKEN
