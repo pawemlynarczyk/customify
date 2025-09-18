@@ -8,7 +8,10 @@
         embedUrl: 'https://customify-s56o.vercel.app/shopify-embed.html',
         containerId: 'customify-app-container',
         enabledProducts: [], // Will be populated from Shopify
-        debug: false
+        debug: false,
+        // Custom button texts
+        addToCartText: window.CustomifyConfig?.addToCartText || '🛒 Dodaj spersonalizowany produkt',
+        tryAgainText: window.CustomifyConfig?.tryAgainText || '🔄 Spróbuj ponownie'
     };
 
     // Utility functions
