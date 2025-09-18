@@ -1,5 +1,13 @@
 module.exports = (req, res) => {
-  console.log('🧪 Test function called');
+  console.log('🧪 Test function called - START');
+  console.log('🧪 Request method:', req.method);
+  console.log('🧪 Request URL:', req.url);
+  console.log('🧪 Environment check:', {
+    hasApiKey: !!process.env.SHOPIFY_API_KEY,
+    hasAccessToken: !!process.env.SHOPIFY_ACCESS_TOKEN,
+    allEnvKeys: Object.keys(process.env).filter(key => key.includes('SHOPIFY'))
+  });
+  
   res.setHeader('Content-Type', 'text/html');
   res.send(`
     <h1>Test Function</h1>
