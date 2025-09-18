@@ -44,25 +44,34 @@ module.exports = async (req, res) => {
     // Map styles to appropriate models and parameters
     const styleConfig = {
       'van gogh': {
-        model: "stability-ai/stable-diffusion:db21e45d3f7023abc2e46a38e7e5df2717954a28",
+        model: "black-forest-labs/flux-dev:latest",
         prompt: `in the style of Vincent van Gogh, ${prompt}, oil painting, thick brushstrokes, vibrant colors, post-impressionist`,
-        strength: 0.8,
-        guidance_scale: 7.5,
-        num_inference_steps: 20
+        model_type: "dev",
+        guidance_scale: 3.5,
+        num_inference_steps: 28,
+        aspect_ratio: "1:1",
+        output_format: "webp",
+        output_quality: 90
       },
       'picasso': {
-        model: "stability-ai/stable-diffusion:db21e45d3f7023abc2e46a38e7e5df2717954a28",
+        model: "black-forest-labs/flux-dev:latest",
         prompt: `in the style of Pablo Picasso, ${prompt}, cubist, abstract, geometric shapes, bold colors`,
-        strength: 0.8,
-        guidance_scale: 7.5,
-        num_inference_steps: 20
+        model_type: "dev",
+        guidance_scale: 3.5,
+        num_inference_steps: 28,
+        aspect_ratio: "1:1",
+        output_format: "webp",
+        output_quality: 90
       },
       'monet': {
-        model: "stability-ai/stable-diffusion:db21e45d3f7023abc2e46a38e7e5df2717954a28",
+        model: "black-forest-labs/flux-dev:latest",
         prompt: `in the style of Claude Monet, ${prompt}, impressionist, soft brushstrokes, light and color, water lilies style`,
-        strength: 0.8,
-        guidance_scale: 7.5,
-        num_inference_steps: 20
+        model_type: "dev",
+        guidance_scale: 3.5,
+        num_inference_steps: 28,
+        aspect_ratio: "1:1",
+        output_format: "webp",
+        output_quality: 90
       },
       'anime': {
         model: "aaronaftab/mirage-ghibli:166efd159b4138da932522bc5af40d39194033f587d9bdbab1e594119eae3e7f",
@@ -73,18 +82,24 @@ module.exports = async (req, res) => {
         num_inference_steps: 38
       },
       'cyberpunk': {
-        model: "stability-ai/stable-diffusion:db21e45d3f7023abc2e46a38e7e5df2717954a28",
+        model: "black-forest-labs/flux-dev:latest",
         prompt: `cyberpunk style, ${prompt}, neon lights, futuristic, high tech, dark atmosphere, glowing effects`,
-        strength: 0.8,
-        guidance_scale: 7.5,
-        num_inference_steps: 20
+        model_type: "dev",
+        guidance_scale: 3.5,
+        num_inference_steps: 28,
+        aspect_ratio: "1:1",
+        output_format: "webp",
+        output_quality: 90
       },
       'watercolor': {
-        model: "stability-ai/stable-diffusion:db21e45d3f7023abc2e46a38e7e5df2717954a28",
+        model: "black-forest-labs/flux-dev:latest",
         prompt: `watercolor painting, ${prompt}, soft colors, flowing brushstrokes, artistic, delicate`,
-        strength: 0.7,
-        guidance_scale: 7.5,
-        num_inference_steps: 20
+        model_type: "dev",
+        guidance_scale: 3.5,
+        num_inference_steps: 28,
+        aspect_ratio: "1:1",
+        output_format: "webp",
+        output_quality: 90
       }
     };
 
@@ -96,7 +111,6 @@ module.exports = async (req, res) => {
 
     // Prepare input parameters based on model
     let inputParams = {
-      image: imageUrl,
       prompt: config.prompt
     };
 
@@ -105,15 +119,30 @@ module.exports = async (req, res) => {
       // Ghibli anime model parameters
       inputParams = {
         ...inputParams,
+        image: imageUrl,
         go_fast: config.go_fast,
         guidance_scale: config.guidance_scale,
         prompt_strength: config.prompt_strength,
         num_inference_steps: config.num_inference_steps
       };
-    } else {
-      // Stable Diffusion model parameters
+    } else if (config.model.includes('flux')) {
+      // Flux model parameters
       inputParams = {
         ...inputParams,
+        image: imageUrl,
+        model: config.model_type,
+        guidance_scale: config.guidance_scale,
+        num_inference_steps: config.num_inference_steps,
+        aspect_ratio: config.aspect_ratio,
+        output_format: config.output_format,
+        output_quality: config.output_quality,
+        prompt_strength: 0.8
+      };
+    } else {
+      // Stable Diffusion model parameters (fallback)
+      inputParams = {
+        ...inputParams,
+        image: imageUrl,
         num_inference_steps: config.num_inference_steps,
         guidance_scale: config.guidance_scale,
         strength: config.strength
