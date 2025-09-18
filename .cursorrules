@@ -49,6 +49,9 @@ Customify is a Shopify app that allows customers to:
 - If you have doubts about requirements, ASK QUESTIONS before implementing
 - Always clarify the exact business logic before writing code
 - Focus on understanding the complete user journey before coding
+- User explicitly stated: NO MORE PASSWORD SUGGESTIONS - user doesn't want password solutions, stop proposing password-related fixes
+- User confirmed: NO UPGRADE OPTION in Billing - don't ask about upgrade options anymore
+- User explicitly stated: NO CREATING NEW PRODUCTS - don't propose creating new products anymore, use existing product with properties
 
 ## Common Issues to Check
 - Function syntax and exports

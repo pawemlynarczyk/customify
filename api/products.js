@@ -62,7 +62,9 @@ module.exports = async (req, res) => {
         `,
         vendor: 'Customify',
         product_type: 'Custom AI Product',
-        tags: ['custom', 'ai', 'personalized', style],
+        tags: ['custom', 'ai', 'personalized', style, 'hidden'],
+        published: false, // UKRYJ W KATALOGU
+        published_scope: 'web', // TYLKO WEB (nie w API)
         variants: [{
           title: `Styl ${style}`,
           price: totalPrice.toString(),
