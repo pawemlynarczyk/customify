@@ -466,6 +466,12 @@
                     return;
                 }
 
+                console.log('🚀 Starting AI transformation...', {
+                    style: this.selectedStyle,
+                    size: this.selectedSize,
+                    file: this.uploadedFile.name
+                });
+
                 this.showLoading();
                 this.hideError();
 
@@ -488,10 +494,12 @@
                     const result = await response.json();
 
                     if (result.success) {
+                        console.log('✅ AI transformation successful:', result.transformedImage);
                         this.transformedImage = result.transformedImage;
                         this.showResult(result.transformedImage);
                         this.showSuccess('Zdjęcie zostało pomyślnie przekształcone!');
                     } else {
+                        console.error('❌ AI transformation failed:', result.error);
                         this.showError('Błąd podczas transformacji: ' + (result.error || 'Nieznany błąd'));
                     }
                 } catch (error) {
@@ -503,8 +511,10 @@
             }
 
             showResult(imageUrl) {
+                console.log('🎯 showResult called with:', imageUrl);
                 this.resultImage.src = imageUrl;
                 this.resultArea.style.display = 'block';
+                console.log('🎯 resultArea display set to block');
             }
 
             async addToCart() {
