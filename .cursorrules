@@ -1,0 +1,33 @@
+# Cursor Rules for Customify Shopify App
+
+## Environment Variables Status
+- All Vercel environment variables are properly configured
+- SHOPIFY_ACCESS_TOKEN is set in Vercel Dashboard
+- Do NOT ask about environment variables configuration
+- Do NOT ask about Vercel Dashboard settings
+- Do NOT ask about token values or setup
+
+## Current Project Status
+- Shopify app is installed and working
+- OAuth flow is complete
+- App has proper permissions in Shopify
+- Vercel deployment is functional
+
+## Debugging Focus
+- Focus on code issues, not environment setup
+- Check function logic and implementation
+- Look for runtime errors or logic problems
+- Verify API calls and responses
+
+## Key Files
+- api/status.js - App status checker
+- api/test.js - Environment variables test
+- api/install.js - OAuth installation
+- vercel.json - Vercel configuration
+
+## Common Issues to Check
+- Function syntax and exports
+- API endpoint routing
+- Error handling in functions
+- Response formatting
+- CORS configuration
