@@ -32,7 +32,7 @@ Value: production
 Environment: Production, Preview, Development
 
 Name: APP_URL
-Value: https://your-app-name.vercel.app
+Value: https://customify-s56o.vercel.app
 Environment: Production, Preview, Development
 ```
 
