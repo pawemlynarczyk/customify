@@ -13,7 +13,7 @@ REPLICATE_API_TOKEN=leave_empty_for_now
 NODE_ENV=production
 
 # App URL (for OAuth redirects) - ZMIEŃ NA SWÓJ VERCEL URL
-APP_URL=https://your-app-name.vercel.app
+APP_URL=https://customify-s56o.vercel.app
 
 # Instrukcje:
 # 1. Idź do Vercel Dashboard
