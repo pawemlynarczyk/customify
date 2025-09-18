@@ -534,18 +534,30 @@
             }
 
             async addToCart() {
-                if (!this.transformedImage || !this.selectedStyle || !this.selectedSize) {
-                    this.showError('Brak przekształconego obrazu, stylu lub rozmiaru');
+                if (!this.transformedImage || !this.selectedStyle) {
+                    this.showError('Brak przekształconego obrazu lub stylu');
                     return;
                 }
 
                 // Don't show loading - product is already transformed
                 this.hideError();
+                console.log('🛒 [CUSTOMIFY] Starting addToCart process...');
 
                 try {
                     // Get original product info
                     const originalImage = await this.fileToBase64(this.uploadedFile);
                     const originalProductTitle = document.querySelector('h1, .product-title, .view-product-title')?.textContent?.trim() || 'Produkt';
+                    
+                    const productData = {
+                        originalImage: originalImage,
+                        transformedImage: this.transformedImage,
+                        style: this.selectedStyle,
+                        size: this.selectedSize || 'A3', // Default size if not set
+                        originalProductTitle: originalProductTitle,
+                        originalProductId: document.querySelector('[data-product-id]')?.dataset?.productId || null
+                    };
+
+                    console.log('🛒 [CUSTOMIFY] Creating product with data:', productData);
                     
                     // Create product with transformed image
                     const response = await fetch('https://customify-s56o.vercel.app/api/products', {
@@ -553,26 +565,21 @@
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify({
-                            originalImage: originalImage,
-                            transformedImage: this.transformedImage,
-                            style: this.selectedStyle,
-                            size: this.selectedSize,
-                            originalProductTitle: originalProductTitle,
-                            originalProductId: document.querySelector('[data-product-id]')?.dataset?.productId || null
-                        })
+                        body: JSON.stringify(productData)
                     });
 
+                    console.log('🛒 [CUSTOMIFY] API response status:', response.status);
                     const result = await response.json();
+                    console.log('🛒 [CUSTOMIFY] API response:', result);
 
                     if (result.success) {
                         this.showSuccess('✅ ' + (result.message || 'Produkt został utworzony!'));
-                        console.log('Product created:', result.product);
+                        console.log('✅ [CUSTOMIFY] Product created:', result.product);
                         
                         // Add to cart using POST form submission
                         if (result.variantId) {
-                            console.log('🛒 [SHOPIFY-EMBED.HTML] Attempting to add to cart with Variant ID:', result.variantId);
-                            console.log('🛒 [SHOPIFY-EMBED.HTML] Product ID:', result.productId);
+                            console.log('🛒 [CUSTOMIFY] Attempting to add to cart with Variant ID:', result.variantId);
+                            console.log('🛒 [CUSTOMIFY] Product ID:', result.productId);
                             
                             // Create form and submit to add to cart
                             const form = document.createElement('form');
@@ -594,9 +601,8 @@
                             quantityInput.value = '1';
                             form.appendChild(quantityInput);
                             
-                            // Add properties
+                            // Add minimal properties (no base64 image to avoid size issues)
                             const properties = {
-                                'Original Image': originalImage,
                                 'AI Style': this.selectedStyle,
                                 'Original Product': originalProductTitle,
                                 'Customization Type': 'AI Generated'
@@ -610,15 +616,17 @@
                                 form.appendChild(propInput);
                             });
                             
+                            console.log('🛒 [CUSTOMIFY] Submitting form with variantId:', result.variantId);
                             document.body.appendChild(form);
                             form.submit();
                         }
                     } else {
+                        console.error('❌ [CUSTOMIFY] Product creation failed:', result);
                         this.showError('❌ Błąd podczas tworzenia produktu: ' + (result.error || 'Nieznany błąd'));
                     }
                 } catch (error) {
-                    console.error('Add to cart error:', error);
-                    this.showError('❌ Błąd połączenia z serwerem');
+                    console.error('❌ [CUSTOMIFY] Add to cart error:', error);
+                    this.showError('❌ Błąd połączenia z serwerem: ' + error.message);
                 }
             }
 

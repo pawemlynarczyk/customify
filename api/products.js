@@ -91,10 +91,12 @@ module.exports = async (req, res) => {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Shopify API error:', errorText);
+      console.error('❌ [PRODUCTS.JS] Shopify API error:', response.status, errorText);
+      console.error('❌ [PRODUCTS.JS] Product data sent:', JSON.stringify(productData, null, 2));
       return res.status(500).json({ 
         error: 'Failed to create product in Shopify',
-        details: errorText
+        details: errorText,
+        status: response.status
       });
     }
 
