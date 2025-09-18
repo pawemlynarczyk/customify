@@ -515,6 +515,22 @@
                 this.resultImage.src = imageUrl;
                 this.resultArea.style.display = 'block';
                 console.log('🎯 resultArea display set to block');
+                
+                // Check if buttons exist
+                const addToCartBtn = document.getElementById('addToCartBtn');
+                const tryAgainBtn = document.getElementById('tryAgainBtn');
+                console.log('🎯 Add to cart button found:', !!addToCartBtn);
+                console.log('🎯 Try again button found:', !!tryAgainBtn);
+                
+                if (addToCartBtn) {
+                    console.log('🎯 Add to cart button style:', addToCartBtn.style.cssText);
+                    console.log('🎯 Add to cart button computed style:', window.getComputedStyle(addToCartBtn).display);
+                }
+                
+                // Check resultArea visibility
+                console.log('🎯 resultArea computed style:', window.getComputedStyle(this.resultArea).display);
+                console.log('🎯 resultArea visibility:', window.getComputedStyle(this.resultArea).visibility);
+                console.log('🎯 resultArea opacity:', window.getComputedStyle(this.resultArea).opacity);
             }
 
             async addToCart() {
