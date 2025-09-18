@@ -44,34 +44,47 @@ module.exports = async (req, res) => {
     // Map styles to appropriate models and parameters
     const styleConfig = {
       'van gogh': {
-        model: "tencentarc/photomaker:ddfc2b08d209f9fa8c1eca692712918bd449f695dabb4a958da31802a9570fe4",
+        model: "stability-ai/stable-diffusion:db21e45d3f7023abc2e46a38e7e5df2717954a28",
         prompt: `in the style of Vincent van Gogh, ${prompt}, oil painting, thick brushstrokes, vibrant colors, post-impressionist`,
-        strength: 0.8
+        strength: 0.8,
+        guidance_scale: 7.5,
+        num_inference_steps: 20
       },
       'picasso': {
-        model: "tencentarc/photomaker:ddfc2b08d209f9fa8c1eca692712918bd449f695dabb4a958da31802a9570fe4",
+        model: "stability-ai/stable-diffusion:db21e45d3f7023abc2e46a38e7e5df2717954a28",
         prompt: `in the style of Pablo Picasso, ${prompt}, cubist, abstract, geometric shapes, bold colors`,
-        strength: 0.8
+        strength: 0.8,
+        guidance_scale: 7.5,
+        num_inference_steps: 20
       },
       'monet': {
-        model: "tencentarc/photomaker:ddfc2b08d209f9fa8c1eca692712918bd449f695dabb4a958da31802a9570fe4",
+        model: "stability-ai/stable-diffusion:db21e45d3f7023abc2e46a38e7e5df2717954a28",
         prompt: `in the style of Claude Monet, ${prompt}, impressionist, soft brushstrokes, light and color, water lilies style`,
-        strength: 0.8
+        strength: 0.8,
+        guidance_scale: 7.5,
+        num_inference_steps: 20
       },
       'anime': {
-        model: "tencentarc/photomaker:ddfc2b08d209f9fa8c1eca692712918bd449f695dabb4a958da31802a9570fe4",
-        prompt: `anime style, ${prompt}, manga, japanese animation, cel shading, vibrant colors, detailed eyes`,
-        strength: 0.7
+        model: "aaronaftab/mirage-ghibli:166efd159b4138da932522bc5af40d39194033f587d9bdbab1e594119eae3e7f",
+        prompt: `GHIBLI anime style, ${prompt}`,
+        go_fast: true,
+        guidance_scale: 10,
+        prompt_strength: 0.77,
+        num_inference_steps: 38
       },
       'cyberpunk': {
-        model: "tencentarc/photomaker:ddfc2b08d209f9fa8c1eca692712918bd449f695dabb4a958da31802a9570fe4",
+        model: "stability-ai/stable-diffusion:db21e45d3f7023abc2e46a38e7e5df2717954a28",
         prompt: `cyberpunk style, ${prompt}, neon lights, futuristic, high tech, dark atmosphere, glowing effects`,
-        strength: 0.8
+        strength: 0.8,
+        guidance_scale: 7.5,
+        num_inference_steps: 20
       },
       'watercolor': {
-        model: "tencentarc/photomaker:ddfc2b08d209f9fa8c1eca692712918bd449f695dabb4a958da31802a9570fe4",
+        model: "stability-ai/stable-diffusion:db21e45d3f7023abc2e46a38e7e5df2717954a28",
         prompt: `watercolor painting, ${prompt}, soft colors, flowing brushstrokes, artistic, delicate`,
-        strength: 0.7
+        strength: 0.7,
+        guidance_scale: 7.5,
+        num_inference_steps: 20
       }
     };
 
@@ -81,14 +94,37 @@ module.exports = async (req, res) => {
 
     console.log(`Using style: ${style}, model: ${config.model}`);
 
-    const output = await replicate.run(config.model, {
-      input: {
-        image: imageUrl,
-        prompt: config.prompt,
-        num_inference_steps: 20,
-        guidance_scale: 7.5,
+    // Prepare input parameters based on model
+    let inputParams = {
+      image: imageUrl,
+      prompt: config.prompt
+    };
+
+    // Add model-specific parameters
+    if (config.model.includes('mirage-ghibli')) {
+      // Ghibli anime model parameters
+      inputParams = {
+        ...inputParams,
+        go_fast: config.go_fast,
+        guidance_scale: config.guidance_scale,
+        prompt_strength: config.prompt_strength,
+        num_inference_steps: config.num_inference_steps
+      };
+    } else {
+      // Stable Diffusion model parameters
+      inputParams = {
+        ...inputParams,
+        num_inference_steps: config.num_inference_steps,
+        guidance_scale: config.guidance_scale,
         strength: config.strength
-      }
+      };
+    }
+
+    console.log(`Running model: ${config.model}`);
+    console.log(`Input parameters:`, inputParams);
+
+    const output = await replicate.run(config.model, {
+      input: inputParams
     });
 
     res.json({ 
