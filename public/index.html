@@ -368,51 +368,49 @@
             transformedPreview.innerHTML = '';
 
             try {
-                // Upload file first
-                const formData = new FormData();
-                formData.append('image', uploadedFile);
+                // Convert file to base64 for serverless
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    try {
+                        const base64 = e.target.result.split(',')[1];
+                        
+                        // Transform image
+                        const transformResponse = await fetch('/api/transform', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                imageData: base64,
+                                prompt: prompt
+                            })
+                        });
 
-                const uploadResponse = await fetch('/api/upload', {
-                    method: 'POST',
-                    body: formData
-                });
+                        const transformResult = await transformResponse.json();
+                        
+                        if (!transformResult.success) {
+                            throw new Error(transformResult.error);
+                        }
 
-                const uploadResult = await uploadResponse.json();
-                
-                if (!uploadResult.success) {
-                    throw new Error(uploadResult.error);
-                }
+                        transformedImageUrl = transformResult.transformedImage;
+                        transformedPreview.innerHTML = `
+                            <h3>Przekształcony obraz:</h3>
+                            <img src="${transformedImageUrl}" class="image-preview" alt="Przekształcony obraz">
+                        `;
 
-                // Transform image
-                const transformResponse = await fetch('/api/transform', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        imageUrl: uploadResult.filePath,
-                        prompt: prompt
-                    })
-                });
-
-                const transformResult = await transformResponse.json();
-                
-                if (!transformResult.success) {
-                    throw new Error(transformResult.error);
-                }
-
-                transformedImageUrl = transformResult.transformedImage;
-                transformedPreview.innerHTML = `
-                    <h3>Przekształcony obraz:</h3>
-                    <img src="${transformedImageUrl}" class="image-preview" alt="Przekształcony obraz">
-                `;
-
-                showAlert('Obraz został pomyślnie przekształcony!', 'success');
+                        showAlert('Obraz został pomyślnie przekształcony!', 'success');
+                    } catch (error) {
+                        console.error('Transform error:', error);
+                        showAlert('Błąd podczas przekształcania obrazu: ' + error.message, 'error');
+                    } finally {
+                        loading.style.display = 'none';
+                    }
+                };
+                reader.readAsDataURL(uploadedFile);
 
             } catch (error) {
                 console.error('Transform error:', error);
                 showAlert('Błąd podczas przekształcania obrazu: ' + error.message, 'error');
-            } finally {
                 loading.style.display = 'none';
             }
         }
