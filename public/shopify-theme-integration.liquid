@@ -326,6 +326,8 @@
           this.loading = document.getElementById('customify-loading');
           this.result = document.getElementById('customify-result');
           this.resultImage = document.getElementById('customify-result-image');
+          console.log('🎯 result element found:', !!this.result);
+          console.log('🎯 resultImage element found:', !!this.resultImage);
           this.error = document.getElementById('customify-error');
           this.success = document.getElementById('customify-success');
           
@@ -476,8 +478,11 @@
         }
 
         showResult(imageUrl) {
+          console.log('🎯 showResult called with:', imageUrl);
+          console.log('🎯 this.result element:', this.result);
           this.resultImage.src = imageUrl;
           this.result.style.display = 'block';
+          console.log('🎯 result display set to block');
         }
 
         async addToCart() {
