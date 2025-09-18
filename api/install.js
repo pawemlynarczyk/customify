@@ -52,10 +52,14 @@ module.exports = (req, res) => {
   // Ensure HTTPS
   const httpsRedirectUri = redirectUri.replace('http://', 'https://');
   
+  // Generate state for security (required by Shopify)
+  const state = crypto.randomBytes(16).toString('hex');
+  
   const installUrl = `https://${shop}/admin/oauth/authorize?` + querystring.stringify({
     client_id: clientId,
     scope: scopes,
-    redirect_uri: httpsRedirectUri
+    redirect_uri: httpsRedirectUri,
+    state: state
   });
   
   console.log('🔗 Generated install URL:', installUrl);
@@ -88,8 +92,18 @@ module.exports = (req, res) => {
                 <strong>Redirect URI:</strong> ${httpsRedirectUri}<br>
                 <strong>App URL:</strong> ${process.env.APP_URL || 'MISSING!'}<br>
                 <strong>Scopes:</strong> ${scopes}<br>
-                <strong>HTTPS Redirect:</strong> ${httpsRedirectUri}<br>
+                <strong>State:</strong> ${state}<br>
                 <strong>URL autoryzacji:</strong> <a href="${installUrl}" target="_blank">${installUrl}</a>
+            </div>
+            
+            <div style="background: #e7f3ff; padding: 15px; border-radius: 5px; margin: 20px 0; text-align: left;">
+                <h4>🔍 OAuth Parameters:</h4>
+                <ul>
+                    <li><strong>client_id:</strong> ${clientId || 'MISSING!'}</li>
+                    <li><strong>scope:</strong> ${scopes}</li>
+                    <li><strong>redirect_uri:</strong> ${httpsRedirectUri}</li>
+                    <li><strong>state:</strong> ${state}</li>
+                </ul>
             </div>
             
             <div style="background: #fff3cd; padding: 15px; border-radius: 5px; margin: 20px 0; text-align: left;">
