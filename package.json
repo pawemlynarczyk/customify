@@ -1,6 +1,6 @@
 {
   "name": "customify-shopify-app",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Shopify custom app with AI-powered product customization",
   "main": "api/install.js",
   "scripts": {
