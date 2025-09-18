@@ -27,6 +27,7 @@ module.exports = async (req, res) => {
   let shopInfo = null;
   let error = null;
 
+  // Check if app is installed by looking for access token
   if (accessToken) {
     try {
       // Try to fetch shop info to verify installation
@@ -50,8 +51,9 @@ module.exports = async (req, res) => {
       error = err.message;
     }
   } else {
-    installationStatus = 'no_token';
-    error = 'No access token found in environment variables';
+    // No access token in environment - check if we can get one via OAuth
+    installationStatus = 'needs_oauth';
+    error = 'App needs to complete OAuth flow to get access token';
   }
 
   res.setHeader('Content-Type', 'text/html');
@@ -79,9 +81,10 @@ module.exports = async (req, res) => {
         <div class="container">
             <h1>🔍 Customify App Status</h1>
             
-            <div class="status ${installationStatus === 'installed' ? 'installed' : installationStatus === 'error' ? 'error' : 'not-installed'}">
-                <h3>Status instalacji: ${installationStatus === 'installed' ? '✅ ZAINSTALOWANA' : installationStatus === 'error' ? '❌ BŁĄD' : '❌ NIE ZAINSTALOWANA'}</h3>
+            <div class="status ${installationStatus === 'installed' ? 'installed' : installationStatus === 'needs_oauth' ? 'error' : installationStatus === 'error' ? 'error' : 'not-installed'}">
+                <h3>Status instalacji: ${installationStatus === 'installed' ? '✅ ZAINSTALOWANA' : installationStatus === 'needs_oauth' ? '🔄 WYMAGA OAuth' : installationStatus === 'error' ? '❌ BŁĄD' : '❌ NIE ZAINSTALOWANA'}</h3>
                 ${error ? `<p><strong>Błąd:</strong> ${error}</p>` : ''}
+                ${installationStatus === 'needs_oauth' ? '<p><strong>Rozwiązanie:</strong> Kliknij "Zainstaluj aplikację" poniżej, aby przejść przez OAuth i uzyskać access token.</p>' : ''}
             </div>
 
             <div class="info">

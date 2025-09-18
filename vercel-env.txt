@@ -5,6 +5,7 @@
 SHOPIFY_API_KEY=b55e6ae3386a566f74df4db5d1d11ee6
 SHOPIFY_API_SECRET=40e832d641a2ac8c6a2acf1945a34436
 SHOP_DOMAIN=customiffyy.myshopify.com
+SHOPIFY_ACCESS_TOKEN=your_access_token_here
 
 # Replicate AI API
 REPLICATE_API_TOKEN=leave_empty_for_now
