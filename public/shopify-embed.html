@@ -621,9 +621,10 @@
                                 form.appendChild(propInput);
                             });
                             
-                            console.log('🛒 [CUSTOMIFY] Submitting form with variantId:', result.variantId);
-                            document.body.appendChild(form);
-                            form.submit();
+                console.log('🛒 [CUSTOMIFY] Submitting form with variantId:', result.variantId);
+                console.log('🛒 [CUSTOMIFY] Form HTML:', form.outerHTML);
+                document.body.appendChild(form);
+                form.submit();
                         }
                     } else {
                         console.error('❌ [CUSTOMIFY] Product creation failed:', result);
