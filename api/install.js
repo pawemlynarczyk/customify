@@ -29,11 +29,21 @@ module.exports = (req, res) => {
   const redirectUri = `${process.env.APP_URL}/auth/callback`;
   const clientId = process.env.SHOPIFY_API_KEY;
   
+  // Debug info
+  console.log('🔧 Install debug:', {
+    shop,
+    clientId,
+    redirectUri,
+    appUrl: process.env.APP_URL
+  });
+  
   const installUrl = `https://${shop}/admin/oauth/authorize?` + querystring.stringify({
     client_id: clientId,
     scope: scopes,
     redirect_uri: redirectUri
   });
+  
+  console.log('🔗 Generated install URL:', installUrl);
   
   res.setHeader('Content-Type', 'text/html');
   res.send(`
@@ -58,7 +68,10 @@ module.exports = (req, res) => {
             
             <div class="info">
                 <strong>Sklep:</strong> ${shop}<br>
-                <strong>URL autoryzacji:</strong> ${installUrl}
+                <strong>Client ID:</strong> ${clientId}<br>
+                <strong>Redirect URI:</strong> ${redirectUri}<br>
+                <strong>App URL:</strong> ${process.env.APP_URL}<br>
+                <strong>URL autoryzacji:</strong> <a href="${installUrl}" target="_blank">${installUrl}</a>
             </div>
             
             <a href="${installUrl}" class="btn">🚀 Zainstaluj aplikację</a>
