@@ -569,19 +569,49 @@
                         this.showSuccess('✅ ' + (result.message || 'Produkt został utworzony!'));
                         console.log('Product created:', result.product);
                         
-                        // Add to cart using the provided URL
-                        if (result.cartUrl) {
-                            console.log('🛒 [SHOPIFY-EMBED.HTML] Attempting to add to cart with URL:', result.cartUrl);
-                            console.log('🛒 [SHOPIFY-EMBED.HTML] Variant ID:', result.variantId);
+                        // Add to cart using POST form submission
+                        if (result.variantId) {
+                            console.log('🛒 [SHOPIFY-EMBED.HTML] Attempting to add to cart with Variant ID:', result.variantId);
                             console.log('🛒 [SHOPIFY-EMBED.HTML] Product ID:', result.productId);
                             
-                            // Use direct navigation instead of fetch to avoid CORS issues
-                            this.showSuccess('✅ Produkt został utworzony! Przekierowuję do koszyka...');
+                            // Create form and submit to add to cart
+                            const form = document.createElement('form');
+                            form.method = 'POST';
+                            form.action = '/cart/add';
+                            form.style.display = 'none';
                             
-                            // Redirect directly to cart URL (simpler approach)
-                            setTimeout(() => {
-                                window.location.href = result.cartUrl;
-                            }, 1000);
+                            // Add variant ID
+                            const variantInput = document.createElement('input');
+                            variantInput.type = 'hidden';
+                            variantInput.name = 'id';
+                            variantInput.value = result.variantId;
+                            form.appendChild(variantInput);
+                            
+                            // Add quantity
+                            const quantityInput = document.createElement('input');
+                            quantityInput.type = 'hidden';
+                            quantityInput.name = 'quantity';
+                            quantityInput.value = '1';
+                            form.appendChild(quantityInput);
+                            
+                            // Add properties
+                            const properties = {
+                                'Original Image': originalImage,
+                                'AI Style': this.selectedStyle,
+                                'Original Product': originalProductTitle,
+                                'Customization Type': 'AI Generated'
+                            };
+                            
+                            Object.entries(properties).forEach(([key, value]) => {
+                                const propInput = document.createElement('input');
+                                propInput.type = 'hidden';
+                                propInput.name = `properties[${key}]`;
+                                propInput.value = value;
+                                form.appendChild(propInput);
+                            });
+                            
+                            document.body.appendChild(form);
+                            form.submit();
                         }
                     } else {
                         this.showError('❌ Błąd podczas tworzenia produktu: ' + (result.error || 'Nieznany błąd'));
