@@ -494,12 +494,12 @@
                     const result = await response.json();
 
                     if (result.success) {
-                        console.log('✅ AI transformation successful:', result.transformedImage);
+                        console.log('✅ [SHOPIFY-EMBED.HTML] AI transformation successful:', result.transformedImage);
                         this.transformedImage = result.transformedImage;
                         this.showResult(result.transformedImage);
                         this.showSuccess('Zdjęcie zostało pomyślnie przekształcone!');
                     } else {
-                        console.error('❌ AI transformation failed:', result.error);
+                        console.error('❌ [SHOPIFY-EMBED.HTML] AI transformation failed:', result.error);
                         this.showError('Błąd podczas transformacji: ' + (result.error || 'Nieznany błąd'));
                     }
                 } catch (error) {
@@ -511,10 +511,10 @@
             }
 
             showResult(imageUrl) {
-                console.log('🎯 showResult called with:', imageUrl);
+                console.log('🎯 [SHOPIFY-EMBED.HTML] showResult called with:', imageUrl);
                 this.resultImage.src = imageUrl;
                 this.resultArea.style.display = 'block';
-                console.log('🎯 resultArea display set to block');
+                console.log('🎯 [SHOPIFY-EMBED.HTML] resultArea display set to block');
                 
                 // Check if buttons exist
                 const addToCartBtn = document.getElementById('addToCartBtn');
