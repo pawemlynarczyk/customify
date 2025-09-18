@@ -1,0 +1,596 @@
+{% comment %}
+  Customify AI Photo Customization App Integration
+  Add this code to your Shopify theme's product template
+{% endcomment %}
+
+{% comment %} Check if Customify should be enabled for this product {% endcomment %}
+{% assign customify_enabled = false %}
+{% if product.tags contains 'customify-enabled' or product.type == 'Custom Product' %}
+  {% assign customify_enabled = true %}
+{% endif %}
+
+{% comment %} Or enable for all products {% endcomment %}
+{% assign customify_enabled = true %}
+
+{% if customify_enabled %}
+  <div id="customify-app-container" class="customify-shopify-integration">
+    <div class="customify-header">
+      <h3>🎨 Spersonalizuj swój produkt z AI</h3>
+      <p>Wgraj swoje zdjęcie i zobacz jak wygląda w różnych stylach artystycznych</p>
+    </div>
+    
+    <div class="customify-content">
+      <div class="customify-upload-section">
+        <div class="customify-upload-area" id="customify-upload-area">
+          <div class="upload-icon">📷</div>
+          <div class="upload-text">Kliknij lub przeciągnij zdjęcie tutaj</div>
+          <div class="upload-hint">Maksymalnie 10MB, formaty: JPG, PNG, GIF</div>
+          <input type="file" id="customify-file-input" accept="image/*" style="display: none;">
+        </div>
+      </div>
+      
+      <div class="customify-preview-section" id="customify-preview" style="display: none;">
+        <img id="customify-preview-image" alt="Podgląd zdjęcia">
+      </div>
+      
+      <div class="customify-styles-section" id="customify-styles" style="display: none;">
+        <h4>Wybierz styl AI:</h4>
+        <div class="styles-grid">
+          <button class="style-btn" data-style="van gogh">Van Gogh</button>
+          <button class="style-btn" data-style="picasso">Picasso</button>
+          <button class="style-btn" data-style="monet">Monet</button>
+          <button class="style-btn" data-style="anime">Anime</button>
+          <button class="style-btn" data-style="cyberpunk">Cyberpunk</button>
+          <button class="style-btn" data-style="watercolor">Akwarela</button>
+        </div>
+      </div>
+      
+      <div class="customify-actions" id="customify-actions" style="display: none;">
+        <button class="btn btn-primary" id="customify-transform">✨ Przekształć z AI</button>
+        <button class="btn btn-secondary" id="customify-reset">🔄 Resetuj</button>
+      </div>
+      
+      <div class="customify-loading" id="customify-loading" style="display: none;">
+        <div class="spinner"></div>
+        <div>Przetwarzanie z AI...</div>
+      </div>
+      
+      <div class="customify-result" id="customify-result" style="display: none;">
+        <h4>Wynik transformacji AI:</h4>
+        <img id="customify-result-image" alt="Wynik AI">
+        <div class="result-actions">
+          <button class="btn btn-success" id="customify-add-to-cart">🛒 Dodaj do koszyka</button>
+          <button class="btn btn-secondary" id="customify-try-again">🔄 Spróbuj ponownie</button>
+        </div>
+      </div>
+      
+      <div class="customify-messages">
+        <div class="error-message" id="customify-error" style="display: none;"></div>
+        <div class="success-message" id="customify-success" style="display: none;"></div>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .customify-shopify-integration {
+      background: #f8f9fa;
+      border: 2px solid #e9ecef;
+      border-radius: 12px;
+      padding: 20px;
+      margin: 20px 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    .customify-header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .customify-header h3 {
+      color: #2c3e50;
+      margin-bottom: 8px;
+      font-size: 1.4rem;
+    }
+
+    .customify-header p {
+      color: #6c757d;
+      font-size: 0.9rem;
+    }
+
+    .customify-upload-area {
+      border: 2px dashed #dee2e6;
+      border-radius: 8px;
+      padding: 30px;
+      text-align: center;
+      margin-bottom: 20px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .customify-upload-area:hover {
+      border-color: #007bff;
+      background-color: #f8f9ff;
+    }
+
+    .customify-upload-area.dragover {
+      border-color: #007bff;
+      background-color: #e3f2fd;
+    }
+
+    .upload-icon {
+      font-size: 2rem;
+      color: #6c757d;
+      margin-bottom: 10px;
+    }
+
+    .upload-text {
+      color: #495057;
+      font-size: 1rem;
+      margin-bottom: 5px;
+    }
+
+    .upload-hint {
+      color: #6c757d;
+      font-size: 0.8rem;
+    }
+
+    .customify-preview-section {
+      margin-bottom: 20px;
+    }
+
+    .customify-preview-section img {
+      max-width: 100%;
+      max-height: 300px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .customify-styles-section h4 {
+      margin-bottom: 15px;
+      color: #2c3e50;
+    }
+
+    .styles-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .style-btn {
+      padding: 10px;
+      border: 2px solid #dee2e6;
+      border-radius: 8px;
+      background: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-align: center;
+      font-size: 0.9rem;
+    }
+
+    .style-btn:hover {
+      border-color: #007bff;
+      background-color: #f8f9ff;
+    }
+
+    .style-btn.active {
+      border-color: #007bff;
+      background-color: #007bff;
+      color: white;
+    }
+
+    .customify-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+
+    .btn-primary {
+      background-color: #007bff;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background-color: #0056b3;
+    }
+
+    .btn-secondary {
+      background-color: #6c757d;
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background-color: #545b62;
+    }
+
+    .btn-success {
+      background-color: #28a745;
+      color: white;
+    }
+
+    .btn-success:hover {
+      background-color: #218838;
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .customify-loading {
+      text-align: center;
+      padding: 20px;
+    }
+
+    .spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #007bff;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 10px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .customify-result {
+      margin-top: 20px;
+    }
+
+    .customify-result img {
+      max-width: 100%;
+      max-height: 400px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      margin-bottom: 15px;
+    }
+
+    .result-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .error-message {
+      background-color: #f8d7da;
+      color: #721c24;
+      padding: 10px;
+      border-radius: 6px;
+      margin: 10px 0;
+    }
+
+    .success-message {
+      background-color: #d4edda;
+      color: #155724;
+      padding: 10px;
+      border-radius: 6px;
+      margin: 10px 0;
+    }
+
+    @media (max-width: 768px) {
+      .customify-shopify-integration {
+        padding: 15px;
+        margin: 15px 0;
+      }
+      
+      .styles-grid {
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      }
+      
+      .customify-actions,
+      .result-actions {
+        flex-direction: column;
+      }
+    }
+  </style>
+
+  <script>
+    // Customify Integration Script
+    (function() {
+      'use strict';
+
+      const CONFIG = {
+        appUrl: 'https://customify-s56o.vercel.app',
+        debug: false
+      };
+
+      function log(message, ...args) {
+        if (CONFIG.debug) {
+          console.log('[Customify]', message, ...args);
+        }
+      }
+
+      class CustomifyIntegration {
+        constructor() {
+          this.uploadArea = document.getElementById('customify-upload-area');
+          this.fileInput = document.getElementById('customify-file-input');
+          this.preview = document.getElementById('customify-preview');
+          this.previewImage = document.getElementById('customify-preview-image');
+          this.styles = document.getElementById('customify-styles');
+          this.actions = document.getElementById('customify-actions');
+          this.loading = document.getElementById('customify-loading');
+          this.result = document.getElementById('customify-result');
+          this.resultImage = document.getElementById('customify-result-image');
+          this.error = document.getElementById('customify-error');
+          this.success = document.getElementById('customify-success');
+          
+          this.uploadedFile = null;
+          this.selectedStyle = null;
+          this.transformedImage = null;
+          
+          this.init();
+        }
+
+        init() {
+          this.setupEventListeners();
+          log('Customify integration initialized');
+        }
+
+        setupEventListeners() {
+          // Upload area click
+          this.uploadArea.addEventListener('click', () => {
+            this.fileInput.click();
+          });
+
+          // File input change
+          this.fileInput.addEventListener('change', (e) => {
+            this.handleFileSelect(e.target.files[0]);
+          });
+
+          // Drag and drop
+          this.uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            this.uploadArea.classList.add('dragover');
+          });
+
+          this.uploadArea.addEventListener('dragleave', () => {
+            this.uploadArea.classList.remove('dragover');
+          });
+
+          this.uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            this.uploadArea.classList.remove('dragover');
+            this.handleFileSelect(e.dataTransfer.files[0]);
+          });
+
+          // Style selection
+          this.styles.addEventListener('click', (e) => {
+            if (e.target.classList.contains('style-btn')) {
+              this.selectStyle(e.target);
+            }
+          });
+
+          // Action buttons
+          document.getElementById('customify-transform').addEventListener('click', () => {
+            this.transformImage();
+          });
+
+          document.getElementById('customify-reset').addEventListener('click', () => {
+            this.reset();
+          });
+
+          document.getElementById('customify-add-to-cart').addEventListener('click', () => {
+            this.addToCart();
+          });
+
+          document.getElementById('customify-try-again').addEventListener('click', () => {
+            this.tryAgain();
+          });
+        }
+
+        handleFileSelect(file) {
+          if (!file) return;
+
+          if (!file.type.startsWith('image/')) {
+            this.showError('Proszę wybrać plik obrazu (JPG, PNG, GIF)');
+            return;
+          }
+
+          if (file.size > 10 * 1024 * 1024) {
+            this.showError('Plik jest za duży. Maksymalny rozmiar to 10MB');
+            return;
+          }
+
+          this.uploadedFile = file;
+          this.showPreview(file);
+          this.showStyles();
+          this.hideError();
+        }
+
+        showPreview(file) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            this.previewImage.src = e.target.result;
+            this.preview.style.display = 'block';
+          };
+          reader.readAsDataURL(file);
+        }
+
+        showStyles() {
+          this.styles.style.display = 'block';
+          this.actions.style.display = 'flex';
+        }
+
+        selectStyle(styleBtn) {
+          this.styles.querySelectorAll('.style-btn').forEach(btn => {
+            btn.classList.remove('active');
+          });
+          
+          styleBtn.classList.add('active');
+          this.selectedStyle = styleBtn.dataset.style;
+        }
+
+        async transformImage() {
+          if (!this.uploadedFile || !this.selectedStyle) {
+            this.showError('Proszę wybrać zdjęcie i styl');
+            return;
+          }
+
+          this.showLoading();
+          this.hideError();
+
+          try {
+            const base64 = await this.fileToBase64(this.uploadedFile);
+            
+            const response = await fetch(`${CONFIG.appUrl}/api/transform`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                imageData: base64,
+                prompt: `Transform this image in ${this.selectedStyle} style`
+              })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+              this.transformedImage = result.transformedImage;
+              this.showResult(result.transformedImage);
+              this.showSuccess('Zdjęcie zostało pomyślnie przekształcone!');
+            } else {
+              this.showError('Błąd podczas transformacji: ' + (result.error || 'Nieznany błąd'));
+            }
+          } catch (error) {
+            console.error('Transform error:', error);
+            this.showError('Błąd połączenia z serwerem');
+          } finally {
+            this.hideLoading();
+          }
+        }
+
+        showResult(imageUrl) {
+          this.resultImage.src = imageUrl;
+          this.result.style.display = 'block';
+        }
+
+        async addToCart() {
+          if (!this.transformedImage) {
+            this.showError('Brak przekształconego obrazu');
+            return;
+          }
+
+          this.showLoading();
+          this.hideError();
+
+          try {
+            // Create product with transformed image
+            const response = await fetch(`${CONFIG.appUrl}/api/products`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                title: `Spersonalizowany produkt - ${this.selectedStyle}`,
+                description: `Produkt z Twoim zdjęciem w stylu ${this.selectedStyle}`,
+                price: '29.99',
+                images: [this.transformedImage],
+                variantTitle: 'Custom AI Art'
+              })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+              this.showSuccess('Produkt został dodany do koszyka!');
+              // Here you would typically add to Shopify cart
+              console.log('Product created:', result.product);
+            } else {
+              this.showError('Błąd podczas dodawania do koszyka: ' + (result.error || 'Nieznany błąd'));
+            }
+          } catch (error) {
+            console.error('Add to cart error:', error);
+            this.showError('Błąd połączenia z serwerem');
+          } finally {
+            this.hideLoading();
+          }
+        }
+
+        fileToBase64(file) {
+          return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => {
+              const base64 = reader.result.split(',')[1];
+              resolve(base64);
+            };
+            reader.onerror = error => reject(error);
+          });
+        }
+
+        reset() {
+          this.uploadedFile = null;
+          this.selectedStyle = null;
+          this.transformedImage = null;
+          
+          this.fileInput.value = '';
+          this.preview.style.display = 'none';
+          this.styles.style.display = 'none';
+          this.actions.style.display = 'none';
+          this.result.style.display = 'none';
+          this.hideError();
+          this.hideSuccess();
+          
+          this.styles.querySelectorAll('.style-btn').forEach(btn => {
+            btn.classList.remove('active');
+          });
+        }
+
+        tryAgain() {
+          this.result.style.display = 'none';
+          this.hideSuccess();
+        }
+
+        showLoading() {
+          this.loading.style.display = 'block';
+          this.actions.style.display = 'none';
+        }
+
+        hideLoading() {
+          this.loading.style.display = 'none';
+          this.actions.style.display = 'flex';
+        }
+
+        showError(message) {
+          this.error.textContent = message;
+          this.error.style.display = 'block';
+        }
+
+        hideError() {
+          this.error.style.display = 'none';
+        }
+
+        showSuccess(message) {
+          this.success.textContent = message;
+          this.success.style.display = 'block';
+        }
+
+        hideSuccess() {
+          this.success.style.display = 'none';
+        }
+      }
+
+      // Initialize when DOM is loaded
+      document.addEventListener('DOMContentLoaded', () => {
+        new CustomifyIntegration();
+      });
+
+    })();
+  </script>
+{% endif %}
