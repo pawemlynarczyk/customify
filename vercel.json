@@ -40,6 +40,18 @@
       "dest": "/api/products.js"
     },
     {
+      "src": "/api/webhooks/customers/data-request",
+      "dest": "/api/webhooks/customers/data-request.js"
+    },
+    {
+      "src": "/api/webhooks/customers/redact",
+      "dest": "/api/webhooks/customers/redact.js"
+    },
+    {
+      "src": "/api/webhooks/shop/redact",
+      "dest": "/api/webhooks/shop/redact.js"
+    },
+    {
       "src": "/(.*)",
       "dest": "/public/$1"
     }

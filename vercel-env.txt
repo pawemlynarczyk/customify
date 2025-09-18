@@ -15,6 +15,9 @@ NODE_ENV=production
 # App URL (for OAuth redirects) - ZMIEŃ NA SWÓJ VERCEL URL
 APP_URL=https://customify-s56o.vercel.app
 
+# Webhook Secret (for GDPR webhooks)
+SHOPIFY_WEBHOOK_SECRET=your_webhook_secret_here
+
 # Instrukcje:
 # 1. Idź do Vercel Dashboard
 # 2. Wybierz swój projekt
