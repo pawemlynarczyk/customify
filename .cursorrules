@@ -8,10 +8,12 @@
 - Do NOT ask about token values or setup
 
 ## Current Project Status
-- Shopify app is installed and working
+- Shopify app is installed and working in customify-ok.myshopify.com
 - OAuth flow is complete
 - App has proper permissions in Shopify
 - Vercel deployment is functional
+- Vercel environment variables updated to new store
+- Old store (customiffyy.myshopify.com) was preview only - DO NOT suggest using it
 
 ## Debugging Focus
 - Focus on code issues, not environment setup
