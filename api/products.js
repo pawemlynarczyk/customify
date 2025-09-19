@@ -104,12 +104,21 @@ module.exports = async (req, res) => {
     const product = createdProduct.product;
 
     console.log('🔍 [PRODUCTS.JS] Created product response:', JSON.stringify(product, null, 2));
-    console.log('🔍 [PRODUCTS.JS] Variant ID:', product.variants[0].id);
     console.log('🔍 [PRODUCTS.JS] Product ID:', product.id);
     console.log('🔍 [PRODUCTS.JS] Product published:', product.published);
     console.log('🔍 [PRODUCTS.JS] Product status:', product.status);
     console.log('🔍 [PRODUCTS.JS] Product images:', product.images);
     console.log('🔍 [PRODUCTS.JS] Transformed image URL:', transformedImage);
+    console.log('🔍 [PRODUCTS.JS] Variants count:', product.variants ? product.variants.length : 'NO VARIANTS');
+    console.log('🔍 [PRODUCTS.JS] Variants:', product.variants);
+    
+    if (product.variants && product.variants.length > 0) {
+      console.log('🔍 [PRODUCTS.JS] Variant ID:', product.variants[0].id);
+      console.log('🔍 [PRODUCTS.JS] Variant title:', product.variants[0].title);
+      console.log('🔍 [PRODUCTS.JS] Variant price:', product.variants[0].price);
+    } else {
+      console.error('❌ [PRODUCTS.JS] NO VARIANTS FOUND!');
+    }
 
     res.json({ 
       success: true, 
