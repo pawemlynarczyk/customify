@@ -62,8 +62,8 @@ module.exports = async (req, res) => {
         `,
         vendor: 'Customify',
         product_type: 'Custom AI Product',
-        tags: ['custom', 'ai', 'personalized', style, 'hidden'],
-        published: false, // UKRYJ W KATALOGU
+        tags: ['custom', 'ai', 'personalized', style, 'hidden', 'no-search'],
+        published: true, // MUSI BYĆ PUBLIKOWANY ŻEBY DZIAŁAŁ KOSZYK
         published_scope: 'web', // TYLKO WEB (nie w API)
         variants: [{
           title: `Styl ${style}`,
