@@ -47,21 +47,6 @@
       }
       
       
-      /* PROSTY CSS - aplikacja i zdjęcie obok siebie */
-      .product-information__grid {
-        display: flex !important;
-        width: 100% !important;
-      }
-
-      .product-information__media {
-        width: 50% !important;
-        flex: 0 0 50% !important;
-      }
-
-      #customify-app-container {
-        width: 50% !important;
-        flex: 0 0 50% !important;
-      }
 
       /* Clear floats */
       .product-page-layout::after {
@@ -347,8 +332,8 @@
       {% render 'quick-add-modal' %}
     {% endif %}
 
-    <!-- Customify AI Photo Customization - OBIE ZE ZDJĘCIEM -->
-    <div id="customify-app-container" class="customify-shopify-container" style="width: 50%; flex: 0 0 50%; margin: 20px 0px; padding: 0px; border: 1px solid rgb(224, 224, 224); border-radius: 8px; background: rgb(255, 255, 255); opacity: 1; transition: opacity 0.3s;">
+    <!-- Customify AI Photo Customization - CZYSTA WERSJA -->
+    <div id="customify-app-container" class="customify-shopify-container" style="margin: 20px 0px; padding: 0px; border: 1px solid rgb(224, 224, 224); border-radius: 8px; background: rgb(255, 255, 255); opacity: 1; transition: opacity 0.3s;">
       <h3 class="customify-title" style="margin: 0px 0px 15px; padding: 15px 20px; background: linear-gradient(135deg, rgb(102, 126, 234) 0%, rgb(118, 75, 162) 100%); color: white; border-radius: 8px 8px 0px 0px; font-size: 1.2rem; font-weight: 600;">🎨 Spersonalizuj swój produkt z AI</h3>
       <div class="customify-inline-wrapper">
         <div class="customify-embed" id="customifyEmbed">
@@ -454,24 +439,9 @@
           this.positionApp();
         }
 
-        // POZYCJONOWANIE APLIKACJI - PRZENIEŚ DO SEKCJI Z PRODUKTEM
+        // POZYCJONOWANIE APLIKACJI - NIE PRZENOSZ
         positionApp() {
-          if (!window.location.pathname.includes('/products/')) {
-            return;
-          }
-
-          const appContainer = document.getElementById('customify-app-container');
-          if (!appContainer) return;
-
-          // Znajdź sekcję z produktem
-          const productGrid = document.querySelector('.product-information__grid');
-          if (productGrid) {
-            // Przenieś aplikację do sekcji z produktem
-            productGrid.appendChild(appContainer);
-            console.log('🎯 [CUSTOMIFY] App moved to product grid');
-          } else {
-            console.log('❌ [CUSTOMIFY] Product grid not found');
-          }
+          // Nie przenoś aplikacji - zostaw ją gdzie jest
         }
 
         setupEventListeners() {
