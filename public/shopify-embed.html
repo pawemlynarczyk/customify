@@ -434,7 +434,6 @@
 
             showStyles() {
                 this.stylesArea.style.display = 'block';
-                this.sizeArea.style.display = 'block';
                 this.actionsArea.style.display = 'flex';
             }
 
@@ -461,8 +460,8 @@
             }
 
             async transformImage() {
-                if (!this.uploadedFile || !this.selectedStyle || !this.selectedSize) {
-                    this.showError('Proszę wybrać zdjęcie, styl i rozmiar');
+                if (!this.uploadedFile || !this.selectedStyle) {
+                    this.showError('Proszę wybrać zdjęcie i styl');
                     return;
                 }
 
@@ -514,6 +513,7 @@
                 console.log('🎯 [SHOPIFY-EMBED.HTML] showResult called with:', imageUrl);
                 this.resultImage.src = imageUrl;
                 this.resultArea.style.display = 'block';
+                this.sizeArea.style.display = 'block'; // Pokaż wymiary po przekształceniu AI
                 console.log('🎯 [SHOPIFY-EMBED.HTML] resultArea display set to block');
                 
                 // Check if buttons exist
@@ -534,8 +534,8 @@
             }
 
             async addToCart() {
-                if (!this.transformedImage || !this.selectedStyle) {
-                    this.showError('Brak przekształconego obrazu lub stylu');
+                if (!this.transformedImage || !this.selectedStyle || !this.selectedSize) {
+                    this.showError('Brak przekształconego obrazu, stylu lub rozmiaru');
                     return;
                 }
 
