@@ -465,11 +465,19 @@
         moveShopifyElementsBelowApp(container) {
           // Znajdź elementy Shopify do przeniesienia - AGRESYWNE WYSZUKIWANIE
           const shopifyElements = [
-            // Selektor ilości
+            // Selektor ilości - WSZYSTKIE MOŻLIWE
             '.quantity-selector',
             '.quantity-input',
             '.product-form__quantity',
             '[data-quantity-input]',
+            'quantity-selector-component',
+            '#ProductInformation-template--26351135293765__main > quantity-selector-component',
+            // Group block - SPECJALNIE
+            '.group-block',
+            '.group-block--height-fit',
+            '.group-block--width-fill',
+            'div.group-block.group-block--height-fit.group-block--width-fill.border-style.spacing-style.size-style',
+            '#ProductInformation-template--26351135293765__main > div.group-block.group-block--height-fit.group-block--width-fill.border-style.spacing-style.size-style',
             // Przyciski - WSZYSTKIE MOŻLIWE
             '.product-form__buttons',
             '.btn[data-add-to-cart]',
