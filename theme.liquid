@@ -454,10 +454,24 @@
           this.positionApp();
         }
 
-        // POZYCJONOWANIE APLIKACJI - NIE PRZENOSZ, ZOSTAW GDZIE JEST
+        // POZYCJONOWANIE APLIKACJI - PRZENIEŚ DO SEKCJI Z PRODUKTEM
         positionApp() {
-          // Nie przenoś aplikacji - zostaw ją gdzie jest w HTML
-          console.log('🎯 [CUSTOMIFY] App positioning disabled - using CSS layout');
+          if (!window.location.pathname.includes('/products/')) {
+            return;
+          }
+
+          const appContainer = document.getElementById('customify-app-container');
+          if (!appContainer) return;
+
+          // Znajdź sekcję z produktem
+          const productGrid = document.querySelector('.product-information__grid');
+          if (productGrid) {
+            // Przenieś aplikację do sekcji z produktem
+            productGrid.appendChild(appContainer);
+            console.log('🎯 [CUSTOMIFY] App moved to product grid');
+          } else {
+            console.log('❌ [CUSTOMIFY] Product grid not found');
+          }
         }
 
         setupEventListeners() {
