@@ -568,9 +568,21 @@
                         body: JSON.stringify(productData)
                     });
 
-                    console.log('🛒 [CUSTOMIFY] API response status:', response.status);
-                    const result = await response.json();
-                    console.log('🛒 [CUSTOMIFY] API response:', result);
+            console.log('🛒 [CUSTOMIFY] API response status:', response.status);
+            
+            if (!response.ok) {
+              console.error('❌ [CUSTOMIFY] API error:', response.status, response.statusText);
+              const errorText = await response.text();
+              console.error('❌ [CUSTOMIFY] Error response:', errorText);
+              this.showError('Błąd API: ' + response.status);
+              return;
+            }
+            
+            const result = await response.json();
+            console.log('🛒 [CUSTOMIFY] API response:', result);
+            console.log('🛒 [CUSTOMIFY] Result success:', result.success);
+            console.log('🛒 [CUSTOMIFY] Result variantId:', result.variantId);
+            console.log('🛒 [CUSTOMIFY] Result productId:', result.productId);
 
                     if (result.success) {
                         this.showSuccess('✅ ' + (result.message || 'Produkt został utworzony!'));
