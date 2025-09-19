@@ -63,7 +63,7 @@ module.exports = async (req, res) => {
         vendor: 'Customify',
         product_type: 'Custom AI Product',
         tags: ['custom', 'ai', 'personalized', style, 'hidden'],
-        published: true, // OPUBLIKUJ PRODUKT
+        published: false, // UKRYJ W KATALOGU
         published_scope: 'web', // TYLKO WEB (nie w API)
         variants: [{
           title: `Styl ${style}`,
