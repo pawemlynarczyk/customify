@@ -418,9 +418,40 @@
           this.positionApp();
         }
 
-        // POZYCJONOWANIE APLIKACJI - NIE PRZENOSZ
+        // POZYCJONOWANIE APLIKACJI - PRZENIEŚ DO SEKCJI PRODUKTU
         positionApp() {
-          // Nie przenoś aplikacji - zostaw ją gdzie jest
+          if (!window.location.pathname.includes('/products/')) {
+            return;
+          }
+
+          const appContainer = document.getElementById('customify-app-container');
+          if (!appContainer) return;
+
+          // Szukaj sekcji ProductInformation
+          const productSection = document.querySelector('#ProductInformation-template--26351135293765__main');
+          if (productSection) {
+            console.log('🎯 [CUSTOMIFY] Found ProductInformation section, moving app there');
+            productSection.appendChild(appContainer);
+            return;
+          }
+
+          // Fallback: szukaj innych sekcji produktu
+          const productInfo = document.querySelector('.product__info, .product-information, .product-details');
+          if (productInfo) {
+            console.log('🎯 [CUSTOMIFY] Found product info section, moving app there');
+            productInfo.appendChild(appContainer);
+            return;
+          }
+
+          // Fallback: szukaj tytułu produktu
+          const productTitle = document.querySelector('h1, .product-title, .view-product-title');
+          if (productTitle) {
+            console.log('🎯 [CUSTOMIFY] Found product title, moving app after it');
+            productTitle.parentNode.insertBefore(appContainer, productTitle.nextSibling);
+            return;
+          }
+
+          console.log('🎯 [CUSTOMIFY] No suitable section found, keeping app in current position');
         }
 
         setupEventListeners() {
