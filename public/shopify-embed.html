@@ -79,6 +79,9 @@
         .customify-preview img {
             max-width: 100%;
             max-height: 300px;
+            width: auto;
+            height: auto;
+            object-fit: contain;
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
@@ -208,6 +211,9 @@
         .customify-result img {
             max-width: 100%;
             max-height: 400px;
+            width: auto;
+            height: auto;
+            object-fit: contain;
             border-radius: 8px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
@@ -230,6 +236,28 @@
             display: none;
         }
 
+        /* Layout for product page - app and product image side by side */
+        #customify-app-container {
+            width: 50%;
+            float: left;
+            margin-right: 20px;
+            box-sizing: border-box;
+        }
+
+        /* Product image container */
+        .product-media {
+            width: 50%;
+            float: right;
+            box-sizing: border-box;
+        }
+
+        /* Clear floats */
+        .product-page-layout::after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+
         @media (max-width: 768px) {
             .customify-embed {
                 padding: 15px;
@@ -242,6 +270,14 @@
             
             .customify-actions {
                 flex-direction: column;
+            }
+
+            /* Mobile: stack vertically */
+            #customify-app-container,
+            .product-media {
+                width: 100%;
+                float: none;
+                margin-right: 0;
             }
         }
     </style>
