@@ -348,7 +348,7 @@
     {% endif %}
 
     <!-- Customify AI Photo Customization - Z MINIATURKĄ W KOSZYKU -->
-    <div id="customify-app-container" class="customify-shopify-container" style="margin: 20px 0px; padding: 0px; border: 1px solid rgb(224, 224, 224); border-radius: 8px; background: rgb(255, 255, 255); opacity: 1; transition: opacity 0.3s;">
+    <div id="customify-app-container" class="customify-shopify-container" style="width: 50%; flex: 0 0 50%; margin: 20px 0px; padding: 0px; border: 1px solid rgb(224, 224, 224); border-radius: 8px; background: rgb(255, 255, 255); opacity: 1; transition: opacity 0.3s;">
       <h3 class="customify-title" style="margin: 0px 0px 15px; padding: 15px 20px; background: linear-gradient(135deg, rgb(102, 126, 234) 0%, rgb(118, 75, 162) 100%); color: white; border-radius: 8px 8px 0px 0px; font-size: 1.2rem; font-weight: 600;">🎨 Spersonalizuj swój produkt z AI</h3>
       <div class="customify-inline-wrapper">
         <div class="customify-embed" id="customifyEmbed">
@@ -453,36 +453,10 @@
           this.positionApp();
         }
 
-        // POZYCJONOWANIE APLIKACJI - OBIE SEKCJE OBIE
+        // POZYCJONOWANIE APLIKACJI - NIE PRZENOSZ, ZOSTAW GDZIE JEST
         positionApp() {
-          if (!window.location.pathname.includes('/products/')) {
-            return;
-          }
-
-          const appContainer = document.getElementById('customify-app-container');
-          if (!appContainer) return;
-
-          // Znajdź sekcję z zdjęciem produktu
-          const productMedia = document.querySelector('.product-information__media');
-          if (productMedia) {
-            // Przenieś aplikację do sekcji obok zdjęcia
-            productMedia.parentNode.insertBefore(appContainer, productMedia.nextSibling);
-            console.log('🎯 [CUSTOMIFY] App moved next to product media');
-          } else {
-            console.log('❌ [CUSTOMIFY] Product media not found');
-            // Fallback - przenieś do sekcji z tytułem
-            const productTitle = document.querySelector('h1, .product-title, .view-product-title');
-            if (productTitle) {
-              productTitle.parentNode.insertBefore(appContainer, productTitle.nextSibling);
-              console.log('🎯 [CUSTOMIFY] App moved next to product title');
-            } else {
-              const mainContent = document.getElementById('MainContent');
-              if (mainContent) {
-                mainContent.insertBefore(appContainer, mainContent.firstChild);
-                console.log('🎯 [CUSTOMIFY] App moved to main content');
-              }
-            }
-          }
+          // Nie przenoś aplikacji - zostaw ją gdzie jest w HTML
+          console.log('🎯 [CUSTOMIFY] App positioning disabled - using CSS layout');
         }
 
         setupEventListeners() {
