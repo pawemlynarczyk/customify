@@ -69,11 +69,21 @@
             .product-single__media img,
             .product__photo img,
             .product__image img {
-                width: 100%;
-                height: auto;
-                object-fit: contain;
-                max-height: 500px;
+                width: 100% !important;
+                height: auto !important;
+                object-fit: contain !important;
+                max-height: 500px !important;
                 border-radius: 8px;
+            }
+
+            /* Customify app images - force proper proportions */
+            .customify-preview img,
+            .customify-result img {
+                max-width: 100% !important;
+                max-height: 300px !important;
+                width: auto !important;
+                height: auto !important;
+                object-fit: contain !important;
             }
 
             /* Clear floats */
