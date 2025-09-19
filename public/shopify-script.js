@@ -69,6 +69,25 @@
                 clear: both;
             }
 
+            /* Hide native Shopify add to cart and buy now buttons */
+            #BuyButtons-ProductForm-template--26351135293765__main > div,
+            .product-form__buttons,
+            .product-form__cart-submit,
+            .btn--add-to-cart,
+            .product-form__buy-buttons,
+            .shopify-payment-button,
+            .product-form__payment-container,
+            .product-form__buttons-wrapper,
+            .product-form__cart,
+            .product-form__add-button,
+            .btn[data-add-to-cart],
+            .product-form__buttons-container,
+            .product-form__cart-wrapper,
+            .product-form__submit,
+            .product-form__buttons-group {
+                display: none !important;
+            }
+
             @media (max-width: 768px) {
                 /* Mobile: stack vertically */
                 #customify-app-container,
