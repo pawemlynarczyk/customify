@@ -463,39 +463,77 @@
 
         // PRZENIEŚ ELEMENTY SHOPIFY PONIŻEJ APLIKACJI
         moveShopifyElementsBelowApp(container) {
-          // Znajdź elementy Shopify do przeniesienia
+          // Znajdź elementy Shopify do przeniesienia - AGRESYWNE WYSZUKIWANIE
           const shopifyElements = [
             // Selektor ilości
             '.quantity-selector',
             '.quantity-input',
             '.product-form__quantity',
             '[data-quantity-input]',
-            // Przyciski
+            // Przyciski - WSZYSTKIE MOŻLIWE
             '.product-form__buttons',
             '.btn[data-add-to-cart]',
             '.product-form__cart-submit',
             '[type="submit"]',
+            'button[type="submit"]',
+            '.btn--primary',
+            '.btn--secondary',
+            // Buy it now - SPECJALNIE
+            'button:contains("Buy it now")',
+            'button:contains("Kup teraz")',
+            'a:contains("Buy it now")',
+            'a:contains("Kup teraz")',
             // Inne elementy produktu
             '.product-form',
             '.product-options',
-            '.product-variants'
+            '.product-variants',
+            // Wszystkie przyciski w sekcji produktu
+            'button',
+            'a[href*="cart"]',
+            'a[href*="checkout"]',
+            // Elementy z tekstem "Buy" lub "Kup"
+            '*:contains("Buy")',
+            '*:contains("Kup")',
+            '*:contains("Add to cart")',
+            '*:contains("Dodaj do koszyka")'
           ];
 
           const elementsToMove = [];
           
+          // Szukaj elementy przez selektory
           shopifyElements.forEach(selector => {
-            const elements = container.querySelectorAll(selector);
-            elements.forEach(el => {
-              if (el && !elementsToMove.includes(el)) {
+            try {
+              const elements = container.querySelectorAll(selector);
+              elements.forEach(el => {
+                if (el && !elementsToMove.includes(el) && !el.closest('#customify-app-container')) {
+                  elementsToMove.push(el);
+                }
+              });
+            } catch (e) {
+              // Ignoruj błędy selektorów
+            }
+          });
+
+          // Szukaj elementy przez tekst - AGRESYWNE
+          const allElements = container.querySelectorAll('*');
+          allElements.forEach(el => {
+            if (el && el.textContent) {
+              const text = el.textContent.toLowerCase().trim();
+              if ((text.includes('buy it now') || 
+                   text.includes('kup teraz') || 
+                   text.includes('add to cart') || 
+                   text.includes('dodaj do koszyka')) &&
+                  !elementsToMove.includes(el) && 
+                  !el.closest('#customify-app-container')) {
                 elementsToMove.push(el);
               }
-            });
+            }
           });
 
           // Przenieś wszystkie znalezione elementy poniżej aplikacji
           elementsToMove.forEach(element => {
-            if (element && element.parentNode) {
-              console.log('🎯 [CUSTOMIFY] Moving Shopify element below app:', element.className || element.tagName);
+            if (element && element.parentNode && element !== container) {
+              console.log('🎯 [CUSTOMIFY] Moving Shopify element below app:', element.className || element.tagName, element.textContent?.substring(0, 50));
               container.appendChild(element);
             }
           });
