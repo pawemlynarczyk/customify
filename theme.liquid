@@ -51,53 +51,31 @@
       #customify-app-container,
       div#customify-app-container,
       .customify-shopify-container {
-        width: 50% !important;
-        float: left !important;
-        margin-right: 20px !important;
+        width: 100% !important;
         box-sizing: border-box !important;
-        min-width: 50% !important;
-        max-width: 50% !important;
-        flex: 0 0 50% !important;
         display: block !important;
         position: relative !important;
       }
 
-      /* Force layout on product pages */
-      .product-page-layout,
-      .product-form,
-      .product__media-wrapper,
-      .product__info {
+      /* Force layout on product pages - make sections side by side */
+      .product-information__grid {
         display: flex !important;
         flex-wrap: wrap !important;
+        width: 100% !important;
       }
 
-      .product__media-wrapper,
-      .product__media {
+      /* Product image section - 50% width */
+      .product-information__media {
         width: 50% !important;
-        float: right !important;
+        flex: 0 0 50% !important;
         box-sizing: border-box !important;
       }
 
-      /* Product image container - ALL POSSIBLE SELECTORS */
-      .product-media,
-      .product__media,
-      .product__media-wrapper,
-      .product-single__media,
-      .product__photo,
-      .product__image,
-      .product-gallery,
-      .product-images,
-      .product-photos,
-      .product__gallery,
-      .product__images,
-      .product__photos,
-      .media-gallery,
-      .product-media-gallery,
-      .product__media-gallery {
+      /* Product details section - 50% width */
+      .product-details {
         width: 50% !important;
-        float: right !important;
+        flex: 0 0 50% !important;
         box-sizing: border-box !important;
-        margin-left: 20px !important;
       }
 
       /* Clear floats */
