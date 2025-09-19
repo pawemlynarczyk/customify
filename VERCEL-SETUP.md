@@ -20,7 +20,7 @@ Value: 40e832d641a2ac8c6a2acf1945a34436
 Environment: Production, Preview, Development
 
 Name: SHOP_DOMAIN
-Value: customiffyy.myshopify.com
+Value: customify-ok.myshopify.com
 Environment: Production, Preview, Development
 
 Name: SHOPIFY_ACCESS_TOKEN
