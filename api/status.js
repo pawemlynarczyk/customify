@@ -22,7 +22,7 @@ module.exports = async (req, res) => {
     return;
   }
 
-  const shop = process.env.SHOP_DOMAIN || 'customiffyy.myshopify.com';
+  const shop = process.env.SHOP_DOMAIN || 'customify-ok.myshopify.com';
   const clientId = process.env.SHOPIFY_API_KEY;
   const appUrl = process.env.APP_URL;
 
