@@ -1,0 +1,779 @@
+<!doctype html>
+<html
+  class="no-js{% if request.design_mode %} shopify-design-mode{% endif %}"
+  lang="{{ request.locale.iso_code }}"
+>
+  <head>
+    {%- render 'stylesheets' -%}
+
+    {%- if settings.favicon != blank -%}
+      <link
+        rel="icon"
+        type="image/png"
+        href="{{ settings.favicon | image_url: width: 32, height: 32 }}"
+      >
+    {%- endif -%}
+
+    <link
+      rel="expect"
+      href="#MainContent"
+      blocking="render"
+      id="view-transition-render-blocker"
+    >
+
+    {%- render 'meta-tags' -%}
+    {%- render 'fonts' -%}
+    {%- render 'scripts' -%}
+    {%- render 'theme-styles-variables' -%}
+    {%- render 'color-schemes' -%}
+
+    {% if request.design_mode %}
+      {%- render 'theme-editor' -%}
+    {% endif %}
+
+    {{ content_for_header }}
+    
+    <!-- Customify - Minimal CSS -->
+    <style>
+      /* Hide original add to cart buttons */
+      .product-form__buttons .btn--primary,
+      .product-form__buttons .product-form__cart-submit,
+      .product-form__buttons [type="submit"],
+      .product-form__buttons .btn[data-add-to-cart],
+      .quantity-selector,
+      .quantity-input,
+      .product-form__quantity {
+        display: none !important;
+      }
+      
+      /* Layout for product page - app and product image side by side */
+      #customify-app-container {
+        width: 50% !important;
+        float: left !important;
+        margin-right: 20px !important;
+        box-sizing: border-box !important;
+        min-width: 50% !important;
+        max-width: 50% !important;
+        flex: 0 0 50% !important;
+      }
+
+      /* Force layout on product pages */
+      .product-page-layout,
+      .product-form,
+      .product__media-wrapper,
+      .product__info {
+        display: flex !important;
+        flex-wrap: wrap !important;
+      }
+
+      .product__media-wrapper,
+      .product__media {
+        width: 50% !important;
+        float: right !important;
+        box-sizing: border-box !important;
+      }
+
+      /* Product image container */
+      .product-media {
+        width: 50% !important;
+        float: right !important;
+        box-sizing: border-box !important;
+      }
+
+      /* Clear floats */
+      .product-page-layout::after {
+        content: "";
+        display: table;
+        clear: both;
+      }
+
+      /* Product image styling */
+      .product-media img,
+      .product__media img,
+      .product-single__media img,
+      .product__photo img,
+      .product__image img {
+        width: 100% !important;
+        height: auto !important;
+        object-fit: contain !important;
+        max-height: 500px !important;
+        border-radius: 8px;
+      }
+      
+      /* Customify Styles */
+      .customify-embed {
+        background: #f8f9fa;
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        padding: 20px;
+        margin: 20px 0;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      }
+
+      .customify-header {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+
+      .customify-header h3 {
+        color: #2c3e50;
+        margin-bottom: 8px;
+        font-size: 1.4rem;
+      }
+
+      .customify-upload-area {
+        border: 2px dashed #dee2e6;
+        border-radius: 8px;
+        padding: 30px;
+        text-align: center;
+        margin-bottom: 20px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .customify-upload-area:hover {
+        border-color: #007bff;
+        background-color: #f8f9ff;
+      }
+
+      .customify-upload-area.dragover {
+        border-color: #007bff;
+        background-color: #e3f2fd;
+      }
+
+      .customify-file-input {
+        display: none;
+      }
+
+      .customify-preview {
+        display: none;
+        margin-bottom: 20px;
+      }
+
+      .customify-preview img {
+        max-width: 100% !important;
+        max-height: 300px !important;
+        width: auto !important;
+        height: auto !important;
+        object-fit: contain !important;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      }
+
+      .customify-styles {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+
+      .customify-style-btn {
+        padding: 10px;
+        border: 2px solid #dee2e6;
+        border-radius: 8px;
+        background: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-align: center;
+        font-size: 0.9rem;
+      }
+
+      .customify-style-btn:hover {
+        border-color: #007bff;
+        background-color: #f8f9ff;
+      }
+
+      .customify-style-btn.active {
+        border-color: #007bff;
+        background-color: #007bff;
+        color: white;
+      }
+
+      .customify-size-selector {
+        display: none;
+        margin-bottom: 20px;
+      }
+
+      .customify-size-buttons {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        gap: 10px;
+      }
+
+      .customify-size-btn {
+        padding: 10px;
+        border: 2px solid #dee2e6;
+        border-radius: 8px;
+        background: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-align: center;
+        font-size: 0.9rem;
+      }
+
+      .customify-size-btn:hover {
+        border-color: #007bff;
+        background-color: #f8f9ff;
+      }
+
+      .customify-size-btn.active {
+        border-color: #007bff;
+        background-color: #007bff;
+        color: white;
+      }
+
+      .customify-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+      }
+
+      .customify-btn {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+      }
+
+      .customify-btn-primary {
+        background-color: #007bff;
+        color: white;
+      }
+
+      .customify-btn-primary:hover {
+        background-color: #0056b3;
+      }
+
+      .customify-btn-secondary {
+        background-color: #6c757d;
+        color: white;
+      }
+
+      .customify-btn-secondary:hover {
+        background-color: #545b62;
+      }
+
+      .customify-loading {
+        display: none;
+        text-align: center;
+        padding: 20px;
+      }
+
+      .customify-spinner {
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #007bff;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 10px;
+      }
+
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+
+      .customify-result {
+        margin-top: 20px;
+        display: none;
+      }
+
+      .customify-result img {
+        max-width: 100% !important;
+        max-height: 400px !important;
+        width: auto !important;
+        height: auto !important;
+        object-fit: contain !important;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      }
+
+      .customify-error {
+        background-color: #f8d7da;
+        color: #721c24;
+        padding: 10px;
+        border-radius: 6px;
+        margin: 10px 0;
+        display: none;
+      }
+
+      .customify-success {
+        background-color: #d4edda;
+        color: #155724;
+        padding: 10px;
+        border-radius: 6px;
+        margin: 10px 0;
+        display: none;
+      }
+
+      @media (max-width: 768px) {
+        /* Mobile: stack vertically */
+        #customify-app-container,
+        .product-media {
+          width: 100% !important;
+          float: none !important;
+          margin-right: 0 !important;
+        }
+
+        /* Mobile product image */
+        .product-media img,
+        .product__media img,
+        .product-single__media img,
+        .product__photo img,
+        .product__image img {
+          max-height: 300px;
+        }
+      }
+    </style>
+  </head>
+
+  <body class="page-width-{{ settings.page_width }} card-hover-effect-{{ settings.card_hover_effect }}">
+    {% render 'skip-to-content-link', href: '#MainContent', text: 'accessibility.skip_to_text' %}
+    <div id="header-group">
+      {% sections 'header-group' %}
+    </div>
+
+    <script
+      src="{{ 'critical.js' | asset_url }}"
+      type="module"
+      async
+      blocking="render"
+    ></script>
+
+    <main
+      id="MainContent"
+      class="content-for-layout"
+      role="main"
+      data-page-transition-enabled="{{ settings.page_transition_enabled }}"
+      data-product-transition="{{ settings.transition_to_main_product }}"
+      data-template="{{ template }}"
+    >
+      {{ content_for_layout }}
+    </main>
+
+    {% sections 'footer-group' %}
+
+    {% render 'search-modal' %}
+
+    {% if settings.quick_add or settings.mobile_quick_add %}
+      {% render 'quick-add-modal' %}
+    {% endif %}
+
+    <!-- Customify AI Photo Customization - Z MINIATURKĄ W KOSZYKU -->
+    <div id="customify-app-container" class="customify-shopify-container" style="width: 50% !important; float: left !important; margin-right: 20px !important; box-sizing: border-box !important; min-width: 50% !important; max-width: 50% !important; margin: 20px 0px; padding: 0px; border: 1px solid rgb(224, 224, 224); border-radius: 8px; background: rgb(255, 255, 255); opacity: 1; transition: opacity 0.3s;">
+      <h3 class="customify-title" style="margin: 0px 0px 15px; padding: 15px 20px; background: linear-gradient(135deg, rgb(102, 126, 234) 0%, rgb(118, 75, 162) 100%); color: white; border-radius: 8px 8px 0px 0px; font-size: 1.2rem; font-weight: 600;">🎨 Spersonalizuj swój produkt z AI</h3>
+      <div class="customify-inline-wrapper">
+        <div class="customify-embed" id="customifyEmbed">
+          <div class="customify-header">
+            <h3> Spersonalizuj swój produkt z AI</h3>
+            <p>Wgraj zdjęcie i zobacz jak wygląda w różnych stylach artystycznych</p>
+          </div>
+
+          <div class="customify-upload-area" id="uploadArea">
+            <div class="customify-upload-icon"></div>
+            <div class="customify-upload-text">Kliknij lub przeciągnij zdjęcie tutaj</div>
+            <div class="customify-upload-hint">Maksymalnie 10MB, formaty: JPG, PNG, GIF</div>
+            <input type="file" id="fileInput" class="customify-file-input" accept="image/*">
+          </div>
+
+          <div class="customify-preview" id="previewArea">
+            <img id="previewImage" alt="Podgląd zdjęcia">
+          </div>
+
+          <div class="customify-styles" id="stylesArea" style="display: none;">
+            <h4>Wybierz styl AI:</h4>
+            <div class="customify-style-buttons">
+              <div class="customify-style-btn" data-style="van gogh">Van Gogh (+50 zł)</div>
+              <div class="customify-style-btn" data-style="picasso">Picasso (+75 zł)</div>
+              <div class="customify-style-btn" data-style="monet">Monet (+60 zł)</div>
+              <div class="customify-style-btn" data-style="anime">Anime (+40 zł)</div>
+              <div class="customify-style-btn" data-style="cyberpunk">Cyberpunk (+80 zł)</div>
+              <div class="customify-style-btn" data-style="watercolor">Akwarela (+45 zł)</div>
+            </div>
+          </div>
+
+          <div class="customify-size-selector" id="sizeArea" style="display: none;">
+            <h4>Wybierz rozmiar:</h4>
+            <div class="customify-size-buttons">
+              <div class="customify-size-btn" data-size="small">Mały (+0 zł)</div>
+              <div class="customify-size-btn" data-size="medium">Średni (+25 zł)</div>
+              <div class="customify-size-btn" data-size="large">Duży (+50 zł)</div>
+              <div class="customify-size-btn" data-size="xlarge">Bardzo duży (+100 zł)</div>
+            </div>
+          </div>
+
+          <div class="customify-actions" id="actionsArea" style="display: none;">
+            <button class="customify-btn customify-btn-primary" id="transformBtn">
+              ✨ Przekształć z AI
+            </button>
+            <button class="customify-btn customify-btn-secondary" id="resetBtn">
+              🔄 Resetuj
+            </button>
+          </div>
+
+          <div class="customify-loading" id="loadingArea">
+            <div class="customify-spinner"></div>
+            <div>Przetwarzanie z AI...</div>
+          </div>
+
+          <div class="customify-result" id="resultArea">
+            <h4>Wynik transformacji AI:</h4>
+            <img id="resultImage" alt="Wynik AI">
+            <div class="customify-actions" style="margin-top: 15px;">
+              <button class="customify-btn customify-btn-primary" id="addToCartBtn">
+                🛒 Dodaj do koszyka
+              </button>
+              <button class="customify-btn customify-btn-secondary" id="tryAgainBtn">
+                Spróbuj ponownie
+              </button>
+            </div>
+          </div>
+
+          <div class="customify-error" id="errorMessage"></div>
+          <div class="customify-success" id="successMessage"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Customify JavaScript - Z MINIATURKĄ W KOSZYKU
+      class CustomifyEmbed {
+        constructor() {
+          this.uploadArea = document.getElementById('uploadArea');
+          this.fileInput = document.getElementById('fileInput');
+          this.previewArea = document.getElementById('previewArea');
+          this.previewImage = document.getElementById('previewImage');
+          this.stylesArea = document.getElementById('stylesArea');
+          this.sizeArea = document.getElementById('sizeArea');
+          this.actionsArea = document.getElementById('actionsArea');
+          this.loadingArea = document.getElementById('loadingArea');
+          this.resultArea = document.getElementById('resultArea');
+          this.resultImage = document.getElementById('resultImage');
+          this.errorMessage = document.getElementById('errorMessage');
+          this.successMessage = document.getElementById('successMessage');
+          
+          this.uploadedFile = null;
+          this.selectedStyle = null;
+          this.selectedSize = null;
+          this.transformedImage = null;
+          
+          this.init();
+        }
+
+        init() {
+          this.setupEventListeners();
+          this.positionApp();
+        }
+
+        // POZYCJONOWANIE APLIKACJI
+        positionApp() {
+          if (!window.location.pathname.includes('/products/')) {
+            return;
+          }
+
+          const appContainer = document.getElementById('customify-app-container');
+          if (!appContainer) return;
+
+          const productTitle = document.querySelector('h1, .product-title, .view-product-title');
+          if (productTitle) {
+            productTitle.parentNode.insertBefore(appContainer, productTitle.nextSibling);
+          } else {
+            const mainContent = document.getElementById('MainContent');
+            if (mainContent) {
+              mainContent.insertBefore(appContainer, mainContent.firstChild);
+            }
+          }
+        }
+
+        setupEventListeners() {
+          this.uploadArea.addEventListener('click', () => this.fileInput.click());
+          this.fileInput.addEventListener('change', (e) => this.handleFileSelect(e.target.files[0]));
+          
+          this.uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            this.uploadArea.classList.add('dragover');
+          });
+          
+          this.uploadArea.addEventListener('dragleave', () => {
+            this.uploadArea.classList.remove('dragover');
+          });
+          
+          this.uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            this.uploadArea.classList.remove('dragover');
+            this.handleFileSelect(e.dataTransfer.files[0]);
+          });
+
+          this.stylesArea.addEventListener('click', (e) => {
+            if (e.target.classList.contains('customify-style-btn')) {
+              this.selectStyle(e.target);
+            }
+          });
+
+          this.sizeArea.addEventListener('click', (e) => {
+            if (e.target.classList.contains('customify-size-btn')) {
+              this.selectSize(e.target);
+            }
+          });
+
+          document.getElementById('transformBtn').addEventListener('click', () => this.transformImage());
+          document.getElementById('resetBtn').addEventListener('click', () => this.reset());
+          document.getElementById('addToCartBtn').addEventListener('click', () => this.addToCart());
+          document.getElementById('tryAgainBtn').addEventListener('click', () => this.tryAgain());
+        }
+
+        handleFileSelect(file) {
+          if (!file) return;
+          if (!file.type.startsWith('image/')) {
+            this.showError('Proszę wybrać plik obrazu (JPG, PNG, GIF)');
+            return;
+          }
+          if (file.size > 10 * 1024 * 1024) {
+            this.showError('Plik jest za duży. Maksymalny rozmiar to 10MB');
+            return;
+          }
+
+          this.uploadedFile = file;
+          this.showPreview(file);
+          this.showStyles();
+          this.hideError();
+        }
+
+        showPreview(file) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            this.previewImage.src = e.target.result;
+            this.previewArea.style.display = 'block';
+          };
+          reader.readAsDataURL(file);
+        }
+
+        showStyles() {
+          this.stylesArea.style.display = 'block';
+          this.sizeArea.style.display = 'none'; // Ukryj wymiary na początku
+          this.actionsArea.style.display = 'flex';
+        }
+
+        selectStyle(styleBtn) {
+          this.stylesArea.querySelectorAll('.customify-style-btn').forEach(btn => btn.classList.remove('active'));
+          styleBtn.classList.add('active');
+          this.selectedStyle = styleBtn.dataset.style;
+        }
+
+        selectSize(sizeBtn) {
+          this.sizeArea.querySelectorAll('.customify-size-btn').forEach(btn => btn.classList.remove('active'));
+          sizeBtn.classList.add('active');
+          this.selectedSize = sizeBtn.dataset.size;
+        }
+
+        async transformImage() {
+          if (!this.uploadedFile || !this.selectedStyle) {
+            this.showError('Proszę wybrać zdjęcie i styl');
+            return;
+          }
+
+          this.showLoading();
+          this.hideError();
+
+          try {
+            const base64 = await this.fileToBase64(this.uploadedFile);
+            const response = await fetch('https://customify-s56o.vercel.app/api/transform', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                imageData: base64,
+                prompt: `Transform this image in ${this.selectedStyle} style`
+              })
+            });
+
+            const result = await response.json();
+            if (result.success) {
+              this.transformedImage = result.transformedImage;
+              this.showResult(result.transformedImage);
+              this.showSuccess('Zdjęcie zostało pomyślnie przekształcone!');
+            } else {
+              this.showError('Błąd podczas transformacji: ' + (result.error || 'Nieznany błąd'));
+            }
+          } catch (error) {
+            this.showError('Błąd połączenia z serwerem');
+          } finally {
+            this.hideLoading();
+          }
+        }
+
+        showResult(imageUrl) {
+          this.resultImage.src = imageUrl;
+          this.resultArea.style.display = 'block';
+          this.sizeArea.style.display = 'block'; // Pokaż wymiary po przekształceniu AI
+        }
+
+        // NAPRAWIONA FUNKCJA: STWÓRZ NOWY PRODUKT Z OBRAZKIEM AI (UKRYTY W KATALOGU)
+        async addToCart() {
+          if (!this.transformedImage || !this.selectedStyle || !this.selectedSize) {
+            this.showError('Brak przekształconego obrazu, stylu lub rozmiaru');
+            return;
+          }
+
+          this.hideError();
+          console.log('🛒 [CUSTOMIFY] Starting addToCart process...');
+
+          try {
+            const productData = {
+              originalImage: await this.fileToBase64(this.uploadedFile),
+              transformedImage: this.transformedImage,
+              style: this.selectedStyle,
+              size: this.selectedSize,
+              originalProductTitle: document.querySelector('h1, .product-title, .view-product-title')?.textContent?.trim() || 'Produkt'
+            };
+
+            console.log('🛒 [CUSTOMIFY] Creating product with data:', productData);
+            
+            // Stwórz nowy produkt z obrazkiem AI jako głównym obrazem
+            const response = await fetch('https://customify-s56o.vercel.app/api/products', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(productData)
+            });
+
+            console.log('🛒 [CUSTOMIFY] API response status:', response.status);
+            const result = await response.json();
+            console.log('🛒 [CUSTOMIFY] API response:', result);
+
+            if (result.success) {
+              this.showSuccess('✅ ' + (result.message || 'Produkt został utworzony!'));
+              console.log('✅ [CUSTOMIFY] Product created:', result.product);
+              
+              // Add to cart using POST form submission
+              if (result.variantId) {
+                console.log('🛒 [CUSTOMIFY] Attempting to add to cart with Variant ID:', result.variantId);
+                console.log('🛒 [CUSTOMIFY] Product ID:', result.productId);
+                console.log('🛒 [CUSTOMIFY] Variant ID type:', typeof result.variantId);
+                console.log('🛒 [CUSTOMIFY] Variant ID length:', result.variantId.toString().length);
+                
+                // Create form and submit to add to cart
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '/cart/add';
+                form.style.display = 'none';
+                
+                // Add variant ID
+                const variantInput = document.createElement('input');
+                variantInput.type = 'hidden';
+                variantInput.name = 'id';
+                variantInput.value = result.variantId;
+                form.appendChild(variantInput);
+                
+                console.log('🛒 [CUSTOMIFY] Form variant ID:', result.variantId);
+                console.log('🛒 [CUSTOMIFY] Form action:', form.action);
+                
+                // Add quantity
+                const quantityInput = document.createElement('input');
+                quantityInput.type = 'hidden';
+                quantityInput.name = 'quantity';
+                quantityInput.value = '1';
+                form.appendChild(quantityInput);
+                
+                // Add minimal properties (no base64 image to avoid size issues)
+                const properties = {
+                  'AI Style': this.selectedStyle,
+                  'Original Product': productData.originalProductTitle,
+                  'Customization Type': 'AI Generated',
+                  'AI Image URL': this.transformedImage,
+                  'AI Preview': `<img src="${this.transformedImage}" style="max-width: 200px; max-height: 200px; border-radius: 8px; border: 2px solid #007bff;" alt="AI Generated Image">`
+                };
+                
+                Object.entries(properties).forEach(([key, value]) => {
+                  const propInput = document.createElement('input');
+                  propInput.type = 'hidden';
+                  propInput.name = `properties[${key}]`;
+                  propInput.value = value;
+                  form.appendChild(propInput);
+                });
+                
+                console.log('🛒 [CUSTOMIFY] Submitting form with variantId:', result.variantId);
+                document.body.appendChild(form);
+                form.submit();
+              }
+            } else {
+              console.error('❌ [CUSTOMIFY] Product creation failed:', result);
+              this.showError('❌ Błąd podczas tworzenia produktu: ' + (result.error || 'Nieznany błąd'));
+            }
+          } catch (error) {
+            console.error('❌ [CUSTOMIFY] Add to cart error:', error);
+            this.showError('❌ Błąd połączenia z serwerem: ' + error.message);
+          }
+        }
+
+        fileToBase64(file) {
+          return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result.split(',')[1]);
+            reader.onerror = error => reject(error);
+          });
+        }
+
+        reset() {
+          this.uploadedFile = null;
+          this.selectedStyle = null;
+          this.selectedSize = null;
+          this.transformedImage = null;
+          
+          this.fileInput.value = '';
+          this.previewArea.style.display = 'none';
+          this.stylesArea.style.display = 'none';
+          this.sizeArea.style.display = 'none';
+          this.actionsArea.style.display = 'none';
+          this.resultArea.style.display = 'none';
+          this.hideError();
+          this.hideSuccess();
+          
+          this.stylesArea.querySelectorAll('.customify-style-btn').forEach(btn => btn.classList.remove('active'));
+          this.sizeArea.querySelectorAll('.customify-size-btn').forEach(btn => btn.classList.remove('active'));
+        }
+
+        tryAgain() {
+          this.resultArea.style.display = 'none';
+          this.hideSuccess();
+        }
+
+        showLoading() {
+          this.loadingArea.style.display = 'block';
+          this.actionsArea.style.display = 'none';
+        }
+
+        hideLoading() {
+          this.loadingArea.style.display = 'none';
+          this.actionsArea.style.display = 'flex';
+        }
+
+        showError(message) {
+          this.errorMessage.textContent = message;
+          this.errorMessage.style.display = 'block';
+        }
+
+        hideError() {
+          this.errorMessage.style.display = 'none';
+        }
+
+        showSuccess(message) {
+          this.successMessage.textContent = message;
+          this.successMessage.style.display = 'block';
+        }
+
+        hideSuccess() {
+          this.successMessage.style.display = 'none';
+        }
+      }
+
+      // Initialize when DOM is loaded
+      document.addEventListener('DOMContentLoaded', () => {
+        new CustomifyEmbed();
+      });
+    </script>
+  </body>
+</html>
