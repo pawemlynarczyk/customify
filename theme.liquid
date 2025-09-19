@@ -35,19 +35,8 @@
     
     <!-- Customify - Minimal CSS -->
     <style>
-      /* Hide original add to cart buttons */
-      .product-form__buttons .btn--primary,
-      .product-form__buttons .product-form__cart-submit,
-      .product-form__buttons [type="submit"],
-      .product-form__buttons .btn[data-add-to-cart],
-      .quantity-selector,
-      .quantity-input,
-      .product-form__quantity {
-        display: none !important;
-      }
+      /* NIE UKRYWAJ ELEMENTÓW PRODUKTU - tylko dodaj style dla Customify */
       
-      
-
       /* Clear floats */
       .product-page-layout::after {
         content: "";
@@ -55,7 +44,7 @@
         clear: both;
       }
 
-      /* Product image styling */
+      /* Product image styling - tylko popraw wygląd, nie ukrywaj */
       .product-media img,
       .product__media img,
       .product-single__media img,
@@ -279,21 +268,11 @@
       }
 
       @media (max-width: 768px) {
-        /* Mobile: stack vertically */
-        #customify-app-container,
-        .product-media {
+        /* Mobile: tylko Customify, nie dotykaj elementów produktu */
+        #customify-app-container {
           width: 100% !important;
           float: none !important;
           margin-right: 0 !important;
-        }
-
-        /* Mobile product image */
-        .product-media img,
-        .product__media img,
-        .product-single__media img,
-        .product__photo img,
-        .product__image img {
-          max-height: 300px;
         }
       }
 
