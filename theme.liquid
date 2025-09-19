@@ -418,7 +418,7 @@
           this.positionApp();
         }
 
-        // POZYCJONOWANIE APLIKACJI - WSTAW PRZED ELEMENTEM GROUP-BLOCK
+        // POZYCJONOWANIE APLIKACJI - PRZENIEŚ ELEMENTY SHOPIFY PONIŻEJ APLIKACJI
         positionApp() {
           if (!window.location.pathname.includes('/products/')) {
             return;
@@ -427,19 +427,16 @@
           const appContainer = document.getElementById('customify-app-container');
           if (!appContainer) return;
 
-          // Szukaj elementu group-block w sekcji ProductInformation
-          const groupBlock = document.querySelector('#ProductInformation-template--26351135293765__main > div.group-block.group-block--height-fit.group-block--width-fill.border-style.spacing-style.size-style');
-          if (groupBlock) {
-            console.log('🎯 [CUSTOMIFY] Found group-block element, inserting app before it');
-            groupBlock.parentNode.insertBefore(appContainer, groupBlock);
-            return;
-          }
-
-          // Fallback: szukaj sekcji ProductInformation
+          // Szukaj sekcji ProductInformation
           const productSection = document.querySelector('#ProductInformation-template--26351135293765__main');
           if (productSection) {
             console.log('🎯 [CUSTOMIFY] Found ProductInformation section, moving app there');
-            productSection.appendChild(appContainer);
+            
+            // Wstaw aplikację na początku sekcji
+            productSection.insertBefore(appContainer, productSection.firstChild);
+            
+            // Znajdź i przenieś elementy Shopify poniżej aplikacji
+            this.moveShopifyElementsBelowApp(productSection);
             return;
           }
 
@@ -447,7 +444,8 @@
           const productInfo = document.querySelector('.product__info, .product-information, .product-details');
           if (productInfo) {
             console.log('🎯 [CUSTOMIFY] Found product info section, moving app there');
-            productInfo.appendChild(appContainer);
+            productInfo.insertBefore(appContainer, productInfo.firstChild);
+            this.moveShopifyElementsBelowApp(productInfo);
             return;
           }
 
@@ -456,10 +454,53 @@
           if (productTitle) {
             console.log('🎯 [CUSTOMIFY] Found product title, moving app after it');
             productTitle.parentNode.insertBefore(appContainer, productTitle.nextSibling);
+            this.moveShopifyElementsBelowApp(productTitle.parentNode);
             return;
           }
 
           console.log('🎯 [CUSTOMIFY] No suitable section found, keeping app in current position');
+        }
+
+        // PRZENIEŚ ELEMENTY SHOPIFY PONIŻEJ APLIKACJI
+        moveShopifyElementsBelowApp(container) {
+          // Znajdź elementy Shopify do przeniesienia
+          const shopifyElements = [
+            // Selektor ilości
+            '.quantity-selector',
+            '.quantity-input',
+            '.product-form__quantity',
+            '[data-quantity-input]',
+            // Przyciski
+            '.product-form__buttons',
+            '.btn[data-add-to-cart]',
+            '.product-form__cart-submit',
+            '[type="submit"]',
+            // Inne elementy produktu
+            '.product-form',
+            '.product-options',
+            '.product-variants'
+          ];
+
+          const elementsToMove = [];
+          
+          shopifyElements.forEach(selector => {
+            const elements = container.querySelectorAll(selector);
+            elements.forEach(el => {
+              if (el && !elementsToMove.includes(el)) {
+                elementsToMove.push(el);
+              }
+            });
+          });
+
+          // Przenieś wszystkie znalezione elementy poniżej aplikacji
+          elementsToMove.forEach(element => {
+            if (element && element.parentNode) {
+              console.log('🎯 [CUSTOMIFY] Moving Shopify element below app:', element.className || element.tagName);
+              container.appendChild(element);
+            }
+          });
+
+          console.log('🎯 [CUSTOMIFY] Moved', elementsToMove.length, 'Shopify elements below app');
         }
 
         setupEventListeners() {
