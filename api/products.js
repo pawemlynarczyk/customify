@@ -44,7 +44,7 @@ module.exports = async (req, res) => {
     const totalPrice = basePrice + (stylePrices[style] || 0);
 
     // Create product in Shopify
-    const shop = process.env.SHOP_DOMAIN || 'customiffyy.myshopify.com';
+    const shop = process.env.SHOP_DOMAIN || 'customify-ok.myshopify.com';
     const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
 
     if (!accessToken) {
