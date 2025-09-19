@@ -45,6 +45,7 @@
     }
 
     function injectStyles() {
+        console.log('🎨 [CUSTOMIFY] Injecting CSS styles...');
         const style = document.createElement('style');
         style.textContent = `
             /* Layout for product page - app and product image side by side */
@@ -121,6 +122,7 @@
             }
         `;
         document.head.appendChild(style);
+        console.log('🎨 [CUSTOMIFY] CSS styles injected successfully');
     }
 
     // Check if we're on a product page
@@ -336,6 +338,7 @@
 
     // Initialize when DOM is ready
     function init() {
+        console.log('🚀 [CUSTOMIFY] Initializing Customify...');
         log('Initializing Customify...');
         
         // Inject CSS styles for layout
