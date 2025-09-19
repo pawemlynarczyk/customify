@@ -418,7 +418,7 @@
           this.positionApp();
         }
 
-        // POZYCJONOWANIE APLIKACJI - PRZENIEŚ DO SEKCJI PRODUKTU
+        // POZYCJONOWANIE APLIKACJI - WSTAW PRZED ELEMENTEM GROUP-BLOCK
         positionApp() {
           if (!window.location.pathname.includes('/products/')) {
             return;
@@ -427,7 +427,15 @@
           const appContainer = document.getElementById('customify-app-container');
           if (!appContainer) return;
 
-          // Szukaj sekcji ProductInformation
+          // Szukaj elementu group-block w sekcji ProductInformation
+          const groupBlock = document.querySelector('#ProductInformation-template--26351135293765__main > div.group-block.group-block--height-fit.group-block--width-fill.border-style.spacing-style.size-style');
+          if (groupBlock) {
+            console.log('🎯 [CUSTOMIFY] Found group-block element, inserting app before it');
+            groupBlock.parentNode.insertBefore(appContainer, groupBlock);
+            return;
+          }
+
+          // Fallback: szukaj sekcji ProductInformation
           const productSection = document.querySelector('#ProductInformation-template--26351135293765__main');
           if (productSection) {
             console.log('🎯 [CUSTOMIFY] Found ProductInformation section, moving app there');
