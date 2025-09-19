@@ -47,7 +47,9 @@
       }
       
       /* Layout for product page - app and product image side by side */
-      #customify-app-container {
+      #customify-app-container,
+      div#customify-app-container,
+      .customify-shopify-container {
         width: 50% !important;
         float: left !important;
         margin-right: 20px !important;
@@ -55,6 +57,8 @@
         min-width: 50% !important;
         max-width: 50% !important;
         flex: 0 0 50% !important;
+        display: block !important;
+        position: relative !important;
       }
 
       /* Force layout on product pages */
@@ -327,6 +331,20 @@
         .product__image img {
           max-height: 300px;
         }
+      }
+
+      /* OVERRIDE EVERYTHING - FORCE 50% WIDTH */
+      body #customify-app-container,
+      html body #customify-app-container,
+      .page-width #customify-app-container {
+        width: 50% !important;
+        max-width: 50% !important;
+        min-width: 50% !important;
+        float: left !important;
+        margin-right: 20px !important;
+        box-sizing: border-box !important;
+        display: block !important;
+        position: relative !important;
       }
     </style>
   </head>
