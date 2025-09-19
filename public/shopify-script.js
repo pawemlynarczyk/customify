@@ -62,6 +62,19 @@
                 box-sizing: border-box;
             }
 
+            /* Product image styling */
+            .product-media img,
+            .product__media img,
+            .product-single__media img,
+            .product__photo img,
+            .product__image img {
+                width: 100%;
+                height: auto;
+                object-fit: contain;
+                max-height: 500px;
+                border-radius: 8px;
+            }
+
             /* Clear floats */
             .product-page-layout::after {
                 content: "";
@@ -95,6 +108,15 @@
                     width: 100%;
                     float: none;
                     margin-right: 0;
+                }
+
+                /* Mobile product image */
+                .product-media img,
+                .product__media img,
+                .product-single__media img,
+                .product__photo img,
+                .product__image img {
+                    max-height: 300px;
                 }
             }
         `;
