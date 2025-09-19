@@ -44,6 +44,44 @@
         document.head.appendChild(script);
     }
 
+    function injectStyles() {
+        const style = document.createElement('style');
+        style.textContent = `
+            /* Layout for product page - app and product image side by side */
+            #customify-app-container {
+                width: 50%;
+                float: left;
+                margin-right: 20px;
+                box-sizing: border-box;
+            }
+
+            /* Product image container */
+            .product-media {
+                width: 50%;
+                float: right;
+                box-sizing: border-box;
+            }
+
+            /* Clear floats */
+            .product-page-layout::after {
+                content: "";
+                display: table;
+                clear: both;
+            }
+
+            @media (max-width: 768px) {
+                /* Mobile: stack vertically */
+                #customify-app-container,
+                .product-media {
+                    width: 100%;
+                    float: none;
+                    margin-right: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
     // Check if we're on a product page
     function isProductPage() {
         return window.location.pathname.includes('/products/') || 
@@ -258,6 +296,9 @@
     // Initialize when DOM is ready
     function init() {
         log('Initializing Customify...');
+        
+        // Inject CSS styles for layout
+        injectStyles();
         
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', insertCustomify);
