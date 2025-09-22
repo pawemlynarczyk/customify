@@ -655,13 +655,12 @@
                             quantityInput.value = '1';
                             form.appendChild(quantityInput);
                             
-                            // Add properties with AI image for admin view
+                            // Add properties with AI image URL for Liquid templating
                             const properties = {
                                 'AI Style': this.selectedStyle,
                                 'Original Product': originalProductTitle,
                                 'Customization Type': 'AI Generated',
-                                'AI Image URL': this.transformedImage,
-                                'AI Preview': `<img src="${this.transformedImage}" style="max-width: 200px; max-height: 200px; border-radius: 8px; border: 2px solid #007bff;" alt="AI Generated Image">`
+                                'AI Image URL': this.transformedImage
                             };
                             
                             Object.entries(properties).forEach(([key, value]) => {
