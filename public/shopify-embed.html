@@ -662,12 +662,11 @@
                             quantityInput.value = '1';
                             form.appendChild(quantityInput);
                             
-                            // Add properties with AI image URL for Liquid templating
+                            // Add properties (image is already the main product image)
                             const properties = {
                                 'AI Style': this.selectedStyle,
                                 'Original Product': originalProductTitle,
-                                'Customization Type': 'AI Generated',
-                                'AI Image URL': this.shopifyImageUrl || this.transformedImage
+                                'Customization Type': 'AI Generated'
                             };
                             
                             Object.entries(properties).forEach(([key, value]) => {
