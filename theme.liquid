@@ -357,8 +357,68 @@
       {% render 'quick-add-modal' %}
     {% endif %}
 
-    {% if template contains 'product' %}
-    <!-- Customify AI Photo Customization - CZYSTA WERSJA -->
+{% if template contains 'cart' %}
+<!-- Customify AI - Wyświetlanie miniaturek w koszyku -->
+<style>
+  .cart-item__ai-image {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 2px solid #e0e0e0;
+    margin-right: 15px;
+  }
+  
+  .cart-item__content-wrapper {
+    display: flex;
+    gap: 15px;
+    align-items: start;
+  }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Znajdź wszystkie elementy koszyka z AI obrazkami
+  const cartItems = document.querySelectorAll('.cart-item, .cart-items__row');
+  
+  cartItems.forEach(item => {
+    // Znajdź ukryte property z AI obrazkiem
+    const aiImageProperty = item.querySelector('dd[data-property="_AI_Image_URL"], .cart-items__properties dd');
+    
+    if (aiImageProperty && aiImageProperty.textContent.includes('replicate.delivery')) {
+      const imageUrl = aiImageProperty.textContent.trim();
+      
+      // Ukryj surowy URL
+      const propertyDiv = aiImageProperty.closest('.cart-items__properties');
+      if (propertyDiv) {
+        propertyDiv.style.display = 'none';
+      }
+      
+      // Dodaj miniaturkę
+      const imageCell = item.querySelector('.cart-items__image, .cart-item__image-wrapper');
+      if (imageCell && !imageCell.querySelector('.cart-item__ai-image')) {
+        const aiImage = document.createElement('img');
+        aiImage.src = imageUrl;
+        aiImage.alt = 'AI Transformed Image';
+        aiImage.className = 'cart-item__ai-image';
+        aiImage.style.cssText = 'width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 2px solid #e0e0e0;';
+        
+        // Wstaw miniaturkę jako główny obrazek lub obok
+        const existingImage = imageCell.querySelector('img');
+        if (existingImage) {
+          existingImage.replaceWith(aiImage);
+        } else {
+          imageCell.appendChild(aiImage);
+        }
+      }
+    }
+  });
+});
+</script>
+{% endif %}
+
+{% if template contains 'product' %}
+<!-- Customify AI Photo Customization - CZYSTA WERSJA -->
     <div id="customify-app-container" class="customify-shopify-container" style="margin: 20px 0px; padding: 0px; border: 1px solid rgb(224, 224, 224); border-radius: 8px; background: rgb(255, 255, 255); opacity: 1; transition: opacity 0.3s;">
       <h3 class="customify-title" style="margin: 0px 0px 15px; padding: 15px 20px; background: linear-gradient(135deg, rgb(102, 126, 234) 0%, rgb(118, 75, 162) 100%); color: white; border-radius: 8px 8px 0px 0px; font-size: 1.2rem; font-weight: 600;">🎨 Spersonalizuj swój produkt z AI</h3>
       <div class="customify-inline-wrapper">
@@ -695,7 +755,8 @@
                   'AI Style': this.selectedStyle,
                   'Size': this.selectedSize,
                   'Original Product': productData.originalProductTitle,
-                  'Customization Type': 'AI Generated'
+                  'Customization Type': 'AI Generated',
+                  '_AI_Image_URL': result.shopifyImageUrl || this.transformedImage  // Prefix _ ukrywa przed klientem
                 };
                 
                 Object.entries(properties).forEach(([key, value]) => {
