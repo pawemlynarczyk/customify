@@ -659,8 +659,7 @@
               this.showSuccess('✅ ' + (result.message || 'Produkt został utworzony!'));
               console.log('✅ [CUSTOMIFY] Product created:', result.product);
               
-              // KLUCZOWA ZMIANA: Zapisz shopifyImageUrl do użycia w properties
-              const aiImageUrl = result.shopifyImageUrl || this.transformedImage;
+              // Obraz AI jest już głównym obrazem produktu
               
               if (result.variantId) {
                 console.log('🛒 [CUSTOMIFY] Attempting to add to cart with Variant ID:', result.variantId);
