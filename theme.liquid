@@ -756,7 +756,7 @@ document.addEventListener('DOMContentLoaded', function() {
                   'Size': this.selectedSize,
                   'Original Product': productData.originalProductTitle,
                   'Customization Type': 'AI Generated',
-                  '_AI_Image_URL': result.shopifyImageUrl || this.transformedImage  // Prefix _ ukrywa przed klientem
+                  '_AI_Image_URL': result.imageUrl || this.transformedImage  // Prefix _ ukrywa przed klientem
                 };
                 
                 Object.entries(properties).forEach(([key, value]) => {

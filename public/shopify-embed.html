@@ -626,9 +626,9 @@
                         console.log('✅ [CUSTOMIFY] Product created:', result.product);
                         
                         // Użyj stałego URL z Shopify zamiast tymczasowego linku z Replicate
-                        if (result.shopifyImageUrl) {
-                            this.shopifyImageUrl = result.shopifyImageUrl;
-                            this.transformedImage = result.shopifyImageUrl;
+                        if (result.imageUrl) {
+                            this.shopifyImageUrl = result.imageUrl;
+                            this.transformedImage = result.imageUrl;
                             console.log('🖼️ [CUSTOMIFY] Using Shopify image URL:', this.shopifyImageUrl);
                         }
                         
@@ -667,7 +667,8 @@
                                 'AI Style': this.selectedStyle,
                                 'Size': this.selectedSize,
                                 'Original Product': originalProductTitle,
-                                'Customization Type': 'AI Generated'
+                                'Customization Type': 'AI Generated',
+                                '_AI_Image_URL': this.shopifyImageUrl || this.transformedImage  // Prefix _ ukrywa przed klientem
                             };
                             
                             Object.entries(properties).forEach(([key, value]) => {
