@@ -661,8 +661,9 @@
               
               // Użyj stałego URL z Shopify zamiast tymczasowego linku z Replicate
               if (result.shopifyImageUrl) {
+                this.shopifyImageUrl = result.shopifyImageUrl;
                 this.transformedImage = result.shopifyImageUrl;
-                console.log('🖼️ [CUSTOMIFY] Using Shopify image URL:', this.transformedImage);
+                console.log('🖼️ [CUSTOMIFY] Using Shopify image URL:', this.shopifyImageUrl);
               }
               
               // Add to cart using POST form submission
@@ -700,7 +701,7 @@
                   'AI Style': this.selectedStyle,
                   'Original Product': productData.originalProductTitle,
                   'Customization Type': 'AI Generated',
-                  'AI Image URL': this.transformedImage
+                  'AI Image URL': this.shopifyImageUrl || this.transformedImage
                 };
                 
                 Object.entries(properties).forEach(([key, value]) => {
