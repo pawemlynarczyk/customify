@@ -105,6 +105,7 @@ module.exports = async (req, res) => {
         tags: ['custom', 'ai', 'personalized', style, 'hidden', 'no-search'],
         published: true, // MUSI BYĆ PUBLIKOWANY ŻEBY DZIAŁAŁ KOSZYK
         published_scope: 'web', // TYLKO WEB (nie w API)
+        // Produkt będzie ukryty z kanału "Sklep online" po utworzeniu
         variants: [{
           title: `Styl ${style}`,
           price: totalPrice.toString(),
@@ -151,6 +152,43 @@ module.exports = async (req, res) => {
     console.log('🔍 [PRODUCTS.JS] Transformed image URL:', transformedImage);
     console.log('🔍 [PRODUCTS.JS] Variants count:', product.variants ? product.variants.length : 'NO VARIANTS');
     console.log('🔍 [PRODUCTS.JS] Variants:', product.variants);
+
+    // Ukryj produkt z kanału "Sklep online" - nie będzie widoczny w katalogu ani wyszukiwarce
+    try {
+      console.log('🔒 [PRODUCTS.JS] Hiding product from online store...');
+      
+      // Pobierz listę kanałów sprzedaży produktu
+      const channelsResponse = await fetch(`https://${shop}/admin/api/2023-10/products/${product.id}/product_listings.json`, {
+        headers: {
+          'X-Shopify-Access-Token': accessToken,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (channelsResponse.ok) {
+        const channelsData = await channelsResponse.json();
+        console.log('🔍 [PRODUCTS.JS] Product channels:', channelsData);
+        
+        // Usuń produkt z kanału "Sklep online" (product_listing)
+        const deleteResponse = await fetch(`https://${shop}/admin/api/2023-10/product_listings/${product.id}.json`, {
+          method: 'DELETE',
+          headers: {
+            'X-Shopify-Access-Token': accessToken,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (deleteResponse.ok) {
+          console.log('✅ [PRODUCTS.JS] Product hidden from online store successfully');
+        } else {
+          console.log('⚠️ [PRODUCTS.JS] Failed to hide product from online store:', deleteResponse.status);
+        }
+      } else {
+        console.log('⚠️ [PRODUCTS.JS] Product not in online store channel yet');
+      }
+    } catch (hideError) {
+      console.log('⚠️ [PRODUCTS.JS] Error hiding product from online store:', hideError.message);
+    }
     
     if (product.variants && product.variants.length > 0) {
       console.log('🔍 [PRODUCTS.JS] Variant ID:', product.variants[0].id);
