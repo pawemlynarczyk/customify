@@ -1,5 +1,4 @@
 module.exports = async (req, res) => {
-  // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -30,7 +29,6 @@ module.exports = async (req, res) => {
       });
     }
 
-    // Style pricing
     const stylePrices = {
       'van gogh': 50,
       'picasso': 75,
@@ -40,10 +38,9 @@ module.exports = async (req, res) => {
       'watercolor': 45
     };
 
-    const basePrice = 29.99; // Base price for custom product
+    const basePrice = 29.99;
     const totalPrice = basePrice + (stylePrices[style] || 0);
 
-    // Create product in Shopify
     const shop = process.env.SHOP_DOMAIN || 'customify-ok.myshopify.com';
     const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
 
@@ -51,41 +48,34 @@ module.exports = async (req, res) => {
       return res.status(500).json({ error: 'Shopify access token not configured' });
     }
 
-    // Use transformed image directly as product image
-    let shopifyImageUrl = transformedImage;
-    console.log('🖼️ [PRODUCTS.JS] Using transformed image as product image:', shopifyImageUrl);
+    console.log('📦 [PRODUCTS.JS] Creating product with AI image...');
 
+    // KROK 1: Utwórz produkt BEZ obrazka (najpierw potrzebujemy product ID)
     const productData = {
       product: {
         title: `Spersonalizowany ${originalProductTitle || 'Produkt'} - Styl ${style}`,
         body_html: `
           <p><strong>Spersonalizowany produkt z AI</strong></p>
           <p><strong>Styl:</strong> ${style}</p>
-          <p><strong>Oryginalny produkt:</strong> ${originalProductTitle || 'N/A'}</p>
+          <p><strong>Rozmiar:</strong> ${size || 'standardowy'}</p>
           <p>Twoje zdjęcie zostało przekształcone przez AI w stylu ${style}.</p>
         `,
         vendor: 'Customify',
         product_type: 'Custom AI Product',
-        tags: ['custom', 'ai', 'personalized', style, 'hidden', 'no-search'],
-        published: true, // MUSI BYĆ PUBLIKOWANY ŻEBY DZIAŁAŁ KOSZYK
-        published_scope: 'web', // TYLKO WEB (nie w API)
-        // Produkt będzie ukryty z kanału "Sklep online" po utworzeniu
+        tags: ['custom', 'ai', 'personalized', style],
+        published: true,
+        published_scope: 'web',
         variants: [{
-          title: `Styl ${style}`,
+          title: `${style} - ${size || 'standard'}`,
           price: totalPrice.toString(),
           inventory_quantity: 100,
           inventory_management: 'shopify',
           fulfillment_service: 'manual'
-        }],
-        images: [{
-          src: shopifyImageUrl,
-          alt: `AI transformed image in ${style} style`
         }]
       }
     };
 
-    // Create product via Shopify Admin API
-    const response = await fetch(`https://${shop}/admin/api/2023-10/products.json`, {
+    const createResponse = await fetch(`https://${shop}/admin/api/2023-10/products.json`, {
       method: 'POST',
       headers: {
         'X-Shopify-Access-Token': accessToken,
@@ -94,86 +84,100 @@ module.exports = async (req, res) => {
       body: JSON.stringify(productData)
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('❌ [PRODUCTS.JS] Shopify API error:', response.status, errorText);
-      console.error('❌ [PRODUCTS.JS] Product data sent:', JSON.stringify(productData, null, 2));
+    if (!createResponse.ok) {
+      const errorText = await createResponse.text();
+      console.error('❌ [PRODUCTS.JS] Product creation error:', errorText);
       return res.status(500).json({ 
-        error: 'Failed to create product in Shopify',
-        details: errorText,
-        status: response.status
+        error: 'Failed to create product',
+        details: errorText
       });
     }
 
-    const createdProduct = await response.json();
+    const createdProduct = await createResponse.json();
     const product = createdProduct.product;
+    const productId = product.id;
 
-    console.log('🔍 [PRODUCTS.JS] Created product response:', JSON.stringify(product, null, 2));
-    console.log('🔍 [PRODUCTS.JS] Product ID:', product.id);
-    console.log('🔍 [PRODUCTS.JS] Product published:', product.published);
-    console.log('🔍 [PRODUCTS.JS] Product status:', product.status);
-    console.log('🔍 [PRODUCTS.JS] Product images:', product.images);
-    console.log('🔍 [PRODUCTS.JS] Transformed image URL:', transformedImage);
-    console.log('🔍 [PRODUCTS.JS] Variants count:', product.variants ? product.variants.length : 'NO VARIANTS');
-    console.log('🔍 [PRODUCTS.JS] Variants:', product.variants);
+    console.log('✅ [PRODUCTS.JS] Product created, ID:', productId);
 
-    // Ukryj produkt z kanału "Sklep online" - nie będzie widoczny w katalogu ani wyszukiwarce
-    try {
-      console.log('🔒 [PRODUCTS.JS] Hiding product from online store...');
-      
-      // Pobierz listę kanałów sprzedaży produktu
-      const channelsResponse = await fetch(`https://${shop}/admin/api/2023-10/products/${product.id}/product_listings.json`, {
-        headers: {
-          'X-Shopify-Access-Token': accessToken,
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      if (channelsResponse.ok) {
-        const channelsData = await channelsResponse.json();
-        console.log('🔍 [PRODUCTS.JS] Product channels:', channelsData);
-        
-        // Usuń produkt z kanału "Sklep online" (product_listing)
-        const deleteResponse = await fetch(`https://${shop}/admin/api/2023-10/product_listings/${product.id}.json`, {
-          method: 'DELETE',
-          headers: {
-            'X-Shopify-Access-Token': accessToken,
-            'Content-Type': 'application/json'
-          }
-        });
-        
-        if (deleteResponse.ok) {
-          console.log('✅ [PRODUCTS.JS] Product hidden from online store successfully');
-        } else {
-          console.log('⚠️ [PRODUCTS.JS] Failed to hide product from online store:', deleteResponse.status);
-        }
-      } else {
-        console.log('⚠️ [PRODUCTS.JS] Product not in online store channel yet');
-      }
-    } catch (hideError) {
-      console.log('⚠️ [PRODUCTS.JS] Error hiding product from online store:', hideError.message);
-    }
+    // KROK 2: Pobierz obrazek z Replicate
+    console.log('📥 [PRODUCTS.JS] Downloading image from Replicate...');
+    const imageResponse = await fetch(transformedImage);
     
-    if (product.variants && product.variants.length > 0) {
-      console.log('🔍 [PRODUCTS.JS] Variant ID:', product.variants[0].id);
-      console.log('🔍 [PRODUCTS.JS] Variant title:', product.variants[0].title);
-      console.log('🔍 [PRODUCTS.JS] Variant price:', product.variants[0].price);
-    } else {
-      console.error('❌ [PRODUCTS.JS] NO VARIANTS FOUND!');
+    if (!imageResponse.ok) {
+      console.error('❌ [PRODUCTS.JS] Failed to download image from Replicate');
+      return res.json({
+        success: true,
+        product: product,
+        variantId: product.variants[0].id,
+        productId: productId,
+        warning: 'Product created but image upload failed',
+        imageUrl: transformedImage
+      });
     }
+
+    const imageBuffer = await imageResponse.arrayBuffer();
+    const base64Image = Buffer.from(imageBuffer).toString('base64');
+
+    console.log('📤 [PRODUCTS.JS] Uploading image to Shopify product...');
+
+    // KROK 3: Upload obrazka BEZPOŚREDNIO do produktu (attachment method)
+    const imageUploadData = {
+      image: {
+        attachment: base64Image,  // ✅ ATTACHMENT zamiast src!
+        filename: `ai-${style}-${Date.now()}.webp`,
+        alt: `AI transformed in ${style} style`
+      }
+    };
+
+    const uploadResponse = await fetch(`https://${shop}/admin/api/2023-10/products/${productId}/images.json`, {
+      method: 'POST',
+      headers: {
+        'X-Shopify-Access-Token': accessToken,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(imageUploadData)
+    });
+
+    if (!uploadResponse.ok) {
+      const uploadError = await uploadResponse.text();
+      console.error('❌ [PRODUCTS.JS] Image upload error:', uploadError);
+      return res.json({
+        success: true,
+        product: product,
+        variantId: product.variants[0].id,
+        productId: productId,
+        warning: 'Product created but image upload failed',
+        uploadError: uploadError
+      });
+    }
+
+    const uploadResult = await uploadResponse.json();
+    const shopifyImageUrl = uploadResult.image.src;
+
+    console.log('✅ [PRODUCTS.JS] Image uploaded to Shopify:', shopifyImageUrl);
+
+    // KROK 4: Odśwież dane produktu żeby mieć aktualny obrazek
+    const finalProductResponse = await fetch(`https://${shop}/admin/api/2023-10/products/${productId}.json`, {
+      headers: {
+        'X-Shopify-Access-Token': accessToken,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const finalProduct = await finalProductResponse.json();
 
     res.json({ 
       success: true, 
-      product: product,
-      variantId: product.variants[0].id,
-      productId: product.id,
-      shopifyImageUrl: shopifyImageUrl, // Stały URL z Shopify
-      message: 'Produkt został utworzony! Możesz go teraz dodać do koszyka.',
-      cartUrl: `https://${shop}/cart/add?id=${product.variants[0].id}&quantity=1&properties[AI Style]=${encodeURIComponent(style)}&properties[Original Product]=${encodeURIComponent(originalProductTitle || '')}&properties[Customization Type]=AI Generated`
+      product: finalProduct.product,
+      variantId: finalProduct.product.variants[0].id,
+      productId: productId,
+      imageUrl: shopifyImageUrl,  // ✅ Stały URL z Shopify CDN
+      message: 'Produkt został utworzony z obrazkiem AI!',
+      cartUrl: `https://${shop}/cart/add?id=${finalProduct.product.variants[0].id}&quantity=1`
     });
 
   } catch (error) {
-    console.error('Product creation error:', error);
+    console.error('❌ [PRODUCTS.JS] Product creation error:', error);
     res.status(500).json({ 
       error: 'Product creation failed',
       details: error.message 
