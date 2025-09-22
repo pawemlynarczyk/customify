@@ -121,11 +121,13 @@ module.exports = async (req, res) => {
     console.log('📤 [PRODUCTS.JS] Uploading image to Shopify product...');
 
     // KROK 3: Upload obrazka BEZPOŚREDNIO do produktu (attachment method)
+    // Generuj unikalny identyfikator z timestamp i product ID
+    const uniqueId = `${productId}-${Date.now()}`;
     const imageUploadData = {
       image: {
         attachment: base64Image,  // ✅ ATTACHMENT zamiast src!
-        filename: `ai-${style}-${Date.now()}.webp`,
-        alt: `AI transformed in ${style} style`
+        filename: `ai-${style}-order-${uniqueId}.webp`,
+        alt: `AI transformed in ${style} style - Order ${uniqueId}`
       }
     };
 
@@ -172,6 +174,7 @@ module.exports = async (req, res) => {
       variantId: finalProduct.product.variants[0].id,
       productId: productId,
       imageUrl: shopifyImageUrl,  // ✅ Stały URL z Shopify CDN
+      orderId: uniqueId,  // ✅ Unikalny identyfikator zamówienia
       message: 'Produkt został utworzony z obrazkiem AI!',
       cartUrl: `https://${shop}/cart/add?id=${finalProduct.product.variants[0].id}&quantity=1`
     });
