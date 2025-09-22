@@ -659,14 +659,9 @@
               this.showSuccess('✅ ' + (result.message || 'Produkt został utworzony!'));
               console.log('✅ [CUSTOMIFY] Product created:', result.product);
               
-              // Użyj stałego URL z Shopify zamiast tymczasowego linku z Replicate
-              if (result.shopifyImageUrl) {
-                this.shopifyImageUrl = result.shopifyImageUrl;
-                this.transformedImage = result.shopifyImageUrl;
-                console.log('🖼️ [CUSTOMIFY] Using Shopify image URL:', this.shopifyImageUrl);
-              }
+              // KLUCZOWA ZMIANA: Zapisz shopifyImageUrl do użycia w properties
+              const aiImageUrl = result.shopifyImageUrl || this.transformedImage;
               
-              // Add to cart using POST form submission
               if (result.variantId) {
                 console.log('🛒 [CUSTOMIFY] Attempting to add to cart with Variant ID:', result.variantId);
                 console.log('🛒 [CUSTOMIFY] Product ID:', result.productId);
@@ -696,11 +691,13 @@
                 quantityInput.value = '1';
                 form.appendChild(quantityInput);
                 
-                // Add properties (image is already the main product image)
+                // DODAJ WŁAŚCIWOŚCI Z OBRAZKIEM
                 const properties = {
                   'AI Style': this.selectedStyle,
+                  'Size': this.selectedSize,
                   'Original Product': productData.originalProductTitle,
-                  'Customization Type': 'AI Generated'
+                  'Customization Type': 'AI Generated',
+                  '_AI_Image_URL': aiImageUrl  // Prefix _ = ukryty przed klientem
                 };
                 
                 Object.entries(properties).forEach(([key, value]) => {
