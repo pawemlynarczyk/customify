@@ -167,7 +167,7 @@ module.exports = async (req, res) => {
       productId: product.id,
       shopifyImageUrl: shopifyImageUrl, // Stały URL z Shopify
       message: 'Produkt został utworzony! Możesz go teraz dodać do koszyka.',
-      cartUrl: `https://${shop}/cart/add?id=${product.variants[0].id}&quantity=1&properties[Original Image]=${encodeURIComponent(originalImage || '')}&properties[AI Style]=${encodeURIComponent(style)}&properties[Original Product]=${encodeURIComponent(originalProductTitle || '')}&properties[Customization Type]=AI Generated`
+      cartUrl: `https://${shop}/cart/add?id=${product.variants[0].id}&quantity=1&properties[AI Style]=${encodeURIComponent(style)}&properties[Original Product]=${encodeURIComponent(originalProductTitle || '')}&properties[Customization Type]=AI Generated`
     });
 
   } catch (error) {
