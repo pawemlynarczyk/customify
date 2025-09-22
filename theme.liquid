@@ -659,6 +659,12 @@
               this.showSuccess('✅ ' + (result.message || 'Produkt został utworzony!'));
               console.log('✅ [CUSTOMIFY] Product created:', result.product);
               
+              // Użyj stałego URL z Shopify zamiast tymczasowego linku z Replicate
+              if (result.shopifyImageUrl) {
+                this.transformedImage = result.shopifyImageUrl;
+                console.log('🖼️ [CUSTOMIFY] Using Shopify image URL:', this.transformedImage);
+              }
+              
               // Add to cart using POST form submission
               if (result.variantId) {
                 console.log('🛒 [CUSTOMIFY] Attempting to add to cart with Variant ID:', result.variantId);
