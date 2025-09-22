@@ -138,13 +138,16 @@ module.exports = async (req, res) => {
     console.log('📤 [PRODUCTS.JS] Uploading image to Shopify product...');
 
     // KROK 3: Upload obrazka BEZPOŚREDNIO do produktu (attachment method)
-    // Generuj unikalny identyfikator z timestamp i product ID
-    const uniqueId = `${productId}-${Date.now()}`;
+    // Generuj unikalny identyfikator z nazwą klienta, stylem i timestamp
+    const customerName = (originalProductTitle || 'Customer').replace(/[^a-zA-Z0-9]/g, '').substring(0, 10);
+    const timestamp = Date.now().toString().slice(-8); // Ostatnie 8 cyfr timestamp
+    const uniqueId = `${customerName}-${style}-${timestamp}`;
+    
     const imageUploadData = {
       image: {
         attachment: base64Image,  // ✅ ATTACHMENT zamiast src!
-        filename: `ai-${style}-order-${uniqueId}.webp`,
-        alt: `AI transformed in ${style} style - Order ${uniqueId}`
+        filename: `ai-${uniqueId}.webp`,
+        alt: `AI ${style} for ${customerName} - ${timestamp}`
       }
     };
 
