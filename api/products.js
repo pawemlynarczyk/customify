@@ -51,45 +51,9 @@ module.exports = async (req, res) => {
       return res.status(500).json({ error: 'Shopify access token not configured' });
     }
 
-    // First, upload the AI image to Shopify as a file
-    let shopifyImageUrl = transformedImage; // fallback to original URL
-    
-    try {
-      console.log('📤 [PRODUCTS.JS] Uploading AI image to Shopify...');
-      
-      // Download image from Replicate
-      const imageResponse = await fetch(transformedImage);
-      if (imageResponse.ok) {
-        const imageBuffer = await imageResponse.arrayBuffer();
-        const base64Image = Buffer.from(imageBuffer).toString('base64');
-        
-        // Upload to Shopify using REST API
-        const uploadResponse = await fetch(`https://${shop}/admin/api/2023-10/files.json`, {
-          method: 'POST',
-          headers: {
-            'X-Shopify-Access-Token': accessToken,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            file: {
-              filename: `ai-${style}-${Date.now()}.webp`,
-              content_type: 'image/webp',
-              contents: base64Image
-            }
-          })
-        });
-        
-        if (uploadResponse.ok) {
-          const uploadResult = await uploadResponse.json();
-          shopifyImageUrl = uploadResult.file.url;
-          console.log('✅ [PRODUCTS.JS] Image uploaded to Shopify:', shopifyImageUrl);
-        } else {
-          console.log('⚠️ [PRODUCTS.JS] Failed to upload image, using original URL');
-        }
-      }
-    } catch (error) {
-      console.log('⚠️ [PRODUCTS.JS] Error uploading image:', error.message);
-    }
+    // Use transformed image directly as product image
+    let shopifyImageUrl = transformedImage;
+    console.log('🖼️ [PRODUCTS.JS] Using transformed image as product image:', shopifyImageUrl);
 
     const productData = {
       product: {
