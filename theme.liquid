@@ -691,13 +691,12 @@
                 quantityInput.value = '1';
                 form.appendChild(quantityInput);
                 
-                // DODAJ WŁAŚCIWOŚCI Z OBRAZKIEM
+                // DODAJ WŁAŚCIWOŚCI (obraz jest już głównym obrazem produktu)
                 const properties = {
                   'AI Style': this.selectedStyle,
                   'Size': this.selectedSize,
                   'Original Product': productData.originalProductTitle,
-                  'Customization Type': 'AI Generated',
-                  '_AI_Image_URL': aiImageUrl  // Prefix _ = ukryty przed klientem
+                  'Customization Type': 'AI Generated'
                 };
                 
                 Object.entries(properties).forEach(([key, value]) => {

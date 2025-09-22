@@ -88,33 +88,6 @@ module.exports = async (req, res) => {
     
     if (tokenData.access_token) {
       console.log('✅ OAuth successful for shop:', shop);
-      
-      // Register webhook for orders/create
-      try {
-        const webhookResponse = await fetch(`https://${shop}/admin/api/2023-10/webhooks.json`, {
-          method: 'POST',
-          headers: {
-            'X-Shopify-Access-Token': tokenData.access_token,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            webhook: {
-              topic: 'orders/create',
-              address: `${process.env.APP_URL}/api/webhooks/orders/create`,
-              format: 'json'
-            }
-          })
-        });
-        
-        if (webhookResponse.ok) {
-          console.log('✅ Webhook registered successfully');
-        } else {
-          console.log('⚠️ Webhook registration failed:', webhookResponse.status);
-        }
-      } catch (webhookError) {
-        console.log('⚠️ Webhook registration error:', webhookError.message);
-      }
-      
       res.redirect('/?shop=' + shop + '&authenticated=true');
     } else {
       console.error('❌ Failed to get access token:', tokenData);
