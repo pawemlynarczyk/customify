@@ -38,8 +38,15 @@ module.exports = async (req, res) => {
       'watercolor': 45
     };
 
+    const sizePrices = {
+      'small': 0,
+      'medium': 25,
+      'large': 50,
+      'xlarge': 100
+    };
+
     const basePrice = 29.99;
-    const totalPrice = basePrice + (stylePrices[style] || 0);
+    const totalPrice = basePrice + (stylePrices[style] || 0) + (sizePrices[size] || 0);
 
     const shop = process.env.SHOP_DOMAIN || 'customify-ok.myshopify.com';
     const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
@@ -49,15 +56,25 @@ module.exports = async (req, res) => {
     }
 
     console.log('📦 [PRODUCTS.JS] Creating product with AI image...');
+    console.log('💰 [PRODUCTS.JS] Pricing details:', {
+      style: style,
+      size: size,
+      stylePrice: stylePrices[style] || 0,
+      sizePrice: sizePrices[size] || 0,
+      basePrice: basePrice,
+      totalPrice: totalPrice
+    });
 
     // KROK 1: Utwórz produkt BEZ obrazka (najpierw potrzebujemy product ID)
     const productData = {
       product: {
-        title: `Spersonalizowany ${originalProductTitle || 'Produkt'} - Styl ${style}`,
+        title: `Spersonalizowany ${originalProductTitle || 'Produkt'} - Styl ${style} - Rozmiar ${size || 'standard'}`,
         body_html: `
           <p><strong>Spersonalizowany produkt z AI</strong></p>
-          <p><strong>Styl:</strong> ${style}</p>
-          <p><strong>Rozmiar:</strong> ${size || 'standardowy'}</p>
+          <p><strong>Styl:</strong> ${style} (+${stylePrices[style] || 0} zł)</p>
+          <p><strong>Rozmiar:</strong> ${size || 'standardowy'} (+${sizePrices[size] || 0} zł)</p>
+          <p><strong>Cena bazowa:</strong> ${basePrice} zł</p>
+          <p><strong>Cena całkowita:</strong> ${totalPrice} zł</p>
           <p>Twoje zdjęcie zostało przekształcone przez AI w stylu ${style}.</p>
         `,
         vendor: 'Customify',
@@ -66,7 +83,7 @@ module.exports = async (req, res) => {
         published: true,
         published_scope: 'web',
         variants: [{
-          title: `${style} - ${size || 'standard'}`,
+          title: `${style} - ${size || 'standard'} (${totalPrice} zł)`,
           price: totalPrice.toString(),
           inventory_quantity: 100,
           inventory_management: 'shopify',
