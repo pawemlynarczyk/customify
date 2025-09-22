@@ -685,8 +685,24 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // NAPRAWIONA FUNKCJA: STWÓRZ NOWY PRODUKT Z OBRAZKIEM AI (UKRYTY W KATALOGU)
         async addToCart() {
-          if (!this.transformedImage || !this.selectedStyle || !this.selectedSize) {
-            this.showError('Brak przekształconego obrazu, stylu lub rozmiaru');
+          console.log('🛒 [CUSTOMIFY] addToCart called with:', {
+            transformedImage: !!this.transformedImage,
+            selectedStyle: this.selectedStyle,
+            selectedSize: this.selectedSize
+          });
+          
+          if (!this.transformedImage) {
+            this.showError('Brak przekształconego obrazu');
+            return;
+          }
+          
+          if (!this.selectedStyle) {
+            this.showError('Wybierz styl');
+            return;
+          }
+          
+          if (!this.selectedSize) {
+            this.showError('Wybierz rozmiar');
             return;
           }
 
