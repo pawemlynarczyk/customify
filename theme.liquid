@@ -471,6 +471,135 @@
       {{ content_for_layout }}
     </main>
 
+    <!-- SEKCJA OPINII KLIENTÓW - POWYŻEJ STOPKI -->
+    <div class="customer-reviews-section">
+      <div class="reviews-header">
+        <h2 class="reviews-title">
+          ⭐ Opinie klientów
+          <a href="#customer-reviews" class="reviews-link">Zobacz wszystkie opinie</a>
+        </h2>
+        <div class="stars-rating">
+          <span class="star">★</span>
+          <span class="star">★</span>
+          <span class="star">★</span>
+          <span class="star">★</span>
+          <span class="star">★</span>
+          <span style="margin-left: 10px; color: #6c757d; font-weight: 600;">4.9/5 (127 opinii)</span>
+        </div>
+      </div>
+      
+      <div class="reviews-grid" id="customer-reviews">
+        <!-- Przykładowe opinie -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-author">Anna K.</div>
+            <div class="review-date">15.01.2025</div>
+          </div>
+          <div class="review-stars">
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+          </div>
+          <div class="review-text">
+            "Niesamowite! Moje zdjęcie w stylu anime wygląda jak prawdziwe dzieło sztuki. Jakość druku na płótnie jest doskonała, kolory są żywe i wyraźne. Polecam każdemu!"
+          </div>
+          <div class="review-style">Styl: Anime</div>
+        </div>
+
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-author">Marcin W.</div>
+            <div class="review-date">12.01.2025</div>
+          </div>
+          <div class="review-stars">
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+          </div>
+          <div class="review-text">
+            "Zamówiłem portret w stylu Van Gogh dla żony na rocznicę. Była zachwycona! AI doskonale odtworzyło styl malarza. Szybka realizacja i świetna jakość."
+          </div>
+          <div class="review-style">Styl: Van Gogh</div>
+        </div>
+
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-author">Katarzyna M.</div>
+            <div class="review-date">10.01.2025</div>
+          </div>
+          <div class="review-stars">
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+          </div>
+          <div class="review-text">
+            "Cyberpunk style to był strzał w dziesiątkę! Moje zdjęcie wygląda jak z filmu sci-fi. Płótno jest wysokiej jakości, a kolory są niesamowicie intensywne."
+          </div>
+          <div class="review-style">Styl: Cyberpunk</div>
+        </div>
+
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-author">Piotr L.</div>
+            <div class="review-date">08.01.2025</div>
+          </div>
+          <div class="review-stars">
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+          </div>
+          <div class="review-text">
+            "Akwarela wyszła przepięknie! Delikatne kolory i miękki styl idealnie pasują do naszego salonu. Żona już planuje kolejne zamówienia."
+          </div>
+          <div class="review-style">Styl: Akwarela</div>
+        </div>
+
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-author">Magdalena S.</div>
+            <div class="review-date">05.01.2025</div>
+          </div>
+          <div class="review-stars">
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+          </div>
+          <div class="review-text">
+            "Monet style to czysta magia! Moje zdjęcie wygląda jak impresjonistyczne dzieło sztuki. Jakość wykonania i szybkość realizacji na najwyższym poziomie."
+          </div>
+          <div class="review-style">Styl: Monet</div>
+        </div>
+
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-author">Tomasz K.</div>
+            <div class="review-date">03.01.2025</div>
+          </div>
+          <div class="review-stars">
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+          </div>
+          <div class="review-text">
+            "Picasso style to prawdziwe dzieło sztuki! Abstrakcyjne formy i wyraziste kolory tworzą niesamowity efekt. Polecam każdemu miłośnikowi sztuki."
+          </div>
+          <div class="review-style">Styl: Picasso</div>
+        </div>
+      </div>
+    </div>
+
     {% sections 'footer-group' %}
 
     {% render 'search-modal' %}
@@ -979,135 +1108,6 @@ document.addEventListener('DOMContentLoaded', function() {
     </script>
 
     {% endif %}
-
-    <!-- SEKCJA OPINII KLIENTÓW - WIDOCZNA NA WSZYSTKICH STRONACH -->
-    <div class="customer-reviews-section">
-      <div class="reviews-header">
-        <h2 class="reviews-title">
-          ⭐ Opinie klientów
-          <a href="#customer-reviews" class="reviews-link">Zobacz wszystkie opinie</a>
-        </h2>
-        <div class="stars-rating">
-          <span class="star">★</span>
-          <span class="star">★</span>
-          <span class="star">★</span>
-          <span class="star">★</span>
-          <span class="star">★</span>
-          <span style="margin-left: 10px; color: #6c757d; font-weight: 600;">4.9/5 (127 opinii)</span>
-        </div>
-      </div>
-      
-      <div class="reviews-grid" id="customer-reviews">
-        <!-- Przykładowe opinie -->
-        <div class="review-card">
-          <div class="review-header">
-            <div class="review-author">Anna K.</div>
-            <div class="review-date">15.01.2025</div>
-          </div>
-          <div class="review-stars">
-            <span class="star">★</span>
-            <span class="star">★</span>
-            <span class="star">★</span>
-            <span class="star">★</span>
-            <span class="star">★</span>
-          </div>
-          <div class="review-text">
-            "Niesamowite! Moje zdjęcie w stylu anime wygląda jak prawdziwe dzieło sztuki. Jakość druku na płótnie jest doskonała, kolory są żywe i wyraźne. Polecam każdemu!"
-          </div>
-          <div class="review-style">Styl: Anime</div>
-        </div>
-
-        <div class="review-card">
-          <div class="review-header">
-            <div class="review-author">Marcin W.</div>
-            <div class="review-date">12.01.2025</div>
-          </div>
-          <div class="review-stars">
-            <span class="star">★</span>
-            <span class="star">★</span>
-            <span class="star">★</span>
-            <span class="star">★</span>
-            <span class="star">★</span>
-          </div>
-          <div class="review-text">
-            "Zamówiłem portret w stylu Van Gogh dla żony na rocznicę. Była zachwycona! AI doskonale odtworzyło styl malarza. Szybka realizacja i świetna jakość."
-          </div>
-          <div class="review-style">Styl: Van Gogh</div>
-        </div>
-
-        <div class="review-card">
-          <div class="review-header">
-            <div class="review-author">Katarzyna M.</div>
-            <div class="review-date">10.01.2025</div>
-          </div>
-          <div class="review-stars">
-            <span class="star">★</span>
-            <span class="star">★</span>
-            <span class="star">★</span>
-            <span class="star">★</span>
-            <span class="star">★</span>
-          </div>
-          <div class="review-text">
-            "Cyberpunk style to był strzał w dziesiątkę! Moje zdjęcie wygląda jak z filmu sci-fi. Płótno jest wysokiej jakości, a kolory są niesamowicie intensywne."
-          </div>
-          <div class="review-style">Styl: Cyberpunk</div>
-        </div>
-
-        <div class="review-card">
-          <div class="review-header">
-            <div class="review-author">Piotr L.</div>
-            <div class="review-date">08.01.2025</div>
-          </div>
-          <div class="review-stars">
-            <span class="star">★</span>
-            <span class="star">★</span>
-            <span class="star">★</span>
-            <span class="star">★</span>
-            <span class="star">★</span>
-          </div>
-          <div class="review-text">
-            "Akwarela wyszła przepięknie! Delikatne kolory i miękki styl idealnie pasują do naszego salonu. Żona już planuje kolejne zamówienia."
-          </div>
-          <div class="review-style">Styl: Akwarela</div>
-        </div>
-
-        <div class="review-card">
-          <div class="review-header">
-            <div class="review-author">Magdalena S.</div>
-            <div class="review-date">05.01.2025</div>
-          </div>
-          <div class="review-stars">
-            <span class="star">★</span>
-            <span class="star">★</span>
-            <span class="star">★</span>
-            <span class="star">★</span>
-            <span class="star">★</span>
-          </div>
-          <div class="review-text">
-            "Monet style to czysta magia! Moje zdjęcie wygląda jak impresjonistyczne dzieło sztuki. Jakość wykonania i szybkość realizacji na najwyższym poziomie."
-          </div>
-          <div class="review-style">Styl: Monet</div>
-        </div>
-
-        <div class="review-card">
-          <div class="review-header">
-            <div class="review-author">Tomasz K.</div>
-            <div class="review-date">03.01.2025</div>
-          </div>
-          <div class="review-stars">
-            <span class="star">★</span>
-            <span class="star">★</span>
-            <span class="star">★</span>
-            <span class="star">★</span>
-            <span class="star">★</span>
-          </div>
-          <div class="review-text">
-            "Picasso style to prawdziwe dzieło sztuki! Abstrakcyjne formy i wyraziste kolory tworzą niesamowity efekt. Polecam każdemu miłośnikowi sztuki."
-          </div>
-          <div class="review-style">Styl: Picasso</div>
-        </div>
-      </div>
-    </div>
   </body>
 </html>
 
