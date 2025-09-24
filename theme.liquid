@@ -771,10 +771,25 @@ document.addEventListener('DOMContentLoaded', function() {
             
             console.log('✅ [CUSTOMIFY] Main product image replaced with AI result');
             console.log('✅ [CUSTOMIFY] New image src:', mainImage.src);
+            console.log('✅ [CUSTOMIFY] New image alt:', mainImage.alt);
+            console.log('✅ [CUSTOMIFY] Image classes:', mainImage.className);
+            console.log('✅ [CUSTOMIFY] Image dataset:', mainImage.dataset);
             
             // Dodaj efekt przejścia
             mainImage.style.transition = 'opacity 0.3s ease';
             mainImage.style.opacity = '0.7';
+            
+            // Sprawdź czy obraz się załadował
+            mainImage.onload = () => {
+              console.log('✅ [CUSTOMIFY] AI image loaded successfully');
+              mainImage.style.opacity = '1';
+            };
+            
+            mainImage.onerror = () => {
+              console.error('❌ [CUSTOMIFY] AI image failed to load:', mainImage.src);
+              mainImage.style.opacity = '1';
+            };
+            
             setTimeout(() => {
               mainImage.style.opacity = '1';
             }, 100);
