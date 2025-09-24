@@ -72,7 +72,7 @@
       
       /* Aplikacja na górze kolumny detali */
       #customify-app-container {
-        order: -1 !important; /* Przenieś na górę */
+        order: 1 !important; /* Po tytule i cenie */
         width: 100% !important;
         margin: 0 0 20px 0 !important;
         box-sizing: border-box !important;
@@ -81,6 +81,14 @@
         border-radius: 12px !important;
         padding: 20px !important;
         min-height: 400px !important;
+      }
+      
+      /* Tytuł i cena na górze kolumny detali */
+      .group-block[data-testid="group-block"] {
+        order: -1 !important; /* Przenieś na górę */
+        width: 100% !important;
+        margin: 0 0 20px 0 !important;
+        box-sizing: border-box !important;
       }
 
       
