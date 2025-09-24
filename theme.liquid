@@ -46,14 +46,9 @@
 
       /* NIE DOTYKAJ OBRAZÓW PRODUKTU - zostaw natywne proporcje motywu */
       
-      /* WYMUSZENIE UKŁADU WERTYKALNEGO - aplikacja na górze, reszta na dole */
+      /* Aplikacja Customify - podstawowe style */
       #customify-app-container {
         display: block !important;
-        width: 100% !important;
-        clear: both !important;
-        float: none !important;
-        margin: 20px 0 !important;
-        padding: 0 !important;
         box-sizing: border-box !important;
         min-height: 400px !important; /* Minimalna wysokość dla lepszego wyglądu */
       }
@@ -83,34 +78,47 @@
         box-sizing: border-box !important;
       }
       
-        /* Layout kolumn - aplikacja i obrazek obok siebie */
+        /* ZASTĄP obecny CSS w theme.liquid */
         .product-information__grid {
-          display: grid !important;
-          grid-template-columns: 1.5fr 1fr !important; /* 60/40 - aplikacja większa */
-          gap: 48px !important;
-          align-items: start !important;
+          display: flex !important;
+          gap: 24px !important;
+          align-items: flex-start !important;
+          flex-wrap: wrap !important;
         }
-        
-        /* Sekcja obrazka - mniejsza szerokość (40%) */
+
+        /* Aplikacja - większa część */
+        #customify-app-container {
+          flex: 2 !important; /* 66% szerokości */
+          min-width: 300px !important;
+          order: 1 !important;
+          margin: 0 !important;
+        }
+
+        /* Obrazek - mniejsza część */
         .product-information__media {
-          width: 100% !important;
-          max-width: none !important;
-          box-sizing: border-box !important;
+          flex: 1 !important; /* 33% szerokości */
+          min-width: 200px !important;
+          order: 2 !important;
         }
-        
-        /* Obrazek w sekcji - zachowaj proporcje ale w mniejszej przestrzeni */
-        .product-information__media .product-media {
-          width: 100% !important;
-          height: auto !important;
-          max-height: 500px !important; /* Ogranicz wysokość */
-          object-fit: contain !important;
+
+        /* Tablet - zmień proporcje */
+        @media (min-width: 769px) and (max-width: 1024px) {
+          #customify-app-container {
+            flex: 1.5 !important; /* 60/40 na tablet */
+          }
         }
       
       /* Na mobile - układ wertykalny */
       @media (max-width: 768px) {
         .product-information__grid {
-          grid-template-columns: 1fr !important; /* 100% szerokości */
-          gap: 24px !important;
+          flex-direction: column !important;
+        }
+        
+        #customify-app-container,
+        .product-information__media {
+          flex: none !important;
+          width: 100% !important;
+          order: initial !important;
         }
       }
       
