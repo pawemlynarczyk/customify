@@ -769,6 +769,18 @@ document.addEventListener('DOMContentLoaded', function() {
             mainImage.dataset.customify = 'ai-image';
             mainImage.classList.add('customify-ai-image');
             
+            // 🎯 ZASTĄP TAKŻE srcset - to jest kluczowe!
+            if (mainImage.srcset) {
+              mainImage.dataset.originalSrcset = mainImage.srcset;
+              mainImage.srcset = ''; // Wyczyść srcset żeby używał src
+            }
+            
+            // 🎯 ZASTĄP TAKŻE data_max_resolution
+            if (mainImage.dataset.maxResolution) {
+              mainImage.dataset.originalMaxResolution = mainImage.dataset.maxResolution;
+              mainImage.dataset.maxResolution = aiImageUrl;
+            }
+            
             console.log('✅ [CUSTOMIFY] Main product image replaced with AI result');
             console.log('✅ [CUSTOMIFY] New image src:', mainImage.src);
             console.log('✅ [CUSTOMIFY] New image alt:', mainImage.alt);
@@ -818,6 +830,17 @@ document.addEventListener('DOMContentLoaded', function() {
             aiImage.alt = aiImage.dataset.originalAlt || 'Product Image';
             aiImage.removeAttribute('data-customify');
             aiImage.classList.remove('customify-ai-image');
+            
+            // 🎯 PRZYWRÓĆ TAKŻE srcset
+            if (aiImage.dataset.originalSrcset) {
+              aiImage.srcset = aiImage.dataset.originalSrcset;
+            }
+            
+            // 🎯 PRZYWRÓĆ TAKŻE data_max_resolution
+            if (aiImage.dataset.originalMaxResolution) {
+              aiImage.dataset.maxResolution = aiImage.dataset.originalMaxResolution;
+            }
+            
             console.log('🔄 [CUSTOMIFY] Restored original product image');
           }
         }
