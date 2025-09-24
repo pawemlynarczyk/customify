@@ -553,9 +553,6 @@
                 this.sizeArea.style.display = 'block'; // Pokaż wymiary po przekształceniu AI
                 console.log('🎯 [SHOPIFY-EMBED.HTML] resultArea display set to block');
                 
-                // 🎯 ZASTĄP GŁÓWNE ZDJĘCIE PRODUKTU ZDJĘCIEM AI
-                this.replaceMainProductImage(imageUrl);
-                
                 // Check if buttons exist
                 const addToCartBtn = document.getElementById('addToCartBtn');
                 const tryAgainBtn = document.getElementById('tryAgainBtn');
@@ -573,79 +570,6 @@
                 console.log('🎯 resultArea opacity:', window.getComputedStyle(this.resultArea).opacity);
             }
 
-            // 🎯 NOWA FUNKCJA: Zastąp główne zdjęcie produktu zdjęciem AI
-            replaceMainProductImage(aiImageUrl) {
-                console.log('🖼️ [SHOPIFY-EMBED.HTML] Replacing main product image with AI result');
-                
-                // Znajdź główne zdjęcie produktu - wszystkie możliwe selektory
-                const mainImageSelectors = [
-                    '.product__media img',
-                    '.product-media img', 
-                    '.product-single__media img',
-                    '.product__photo img',
-                    '.product__image img',
-                    '.product-gallery img',
-                    '.product-images img',
-                    '.product-photos img',
-                    '.product__gallery img',
-                    '.product__images img',
-                    '.product__photos img',
-                    '.media-gallery img',
-                    '.product-media-gallery img',
-                    '.product__media-gallery img',
-                    '.product__media-wrapper img',
-                    '.product__media img',
-                    '.product__media img:first-child',
-                    '.product__media img:not(.customify-ai-image)',
-                    '.product__media img:not([data-customify])'
-                ];
-                
-                let mainImage = null;
-                for (const selector of mainImageSelectors) {
-                    mainImage = document.querySelector(selector);
-                    if (mainImage) {
-                        console.log('🎯 [SHOPIFY-EMBED.HTML] Found main product image with selector:', selector);
-                        break;
-                    }
-                }
-                
-                if (mainImage) {
-                    // Zapisz oryginalne zdjęcie (na wypadek resetu)
-                    if (!mainImage.dataset.originalSrc) {
-                        mainImage.dataset.originalSrc = mainImage.src;
-                    }
-                    
-                    // Zastąp zdjęcie AI
-                    mainImage.src = aiImageUrl;
-                    mainImage.alt = `AI Transformed Image - ${this.selectedStyle}`;
-                    mainImage.dataset.customify = 'ai-image';
-                    mainImage.classList.add('customify-ai-image');
-                    
-                    console.log('✅ [SHOPIFY-EMBED.HTML] Main product image replaced with AI result');
-                    
-                    // Dodaj efekt przejścia
-                    mainImage.style.transition = 'opacity 0.3s ease';
-                    mainImage.style.opacity = '0.7';
-                    setTimeout(() => {
-                        mainImage.style.opacity = '1';
-                    }, 100);
-                    
-                } else {
-                    console.warn('⚠️ [SHOPIFY-EMBED.HTML] Could not find main product image to replace');
-                }
-            }
-
-            // 🎯 NOWA FUNKCJA: Przywróć oryginalne zdjęcie produktu
-            restoreOriginalProductImage() {
-                const aiImage = document.querySelector('.customify-ai-image');
-                if (aiImage && aiImage.dataset.originalSrc) {
-                    aiImage.src = aiImage.dataset.originalSrc;
-                    aiImage.alt = aiImage.dataset.originalAlt || 'Product Image';
-                    aiImage.removeAttribute('data-customify');
-                    aiImage.classList.remove('customify-ai-image');
-                    console.log('🔄 [SHOPIFY-EMBED.HTML] Restored original product image');
-                }
-            }
 
             async addToCart() {
                 if (!this.transformedImage || !this.selectedStyle || !this.selectedSize) {

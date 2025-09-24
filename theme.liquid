@@ -653,8 +653,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
           try {
             const base64 = await this.fileToBase64(this.uploadedFile);
-            console.log('🔄 [CUSTOMIFY] Starting AI transformation...');
-            
             const response = await fetch('https://customify-s56o.vercel.app/api/transform', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -664,22 +662,16 @@ document.addEventListener('DOMContentLoaded', function() {
               })
             });
 
-            console.log('🔄 [CUSTOMIFY] Transform API response status:', response.status);
             const result = await response.json();
-            console.log('🔄 [CUSTOMIFY] Transform API result:', result);
-
             if (result.success) {
               this.transformedImage = result.transformedImage;
-              console.log('✅ [CUSTOMIFY] AI transformation successful, image URL:', this.transformedImage);
               this.showResult(result.transformedImage);
               this.showSuccess('Zdjęcie zostało pomyślnie przekształcone!');
             } else {
-              console.error('❌ [CUSTOMIFY] AI transformation failed:', result.error);
               this.showError('Błąd podczas transformacji: ' + (result.error || 'Nieznany błąd'));
             }
           } catch (error) {
-            console.error('❌ [CUSTOMIFY] Transform API error:', error);
-            this.showError('Błąd połączenia z serwerem: ' + error.message);
+            this.showError('Błąd połączenia z serwerem');
           } finally {
             this.hideLoading();
           }
@@ -689,161 +681,8 @@ document.addEventListener('DOMContentLoaded', function() {
           this.resultImage.src = imageUrl;
           this.resultArea.style.display = 'block';
           this.sizeArea.style.display = 'block'; // Pokaż wymiary po przekształceniu AI
-          
-          // 🎯 ZASTĄP GŁÓWNE ZDJĘCIE PRODUKTU ZDJĘCIEM AI
-          this.replaceMainProductImage(imageUrl);
         }
 
-        // 🎯 NOWA FUNKCJA: Zastąp główne zdjęcie produktu zdjęciem AI
-        replaceMainProductImage(aiImageUrl) {
-          console.log('🖼️ [CUSTOMIFY] Replacing main product image with AI result');
-          console.log('🖼️ [CUSTOMIFY] AI Image URL:', aiImageUrl);
-          console.log('🖼️ [CUSTOMIFY] Selected style:', this.selectedStyle);
-          
-          // Znajdź główne zdjęcie produktu - wszystkie możliwe selektory
-          const mainImageSelectors = [
-            '.product__media img',
-            '.product-media img', 
-            '.product-single__media img',
-            '.product__photo img',
-            '.product__image img',
-            '.product-gallery img',
-            '.product-images img',
-            '.product-photos img',
-            '.product__gallery img',
-            '.product__images img',
-            '.product__photos img',
-            '.media-gallery img',
-            '.product-media-gallery img',
-            '.product__media-gallery img',
-            '.product__media-wrapper img',
-            '.product__media img',
-            '.product__media img:first-child',
-            '.product__media img:not(.customify-ai-image)',
-            '.product__media img:not([data-customify])',
-            // Dodatkowe selektory
-            'img[alt*="product"]',
-            'img[alt*="Product"]',
-            '.product img',
-            '.product__media img:first-of-type',
-            '.product__media img:last-of-type',
-            'img[src*="products"]',
-            'img[src*="cdn.shopify"]'
-          ];
-          
-          console.log('🔍 [CUSTOMIFY] Searching for main product image...');
-          let mainImage = null;
-          let foundSelector = null;
-          
-          for (const selector of mainImageSelectors) {
-            const images = document.querySelectorAll(selector);
-            console.log(`🔍 [CUSTOMIFY] Selector "${selector}" found ${images.length} images`);
-            
-            if (images.length > 0) {
-              // Wybierz pierwszy obrazek, który nie jest już zastąpiony przez AI
-              for (let img of images) {
-                if (!img.classList.contains('customify-ai-image') && !img.dataset.customify) {
-                  mainImage = img;
-                  foundSelector = selector;
-                  break;
-                }
-              }
-              if (mainImage) break;
-            }
-          }
-          
-          if (mainImage) {
-            console.log('✅ [CUSTOMIFY] Found main product image with selector:', foundSelector);
-            console.log('✅ [CUSTOMIFY] Original image src:', mainImage.src);
-            console.log('✅ [CUSTOMIFY] Original image alt:', mainImage.alt);
-            
-            // Zapisz oryginalne zdjęcie (na wypadek resetu)
-            if (!mainImage.dataset.originalSrc) {
-              mainImage.dataset.originalSrc = mainImage.src;
-              mainImage.dataset.originalAlt = mainImage.alt;
-            }
-            
-            // Zastąp zdjęcie AI
-            mainImage.src = aiImageUrl;
-            mainImage.alt = `AI Transformed Image - ${this.selectedStyle}`;
-            mainImage.dataset.customify = 'ai-image';
-            mainImage.classList.add('customify-ai-image');
-            
-            // 🎯 ZASTĄP TAKŻE srcset - to jest kluczowe!
-            if (mainImage.srcset) {
-              mainImage.dataset.originalSrcset = mainImage.srcset;
-              mainImage.srcset = ''; // Wyczyść srcset żeby używał src
-            }
-            
-            // 🎯 ZASTĄP TAKŻE data_max_resolution
-            if (mainImage.dataset.maxResolution) {
-              mainImage.dataset.originalMaxResolution = mainImage.dataset.maxResolution;
-              mainImage.dataset.maxResolution = aiImageUrl;
-            }
-            
-            console.log('✅ [CUSTOMIFY] Main product image replaced with AI result');
-            console.log('✅ [CUSTOMIFY] New image src:', mainImage.src);
-            console.log('✅ [CUSTOMIFY] New image alt:', mainImage.alt);
-            console.log('✅ [CUSTOMIFY] Image classes:', mainImage.className);
-            console.log('✅ [CUSTOMIFY] Image dataset:', mainImage.dataset);
-            
-            // Dodaj efekt przejścia
-            mainImage.style.transition = 'opacity 0.3s ease';
-            mainImage.style.opacity = '0.7';
-            
-            // Sprawdź czy obraz się załadował
-            mainImage.onload = () => {
-              console.log('✅ [CUSTOMIFY] AI image loaded successfully');
-              mainImage.style.opacity = '1';
-            };
-            
-            mainImage.onerror = () => {
-              console.error('❌ [CUSTOMIFY] AI image failed to load:', mainImage.src);
-              mainImage.style.opacity = '1';
-            };
-            
-            setTimeout(() => {
-              mainImage.style.opacity = '1';
-            }, 100);
-            
-          } else {
-            console.warn('⚠️ [CUSTOMIFY] Could not find main product image to replace');
-            console.warn('⚠️ [CUSTOMIFY] Available images on page:');
-            const allImages = document.querySelectorAll('img');
-            allImages.forEach((img, index) => {
-              console.warn(`⚠️ [CUSTOMIFY] Image ${index}:`, {
-                src: img.src,
-                alt: img.alt,
-                classes: img.className,
-                parent: img.parentElement?.tagName,
-                parentClass: img.parentElement?.className
-              });
-            });
-          }
-        }
-
-        // 🎯 NOWA FUNKCJA: Przywróć oryginalne zdjęcie produktu
-        restoreOriginalProductImage() {
-          const aiImage = document.querySelector('.customify-ai-image');
-          if (aiImage && aiImage.dataset.originalSrc) {
-            aiImage.src = aiImage.dataset.originalSrc;
-            aiImage.alt = aiImage.dataset.originalAlt || 'Product Image';
-            aiImage.removeAttribute('data-customify');
-            aiImage.classList.remove('customify-ai-image');
-            
-            // 🎯 PRZYWRÓĆ TAKŻE srcset
-            if (aiImage.dataset.originalSrcset) {
-              aiImage.srcset = aiImage.dataset.originalSrcset;
-            }
-            
-            // 🎯 PRZYWRÓĆ TAKŻE data_max_resolution
-            if (aiImage.dataset.originalMaxResolution) {
-              aiImage.dataset.maxResolution = aiImage.dataset.originalMaxResolution;
-            }
-            
-            console.log('🔄 [CUSTOMIFY] Restored original product image');
-          }
-        }
 
         // NAPRAWIONA FUNKCJA: STWÓRZ NOWY PRODUKT Z OBRAZKIEM AI (UKRYTY W KATALOGU)
         async addToCart() {
@@ -985,9 +824,6 @@ document.addEventListener('DOMContentLoaded', function() {
           
           this.stylesArea.querySelectorAll('.customify-style-btn').forEach(btn => btn.classList.remove('active'));
           this.sizeArea.querySelectorAll('.customify-size-btn').forEach(btn => btn.classList.remove('active'));
-          
-          // 🎯 PRZYWRÓĆ ORYGINALNE ZDJĘCIE PRODUKTU
-          this.restoreOriginalProductImage();
         }
 
         tryAgain() {
