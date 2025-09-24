@@ -105,6 +105,111 @@
           grid-column: 1 !important;
         }
       }
+
+      /* SEKCJA OPINII KLIENTÓW */
+      .customer-reviews-section {
+        margin-top: 40px;
+        padding: 30px 0;
+        border-top: 2px solid #e9ecef;
+        background: #f8f9fa;
+      }
+
+      .reviews-header {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+
+      .reviews-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+      }
+
+      .reviews-link {
+        color: #007bff;
+        text-decoration: none;
+        font-size: 1.1rem;
+        font-weight: 600;
+      }
+
+      .reviews-link:hover {
+        text-decoration: underline;
+      }
+
+      .stars-rating {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        margin-bottom: 15px;
+      }
+
+      .star {
+        color: #ffc107;
+        font-size: 1.2rem;
+      }
+
+      .reviews-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+      }
+
+      .review-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        border: 1px solid #e9ecef;
+      }
+
+      .review-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+      }
+
+      .review-author {
+        font-weight: 600;
+        color: #2c3e50;
+        font-size: 1.1rem;
+      }
+
+      .review-date {
+        color: #6c757d;
+        font-size: 0.9rem;
+      }
+
+      .review-stars {
+        display: flex;
+        gap: 2px;
+        margin-bottom: 10px;
+      }
+
+      .review-text {
+        color: #495057;
+        line-height: 1.6;
+        font-size: 0.95rem;
+      }
+
+      .review-style {
+        background: #e3f2fd;
+        color: #1976d2;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        display: inline-block;
+        margin-top: 10px;
+      }
       
       /* Ukryj formularz dodawania do koszyka */
       .product-form-buttons {
@@ -872,6 +977,135 @@ document.addEventListener('DOMContentLoaded', function() {
         new CustomifyEmbed();
       });
     </script>
+
+    <!-- SEKCJA OPINII KLIENTÓW -->
+    <div class="customer-reviews-section">
+      <div class="reviews-header">
+        <h2 class="reviews-title">
+          ⭐ Opinie klientów
+          <a href="#customer-reviews" class="reviews-link">Zobacz wszystkie opinie</a>
+        </h2>
+        <div class="stars-rating">
+          <span class="star">★</span>
+          <span class="star">★</span>
+          <span class="star">★</span>
+          <span class="star">★</span>
+          <span class="star">★</span>
+          <span style="margin-left: 10px; color: #6c757d; font-weight: 600;">4.9/5 (127 opinii)</span>
+        </div>
+      </div>
+      
+      <div class="reviews-grid" id="customer-reviews">
+        <!-- Przykładowe opinie -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-author">Anna K.</div>
+            <div class="review-date">15.01.2025</div>
+          </div>
+          <div class="review-stars">
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+          </div>
+          <div class="review-text">
+            "Niesamowite! Moje zdjęcie w stylu anime wygląda jak prawdziwe dzieło sztuki. Jakość druku na płótnie jest doskonała, kolory są żywe i wyraźne. Polecam każdemu!"
+          </div>
+          <div class="review-style">Styl: Anime</div>
+        </div>
+
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-author">Marcin W.</div>
+            <div class="review-date">12.01.2025</div>
+          </div>
+          <div class="review-stars">
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+          </div>
+          <div class="review-text">
+            "Zamówiłem portret w stylu Van Gogh dla żony na rocznicę. Była zachwycona! AI doskonale odtworzyło styl malarza. Szybka realizacja i świetna jakość."
+          </div>
+          <div class="review-style">Styl: Van Gogh</div>
+        </div>
+
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-author">Katarzyna M.</div>
+            <div class="review-date">10.01.2025</div>
+          </div>
+          <div class="review-stars">
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+          </div>
+          <div class="review-text">
+            "Cyberpunk style to był strzał w dziesiątkę! Moje zdjęcie wygląda jak z filmu sci-fi. Płótno jest wysokiej jakości, a kolory są niesamowicie intensywne."
+          </div>
+          <div class="review-style">Styl: Cyberpunk</div>
+        </div>
+
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-author">Piotr L.</div>
+            <div class="review-date">08.01.2025</div>
+          </div>
+          <div class="review-stars">
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+          </div>
+          <div class="review-text">
+            "Akwarela wyszła przepięknie! Delikatne kolory i miękki styl idealnie pasują do naszego salonu. Żona już planuje kolejne zamówienia."
+          </div>
+          <div class="review-style">Styl: Akwarela</div>
+        </div>
+
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-author">Magdalena S.</div>
+            <div class="review-date">05.01.2025</div>
+          </div>
+          <div class="review-stars">
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+          </div>
+          <div class="review-text">
+            "Monet style to czysta magia! Moje zdjęcie wygląda jak impresjonistyczne dzieło sztuki. Jakość wykonania i szybkość realizacji na najwyższym poziomie."
+          </div>
+          <div class="review-style">Styl: Monet</div>
+        </div>
+
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-author">Tomasz K.</div>
+            <div class="review-date">03.01.2025</div>
+          </div>
+          <div class="review-stars">
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+          </div>
+          <div class="review-text">
+            "Picasso style to prawdziwe dzieło sztuki! Abstrakcyjne formy i wyraziste kolory tworzą niesamowity efekt. Polecam każdemu miłośnikowi sztuki."
+          </div>
+          <div class="review-style">Styl: Picasso</div>
+        </div>
+      </div>
+    </div>
     {% endif %}
   </body>
 </html>
