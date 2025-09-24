@@ -689,6 +689,8 @@ document.addEventListener('DOMContentLoaded', function() {
         // 🎯 NOWA FUNKCJA: Zastąp główne zdjęcie produktu zdjęciem AI
         replaceMainProductImage(aiImageUrl) {
           console.log('🖼️ [CUSTOMIFY] Replacing main product image with AI result');
+          console.log('🖼️ [CUSTOMIFY] AI Image URL:', aiImageUrl);
+          console.log('🖼️ [CUSTOMIFY] Selected style:', this.selectedStyle);
           
           // Znajdź główne zdjęcie produktu - wszystkie możliwe selektory
           const mainImageSelectors = [
@@ -710,22 +712,47 @@ document.addEventListener('DOMContentLoaded', function() {
             '.product__media img',
             '.product__media img:first-child',
             '.product__media img:not(.customify-ai-image)',
-            '.product__media img:not([data-customify])'
+            '.product__media img:not([data-customify])',
+            // Dodatkowe selektory
+            'img[alt*="product"]',
+            'img[alt*="Product"]',
+            '.product img',
+            '.product__media img:first-of-type',
+            '.product__media img:last-of-type',
+            'img[src*="products"]',
+            'img[src*="cdn.shopify"]'
           ];
           
+          console.log('🔍 [CUSTOMIFY] Searching for main product image...');
           let mainImage = null;
+          let foundSelector = null;
+          
           for (const selector of mainImageSelectors) {
-            mainImage = document.querySelector(selector);
-            if (mainImage) {
-              console.log('🎯 [CUSTOMIFY] Found main product image with selector:', selector);
-              break;
+            const images = document.querySelectorAll(selector);
+            console.log(`🔍 [CUSTOMIFY] Selector "${selector}" found ${images.length} images`);
+            
+            if (images.length > 0) {
+              // Wybierz pierwszy obrazek, który nie jest już zastąpiony przez AI
+              for (let img of images) {
+                if (!img.classList.contains('customify-ai-image') && !img.dataset.customify) {
+                  mainImage = img;
+                  foundSelector = selector;
+                  break;
+                }
+              }
+              if (mainImage) break;
             }
           }
           
           if (mainImage) {
+            console.log('✅ [CUSTOMIFY] Found main product image with selector:', foundSelector);
+            console.log('✅ [CUSTOMIFY] Original image src:', mainImage.src);
+            console.log('✅ [CUSTOMIFY] Original image alt:', mainImage.alt);
+            
             // Zapisz oryginalne zdjęcie (na wypadek resetu)
             if (!mainImage.dataset.originalSrc) {
               mainImage.dataset.originalSrc = mainImage.src;
+              mainImage.dataset.originalAlt = mainImage.alt;
             }
             
             // Zastąp zdjęcie AI
@@ -735,6 +762,7 @@ document.addEventListener('DOMContentLoaded', function() {
             mainImage.classList.add('customify-ai-image');
             
             console.log('✅ [CUSTOMIFY] Main product image replaced with AI result');
+            console.log('✅ [CUSTOMIFY] New image src:', mainImage.src);
             
             // Dodaj efekt przejścia
             mainImage.style.transition = 'opacity 0.3s ease';
@@ -745,6 +773,17 @@ document.addEventListener('DOMContentLoaded', function() {
             
           } else {
             console.warn('⚠️ [CUSTOMIFY] Could not find main product image to replace');
+            console.warn('⚠️ [CUSTOMIFY] Available images on page:');
+            const allImages = document.querySelectorAll('img');
+            allImages.forEach((img, index) => {
+              console.warn(`⚠️ [CUSTOMIFY] Image ${index}:`, {
+                src: img.src,
+                alt: img.alt,
+                classes: img.className,
+                parent: img.parentElement?.tagName,
+                parentClass: img.parentElement?.className
+              });
+            });
           }
         }
 
