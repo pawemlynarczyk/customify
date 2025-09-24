@@ -418,7 +418,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
 {% if template contains 'product' %}
 <!-- Customify AI Photo Customization - CZYSTA WERSJA -->
-    <div id="customify-app-container" class="customify-shopify-container" style="margin: 20px 0px; padding: 0px; border: 1px solid rgb(224, 224, 224); border-radius: 8px; background: rgb(255, 255, 255); opacity: 1; transition: opacity 0.3s;">
+<!-- Aplikacja będzie wstrzykiwana JavaScript do kolumny 2 -->
+    <div id="customify-app-container" class="customify-shopify-container" style="display: none;">
       <h3 class="customify-title" style="margin: 0px 0px 15px; padding: 15px 20px; background: linear-gradient(135deg, rgb(102, 126, 234) 0%, rgb(118, 75, 162) 100%); color: white; border-radius: 8px 8px 0px 0px; font-size: 1.2rem; font-weight: 600;">🎨 Spersonalizuj swój produkt z AI</h3>
       <div class="customify-inline-wrapper">
         <div class="customify-embed" id="customifyEmbed">
@@ -524,6 +525,34 @@ document.addEventListener('DOMContentLoaded', function() {
             return; // Jeśli nie ma elementów, nie rób nic
           }
           this.setupEventListeners();
+          this.positionApp();
+        }
+
+        // WSTRZYJ APLIKACJĘ DO KOLUMNY 2
+        positionApp() {
+          if (!window.location.pathname.includes('/products/')) {
+            return;
+          }
+
+          const appContainer = document.getElementById('customify-app-container');
+          if (!appContainer) return;
+
+          // Znajdź kolumnę 2 (detale produktu)
+          const productDetails = document.querySelector('#ProductInformation-template--26351135293765__main') || 
+                                document.querySelector('.product-details') ||
+                                document.querySelector('.product__info');
+
+          if (productDetails) {
+            console.log('🎯 [CUSTOMIFY] Found product details column, inserting app at top');
+            
+            // Pokaż aplikację
+            appContainer.style.display = 'block';
+            
+            // Wstaw na górę kolumny 2
+            productDetails.insertBefore(appContainer, productDetails.firstChild);
+          } else {
+            console.warn('⚠️ [CUSTOMIFY] Could not find product details column');
+          }
         }
 
         setupEventListeners() {
