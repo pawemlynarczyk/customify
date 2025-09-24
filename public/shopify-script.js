@@ -48,20 +48,7 @@
         console.log('🎨 [CUSTOMIFY] Injecting CSS styles...');
         const style = document.createElement('style');
         style.textContent = `
-            /* Layout for product page - app and product image side by side */
-            #customify-app-container {
-                width: 50%;
-                float: left;
-                margin-right: 20px;
-                box-sizing: border-box;
-            }
-
-            /* Product image container */
-            .product-media {
-                width: 50%;
-                float: right;
-                box-sizing: border-box;
-            }
+            /* Layout controlled by theme.liquid - no conflicting styles */
 
             /* Product image styling */
             .product-media img,
