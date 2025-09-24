@@ -66,10 +66,13 @@
         grid-column: 2 !important;
         width: 100% !important;
         box-sizing: border-box !important;
+        display: flex !important;
+        flex-direction: column !important;
       }
-
-      /* Aplikacja Customify - pełna szerokość w swojej kolumnie */
+      
+      /* Aplikacja na górze kolumny detali */
       #customify-app-container {
+        order: -1 !important; /* Przenieś na górę */
         width: 100% !important;
         margin: 0 0 20px 0 !important;
         box-sizing: border-box !important;
@@ -79,6 +82,7 @@
         padding: 20px !important;
         min-height: 400px !important;
       }
+
       
       /* Mobile - stack wertykalnie */
       @media (max-width: 768px) {
