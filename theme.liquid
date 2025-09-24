@@ -44,21 +44,34 @@
         clear: both;
       }
 
-      /* RESPONSYWNY FLEXBOX LAYOUT - SZTYWNE PROPORCJE */
+      /* KONTROLA PROPORCJI GŁÓWNEGO LAYOUTU */
       .product-information__grid {
-        display: flex !important;
+        display: grid !important;
+        grid-template-columns: 35% 65% !important; /* Obrazek 35%, Aplikacja 65% */
         gap: 24px !important;
-        align-items: flex-start !important;
+        align-items: start !important;
         width: 100% !important;
       }
 
-      /* Aplikacja - SZTYWNE 65% */
+      /* Sekcja obrazków - zawsze w pierwszej kolumnie */
+      .product-information__media {
+        grid-column: 1 !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+      }
+
+      /* Sekcja detali - zawsze w drugiej kolumnie */
+      #ProductInformation-template--26351135293765__main,
+      .product-details {
+        grid-column: 2 !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+      }
+
+      /* Aplikacja Customify - pełna szerokość w swojej kolumnie */
       #customify-app-container {
-        flex: 0 0 65% !important; /* Nie rośnie, nie kurczy się, zawsze 65% */
-        width: 65% !important;
-        max-width: 65% !important;
-        min-width: 0 !important;
-        margin: 0 !important;
+        width: 100% !important;
+        margin: 0 0 20px 0 !important;
         box-sizing: border-box !important;
         background: #f8f9fa !important;
         border: 2px solid #e9ecef !important;
@@ -66,27 +79,17 @@
         padding: 20px !important;
         min-height: 400px !important;
       }
-
-      /* Obrazek - SZTYWNE 35% */
-      .product-information__media {
-        flex: 0 0 35% !important; /* Nie rośnie, nie kurczy się, zawsze 35% */
-        width: 35% !important;
-        max-width: 35% !important;
-        min-width: 0 !important;
-        box-sizing: border-box !important;
-      }
       
-      /* Na mobile - układ wertykalny */
+      /* Mobile - stack wertykalnie */
       @media (max-width: 768px) {
         .product-information__grid {
-          flex-direction: column !important;
+          grid-template-columns: 1fr !important;
+          gap: 20px !important;
         }
         
-        #customify-app-container,
-        .product-information__media {
-          flex: none !important;
-          width: 100% !important;
-          order: initial !important;
+        .product-information__media,
+        #ProductInformation-template--26351135293765__main {
+          grid-column: 1 !important;
         }
       }
       
@@ -826,3 +829,4 @@ document.addEventListener('DOMContentLoaded', function() {
     {% endif %}
   </body>
 </html>
+
