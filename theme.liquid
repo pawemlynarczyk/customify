@@ -55,6 +55,7 @@
         margin: 20px 0 !important;
         padding: 0 !important;
         box-sizing: border-box !important;
+        min-height: 400px !important; /* Minimalna wysokość dla lepszego wyglądu */
       }
       
       /* Wymuś reset dla całej sekcji produktu */
@@ -82,13 +83,28 @@
         box-sizing: border-box !important;
       }
       
-      /* Layout kolumn - aplikacja i obrazek obok siebie */
-      .product-information__grid {
-        display: grid !important;
-        grid-template-columns: 1fr 1fr !important; /* 50/50 */
-        gap: 48px !important;
-        align-items: start !important;
-      }
+        /* Layout kolumn - aplikacja i obrazek obok siebie */
+        .product-information__grid {
+          display: grid !important;
+          grid-template-columns: 1.5fr 1fr !important; /* 60/40 - aplikacja większa */
+          gap: 48px !important;
+          align-items: start !important;
+        }
+        
+        /* Sekcja obrazka - mniejsza szerokość (40%) */
+        .product-information__media {
+          width: 100% !important;
+          max-width: none !important;
+          box-sizing: border-box !important;
+        }
+        
+        /* Obrazek w sekcji - zachowaj proporcje ale w mniejszej przestrzeni */
+        .product-information__media .product-media {
+          width: 100% !important;
+          height: auto !important;
+          max-height: 500px !important; /* Ogranicz wysokość */
+          object-fit: contain !important;
+        }
       
       /* Na mobile - układ wertykalny */
       @media (max-width: 768px) {
