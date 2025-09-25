@@ -541,6 +541,11 @@
         background: transparent !important;
       }
 
+      /* WYMUSZENIE KOLEJNOŚCI ELEMENTÓW W FLEXBOX */
+      .group-block[data-testid="group-block"] .layout-panel-flex > * {
+        order: inherit !important;
+      }
+
       /* ELEMENTY POD TYTUŁEM - GWIAZDKI I OKAZJA */
       .product-badges {
         display: flex;
@@ -1691,6 +1696,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
           // Wstaw po tytule
           titleElement.parentNode.insertBefore(badgesContainer, titleElement.nextSibling);
+
+          // PRZENIEŚ CENĘ PO BADGE'ACH - z opóźnieniem
+          setTimeout(() => {
+            const priceElement = document.querySelector('product-price');
+            const badgesContainer = document.querySelector('.product-badges');
+            if (priceElement && badgesContainer) {
+              // Znajdź kontener flexbox
+              const flexContainer = document.querySelector('.layout-panel-flex');
+              if (flexContainer) {
+                // Przenieś cenę po badge'ach
+                flexContainer.insertBefore(priceElement, badgesContainer.nextSibling);
+                console.log('🎯 [CUSTOMIFY] Cena przeniesiona po badge\'ach');
+              }
+            }
+          }, 100);
         }
 
         setupEventListeners() {
