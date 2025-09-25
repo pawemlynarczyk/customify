@@ -942,6 +942,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         showResult(imageUrl) {
+          console.log('🎯 [CUSTOMIFY] showResult called, hiding actionsArea and stylesArea');
           this.resultImage.src = imageUrl;
           this.resultArea.style.display = 'block';
           
@@ -949,13 +950,16 @@ document.addEventListener('DOMContentLoaded', function() {
           const sizeAreaInResult = this.resultArea.querySelector('#sizeArea');
           if (sizeAreaInResult) {
             sizeAreaInResult.style.display = 'block';
+            console.log('🎯 [CUSTOMIFY] Size area shown under result image');
           }
           
           // UKRYJ przyciski "Przekształć z AI" i "Resetuj" (główne actionsArea)
           this.actionsArea.style.display = 'none';
+          console.log('🎯 [CUSTOMIFY] actionsArea hidden:', this.actionsArea.style.display);
           
           // UKRYJ style po przekształceniu
           this.stylesArea.style.display = 'none';
+          console.log('🎯 [CUSTOMIFY] stylesArea hidden:', this.stylesArea.style.display);
         }
 
 
