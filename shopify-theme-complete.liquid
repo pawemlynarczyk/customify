@@ -470,18 +470,48 @@
         box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
       }
       
-      /* Tytuł i cena - NA TYM SAMYM PANELU CO APLIKACJA */
+      /* Tytuł i cena - BIAŁY PANEL Z CZARNYMI NAPISAMI */
       .group-block[data-testid="group-block"] {
         order: -1 !important; /* Przenieś na górę */
         width: 100% !important;
         margin: 0 0 0 0 !important; /* Usuń margin na dole */
-        background: transparent !important; /* Przezroczyste - będzie na białym panelu aplikacji */
+        background: white !important; /* Białe tło dla całego panelu */
         padding: 20px 20px 15px 20px !important; /* Padding jak w aplikacji */
-        border-radius: 0 !important; /* Usuń zaokrąglenia */
+        border-radius: 0 !important; /* Ostre kąty */
         box-sizing: border-box !important;
-        box-shadow: none !important; /* Usuń cień */
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important; /* Cień jak inne panele */
         border-bottom: 1px solid #e9ecef !important; /* Pozioma linia na dole */
         --padding-block-end: 0 !important; /* Usuń padding na dole */
+      }
+
+      /* CZARNE NAPISY W PANELU PRODUKTU */
+      .group-block[data-testid="group-block"] h1,
+      .group-block[data-testid="group-block"] h2,
+      .group-block[data-testid="group-block"] h3,
+      .group-block[data-testid="group-block"] .view-product-title,
+      .group-block[data-testid="group-block"] .view-product-title a,
+      .group-block[data-testid="group-block"] .view-product-title p,
+      .group-block[data-testid="group-block"] .price,
+      .group-block[data-testid="group-block"] product-price,
+      .group-block[data-testid="group-block"] .text-block,
+      .group-block[data-testid="group-block"] .text-block p {
+        color: #000 !important; /* Czarne napisy */
+      }
+
+      /* CZARNE NAPISY W PRZYCISKACH */
+      .group-block[data-testid="group-block"] .button,
+      .group-block[data-testid="group-block"] .add-to-cart-button,
+      .group-block[data-testid="group-block"] .shopify-payment-button__button {
+        color: #000 !important; /* Czarne napisy w przyciskach */
+      }
+
+      /* BIAŁE TŁO DLA WSZYSTKICH ELEMENTÓW W PANELU */
+      .group-block[data-testid="group-block"] * {
+        background: transparent !important; /* Przezroczyste tło dla elementów wewnętrznych */
+      }
+
+      .group-block[data-testid="group-block"] {
+        background: white !important; /* Białe tło dla głównego panelu */
       }
 
       /* ELEMENTY POD TYTUŁEM - GWIAZDKI I OKAZJA */
