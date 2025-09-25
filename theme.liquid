@@ -591,6 +591,7 @@
         position: relative !important;
         z-index: 4 !important;
         background: transparent !important;
+        order: 1 !important; /* Tytuł będzie pierwszy (order: 1) */
       }
 
       .group-block[data-testid="group-block"] .view-product-title a {
@@ -606,6 +607,7 @@
         position: relative !important;
         z-index: 5 !important;
         background: transparent !important;
+        order: 2 !important; /* Badge'y będą po tytule (order: 2) */
       }
 
       /* ZWIĘKSZ ODSTĘPY W BADGE'ACH */
@@ -613,20 +615,24 @@
         gap: 12px !important; /* Zwiększ odstęp między okazją a gwiazdkami */
       }
 
-      /* NAPRAW ELEMENTY CENY */
+      /* NAPRAW ELEMENTY CENY - PO BADGE'ACH */
       .group-block[data-testid="group-block"] product-price {
-        margin: 0 0 20px 0 !important;
+        margin: 20px 0 20px 0 !important; /* Większy margin na górze - po badge'ach */
         padding: 0 !important;
         position: relative !important;
         z-index: 6 !important;
         background: transparent !important;
         display: block !important;
+        order: 3 !important; /* Cena będzie po badge'ach (order: 3) */
       }
 
       .group-block[data-testid="group-block"] product-price .price {
         margin: 0 !important;
         padding: 0 !important;
         background: transparent !important;
+        font-size: 2.5rem !important; /* POWIĘKSZONA CENA */
+        font-weight: 700 !important; /* Pogrubiona cena */
+        color: #000 !important;
       }
 
       /* NAPRAW PRZYCISKI */
