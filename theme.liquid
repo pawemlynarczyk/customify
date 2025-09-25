@@ -546,6 +546,29 @@
         order: inherit !important;
       }
 
+      /* NOWA STRUKTURA - TYTUŁ Z BADGE'AMI + CENA ODDZIELNIE */
+      .group-block[data-testid="group-block"] .title-with-badges {
+        order: 1 !important;
+        margin-bottom: 20px !important;
+      }
+      
+      .group-block[data-testid="group-block"] .view-product-title {
+        margin-bottom: 12px !important; /* Odstęp między tytułem a badge'ami */
+      }
+      
+      .group-block[data-testid="group-block"] .product-badges {
+        margin: 0 !important; /* Usuń margin z badge'ów */
+      }
+      
+      .group-block[data-testid="group-block"] product-price {
+        order: 2 !important; /* Cena jako drugi element */
+        margin: 20px 0 !important; /* Odstęp od tytułu z badge'ami */
+      }
+      
+      .group-block[data-testid="group-block"] .buy-buttons-block {
+        order: 3 !important; /* Przyciski jako trzeci element */
+      }
+
       /* ELEMENTY POD TYTUŁEM - GWIAZDKI I OKAZJA */
       .product-badges {
         display: flex;
@@ -1694,20 +1717,29 @@ document.addEventListener('DOMContentLoaded', function() {
           badgesContainer.appendChild(discountBadge);
           badgesContainer.appendChild(ratingSection);
 
-          // Wstaw po tytule
-          titleElement.parentNode.insertBefore(badgesContainer, titleElement.nextSibling);
+          // POŁĄCZ TYTUŁ Z BADGE'AMI W JEDEN ELEMENT
+          const titleBadgesContainer = document.createElement('div');
+          titleBadgesContainer.className = 'title-with-badges';
+          titleBadgesContainer.style.cssText = 'order: 1 !important; margin-bottom: 20px !important;';
 
-          // PRZENIEŚ CENĘ PO BADGE'ACH - z opóźnieniem
+          // Przenieś tytuł do nowego kontenera
+          titleElement.parentNode.insertBefore(titleBadgesContainer, titleElement);
+          titleBadgesContainer.appendChild(titleElement);
+          
+          // Dodaj badge'y do tego samego kontenera
+          titleBadgesContainer.appendChild(badgesContainer);
+
+          // PRZENIEŚ CENĘ PO TYTULE Z BADGE'AMI
           setTimeout(() => {
             const priceElement = document.querySelector('product-price');
-            const badgesContainer = document.querySelector('.product-badges');
-            if (priceElement && badgesContainer) {
+            const titleBadgesContainer = document.querySelector('.title-with-badges');
+            if (priceElement && titleBadgesContainer) {
               // Znajdź kontener flexbox
               const flexContainer = document.querySelector('.layout-panel-flex');
               if (flexContainer) {
-                // Przenieś cenę po badge'ach
-                flexContainer.insertBefore(priceElement, badgesContainer.nextSibling);
-                console.log('🎯 [CUSTOMIFY] Cena przeniesiona po badge\'ach');
+                // Przenieś cenę po tytule z badge'ami
+                flexContainer.insertBefore(priceElement, titleBadgesContainer.nextSibling);
+                console.log('🎯 [CUSTOMIFY] Cena przeniesiona po tytule z badge\'ami');
               }
             }
           }, 100);
@@ -2069,6 +2101,27 @@ document.addEventListener('DOMContentLoaded', function() {
       // Initialize when DOM is loaded
       document.addEventListener('DOMContentLoaded', () => {
         new CustomifyEmbed();
+        
+        // DODATKOWA FUNKCJA DO PRZENIESIENIA CENY
+        setTimeout(() => {
+          const priceElement = document.querySelector('product-price');
+          const titleBadgesContainer = document.querySelector('.title-with-badges');
+          const flexContainer = document.querySelector('.layout-panel-flex');
+          
+          if (priceElement && titleBadgesContainer && flexContainer) {
+            // Sprawdź aktualną pozycję
+            const priceIndex = Array.from(flexContainer.children).indexOf(priceElement);
+            const titleBadgesIndex = Array.from(flexContainer.children).indexOf(titleBadgesContainer);
+            
+            console.log('🎯 [CUSTOMIFY] Price index:', priceIndex, 'Title+Badges index:', titleBadgesIndex);
+            
+            // Jeśli cena jest przed tytułem z badge'ami, przenieś ją
+            if (priceIndex < titleBadgesIndex) {
+              flexContainer.insertBefore(priceElement, titleBadgesContainer.nextSibling);
+              console.log('🎯 [CUSTOMIFY] Cena przeniesiona po tytule z badge\'ami');
+            }
+          }
+        }, 500);
       });
     </script>
 
