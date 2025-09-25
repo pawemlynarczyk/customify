@@ -51,6 +51,9 @@
         gap: 24px !important;
         align-items: start !important;
         width: 100% !important;
+        background: #f8f9fa !important; /* Szare tło strony */
+        padding: 20px !important;
+        border-radius: 0 !important;
       }
 
       /* Sekcja obrazków - zawsze w pierwszej kolumnie */
@@ -77,10 +80,11 @@
         margin: 0 0 20px 0 !important;
         box-sizing: border-box !important;
         background: white !important; /* Białe tło */
-        border: 2px solid #e9ecef !important;
-        border-radius: 12px !important;
-        padding: 15px !important; /* Zmniejszony padding */
-        min-height: 300px !important; /* Zmniejszona wysokość */
+        border: 1px solid #e9ecef !important;
+        border-radius: 0 !important;
+        padding: 20px !important;
+        min-height: 300px !important;
+        box-shadow: none !important;
       }
       
       /* Tytuł i cena na górze kolumny detali */
@@ -324,14 +328,14 @@
       }
 
       .customify-style-btn:hover {
-        border-color: #007bff;
-        background-color: #f8f9ff;
+        border-color: #e55a2b;
+        background-color: #fff5f0;
       }
 
       .customify-style-btn.active {
-        border-color: #007bff;
-        background-color: #007bff;
-        color: white;
+        border-color: #ff6b35;
+        background: white;
+        color: #000;
       }
 
       .customify-size-selector {
@@ -372,18 +376,18 @@
       }
 
       .customify-size-btn:hover {
-        border-color: #667eea;
-        background-color: #f8f9ff;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 16px rgba(102, 126, 234, 0.2);
+        border-color: #e55a2b;
+        background-color: #fff5f0;
+        transform: none;
+        box-shadow: none;
       }
 
       .customify-size-btn.active {
-        border-color: #667eea;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+        border-color: #ff6b35;
+        background: white;
+        color: #000;
+        transform: none;
+        box-shadow: none;
       }
 
       .customify-actions {
