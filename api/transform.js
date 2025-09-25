@@ -92,13 +92,13 @@ module.exports = async (req, res) => {
         negative_prompt: "realistic, photo, muted colors, dull, gritty, textured skin, pores, wrinkles, grainy, lowres, blurry, deformed, bad anatomy, bad proportions, creepy, asymmetrical, extra fingers, extra limbs, duplicate face, duplicate body, watermark, logo, text",
         task: "img2img",
         scheduler: "KarrasDPM",
-        guidance_scale: 8.8,
-        prompt_strength: 0.56,
-        num_inference_steps: 38,
-        width: 1152,
-        height: 1152,
-        refine: "expert_ensemble_refiner",
-        high_noise_frac: 0.8,
+        guidance_scale: 7.5,
+        prompt_strength: 0.6,
+        num_inference_steps: 25,
+        width: 768,
+        height: 768,
+        refine: "none",
+        high_noise_frac: 0.7,
         output_format: "png"
       }
     };
@@ -156,9 +156,16 @@ module.exports = async (req, res) => {
     console.log(`Running model: ${config.model}`);
     console.log(`Input parameters:`, inputParams);
 
-    const output = await replicate.run(config.model, {
+    // Add timeout and better error handling
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Request timeout - model took too long')), 300000); // 5 minutes
+    });
+
+    const replicatePromise = replicate.run(config.model, {
       input: inputParams
     });
+
+    const output = await Promise.race([replicatePromise, timeoutPromise]);
 
     res.json({ 
       success: true, 
@@ -166,6 +173,17 @@ module.exports = async (req, res) => {
     });
   } catch (error) {
     console.error('AI transformation error:', error);
-    res.status(500).json({ error: 'AI transformation failed' });
+    
+    // Provide more specific error messages
+    let errorMessage = 'AI transformation failed';
+    if (error.message.includes('CUDA out of memory')) {
+      errorMessage = 'Model is currently overloaded. Please try again in a few minutes or try a different style.';
+    } else if (error.message.includes('timeout')) {
+      errorMessage = 'Request timed out. The model is taking longer than expected. Please try again.';
+    } else if (error.message.includes('rate limit')) {
+      errorMessage = 'Too many requests. Please wait a moment before trying again.';
+    }
+    
+    res.status(500).json({ error: errorMessage });
   }
 };
