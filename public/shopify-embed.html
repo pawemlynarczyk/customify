@@ -785,10 +785,36 @@
                 });
             }
 
-            tryAgain() {
-                this.resultArea.style.display = 'none';
-                this.hideSuccess();
-            }
+        tryAgain() {
+            console.log('🔄 [CUSTOMIFY] tryAgain called - returning to style selection');
+            
+            // Ukryj wynik AI
+            this.resultArea.style.display = 'none';
+            
+            // Pokaż style AI i przyciski
+            this.stylesArea.style.display = 'block';
+            this.actionsArea.style.display = 'flex';
+            
+            // Pokaż pole upload (jeśli było ukryte)
+            this.uploadArea.style.display = 'block';
+            
+            // Zresetuj wybrane style i rozmiary
+            this.selectedStyle = null;
+            this.selectedSize = null;
+            this.transformedImage = null;
+            
+            // Usuń aktywne style
+            this.stylesArea.querySelectorAll('.customify-style-btn').forEach(btn => btn.classList.remove('active'));
+            
+            // Usuń aktywne rozmiary
+            this.sizeArea.querySelectorAll('.customify-size-btn').forEach(btn => btn.classList.remove('active'));
+            
+            // Ukryj wiadomości
+            this.hideSuccess();
+            this.hideError();
+            
+            console.log('🔄 [CUSTOMIFY] tryAgain completed - user can select new style');
+        }
 
             showLoading() {
                 this.loadingArea.style.display = 'block';
