@@ -1118,8 +1118,12 @@ document.addEventListener('DOMContentLoaded', function() {
         hideLoading() {
           this.loadingArea.style.display = 'none';
           // NIE pokazuj actionsArea jeśli mamy już wynik AI
+          console.log('🎯 [CUSTOMIFY] hideLoading called, transformedImage:', !!this.transformedImage);
           if (!this.transformedImage) {
             this.actionsArea.style.display = 'flex';
+            console.log('🎯 [CUSTOMIFY] actionsArea shown because no transformedImage');
+          } else {
+            console.log('🎯 [CUSTOMIFY] actionsArea NOT shown because transformedImage exists');
           }
         }
 
