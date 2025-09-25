@@ -1117,7 +1117,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
         hideLoading() {
           this.loadingArea.style.display = 'none';
-          this.actionsArea.style.display = 'flex';
+          // NIE pokazuj actionsArea jeśli mamy już wynik AI
+          if (!this.transformedImage) {
+            this.actionsArea.style.display = 'flex';
+          }
         }
 
         showError(message) {
