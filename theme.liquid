@@ -557,12 +557,17 @@
 
       /* POPRAWKA UKŁADU TYTUŁU Z GWIAZDKAMI */
       .group-block[data-testid="group-block"] .view-product-title {
-        margin-bottom: 8px !important; /* Zmniejsz odstęp pod tytułem */
+        margin-bottom: 16px !important; /* Zwiększ odstęp pod tytułem */
       }
 
       .group-block[data-testid="group-block"] .product-badges {
         margin-top: 0 !important; /* Usuń margin na górze */
-        margin-bottom: 8px !important; /* Zmniejsz margin na dole */
+        margin-bottom: 16px !important; /* Zwiększ margin na dole */
+      }
+
+      /* ZWIĘKSZ ODSTĘPY W BADGE'ACH */
+      .group-block[data-testid="group-block"] .product-badges {
+        gap: 12px !important; /* Zwiększ odstęp między okazją a gwiazdkami */
       }
 
       /* USUŃ DIVIDER POD TYTUŁEM */
@@ -571,12 +576,17 @@
         display: none !important;
       }
 
-      /* USUŃ CIEŃ Z TYTUŁU */
+      /* USUŃ RAMKĘ I CIEŃ Z TYTUŁU */
       .group-block[data-testid="group-block"] .view-product-title,
       .group-block[data-testid="group-block"] .view-product-title a,
-      .group-block[data-testid="group-block"] .view-product-title p {
+      .group-block[data-testid="group-block"] .view-product-title p,
+      .group-block[data-testid="group-block"] .text-block,
+      .group-block[data-testid="group-block"] .text-block p {
         text-shadow: none !important;
         box-shadow: none !important;
+        border: none !important;
+        outline: none !important;
+        background: transparent !important;
       }
 
       
