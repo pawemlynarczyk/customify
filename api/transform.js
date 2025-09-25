@@ -88,8 +88,18 @@ module.exports = async (req, res) => {
       },
       'pixar': {
         model: "swartype/sdxl-pixar:81f8bbd3463056c8521eb528feb10509cc1385e2fabef590747f159848589048",
-        prompt: `breathtaking 3D animated movie poster in the style of Pixar with ${prompt}`,
-        negative_prompt: "noisy, sloppy, messy, grainy, highly detailed, ultra textured, photo, NSFW"
+        prompt: `Pixar style 3D animation portrait, smooth plastic-like skin, big expressive eyes, rounded soft facial features, vibrant colors, warm cinematic lighting, stylized like Pixar movies (Toy Story, Soul, The Incredibles, Inside Out), exaggerated expressions, cartoon look, wholesome family atmosphere, ultra clean render, cinematic contrast, high quality, looks like a Pixar movie frame, ${prompt}`,
+        negative_prompt: "realistic, photo, muted colors, dull, gritty, textured skin, pores, wrinkles, grainy, lowres, blurry, deformed, bad anatomy, bad proportions, creepy, asymmetrical, extra fingers, extra limbs, duplicate face, duplicate body, watermark, logo, text",
+        task: "img2img",
+        scheduler: "KarrasDPM",
+        guidance_scale: 8.8,
+        prompt_strength: 0.56,
+        num_inference_steps: 38,
+        width: 1152,
+        height: 1152,
+        refine: "expert_ensemble_refiner",
+        high_noise_frac: 0.8,
+        output_format: "png"
       }
     };
 
@@ -116,10 +126,21 @@ module.exports = async (req, res) => {
         num_inference_steps: config.num_inference_steps
       };
     } else if (config.model.includes('sdxl-pixar')) {
-      // Pixar model parameters
+      // Pixar model parameters - img2img with detailed settings
       inputParams = {
+        task: config.task,
         prompt: config.prompt,
-        negative_prompt: config.negative_prompt
+        negative_prompt: config.negative_prompt,
+        image: imageUrl,
+        scheduler: config.scheduler,
+        guidance_scale: config.guidance_scale,
+        prompt_strength: config.prompt_strength,
+        num_inference_steps: config.num_inference_steps,
+        width: config.width,
+        height: config.height,
+        refine: config.refine,
+        high_noise_frac: config.high_noise_frac,
+        output_format: config.output_format
       };
     } else {
       // Stable Diffusion model parameters (default)
