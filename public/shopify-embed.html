@@ -82,17 +82,37 @@
 
         .customify-preview {
             display: none;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            border: 1px solid #e9ecef;
+        }
+
+        .customify-preview h4 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin: 0 0 20px 0;
+            text-align: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .customify-preview img {
             max-width: 100% !important;
-            max-height: 300px !important;
+            max-height: 500px !important;
             width: auto !important;
             height: auto !important;
             object-fit: contain !important;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            margin: 0 auto 24px auto;
+            display: block;
+            border: 3px solid #f8f9fa;
         }
 
         .customify-styles {
@@ -308,6 +328,7 @@
         </div>
 
         <div class="customify-preview" id="previewArea">
+            <h4>Twoje zdjęcie:</h4>
             <img id="previewImage" alt="Podgląd zdjęcia">
         </div>
 
