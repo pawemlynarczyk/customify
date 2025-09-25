@@ -51,7 +51,7 @@
         gap: 24px !important;
         align-items: start !important;
         width: 100% !important;
-        background: #f8f9fa !important; /* Szare tło strony */
+        background: white !important; /* Białe tło strony */
         padding: 20px !important;
         border-radius: 0 !important;
       }
@@ -278,10 +278,11 @@
         display: none;
         margin-top: 20px;
         background: white;
-        border-radius: 16px;
-        padding: 24px;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-        border: 1px solid #e9ecef;
+        border-radius: 0;
+        padding: 24px 0;
+        box-shadow: none;
+        border: none;
+        border-top: 1px solid #e9ecef;
       }
 
       .customify-preview h4 {
@@ -315,7 +316,7 @@
       .customify-style-btn {
         padding: 10px;
         border: 2px solid #dee2e6;
-        border-radius: 8px;
+        border-radius: 0;
         background: white;
         cursor: pointer;
         transition: all 0.3s ease;
@@ -337,10 +338,11 @@
       .customify-size-selector {
         display: none;
         margin-bottom: 24px;
-        background: #f8f9fa;
-        border-radius: 12px;
-        padding: 20px;
-        border: 1px solid #e9ecef;
+        background: white;
+        border-radius: 0;
+        padding: 20px 0;
+        border: none;
+        border-top: 1px solid #e9ecef;
       }
 
       .customify-size-selector h4 {
@@ -360,7 +362,7 @@
       .customify-size-btn {
         padding: 16px 12px;
         border: 2px solid #dee2e6;
-        border-radius: 12px;
+        border-radius: 0;
         background: white;
         cursor: pointer;
         transition: all 0.3s ease;
@@ -368,7 +370,7 @@
         font-size: 0.95rem;
         font-weight: 500;
         color: #333;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        box-shadow: none;
       }
 
       .customify-size-btn:hover {
@@ -473,10 +475,11 @@
         margin-top: 20px;
         display: none;
         background: white;
-        border-radius: 16px;
-        padding: 24px;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-        border: 1px solid #e9ecef;
+        border-radius: 0;
+        padding: 24px 0;
+        box-shadow: none;
+        border: none;
+        border-top: 1px solid #e9ecef;
       }
 
       .customify-result h4 {
@@ -785,7 +788,7 @@ document.addEventListener('DOMContentLoaded', function() {
 <!-- Customify AI Photo Customization - CZYSTA WERSJA -->
 <!-- Aplikacja będzie wstrzykiwana JavaScript do kolumny 2 -->
     <div id="customify-app-container" class="customify-shopify-container" style="display: none;">
-      <h3 class="customify-title" style="margin: 0px 0px 20px; padding: 0px; background: white; color: #000; border: none; border-radius: 0; font-size: 1.4rem; font-weight: 600; text-align: left;">Spersonalizuj swój produkt z AI</h3>
+      <h3 class="customify-title" style="margin: 0px 0px 20px; padding: 0px 0px 15px; background: white; color: #000; border: none; border-radius: 0; border-bottom: 1px solid #e9ecef; font-size: 1.4rem; font-weight: 600; text-align: left;">Spersonalizuj swój produkt z AI</h3>
       <div class="customify-inline-wrapper">
         <div class="customify-embed" id="customifyEmbed">
           <div class="customify-upload-area" id="uploadArea">
