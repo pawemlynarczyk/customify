@@ -396,17 +396,23 @@
       }
 
       .customify-btn {
-        padding: 16px 32px;
+        padding: 18px 36px;
         border: none;
-        border-radius: 12px;
+        border-radius: 16px;
         cursor: pointer;
         font-size: 1.1rem;
-        font-weight: 600;
-        transition: all 0.3s ease;
-        min-width: 160px;
-        box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        font-weight: 700;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        min-width: 180px;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
         position: relative;
         overflow: hidden;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
       }
 
       .customify-btn::before {
@@ -416,36 +422,46 @@
         left: -100%;
         width: 100%;
         height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-        transition: left 0.5s;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        transition: left 0.6s;
       }
 
       .customify-btn:hover::before {
         left: 100%;
       }
 
+      .customify-btn:hover {
+        transform: translateY(-3px) scale(1.02);
+      }
+
+      .customify-btn:active {
+        transform: translateY(-1px) scale(0.98);
+      }
+
       .customify-btn-primary {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
-        border: 2px solid transparent;
+        border: 3px solid transparent;
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
       }
 
       .customify-btn-primary:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+        box-shadow: 0 12px 35px rgba(102, 126, 234, 0.5);
+        background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
       }
 
       .customify-btn-secondary {
-        background: white;
-        color: #6c757d;
-        border: 2px solid #dee2e6;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        color: #495057;
+        border: 3px solid #dee2e6;
+        box-shadow: 0 6px 20px rgba(108, 117, 125, 0.2);
       }
 
       .customify-btn-secondary:hover {
-        background: #f8f9fa;
-        border-color: #6c757d;
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(108, 117, 125, 0.2);
+        background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+        border-color: #adb5bd;
+        box-shadow: 0 10px 30px rgba(108, 117, 125, 0.3);
+        color: #343a40;
       }
 
       .customify-loading {
@@ -823,7 +839,7 @@ document.addEventListener('DOMContentLoaded', function() {
               ✨ Przekształć z AI
             </button>
             <button class="customify-btn customify-btn-secondary" id="resetBtn">
-              🔄 Resetuj
+              📷 Wgraj inne zdjęcie
             </button>
           </div>
 
