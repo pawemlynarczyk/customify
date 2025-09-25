@@ -456,17 +456,18 @@
         box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
       }
       
-      /* Tytuł i cena na górze kolumny detali */
+      /* Tytuł i cena - USUŃ osobny panel */
       .group-block[data-testid="group-block"] {
         order: -1 !important; /* Przenieś na górę */
         width: 100% !important;
-        margin: 0 0 20px 0 !important; /* Zmniejszona przestrzeń na dole */
-        background: white !important; /* Białe tło dla tytułu produktu */
-        padding: 20px !important;
-        border-radius: 8px !important;
+        margin: 0 0 0 0 !important; /* Usuń margin na dole */
+        background: transparent !important; /* Przezroczyste tło */
+        padding: 20px 0 15px 0 !important; /* Tylko padding pionowy */
+        border-radius: 0 !important; /* Usuń zaokrąglenia */
         box-sizing: border-box !important;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
-        --padding-block-end: 10px !important; /* Zmniejsz padding na dole */
+        box-shadow: none !important; /* Usuń cień */
+        border-bottom: 1px solid #e9ecef !important; /* Pozioma linia na dole */
+        --padding-block-end: 0 !important; /* Usuń padding na dole */
       }
 
       
