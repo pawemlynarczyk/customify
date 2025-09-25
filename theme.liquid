@@ -396,72 +396,56 @@
       }
 
       .customify-btn {
-        padding: 18px 36px;
-        border: none;
-        border-radius: 16px;
+        padding: 16px 32px;
+        border: 2px solid #000;
+        border-radius: 0;
         cursor: pointer;
-        font-size: 1.1rem;
-        font-weight: 700;
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        min-width: 180px;
-        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-        position: relative;
-        overflow: hidden;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
+        font-size: 1rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        min-width: 160px;
+        background: white;
+        color: #000;
+        text-transform: none;
+        letter-spacing: 0;
         display: flex;
         align-items: center;
         justify-content: center;
         gap: 8px;
-      }
-
-      .customify-btn::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-        transition: left 0.6s;
-      }
-
-      .customify-btn:hover::before {
-        left: 100%;
+        font-family: inherit;
       }
 
       .customify-btn:hover {
-        transform: translateY(-3px) scale(1.02);
+        background: #000;
+        color: white;
       }
 
       .customify-btn:active {
-        transform: translateY(-1px) scale(0.98);
+        transform: none;
       }
 
       .customify-btn-primary {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: #ff6b35;
         color: white;
-        border: 3px solid transparent;
-        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        border: 2px solid #ff6b35;
       }
 
       .customify-btn-primary:hover {
-        box-shadow: 0 12px 35px rgba(102, 126, 234, 0.5);
-        background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+        background: #e55a2b;
+        border-color: #e55a2b;
+        color: white;
       }
 
       .customify-btn-secondary {
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        color: #495057;
-        border: 3px solid #dee2e6;
-        box-shadow: 0 6px 20px rgba(108, 117, 125, 0.2);
+        background: white;
+        color: #000;
+        border: 2px solid #000;
       }
 
       .customify-btn-secondary:hover {
-        background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
-        border-color: #adb5bd;
-        box-shadow: 0 10px 30px rgba(108, 117, 125, 0.3);
-        color: #343a40;
+        background: #000;
+        color: white;
+        border-color: #000;
       }
 
       .customify-loading {
