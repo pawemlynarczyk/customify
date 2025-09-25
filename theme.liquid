@@ -484,6 +484,47 @@
         --padding-block-end: 0 !important; /* Usuń padding na dole */
       }
 
+      /* ELEMENTY POD TYTUŁEM - GWIAZDKI I OKAZJA */
+      .product-badges {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 15px;
+      }
+
+      .discount-badge {
+        background: #28a745;
+        color: white;
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-size: 14px;
+        font-weight: 600;
+        display: inline-block;
+        width: fit-content;
+      }
+
+      .rating-section {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .stars {
+        display: flex;
+        gap: 2px;
+      }
+
+      .star {
+        color: #ffc107;
+        font-size: 16px;
+      }
+
+      .review-count {
+        color: #666;
+        font-size: 14px;
+        font-weight: 500;
+      }
+
       
       /* Mobile - stack wertykalnie */
       @media (max-width: 768px) {
@@ -1426,6 +1467,9 @@ document.addEventListener('DOMContentLoaded', function() {
           if (productDetails) {
             console.log('🎯 [CUSTOMIFY] Found product details column, inserting app at top');
             
+            // Dodaj elementy pod tytułem
+            this.addProductBadges();
+            
             // Pokaż aplikację
             appContainer.style.display = 'block';
             
@@ -1434,6 +1478,52 @@ document.addEventListener('DOMContentLoaded', function() {
           } else {
             console.warn('⚠️ [CUSTOMIFY] Could not find product details column');
           }
+        }
+
+        // DODAJ GWIAZDKI I OKAZJĘ POD TYTUŁEM
+        addProductBadges() {
+          // Znajdź tytuł produktu
+          const titleElement = document.querySelector('h1, .product-title, .view-product-title');
+          if (!titleElement) return;
+
+          // Sprawdź czy już nie ma badge'ów
+          if (document.querySelector('.product-badges')) return;
+
+          // Stwórz kontener dla badge'ów
+          const badgesContainer = document.createElement('div');
+          badgesContainer.className = 'product-badges';
+
+          // Dodaj badge z okazją
+          const discountBadge = document.createElement('div');
+          discountBadge.className = 'discount-badge';
+          discountBadge.textContent = 'Oszczędzasz 30%';
+
+          // Dodaj sekcję z gwiazdkami
+          const ratingSection = document.createElement('div');
+          ratingSection.className = 'rating-section';
+
+          const stars = document.createElement('div');
+          stars.className = 'stars';
+          for (let i = 0; i < 5; i++) {
+            const star = document.createElement('span');
+            star.className = 'star';
+            star.innerHTML = '★';
+            stars.appendChild(star);
+          }
+
+          const reviewCount = document.createElement('span');
+          reviewCount.className = 'review-count';
+          reviewCount.textContent = '(43)';
+
+          ratingSection.appendChild(stars);
+          ratingSection.appendChild(reviewCount);
+
+          // Dodaj do kontenera
+          badgesContainer.appendChild(discountBadge);
+          badgesContainer.appendChild(ratingSection);
+
+          // Wstaw po tytule
+          titleElement.parentNode.insertBefore(badgesContainer, titleElement.nextSibling);
         }
 
         setupEventListeners() {
