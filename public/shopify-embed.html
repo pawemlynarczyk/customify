@@ -545,6 +545,12 @@
                 this.sizeArea.style.display = 'block'; // Pokaż wymiary po przekształceniu AI
                 console.log('🎯 [SHOPIFY-EMBED.HTML] resultArea display set to block');
                 
+                // UKRYJ przyciski "Przekształć z AI" i "Resetuj"
+                this.actionsArea.style.display = 'none';
+                
+                // UKRYJ style po przekształceniu
+                this.stylesArea.style.display = 'none';
+                
                 // Check if buttons exist
                 const addToCartBtn = document.getElementById('addToCartBtn');
                 const tryAgainBtn = document.getElementById('tryAgainBtn');

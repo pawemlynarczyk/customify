@@ -941,6 +941,12 @@ document.addEventListener('DOMContentLoaded', function() {
           this.resultImage.src = imageUrl;
           this.resultArea.style.display = 'block';
           this.sizeArea.style.display = 'block'; // Pokaż wymiary po przekształceniu AI
+          
+          // UKRYJ przyciski "Przekształć z AI" i "Resetuj"
+          this.actionsArea.style.display = 'none';
+          
+          // UKRYJ style po przekształceniu
+          this.stylesArea.style.display = 'none';
         }
 
 
