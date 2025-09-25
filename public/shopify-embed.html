@@ -304,15 +304,6 @@
             </div>
         </div>
 
-        <div class="customify-size-selector" id="sizeArea" style="display: none;">
-            <h4>Wybierz rozmiar:</h4>
-            <div class="customify-size-buttons">
-                <div class="customify-size-btn" data-size="small">Mały (+0 zł)</div>
-                <div class="customify-size-btn" data-size="medium">Średni (+25 zł)</div>
-                <div class="customify-size-btn" data-size="large">Duży (+50 zł)</div>
-                <div class="customify-size-btn" data-size="xlarge">Bardzo duży (+75 zł)</div>
-            </div>
-        </div>
 
         <div class="customify-actions" id="actionsArea" style="display: none;">
             <button class="customify-btn customify-btn-primary" id="transformBtn">
@@ -331,6 +322,18 @@
         <div class="customify-result" id="resultArea">
             <h4>Wynik transformacji AI:</h4>
             <img id="resultImage" alt="Wynik AI">
+            
+            <!-- Rozmiary pod zdjęciem wynikowym -->
+            <div class="customify-size-selector" id="sizeArea" style="display: none;">
+                <h4>Wybierz rozmiar:</h4>
+                <div class="customify-size-buttons">
+                    <div class="customify-size-btn" data-size="small">Mały (+0 zł)</div>
+                    <div class="customify-size-btn" data-size="medium">Średni (+25 zł)</div>
+                    <div class="customify-size-btn" data-size="large">Duży (+50 zł)</div>
+                    <div class="customify-size-btn" data-size="xlarge">Bardzo duży (+100 zł)</div>
+                </div>
+            </div>
+            
             <div class="customify-actions" style="margin-top: 15px;">
                 <button class="customify-btn customify-btn-primary" id="addToCartBtn">
                     🛒 Dodaj do koszyka
@@ -408,11 +411,12 @@
                 });
 
                 // Size selection
-                this.sizeArea.addEventListener('click', (e) => {
-                    if (e.target.classList.contains('customify-size-btn')) {
-                        this.selectSize(e.target);
-                    }
-                });
+            // Event listener dla rozmiarów - sprawdź zarówno główny jak i w resultArea
+            document.addEventListener('click', (e) => {
+                if (e.target.classList.contains('customify-size-btn')) {
+                    this.selectSize(e.target);
+                }
+            });
 
                 // Action buttons
                 document.getElementById('transformBtn').addEventListener('click', () => {
@@ -542,7 +546,12 @@
                 console.log('🎯 [SHOPIFY-EMBED.HTML] showResult called with:', imageUrl);
                 this.resultImage.src = imageUrl;
                 this.resultArea.style.display = 'block';
-                this.sizeArea.style.display = 'block'; // Pokaż wymiary po przekształceniu AI
+                
+                // Pokaż rozmiary pod zdjęciem wynikowym
+                const sizeAreaInResult = this.resultArea.querySelector('#sizeArea');
+                if (sizeAreaInResult) {
+                    sizeAreaInResult.style.display = 'block';
+                }
                 console.log('🎯 [SHOPIFY-EMBED.HTML] resultArea display set to block');
                 
                 // UKRYJ przyciski "Przekształć z AI" i "Resetuj"
