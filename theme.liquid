@@ -51,7 +51,7 @@
         gap: 24px !important;
         align-items: start !important;
         width: 100% !important;
-        background: white !important; /* Białe tło strony */
+        background: #f8f9fa !important; /* Szare tło strony */
         padding: 20px !important;
         border-radius: 0 !important;
       }
@@ -61,6 +61,10 @@
         grid-column: 1 !important;
         width: 100% !important;
         box-sizing: border-box !important;
+        background: white !important; /* Biały panel dla zdjęć */
+        padding: 20px !important;
+        border-radius: 8px !important;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
       }
 
       /* Sekcja detali - zawsze w drugiej kolumnie */
@@ -80,22 +84,23 @@
         margin: 0 0 20px 0 !important;
         box-sizing: border-box !important;
         background: white !important; /* Białe tło */
-        border: 1px solid #e9ecef !important;
-        border-radius: 0 !important;
+        border: none !important;
+        border-radius: 8px !important;
         padding: 20px !important;
         min-height: 300px !important;
-        box-shadow: none !important;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
       }
       
       /* Tytuł i cena na górze kolumny detali */
       .group-block[data-testid="group-block"] {
         order: -1 !important; /* Przenieś na górę */
         width: 100% !important;
-        margin: 0 0 10px 0 !important; /* Zmniejszona przestrzeń na dole */
+        margin: 0 0 20px 0 !important; /* Zmniejszona przestrzeń na dole */
         background: white !important; /* Białe tło dla tytułu produktu */
         padding: 20px !important;
-        border-radius: 0 !important;
+        border-radius: 8px !important;
         box-sizing: border-box !important;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
         --padding-block-end: 10px !important; /* Zmniejsz padding na dole */
       }
 
