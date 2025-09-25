@@ -1,0 +1,135 @@
+{% comment %}
+  Kompletny nagłówek Shopify - wzorowany na stronie referencyjnej
+  Instrukcja instalacji:
+  1. Skopiuj ten kod do sections/header.liquid w swoim temacie
+  2. Dodaj style CSS do assets/header.css
+  3. Włącz sekcję w settings_schema.json
+{% endcomment %}
+
+<header class="header-main">
+  <div class="header-container">
+    
+    <!-- Logo -->
+    <div class="header-logo">
+      <a href="{{ routes.root_url }}" class="logo-link">
+        {% if settings.logo != blank %}
+          <img src="{{ settings.logo | image_url: width: 200 }}" alt="{{ shop.name }}" class="logo-image">
+        {% else %}
+          <span class="logo-text">{{ shop.name }}</span>
+        {% endif %}
+      </a>
+    </div>
+
+    <!-- Wyszukiwarka -->
+    <div class="header-search">
+      <form action="{{ routes.search_url }}" method="get" class="search-form">
+        <div class="search-wrapper">
+          <select name="type" class="search-categories">
+            <option value="">Wszystkie kategorie</option>
+            <option value="product">Produkty</option>
+            <option value="article">Artykuły</option>
+            <option value="page">Strony</option>
+          </select>
+          <input 
+            type="search" 
+            name="q" 
+            placeholder="Szukaj..." 
+            class="search-input"
+            value="{{ search.terms | escape }}"
+          >
+          <button type="submit" class="search-button">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M21 21L16.514 16.506M19 10.5C19 15.194 15.194 19 10.5 19S2 15.194 2 10.5 5.806 2 10.5 2 19 5.806 19 10.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Linki użytkownika -->
+    <div class="header-user">
+      {% if customer %}
+        <a href="{{ routes.account_url }}" class="user-link">Moje konto</a>
+        <a href="{{ routes.account_logout_url }}" class="user-link">Wyloguj się</a>
+      {% else %}
+        <a href="{{ routes.account_login_url }}" class="user-link">Zaloguj się</a>
+        <a href="{{ routes.account_register_url }}" class="user-link">Zarejestruj się</a>
+      {% endif %}
+    </div>
+
+    <!-- Koszyk -->
+    <div class="header-cart">
+      <a href="{{ routes.cart_url }}" class="cart-link">
+        <div class="cart-icon-wrapper">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" class="cart-icon">
+            <path d="M3 3H5L5.4 5M7 13H17L21 5H5.4M7 13L5.4 5M7 13L4.7 15.3C4.3 15.7 4.6 16.5 5.1 16.5H17M17 13V17C17 18.1 16.1 19 15 19H9C7.9 19 7 18.1 7 17V13M17 13H7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          {% if cart.item_count > 0 %}
+            <span class="cart-count">{{ cart.item_count }}</span>
+          {% endif %}
+        </div>
+        <span class="cart-text">Koszyk</span>
+      </a>
+    </div>
+
+  </div>
+
+  <!-- Menu główne -->
+  <nav class="header-nav">
+    <div class="nav-container">
+      {% for link in linklists.main-menu.links %}
+        <div class="nav-item">
+          <a href="{{ link.url }}" class="nav-link">
+            {{ link.title }}
+            {% if link.links.size > 0 %}
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" class="dropdown-arrow">
+                <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            {% endif %}
+          </a>
+          
+          {% comment %} Dropdown menu {% endcomment %}
+          {% if link.links.size > 0 %}
+            <div class="nav-dropdown">
+              <div class="dropdown-content">
+                {% for child_link in link.links %}
+                  <a href="{{ child_link.url }}" class="dropdown-link">
+                    {{ child_link.title }}
+                  </a>
+                {% endfor %}
+              </div>
+            </div>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  </nav>
+
+</header>
+
+{% comment %} Breadcrumbs - opcjonalnie {% endcomment %}
+{% if template contains 'product' or template contains 'collection' or template contains 'blog' %}
+  <div class="breadcrumbs">
+    <div class="breadcrumbs-container">
+      <a href="{{ routes.root_url }}" class="breadcrumb-link">Home</a>
+      {% if template contains 'product' %}
+        <span class="breadcrumb-separator">/</span>
+        <a href="{{ routes.collections_url }}" class="breadcrumb-link">Personalizowane prezenty</a>
+        <span class="breadcrumb-separator">/</span>
+        <a href="{{ routes.collections_url }}" class="breadcrumb-link">Prezent dla Rodziców</a>
+        <span class="breadcrumb-separator">/</span>
+        <span class="breadcrumb-current">{{ product.title | truncate: 50 }}</span>
+      {% elsif template contains 'collection' %}
+        <span class="breadcrumb-separator">/</span>
+        <span class="breadcrumb-current">{{ collection.title }}</span>
+      {% elsif template contains 'blog' %}
+        <span class="breadcrumb-separator">/</span>
+        <a href="{{ blog.url }}" class="breadcrumb-link">{{ blog.title }}</a>
+        {% if article %}
+          <span class="breadcrumb-separator">/</span>
+          <span class="breadcrumb-current">{{ article.title | truncate: 30 }}</span>
+        {% endif %}
+      {% endif %}
+    </div>
+  </div>
+{% endif %}
