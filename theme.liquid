@@ -401,7 +401,7 @@
       }
 
       /* NIE UKRYWAJ ELEMENTÓW PRODUKTU - tylko dodaj style dla Customify */
-      
+
       /* Clear floats */
       .product-page-layout::after {
         content: "";
@@ -465,7 +465,7 @@
         background: white !important; /* Białe tło */
         border: none !important;
         border-radius: 0 !important; /* Ostre kąty */
-        padding: 20px !important;
+        padding: 0 20px 20px 20px !important; /* Usuń padding na górze - będzie pod tytułem */
         min-height: 300px !important;
         box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
       }
@@ -474,14 +474,19 @@
       .group-block[data-testid="group-block"] {
         order: -1 !important; /* Przenieś na górę */
         width: 100% !important;
-        margin: 0 0 0 0 !important; /* Usuń margin na dole */
-        background: white !important; /* Białe tło dla całego panelu */
+        margin: 0 !important; /* Usuń wszystkie marginesy */
+        background: transparent !important; /* Przezroczyste tło - będzie na tym samym panelu co aplikacja */
         padding: 20px 20px 15px 20px !important; /* Padding jak w aplikacji */
         border-radius: 0 !important; /* Ostre kąty */
         box-sizing: border-box !important;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important; /* Cień jak inne panele */
-        border-bottom: none !important; /* Usuń linię na dole */
-        --padding-block-end: 0 !important; /* Usuń padding na dole */
+        box-shadow: none !important; /* Bez cienia */
+        border-bottom: 1px solid #e9ecef !important; /* Linia oddzielająca od aplikacji */
+        position: relative !important; /* Dodaj pozycjonowanie */
+        z-index: 1 !important; /* Ustaw z-index */
+        --padding-block-start: 20px !important; /* Ustaw padding na górze */
+        --padding-block-end: 15px !important; /* Ustaw padding na dole */
+        --padding-inline-start: 20px !important; /* Ustaw padding po bokach */
+        --padding-inline-end: 20px !important;
       }
 
       /* CZARNE NAPISY W PANELU PRODUKTU */
@@ -510,8 +515,22 @@
         background: transparent !important; /* Przezroczyste tło dla elementów wewnętrznych */
       }
 
-      .group-block[data-testid="group-block"] {
-        background: white !important; /* Białe tło dla głównego panelu */
+      /* NAPRAW POZYCJONOWANIE ELEMENTÓW W GROUP-BLOCK */
+      .group-block[data-testid="group-block"] .group-block-content {
+        position: relative !important;
+        z-index: 2 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: transparent !important;
+      }
+
+      .group-block[data-testid="group-block"] .layout-panel-flex {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 16px !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: transparent !important;
       }
 
       /* ELEMENTY POD TYTUŁEM - GWIAZDKI I OKAZJA */
@@ -520,6 +539,8 @@
         flex-direction: column;
         gap: 8px;
         margin-bottom: 15px;
+        position: relative;
+        z-index: 3;
       }
 
       .discount-badge {
@@ -557,17 +578,57 @@
 
       /* POPRAWKA UKŁADU TYTUŁU Z GWIAZDKAMI */
       .group-block[data-testid="group-block"] .view-product-title {
-        margin-bottom: 16px !important; /* Zwiększ odstęp pod tytułem */
+        margin: 0 0 16px 0 !important; /* Ustaw marginesy */
+        padding: 0 !important;
+        position: relative !important;
+        z-index: 4 !important;
+        background: transparent !important;
+      }
+
+      .group-block[data-testid="group-block"] .view-product-title a {
+        display: block !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: transparent !important;
       }
 
       .group-block[data-testid="group-block"] .product-badges {
-        margin-top: 0 !important; /* Usuń margin na górze */
-        margin-bottom: 16px !important; /* Zwiększ margin na dole */
+        margin: 0 0 16px 0 !important; /* Ustaw marginesy */
+        padding: 0 !important;
+        position: relative !important;
+        z-index: 5 !important;
+        background: transparent !important;
       }
 
       /* ZWIĘKSZ ODSTĘPY W BADGE'ACH */
       .group-block[data-testid="group-block"] .product-badges {
         gap: 12px !important; /* Zwiększ odstęp między okazją a gwiazdkami */
+      }
+
+      /* NAPRAW ELEMENTY CENY */
+      .group-block[data-testid="group-block"] product-price {
+        margin: 0 0 20px 0 !important;
+        padding: 0 !important;
+        position: relative !important;
+        z-index: 6 !important;
+        background: transparent !important;
+        display: block !important;
+      }
+
+      .group-block[data-testid="group-block"] product-price .price {
+        margin: 0 !important;
+        padding: 0 !important;
+        background: transparent !important;
+      }
+
+      /* NAPRAW PRZYCISKI */
+      .group-block[data-testid="group-block"] .buy-buttons-block {
+        margin: 20px 0 0 0 !important;
+        padding: 0 !important;
+        position: relative !important;
+        z-index: 7 !important;
+        background: transparent !important;
+        clear: both !important;
       }
 
       /* USUŃ DIVIDER POD TYTUŁEM */
@@ -586,6 +647,30 @@
         box-shadow: none !important;
         border: none !important;
         outline: none !important;
+        background: transparent !important;
+        position: relative !important;
+        z-index: auto !important;
+      }
+
+      /* DODATKOWE NAPRAWY DLA WSZYSTKICH ELEMENTÓW W GROUP-BLOCK */
+      .group-block[data-testid="group-block"] * {
+        box-sizing: border-box !important;
+        max-width: 100% !important;
+      }
+
+      /* USTAWIENIA CLEARFIX DLA GROUP-BLOCK */
+      .group-block[data-testid="group-block"]::before,
+      .group-block[data-testid="group-block"]::after {
+        content: "" !important;
+        display: table !important;
+        clear: both !important;
+      }
+
+      /* NAPRAW POZYCJONOWANIE ELEMENTÓW TEKSTOWYCH */
+      .group-block[data-testid="group-block"] .text-block {
+        margin: 0 0 10px 0 !important;
+        padding: 0 !important;
+        position: relative !important;
         background: transparent !important;
       }
 
@@ -1053,7 +1138,7 @@
               <span class="logo-text">{{ shop.name }}</span>
             {% endif %}
           </a>
-        </div>
+    </div>
 
         <!-- Wyszukiwarka -->
         <div class="header-search">
@@ -1403,7 +1488,7 @@ document.addEventListener('DOMContentLoaded', function() {
 {% endif %}
 
 {% if template contains 'product' %}
-<!-- Customify AI Photo Customization - CZYSTA WERSJA -->
+    <!-- Customify AI Photo Customization - CZYSTA WERSJA -->
 <!-- Aplikacja będzie wstrzykiwana JavaScript do kolumny 2 -->
     <div id="customify-app-container" class="customify-shopify-container" style="display: none;">
       <h3 class="customify-title" style="margin: 0px 0px 20px; padding: 0px 0px 15px; background: white; color: #000; border: none; border-radius: 0; border-bottom: 1px solid #e9ecef; font-size: 1.4rem; font-weight: 600; text-align: left;">Spersonalizuj swój produkt z AI</h3>
@@ -1416,10 +1501,10 @@ document.addEventListener('DOMContentLoaded', function() {
             <input type="file" id="fileInput" class="customify-file-input" accept="image/*">
           </div>
 
-        <div class="customify-preview" id="previewArea">
+          <div class="customify-preview" id="previewArea">
           <h4>Twoje zdjęcie:</h4>
-          <img id="previewImage" alt="Podgląd zdjęcia">
-        </div>
+            <img id="previewImage" alt="Podgląd zdjęcia">
+          </div>
 
           <div class="customify-styles" id="stylesArea" style="display: none;">
             <h4>Wybierz styl AI:</h4>
@@ -1617,10 +1702,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Event listener dla rozmiarów - sprawdź zarówno główny jak i w resultArea
         document.addEventListener('click', (e) => {
-          if (e.target.classList.contains('customify-size-btn')) {
-            this.selectSize(e.target);
-          }
-        });
+            if (e.target.classList.contains('customify-size-btn')) {
+              this.selectSize(e.target);
+            }
+          });
 
           document.getElementById('transformBtn').addEventListener('click', () => this.transformImage());
           document.getElementById('resetBtn').addEventListener('click', () => this.reset());
@@ -1917,7 +2002,7 @@ document.addEventListener('DOMContentLoaded', function() {
           // NIE pokazuj actionsArea jeśli mamy już wynik AI
           console.log('🎯 [CUSTOMIFY] hideLoading called, transformedImage:', !!this.transformedImage);
           if (!this.transformedImage) {
-            this.actionsArea.style.display = 'flex';
+          this.actionsArea.style.display = 'flex';
             console.log('🎯 [CUSTOMIFY] actionsArea shown because no transformedImage');
           } else {
             console.log('🎯 [CUSTOMIFY] actionsArea NOT shown because transformedImage exists');
