@@ -639,9 +639,13 @@
         clear: both !important;
       }
 
-      /* USUŃ DIVIDER POD TYTUŁEM */
+      /* USUŃ WSZYSTKIE DIVIDERY W GROUP-BLOCK */
       .group-block[data-testid="group-block"] .divider,
-      .group-block[data-testid="group-block"] .divider__line {
+      .group-block[data-testid="group-block"] .divider__line,
+      .group-block .divider,
+      .group-block .divider__line,
+      .divider,
+      .divider__line {
         display: none !important;
       }
 
