@@ -480,7 +480,7 @@
         border-radius: 0 !important; /* Ostre kąty */
         box-sizing: border-box !important;
         box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important; /* Cień jak inne panele */
-        border-bottom: 1px solid #e9ecef !important; /* Pozioma linia na dole */
+        border-bottom: none !important; /* Usuń linię na dole */
         --padding-block-end: 0 !important; /* Usuń padding na dole */
       }
 
@@ -553,6 +553,30 @@
         color: #666;
         font-size: 14px;
         font-weight: 500;
+      }
+
+      /* POPRAWKA UKŁADU TYTUŁU Z GWIAZDKAMI */
+      .group-block[data-testid="group-block"] .view-product-title {
+        margin-bottom: 8px !important; /* Zmniejsz odstęp pod tytułem */
+      }
+
+      .group-block[data-testid="group-block"] .product-badges {
+        margin-top: 0 !important; /* Usuń margin na górze */
+        margin-bottom: 8px !important; /* Zmniejsz margin na dole */
+      }
+
+      /* USUŃ DIVIDER POD TYTUŁEM */
+      .group-block[data-testid="group-block"] .divider,
+      .group-block[data-testid="group-block"] .divider__line {
+        display: none !important;
+      }
+
+      /* USUŃ CIEŃ Z TYTUŁU */
+      .group-block[data-testid="group-block"] .view-product-title,
+      .group-block[data-testid="group-block"] .view-product-title a,
+      .group-block[data-testid="group-block"] .view-product-title p {
+        text-shadow: none !important;
+        box-shadow: none !important;
       }
 
       
