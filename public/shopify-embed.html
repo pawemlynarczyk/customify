@@ -560,6 +560,9 @@
                 // UKRYJ style po przekształceniu
                 this.stylesArea.style.display = 'none';
                 
+                // UKRYJ pole upload po przekształceniu
+                this.uploadArea.style.display = 'none';
+                
                 // Check if buttons exist
                 const addToCartBtn = document.getElementById('addToCartBtn');
                 const tryAgainBtn = document.getElementById('tryAgainBtn');
@@ -721,6 +724,7 @@
                 this.transformedImage = null;
                 
                 this.fileInput.value = '';
+                this.uploadArea.style.display = 'block'; // Pokaż pole upload z powrotem
                 this.previewArea.style.display = 'none';
                 this.stylesArea.style.display = 'none';
                 this.sizeArea.style.display = 'none';

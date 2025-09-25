@@ -960,6 +960,10 @@ document.addEventListener('DOMContentLoaded', function() {
           // UKRYJ style po przekształceniu
           this.stylesArea.style.display = 'none';
           console.log('🎯 [CUSTOMIFY] stylesArea hidden:', this.stylesArea.style.display);
+          
+          // UKRYJ pole upload po przekształceniu
+          this.uploadArea.style.display = 'none';
+          console.log('🎯 [CUSTOMIFY] uploadArea hidden:', this.uploadArea.style.display);
         }
 
 
@@ -1093,6 +1097,7 @@ document.addEventListener('DOMContentLoaded', function() {
           this.transformedImage = null;
           
           this.fileInput.value = '';
+          this.uploadArea.style.display = 'block'; // Pokaż pole upload z powrotem
           this.previewArea.style.display = 'none';
           this.stylesArea.style.display = 'none';
           this.sizeArea.style.display = 'none';
