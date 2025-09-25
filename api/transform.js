@@ -1,4 +1,5 @@
 const Replicate = require('replicate');
+const sharp = require('sharp');
 
 // Initialize Replicate (only if token is provided)
 let replicate = null;
@@ -6,6 +7,27 @@ if (process.env.REPLICATE_API_TOKEN && process.env.REPLICATE_API_TOKEN !== 'leav
   replicate = new Replicate({
     auth: process.env.REPLICATE_API_TOKEN,
   });
+}
+
+// Function to compress and resize images
+async function compressImage(imageData, maxWidth = 1024, maxHeight = 1024, quality = 85) {
+  try {
+    const buffer = Buffer.from(imageData, 'base64');
+    
+    const compressedBuffer = await sharp(buffer)
+      .resize(maxWidth, maxHeight, {
+        fit: 'inside',
+        withoutEnlargement: true
+      })
+      .jpeg({ quality: quality })
+      .toBuffer();
+    
+    return compressedBuffer.toString('base64');
+  } catch (error) {
+    console.error('Image compression error:', error);
+    // If compression fails, return original
+    return imageData;
+  }
 }
 
 module.exports = async (req, res) => {
@@ -36,8 +58,13 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: 'Replicate API token not configured' });
     }
 
-    // Convert base64 to data URL for Replicate
-    const imageUrl = `data:image/jpeg;base64,${imageData}`;
+    // Compress image before sending to Replicate to avoid memory issues
+    console.log('Compressing image before AI processing...');
+    const compressedImageData = await compressImage(imageData, 1024, 1024, 85);
+    console.log(`Image compressed: ${imageData.length} -> ${compressedImageData.length} bytes`);
+    
+    // Convert compressed base64 to data URL for Replicate
+    const imageUrl = `data:image/jpeg;base64,${compressedImageData}`;
 
     // Use Replicate for AI image transformation with different models based on style
     
