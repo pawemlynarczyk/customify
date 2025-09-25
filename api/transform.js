@@ -85,6 +85,11 @@ module.exports = async (req, res) => {
         guidance_scale: 7.5,
         num_inference_steps: 50,
         strength: 0.8
+      },
+      'pixar': {
+        model: "swartype/sdxl-pixar:81f8bbd3463056c8521eb528feb10509cc1385e2fabef590747f159848589048",
+        prompt: `breathtaking 3D animated movie poster in the style of Pixar with ${prompt}`,
+        negative_prompt: "noisy, sloppy, messy, grainy, highly detailed, ultra textured, photo, NSFW"
       }
     };
 
@@ -109,6 +114,12 @@ module.exports = async (req, res) => {
         guidance_scale: config.guidance_scale,
         prompt_strength: config.prompt_strength,
         num_inference_steps: config.num_inference_steps
+      };
+    } else if (config.model.includes('sdxl-pixar')) {
+      // Pixar model parameters
+      inputParams = {
+        prompt: config.prompt,
+        negative_prompt: config.negative_prompt
       };
     } else {
       // Stable Diffusion model parameters (default)

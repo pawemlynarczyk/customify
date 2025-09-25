@@ -35,7 +35,8 @@ module.exports = async (req, res) => {
       'monet': 60,
       'anime': 40,
       'cyberpunk': 80,
-      'watercolor': 45
+      'watercolor': 45,
+      'pixar': 85
     };
 
     const sizePrices = {
