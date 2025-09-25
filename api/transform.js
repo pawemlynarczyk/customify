@@ -1,5 +1,14 @@
 const Replicate = require('replicate');
-const sharp = require('sharp');
+
+// Try to load sharp, but don't fail if it's not available
+let sharp = null;
+try {
+  sharp = require('sharp');
+  console.log('Sharp loaded successfully');
+} catch (error) {
+  console.error('Sharp not available:', error.message);
+  console.log('Image compression will be disabled');
+}
 
 // Initialize Replicate (only if token is provided)
 let replicate = null;
@@ -11,8 +20,15 @@ if (process.env.REPLICATE_API_TOKEN && process.env.REPLICATE_API_TOKEN !== 'leav
 
 // Function to compress and resize images
 async function compressImage(imageData, maxWidth = 1024, maxHeight = 1024, quality = 85) {
+  if (!sharp) {
+    console.log('Sharp not available, returning original image');
+    return imageData;
+  }
+  
   try {
+    console.log('Starting image compression...');
     const buffer = Buffer.from(imageData, 'base64');
+    console.log(`Original image size: ${buffer.length} bytes`);
     
     const compressedBuffer = await sharp(buffer)
       .resize(maxWidth, maxHeight, {
@@ -22,9 +38,11 @@ async function compressImage(imageData, maxWidth = 1024, maxHeight = 1024, quali
       .jpeg({ quality: quality })
       .toBuffer();
     
+    console.log(`Compressed image size: ${compressedBuffer.length} bytes`);
     return compressedBuffer.toString('base64');
   } catch (error) {
     console.error('Image compression error:', error);
+    console.log('Returning original image data due to compression failure');
     // If compression fails, return original
     return imageData;
   }
