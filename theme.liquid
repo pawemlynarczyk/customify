@@ -200,7 +200,7 @@
         font-weight: 600;
         min-width: 18px;
         height: 18px;
-        border-radius: 50%;
+        border-radius: 0;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -421,12 +421,16 @@
         border-radius: 0 !important;
       }
 
-      /* SZARE TŁO CAŁEJ STRONY */
-      body, .page-width, .main-content, .content-for-layout, 
+      /* SZARE TŁO STRONY, BIAŁE ELEMENTY */
+      body {
+        background: #f8f9fa !important; /* Szare tło całej strony */
+      }
+      
+      .page-width, .main-content, .content-for-layout, 
       .product-page, .product-template, .product-single,
       .product__media-wrapper, .product__info-wrapper,
       .product-information, .product-details-wrapper {
-        background: #f8f9fa !important; /* Szare tło całej strony */
+        background: transparent !important; /* Przezroczyste tło dla kontenerów */
       }
 
       /* USUŃ BIAŁE TŁO Z ELEMENTÓW KTÓRE POWINNY BYĆ PRZEZROCZYSTE */
@@ -547,7 +551,7 @@
         background: #28a745;
         color: white;
         padding: 6px 12px;
-        border-radius: 4px;
+        border-radius: 0;
         font-size: 14px;
         font-weight: 600;
         display: inline-block;
@@ -746,7 +750,7 @@
 
       .review-card {
         background: white;
-        border-radius: 12px;
+        border-radius: 0;
         padding: 20px;
         box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         border: 1px solid #e9ecef;
@@ -786,7 +790,7 @@
         background: #e3f2fd;
         color: #1976d2;
         padding: 4px 8px;
-        border-radius: 6px;
+        border-radius: 0;
         font-size: 0.8rem;
         font-weight: 500;
         display: inline-block;
@@ -800,9 +804,9 @@
 
       /* Customify Styles */
       .customify-embed {
-        background: #f8f9fa;
+        background: white;
         border: 2px solid #e9ecef;
-        border-radius: 12px;
+        border-radius: 0;
         padding: 20px;
         margin: 20px 0;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -827,17 +831,17 @@
         margin-bottom: 15px; /* Zmniejszona przestrzeń na dole */
         cursor: pointer;
         transition: all 0.3s ease;
-        background: #f8f9fa; /* Szare tło tylko w sekcji upload */
+        background: white; /* Białe tło */
       }
 
       .customify-upload-area:hover {
         border-color: #007bff;
-        background-color: #f8f9ff;
+        background-color: white;
       }
 
       .customify-upload-area.dragover {
         border-color: #007bff;
-        background-color: #e3f2fd;
+        background-color: white;
       }
 
       .customify-upload-text {
@@ -881,7 +885,7 @@
         box-shadow: 0 8px 24px rgba(0,0,0,0.15);
         margin: 0 auto;
         display: block;
-        border: 3px solid #f8f9fa;
+        border: 3px solid white;
       }
 
       .customify-styles {
@@ -1037,7 +1041,7 @@
       .customify-spinner {
         border: 3px solid #f3f3f3;
         border-top: 3px solid #007bff;
-        border-radius: 50%;
+        border-radius: 0;
         width: 30px;
         height: 30px;
         animation: spin 1s linear infinite;
@@ -1078,7 +1082,7 @@
         box-shadow: 0 8px 24px rgba(0,0,0,0.15);
         margin: 0 auto;
         display: block;
-        border: 3px solid #f8f9fa;
+        border: 3px solid white;
       }
 
       .customify-error {
@@ -1434,7 +1438,7 @@
     width: 80px;
     height: 80px;
     object-fit: cover;
-    border-radius: 8px;
+    border-radius: 0;
     border: 2px solid #e0e0e0;
     margin-right: 15px;
   }
@@ -1471,7 +1475,7 @@ document.addEventListener('DOMContentLoaded', function() {
         aiImage.src = imageUrl;
         aiImage.alt = 'AI Transformed Image';
         aiImage.className = 'cart-item__ai-image';
-        aiImage.style.cssText = 'width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 2px solid #e0e0e0;';
+        aiImage.style.cssText = 'width: 80px; height: 80px; object-fit: cover; border-radius: 0; border: 2px solid #e0e0e0;';
         
         // Wstaw miniaturkę jako główny obrazek lub obok
         const existingImage = imageCell.querySelector('img');
