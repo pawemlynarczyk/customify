@@ -99,6 +99,34 @@
                 display: none !important;
             }
 
+            /* FORCE OVERRIDE DIVIDERS AND SPACING - NAJWYŻSZA SPECYFICZNOŚĆ */
+            .group-block[data-testid="group-block"] .view-product-title {
+                margin-bottom: 2px !important;
+                padding-bottom: 0px !important;
+            }
+            
+            .group-block[data-testid="group-block"] .product-badges {
+                margin-top: 0px !important;
+                margin-bottom: 0px !important;
+                padding-top: 0px !important;
+                padding-bottom: 0px !important;
+            }
+            
+            /* FORCE HIDE DIVIDERS - NAJWYŻSZA SPECYFICZNOŚĆ */
+            .group-block[data-testid="group-block"] .divider,
+            .group-block[data-testid="group-block"] .divider__line,
+            .divider-AM3M2YnhsTllLTUtCS__divider_VJhene,
+            .divider-AM3M2YnhsTllLTUtCS__divider_VJhene .divider__line {
+                display: none !important;
+                visibility: hidden !important;
+                opacity: 0 !important;
+                height: 0 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                border: none !important;
+                background: transparent !important;
+            }
+
             @media (max-width: 768px) {
                 /* Mobile: stack vertically */
                 #customify-app-container,
@@ -333,6 +361,39 @@
         log('Customify inserted successfully');
     }
 
+    // Force override dividers and spacing with JavaScript
+    function forceOverrideStyles() {
+        console.log('🎯 [CUSTOMIFY] Force overriding styles...');
+        
+        // Wait for all elements to be loaded
+        setTimeout(() => {
+            // Remove dividers completely
+            const dividers = document.querySelectorAll('.divider, .divider__line, .divider-AM3M2YnhsTllLTUtCS__divider_VJhene');
+            dividers.forEach(divider => {
+                if (divider && divider.parentNode) {
+                    divider.parentNode.removeChild(divider);
+                    console.log('🎯 [CUSTOMIFY] Divider removed from DOM');
+                }
+            });
+
+            // Force spacing with inline styles
+            const titleElement = document.querySelector('.group-block[data-testid="group-block"] .view-product-title');
+            const badgesElement = document.querySelector('.group-block[data-testid="group-block"] .product-badges');
+            
+            if (titleElement) {
+                titleElement.style.setProperty('margin-bottom', '2px', 'important');
+                titleElement.style.setProperty('padding-bottom', '0px', 'important');
+                console.log('🎯 [CUSTOMIFY] Title spacing forced');
+            }
+            
+            if (badgesElement) {
+                badgesElement.style.setProperty('margin-top', '0px', 'important');
+                badgesElement.style.setProperty('padding-top', '0px', 'important');
+                console.log('🎯 [CUSTOMIFY] Badges spacing forced');
+            }
+        }, 1500); // Wait 1.5 seconds for everything to load
+    }
+
     // Initialize when DOM is ready
     function init() {
         console.log('🚀 [CUSTOMIFY] Initializing Customify...');
@@ -340,6 +401,9 @@
         
         // Inject CSS styles for layout
         injectStyles();
+        
+        // Force override styles after everything loads
+        forceOverrideStyles();
         
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', insertCustomify);
