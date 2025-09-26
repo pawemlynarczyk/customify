@@ -335,6 +335,15 @@
 
         log('Inserting Customify for product:', productId);
 
+        // Check if container already exists and just show it
+        const existingContainer = document.getElementById(CUSTOMIFY_CONFIG.containerId);
+        if (existingContainer) {
+            log('Existing Customify container found, showing it');
+            existingContainer.style.display = 'block';
+            existingContainer.style.visibility = 'visible';
+            return;
+        }
+
         const insertionPoint = findInsertionPoint();
         if (!insertionPoint) {
             log('Could not find insertion point');
