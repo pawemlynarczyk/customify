@@ -38,6 +38,19 @@
   gap: 8px !important;
 }
 
+/* DODATKOWE STYLE DLA LAYOUT-PANEL-FLEX */
+.group-block[data-testid="group-block"].customify-title-moved .layout-panel-flex {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0px !important;
+}
+
+.group-block[data-testid="group-block"].customify-title-moved .group-block-content {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0px !important;
+}
+
 /* KOMPLETNY NAGŁÓWEK SHOPIFY */
 .header-main {
   background: white;
