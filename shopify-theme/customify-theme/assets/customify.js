@@ -62,6 +62,9 @@ class CustomifyEmbed {
       
       // STWÓRZ GRID LAYOUT Z PROPORCJAMI 35%/65%
       this.createProductGrid();
+      
+      // PRZENIEŚ TYTUŁ NA GÓRĘ KOLUMNY PRODUKT INFO
+      this.moveTitleToTop();
     } else {
       console.warn('⚠️ [CUSTOMIFY] Could not find product details column');
     }
@@ -153,6 +156,56 @@ class CustomifyEmbed {
     document.body.style.setProperty('background', '#f8f9fa', 'important');
     
     console.log('✅ [CUSTOMIFY] Product grid layout created successfully!');
+  }
+
+  // PRZENIEŚ TYTUŁ NA GÓRĘ KOLUMNY PRODUKT INFO
+  moveTitleToTop() {
+    // Znajdź kontener z tytułem (bezpieczny element)
+    const titleContainer = document.querySelector('.group-block[data-testid="group-block"]');
+    
+    if (!titleContainer) {
+      console.warn('⚠️ [CUSTOMIFY] Could not find title container');
+      return;
+    }
+
+    // Znajdź kolumnę produkt info (gdzie ma być przeniesiony)
+    const productInfoColumn = document.querySelector('#ProductInformation-template--26351135293765__main') || 
+                              document.querySelector('.product-details') ||
+                              document.querySelector('.product__info');
+
+    if (!productInfoColumn) {
+      console.warn('⚠️ [CUSTOMIFY] Could not find product info column');
+      return;
+    }
+
+    // Sprawdź czy już nie jest przeniesiony
+    if (titleContainer.classList.contains('customify-title-moved')) {
+      console.log('🎯 [CUSTOMIFY] Title already moved to top');
+      return;
+    }
+
+    console.log('🎯 [CUSTOMIFY] Moving title to top of product info column');
+
+    // Oznacz jako przeniesiony
+    titleContainer.classList.add('customify-title-moved');
+
+    // Przenieś tytuł na górę kolumny produkt info
+    productInfoColumn.insertBefore(titleContainer, productInfoColumn.firstChild);
+
+    // Ustaw style dla przeniesionego tytułu
+    titleContainer.style.cssText = `
+      order: -1 !important;
+      width: 100% !important;
+      margin: 0 0 20px 0 !important;
+      background: white !important;
+      padding: 20px !important;
+      border-radius: 8px !important;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+      position: relative !important;
+      z-index: 10 !important;
+    `;
+
+    console.log('✅ [CUSTOMIFY] Title moved to top successfully!');
   }
 
   // DODAJ GWIAZDKI I OKAZJĘ POD TYTUŁEM
