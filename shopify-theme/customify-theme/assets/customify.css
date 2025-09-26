@@ -56,6 +56,13 @@
   padding: 0 !important;
 }
 
+/* USUŃ CIENIE Z ELEMENTU TYTUŁU */
+.group-block[data-testid="group-block"].customify-title-moved {
+  box-shadow: none !important;
+  border: none !important;
+  outline: none !important;
+}
+
 /* ZMNIEJSZ GWIAZDKI */
 .group-block[data-testid="group-block"].customify-title-moved .stars {
   font-size: 0.8rem !important;
