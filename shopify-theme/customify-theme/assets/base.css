@@ -1,0 +1,18 @@
+/* Custom spacing overrides for product layout */
+
+.template-product .group-block-content.layout-panel-flex,
+.template-product .group-block[data-testid="group-block"] .layout-panel-flex {
+  --gap: 4px !important;
+  gap: 4px !important;
+  row-gap: 4px !important;
+}
+
+.template-product .group-block[data-testid="group-block"] .product-badges {
+  margin: 0 0 4px 0 !important;
+  gap: 2px !important;
+}
+
+.template-product .group-block[data-testid="group-block"] product-price {
+  margin: 4px 0 8px 0 !important;
+}
+

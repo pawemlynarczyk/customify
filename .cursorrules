@@ -24,6 +24,19 @@
 - Vercel environment variables updated to new store
 - Old store (customiffyy.myshopify.com) was preview only - DO NOT suggest using it
 
+## Shopify Connection & Permissions
+- **Store**: customify-ok.myshopify.com (redirects to lumly.pl)
+- **App Permissions**: read_products, write_products, read_orders, write_orders, read_customers, read_content, read_themes, write_themes, read_script_tags
+- **Access Token**: Available in Vercel environment variables (SHOPIFY_ACCESS_TOKEN)
+- **Theme Management**: Can edit theme files via `/api/update-theme-simple` endpoint
+- **Current Theme**: "Horizon" (ID: 186692927813)
+- **What We Can Edit**: 
+  - Theme files (layout/theme.liquid, sections, snippets, assets)
+  - Product data and variants
+  - Order management
+  - Customer data
+  - Script tags for theme integration
+
 ## Debugging Focus
 - Focus on code issues, not environment setup
 - Check function logic and implementation
@@ -39,6 +52,20 @@
 - public/shopify-embed.html - Main UI and cart integration
 - public/shopify-script.js - Shopify theme integration
 - vercel.json - Vercel configuration
+
+## Theme Files Location
+- **MAIN THEME FILE**: `customify-theme/layout/theme.liquid` - główny plik motywu Shopify
+- **BACKUP THEME FILE**: `theme.liquid` - kopia motywu w głównym katalogu
+- **THEME DEPLOYMENT**: Używamy endpointu `/api/update-theme-simple` do wdrażania zmian
+
+## Theme Editing Workflow
+1. **Edit**: Modify `customify-theme/layout/theme.liquid` (main file)
+2. **Deploy**: Use Node.js script to upload via `/api/update-theme-simple`
+3. **Test**: Check changes on lumly.pl/products/custom
+4. **Backup**: Keep `theme.liquid` as backup copy
+- **IMPORTANT**: Always edit the main theme file, not the backup
+- **DEPLOYMENT**: Use our app's API endpoint (has write_themes permission)
+- **NO GIT PUSH**: Theme changes go directly to Shopify, not GitHub
 
 ## Project Goal
 Customify is a Shopify app that allows customers to:

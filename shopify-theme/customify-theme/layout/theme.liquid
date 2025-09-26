@@ -512,10 +512,6 @@
         border-bottom: 1px solid #e9ecef !important; /* Linia oddzielająca od aplikacji */
         position: relative !important; /* Dodaj pozycjonowanie */
         z-index: 1 !important; /* Ustaw z-index */
-        --padding-block-start: 20px !important; /* Ustaw padding na górze */
-        --padding-block-end: 15px !important; /* Ustaw padding na dole */
-        --padding-inline-start: 20px !important; /* Ustaw padding po bokach */
-        --padding-inline-end: 20px !important;
       }
 
       /* CZARNE NAPISY W PANELU PRODUKTU */
@@ -1518,11 +1514,71 @@
     gap: 15px;
     align-items: start;
   }
-</style>
+      /* AGRESYWNE ZEROWANIE WSZYSTKICH ODSTĘPÓW - DODAJ DO <style> */
+      
+      /* ZERUJ WSZYSTKIE ODSTĘPY W GROUP-BLOCK */
+      .group-block[data-testid="group-block"],
+      .group-block[data-testid="group-block"] * {
+        margin: 0 !important;
+        padding: 0 !important;
+        --padding-block-start: 0px !important;
+        --padding-block-end: 0px !important;
+        --padding-inline-start: 20px !important;
+        --padding-inline-end: 20px !important;
+        --gap: 0px !important;
+        gap: 0px !important;
+      }
+      
+      /* FLEX CONTAINER - USUŃ GAP */
+      .group-block[data-testid="group-block"] .layout-panel-flex {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 0px !important;
+        --gap: 0px !important;
+        margin: 0 !important;
+        padding: 20px !important; /* Tylko zewnętrzny padding */
+      }
+      
+      /* KAŻDY ELEMENT OSOBNO - MAŁE KONTROLOWANE ODSTĘPY */
+      .group-block[data-testid="group-block"] .view-product-title {
+        margin: 0 0 8px 0 !important;
+        padding: 0 !important;
+      }
+      
+      .group-block[data-testid="group-block"] .product-badges {
+        margin: 0 0 12px 0 !important;
+        padding: 0 !important;
+      }
+      
+      .group-block[data-testid="group-block"] product-price {
+        margin: 0 0 16px 0 !important;
+        padding: 0 !important;
+      }
+      
+      .group-block[data-testid="group-block"] .buy-buttons-block {
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      
+      /* FORCE OVERRIDE WSZYSTKICH MOŻLIWYCH STYLI SHOPIFY */
+      .group-block[data-testid="group-block"] [class*="padding"],
+      .group-block[data-testid="group-block"] [class*="margin"],
+      .group-block[data-testid="group-block"] [class*="gap"],
+      .group-block[data-testid="group-block"] [style*="padding"],
+      .group-block[data-testid="group-block"] [style*="margin"],
+      .group-block[data-testid="group-block"] [style*="gap"] {
+        margin: 0 !important;
+        padding: 0 !important;
+        gap: 0 !important;
+      }      }</style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  // Znajdź wszystkie elementy koszyka z AI obrazkami
+      
+      .group-block[data-testid="group-block"] .group-block-content {
+        margin: 0 !important;
+        padding: 0 !important;
+      }  // Znajdź wszystkie elementy koszyka z AI obrazkami
   const cartItems = document.querySelectorAll('.cart-item, .cart-items__row');
   
   cartItems.forEach(item => {
@@ -1558,7 +1614,53 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 });
-</script>
+    // FORCE INLINE STYLES - NAJWYŻSZA SPECYFICZNOŚĆ
+    const groupBlock = document.querySelector(".group-block[data-testid="group-block"]");
+    if (groupBlock) {
+      console.log("🎯 [CUSTOMIFY] Force override spacing - START");
+      
+      // Wyzeruj wszystkie odstępy inline
+      groupBlock.style.setProperty("margin", "0", "important");
+      groupBlock.style.setProperty("padding", "20px", "important");
+      groupBlock.style.setProperty("gap", "0", "important");
+      groupBlock.style.setProperty("--padding-block-start", "0px", "important");
+      groupBlock.style.setProperty("--padding-block-end", "0px", "important");
+      groupBlock.style.setProperty("--gap", "0px", "important");
+      
+      // Znajdź flex container i wyzeruj gap
+      const flexContainer = groupBlock.querySelector(".layout-panel-flex");
+      if (flexContainer) {
+        flexContainer.style.setProperty("gap", "0", "important");
+        flexContainer.style.setProperty("margin", "0", "important");
+        flexContainer.style.setProperty("padding", "20px", "important");
+        flexContainer.style.setProperty("--gap", "0px", "important");
+        console.log("🎯 [CUSTOMIFY] Flex container styles overridden");
+      }
+      
+      // Ustaw konkretne marginesy dla każdego elementu
+      const title = groupBlock.querySelector(".view-product-title");
+      if (title) {
+        title.style.setProperty("margin", "0 0 8px 0", "important");
+        title.style.setProperty("padding", "0", "important");
+        console.log("🎯 [CUSTOMIFY] Title styles overridden");
+      }
+      
+      const badges = groupBlock.querySelector(".product-badges");
+      if (badges) {
+        badges.style.setProperty("margin", "0 0 12px 0", "important");
+        badges.style.setProperty("padding", "0", "important");
+        console.log("🎯 [CUSTOMIFY] Badges styles overridden");
+      }
+      
+      const price = groupBlock.querySelector("product-price");
+      if (price) {
+        price.style.setProperty("margin", "0 0 16px 0", "important");
+        price.style.setProperty("padding", "0", "important");
+        console.log("🎯 [CUSTOMIFY] Price styles overridden");
+      }
+      
+      console.log("🎯 [CUSTOMIFY] All spacing overridden successfully");
+    }</script>
 {% endif %}
 
 {% if template contains 'product' %}
