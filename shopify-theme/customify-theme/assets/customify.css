@@ -191,6 +191,14 @@ body * {
   }
 }
 
+/* ZMNIEJSZ WIELKOŚĆ TYTUŁU APLIKACJI CUSTOMIFY */
+.customify-title {
+  font-size: 1.1rem !important;
+  font-weight: 600 !important;
+  margin-bottom: 16px !important;
+  color: #2c3e50 !important;
+}
+
 /* KOMPLETNY NAGŁÓWEK SHOPIFY */
 .header-main {
   background: white;
