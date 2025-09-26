@@ -564,12 +564,13 @@
 
       /* USUŃ TYLKO DIVIDERY - ZOSTAW ORYGINALNE USTAWIENIA SHOPIFY */
 
-      /* ELEMENTY POD TYTUŁEM - GWIAZDKI I OKAZJA */
+      /* ELEMENTY POD TYTUŁEM - GWIAZDKI I OKAZJA - ZMNIEJSZONE I PODNIESIONE */
       .product-badges {
         display: flex;
         flex-direction: column;
-        gap: 8px;
-        margin-bottom: 15px;
+        gap: 4px;
+        margin-bottom: 8px;
+        margin-top: 2px;
         position: relative;
         z-index: 3;
       }
@@ -581,14 +582,14 @@
         background: #28a745 !important;
         background-color: #28a745 !important;
         color: white !important;
-        padding: 8px 16px !important;
+        padding: 4px 8px !important;
         border-radius: 0 !important;
-        font-size: 14px !important;
-        font-weight: 700 !important;
+        font-size: 12px !important;
+        font-weight: 600 !important;
         display: inline-block !important;
         width: fit-content !important;
         border: none !important;
-        box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3) !important;
+        box-shadow: 0 1px 2px rgba(40, 167, 69, 0.3) !important;
         text-shadow: none !important;
         margin: 0 !important;
       }
@@ -596,7 +597,8 @@
       .rating-section {
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 4px;
+        font-size: 12px;
       }
 
       .stars {
@@ -627,7 +629,7 @@
       }
 
       .group-block[data-testid="group-block"] .product-badges {
-        margin: 0 0 16px 0 !important; /* Ustaw marginesy */
+        margin: 0 0 8px 0 !important; /* Zmniejszone marginesy */
         padding: 0 !important;
         position: relative !important;
         z-index: 5 !important;
@@ -635,9 +637,9 @@
         order: 2 !important; /* Badge'y będą po tytule (order: 2) */
       }
 
-      /* ZWIĘKSZ ODSTĘPY W BADGE'ACH */
+      /* ZMNIEJSZ ODSTĘPY W BADGE'ACH */
       .group-block[data-testid="group-block"] .product-badges {
-        gap: 12px !important; /* Zwiększ odstęp między okazją a gwiazdkami */
+        gap: 4px !important; /* Zmniejszony odstęp między okazją a gwiazdkami */
       }
 
       /* NAPRAW ELEMENTY CENY - PO BADGE'ACH */

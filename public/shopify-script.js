@@ -127,7 +127,7 @@
                 background: transparent !important;
             }
 
-            /* FORCE GREEN BACKGROUND FOR DISCOUNT BADGE - NAJWYŻSZA SPECYFICZNOŚĆ */
+            /* FORCE GREEN BACKGROUND FOR DISCOUNT BADGE - ZMNIEJSZONY */
             .discount-badge,
             .group-block[data-testid="group-block"] .discount-badge,
             .product-badges .discount-badge,
@@ -135,15 +135,27 @@
                 background: #28a745 !important;
                 background-color: #28a745 !important;
                 color: white !important;
-                padding: 8px 16px !important;
+                padding: 4px 8px !important;
                 border-radius: 0 !important;
-                font-size: 14px !important;
-                font-weight: 700 !important;
+                font-size: 12px !important;
+                font-weight: 600 !important;
                 display: inline-block !important;
                 border: none !important;
-                box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3) !important;
+                box-shadow: 0 1px 2px rgba(40, 167, 69, 0.3) !important;
                 text-shadow: none !important;
                 margin: 0 !important;
+            }
+            
+            /* ZMNIEJSZ GWIAZDKI I BADGE'Y */
+            .product-badges {
+                gap: 4px !important;
+                margin-bottom: 8px !important;
+                margin-top: 2px !important;
+            }
+            
+            .rating-section {
+                gap: 4px !important;
+                font-size: 12px !important;
             }
 
             @media (max-width: 768px) {
