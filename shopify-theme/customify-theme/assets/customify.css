@@ -123,43 +123,48 @@ body * {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
 }
 
+/* ORYGINALNY GRID LAYOUT - PRODUCT INFORMATION */
+.product-information__grid {
+  display: grid !important;
+  grid-template-columns: 35% 65% !important; /* Obrazek 35%, Aplikacja 65% */
+  gap: 24px !important;
+  align-items: start !important;
+  width: 100% !important;
+  background: #f8f9fa !important;
+  padding: 20px !important;
+  border-radius: 0 !important;
+}
+
+/* Sekcja obrazków - zawsze w pierwszej kolumnie */
+.product-information__media {
+  grid-column: 1 !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  background: white !important;
+  padding: 16px !important;
+  border-radius: 8px !important;
+}
+
+/* Sekcja informacji - zawsze w drugiej kolumnie */
+#ProductInformation-template--26351135293765__main {
+  grid-column: 2 !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  background: white !important;
+  padding: 16px !important;
+  border-radius: 8px !important;
+}
+
 /* RESPONSIVE LAYOUT - MOBILE */
 @media (max-width: 768px) {
-  /* GRID LAYOUT MOBILE - APLIKACJA PONIŻEJ OBRAZKA */
-  .customify-grid-created {
-    display: flex !important;
-    flex-direction: column !important;
-    grid-template-columns: none !important;
-    gap: 16px !important;
+  .product-information__grid {
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
   }
   
-  /* OBRAZEK PRODUKTU - GÓRA */
-  .customify-image-column {
-    order: 1 !important;
-    width: 100% !important;
-    margin-bottom: 16px !important;
-  }
-  
-  /* APLIKACJA CUSTOMIFY - DÓŁ, CAŁA SZEROKOŚĆ */
-  .customify-app-column {
-    order: 2 !important;
-    width: 100% !important;
-    margin: 0 !important;
-    padding: 16px !important;
-  }
-  
-  /* CENA - NAJNIŻEJ */
-  .customify-price-below-app {
-    order: 3 !important;
-    width: 100% !important;
-    margin: 16px 0 0 0 !important;
-  }
-  
-  /* TYTUŁ - NADAL NA GÓRZE */
-  .group-block[data-testid="group-block"].customify-title-moved {
-    order: 0 !important;
-    width: 100% !important;
-    margin-bottom: 16px !important;
+  .product-information__media,
+  #ProductInformation-template--26351135293765__main {
+    grid-column: 1 !important;
   }
 }
 
