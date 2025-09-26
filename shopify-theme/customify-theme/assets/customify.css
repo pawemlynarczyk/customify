@@ -13,18 +13,22 @@
   border: none !important;
 }
 
-/* BADGE'Y PONIŻEJ TYTUŁU - NIE OBOK */
+/* NAPRAW LAYOUT - TYTUŁ I BADGE'Y */
 .group-block[data-testid="group-block"].customify-title-moved .title-with-badges {
-  display: block !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  gap: 8px !important;
   margin-bottom: 0px !important;
   padding-bottom: 0px !important;
 }
 
 .group-block[data-testid="group-block"].customify-title-moved .view-product-title {
-  margin: 0 0 8px 0 !important;
+  margin: 0 !important;
   padding: 0 !important;
   display: block !important;
   width: 100% !important;
+  order: 1 !important;
 }
 
 .group-block[data-testid="group-block"].customify-title-moved .product-badges {
@@ -34,6 +38,7 @@
   align-items: center !important;
   gap: 8px !important;
   width: 100% !important;
+  order: 2 !important;
 }
 
 /* ZMNIEJSZ ROZMIAR BADGE'A "OSZCZĘDZASZ" - BARDZO MAŁY */
