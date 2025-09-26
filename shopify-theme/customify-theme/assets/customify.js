@@ -59,9 +59,100 @@ class CustomifyEmbed {
       
       // Wstaw na górę kolumny 2
       productDetails.insertBefore(appContainer, productDetails.firstChild);
+      
+      // STWÓRZ GRID LAYOUT Z PROPORCJAMI 35%/65%
+      this.createProductGrid();
     } else {
       console.warn('⚠️ [CUSTOMIFY] Could not find product details column');
     }
+  }
+
+  // STWÓRZ GRID LAYOUT Z PROPORCJAMI 35%/65%
+  createProductGrid() {
+    // Znajdź główny kontener produktu
+    const productContainer = document.querySelector('.product-information__grid') ||
+                            document.querySelector('.product__info') ||
+                            document.querySelector('.product-details') ||
+                            document.querySelector('#ProductInformation-template--26351135293765__main');
+
+    if (!productContainer) {
+      console.warn('⚠️ [CUSTOMIFY] Could not find product container for grid');
+      return;
+    }
+
+    // Sprawdź czy już ma grid layout
+    if (productContainer.classList.contains('customify-grid-created')) {
+      console.log('🎯 [CUSTOMIFY] Grid layout already exists');
+      return;
+    }
+
+    console.log('🎯 [CUSTOMIFY] Creating product grid layout with 35%/65% proportions');
+
+    // Dodaj klasę CSS dla grid layoutu
+    productContainer.classList.add('customify-grid-created');
+    
+    // Ustaw style CSS bezpośrednio
+    productContainer.style.cssText = `
+      display: grid !important;
+      grid-template-columns: 35% 65% !important;
+      gap: 24px !important;
+      align-items: start !important;
+      width: 100% !important;
+      background: #f8f9fa !important;
+      padding: 20px !important;
+      border-radius: 0 !important;
+    `;
+
+    // Znajdź obrazek produktu i przenieś do lewej kolumny
+    const productImage = document.querySelector('.product__media') ||
+                        document.querySelector('.product-image') ||
+                        document.querySelector('.product__photos') ||
+                        document.querySelector('.product-media');
+
+    if (productImage) {
+      // Stwórz kontener dla obrazka
+      const imageContainer = document.createElement('div');
+      imageContainer.className = 'customify-image-column';
+      imageContainer.style.cssText = `
+        grid-column: 1;
+        background: white;
+        padding: 16px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      `;
+
+      // Przenieś obrazek do nowego kontenera
+      productImage.parentNode.insertBefore(imageContainer, productImage);
+      imageContainer.appendChild(productImage);
+      
+      console.log('🎯 [CUSTOMIFY] Product image moved to left column (35%)');
+    }
+
+    // Znajdź aplikację Customify i przenieś do prawej kolumny
+    const appContainer = document.getElementById('customify-app-container');
+    if (appContainer) {
+      // Stwórz kontener dla aplikacji
+      const appColumn = document.createElement('div');
+      appColumn.className = 'customify-app-column';
+      appColumn.style.cssText = `
+        grid-column: 2;
+        background: white;
+        padding: 16px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      `;
+
+      // Przenieś aplikację do nowego kontenera
+      appContainer.parentNode.insertBefore(appColumn, appContainer);
+      appColumn.appendChild(appContainer);
+      
+      console.log('🎯 [CUSTOMIFY] Customify app moved to right column (65%)');
+    }
+
+    // Ustaw szare tło dla całej strony
+    document.body.style.setProperty('background', '#f8f9fa', 'important');
+    
+    console.log('✅ [CUSTOMIFY] Product grid layout created successfully!');
   }
 
   // DODAJ GWIAZDKI I OKAZJĘ POD TYTUŁEM
