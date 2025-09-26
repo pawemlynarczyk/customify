@@ -118,17 +118,15 @@
   outline: none !important;
 }
 
-/* UKRYJ ELEMENT Z TYTUŁEM */
-.group-block[data-testid="group-block"].customify-title-moved {
+/* UKRYJ TYLKO DUPLIKAT TYTUŁU - ZOSTAW ORYGINALNY */
+.group-block[data-testid="group-block"].customify-title-moved .view-product-title {
   display: none !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-  height: 0 !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  border: none !important;
-  box-shadow: none !important;
-  outline: none !important;
+}
+
+/* ZOSTAW BADGE'Y WIDOCZNE */
+.group-block[data-testid="group-block"].customify-title-moved .product-badges {
+  display: flex !important;
+  margin: 8px 0 0 0 !important;
 }
 
 /* USUŃ CIENIE Z WSZYSTKICH ELEMENTÓW STRONY */
