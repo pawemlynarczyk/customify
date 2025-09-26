@@ -111,7 +111,7 @@ class CustomifyEmbed {
       background: white !important;
       padding: 20px !important;
       border-radius: 8px !important;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+      box-shadow: none !important;
       position: relative !important;
       z-index: 10 !important;
     `;
