@@ -2183,3 +2183,13 @@ document.addEventListener('DOMContentLoaded', function() {
     {% endif %}
   </body>
 </html>
+      /* ZMNIEJSZ PIONOWE ODSTĘPY W GROUP-BLOCK */
+      .group-block[data-testid="group-block"] {
+        --padding-block-start: 8px !important;
+        --padding-block-end: 8px !important;
+        --gap: 8px !important;
+      }
+      
+      .group-block[data-testid="group-block"] .layout-panel-flex {
+        --gap: 8px !important;
+      }
