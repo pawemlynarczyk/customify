@@ -118,6 +118,15 @@
   outline: none !important;
 }
 
+/* USUŃ CIENIE Z ELEMENTU Z TYTUŁEM - AGRESYWNE */
+.group-block[data-testid="group-block"].customify-title-moved,
+.group-block[data-testid="group-block"].customify-title-moved * {
+  box-shadow: none !important;
+  border: none !important;
+  outline: none !important;
+  text-shadow: none !important;
+}
+
 /* USUŃ CIENIE Z WSZYSTKICH ELEMENTÓW STRONY */
 body * {
   box-shadow: none !important;
