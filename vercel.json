@@ -64,6 +64,10 @@
       "dest": "/api/webhooks/shop/redact.js"
     },
     {
+      "src": "/api/update-theme-simple",
+      "dest": "/api/update-theme-simple.js"
+    },
+    {
       "src": "/(.*)",
       "dest": "/public/$1"
     }
