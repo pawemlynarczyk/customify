@@ -45,16 +45,15 @@
   vertical-align: middle !important;
 }
 
-/* ZMNIEJSZ ROZMIAR BADGE'A "OSZCZĘDZASZ" - BARDZO MAŁY */
+/* UKRYJ BADGE "OSZCZĘDZASZ 30%" - NIE POKAZUJ GO W OGÓLE */
 .group-block[data-testid="group-block"].customify-title-moved .discount-badge {
-  font-size: 0.6rem !important;
-  padding: 1px 4px !important;
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  height: 0 !important;
+  width: 0 !important;
   margin: 0 !important;
-  max-width: 80px !important;
-  text-align: center !important;
-  line-height: 1.1 !important;
-  height: auto !important;
-  min-height: auto !important;
+  padding: 0 !important;
 }
 
 /* ZMNIEJSZ GWIAZDKI */
@@ -129,10 +128,6 @@
   margin: 8px 0 0 0 !important;
 }
 
-/* UKRYJ BADGE "OSZCZĘDZASZ 30%" - ZOSTAW TYLKO GWIAZDKI */
-.group-block[data-testid="group-block"].customify-title-moved .discount-badge {
-  display: none !important;
-}
 
 /* USUŃ CIENIE Z WSZYSTKICH ELEMENTÓW STRONY */
 body * {
