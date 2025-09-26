@@ -553,11 +553,13 @@
       }
       
       .group-block[data-testid="group-block"] .view-product-title {
-        margin-bottom: 6px !important; /* ZMNIEJSZONY odstęp między tytułem a badge'ami */
+        margin-bottom: 2px !important; /* BARDZO MAŁY odstęp między tytułem a badge'ami */
       }
       
       .group-block[data-testid="group-block"] .product-badges {
         margin: 0 !important; /* Usuń margin z badge'ów */
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
       }
       
       .group-block[data-testid="group-block"] product-price {
@@ -614,7 +616,7 @@
 
       /* POPRAWKA UKŁADU TYTUŁU Z GWIAZDKAMI */
       .group-block[data-testid="group-block"] .view-product-title {
-        margin: 0 0 6px 0 !important; /* ZMNIEJSZONY margin na dole */
+        margin: 0 0 2px 0 !important; /* BARDZO MAŁY margin na dole */
         padding: 0 !important;
         position: relative !important;
         z-index: 4 !important;
@@ -677,7 +679,7 @@
         clear: both !important;
       }
 
-      /* UKRYJ DIVIDERY - ZMIEŃ KOLOR NA BIAŁY */
+      /* UKRYJ DIVIDERY - BARDZIEJ AGRESYWNE PODEJŚCIE */
       .group-block[data-testid="group-block"] .divider,
       .group-block[data-testid="group-block"] .divider__line,
       .group-block .divider,
@@ -685,10 +687,17 @@
       .divider,
       .divider__line,
       .group-block[data-testid="group-block"] .view-product-title + .divider,
-      .group-block[data-testid="group-block"] .view-product-title ~ .divider {
-        border-color: white !important; /* BIAŁY DIVIDER - NIEWIDOCZNY */
-        background-color: white !important;
-        color: white !important;
+      .group-block[data-testid="group-block"] .view-product-title ~ .divider,
+      .divider-AM3M2YnhsTllLTUtCS__divider_VJhene,
+      .divider-AM3M2YnhsTllLTUtCS__divider_VJhene .divider__line {
+        display: none !important; /* UKRYJ CAŁKOWICIE */
+        visibility: hidden !important;
+        opacity: 0 !important;
+        height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        background: transparent !important;
       }
 
       /* USUŃ RAMKĘ I CIEŃ Z TYTUŁU */
