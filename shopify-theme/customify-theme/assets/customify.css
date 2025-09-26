@@ -129,6 +129,11 @@
   margin: 8px 0 0 0 !important;
 }
 
+/* UKRYJ BADGE "OSZCZĘDZASZ 30%" - ZOSTAW TYLKO GWIAZDKI */
+.group-block[data-testid="group-block"].customify-title-moved .discount-badge {
+  display: none !important;
+}
+
 /* USUŃ CIENIE Z WSZYSTKICH ELEMENTÓW STRONY */
 body * {
   box-shadow: none !important;
