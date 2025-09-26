@@ -40,11 +40,23 @@
   order: 2 !important;
 }
 
-/* ZMNIEJSZ ROZMIAR BADGE'A "OSZCZĘDZASZ" */
+/* ZMNIEJSZ ROZMIAR BADGE'A "OSZCZĘDZASZ" - BARDZIEJ AGRESYWNE */
 .group-block[data-testid="group-block"].customify-title-moved .discount-badge {
-  font-size: 0.8rem !important;
-  padding: 4px 8px !important;
+  font-size: 0.7rem !important;
+  padding: 2px 6px !important;
   margin: 0 !important;
+  max-width: 120px !important;
+  text-align: center !important;
+  line-height: 1.2 !important;
+}
+
+/* ZMNIEJSZ GWIAZDKI */
+.group-block[data-testid="group-block"].customify-title-moved .stars {
+  font-size: 0.8rem !important;
+}
+
+.group-block[data-testid="group-block"].customify-title-moved .review-count {
+  font-size: 0.8rem !important;
 }
 
 /* DODATKOWE STYLE DLA LAYOUT-PANEL-FLEX */
@@ -60,35 +72,54 @@
   gap: 0px !important;
 }
 
-/* STYLE DLA SEKCJI APLIKACJI CUSTOMIFY - AGRESYWNE NADPISANIE */
+/* USUŃ WSZYSTKIE CIENIE I OBRAMOWANIA - CZYSTY WYGLĄD */
 .customify-app-column {
-  border: 1px solid white !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  border: none !important;
+  box-shadow: none !important;
   padding: 12px !important;
   margin: 8px 0 !important;
   background: white !important;
+  outline: none !important;
 }
 
 .customify-price-below-app {
-  border: 1px solid white !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  border: none !important;
+  box-shadow: none !important;
   padding: 16px !important;
   margin: 12px 0 !important;
   background: white !important;
-}
-
-/* NADPISZ WSZYSTKIE INNE OBRAMOWANIA */
-.customify-app-column *,
-.customify-price-below-app * {
-  border-color: white !important;
-  box-shadow: none !important;
-}
-
-/* USUŃ SZARE/CZARNE OBRAMOWANIA */
-.customify-app-column,
-.customify-price-below-app {
-  border-color: white !important;
   outline: none !important;
+}
+
+/* USUŃ WSZYSTKIE CIENIE I OBRAMOWANIA Z ELEMENTÓW WEWNĘTRZNYCH */
+.customify-app-column *,
+.customify-price-below-app *,
+.customify-app-column *:before,
+.customify-app-column *:after,
+.customify-price-below-app *:before,
+.customify-price-below-app *:after {
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  text-shadow: none !important;
+}
+
+/* USUŃ CIENIE Z GŁÓWNYCH KONTENERÓW */
+.group-block[data-testid="group-block"].customify-title-moved {
+  box-shadow: none !important;
+  border: none !important;
+  outline: none !important;
+}
+
+/* USUŃ CIENIE Z WSZYSTKICH ELEMENTÓW STRONY */
+body * {
+  box-shadow: none !important;
+  border: none !important;
+  outline: none !important;
+}
+
+/* PRZYWRÓĆ CIENIE TYLKO DLA NAGŁÓWKA */
+.header-main {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
 }
 
