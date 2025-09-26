@@ -237,6 +237,12 @@ body * {
   margin-bottom: 8px !important;
 }
 
+/* ZMNIEJSZ ODSTĘPY W CUSTOMIFY EMBED */
+#customifyEmbed {
+  margin: 8px 0 !important;  /* Zmniejszone z 20px na 8px */
+  padding: 8px !important;   /* Zmniejszone z 20px na 8px */
+}
+
 /* KOMPLETNY NAGŁÓWEK SHOPIFY */
 .header-main {
   background: white;
