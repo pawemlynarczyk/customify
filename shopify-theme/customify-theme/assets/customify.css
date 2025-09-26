@@ -123,6 +123,46 @@ body * {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
 }
 
+/* RESPONSIVE LAYOUT - MOBILE */
+@media (max-width: 768px) {
+  /* GRID LAYOUT MOBILE - APLIKACJA PONIŻEJ OBRAZKA */
+  .customify-grid-created {
+    display: flex !important;
+    flex-direction: column !important;
+    grid-template-columns: none !important;
+    gap: 16px !important;
+  }
+  
+  /* OBRAZEK PRODUKTU - GÓRA */
+  .customify-image-column {
+    order: 1 !important;
+    width: 100% !important;
+    margin-bottom: 16px !important;
+  }
+  
+  /* APLIKACJA CUSTOMIFY - DÓŁ, CAŁA SZEROKOŚĆ */
+  .customify-app-column {
+    order: 2 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 16px !important;
+  }
+  
+  /* CENA - NAJNIŻEJ */
+  .customify-price-below-app {
+    order: 3 !important;
+    width: 100% !important;
+    margin: 16px 0 0 0 !important;
+  }
+  
+  /* TYTUŁ - NADAL NA GÓRZE */
+  .group-block[data-testid="group-block"].customify-title-moved {
+    order: 0 !important;
+    width: 100% !important;
+    margin-bottom: 16px !important;
+  }
+}
+
 /* KOMPLETNY NAGŁÓWEK SHOPIFY */
 .header-main {
   background: white;
