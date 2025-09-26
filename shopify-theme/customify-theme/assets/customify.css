@@ -2,6 +2,17 @@
    CUSTOMIFY HEADER STYLES
    ======================================== */
 
+/* UKRYJ NATYWNE PRZYCISKI SHOPIFY */
+#BuyButtons-ProductForm-template--26450137514309__main > div {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+}
+
 /* KOMPLETNY NAGŁÓWEK SHOPIFY */
 .header-main {
   background: white;
