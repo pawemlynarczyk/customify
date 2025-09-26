@@ -620,6 +620,8 @@
         z-index: 4 !important;
         background: transparent !important;
         order: 1 !important; /* Tytuł będzie pierwszy (order: 1) */
+        font-size: 1.2rem !important; /* POMNIEJSZONY TYTUŁ */
+        font-weight: 600 !important;
       }
 
       .group-block[data-testid="group-block"] .view-product-title a {
@@ -627,6 +629,8 @@
         margin: 0 !important;
         padding: 0 !important;
         background: transparent !important;
+        font-size: 1.2rem !important; /* POMNIEJSZONY LINK TYTUŁU */
+        font-weight: 600 !important;
       }
 
       .group-block[data-testid="group-block"] .product-badges {
@@ -679,7 +683,9 @@
       .group-block .divider,
       .group-block .divider__line,
       .divider,
-      .divider__line {
+      .divider__line,
+      .group-block[data-testid="group-block"] .view-product-title + .divider,
+      .group-block[data-testid="group-block"] .view-product-title ~ .divider {
         display: none !important;
       }
 
@@ -696,6 +702,14 @@
         background: transparent !important;
         position: relative !important;
         z-index: auto !important;
+      }
+
+      /* POMNIEJSZ TEKST W TYTULE */
+      .group-block[data-testid="group-block"] .view-product-title p {
+        font-size: 1.2rem !important; /* POMNIEJSZONY TEKST TYTUŁU */
+        font-weight: 600 !important;
+        margin: 0 !important;
+        padding: 0 !important;
       }
 
       /* DODATKOWE NAPRAWY DLA WSZYSTKICH ELEMENTÓW W GROUP-BLOCK */
