@@ -12,7 +12,7 @@ console.log('2. 🔍 Znajdź aplikację "Customify"');
 console.log('');
 console.log('3. ⚙️ Kliknij na aplikację i przejdź do ustawień');
 console.log('');
-console.log('4. 🔑 Skopiuj "Access Token" (zaczyna się od shpat_)');
+console.log('4. 🔑 Skopiuj "Access Token" (zaczyna się od shpat_...)');
 console.log('');
 console.log('5. 📝 Wklej token poniżej:');
 console.log('');

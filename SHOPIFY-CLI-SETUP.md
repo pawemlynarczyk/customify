@@ -11,7 +11,7 @@ shopify version
 ### **Opcja A: Z Shopify Admin**
 1. Idź do **Shopify Admin** → **Apps** → **App and sales channel settings**
 2. Znajdź aplikację **Customify**
-3. Skopiuj **Access Token** (zaczyna się od `shpat_`)
+3. Skopiuj **Access Token** (zaczyna się od `shpat_...`)
 
 ### **Opcja B: Z aplikacji Customify**
 1. Idź do: https://customify-s56o.vercel.app/api/status
@@ -29,7 +29,7 @@ node download-theme-direct.js
 1. Otwórz `download-theme-direct.js`
 2. Wklej swój token w linii 8:
    ```javascript
-   const accessToken = 'shpat_twój_token_tutaj';
+   const accessToken = 'your_shopify_token_here';
    ```
 3. Uruchom: `node download-theme-direct.js`
 
