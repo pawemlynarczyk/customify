@@ -338,9 +338,9 @@
         title.style.cssText = `
             margin: 0 0 15px 0;
             padding: 15px 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-radius: 8px 8px 0 0;
+            background: transparent;
+            color: #000;
+            border-radius: 0;
             font-size: 1.2rem;
             font-weight: 600;
         `;
