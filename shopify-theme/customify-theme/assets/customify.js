@@ -32,6 +32,7 @@ class CustomifyEmbed {
     }
     this.setupEventListeners();
     this.positionApp();
+    this.showStyles(); // Pokaż style od razu
   }
 
   // WSTRZYJ APLIKACJĘ DO KOLUMNY 2
@@ -312,7 +313,6 @@ class CustomifyEmbed {
 
     this.uploadedFile = file;
     this.showPreview(file);
-    this.showStyles();
     this.hideError();
   }
 
@@ -327,7 +327,7 @@ class CustomifyEmbed {
 
   showStyles() {
     this.stylesArea.style.display = 'block';
-    this.sizeArea.style.display = 'none'; // Ukryj wymiary na początku
+    this.sizeArea.style.display = 'none'; // Wymiary pokażemy po wyborze stylu
     this.actionsArea.style.display = 'flex';
   }
 
@@ -335,6 +335,9 @@ class CustomifyEmbed {
     this.stylesArea.querySelectorAll('.customify-style-btn').forEach(btn => btn.classList.remove('active'));
     styleBtn.classList.add('active');
     this.selectedStyle = styleBtn.dataset.style;
+    
+    // Pokaż wymiary po wyborze stylu
+    this.sizeArea.style.display = 'block';
   }
 
   selectSize(sizeBtn) {
