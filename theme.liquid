@@ -2127,7 +2127,7 @@ document.addEventListener('DOMContentLoaded', function() {
       document.addEventListener('DOMContentLoaded', () => {
         new CustomifyEmbed();
         
-        // DODATKOWA FUNKCJA DO PRZENIESIENIA CENY
+        // DODATKOWA FUNKCJA DO PRZENIESIENIA CENY I USUNIĘCIA DIVIDERA
         setTimeout(() => {
           const priceElement = document.querySelector('product-price');
           const titleBadgesContainer = document.querySelector('.title-with-badges');
@@ -2146,6 +2146,31 @@ document.addEventListener('DOMContentLoaded', function() {
               console.log('🎯 [CUSTOMIFY] Cena przeniesiona po tytule z badge\'ami');
             }
           }
+
+          // USUŃ DIVIDERY FIZYCZNIE Z DOM
+          const dividers = document.querySelectorAll('.divider, .divider__line, .divider-AM3M2YnhsTllLTUtCS__divider_VJhene');
+          dividers.forEach(divider => {
+            if (divider && divider.parentNode) {
+              divider.parentNode.removeChild(divider);
+              console.log('🎯 [CUSTOMIFY] Divider usunięty z DOM');
+            }
+          });
+
+          // ZMNIEJSZ ODSTĘPY MIĘDZY TYTUŁEM A BADGE'AMI
+          const titleElement = document.querySelector('.view-product-title');
+          const badgesElement = document.querySelector('.product-badges');
+          
+          if (titleElement) {
+            titleElement.style.marginBottom = '2px';
+            titleElement.style.paddingBottom = '0px';
+            console.log('🎯 [CUSTOMIFY] Odstępy tytułu zmniejszone');
+          }
+          
+          if (badgesElement) {
+            badgesElement.style.marginTop = '0px';
+            badgesElement.style.paddingTop = '0px';
+            console.log('🎯 [CUSTOMIFY] Odstępy badge\'ów zmniejszone');
+          }
         }, 500);
       });
     </script>
@@ -2153,4 +2178,3 @@ document.addEventListener('DOMContentLoaded', function() {
     {% endif %}
   </body>
 </html>
-
