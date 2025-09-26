@@ -53,6 +53,21 @@
   gap: 0px !important;
 }
 
+/* STYLE DLA SEKCJI APLIKACJI CUSTOMIFY */
+.customify-app-column {
+  border: 1px solid white !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  padding: 12px !important;
+  margin: 8px 0 !important;
+}
+
+.customify-price-below-app {
+  border: 1px solid white !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  padding: 16px !important;
+  margin: 12px 0 !important;
+}
+
 /* KOMPLETNY NAGŁÓWEK SHOPIFY */
 .header-main {
   background: white;
