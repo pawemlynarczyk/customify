@@ -158,13 +158,29 @@ body * {
 /* RESPONSIVE LAYOUT - MOBILE */
 @media (max-width: 768px) {
   .product-information__grid {
-    grid-template-columns: 1fr !important;
+    display: flex !important;
+    flex-direction: column !important;
+    grid-template-columns: none !important;
     gap: 20px !important;
   }
   
-  .product-information__media,
+  .product-information__media {
+    order: 1 !important;
+    width: 100% !important;
+    margin-bottom: 20px !important;
+  }
+  
   #ProductInformation-template--26351135293765__main {
-    grid-column: 1 !important;
+    order: 2 !important;
+    width: 100% !important;
+    margin: 0 !important;
+  }
+  
+  /* TYTUŁ - NA GÓRZE */
+  .group-block[data-testid="group-block"].customify-title-moved {
+    order: 0 !important;
+    width: 100% !important;
+    margin-bottom: 20px !important;
   }
 }
 
