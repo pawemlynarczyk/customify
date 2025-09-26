@@ -127,6 +127,20 @@
                 background: transparent !important;
             }
 
+            /* FORCE GREEN BACKGROUND FOR DISCOUNT BADGE */
+            .discount-badge {
+                background: #28a745 !important;
+                background-color: #28a745 !important;
+                color: white !important;
+                padding: 6px 12px !important;
+                border-radius: 0 !important;
+                font-size: 14px !important;
+                font-weight: 600 !important;
+                display: inline-block !important;
+                border: none !important;
+                box-shadow: none !important;
+            }
+
             @media (max-width: 768px) {
                 /* Mobile: stack vertically */
                 #customify-app-container,
