@@ -556,7 +556,7 @@
       .group-block[data-testid="group-block"] .layout-panel-flex {
         display: flex !important;
         flex-direction: column !important;
-        gap: 16px !important;
+        gap: var(--gap, 12px) !important;
         margin: 0 !important;
         padding: 0 !important;
         background: transparent !important;
@@ -644,7 +644,7 @@
 
       /* NAPRAW ELEMENTY CENY - PO BADGE'ACH */
       .group-block[data-testid="group-block"] product-price {
-        margin: 20px 0 20px 0 !important; /* Większy margin na górze - po badge'ach */
+        margin: 8px 0 16px 0 !important; /* Zmniejszony margin na górze - tuż po badge'ach */
         padding: 0 !important;
         position: relative !important;
         z-index: 6 !important;
@@ -1748,7 +1748,7 @@ document.addEventListener('DOMContentLoaded', function() {
           // POŁĄCZ TYTUŁ Z BADGE'AMI W JEDEN ELEMENT
           const titleBadgesContainer = document.createElement('div');
           titleBadgesContainer.className = 'title-with-badges';
-          titleBadgesContainer.style.cssText = 'order: 1 !important; margin-bottom: 20px !important;';
+          titleBadgesContainer.style.cssText = 'order: 1 !important; margin-bottom: 4px !important;';
 
           // Przenieś tytuł do nowego kontenera
           titleElement.parentNode.insertBefore(titleBadgesContainer, titleElement);
