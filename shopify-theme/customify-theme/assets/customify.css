@@ -227,6 +227,21 @@ body * {
   border-color: #adb5bd !important;
 }
 
+/* ZMNIEJSZ PIONOWE ODSTĘPY W CUSTOMIFY APP CONTAINER */
+#customify-app-container {
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+}
+
+#customify-app-container .customify-title {
+  margin-bottom: 8px !important;
+}
+
+#customify-app-container .customify-upload-area {
+  margin-top: 8px !important;
+  margin-bottom: 8px !important;
+}
+
 /* KOMPLETNY NAGŁÓWEK SHOPIFY */
 .header-main {
   background: white;
