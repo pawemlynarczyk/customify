@@ -40,6 +40,13 @@
   order: 2 !important;
 }
 
+/* ZMNIEJSZ ROZMIAR BADGE'A "OSZCZĘDZASZ" */
+.group-block[data-testid="group-block"].customify-title-moved .discount-badge {
+  font-size: 0.8rem !important;
+  padding: 4px 8px !important;
+  margin: 0 !important;
+}
+
 /* DODATKOWE STYLE DLA LAYOUT-PANEL-FLEX */
 .group-block[data-testid="group-block"].customify-title-moved .layout-panel-flex {
   display: flex !important;
@@ -53,12 +60,13 @@
   gap: 0px !important;
 }
 
-/* STYLE DLA SEKCJI APLIKACJI CUSTOMIFY */
+/* STYLE DLA SEKCJI APLIKACJI CUSTOMIFY - AGRESYWNE NADPISANIE */
 .customify-app-column {
   border: 1px solid white !important;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
   padding: 12px !important;
   margin: 8px 0 !important;
+  background: white !important;
 }
 
 .customify-price-below-app {
@@ -66,6 +74,22 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
   padding: 16px !important;
   margin: 12px 0 !important;
+  background: white !important;
+}
+
+/* NADPISZ WSZYSTKIE INNE OBRAMOWANIA */
+.customify-app-column *,
+.customify-price-below-app * {
+  border-color: white !important;
+  box-shadow: none !important;
+}
+
+/* USUŃ SZARE/CZARNE OBRAMOWANIA */
+.customify-app-column,
+.customify-price-below-app {
+  border-color: white !important;
+  outline: none !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
 }
 
 /* KOMPLETNY NAGŁÓWEK SHOPIFY */
