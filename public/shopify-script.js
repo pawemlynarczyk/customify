@@ -146,16 +146,25 @@
                 margin: 0 !important;
             }
             
-            /* ZMNIEJSZ GWIAZDKI I BADGE'Y */
+            /* ZMNIEJSZ GWIAZDKI I BADGE'Y - MAKSYMALNIE */
             .product-badges {
-                gap: 4px !important;
-                margin-bottom: 8px !important;
-                margin-top: 2px !important;
+                gap: 2px !important;
+                margin-bottom: 4px !important;
+                margin-top: 0px !important;
             }
             
             .rating-section {
-                gap: 4px !important;
+                gap: 2px !important;
                 font-size: 12px !important;
+            }
+            
+            /* AGRESYWNE USUNIĘCIE ODSTĘPÓW POD TYTUŁEM */
+            .group-block[data-testid="group-block"] .view-product-title,
+            .group-block[data-testid="group-block"] .view-product-title a,
+            .group-block[data-testid="group-block"] .view-product-title p {
+                margin-bottom: 0px !important;
+                padding-bottom: 0px !important;
+                margin: 0 0 0px 0 !important;
             }
 
             @media (max-width: 768px) {

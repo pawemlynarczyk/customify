@@ -564,31 +564,41 @@
 
       /* USUŃ TYLKO DIVIDERY - ZOSTAW ORYGINALNE USTAWIENIA SHOPIFY */
 
-      /* ELEMENTY POD TYTUŁEM - GWIAZDKI I OKAZJA */
+      /* ELEMENTY POD TYTUŁEM - GWIAZDKI I OKAZJA - ZMNIEJSZONE I PODNIESIONE */
       .product-badges {
         display: flex;
         flex-direction: column;
-        gap: 8px;
-        margin-bottom: 15px;
+        gap: 2px;
+        margin-bottom: 4px;
+        margin-top: 0px;
         position: relative;
         z-index: 3;
       }
 
-      .discount-badge {
+      .discount-badge,
+      .group-block[data-testid="group-block"] .discount-badge,
+      .product-badges .discount-badge,
+      div.discount-badge {
         background: #28a745 !important;
+        background-color: #28a745 !important;
         color: white !important;
-        padding: 6px 12px !important;
+        padding: 4px 8px !important;
         border-radius: 0 !important;
-        font-size: 14px !important;
+        font-size: 12px !important;
         font-weight: 600 !important;
         display: inline-block !important;
         width: fit-content !important;
+        border: none !important;
+        box-shadow: 0 1px 2px rgba(40, 167, 69, 0.3) !important;
+        text-shadow: none !important;
+        margin: 0 !important;
       }
 
       .rating-section {
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 2px;
+        font-size: 12px;
       }
 
       .stars {
@@ -627,9 +637,9 @@
         order: 2 !important; /* Badge'y będą po tytule (order: 2) */
       }
 
-      /* ZWIĘKSZ ODSTĘPY W BADGE'ACH */
+      /* ZMNIEJSZ ODSTĘPY W BADGE'ACH */
       .group-block[data-testid="group-block"] .product-badges {
-        gap: 12px !important; /* Zwiększ odstęp między okazją a gwiazdkami */
+        gap: 2px !important; /* Zmniejszony odstęp między okazją a gwiazdkami */
       }
 
       /* NAPRAW ELEMENTY CENY - PO BADGE'ACH */
@@ -698,12 +708,21 @@
         z-index: auto !important;
       }
 
-      /* POMNIEJSZ TEKST W TYTULE */
+      /* POMNIEJSZ TEKST W TYTULE I ODSTĘPY */
       .group-block[data-testid="group-block"] .view-product-title p {
         font-size: 1.2rem !important; /* POMNIEJSZONY TEKST TYTUŁU */
         font-weight: 600 !important;
         margin: 0 !important;
         padding: 0 !important;
+      }
+      
+      /* AGRESYWNE USUNIĘCIE ODSTĘPÓW POD TYTUŁEM */
+      .group-block[data-testid="group-block"] .view-product-title,
+      .group-block[data-testid="group-block"] .view-product-title a,
+      .group-block[data-testid="group-block"] .view-product-title p {
+        margin-bottom: 0px !important;
+        padding-bottom: 0px !important;
+        margin: 0 0 0px 0 !important;
       }
 
       /* DODATKOWE NAPRAWY DLA WSZYSTKICH ELEMENTÓW W GROUP-BLOCK */
@@ -2125,22 +2144,23 @@ document.addEventListener('DOMContentLoaded', function() {
             }
           });
 
-          // ZMNIEJSZ ODSTĘPY MIĘDZY TYTUŁEM A BADGE'AMI - INLINE STYLES
+          // AGRESYWNE USUNIĘCIE ODSTĘPÓW MIĘDZY TYTUŁEM A BADGE'AMI
           const titleElement = document.querySelector('.view-product-title');
           const badgesElement = document.querySelector('.product-badges');
           
           if (titleElement) {
-            titleElement.style.setProperty('margin-bottom', '2px', 'important');
+            titleElement.style.setProperty('margin-bottom', '0px', 'important');
             titleElement.style.setProperty('padding-bottom', '0px', 'important');
-            titleElement.style.setProperty('margin', '0 0 2px 0', 'important');
-            console.log('🎯 [CUSTOMIFY] Odstępy tytułu zmniejszone (inline)');
+            titleElement.style.setProperty('margin', '0 0 0px 0', 'important');
+            console.log('🎯 [CUSTOMIFY] Odstępy tytułu usunięte (inline)');
           }
           
           if (badgesElement) {
             badgesElement.style.setProperty('margin-top', '0px', 'important');
             badgesElement.style.setProperty('padding-top', '0px', 'important');
-            badgesElement.style.setProperty('margin', '0', 'important');
-            console.log('🎯 [CUSTOMIFY] Odstępy badge\'ów zmniejszone (inline)');
+            badgesElement.style.setProperty('margin', '0 0 4px 0', 'important');
+            badgesElement.style.setProperty('gap', '2px', 'important');
+            console.log('🎯 [CUSTOMIFY] Odstępy badge\'ów zminimalizowane (inline)');
           }
 
           // DODATKOWE FORCE HIDE DIVIDERS - INLINE STYLES

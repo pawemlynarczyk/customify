@@ -568,9 +568,9 @@
       .product-badges {
         display: flex;
         flex-direction: column;
-        gap: 4px;
-        margin-bottom: 8px;
-        margin-top: 2px;
+        gap: 2px;
+        margin-bottom: 4px;
+        margin-top: 0px;
         position: relative;
         z-index: 3;
       }
@@ -708,12 +708,21 @@
         z-index: auto !important;
       }
 
-      /* POMNIEJSZ TEKST W TYTULE */
+      /* POMNIEJSZ TEKST W TYTULE I ODSTĘPY */
       .group-block[data-testid="group-block"] .view-product-title p {
         font-size: 1.2rem !important; /* POMNIEJSZONY TEKST TYTUŁU */
         font-weight: 600 !important;
         margin: 0 !important;
         padding: 0 !important;
+      }
+      
+      /* AGRESYWNE USUNIĘCIE ODSTĘPÓW POD TYTUŁEM */
+      .group-block[data-testid="group-block"] .view-product-title,
+      .group-block[data-testid="group-block"] .view-product-title a,
+      .group-block[data-testid="group-block"] .view-product-title p {
+        margin-bottom: 0px !important;
+        padding-bottom: 0px !important;
+        margin: 0 0 0px 0 !important;
       }
 
       /* DODATKOWE NAPRAWY DLA WSZYSTKICH ELEMENTÓW W GROUP-BLOCK */
@@ -2135,22 +2144,23 @@ document.addEventListener('DOMContentLoaded', function() {
             }
           });
 
-          // ZMNIEJSZ ODSTĘPY MIĘDZY TYTUŁEM A BADGE'AMI - INLINE STYLES
+          // AGRESYWNE USUNIĘCIE ODSTĘPÓW MIĘDZY TYTUŁEM A BADGE'AMI
           const titleElement = document.querySelector('.view-product-title');
           const badgesElement = document.querySelector('.product-badges');
           
           if (titleElement) {
-            titleElement.style.setProperty('margin-bottom', '2px', 'important');
+            titleElement.style.setProperty('margin-bottom', '0px', 'important');
             titleElement.style.setProperty('padding-bottom', '0px', 'important');
-            titleElement.style.setProperty('margin', '0 0 2px 0', 'important');
-            console.log('🎯 [CUSTOMIFY] Odstępy tytułu zmniejszone (inline)');
+            titleElement.style.setProperty('margin', '0 0 0px 0', 'important');
+            console.log('🎯 [CUSTOMIFY] Odstępy tytułu usunięte (inline)');
           }
           
           if (badgesElement) {
             badgesElement.style.setProperty('margin-top', '0px', 'important');
             badgesElement.style.setProperty('padding-top', '0px', 'important');
-            badgesElement.style.setProperty('margin', '0', 'important');
-            console.log('🎯 [CUSTOMIFY] Odstępy badge\'ów zmniejszone (inline)');
+            badgesElement.style.setProperty('margin', '0 0 4px 0', 'important');
+            badgesElement.style.setProperty('gap', '2px', 'important');
+            console.log('🎯 [CUSTOMIFY] Odstępy badge\'ów zminimalizowane (inline)');
           }
 
           // DODATKOWE FORCE HIDE DIVIDERS - INLINE STYLES

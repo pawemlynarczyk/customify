@@ -6,6 +6,7 @@
 - Do NOT ask about environment variables configuration
 - Do NOT ask about Vercel Dashboard settings
 - Do NOT ask about token values or setup
+- SHOPIFY_ACCESS_TOKEN is available in environment variables - use it directly
 
 ## CRITICAL SECURITY RULE - NEVER COMMIT SECRETS
 - **NEVER** add passwords, tokens, API keys, or any secrets to files that will be committed to GitHub
