@@ -13,31 +13,27 @@
   border: none !important;
 }
 
-/* BADGE'Y W JEDNEJ LINII Z TYTUŁEM - TYTUŁ PIERWSZY */
+/* BADGE'Y PONIŻEJ TYTUŁU - NIE OBOK */
 .group-block[data-testid="group-block"].customify-title-moved .title-with-badges {
-  display: flex !important;
-  align-items: center !important;
-  gap: 16px !important;
+  display: block !important;
   margin-bottom: 0px !important;
   padding-bottom: 0px !important;
-  flex-wrap: wrap !important;
 }
 
 .group-block[data-testid="group-block"].customify-title-moved .view-product-title {
-  margin: 0 !important;
+  margin: 0 0 8px 0 !important;
   padding: 0 !important;
-  flex-shrink: 0 !important;
-  order: 1 !important;
+  display: block !important;
+  width: 100% !important;
 }
 
 .group-block[data-testid="group-block"].customify-title-moved .product-badges {
   margin: 0 !important;
   padding: 0 !important;
-  flex-shrink: 0 !important;
   display: flex !important;
   align-items: center !important;
   gap: 8px !important;
-  order: 2 !important;
+  width: 100% !important;
 }
 
 /* ZMNIEJSZ ROZMIAR BADGE'A "OSZCZĘDZASZ" - BARDZO MAŁY */
