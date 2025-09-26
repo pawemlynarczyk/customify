@@ -1,4 +1,373 @@
 /* ========================================
+   CUSTOMIFY HEADER STYLES
+   ======================================== */
+
+/* KOMPLETNY NAGŁÓWEK SHOPIFY */
+.header-main {
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.header-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 80px;
+  gap: 30px;
+}
+
+/* Logo */
+.header-logo {
+  flex-shrink: 0;
+}
+
+.logo-link {
+  text-decoration: none;
+  color: #000;
+}
+
+.logo-image {
+  height: 50px;
+  width: auto;
+  object-fit: contain;
+}
+
+.logo-text {
+  font-size: 28px;
+  font-weight: 700;
+  color: #000;
+}
+
+/* Wyszukiwarka */
+.header-search {
+  flex: 1;
+  max-width: 500px;
+}
+
+.search-form {
+  width: 100%;
+}
+
+.search-wrapper {
+  display: flex;
+  align-items: center;
+  background: white;
+  border: 2px solid #e9ecef;
+  border-radius: 0;
+  overflow: hidden;
+  height: 48px;
+}
+
+.search-categories {
+  background: #f8f9fa;
+  border: none;
+  padding: 0 15px;
+  font-size: 14px;
+  color: #666;
+  cursor: pointer;
+  min-width: 150px;
+  height: 100%;
+}
+
+.search-input {
+  flex: 1;
+  border: none;
+  padding: 0 15px;
+  font-size: 16px;
+  color: #000;
+  background: white;
+  height: 100%;
+}
+
+.search-input:focus {
+  outline: none;
+}
+
+.search-button {
+  background: #ff6b35;
+  border: none;
+  color: white;
+  padding: 0 20px;
+  cursor: pointer;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+}
+
+.search-button:hover {
+  background: #e55a2b;
+}
+
+/* Linki użytkownika */
+.header-user {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex-shrink: 0;
+}
+
+.user-link {
+  color: #000;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.user-link:hover {
+  color: #ff6b35;
+}
+
+/* Koszyk */
+.header-cart {
+  flex-shrink: 0;
+}
+
+.cart-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #000;
+  text-decoration: none;
+  padding: 10px 15px;
+  border: 2px solid #e9ecef;
+  border-radius: 0;
+  transition: all 0.2s ease;
+}
+
+.cart-link:hover {
+  border-color: #ff6b35;
+  color: #ff6b35;
+}
+
+.cart-icon-wrapper {
+  position: relative;
+}
+
+.cart-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.cart-count {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #ff6b35;
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cart-text {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Menu główne */
+.header-nav {
+  background: white;
+  border-top: 1px solid #e9ecef;
+}
+
+.nav-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  height: 60px;
+}
+
+.nav-item {
+  position: relative;
+  margin-right: 30px;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #000;
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 15px 0;
+  transition: color 0.2s ease;
+}
+
+.nav-link:hover {
+  color: #ff6b35;
+}
+
+.dropdown-arrow {
+  width: 12px;
+  height: 12px;
+}
+
+/* Dropdown menu */
+.nav-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-radius: 0;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+  z-index: 1001;
+  min-width: 200px;
+}
+
+.nav-item:hover .nav-dropdown {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.dropdown-content {
+  padding: 15px 0;
+}
+
+.dropdown-link {
+  display: block;
+  color: #000;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 400;
+  padding: 10px 20px;
+  transition: background-color 0.2s ease;
+}
+
+.dropdown-link:hover {
+  background: #f8f9fa;
+  color: #ff6b35;
+}
+
+/* Breadcrumbs */
+.breadcrumbs {
+  background: #f8f9fa;
+  padding: 15px 0;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.breadcrumbs-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 14px;
+}
+
+.breadcrumb-link {
+  color: #666;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.breadcrumb-link:hover {
+  color: #ff6b35;
+}
+
+.breadcrumb-separator {
+  color: #999;
+  margin: 0 5px;
+}
+
+.breadcrumb-current {
+  color: #000;
+  font-weight: 500;
+}
+
+/* Responsywność nagłówka */
+@media (max-width: 1024px) {
+  .header-container {
+    padding: 0 15px;
+    gap: 20px;
+  }
+  
+  .header-search {
+    max-width: 400px;
+  }
+  
+  .search-categories {
+    min-width: 120px;
+  }
+}
+
+@media (max-width: 768px) {
+  .header-container {
+    flex-wrap: wrap;
+    height: auto;
+    padding: 15px;
+    gap: 15px;
+  }
+  
+  .header-search {
+    order: 3;
+    max-width: 100%;
+    width: 100%;
+  }
+  
+  .header-user {
+    order: 2;
+  }
+  
+  .nav-container {
+    flex-wrap: wrap;
+    height: auto;
+    padding: 10px 15px;
+  }
+  
+  .nav-item {
+    margin-right: 20px;
+    margin-bottom: 10px;
+  }
+  
+  .nav-link {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-user {
+    display: none;
+  }
+  
+  .search-categories {
+    display: none;
+  }
+  
+  .search-wrapper {
+    height: 44px;
+  }
+  
+  .cart-text {
+    display: none;
+  }
+}
+
+/* ========================================
    CUSTOMIFY AI PHOTO CUSTOMIZATION STYLES
    ======================================== */
 
