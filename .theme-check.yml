@@ -1,0 +1,39 @@
+root: .
+extends: :nothing
+ignore:
+  - node_modules/**
+  - .git/**
+  - .vscode/**
+  - shopify-theme/**
+
+rules:
+  # Liquid rules
+  LiquidTag:
+    enabled: true
+  LiquidFilter:
+    enabled: true
+  LiquidVariable:
+    enabled: true
+  
+  # Shopify specific rules
+  AssetSizeCSS:
+    enabled: true
+    max_size: 500000
+  AssetSizeJS:
+    enabled: true
+    max_size: 500000
+  AssetSizeImage:
+    enabled: true
+    max_size: 1000000
+  
+  # Performance rules
+  ImgWidthAndHeight:
+    enabled: true
+  ImgLazyLoading:
+    enabled: true
+  
+  # Accessibility rules
+  AltText:
+    enabled: true
+  FocusVisible:
+    enabled: true

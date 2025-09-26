@@ -1,0 +1,11 @@
+{
+  "shopify.theme.check.enable": true,
+  "shopify.theme.check.autoFix": true,
+  "files.associations": {
+    "*.liquid": "liquid"
+  },
+  "liquid.format.enable": true,
+  "liquid.completion.enable": true,
+  "liquid.hover.enable": true,
+  "liquid.validation.enable": true
+}

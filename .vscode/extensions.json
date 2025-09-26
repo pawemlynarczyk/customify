@@ -1,0 +1,8 @@
+{
+  "recommendations": [
+    "shopify.theme-liquid",
+    "shopify.theme-check",
+    "eamodio.gitlens",
+    "ms-vscode.vscode-json"
+  ]
+}

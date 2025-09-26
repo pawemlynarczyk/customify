@@ -1,0 +1,11 @@
+[development]
+store = "customify-ok.myshopify.com"
+theme_id = "live"
+password = ""
+
+[build]
+command = "echo 'No build step required'"
+watch = ["theme.liquid", "public/**/*"]
+
+[deploy]
+command = "echo 'Deploying theme...'"
