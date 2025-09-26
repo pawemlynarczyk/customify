@@ -8,6 +8,12 @@
 - Do NOT ask about token values or setup
 - SHOPIFY_ACCESS_TOKEN is available in environment variables - use it directly
 
+## CRITICAL: Product Page Layout Proportions
+- **NEVER CHANGE** the product page layout proportions (35% image / 65% app) without explicit user command
+- These proportions are CRITICAL for the product page layout
+- Always preserve the existing grid layout: `grid-template-columns: 35% 65%`
+- This rule is MANDATORY and must be followed in ALL cases
+
 ## CRITICAL SECURITY RULE - NEVER COMMIT SECRETS
 - **NEVER** add passwords, tokens, API keys, or any secrets to files that will be committed to GitHub
 - **ALWAYS** use environment variables for sensitive data (process.env.VARIABLE_NAME)

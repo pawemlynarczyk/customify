@@ -217,14 +217,56 @@
 
             <div class="customify-styles" id="stylesArea" style="display: none;">
               <h4>Wybierz styl AI:</h4>
-              <div class="customify-style-buttons">
-                <div class="customify-style-btn" data-style="van gogh">Van Gogh (+50 zł)</div>
-                <div class="customify-style-btn" data-style="picasso">Picasso (+75 zł)</div>
-                <div class="customify-style-btn" data-style="monet">Monet (+60 zł)</div>
-                <div class="customify-style-btn" data-style="anime">Anime (+40 zł)</div>
-                <div class="customify-style-btn" data-style="cyberpunk">Cyberpunk (+80 zł)</div>
-                <div class="customify-style-btn" data-style="watercolor">Akwarela (+45 zł)</div>
-                <div class="customify-style-btn" data-style="pixar">Pixar (+85 zł)</div>
+              <div class="customify-style-grid">
+                <div class="customify-style-card" data-style="van gogh">
+                  <div class="style-image van-gogh-bg"></div>
+                  <div class="style-info">
+                    <div class="style-name">Van Gogh</div>
+                    <div class="style-price">+50 zł</div>
+                  </div>
+                </div>
+                <div class="customify-style-card" data-style="picasso">
+                  <div class="style-image picasso-bg"></div>
+                  <div class="style-info">
+                    <div class="style-name">Picasso</div>
+                    <div class="style-price">+75 zł</div>
+                  </div>
+                </div>
+                <div class="customify-style-card" data-style="monet">
+                  <div class="style-image monet-bg"></div>
+                  <div class="style-info">
+                    <div class="style-name">Monet</div>
+                    <div class="style-price">+60 zł</div>
+                  </div>
+                </div>
+                <div class="customify-style-card" data-style="anime">
+                  <div class="style-image anime-bg"></div>
+                  <div class="style-info">
+                    <div class="style-name">Anime</div>
+                    <div class="style-price">+40 zł</div>
+                  </div>
+                </div>
+                <div class="customify-style-card" data-style="cyberpunk">
+                  <div class="style-image cyberpunk-bg"></div>
+                  <div class="style-info">
+                    <div class="style-name">Cyberpunk</div>
+                    <div class="style-price">+80 zł</div>
+                  </div>
+                </div>
+                <div class="customify-style-card" data-style="watercolor">
+                  <div class="style-image watercolor-bg"></div>
+                  <div class="style-info">
+                    <div class="style-name">Akwarela</div>
+                    <div class="style-price">+45 zł</div>
+                  </div>
+                </div>
+                <div class="customify-style-card" data-style="pixar">
+                  <div class="style-image pixar-bg"></div>
+                  <div class="style-info">
+                    <div class="style-name">Pixar</div>
+                    <div class="style-price">+85 zł</div>
+                  </div>
+                </div>
               </div>
         </div>
 
@@ -290,6 +332,73 @@
           display: flex;
           gap: 15px;
           align-items: start;
+        }
+
+        /* GRID STYLÓW AI - TYLKO STYLE, NIE DOTYKAM PROPORCJI */
+        .customify-style-grid {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 15px;
+          margin-bottom: 20px;
+        }
+
+        .customify-style-card {
+          border: 2px solid #dee2e6;
+          border-radius: 8px;
+          background: white;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          overflow: hidden;
+        }
+
+        .customify-style-card:hover {
+          border-color: #e55a2b;
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .customify-style-card.active {
+          border-color: #ff6b35;
+          box-shadow: 0 0 0 2px rgba(255, 107, 53, 0.2);
+        }
+
+        .style-image {
+          height: 80px;
+          background-size: cover;
+          background-position: center;
+        }
+
+        .van-gogh-bg { background: linear-gradient(135deg, #ff6b35, #f7931e, #ffd23f, #06ffa5); }
+        .picasso-bg { background: linear-gradient(45deg, #8b5cf6, #a855f7, #c084fc, #e879f9); }
+        .monet-bg { background: linear-gradient(45deg, #3b82f6, #06b6d4, #10b981, #84cc16); }
+        .anime-bg { background: linear-gradient(135deg, #ff9a9e, #fecfef); }
+        .cyberpunk-bg { background: linear-gradient(45deg, #1e1b4b, #7c3aed, #ec4899, #06b6d4); }
+        .watercolor-bg { background: linear-gradient(135deg, #667eea, #764ba2); }
+        .pixar-bg { background: linear-gradient(135deg, #ffecd2, #fcb69f); }
+
+        .style-info {
+          padding: 8px;
+          text-align: center;
+        }
+
+        .style-name {
+          font-weight: 600;
+          font-size: 0.9rem;
+          color: #333;
+          margin-bottom: 2px;
+        }
+
+        .style-price {
+          font-size: 0.8rem;
+          color: #ff6b35;
+          font-weight: 500;
+        }
+
+        @media (max-width: 768px) {
+          .customify-style-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+          }
         }
       </style>
     {% endif %}

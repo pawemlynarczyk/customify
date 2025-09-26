@@ -282,8 +282,11 @@ class CustomifyEmbed {
     });
 
     this.stylesArea.addEventListener('click', (e) => {
-      if (e.target.classList.contains('customify-style-btn')) {
-        this.selectStyle(e.target);
+      if (e.target.classList.contains('customify-style-card') || 
+          e.target.closest('.customify-style-card')) {
+        const card = e.target.classList.contains('customify-style-card') ? 
+                    e.target : e.target.closest('.customify-style-card');
+        this.selectStyle(card);
       }
     });
 
@@ -331,10 +334,10 @@ class CustomifyEmbed {
     this.actionsArea.style.display = 'flex';
   }
 
-  selectStyle(styleBtn) {
-    this.stylesArea.querySelectorAll('.customify-style-btn').forEach(btn => btn.classList.remove('active'));
-    styleBtn.classList.add('active');
-    this.selectedStyle = styleBtn.dataset.style;
+  selectStyle(styleCard) {
+    this.stylesArea.querySelectorAll('.customify-style-card').forEach(card => card.classList.remove('active'));
+    styleCard.classList.add('active');
+    this.selectedStyle = styleCard.dataset.style;
     
     // Pokaż wymiary po wyborze stylu
     this.sizeArea.style.display = 'block';
@@ -545,7 +548,7 @@ class CustomifyEmbed {
     this.hideError();
     this.hideSuccess();
     
-    this.stylesArea.querySelectorAll('.customify-style-btn').forEach(btn => btn.classList.remove('active'));
+    this.stylesArea.querySelectorAll('.customify-style-card').forEach(card => card.classList.remove('active'));
     this.sizeArea.querySelectorAll('.customify-size-btn').forEach(btn => btn.classList.remove('active'));
   }
 
@@ -568,7 +571,7 @@ class CustomifyEmbed {
     this.transformedImage = null;
     
     // Usuń aktywne style
-    this.stylesArea.querySelectorAll('.customify-style-btn').forEach(btn => btn.classList.remove('active'));
+    this.stylesArea.querySelectorAll('.customify-style-card').forEach(card => card.classList.remove('active'));
     
     // Usuń aktywne rozmiary
     this.sizeArea.querySelectorAll('.customify-size-btn').forEach(btn => btn.classList.remove('active'));
