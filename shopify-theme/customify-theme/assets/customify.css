@@ -13,22 +13,29 @@
   border: none !important;
 }
 
-/* PRZESUŃ BADGE'Y BLIŻEJ TYTUŁU */
-.group-block[data-testid="group-block"].customify-title-moved .product-badges {
-  margin-top: 4px !important;
-  margin-bottom: 0px !important;
-  padding-top: 0px !important;
-  padding-bottom: 0px !important;
-}
-
+/* BADGE'Y W JEDNEJ LINII Z TYTUŁEM */
 .group-block[data-testid="group-block"].customify-title-moved .title-with-badges {
+  display: flex !important;
+  align-items: center !important;
+  gap: 16px !important;
   margin-bottom: 0px !important;
   padding-bottom: 0px !important;
+  flex-wrap: wrap !important;
 }
 
 .group-block[data-testid="group-block"].customify-title-moved .view-product-title {
-  margin-bottom: 4px !important;
-  padding-bottom: 0px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  flex-shrink: 0 !important;
+}
+
+.group-block[data-testid="group-block"].customify-title-moved .product-badges {
+  margin: 0 !important;
+  padding: 0 !important;
+  flex-shrink: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
 }
 
 /* KOMPLETNY NAGŁÓWEK SHOPIFY */
