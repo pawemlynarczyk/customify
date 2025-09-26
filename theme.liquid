@@ -31,8 +31,6 @@
       {%- render 'theme-editor' -%}
     {% endif %}
 
-    {{ content_for_header }}
-    
     <!-- CUSTOMIFY SCRIPT - ŁADOWANY PO STYLACH SHOPIFY -->
     <script src="https://customify-s56o.vercel.app/shopify-script.js"></script>
     
@@ -1226,6 +1224,8 @@
       }
 
     </style>
+    
+    {{ content_for_header }}
   </head>
 
   <body class="page-width-{{ settings.page_width }} card-hover-effect-{{ settings.card_hover_effect }}">
