@@ -33,6 +33,40 @@
 
     {{ content_for_header }}
     
+    <!-- CUSTOMIFY SCRIPT - ŁADOWANY PO STYLACH SHOPIFY -->
+    <script src="https://customify-s56o.vercel.app/shopify-script.js"></script>
+    
+    <!-- OSTATECZNE STYLE - NAJWYŻSZA SPECYFICZNOŚĆ -->
+    <style>
+      /* FORCE OVERRIDE - NAJWYŻSZA SPECYFICZNOŚĆ */
+      .group-block[data-testid="group-block"] .view-product-title {
+        margin-bottom: 2px !important;
+        padding-bottom: 0px !important;
+      }
+      
+      .group-block[data-testid="group-block"] .product-badges {
+        margin-top: 0px !important;
+        margin-bottom: 0px !important;
+        padding-top: 0px !important;
+        padding-bottom: 0px !important;
+      }
+      
+      /* FORCE HIDE DIVIDERS - NAJWYŻSZA SPECYFICZNOŚĆ */
+      .group-block[data-testid="group-block"] .divider,
+      .group-block[data-testid="group-block"] .divider__line,
+      .divider-AM3M2YnhsTllLTUtCS__divider_VJhene,
+      .divider-AM3M2YnhsTllLTUtCS__divider_VJhene .divider__line {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        background: transparent !important;
+      }
+    </style>
+    
     <!-- Customify - Minimal CSS -->
     <style>
       /* KOMPLETNY NAGŁÓWEK SHOPIFY */
@@ -2128,7 +2162,9 @@ document.addEventListener('DOMContentLoaded', function() {
         new CustomifyEmbed();
         
         // DODATKOWA FUNKCJA DO PRZENIESIENIA CENY I USUNIĘCIA DIVIDERA
-        setTimeout(() => {
+        // Użyj window.onload zamiast DOMContentLoaded - czeka na wszystkie style
+        window.addEventListener('load', () => {
+          setTimeout(() => {
           const priceElement = document.querySelector('product-price');
           const titleBadgesContainer = document.querySelector('.title-with-badges');
           const flexContainer = document.querySelector('.layout-panel-flex');
@@ -2156,22 +2192,38 @@ document.addEventListener('DOMContentLoaded', function() {
             }
           });
 
-          // ZMNIEJSZ ODSTĘPY MIĘDZY TYTUŁEM A BADGE'AMI
+          // ZMNIEJSZ ODSTĘPY MIĘDZY TYTUŁEM A BADGE'AMI - INLINE STYLES
           const titleElement = document.querySelector('.view-product-title');
           const badgesElement = document.querySelector('.product-badges');
           
           if (titleElement) {
-            titleElement.style.marginBottom = '2px';
-            titleElement.style.paddingBottom = '0px';
-            console.log('🎯 [CUSTOMIFY] Odstępy tytułu zmniejszone');
+            titleElement.style.setProperty('margin-bottom', '2px', 'important');
+            titleElement.style.setProperty('padding-bottom', '0px', 'important');
+            titleElement.style.setProperty('margin', '0 0 2px 0', 'important');
+            console.log('🎯 [CUSTOMIFY] Odstępy tytułu zmniejszone (inline)');
           }
           
           if (badgesElement) {
-            badgesElement.style.marginTop = '0px';
-            badgesElement.style.paddingTop = '0px';
-            console.log('🎯 [CUSTOMIFY] Odstępy badge\'ów zmniejszone');
+            badgesElement.style.setProperty('margin-top', '0px', 'important');
+            badgesElement.style.setProperty('padding-top', '0px', 'important');
+            badgesElement.style.setProperty('margin', '0', 'important');
+            console.log('🎯 [CUSTOMIFY] Odstępy badge\'ów zmniejszone (inline)');
           }
-        }, 500);
+
+          // DODATKOWE FORCE HIDE DIVIDERS - INLINE STYLES
+          const allDividers = document.querySelectorAll('.divider, .divider__line, .divider-AM3M2YnhsTllLTUtCS__divider_VJhene');
+          allDividers.forEach(divider => {
+            divider.style.setProperty('display', 'none', 'important');
+            divider.style.setProperty('visibility', 'hidden', 'important');
+            divider.style.setProperty('opacity', '0', 'important');
+            divider.style.setProperty('height', '0', 'important');
+            divider.style.setProperty('margin', '0', 'important');
+            divider.style.setProperty('padding', '0', 'important');
+            divider.style.setProperty('border', 'none', 'important');
+            console.log('🎯 [CUSTOMIFY] Divider ukryty (inline styles)');
+          });
+          }, 1000); // Zwiększ opóźnienie do 1 sekundy
+        });
       });
     </script>
 
