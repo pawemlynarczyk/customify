@@ -553,7 +553,7 @@
       }
       
       .group-block[data-testid="group-block"] .view-product-title {
-        margin-bottom: 12px !important; /* Odstęp między tytułem a badge'ami */
+        margin-bottom: 6px !important; /* ZMNIEJSZONY odstęp między tytułem a badge'ami */
       }
       
       .group-block[data-testid="group-block"] .product-badges {
@@ -614,7 +614,7 @@
 
       /* POPRAWKA UKŁADU TYTUŁU Z GWIAZDKAMI */
       .group-block[data-testid="group-block"] .view-product-title {
-        margin: 0 0 16px 0 !important; /* Ustaw marginesy */
+        margin: 0 0 6px 0 !important; /* ZMNIEJSZONY margin na dole */
         padding: 0 !important;
         position: relative !important;
         z-index: 4 !important;
@@ -677,7 +677,7 @@
         clear: both !important;
       }
 
-      /* USUŃ WSZYSTKIE DIVIDERY W GROUP-BLOCK */
+      /* UKRYJ DIVIDERY - ZMIEŃ KOLOR NA BIAŁY */
       .group-block[data-testid="group-block"] .divider,
       .group-block[data-testid="group-block"] .divider__line,
       .group-block .divider,
@@ -686,7 +686,9 @@
       .divider__line,
       .group-block[data-testid="group-block"] .view-product-title + .divider,
       .group-block[data-testid="group-block"] .view-product-title ~ .divider {
-        display: none !important;
+        border-color: white !important; /* BIAŁY DIVIDER - NIEWIDOCZNY */
+        background-color: white !important;
+        color: white !important;
       }
 
       /* USUŃ RAMKĘ I CIEŃ Z TYTUŁU */
