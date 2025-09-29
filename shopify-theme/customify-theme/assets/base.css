@@ -4,12 +4,16 @@
 
 body {
   color: var(--color-foreground);
-  background: var(--color-background);
+  background: #f8f9fa; /* Szare tło całej strony */
   display: flex;
   flex-direction: column;
   min-height: 100vh;
   margin: 0;
   font-variation-settings: 'slnt' 0;
+}
+
+main {
+  flex: 1;
 }
 
 :root {
@@ -4281,17 +4285,7 @@ text-component {
   border-radius: 0;
 }
 
-/* SZARE TŁO STRONY, BIAŁE ELEMENTY */
-body {
-  background: #f8f9fa; /* Szare tło całej strony */
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
-main {
-  flex: 1;
-}
+/* SZARE TŁO STRONY, BIAŁE ELEMENTY - USUNIĘTE - UŻYWAMY PIERWSZEGO CSS DLA BODY */
 
 .page-width, .main-content, .content-for-layout, 
 .product-page, .product-template, .product-single,
