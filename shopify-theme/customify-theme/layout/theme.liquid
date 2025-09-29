@@ -2167,15 +2167,24 @@ document.addEventListener('DOMContentLoaded', function() {
           }
         }
 
-        // UKRYJ PRODUKTY CUSTOMIFY Z REKOMENDACJI
+        // UKRYJ PRODUKTY CUSTOMIFY Z REKOMENDACJI I KATALOGU
         hideCustomifyProductsFromRecommendations() {
-          console.log('🔒 [CUSTOMIFY] Hiding Customify products from recommendations');
+          console.log('🔒 [CUSTOMIFY] Hiding Customify products from recommendations and catalog');
           
           // Znajdź wszystkie karty produktów w rekomendacjach
-          const productCards = document.querySelectorAll('.product-recommendations .product-card');
+          const recommendationCards = document.querySelectorAll('.product-recommendations .product-card');
           
-          productCards.forEach(card => {
-            const productTitle = card.querySelector('[data-product-title]')?.textContent || '';
+          // Znajdź wszystkie karty produktów w katalogu
+          const catalogCards = document.querySelectorAll('.product-grid .product-card, .collection .product-card, .products .product-card, [data-product-card]');
+          
+          // Połącz wszystkie karty
+          const allCards = [...recommendationCards, ...catalogCards];
+          
+          allCards.forEach(card => {
+            const productTitle = card.querySelector('[data-product-title]')?.textContent || 
+                               card.querySelector('.product-title')?.textContent ||
+                               card.querySelector('h3')?.textContent ||
+                               card.querySelector('h2')?.textContent || '';
             const productLink = card.querySelector('a[href]')?.href || '';
             
             // Sprawdź czy to NOWY produkt Customify (nie główny produkt)
@@ -2192,7 +2201,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 (productLink.includes('custom') && !productLink.includes('/products/custom'))
             )) {
               
-              console.log('🔒 [CUSTOMIFY] Hiding Customify product from recommendations:', productTitle);
+              console.log('🔒 [CUSTOMIFY] Hiding Customify product:', productTitle);
               card.style.display = 'none';
               card.style.visibility = 'hidden';
               card.style.opacity = '0';
@@ -2329,6 +2338,12 @@ document.addEventListener('DOMContentLoaded', function() {
       // Initialize when DOM is loaded
       document.addEventListener('DOMContentLoaded', () => {
         new CustomifyEmbed();
+        
+        // UKRYJ PRODUKTY CUSTOMIFY W KATALOGU (jeśli jesteśmy na stronie katalogu)
+        if (window.location.pathname.includes('/collections/') || window.location.pathname === '/collections/all') {
+          const customify = new CustomifyEmbed();
+          customify.hideCustomifyProductsFromRecommendations();
+        }
         
         // DODATKOWA FUNKCJA DO USUNIĘCIA DIVIDERA (BEZ PRZENOSZENIA CENY)
         // Użyj window.onload zamiast DOMContentLoaded - czeka na wszystkie style
