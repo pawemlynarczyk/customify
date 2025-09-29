@@ -491,11 +491,31 @@ class CustomifyEmbed {
           const cartUrl = `/cart/add?${params.toString()}`;
           console.log('🛒 [CUSTOMIFY] Cart URL:', cartUrl);
           
-          // UKRYJ PRODUKT PRZED PRZEKIEROWANIEM DO KOSZYKA
-          await this.hideProductAfterCartAdd(result.productId);
-          
-          // Przekieruj bezpośrednio do koszyka
-          window.location.href = cartUrl;
+          // DODAJ DO KOSZYKA PRZEZ FETCH (żeby móc ukryć produkt po dodaniu)
+          try {
+            const cartResponse = await fetch(cartUrl, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+              }
+            });
+            
+            if (cartResponse.ok) {
+              console.log('✅ [CUSTOMIFY] Product added to cart successfully');
+              
+              // UKRYJ PRODUKT PO DODANIU DO KOSZYKA
+              await this.hideProductAfterCartAdd(result.productId);
+              
+              // Przekieruj do koszyka
+              window.location.href = '/cart';
+            } else {
+              console.error('❌ [CUSTOMIFY] Failed to add to cart:', cartResponse.status);
+              this.showError('❌ Błąd podczas dodawania do koszyka');
+            }
+          } catch (error) {
+            console.error('❌ [CUSTOMIFY] Cart add error:', error);
+            this.showError('❌ Błąd połączenia z koszykiem');
+          }
         }
       } else {
         console.error('❌ [CUSTOMIFY] Product creation failed:', result);
