@@ -608,12 +608,18 @@
         display: inline;
       }
 
-      .review-count {
+      .stars-rating-inline {
+        color: #ffc107;
+        font-size: 16px;
+        font-weight: 500;
+        display: inline;
+      }
+      
+      .stars-rating-inline::after {
+        content: '';
         color: #666;
         font-size: 14px;
         font-weight: 500;
-        display: inline;
-        margin-left: 5px;
       }
 
       /* USUŃ MODYFIKACJE TYTUŁU - ZOSTAW ORYGINALNE USTAWIENIA SHOPIFY */
@@ -1845,23 +1851,12 @@ document.addEventListener('DOMContentLoaded', function() {
           const ratingSection = document.createElement('div');
           ratingSection.className = 'rating-section';
 
-          const stars = document.createElement('div');
-          stars.className = 'stars';
-          for (let i = 0; i < 5; i++) {
-            const star = document.createElement('span');
-            star.className = 'star';
-            star.innerHTML = '★';
-            stars.appendChild(star);
-          }
+          // Stwórz jeden element z gwiazdkami i liczbą w jednej linii
+          const starsAndCount = document.createElement('div');
+          starsAndCount.className = 'stars-rating-inline';
+          starsAndCount.innerHTML = '★ ★ ★ ★ ★ (43)';
 
-          const reviewCount = document.createElement('span');
-          reviewCount.className = 'review-count';
-          reviewCount.textContent = '(43)';
-          
-          // Dodaj liczbę recenzji do diva z gwiazdkami
-          stars.appendChild(reviewCount);
-
-          ratingSection.appendChild(stars);
+          ratingSection.appendChild(starsAndCount);
 
           // Dodaj do kontenera
           badgesContainer.appendChild(discountBadge);
