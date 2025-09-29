@@ -506,10 +506,7 @@ class CustomifyEmbed {
               // Przekieruj do koszyka
               window.location.href = '/cart';
               
-              // UKRYJ PRODUKT PO 30 SEKUNDACH (żeby użytkownik zdążył przejść checkout)
-              setTimeout(() => {
-                this.hideProductAfterCartAdd(result.productId);
-              }, 30000);
+              // PRODUKT ZOSTANIE UKRYTY PO FINALIZACJI TRANSAKCJI (webhook orders/paid)
             } else {
               console.error('❌ [CUSTOMIFY] Failed to add to cart:', cartResponse.status);
               this.showError('❌ Błąd podczas dodawania do koszyka');

@@ -68,6 +68,10 @@
       "dest": "/api/webhooks/shop/redact.js"
     },
     {
+      "src": "/api/webhooks/orders/paid",
+      "dest": "/api/webhooks/orders/paid.js"
+    },
+    {
       "src": "/api/update-theme-simple",
       "dest": "/api/update-theme-simple.js"
     },
