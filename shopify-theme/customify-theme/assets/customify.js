@@ -503,11 +503,13 @@ class CustomifyEmbed {
             if (cartResponse.ok) {
               console.log('✅ [CUSTOMIFY] Product added to cart successfully');
               
-              // UKRYJ PRODUKT PO DODANIU DO KOSZYKA
-              await this.hideProductAfterCartAdd(result.productId);
-              
               // Przekieruj do koszyka
               window.location.href = '/cart';
+              
+              // UKRYJ PRODUKT PO 30 SEKUNDACH (żeby użytkownik zdążył przejść checkout)
+              setTimeout(() => {
+                this.hideProductAfterCartAdd(result.productId);
+              }, 30000);
             } else {
               console.error('❌ [CUSTOMIFY] Failed to add to cart:', cartResponse.status);
               this.showError('❌ Błąd podczas dodawania do koszyka');
