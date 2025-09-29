@@ -1671,8 +1671,9 @@ document.addEventListener('DOMContentLoaded', function() {
       <div class="customify-inline-wrapper">
         <div class="customify-embed" id="customifyEmbed">
           <div class="customify-upload-area" id="uploadArea">
-            <div class="customify-upload-icon"></div>
-            <div class="customify-upload-text">Wgraj swoje zdjęcie tutaj</div>
+            <button class="customify-upload-btn" id="uploadBtn">
+              Wgraj zdjęcie
+            </button>
             <div class="customify-upload-hint">Maksymalnie 10MB, formaty: JPG, PNG, GIF</div>
             <input type="file" id="fileInput" class="customify-file-input" accept="image/*">
           </div>
@@ -1890,6 +1891,13 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         setupEventListeners() {
+          // Obsługa kliknięcia przycisku uploadu
+          const uploadBtn = document.getElementById('uploadBtn');
+          if (uploadBtn) {
+            uploadBtn.addEventListener('click', () => this.fileInput.click());
+          }
+          
+          // Obsługa kliknięcia całego obszaru uploadu (dla drag & drop)
           this.uploadArea.addEventListener('click', () => this.fileInput.click());
           this.fileInput.addEventListener('change', (e) => this.handleFileSelect(e.target.files[0]));
           

@@ -811,12 +811,31 @@ div.discount-badge {
   background-color: white;
 }
 
-.customify-upload-text {
-  font-size: 1.4rem;
-  color: #333;
-  margin-bottom: 8px;
+.customify-upload-btn {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 15px 30px;
+  font-size: 1.2rem;
   font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-bottom: 10px;
+  display: block;
+  width: 100%;
   text-align: center;
+}
+
+.customify-upload-btn:hover {
+  background: #c82333;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+}
+
+.customify-upload-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
 }
 
 .customify-file-input {
