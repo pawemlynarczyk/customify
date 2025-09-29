@@ -469,49 +469,30 @@ class CustomifyEmbed {
           console.log('🛒 [CUSTOMIFY] Variant ID type:', typeof result.variantId);
           console.log('🛒 [CUSTOMIFY] Variant ID length:', result.variantId.toString().length);
           
-          // Create form and submit to add to cart
-          const form = document.createElement('form');
-          form.method = 'POST';
-          form.action = '/cart/add';
-          form.style.display = 'none';
-          
-          // Add variant ID
-          const variantInput = document.createElement('input');
-          variantInput.type = 'hidden';
-          variantInput.name = 'id';
-          variantInput.value = result.variantId;
-          form.appendChild(variantInput);
-          
-          console.log('🛒 [CUSTOMIFY] Form variant ID:', result.variantId);
-          console.log('🛒 [CUSTOMIFY] Form action:', form.action);
-          
-          // Add quantity
-          const quantityInput = document.createElement('input');
-          quantityInput.type = 'hidden';
-          quantityInput.name = 'quantity';
-          quantityInput.value = '1';
-          form.appendChild(quantityInput);
-          
-          // DODAJ WŁAŚCIWOŚCI (obraz jest już głównym obrazem produktu)
+          // NAPRAWIONA METODA: Użyj bezpośredniego przekierowania zamiast formularza
           const properties = {
             'AI Style': this.selectedStyle,
             'Size': this.selectedSize,
             'Original Product': productData.originalProductTitle,
             'Customization Type': 'AI Generated',
-            '_AI_Image_URL': result.imageUrl || this.transformedImage  // Prefix _ ukrywa przed klientem
+            '_AI_Image_URL': result.imageUrl || this.transformedImage
           };
           
+          // Buduj URL z parametrami
+          const params = new URLSearchParams();
+          params.append('id', result.variantId);
+          params.append('quantity', '1');
+          
+          // Dodaj właściwości
           Object.entries(properties).forEach(([key, value]) => {
-            const propInput = document.createElement('input');
-            propInput.type = 'hidden';
-            propInput.name = `properties[${key}]`;
-            propInput.value = value;
-            form.appendChild(propInput);
+            params.append(`properties[${key}]`, value);
           });
           
-          console.log('🛒 [CUSTOMIFY] Submitting form with variantId:', result.variantId);
-          document.body.appendChild(form);
-          form.submit();
+          const cartUrl = `/cart/add?${params.toString()}`;
+          console.log('🛒 [CUSTOMIFY] Cart URL:', cartUrl);
+          
+          // Przekieruj bezpośrednio do koszyka
+          window.location.href = cartUrl;
           
           // UKRYJ PRODUKT PO DODANIU DO KOSZYKA
           this.hideProductAfterCartAdd(result.productId);
