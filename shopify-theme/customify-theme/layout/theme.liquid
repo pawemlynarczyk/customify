@@ -1856,9 +1856,11 @@ document.addEventListener('DOMContentLoaded', function() {
           const reviewCount = document.createElement('span');
           reviewCount.className = 'review-count';
           reviewCount.textContent = '(43)';
+          
+          // Dodaj liczbę recenzji do diva z gwiazdkami
+          stars.appendChild(reviewCount);
 
           ratingSection.appendChild(stars);
-          ratingSection.appendChild(reviewCount);
 
           // Dodaj do kontenera
           badgesContainer.appendChild(discountBadge);
