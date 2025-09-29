@@ -1269,8 +1269,22 @@ div.discount-badge {
    HIDE CUSTOMIFY PRODUCTS FROM RECOMMENDATIONS
    ======================================== */
 
-/* USUNIĘTO: Style ukrywające produkty - wszystkie produkty są widoczne */
+/* ========================================
+   HIDE NEW CUSTOMIFY PRODUCTS (CONTAINING "ROZMIAR")
+   KEEP MAIN PRODUCT VISIBLE
+   ======================================== */
 
-/* USUNIĘTO: Style ukrywające produkty - wszystkie produkty są widoczne */
+/* Hide ONLY new Customify products (containing "rozmiar" in title) */
+.product-card:has([data-product-title*="rozmiar"]) {
+  display: none !important;
+}
 
-/* USUNIĘTO: Style ukrywające produkty - wszystkie produkty są widoczne */
+/* PROTECTION: Main product NEVER hidden */
+.product-card:has([data-product-title*="Obraz ze zdjęcia w stylu Ghibli"]) {
+  display: block !important;
+}
+
+/* Alternative: Hide products with "spersonalizowany" in URL */
+.product-card:has([href*="spersonalizowany"]) {
+  display: none !important;
+}
