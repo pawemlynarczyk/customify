@@ -39,7 +39,7 @@ module.exports = async (req, res) => {
     };
 
     const basePrice = 29.99;
-    const totalPrice = basePrice + (sizePrices[size] || 0); // Style nie wpływają na cenę
+    const totalPrice = Math.round((basePrice + (sizePrices[size] || 0)) * 100) / 100; // Napraw błąd zmiennoprzecinkowy
 
     const shop = process.env.SHOP_DOMAIN || 'customify-ok.myshopify.com';
     const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
@@ -77,7 +77,7 @@ module.exports = async (req, res) => {
         published_scope: 'web',
         variants: [{
           title: `${style} - ${size || 'standard'} (${totalPrice} zł)`,
-          price: totalPrice.toString(),
+          price: Math.round(totalPrice * 100).toString(), // Konwersja na centy dla Shopify
           inventory_quantity: 100,
           inventory_management: 'shopify',
           fulfillment_service: 'manual'
