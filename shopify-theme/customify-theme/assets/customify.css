@@ -871,17 +871,40 @@ div.discount-badge {
   transition: all 0.3s ease;
   text-align: center;
   font-size: 0.9rem;
+  position: relative;
+  min-height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.customify-style-btn .style-label {
+  background: rgba(255, 255, 255, 0.9);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+  color: #333;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .customify-style-btn:hover {
   border-color: #e55a2b;
-  background-color: #fff5f0;
+  transform: scale(1.02);
+}
+
+.customify-style-btn:hover .style-label {
+  background: rgba(255, 107, 53, 0.9);
+  color: white;
 }
 
 .customify-style-btn.active {
   border-color: #ff6b35;
-  background: white;
-  color: #000;
+  transform: scale(1.05);
+}
+
+.customify-style-btn.active .style-label {
+  background: rgba(255, 107, 53, 0.9);
+  color: white;
 }
 
 .customify-size-selector {
