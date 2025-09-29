@@ -144,3 +144,15 @@ Customify is a Shopify app that allows customers to:
 - Vercel automatically deploys from GitHub
 - Test changes on live site after deployment
 - Update cursor rules with new fixes and learnings
+
+## CRITICAL: Code Duplication Management - NIE NISZCZ DZIAŁAJĄCYCH FUNKCJI
+- **MAIN FILE**: `shopify-theme/customify-theme/layout/theme.liquid` - główny plik Shopify (PRIORYTET)
+- **BACKUP FILES**: 
+  - `theme.liquid` - kopia w głównym katalogu (backup)
+  - `shopify-theme-complete.liquid` - kopia kompletna (archive)
+  - `public/shopify-script.js` - JavaScript injection (tylko JS, nie HTML)
+- **SYNC RULE**: Po każdej zmianie w głównym pliku, zaktualizuj wszystkie kopie
+- **DEPLOYMENT**: Używaj tylko głównego pliku, kopie są backupami
+- **STYLE IMAGES**: Używaj obrazków z katalogu public (screenshoty)
+- **NO GRADIENTS**: Tylko obrazki, nie gradienty CSS
+- **PRIORITY**: NIE NISZCZ DZIAŁAJĄCYCH FUNKCJI - zachowaj wszystko co działa
