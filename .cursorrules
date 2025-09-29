@@ -54,6 +54,7 @@
 - api/test.js - Environment variables test
 - api/install.js - OAuth installation
 - api/products.js - Product creation and cart management
+- api/hide-product.js - Product hiding functionality
 - api/transform.js - AI image transformation
 - public/shopify-embed.html - Main UI and cart integration
 - public/shopify-script.js - Shopify theme integration
@@ -88,6 +89,14 @@ Customify is a Shopify app that allows customers to:
 - **User pays for physical print** of their AI-transformed photo
 - **Process**: Upload → Select style → Select size → AI transform → Create new product → Add to cart
 - **For store**: Order contains AI image for printing + original user photo + style/size info
+
+## Product Visibility Management
+- **Products are created as HIDDEN** (published: false) to prevent catalog clutter
+- **Products are hidden immediately** after adding to cart via `/api/hide-product` endpoint
+- **Hidden products** are not visible in store catalog but remain accessible for order fulfillment
+- **API Endpoint**: `/api/hide-product` - hides products by setting published: false
+- **Automatic hiding**: Called from `addToCart()` function after successful cart addition
+- **Purpose**: Keep catalog clean while preserving order data and AI-generated images
 
 ## Communication Rules
 - If you have doubts about requirements, ASK QUESTIONS before implementing
