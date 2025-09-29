@@ -1,11 +1,20 @@
 module.exports = async (req, res) => {
+  console.log('🔒 [HIDE-PRODUCT.JS] Endpoint called');
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') {
     res.status(200).end();
     return;
+  }
+
+  if (req.method === 'GET') {
+    return res.json({ 
+      message: 'Hide Product API endpoint is working',
+      methods: ['POST'],
+      usage: 'Send POST request with { "productId": "123" }'
+    });
   }
 
   if (req.method !== 'POST') {
