@@ -638,6 +638,13 @@ body * {
 /* SZARE TŁO STRONY, BIAŁE ELEMENTY */
 body {
   background: #f8f9fa; /* Szare tło całej strony */
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+main {
+  flex: 1;
 }
 
 .page-width, .main-content, .content-for-layout, 
