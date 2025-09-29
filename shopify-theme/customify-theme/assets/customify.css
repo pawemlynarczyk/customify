@@ -822,8 +822,8 @@ div.discount-badge {
   cursor: pointer;
   transition: all 0.3s ease;
   margin-bottom: 10px;
-  display: block;
-  width: 100%;
+  display: inline-block;
+  width: auto;
   text-align: center;
 }
 
