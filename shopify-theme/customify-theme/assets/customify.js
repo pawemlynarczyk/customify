@@ -461,6 +461,9 @@ class CustomifyEmbed {
         this.showSuccess('✅ ' + (result.message || 'Produkt został utworzony!'));
         console.log('✅ [CUSTOMIFY] Product created:', result.product);
         
+        // UKRYJ PRODUKT NATYCHMIAST PO UTWORZENIU (przed dodaniem do koszyka)
+        this.hideProductAfterCartAdd(result.productId);
+        
         // Obraz AI jest już głównym obrazem produktu
         
         if (result.variantId) {
@@ -493,9 +496,6 @@ class CustomifyEmbed {
           
           // Przekieruj bezpośrednio do koszyka
           window.location.href = cartUrl;
-          
-          // UKRYJ PRODUKT PO DODANIU DO KOSZYKA
-          this.hideProductAfterCartAdd(result.productId);
         }
       } else {
         console.error('❌ [CUSTOMIFY] Product creation failed:', result);
