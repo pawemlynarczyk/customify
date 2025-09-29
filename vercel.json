@@ -76,6 +76,10 @@
       "dest": "/api/update-theme-simple.js"
     },
     {
+      "src": "/api/setup-webhook",
+      "dest": "/api/setup-webhook.js"
+    },
+    {
       "src": "/(.*)",
       "dest": "/public/$1"
     }
