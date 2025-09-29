@@ -29,15 +29,7 @@ module.exports = async (req, res) => {
       });
     }
 
-    const stylePrices = {
-      'van gogh': 50,
-      'picasso': 75,
-      'monet': 60,
-      'anime': 40,
-      'cyberpunk': 80,
-      'watercolor': 45,
-      'pixar': 85
-    };
+    // Style nie wpływają na cenę - usunięto stylePrices
 
     const sizePrices = {
       'small': 0,
@@ -47,7 +39,7 @@ module.exports = async (req, res) => {
     };
 
     const basePrice = 29.99;
-    const totalPrice = basePrice + (stylePrices[style] || 0) + (sizePrices[size] || 0);
+    const totalPrice = basePrice + (sizePrices[size] || 0); // Style nie wpływają na cenę
 
     const shop = process.env.SHOP_DOMAIN || 'customify-ok.myshopify.com';
     const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
@@ -60,7 +52,7 @@ module.exports = async (req, res) => {
     console.log('💰 [PRODUCTS.JS] Pricing details:', {
       style: style,
       size: size,
-      stylePrice: stylePrices[style] || 0,
+      stylePrice: 0, // Style nie wpływają na cenę
       sizePrice: sizePrices[size] || 0,
       basePrice: basePrice,
       totalPrice: totalPrice
@@ -72,7 +64,7 @@ module.exports = async (req, res) => {
         title: `Spersonalizowany ${originalProductTitle || 'Produkt'} - Styl ${style} - Rozmiar ${size || 'standard'}`,
         body_html: `
           <p><strong>Spersonalizowany produkt z AI</strong></p>
-          <p><strong>Styl:</strong> ${style} (+${stylePrices[style] || 0} zł)</p>
+          <p><strong>Styl:</strong> ${style}</p>
           <p><strong>Rozmiar:</strong> ${size || 'standardowy'} (+${sizePrices[size] || 0} zł)</p>
           <p><strong>Cena bazowa:</strong> ${basePrice} zł</p>
           <p><strong>Cena całkowita:</strong> ${totalPrice} zł</p>

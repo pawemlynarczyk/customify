@@ -155,4 +155,5 @@ Customify is a Shopify app that allows customers to:
 - **DEPLOYMENT**: Używaj tylko głównego pliku, kopie są backupami
 - **STYLE IMAGES**: Używaj obrazków z katalogu public (screenshoty)
 - **NO GRADIENTS**: Tylko obrazki, nie gradienty CSS
+- **STYLE PRICING**: Style NIE wpływają na cenę - tylko rozmiary wpływają na cenę
 - **PRIORITY**: NIE NISZCZ DZIAŁAJĄCYCH FUNKCJI - zachowaj wszystko co działa
