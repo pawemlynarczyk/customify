@@ -2175,23 +2175,32 @@ document.addEventListener('DOMContentLoaded', function() {
           const recommendationCards = document.querySelectorAll('.product-recommendations .product-card');
           
           // Znajdź wszystkie karty produktów w katalogu
-          const catalogCards = document.querySelectorAll('.product-grid .product-card, .collection .product-card, .products .product-card, [data-product-card]');
+          const catalogCards = document.querySelectorAll('.product-grid .product-card, .product-grid__item, .collection .product-card, .products .product-card, [data-product-card]');
           
           // Połącz wszystkie karty
           const allCards = [...recommendationCards, ...catalogCards];
           
-          allCards.forEach(card => {
+          console.log('🔍 [CUSTOMIFY] Found cards:', allCards.length);
+          
+          allCards.forEach((card, index) => {
             const productTitle = card.querySelector('[data-product-title]')?.textContent || 
                                card.querySelector('.product-title')?.textContent ||
                                card.querySelector('h3')?.textContent ||
                                card.querySelector('h2')?.textContent || '';
             const productLink = card.querySelector('a[href]')?.href || '';
             
+            console.log(`🔍 [CUSTOMIFY] Card ${index}:`, {
+              title: productTitle,
+              link: productLink
+            });
+            
             // Sprawdź czy to NOWY produkt Customify (nie główny produkt)
             // Główny produkt ma URL /products/custom - NIE ukrywaj go!
             const isMainProduct = productLink.includes('/products/custom') && 
                                  !productLink.includes('spersonalizowany') &&
                                  !productTitle.includes('Spersonalizowany');
+            
+            console.log(`🔍 [CUSTOMIFY] Card ${index} isMainProduct:`, isMainProduct);
             
             // Sprawdź czy to produkt Customify (tylko nowe produkty)
             if (!isMainProduct && (
@@ -2208,6 +2217,8 @@ document.addEventListener('DOMContentLoaded', function() {
               card.style.height = '0';
               card.style.margin = '0';
               card.style.padding = '0';
+            } else {
+              console.log('✅ [CUSTOMIFY] Keeping product:', productTitle);
             }
           });
         }
@@ -2341,8 +2352,10 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // UKRYJ PRODUKTY CUSTOMIFY W KATALOGU (jeśli jesteśmy na stronie katalogu)
         if (window.location.pathname.includes('/collections/') || window.location.pathname === '/collections/all') {
-          const customify = new CustomifyEmbed();
-          customify.hideCustomifyProductsFromRecommendations();
+          setTimeout(() => {
+            const customify = new CustomifyEmbed();
+            customify.hideCustomifyProductsFromRecommendations();
+          }, 1000); // Czekaj 1 sekundę na załadowanie DOM
         }
         
         // DODATKOWA FUNKCJA DO USUNIĘCIA DIVIDERA (BEZ PRZENOSZENIA CENY)
