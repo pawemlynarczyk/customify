@@ -98,6 +98,24 @@ Customify is a Shopify app that allows customers to:
 - **Automatic hiding**: Called from `addToCart()` function after successful cart addition
 - **Purpose**: Keep catalog clean while preserving order data and AI-generated images
 
+## Product Identification Strategy
+- **Main Product**: "Obraz ze zdjęcia w stylu Ghibli" (URL: /products/custom) - ALWAYS VISIBLE
+- **New Customify Products**: Contain word "rozmiar" in title (e.g., "Styl pixar - Rozmiar medium")
+- **CSS Selectors for Hiding**:
+  ```css
+  /* Hide ONLY new Customify products (containing "rozmiar") */
+  .product-card:has([data-product-title*="rozmiar"]) {
+    display: none !important;
+  }
+  
+  /* PROTECTION: Main product NEVER hidden */
+  .product-card:has([data-product-title*="Obraz ze zdjęcia w stylu Ghibli"]) {
+    display: block !important;
+  }
+  ```
+- **Why "rozmiar" works**: New products always have size in title, main product doesn't
+- **Alternative selectors**: `[href*="spersonalizowany"]` for URL-based hiding
+
 ## Communication Rules
 - If you have doubts about requirements, ASK QUESTIONS before implementing
 - Always clarify the exact business logic before writing code
@@ -123,6 +141,23 @@ Customify is a Shopify app that allows customers to:
   - Added `productId` to API response for better debugging
   - Simplified cart add process to prevent network errors
 - **Files Modified**: `api/products.js`, `public/shopify-embed.html`
+- **Status**: ✅ Fixed and deployed
+
+### Product Visibility Issue Fix
+- **Problem**: Główny produkt "custom" nie był widoczny w katalogu mimo że był w HTML
+- **Root Cause**: Style CSS w `customify.css` ukrywały produkty:
+  ```css
+  .product-card:has([href*="custom"]) {
+    display: none !important;
+  }
+  ```
+- **Why it was hard to find**: 
+  - Produkty były w HTML (curl pokazywał je)
+  - JavaScript nie ukrywał (usunęliśmy funkcje JS)
+  - Problem był w CSS - `display: none !important` ukrywał wizualnie
+  - Selektor `[href*="custom"]` łapał główny produkt z URL `/products/custom`
+- **Solution**: Usunięto wszystkie style CSS ukrywające produkty
+- **Files Modified**: `shopify-theme/customify-theme/assets/customify.css`
 - **Status**: ✅ Fixed and deployed
 
 ### Cart Integration Details
