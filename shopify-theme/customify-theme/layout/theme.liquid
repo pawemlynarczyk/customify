@@ -2178,11 +2178,19 @@ document.addEventListener('DOMContentLoaded', function() {
             const productTitle = card.querySelector('[data-product-title]')?.textContent || '';
             const productLink = card.querySelector('a[href]')?.href || '';
             
-            // Sprawdź czy to produkt Customify
-            if (productTitle.includes('Spersonalizowany') || 
+            // Sprawdź czy to NOWY produkt Customify (nie główny produkt)
+            // Główny produkt ma URL /products/custom - NIE ukrywaj go!
+            const isMainProduct = productLink.includes('/products/custom') && 
+                                 !productLink.includes('spersonalizowany') &&
+                                 !productTitle.includes('Spersonalizowany');
+            
+            // Sprawdź czy to produkt Customify (tylko nowe produkty)
+            if (!isMainProduct && (
+                productTitle.includes('Spersonalizowany') || 
                 productTitle.includes('Custom') ||
                 productLink.includes('spersonalizowany') ||
-                productLink.includes('custom')) {
+                (productLink.includes('custom') && !productLink.includes('/products/custom'))
+            )) {
               
               console.log('🔒 [CUSTOMIFY] Hiding Customify product from recommendations:', productTitle);
               card.style.display = 'none';
