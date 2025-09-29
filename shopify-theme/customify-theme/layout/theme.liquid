@@ -2189,26 +2189,41 @@ document.addEventListener('DOMContentLoaded', function() {
                                card.querySelector('h2')?.textContent || '';
             const productLink = card.querySelector('a[href]')?.href || '';
             
+            // ZABEZPIECZENIE: Jeśli to główny produkt "custom" - POMIŃ GO CAŁKOWICIE!
+            if (productLink.includes('/products/custom') && 
+                !productLink.includes('spersonalizowany') &&
+                !productTitle.includes('Spersonalizowany')) {
+              console.log(`✅ [CUSTOMIFY] SKIPPING main product "custom" - NEVER HIDE IT!`, productTitle);
+              return; // Pomiń ten produkt całkowicie
+            }
+            
             console.log(`🔍 [CUSTOMIFY] Card ${index}:`, {
               title: productTitle,
               link: productLink
             });
             
+            // ZABEZPIECZENIE: Główny produkt "custom" NIGDY nie może być ukryty!
+            const isMainCustomProduct = productLink.includes('/products/custom') && 
+                                       !productLink.includes('spersonalizowany') &&
+                                       !productTitle.includes('Spersonalizowany');
+            
             // Sprawdź czy to NOWY produkt Customify (nie główny produkt)
-            // Główny produkt ma URL /products/custom - NIE ukrywaj go!
-            const isMainProduct = productLink.includes('/products/custom') && 
-                                 !productLink.includes('spersonalizowany') &&
-                                 !productTitle.includes('Spersonalizowany');
-            
-            console.log(`🔍 [CUSTOMIFY] Card ${index} isMainProduct:`, isMainProduct);
-            
-            // Sprawdź czy to produkt Customify (tylko nowe produkty)
-            if (!isMainProduct && (
+            const isNewCustomifyProduct = !isMainCustomProduct && (
                 productTitle.includes('Spersonalizowany') || 
                 productTitle.includes('Custom') ||
                 productLink.includes('spersonalizowany') ||
                 (productLink.includes('custom') && !productLink.includes('/products/custom'))
-            )) {
+            );
+            
+            console.log(`🔍 [CUSTOMIFY] Card ${index}:`, {
+              title: productTitle,
+              link: productLink,
+              isMainCustomProduct: isMainCustomProduct,
+              isNewCustomifyProduct: isNewCustomifyProduct
+            });
+            
+            // UKRYJ TYLKO NOWE PRODUKTY CUSTOMIFY - NIGDY GŁÓWNEGO PRODUKTU!
+            if (isNewCustomifyProduct) {
               
               console.log('🔒 [CUSTOMIFY] Hiding Customify product:', productTitle);
               card.style.display = 'none';
