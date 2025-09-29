@@ -52,6 +52,10 @@
       "dest": "/api/products.js"
     },
     {
+      "src": "/api/hide-product",
+      "dest": "/api/hide-product.js"
+    },
+    {
       "src": "/api/webhooks/customers/data-request",
       "dest": "/api/webhooks/customers/data-request.js"
     },
