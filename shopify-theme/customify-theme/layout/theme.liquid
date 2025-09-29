@@ -2141,8 +2141,7 @@ document.addEventListener('DOMContentLoaded', function() {
                   if (cartResponse.ok) {
                     console.log('✅ [CUSTOMIFY] Product added to cart successfully');
                     
-                    // UKRYJ PRODUKTY CUSTOMIFY Z REKOMENDACJI
-                    this.hideCustomifyProductsFromRecommendations();
+                    // USUNIĘTO: Ukrywanie produktów - wszystkie produkty pozostają widoczne
                     
                     // Przekieruj do koszyka
                     window.location.href = '/cart';
@@ -2167,76 +2166,7 @@ document.addEventListener('DOMContentLoaded', function() {
           }
         }
 
-        // UKRYJ PRODUKTY CUSTOMIFY Z REKOMENDACJI I KATALOGU
-        hideCustomifyProductsFromRecommendations() {
-          console.log('🔒 [CUSTOMIFY] Hiding Customify products from recommendations and catalog');
-          
-          // Znajdź wszystkie karty produktów w rekomendacjach
-          const recommendationCards = document.querySelectorAll('.product-recommendations .product-card');
-          
-          // Znajdź wszystkie karty produktów w katalogu
-          const catalogCards = document.querySelectorAll('.product-grid .product-card, .product-grid__item, .collection .product-card, .products .product-card, [data-product-card]');
-          
-          // Połącz wszystkie karty
-          const allCards = [...recommendationCards, ...catalogCards];
-          
-          console.log('🔍 [CUSTOMIFY] Found cards:', allCards.length);
-          
-          allCards.forEach((card, index) => {
-            const productTitle = card.querySelector('[data-product-title]')?.textContent || 
-                               card.querySelector('.product-title')?.textContent ||
-                               card.querySelector('h3')?.textContent ||
-                               card.querySelector('h2')?.textContent || '';
-            const productLink = card.querySelector('a[href]')?.href || '';
-            
-            // ZABEZPIECZENIE: Jeśli to główny produkt "custom" - POMIŃ GO CAŁKOWICIE!
-            if (productLink.includes('/products/custom') && 
-                !productLink.includes('spersonalizowany') &&
-                !productTitle.includes('Spersonalizowany')) {
-              console.log(`✅ [CUSTOMIFY] SKIPPING main product "custom" - NEVER HIDE IT!`, productTitle);
-              return; // Pomiń ten produkt całkowicie
-            }
-            
-            console.log(`🔍 [CUSTOMIFY] Card ${index}:`, {
-              title: productTitle,
-              link: productLink
-            });
-            
-            // ZABEZPIECZENIE: Główny produkt "custom" NIGDY nie może być ukryty!
-            const isMainCustomProduct = productLink.includes('/products/custom') && 
-                                       !productLink.includes('spersonalizowany') &&
-                                       !productTitle.includes('Spersonalizowany');
-            
-            // Sprawdź czy to NOWY produkt Customify (nie główny produkt)
-            const isNewCustomifyProduct = !isMainCustomProduct && (
-                productTitle.includes('Spersonalizowany') || 
-                productTitle.includes('Custom') ||
-                productLink.includes('spersonalizowany') ||
-                (productLink.includes('custom') && !productLink.includes('/products/custom'))
-            );
-            
-            console.log(`🔍 [CUSTOMIFY] Card ${index}:`, {
-              title: productTitle,
-              link: productLink,
-              isMainCustomProduct: isMainCustomProduct,
-              isNewCustomifyProduct: isNewCustomifyProduct
-            });
-            
-            // UKRYJ TYLKO NOWE PRODUKTY CUSTOMIFY - NIGDY GŁÓWNEGO PRODUKTU!
-            if (isNewCustomifyProduct) {
-              
-              console.log('🔒 [CUSTOMIFY] Hiding Customify product:', productTitle);
-              card.style.display = 'none';
-              card.style.visibility = 'hidden';
-              card.style.opacity = '0';
-              card.style.height = '0';
-              card.style.margin = '0';
-              card.style.padding = '0';
-            } else {
-              console.log('✅ [CUSTOMIFY] Keeping product:', productTitle);
-            }
-          });
-        }
+        // USUNIĘTO: Funkcja ukrywania produktów - wszystkie produkty są widoczne
 
         // UKRYJ PRODUKT PO DODANIU DO KOSZYKA
         async hideProductAfterCartAdd(productId) {
@@ -2365,17 +2295,7 @@ document.addEventListener('DOMContentLoaded', function() {
       document.addEventListener('DOMContentLoaded', () => {
         new CustomifyEmbed();
         
-        // UKRYJ TYLKO NOWE PRODUKTY CUSTOMIFY W KATALOGU (ZACHOWAJ GŁÓWNY PRODUKT)
-        console.log('🔍 [CUSTOMIFY] Current pathname:', window.location.pathname);
-        if (window.location.pathname.includes('/collections/') || window.location.pathname === '/collections/all') {
-          console.log('🔍 [CUSTOMIFY] On catalog page - hiding only NEW Customify products');
-          setTimeout(() => {
-            const customify = new CustomifyEmbed();
-            customify.hideCustomifyProductsFromRecommendations();
-          }, 1000); // Czekaj 1 sekundę na załadowanie DOM
-        } else {
-          console.log('🔍 [CUSTOMIFY] Not on catalog page - skipping product hiding');
-        }
+        // USUNIĘTO: Wszystkie funkcje ukrywania produktów - wszystkie produkty są widoczne
         
         // DODATKOWA FUNKCJA DO USUNIĘCIA DIVIDERA (BEZ PRZENOSZENIA CENY)
         // Użyj window.onload zamiast DOMContentLoaded - czeka na wszystkie style
