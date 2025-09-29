@@ -1215,3 +1215,26 @@ div.discount-badge {
     margin-right: 0;
   }
 }
+
+/* ========================================
+   HIDE CUSTOMIFY PRODUCTS FROM RECOMMENDATIONS
+   ======================================== */
+
+/* Ukryj produkty Customify z sekcji rekomendacji */
+.product-card:has([href*="spersonalizowany"]) {
+  display: none !important;
+}
+
+.product-card:has([href*="custom"]) {
+  display: none !important;
+}
+
+/* Ukryj produkty z vendor Customify */
+.product-card:has([data-product-title*="Spersonalizowany"]) {
+  display: none !important;
+}
+
+/* Ukryj produkty z tagami no-recommendations */
+.product-card[data-product-id*="1532"] {
+  display: none !important;
+}

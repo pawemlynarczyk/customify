@@ -2112,6 +2112,9 @@ document.addEventListener('DOMContentLoaded', function() {
                   if (cartResponse.ok) {
                     console.log('✅ [CUSTOMIFY] Product added to cart successfully');
                     
+                    // UKRYJ PRODUKTY CUSTOMIFY Z REKOMENDACJI
+                    this.hideCustomifyProductsFromRecommendations();
+                    
                     // Przekieruj do koszyka
                     window.location.href = '/cart';
                     
@@ -2133,6 +2136,34 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('❌ [CUSTOMIFY] Add to cart error:', error);
             this.showError('❌ Błąd połączenia z serwerem: ' + error.message);
           }
+        }
+
+        // UKRYJ PRODUKTY CUSTOMIFY Z REKOMENDACJI
+        hideCustomifyProductsFromRecommendations() {
+          console.log('🔒 [CUSTOMIFY] Hiding Customify products from recommendations');
+          
+          // Znajdź wszystkie karty produktów w rekomendacjach
+          const productCards = document.querySelectorAll('.product-recommendations .product-card');
+          
+          productCards.forEach(card => {
+            const productTitle = card.querySelector('[data-product-title]')?.textContent || '';
+            const productLink = card.querySelector('a[href]')?.href || '';
+            
+            // Sprawdź czy to produkt Customify
+            if (productTitle.includes('Spersonalizowany') || 
+                productTitle.includes('Custom') ||
+                productLink.includes('spersonalizowany') ||
+                productLink.includes('custom')) {
+              
+              console.log('🔒 [CUSTOMIFY] Hiding Customify product from recommendations:', productTitle);
+              card.style.display = 'none';
+              card.style.visibility = 'hidden';
+              card.style.opacity = '0';
+              card.style.height = '0';
+              card.style.margin = '0';
+              card.style.padding = '0';
+            }
+          });
         }
 
         // UKRYJ PRODUKT PO DODANIU DO KOSZYKA
