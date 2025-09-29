@@ -2366,11 +2366,15 @@ document.addEventListener('DOMContentLoaded', function() {
         new CustomifyEmbed();
         
         // UKRYJ PRODUKTY CUSTOMIFY W KATALOGU (jeśli jesteśmy na stronie katalogu)
+        console.log('🔍 [CUSTOMIFY] Current pathname:', window.location.pathname);
         if (window.location.pathname.includes('/collections/') || window.location.pathname === '/collections/all') {
+          console.log('🔍 [CUSTOMIFY] On catalog page - will hide Customify products');
           setTimeout(() => {
             const customify = new CustomifyEmbed();
             customify.hideCustomifyProductsFromRecommendations();
           }, 1000); // Czekaj 1 sekundę na załadowanie DOM
+        } else {
+          console.log('🔍 [CUSTOMIFY] Not on catalog page - skipping product hiding');
         }
         
         // DODATKOWA FUNKCJA DO USUNIĘCIA DIVIDERA (BEZ PRZENOSZENIA CENY)
