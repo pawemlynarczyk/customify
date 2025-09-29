@@ -1358,7 +1358,8 @@
       {{ content_for_layout }}
     </main>
 
-    <!-- SEKCJA OPINII KLIENTÓW - POWYŻEJ STOPKI -->
+    <!-- SEKCJA OPINII KLIENTÓW - POWYŻEJ STOPKI (TYLKO NA STRONIE PRODUKTU) -->
+    {% if template contains 'product' %}
     <div class="customer-reviews-section">
       <div class="reviews-header">
         <h2 class="reviews-title">
@@ -1504,6 +1505,7 @@
         </div>
       </div>
     </div>
+    {% endif %}
 
     {% sections 'footer-group' %}
 
