@@ -2365,43 +2365,16 @@ document.addEventListener('DOMContentLoaded', function() {
       document.addEventListener('DOMContentLoaded', () => {
         new CustomifyEmbed();
         
-        // PRZYWRÓĆ WSZYSTKIE UKRYTE PRODUKTY W KATALOGU
+        // UKRYJ TYLKO NOWE PRODUKTY CUSTOMIFY W KATALOGU (ZACHOWAJ GŁÓWNY PRODUKT)
         console.log('🔍 [CUSTOMIFY] Current pathname:', window.location.pathname);
         if (window.location.pathname.includes('/collections/') || window.location.pathname === '/collections/all') {
-          console.log('🔍 [CUSTOMIFY] On catalog page - RESTORING all hidden products');
+          console.log('🔍 [CUSTOMIFY] On catalog page - hiding only NEW Customify products');
           setTimeout(() => {
-            // PRZYWRÓĆ WSZYSTKIE UKRYTE PRODUKTY
-            const allCards = document.querySelectorAll('.product-grid .product-card, .product-grid__item, .collection .product-card, .products .product-card, [data-product-card]');
-            console.log('🔍 [CUSTOMIFY] Found cards to restore:', allCards.length);
-            
-            allCards.forEach((card, index) => {
-              const productTitle = card.querySelector('[data-product-title]')?.textContent || 
-                                 card.querySelector('.product-title')?.textContent ||
-                                 card.querySelector('h3')?.textContent ||
-                                 card.querySelector('h2')?.textContent || '';
-              const productLink = card.querySelector('a[href]')?.href || '';
-              
-              console.log(`🔍 [CUSTOMIFY] Restoring card ${index}:`, {
-                title: productTitle,
-                link: productLink,
-                currentDisplay: window.getComputedStyle(card).display,
-                currentVisibility: window.getComputedStyle(card).visibility,
-                currentOpacity: window.getComputedStyle(card).opacity
-              });
-              
-              // PRZYWRÓĆ STYLE
-              card.style.display = '';
-              card.style.visibility = '';
-              card.style.opacity = '';
-              card.style.height = '';
-              card.style.margin = '';
-              card.style.padding = '';
-              
-              console.log(`✅ [CUSTOMIFY] Restored card ${index}:`, productTitle);
-            });
-          }, 1000);
+            const customify = new CustomifyEmbed();
+            customify.hideCustomifyProductsFromRecommendations();
+          }, 1000); // Czekaj 1 sekundę na załadowanie DOM
         } else {
-          console.log('🔍 [CUSTOMIFY] Not on catalog page - skipping product restoration');
+          console.log('🔍 [CUSTOMIFY] Not on catalog page - skipping product hiding');
         }
         
         // DODATKOWA FUNKCJA DO USUNIĘCIA DIVIDERA (BEZ PRZENOSZENIA CENY)
