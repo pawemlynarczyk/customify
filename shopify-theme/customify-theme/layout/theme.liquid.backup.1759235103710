@@ -334,7 +334,6 @@
         .customify-style-card.active {
           border-color: #ff6b35;
           box-shadow: 0 0 0 2px rgba(255, 107, 53, 0.2);
-          transform: scale(1.02);
         }
 
         .style-image {
@@ -364,60 +363,6 @@
             grid-template-columns: repeat(2, 1fr);
             gap: 10px;
           }
-        }
-
-        /* CSS dla rozmiarów */
-        .customify-size-selector {
-          display: none;
-          margin-bottom: 24px;
-          background: white;
-          border-radius: 0;
-          padding: 20px 0;
-          border: none;
-          border-top: 1px solid #e9ecef;
-        }
-
-        .customify-size-selector h4 {
-          font-size: 1.2rem;
-          font-weight: 600;
-          color: #000;
-          margin: 0 0 16px 0;
-          text-align: center;
-        }
-
-        .customify-size-buttons {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-          gap: 12px;
-        }
-
-        .customify-size-btn {
-          padding: 16px 12px;
-          border: 2px solid #dee2e6;
-          border-radius: 0;
-          background: white;
-          cursor: pointer;
-          transition: all 0.3s ease;
-          text-align: center;
-          font-size: 0.95rem;
-          font-weight: 500;
-          color: #333;
-          box-shadow: none;
-        }
-
-        .customify-size-btn:hover {
-          border-color: #e55a2b;
-          background-color: #fff5f0;
-          transform: none;
-          box-shadow: none;
-        }
-
-        .customify-size-btn.active {
-          border-color: #ff6b35;
-          background: white;
-          color: #000;
-          transform: none;
-          box-shadow: none;
         }
       </style>
     {% endif %}
