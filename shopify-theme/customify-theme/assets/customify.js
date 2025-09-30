@@ -406,10 +406,18 @@ class CustomifyEmbed {
       const timeoutId = setTimeout(() => controller.abort(), 300000); // 5 minutes
       
       console.log('📱 [MOBILE] Sending request to transform API...');
-      console.log('📱 [MOBILE] Request body size:', JSON.stringify({
-        imageData: base64.substring(0, 100) + '...',
+      console.log('📱 [MOBILE] Base64 length:', base64.length, 'characters');
+      console.log('📱 [MOBILE] Base64 preview:', base64.substring(0, 50) + '...');
+      
+      const requestBody = {
+        imageData: base64,
         prompt: `Transform this image in ${this.selectedStyle} style`
-      }).length, 'bytes');
+      };
+      
+      console.log('📱 [MOBILE] Request body size:', JSON.stringify(requestBody).length, 'bytes');
+      
+      // Tymczasowe alerty dla debugowania na mobilu
+      alert(`📱 Wysyłam request do API... Base64: ${base64.length} znaków`);
       
       const response = await fetch('https://customify-s56o.vercel.app/api/transform', {
         method: 'POST',
@@ -417,16 +425,16 @@ class CustomifyEmbed {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
-        body: JSON.stringify({
-          imageData: base64,
-          prompt: `Transform this image in ${this.selectedStyle} style`
-        }),
+        body: JSON.stringify(requestBody),
         signal: controller.signal
       });
       
       clearTimeout(timeoutId);
       console.log('📱 [MOBILE] Response received:', response.status, response.statusText);
       console.log('📱 [MOBILE] Response headers:', Object.fromEntries(response.headers.entries()));
+      
+      // Tymczasowe alerty dla debugowania na mobilu
+      alert(`📱 Otrzymałem odpowiedź: ${response.status} ${response.statusText}`);
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -446,6 +454,9 @@ class CustomifyEmbed {
     } catch (error) {
       console.error('📱 [MOBILE] Transform error:', error);
       
+      // Tymczasowe alerty dla debugowania na mobilu
+      alert(`📱 BŁĄD: ${error.message}`);
+      
       // Retry logic for network errors
       if (retryCount < 3 && (
         error.name === 'AbortError' || 
@@ -453,6 +464,7 @@ class CustomifyEmbed {
         error.message.includes('NetworkError')
       )) {
         console.log(`🔄 [MOBILE] Retrying in 2 seconds... (attempt ${retryCount + 1}/3)`);
+        alert(`🔄 Ponawiam próbę ${retryCount + 1}/3...`);
         setTimeout(() => {
           this.transformImage(retryCount + 1);
         }, 2000);
@@ -661,10 +673,29 @@ class CustomifyEmbed {
 
   fileToBase64(file) {
     return new Promise((resolve, reject) => {
+      console.log('📱 [MOBILE] Converting file to base64...');
+      console.log('📱 [MOBILE] File details:', {
+        name: file.name,
+        size: file.size,
+        type: file.type
+      });
+      
       const reader = new FileReader();
       reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result.split(',')[1]);
-      reader.onerror = error => reject(error);
+      reader.onload = () => {
+        const result = reader.result;
+        const base64 = result.split(',')[1];
+        console.log('📱 [MOBILE] Base64 conversion successful:', {
+          fullResultLength: result.length,
+          base64Length: base64.length,
+          preview: base64.substring(0, 50) + '...'
+        });
+        resolve(base64);
+      };
+      reader.onerror = error => {
+        console.error('📱 [MOBILE] Base64 conversion failed:', error);
+        reject(error);
+      };
     });
   }
 

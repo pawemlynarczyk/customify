@@ -92,8 +92,20 @@ async function compressImage(imageData, maxWidth = 1024, maxHeight = 1024, quali
 module.exports = async (req, res) => {
   console.log(`🚀 [TRANSFORM] API called - Method: ${req.method}, Headers:`, req.headers);
   
-  // Set CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  // Set CORS headers - explicit origins for better security
+  const allowedOrigins = [
+    'https://lumly.pl',
+    'https://customify-s56o.vercel.app',
+    'http://localhost:3000'
+  ];
+  
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
+  
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
   res.setHeader('Access-Control-Max-Age', '86400');
