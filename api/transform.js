@@ -94,13 +94,22 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: 'Replicate API token not configured' });
     }
 
+    // Test authentication (following Replicate docs)
+    try {
+      const account = await replicate.accounts.current();
+      console.log(`🔐 [REPLICATE] Authenticated as: ${account.username}`);
+    } catch (authError) {
+      console.error('❌ [REPLICATE] Authentication failed:', authError.message);
+      return res.status(401).json({ error: 'Replicate API authentication failed' });
+    }
+
     // Compress image before sending to Replicate to avoid memory issues
     console.log('Compressing image before AI processing...');
     const compressedImageData = await compressImage(imageData, 768, 768, 80);
     console.log(`Image compressed: ${imageData.length} -> ${compressedImageData.length} bytes`);
     
-    // Convert compressed base64 to data URL for Replicate
-    const imageUrl = `data:image/jpeg;base64,${compressedImageData}`;
+    // Convert compressed base64 to Buffer for Replicate (better than Data URI)
+    const imageBuffer = Buffer.from(compressedImageData, 'base64');
 
     // Use Replicate for AI image transformation with different models based on style
     
@@ -182,7 +191,7 @@ module.exports = async (req, res) => {
       // Ghibli anime model parameters
       inputParams = {
         ...inputParams,
-        image: imageUrl,
+        image: imageBuffer,
         go_fast: config.go_fast,
         guidance_scale: config.guidance_scale,
         prompt_strength: config.prompt_strength,
@@ -194,7 +203,7 @@ module.exports = async (req, res) => {
         task: config.task,
         prompt: config.prompt,
         negative_prompt: config.negative_prompt,
-        image: imageUrl,
+        image: imageBuffer,
         scheduler: config.scheduler,
         guidance_scale: config.guidance_scale,
         prompt_strength: config.prompt_strength,
@@ -209,7 +218,7 @@ module.exports = async (req, res) => {
       // Stable Diffusion model parameters (default)
       inputParams = {
         ...inputParams,
-        image: imageUrl,
+        image: imageBuffer,
         num_inference_steps: config.num_inference_steps,
         guidance_scale: config.guidance_scale,
         strength: config.strength
@@ -219,16 +228,18 @@ module.exports = async (req, res) => {
     console.log(`Running model: ${config.model}`);
     console.log(`Input parameters:`, inputParams);
 
-    // Add timeout and better error handling
+    // Add timeout and better error handling (following Replicate docs)
     const timeoutPromise = new Promise((_, reject) => {
       setTimeout(() => reject(new Error('Request timeout - model took too long')), 300000); // 5 minutes
     });
 
+    console.log(`🚀 [REPLICATE] Starting prediction with model: ${config.model}`);
     const replicatePromise = replicate.run(config.model, {
       input: inputParams
     });
 
     const output = await Promise.race([replicatePromise, timeoutPromise]);
+    console.log(`✅ [REPLICATE] Prediction completed successfully`);
 
     res.json({ 
       success: true, 
