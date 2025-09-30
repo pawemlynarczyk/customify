@@ -1,7 +1,20 @@
+const { checkRateLimit, getClientIP } = require('../utils/vercelRateLimiter');
+
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  // RATE LIMITING - Sprawdź limit dla API
+  const ip = getClientIP(req);
+  if (!checkRateLimit(ip, 100, 15 * 60 * 1000)) { // 100 requestów na 15 minut
+    console.log(`API rate limit exceeded for IP: ${ip}`);
+    return res.status(429).json({
+      error: 'API rate limit exceeded',
+      message: 'Too many API requests. Please try again later.',
+      retryAfter: 900 // 15 minut w sekundach
+    });
+  }
 
   if (req.method === 'OPTIONS') {
     res.status(200).end();

@@ -1,4 +1,5 @@
 const multer = require('multer');
+const { checkRateLimit, getClientIP } = require('../utils/vercelRateLimiter');
 
 // Configure multer for file uploads (memory storage for serverless)
 const storage = multer.memoryStorage();
@@ -22,6 +23,17 @@ module.exports = (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  // RATE LIMITING - Sprawdź limit dla upload'ów
+  const ip = getClientIP(req);
+  if (!checkRateLimit(ip, 50, 60 * 60 * 1000)) { // 50 upload'ów na godzinę
+    console.log(`Upload rate limit exceeded for IP: ${ip}`);
+    return res.status(429).json({
+      error: 'Upload rate limit exceeded',
+      message: 'Too many uploads. Please try again in 1 hour.',
+      retryAfter: 3600 // 1 godzina w sekundach
+    });
+  }
 
   if (req.method === 'OPTIONS') {
     res.status(200).end();

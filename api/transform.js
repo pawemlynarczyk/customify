@@ -1,4 +1,5 @@
 const Replicate = require('replicate');
+const { checkRateLimit, getClientIP } = require('../utils/vercelRateLimiter');
 
 // Try to load sharp, but don't fail if it's not available
 let sharp = null;
@@ -54,6 +55,17 @@ module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
   res.setHeader('Access-Control-Max-Age', '86400');
+
+  // RATE LIMITING - Sprawdź limit dla kosztownych operacji AI
+  const ip = getClientIP(req);
+  if (!checkRateLimit(ip, 20, 15 * 60 * 1000)) { // 20 requestów na 15 minut
+    console.log(`Rate limit exceeded for IP: ${ip}`);
+    return res.status(429).json({
+      error: 'Rate limit exceeded',
+      message: 'Too many AI requests. Please try again in 15 minutes.',
+      retryAfter: 900 // 15 minut w sekundach
+    });
+  }
 
   if (req.method === 'OPTIONS') {
     res.status(200).end();

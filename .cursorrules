@@ -39,13 +39,19 @@ if (hash !== req.headers['x-shopify-hmac-sha256']) {
 
 #### **Rate Limiting:**
 ```javascript
-// Ogranicz kosztowne operacje (AI, API calls)
-const rateLimit = require('express-rate-limit');
-const aiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minut
-  max: 10 // max 10 requestów na 15 minut
-});
-app.use('/api/transform', aiLimiter);
+// ZAIMPLEMENTOWANE: utils/vercelRateLimiter.js
+const { checkRateLimit, getClientIP } = require('../utils/vercelRateLimiter');
+
+// W każdym endpoincie:
+const ip = getClientIP(req);
+if (!checkRateLimit(ip, limit, windowMs)) {
+  return res.status(429).json({ error: 'Rate limit exceeded' });
+}
+
+// Limity:
+// - API: 100 requestów/15min (api/products.js)
+// - AI: 20 requestów/15min (api/transform.js) 
+// - Upload: 50 requestów/godzina (api/upload.js)
 ```
 
 #### **Shopify API Module:**
