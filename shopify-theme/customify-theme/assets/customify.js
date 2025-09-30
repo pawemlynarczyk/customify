@@ -351,7 +351,7 @@ class CustomifyEmbed {
 
   async transformImage() {
     if (!this.uploadedFile || !this.selectedStyle) {
-      this.showError('Proszę wybrać zdjęcie i styl');
+      this.showError('Wgraj zdjęcie i wybierz styl');
       return;
     }
 
