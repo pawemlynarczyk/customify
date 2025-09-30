@@ -19,22 +19,48 @@ if (process.env.REPLICATE_API_TOKEN && process.env.REPLICATE_API_TOKEN !== 'leav
   });
 }
 
-// Function to compress and resize images
-async function compressImage(imageData, maxWidth = 768, maxHeight = 768, quality = 80) {
+// Function to compress and resize images for SDXL models
+async function compressImage(imageData, maxWidth = 1024, maxHeight = 1024, quality = 80) {
   if (!sharp) {
     console.log('Sharp not available, returning original image');
     return imageData;
   }
   
   try {
-    console.log('Starting image compression...');
+    console.log('Starting image compression for SDXL...');
     const buffer = Buffer.from(imageData, 'base64');
     console.log(`Original image size: ${buffer.length} bytes (${(buffer.length / 1024 / 1024).toFixed(2)} MB)`);
     
+    // Get image metadata to determine optimal SDXL resolution
+    const metadata = await sharp(buffer).metadata();
+    const { width, height } = metadata;
+    console.log(`Original dimensions: ${width}x${height}`);
+    
+    // Calculate optimal SDXL resolution based on aspect ratio
+    let targetWidth, targetHeight;
+    const aspectRatio = width / height;
+    
+    if (aspectRatio > 1.2) {
+      // Landscape - use 1152x896 (SDXL recommended)
+      targetWidth = 1152;
+      targetHeight = 896;
+    } else if (aspectRatio < 0.8) {
+      // Portrait - use 896x1152 (SDXL recommended)
+      targetWidth = 896;
+      targetHeight = 1152;
+    } else {
+      // Square-ish - use 1024x1024 (SDXL standard)
+      targetWidth = 1024;
+      targetHeight = 1024;
+    }
+    
+    console.log(`SDXL optimal resolution: ${targetWidth}x${targetHeight} (aspect ratio: ${aspectRatio.toFixed(2)})`);
+    
     const compressedBuffer = await sharp(buffer)
-      .resize(maxWidth, maxHeight, {
+      .resize(targetWidth, targetHeight, {
         fit: 'inside',
-        withoutEnlargement: true
+        withoutEnlargement: true,
+        background: { r: 255, g: 255, b: 255, alpha: 1 } // White background for padding
       })
       .jpeg({ 
         quality: quality,
@@ -105,7 +131,7 @@ module.exports = async (req, res) => {
 
     // Compress image before sending to Replicate to avoid memory issues
     console.log('Compressing image before AI processing...');
-    const compressedImageData = await compressImage(imageData, 768, 768, 80);
+    const compressedImageData = await compressImage(imageData, 1024, 1024, 80);
     console.log(`Image compressed: ${imageData.length} -> ${compressedImageData.length} bytes`);
     
     // Convert compressed base64 to Buffer for Replicate (better than Data URI)
