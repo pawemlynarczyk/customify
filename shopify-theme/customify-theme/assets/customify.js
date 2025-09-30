@@ -405,6 +405,12 @@ class CustomifyEmbed {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 300000); // 5 minutes
       
+      console.log('📱 [MOBILE] Sending request to transform API...');
+      console.log('📱 [MOBILE] Request body size:', JSON.stringify({
+        imageData: base64.substring(0, 100) + '...',
+        prompt: `Transform this image in ${this.selectedStyle} style`
+      }).length, 'bytes');
+      
       const response = await fetch('https://customify-s56o.vercel.app/api/transform', {
         method: 'POST',
         headers: { 
@@ -419,8 +425,17 @@ class CustomifyEmbed {
       });
       
       clearTimeout(timeoutId);
+      console.log('📱 [MOBILE] Response received:', response.status, response.statusText);
+      console.log('📱 [MOBILE] Response headers:', Object.fromEntries(response.headers.entries()));
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('📱 [MOBILE] Response error:', errorText);
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
+      }
 
       const result = await response.json();
+      console.log('📱 [MOBILE] Response JSON parsed successfully');
       if (result.success) {
         this.transformedImage = result.transformedImage;
         this.showResult(result.transformedImage);
