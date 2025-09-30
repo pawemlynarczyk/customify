@@ -384,7 +384,7 @@ class CustomifyEmbed {
     this.selectedSize = sizeBtn.dataset.size;
   }
 
-  async transformImage() {
+  async transformImage(retryCount = 0) {
     if (!this.uploadedFile || !this.selectedStyle) {
       this.showError('Wgraj zdjęcie i wybierz styl');
       return;
@@ -392,17 +392,33 @@ class CustomifyEmbed {
 
     this.showLoading();
     this.hideError();
+    
+    if (retryCount > 0) {
+      console.log(`🔄 [MOBILE] Retry attempt ${retryCount}/3`);
+    }
 
     try {
       const base64 = await this.fileToBase64(this.uploadedFile);
+      console.log('📱 [MOBILE] Starting transform request...');
+      
+      // Create AbortController for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 300000); // 5 minutes
+      
       const response = await fetch('https://customify-s56o.vercel.app/api/transform', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
         body: JSON.stringify({
           imageData: base64,
           prompt: `Transform this image in ${this.selectedStyle} style`
-        })
+        }),
+        signal: controller.signal
       });
+      
+      clearTimeout(timeoutId);
 
       const result = await response.json();
       if (result.success) {
@@ -413,7 +429,34 @@ class CustomifyEmbed {
         this.showError('Błąd podczas transformacji: ' + (result.error || 'Nieznany błąd'));
       }
     } catch (error) {
-      this.showError('Błąd połączenia z serwerem');
+      console.error('📱 [MOBILE] Transform error:', error);
+      
+      // Retry logic for network errors
+      if (retryCount < 3 && (
+        error.name === 'AbortError' || 
+        error.message.includes('Failed to fetch') || 
+        error.message.includes('NetworkError')
+      )) {
+        console.log(`🔄 [MOBILE] Retrying in 2 seconds... (attempt ${retryCount + 1}/3)`);
+        setTimeout(() => {
+          this.transformImage(retryCount + 1);
+        }, 2000);
+        return;
+      }
+      
+      let errorMessage = 'Błąd połączenia z serwerem';
+      
+      if (error.name === 'AbortError') {
+        errorMessage = 'Przekroczono limit czasu (5 minut). Spróbuj ponownie.';
+      } else if (error.message.includes('Failed to fetch')) {
+        errorMessage = 'Błąd sieci. Sprawdź połączenie internetowe.';
+      } else if (error.message.includes('NetworkError')) {
+        errorMessage = 'Błąd sieci. Spróbuj ponownie za chwilę.';
+      } else if (error.message.includes('TypeError')) {
+        errorMessage = 'Błąd przetwarzania. Spróbuj ponownie.';
+      }
+      
+      this.showError(errorMessage);
     } finally {
       this.hideLoading();
     }
@@ -557,7 +600,20 @@ class CustomifyEmbed {
       }
     } catch (error) {
       console.error('❌ [CUSTOMIFY] Add to cart error:', error);
-      this.showError('❌ Błąd połączenia z serwerem: ' + error.message);
+      
+      let errorMessage = '❌ Błąd połączenia z serwerem';
+      
+      if (error.name === 'AbortError') {
+        errorMessage = '❌ Przekroczono limit czasu. Spróbuj ponownie.';
+      } else if (error.message.includes('Failed to fetch')) {
+        errorMessage = '❌ Błąd sieci. Sprawdź połączenie internetowe.';
+      } else if (error.message.includes('NetworkError')) {
+        errorMessage = '❌ Błąd sieci. Spróbuj ponownie za chwilę.';
+      } else {
+        errorMessage = '❌ Błąd: ' + error.message;
+      }
+      
+      this.showError(errorMessage);
     }
   }
 
