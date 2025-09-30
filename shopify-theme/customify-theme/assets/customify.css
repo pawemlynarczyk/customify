@@ -155,7 +155,7 @@ body * {
   gap: 24px !important;
   align-items: start !important;
   width: 100% !important;
-  background: #f8f9fa !important;
+  background: #f3f5f6 !important;
   padding: 20px !important;
   border-radius: 0 !important;
 }
@@ -219,7 +219,7 @@ body * {
 
 /* ZMIEŃ KOLOR UPLOAD AREA NA SZARY */
 #uploadArea {
-  background-color: #f8f9fa !important;
+  background-color: #f3f5f6 !important;
   border-color: #dee2e6 !important;
   color: #6c757d !important;
 }
@@ -313,7 +313,7 @@ body * {
 }
 
 .search-categories {
-  background: #f8f9fa;
+  background: #f3f5f6;
   border: none;
   padding: 0 15px;
   font-size: 14px;
@@ -506,13 +506,13 @@ body * {
 }
 
 .dropdown-link:hover {
-  background: #f8f9fa;
+  background: #f3f5f6;
   color: #ff6b35;
 }
 
 /* Breadcrumbs */
 .breadcrumbs {
-  background: #f8f9fa;
+  background: #f3f5f6;
   padding: 15px 0;
   border-bottom: 1px solid #e9ecef;
 }
@@ -630,14 +630,14 @@ body * {
   gap: 24px;
   align-items: start;
   width: 100%;
-  background: #f8f9fa; /* SZARE TŁO dla grid */
+  background: #f3f5f6; /* SZARE TŁO dla grid */
   padding: 20px;
   border-radius: 0;
 }
 
 /* SZARE TŁO STRONY, BIAŁE ELEMENTY */
 body {
-  background: #f8f9fa; /* Szare tło całej strony */
+  background: #f3f5f6; /* Szare tło całej strony */
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -1109,7 +1109,7 @@ div.discount-badge {
   margin-top: 40px;
   padding: 30px 0;
   border-top: 2px solid #e9ecef;
-  background: #f8f9fa;
+  background: #f3f5f6;
 }
 
 .reviews-header {
