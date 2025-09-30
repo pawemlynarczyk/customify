@@ -16,6 +16,47 @@
 - ❌ **Nie hardcoduj sekretów** - używaj zmiennych środowiskowych
 - ❌ **Nie ignoruj błędów** - napraw zanim przejdziesz dalej
 
+## WAŻNE: ZASADY BEZPIECZEŃSTWA SHOPIFY
+
+### **🔐 BEZPIECZEŃSTWO:**
+- ✅ **Walidacja HMAC w endpointach Shopify** - zawsze weryfikuj podpisy
+- ✅ **Rate limiting dla kosztownych operacji** - ogranicz API calls
+- ✅ **Moduł współdzielonych funkcji Shopify** - DRY principle dla API
+
+### **🛡️ IMPLEMENTACJA BEZPIECZEŃSTWA:**
+
+#### **HMAC Validation:**
+```javascript
+// ZAWSZE weryfikuj HMAC w webhookach i callbackach
+const crypto = require('crypto');
+const hmac = crypto.createHmac('sha256', process.env.SHOPIFY_WEBHOOK_SECRET);
+hmac.update(body, 'utf8');
+const hash = hmac.digest('base64');
+if (hash !== req.headers['x-shopify-hmac-sha256']) {
+  return res.status(401).json({ error: 'Invalid HMAC' });
+}
+```
+
+#### **Rate Limiting:**
+```javascript
+// Ogranicz kosztowne operacje (AI, API calls)
+const rateLimit = require('express-rate-limit');
+const aiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minut
+  max: 10 // max 10 requestów na 15 minut
+});
+app.use('/api/transform', aiLimiter);
+```
+
+#### **Shopify API Module:**
+```javascript
+// utils/shopify-api.js - współdzielone funkcje
+const shopifyRequest = async (endpoint, options = {}) => {
+  // Centralna logika dla wszystkich API calls
+  // Error handling, retry logic, logging
+};
+```
+
 ## Environment Variables Status
 - All Vercel environment variables are properly configured
 - SHOPIFY_ACCESS_TOKEN is set in Vercel Dashboard
