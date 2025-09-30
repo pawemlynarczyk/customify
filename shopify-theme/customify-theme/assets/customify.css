@@ -1229,7 +1229,26 @@ div.discount-badge {
    NEWSLETTER W STOPCE - GLOBALNE STYLE
    ======================================== */
 
-/* Newsletter w stopce - skrócenie pola input i czerwone obramowanie */
+/* Newsletter w stopce - kompaktowy layout */
+.email-signup-block {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.email-signup__form {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.email-signup__input-group {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
 .email-signup__input {
   max-width: 200px !important;
   width: 200px !important;
@@ -1237,18 +1256,13 @@ div.discount-badge {
   border-radius: 8px !important;
   padding: 8px 12px !important;
   font-size: 14px !important;
+  margin: 0 !important;
 }
 
 .email-signup__input:focus {
   outline: none !important;
   border-color: #c82333 !important;
   box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.2) !important;
-}
-
-.email-signup__input-group {
-  display: flex !important;
-  align-items: center !important;
-  gap: 8px !important;
 }
 
 .email-signup__button {
@@ -1261,11 +1275,37 @@ div.discount-badge {
   font-weight: 600 !important;
   cursor: pointer !important;
   transition: all 0.2s ease !important;
+  margin: 0 !important;
 }
 
 .email-signup__button:hover {
   background: #c82333 !important;
   transform: translateY(-1px) !important;
+}
+
+/* Tekst "Dołącz do newslettera" w jednej linii */
+.text-block.text-block--AWEZTZGNEcTlqdGxlT__text_3L9Fjq h5 p {
+  white-space: nowrap !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Kontener newslettera - wyśrodkowanie i kompaktowy layout */
+.group-block[data-testid="group-block"] .group-block-content {
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 16px !important;
+  padding: 16px !important;
+}
+
+/* Usuń nadmiarowe marginesy i paddingi */
+.group-block[data-testid="group-block"] {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.group-block[data-testid="group-block"] .group-block__media-wrapper {
+  display: none !important;
 }
 
 /* ========================================
