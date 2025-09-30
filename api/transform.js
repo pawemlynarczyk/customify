@@ -20,7 +20,7 @@ if (process.env.REPLICATE_API_TOKEN && process.env.REPLICATE_API_TOKEN !== 'leav
 }
 
 // Function to compress and resize images
-async function compressImage(imageData, maxWidth = 1024, maxHeight = 1024, quality = 85) {
+async function compressImage(imageData, maxWidth = 768, maxHeight = 768, quality = 80) {
   if (!sharp) {
     console.log('Sharp not available, returning original image');
     return imageData;
@@ -29,17 +29,23 @@ async function compressImage(imageData, maxWidth = 1024, maxHeight = 1024, quali
   try {
     console.log('Starting image compression...');
     const buffer = Buffer.from(imageData, 'base64');
-    console.log(`Original image size: ${buffer.length} bytes`);
+    console.log(`Original image size: ${buffer.length} bytes (${(buffer.length / 1024 / 1024).toFixed(2)} MB)`);
     
     const compressedBuffer = await sharp(buffer)
       .resize(maxWidth, maxHeight, {
         fit: 'inside',
         withoutEnlargement: true
       })
-      .jpeg({ quality: quality })
+      .jpeg({ 
+        quality: quality,
+        progressive: true,
+        mozjpeg: true
+      })
+      .withMetadata(false) // Usuń metadane EXIF
       .toBuffer();
     
-    console.log(`Compressed image size: ${compressedBuffer.length} bytes`);
+    console.log(`Compressed image size: ${compressedBuffer.length} bytes (${(compressedBuffer.length / 1024 / 1024).toFixed(2)} MB)`);
+    console.log(`Compression ratio: ${((1 - compressedBuffer.length / buffer.length) * 100).toFixed(1)}% reduction`);
     return compressedBuffer.toString('base64');
   } catch (error) {
     console.error('Image compression error:', error);
@@ -90,7 +96,7 @@ module.exports = async (req, res) => {
 
     // Compress image before sending to Replicate to avoid memory issues
     console.log('Compressing image before AI processing...');
-    const compressedImageData = await compressImage(imageData, 1024, 1024, 85);
+    const compressedImageData = await compressImage(imageData, 768, 768, 80);
     console.log(`Image compressed: ${imageData.length} -> ${compressedImageData.length} bytes`);
     
     // Convert compressed base64 to data URL for Replicate

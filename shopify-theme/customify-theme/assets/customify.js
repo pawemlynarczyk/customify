@@ -109,7 +109,7 @@ class CustomifyEmbed {
       width: 100% !important;
       margin: 0 0 20px 0 !important;
       background: white !important;
-      padding: 20px !important;
+      padding: 8px 20px !important;
       border-radius: 8px !important;
       box-shadow: none !important;
       position: relative !important;
@@ -198,8 +198,8 @@ class CustomifyEmbed {
     const priceContainer = document.createElement('div');
     priceContainer.className = 'customify-price-below-app';
     priceContainer.style.cssText = `
-      margin: 20px 0 0 0 !important;
-      padding: 20px !important;
+      margin: 5px 0 0 0 !important;
+      padding: 8px 20px !important;
       background: white !important;
       border-radius: 8px !important;
       box-shadow: none !important;
