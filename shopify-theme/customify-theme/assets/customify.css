@@ -215,6 +215,16 @@ body * {
   font-weight: 600 !important;
   margin-bottom: 16px !important;
   color: #2c3e50 !important;
+  text-align: center !important;
+}
+
+/* DIVIDER PO TYTULE */
+.customify-divider {
+  width: 100%;
+  height: 2px;
+  background-color: #333;
+  margin: 0 0 20px 0;
+  border-radius: 1px;
 }
 
 /* ZMIEŃ KOLOR UPLOAD AREA NA SZARY */

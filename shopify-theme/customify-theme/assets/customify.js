@@ -225,7 +225,7 @@ class CustomifyEmbed {
 
     const reviewCount = document.createElement('span');
     reviewCount.className = 'review-count';
-    reviewCount.textContent = '(43)';
+    reviewCount.textContent = '(143)';
 
     ratingSection.appendChild(stars);
     ratingSection.appendChild(reviewCount);
