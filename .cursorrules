@@ -206,6 +206,17 @@ Customify is a Shopify app that allows customers to:
 - **Files Modified**: `api/products.js`, `public/shopify-embed.html`
 - **Status**: ✅ Fixed and deployed
 
+### Mobile Image Compression Fix (Status 413 - Payload Too Large)
+- **Problem**: iPhone photos too large for Vercel (4.5MB limit), causing Status 413 errors
+- **Root Cause**: Large HEIC/JPEG files from iPhone cameras exceed Vercel request body limits
+- **Solution**: 
+  - **Frontend compression** (JavaScript Canvas) for files >4MB only
+  - **Backend compression** (Sharp) for all files with SDXL optimization
+  - **Smart logic**: Frontend only compresses if needed, API does professional compression
+  - **CORS fix**: Added `https://lumly.pl` to allowed origins
+- **Files Modified**: `api/transform.js`, `shopify-theme/customify-theme/assets/customify.js`
+- **Status**: ✅ Fixed and deployed
+
 ### Product Visibility Issue Fix
 - **Problem**: Główny produkt "custom" nie był widoczny w katalogu mimo że był w HTML
 - **Root Cause**: Style CSS w `customify.css` ukrywały produkty:
@@ -257,6 +268,23 @@ Customify is a Shopify app that allows customers to:
 - **NO GRADIENTS**: Tylko obrazki, nie gradienty CSS
 - **STYLE PRICING**: Style NIE wpływają na cenę - tylko rozmiary wpływają na cenę
 - **PRIORITY**: NIE NISZCZ DZIAŁAJĄCYCH FUNKCJI - zachowaj wszystko co działa
+
+## CRITICAL: Image Compression Strategy - DWUPOZIOMOWA KOMPRESJA
+- **VERCEL LIMIT**: 4.5MB request body limit - pliki większe powodują Status 413
+- **FRONTEND COMPRESSION** (JavaScript Canvas):
+  - **Trigger**: Tylko dla plików >4MB
+  - **Method**: Canvas resize do max 1024px (zachowuje proporcje)
+  - **Quality**: JPEG 80%
+  - **Purpose**: Zmieścić się w Vercel limit
+- **BACKEND COMPRESSION** (Sharp API):
+  - **Trigger**: Wszystkie pliki (bez względu na rozmiar)
+  - **Method**: Sharp resize z SDXL optimization
+  - **Sizes**: 1024x1024 (kwadrat), 1152x896 (krajobraz), 896x1152 (portret)
+  - **Quality**: JPEG 80%, EXIF removal
+  - **Purpose**: Optymalizacja dla Replicate AI models
+- **LOGIC**: Frontend kompresuje tylko jeśli trzeba, API robi profesjonalną kompresję
+- **NO DOUBLE COMPRESSION**: Unikaj resize 1024px → 1024px (bez sensu)
+- **CORS**: Zawsze dodawaj `https://lumly.pl` do allowed origins
 
 ## CRITICAL: CSS DUPLICATION PROBLEM - CSS JEST W KILKU MIEJSCACH!
 - **PROBLEM**: CSS jest duplikowany w wielu plikach i synchronizacja nie działa poprawnie
