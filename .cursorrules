@@ -1,5 +1,21 @@
 # Cursor Rules for Customify Shopify App
 
+## NAJWAŻNIEJSZE ZASADY - ZAWSZE PRZESTRZEGAJ
+
+### **✅ DO:**
+- ✅ **Dodawaj walidację stopniowo** (jeden plik na raz)
+- ✅ **Testuj po każdej zmianie** - sprawdź czy działa
+- ✅ **Zachowuj istniejącą funkcjonalność** - nie niszcz tego co działa
+- ✅ **Commituj często** z jasnymi komunikatami
+- ✅ **Pytaj użytkownika** w razie wątpliwości
+
+### **❌ NIE:**
+- ❌ **Nie zmieniaj wszystkiego naraz** - małe kroki
+- ❌ **Nie usuwaj działającego kodu** - zachowaj funkcjonalność
+- ❌ **Nie commituj bez testów** - zawsze sprawdź czy działa
+- ❌ **Nie hardcoduj sekretów** - używaj zmiennych środowiskowych
+- ❌ **Nie ignoruj błędów** - napraw zanim przejdziesz dalej
+
 ## Environment Variables Status
 - All Vercel environment variables are properly configured
 - SHOPIFY_ACCESS_TOKEN is set in Vercel Dashboard
