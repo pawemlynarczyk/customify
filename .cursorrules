@@ -181,13 +181,15 @@ Customify is a Shopify app that allows customers to:
 - Update cursor rules with new fixes and learnings
 
 ## CRITICAL: Code Duplication Management - NIE NISZCZ DZIAŁAJĄCYCH FUNKCJI
-- **MAIN FILE**: `shopify-theme/customify-theme/layout/theme.liquid` - główny plik Shopify (PRIORYTET)
+- **MAIN FILE**: `theme.liquid` - główny plik używany przez deploy-optimized-theme.js (PRIORYTET)
 - **BACKUP FILES**: 
-  - `theme.liquid` - kopia w głównym katalogu (backup)
+  - `shopify-theme/customify-theme/layout/theme.liquid` - kopia w katalogu theme
   - `shopify-theme-complete.liquid` - kopia kompletna (archive)
   - `public/shopify-script.js` - JavaScript injection (tylko JS, nie HTML)
-- **SYNC RULE**: Po każdej zmianie w głównym pliku, zaktualizuj wszystkie kopie
-- **DEPLOYMENT**: Używaj tylko głównego pliku, kopie są backupami
+- **SYNC RULE**: ZAWSZE edytuj `theme.liquid` - inne pliki są synchronizowane automatycznie
+- **AUTOMATIC SYNC**: Przed każdym deployem wszystkie pliki są synchronizowane z `theme.liquid`
+- **DEPLOYMENT**: Używaj `npm run deploy` - automatycznie synchronizuje i wdraża
+- **MANUAL SYNC**: Użyj `npm run sync-theme` do ręcznej synchronizacji
 - **STYLE IMAGES**: Używaj obrazków z katalogu public (screenshoty)
 - **NO GRADIENTS**: Tylko obrazki, nie gradienty CSS
 - **STYLE PRICING**: Style NIE wpływają na cenę - tylko rozmiary wpływają na cenę

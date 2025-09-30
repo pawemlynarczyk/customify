@@ -14,6 +14,7 @@
       >
     {%- endif -%}
 
+    {% comment %} This a way to wait for main content to load when navigating to a new page so that the view transitions can work consistently {% endcomment %}
     <link
       rel="expect"
       href="#MainContent"
@@ -31,1186 +32,16 @@
       {%- render 'theme-editor' -%}
     {% endif %}
 
-    <!-- CUSTOMIFY SCRIPT - ŁADOWANY PO STYLACH SHOPIFY -->
-    <script src="https://customify-s56o.vercel.app/shopify-script.js"></script>
-    
-    <!-- OSTATECZNE STYLE - NAJWYŻSZA SPECYFICZNOŚĆ -->
-    <style>
-      /* USUŃ TYLKO DIVIDERY - ZOSTAW ORYGINALNE USTAWIENIA SHOPIFY */
-      
-      /* FORCE HIDE DIVIDERS - NAJWYŻSZA SPECYFICZNOŚĆ */
-      .group-block[data-testid="group-block"] .divider,
-      .group-block[data-testid="group-block"] .divider__line,
-      .divider-AM3M2YnhsTllLTUtCS__divider_VJhene,
-      .divider-AM3M2YnhsTllLTUtCS__divider_VJhene .divider__line {
-        display: none !important;
-        visibility: hidden !important;
-        opacity: 0 !important;
-        height: 0 !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        border: none !important;
-        background: transparent !important;
-      }
-    </style>
-    
-    <!-- Customify - Minimal CSS -->
-    <style>
-      /* KOMPLETNY NAGŁÓWEK SHOPIFY */
-      .header-main {
-        background: white;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        position: sticky;
-        top: 0;
-        z-index: 1000;
-      }
+    <!-- CUSTOMIFY INTEGRATION -->
+    <link rel="stylesheet" href="{{ 'customify.css' | asset_url }}">
+    <script src="{{ 'customify.js' | asset_url }}" defer></script>
 
-      .header-container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 0 20px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        height: 80px;
-        gap: 30px;
-      }
-
-      /* Logo */
-      .header-logo {
-        flex-shrink: 0;
-      }
-
-      .logo-link {
-        text-decoration: none;
-        color: #000;
-      }
-
-      .logo-image {
-        height: 50px;
-        width: auto;
-        object-fit: contain;
-      }
-
-      .logo-text {
-        font-size: 28px;
-        font-weight: 700;
-        color: #000;
-      }
-
-      /* Wyszukiwarka */
-      .header-search {
-        flex: 1;
-        max-width: 500px;
-      }
-
-      .search-form {
-        width: 100%;
-      }
-
-      .search-wrapper {
-        display: flex;
-        align-items: center;
-        background: white;
-        border: 2px solid #e9ecef;
-        border-radius: 0;
-        overflow: hidden;
-        height: 48px;
-      }
-
-      .search-categories {
-        background: #f8f9fa;
-        border: none;
-        padding: 0 15px;
-        font-size: 14px;
-        color: #666;
-        cursor: pointer;
-        min-width: 150px;
-        height: 100%;
-      }
-
-      .search-input {
-        flex: 1;
-        border: none;
-        padding: 0 15px;
-        font-size: 16px;
-        color: #000;
-        background: white;
-        height: 100%;
-      }
-
-      .search-input:focus {
-        outline: none;
-      }
-
-      .search-button {
-        background: #ff6b35;
-        border: none;
-        color: white;
-        padding: 0 20px;
-        cursor: pointer;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: background-color 0.2s ease;
-      }
-
-      .search-button:hover {
-        background: #e55a2b;
-      }
-
-      /* Linki użytkownika */
-      .header-user {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-        flex-shrink: 0;
-      }
-
-      .user-link {
-        color: #000;
-        text-decoration: none;
-        font-size: 14px;
-        font-weight: 500;
-        transition: color 0.2s ease;
-      }
-
-      .user-link:hover {
-        color: #ff6b35;
-      }
-
-      /* Koszyk */
-      .header-cart {
-        flex-shrink: 0;
-      }
-
-      .cart-link {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        color: #000;
-        text-decoration: none;
-        padding: 10px 15px;
-        border: 2px solid #e9ecef;
-        border-radius: 0;
-        transition: all 0.2s ease;
-      }
-
-      .cart-link:hover {
-        border-color: #ff6b35;
-        color: #ff6b35;
-      }
-
-      .cart-icon-wrapper {
-        position: relative;
-      }
-
-      .cart-icon {
-        width: 24px;
-        height: 24px;
-      }
-
-      .cart-count {
-        position: absolute;
-        top: -8px;
-        right: -8px;
-        background: #ff6b35;
-        color: white;
-        font-size: 12px;
-        font-weight: 600;
-        min-width: 18px;
-        height: 18px;
-        border-radius: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-
-      .cart-text {
-        font-size: 14px;
-        font-weight: 500;
-      }
-
-      /* Menu główne */
-      .header-nav {
-        background: white;
-        border-top: 1px solid #e9ecef;
-      }
-
-      .nav-container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 0 20px;
-        display: flex;
-        align-items: center;
-        height: 60px;
-      }
-
-      .nav-item {
-        position: relative;
-        margin-right: 30px;
-      }
-
-      .nav-link {
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        color: #000;
-        text-decoration: none;
-        font-size: 16px;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        padding: 15px 0;
-        transition: color 0.2s ease;
-      }
-
-      .nav-link:hover {
-        color: #ff6b35;
-      }
-
-      .dropdown-arrow {
-        width: 12px;
-        height: 12px;
-      }
-
-      /* Dropdown menu */
-      .nav-dropdown {
-        position: absolute;
-        top: 100%;
-        left: 0;
-        background: white;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        border-radius: 0;
-        opacity: 0;
-        visibility: hidden;
-        transform: translateY(-10px);
-        transition: all 0.3s ease;
-        z-index: 1001;
-        min-width: 200px;
-      }
-
-      .nav-item:hover .nav-dropdown {
-        opacity: 1;
-        visibility: visible;
-        transform: translateY(0);
-      }
-
-      .dropdown-content {
-        padding: 15px 0;
-      }
-
-      .dropdown-link {
-        display: block;
-        color: #000;
-        text-decoration: none;
-        font-size: 14px;
-        font-weight: 400;
-        padding: 10px 20px;
-        transition: background-color 0.2s ease;
-      }
-
-      .dropdown-link:hover {
-        background: #f8f9fa;
-        color: #ff6b35;
-      }
-
-      /* Breadcrumbs */
-      .breadcrumbs {
-        background: #f8f9fa;
-        padding: 15px 0;
-        border-bottom: 1px solid #e9ecef;
-      }
-
-      .breadcrumbs-container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 0 20px;
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        font-size: 14px;
-      }
-
-      .breadcrumb-link {
-        color: #666;
-        text-decoration: none;
-        transition: color 0.2s ease;
-      }
-
-      .breadcrumb-link:hover {
-        color: #ff6b35;
-      }
-
-      .breadcrumb-separator {
-        color: #999;
-        margin: 0 5px;
-      }
-
-      .breadcrumb-current {
-        color: #000;
-        font-weight: 500;
-      }
-
-      /* Responsywność nagłówka */
-      @media (max-width: 1024px) {
-        .header-container {
-          padding: 0 15px;
-          gap: 20px;
-        }
-        
-        .header-search {
-          max-width: 400px;
-        }
-        
-        .search-categories {
-          min-width: 120px;
-        }
-      }
-
-      @media (max-width: 768px) {
-        .header-container {
-          flex-wrap: wrap;
-          height: auto;
-          padding: 15px;
-          gap: 15px;
-        }
-        
-        .header-search {
-          order: 3;
-          max-width: 100%;
-          width: 100%;
-        }
-        
-        .header-user {
-          order: 2;
-        }
-        
-        .nav-container {
-          flex-wrap: wrap;
-          height: auto;
-          padding: 10px 15px;
-        }
-        
-        .nav-item {
-          margin-right: 20px;
-          margin-bottom: 10px;
-        }
-        
-        .nav-link {
-          font-size: 14px;
-        }
-      }
-
-      @media (max-width: 480px) {
-        .header-user {
-          display: none;
-        }
-        
-        .search-categories {
-          display: none;
-        }
-        
-        .search-wrapper {
-          height: 44px;
-        }
-        
-        .cart-text {
-          display: none;
-        }
-      }
-
-      /* NIE UKRYWAJ ELEMENTÓW PRODUKTU - tylko dodaj style dla Customify */
-
-      /* Clear floats */
-      .product-page-layout::after {
-        content: "";
-        display: table;
-        clear: both;
-      }
-
-      /* KONTROLA PROPORCJI GŁÓWNEGO LAYOUTU */
-      .product-information__grid {
-        display: grid !important;
-        grid-template-columns: 35% 65% !important; /* Obrazek 35%, Aplikacja 65% */
-        gap: 24px !important;
-        align-items: start !important;
-        width: 100% !important;
-        background: #f8f9fa !important; /* SZARE TŁO dla grid */
-        padding: 20px !important;
-        border-radius: 0 !important;
-      }
-
-      /* SZARE TŁO STRONY, BIAŁE ELEMENTY */
-      body {
-        background: #f8f9fa !important; /* Szare tło całej strony */
-        min-height: 100vh;
-        display: flex;
-        flex-direction: column;
-      }
-      
-      main {
-        flex: 1;
-      }
-      
-      .page-width, .main-content, .content-for-layout, 
-      .product-page, .product-template, .product-single,
-      .product__media-wrapper, .product__info-wrapper,
-      .product-information, .product-details-wrapper {
-        background: transparent !important; /* Przezroczyste tło dla kontenerów */
-      }
-
-      /* USUŃ BIAŁE TŁO Z ELEMENTÓW KTÓRE POWINNY BYĆ PRZEZROCZYSTE */
-      .product__media, .product__info, .product-details,
-      .product-information__wrapper, .product-content {
-        background: transparent !important;
-      }
-
-      /* Sekcja obrazków - zawsze w pierwszej kolumnie */
-      .product-information__media {
-        grid-column: 1 !important;
-        width: 100% !important;
-        box-sizing: border-box !important;
-        background: white !important; /* Biały panel dla zdjęć */
-        padding: 20px !important;
-        border-radius: 0 !important; /* Ostre kąty */
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
-      }
-
-      /* Sekcja detali - zawsze w drugiej kolumnie */
-      #ProductInformation-template--26351135293765__main,
-      .product-details {
-        grid-column: 2 !important;
-        width: 100% !important;
-        box-sizing: border-box !important;
-        display: flex !important;
-        flex-direction: column !important;
-        background: white !important; /* BIAŁE TŁO dla sekcji detali */
-        padding: 20px !important; /* Padding jak w sekcji obrazków */
-        border-radius: 0 !important; /* Ostre kąty */
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important; /* Cień jak w sekcji obrazków */
-      }
-      
-      /* Aplikacja na górze kolumny detali */
-      #customify-app-container {
-        order: 1 !important; /* Po tytule i cenie */
-        width: 100% !important;
-        margin: 0 0 20px 0 !important;
-        box-sizing: border-box !important;
-        background: white !important; /* Białe tło */
-        border: none !important;
-        border-radius: 0 !important; /* Ostre kąty */
-        padding: 0 20px 20px 20px !important; /* Usuń padding na górze - będzie pod tytułem */
-        min-height: 300px !important;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
-      }
-      
-      /* Tytuł i cena - BIAŁY PANEL Z CZARNYMI NAPISAMI */
-      .group-block[data-testid="group-block"] {
-        order: -1 !important; /* Przenieś na górę */
-        width: 100% !important;
-        margin: 0 !important; /* Usuń wszystkie marginesy */
-        background: transparent !important; /* Przezroczyste tło - będzie na tym samym panelu co aplikacja */
-        padding: 20px 20px 15px 20px !important; /* Padding jak w aplikacji */
-        border-radius: 0 !important; /* Ostre kąty */
-        box-sizing: border-box !important;
-        box-shadow: none !important; /* Bez cienia */
-        border-bottom: 1px solid #e9ecef !important; /* Linia oddzielająca od aplikacji */
-        position: relative !important; /* Dodaj pozycjonowanie */
-        z-index: 1 !important; /* Ustaw z-index */
-      }
-
-      /* CZARNE NAPISY W PANELU PRODUKTU */
-      .group-block[data-testid="group-block"] h1,
-      .group-block[data-testid="group-block"] h2,
-      .group-block[data-testid="group-block"] h3,
-      .group-block[data-testid="group-block"] .view-product-title,
-      .group-block[data-testid="group-block"] .view-product-title a,
-      .group-block[data-testid="group-block"] .view-product-title p,
-      .group-block[data-testid="group-block"] .price,
-      .group-block[data-testid="group-block"] product-price,
-      .group-block[data-testid="group-block"] .text-block,
-      .group-block[data-testid="group-block"] .text-block p {
-        color: #000 !important; /* Czarne napisy */
-      }
-
-      /* CZARNE NAPISY W PRZYCISKACH */
-      .group-block[data-testid="group-block"] .button,
-      .group-block[data-testid="group-block"] .add-to-cart-button,
-      .group-block[data-testid="group-block"] .shopify-payment-button__button {
-        color: #000 !important; /* Czarne napisy w przyciskach */
-      }
-
-      /* BIAŁE TŁO DLA WSZYSTKICH ELEMENTÓW W PANELU */
-      .group-block[data-testid="group-block"] * {
-        background: transparent !important; /* Przezroczyste tło dla elementów wewnętrznych */
-      }
-
-      /* NAPRAW POZYCJONOWANIE ELEMENTÓW W GROUP-BLOCK */
-      .group-block[data-testid="group-block"] .group-block-content {
-        position: relative !important;
-        z-index: 2 !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        background: transparent !important;
-      }
-
-      .group-block[data-testid="group-block"] .layout-panel-flex {
-        display: flex !important;
-        flex-direction: column !important;
-        gap: 16px !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        background: transparent !important;
-      }
-
-      /* USUŃ TYLKO DIVIDERY - ZOSTAW ORYGINALNE USTAWIENIA SHOPIFY */
-
-      /* ELEMENTY POD TYTUŁEM - GWIAZDKI I OKAZJA - ZMNIEJSZONE I PODNIESIONE */
-      .product-badges {
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-        margin-bottom: 4px;
-        margin-top: 0px;
-        position: relative;
-        z-index: 3;
-      }
-
-      .discount-badge,
-      .group-block[data-testid="group-block"] .discount-badge,
-      .product-badges .discount-badge,
-      div.discount-badge {
-        background: #28a745 !important;
-        background-color: #28a745 !important;
-        color: white !important;
-        padding: 4px 8px !important;
-        border-radius: 0 !important;
-        font-size: 12px !important;
-        font-weight: 600 !important;
-        display: inline-block !important;
-        width: fit-content !important;
-        border: none !important;
-        box-shadow: 0 1px 2px rgba(40, 167, 69, 0.3) !important;
-        text-shadow: none !important;
-        margin: 0 !important;
-      }
-
-      .rating-section {
-        display: flex;
-        align-items: center;
-        gap: 2px;
-        font-size: 12px;
-      }
-
-      .stars {
-        display: flex;
-        gap: 2px;
-      }
-
-      .star {
-        color: #ffc107;
-        font-size: 16px;
-        display: inline;
-      }
-
-      .stars-rating-inline {
-        color: #ffc107;
-        font-size: 16px;
-        font-weight: 500;
-        display: inline;
-      }
-      
-      .stars-rating-inline::after {
-        content: '';
-        color: #666;
-        font-size: 14px;
-        font-weight: 500;
-      }
-
-      /* USUŃ MODYFIKACJE TYTUŁU - ZOSTAW ORYGINALNE USTAWIENIA SHOPIFY */
-
-      .group-block[data-testid="group-block"] .view-product-title a {
-        display: block !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        background: transparent !important;
-        font-size: 1.2rem !important; /* POMNIEJSZONY LINK TYTUŁU */
-        font-weight: 600 !important;
-      }
-
-      .group-block[data-testid="group-block"] .product-badges {
-        margin: 0 0 16px 0 !important; /* Ustaw marginesy */
-        padding: 0 !important;
-        position: relative !important;
-        z-index: 5 !important;
-        background: transparent !important;
-        order: 2 !important; /* Badge'y będą po tytule (order: 2) */
-      }
-
-      /* ZMNIEJSZ ODSTĘPY W BADGE'ACH */
-      .group-block[data-testid="group-block"] .product-badges {
-        gap: 2px !important; /* Zmniejszony odstęp między okazją a gwiazdkami */
-      }
-
-      /* NAPRAW ELEMENTY CENY - PO BADGE'ACH */
-      .group-block[data-testid="group-block"] product-price {
-        margin: 20px 0 20px 0 !important; /* Większy margin na górze - po badge'ach */
-        padding: 0 !important;
-        position: relative !important;
-        z-index: 6 !important;
-        background: transparent !important;
-        display: block !important;
-        order: 3 !important; /* Cena będzie po badge'ach (order: 3) */
-      }
-
-      .group-block[data-testid="group-block"] product-price .price {
-        margin: 0 !important;
-        padding: 0 !important;
-        background: transparent !important;
-        font-size: 2.5rem !important; /* POWIĘKSZONA CENA */
-        font-weight: 700 !important; /* Pogrubiona cena */
-        color: #000 !important;
-      }
-
-      /* NAPRAW PRZYCISKI */
-      .group-block[data-testid="group-block"] .buy-buttons-block {
-        margin: 20px 0 0 0 !important;
-        padding: 0 !important;
-        position: relative !important;
-        z-index: 7 !important;
-        background: transparent !important;
-        clear: both !important;
-      }
-
-      /* UKRYJ DIVIDERY - BARDZIEJ AGRESYWNE PODEJŚCIE */
-      .group-block[data-testid="group-block"] .divider,
-      .group-block[data-testid="group-block"] .divider__line,
-      .group-block .divider,
-      .group-block .divider__line,
-      .divider,
-      .divider__line,
-      .group-block[data-testid="group-block"] .view-product-title + .divider,
-      .group-block[data-testid="group-block"] .view-product-title ~ .divider,
-      .divider-AM3M2YnhsTllLTUtCS__divider_VJhene,
-      .divider-AM3M2YnhsTllLTUtCS__divider_VJhene .divider__line {
-        display: none !important; /* UKRYJ CAŁKOWICIE */
-        visibility: hidden !important;
-        opacity: 0 !important;
-        height: 0 !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        border: none !important;
-        background: transparent !important;
-      }
-
-      /* USUŃ RAMKĘ I CIEŃ Z TYTUŁU */
-      .group-block[data-testid="group-block"] .view-product-title,
-      .group-block[data-testid="group-block"] .view-product-title a,
-      .group-block[data-testid="group-block"] .view-product-title p,
-      .group-block[data-testid="group-block"] .text-block,
-      .group-block[data-testid="group-block"] .text-block p {
-        text-shadow: none !important;
-        box-shadow: none !important;
-        border: none !important;
-        outline: none !important;
-        background: transparent !important;
-        position: relative !important;
-        z-index: auto !important;
-      }
-
-      /* POMNIEJSZ TEKST W TYTULE I ODSTĘPY */
-      .group-block[data-testid="group-block"] .view-product-title p {
-        font-size: 1.2rem !important; /* POMNIEJSZONY TEKST TYTUŁU */
-        font-weight: 600 !important;
-        margin: 0 !important;
-        padding: 0 !important;
-      }
-      
-      /* AGRESYWNE USUNIĘCIE ODSTĘPÓW POD TYTUŁEM */
-      .group-block[data-testid="group-block"] .view-product-title,
-      .group-block[data-testid="group-block"] .view-product-title a,
-      .group-block[data-testid="group-block"] .view-product-title p {
-        margin-bottom: 0px !important;
-        padding-bottom: 0px !important;
-        margin: 0 0 0px 0 !important;
-      }
-
-      /* DODATKOWE NAPRAWY DLA WSZYSTKICH ELEMENTÓW W GROUP-BLOCK */
-      .group-block[data-testid="group-block"] * {
-        box-sizing: border-box !important;
-        max-width: 100% !important;
-      }
-
-      /* USTAWIENIA CLEARFIX DLA GROUP-BLOCK */
-      .group-block[data-testid="group-block"]::before,
-      .group-block[data-testid="group-block"]::after {
-        content: "" !important;
-        display: table !important;
-        clear: both !important;
-      }
-
-      /* NAPRAW POZYCJONOWANIE ELEMENTÓW TEKSTOWYCH */
-      .group-block[data-testid="group-block"] .text-block {
-        margin: 0 0 10px 0 !important;
-        padding: 0 !important;
-        position: relative !important;
-        background: transparent !important;
-      }
-
-      
-      /* Mobile - stack wertykalnie */
-      @media (max-width: 768px) {
-        .product-information__grid {
-          grid-template-columns: 1fr !important;
-          gap: 20px !important;
-        }
-        
-        .product-information__media,
-        #ProductInformation-template--26351135293765__main {
-          grid-column: 1 !important;
-        }
-      }
-
-      /* SEKCJA OPINII KLIENTÓW */
-      .customer-reviews-section {
-        margin-top: 40px;
-        padding: 30px 0;
-        border-top: 2px solid #e9ecef;
-        background: #f8f9fa;
-      }
-
-      .reviews-header {
-        text-align: center;
-        margin-bottom: 30px;
-      }
-
-      .reviews-title {
-        font-size: 2rem;
-        font-weight: 700;
-        color: #000;
-        margin-bottom: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 15px;
-      }
-
-      .reviews-link {
-        color: #007bff;
-        text-decoration: none;
-        font-size: 1.1rem;
-        font-weight: 600;
-      }
-
-      .reviews-link:hover {
-        text-decoration: underline;
-      }
-
-      .stars-rating {
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        margin-bottom: 15px;
-      }
-
-      .star {
-        color: #ffc107;
-        font-size: 1.2rem;
-      }
-
-      .reviews-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 20px;
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 0 20px;
-      }
-
-      .review-card {
-        background: white;
-        border-radius: 0;
-        padding: 20px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        border: 1px solid #e9ecef;
-      }
-
-      .review-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 15px;
-      }
-
-      .review-author {
-        font-weight: 600;
-        color: #000;
-        font-size: 1.1rem;
-      }
-
-      .review-date {
-        color: #666;
-        font-size: 0.9rem;
-      }
-
-      .review-stars {
-        display: flex;
-        gap: 2px;
-        margin-bottom: 10px;
-      }
-
-      .review-text {
-        color: #333;
-        line-height: 1.6;
-        font-size: 0.95rem;
-      }
-
-      .review-style {
-        background: #e3f2fd;
-        color: #1976d2;
-        padding: 4px 8px;
-        border-radius: 0;
-        font-size: 0.8rem;
-        font-weight: 500;
-        display: inline-block;
-        margin-top: 10px;
-      }
-      
-      /* Ukryj formularz dodawania do koszyka */
-      .product-form-buttons {
-        display: none !important;
-      }
-
-      /* Customify Styles */
-      .customify-embed {
-        background: white;
-        border: 2px solid #e9ecef;
-        border-radius: 0;
-        padding: 20px;
-        margin: 20px 0;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      }
-
-      .customify-header {
-        text-align: center;
-        margin-bottom: 20px;
-      }
-
-      .customify-header h3 {
-        color: #000;
-        margin-bottom: 8px;
-        font-size: 1.4rem;
-      }
-
-      .customify-upload-area {
-        border: 2px dashed #dee2e6;
-        border-radius: 0;
-        padding: 20px; /* Zmniejszony padding */
-        text-align: center;
-        margin-bottom: 15px; /* Zmniejszona przestrzeń na dole */
-        cursor: pointer;
-        transition: all 0.3s ease;
-        background: white; /* Białe tło */
-      }
-
-      .customify-upload-area:hover {
-        border-color: #007bff;
-        background-color: white;
-      }
-
-      .customify-upload-area.dragover {
-        border-color: #007bff;
-        background-color: white;
-      }
-
-      .customify-upload-text {
-        font-size: 1.4rem;
-        color: #333;
-        margin-bottom: 8px;
-        font-weight: 600;
-        text-align: center;
-      }
-
-      .customify-file-input {
-        display: none;
-      }
-
-      .customify-preview {
-        display: none;
-        margin-top: 20px;
-        background: white;
-        border-radius: 0;
-        padding: 24px 0;
-        box-shadow: none;
-        border: none;
-        border-top: 1px solid #e9ecef;
-      }
-
-      .customify-preview h4 {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: #000;
-        margin: 0 0 20px 0;
-        text-align: center;
-      }
-
-      .customify-preview img {
-        max-width: 100% !important;
-        max-height: 500px !important;
-        width: auto !important;
-        height: auto !important;
-        object-fit: contain !important;
-        border-radius: 0; /* Ostre kąty */
-        box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-        margin: 0 auto;
-        display: block;
-        border: 3px solid white;
-      }
-
-      .customify-styles {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-        gap: 10px;
-        margin-bottom: 20px;
-      }
-
-      .customify-style-btn {
-        padding: 10px;
-        border: 2px solid #dee2e6;
-        border-radius: 0;
-        background: white;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        text-align: center;
-        font-size: 0.9rem;
-      }
-
-      .customify-style-btn:hover {
-        border-color: #e55a2b;
-        background-color: #fff5f0;
-      }
-
-      .customify-style-btn.active {
-        border-color: #ff6b35;
-        background: white;
-        color: #000;
-      }
-
-      .customify-size-selector {
-        display: none;
-        margin-bottom: 24px;
-        background: white;
-        border-radius: 0;
-        padding: 20px 0;
-        border: none;
-        border-top: 1px solid #e9ecef;
-      }
-
-      .customify-size-selector h4 {
-        font-size: 1.2rem;
-        font-weight: 600;
-        color: #000;
-        margin: 0 0 16px 0;
-        text-align: center;
-      }
-
-      .customify-size-buttons {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-        gap: 12px;
-      }
-
-      .customify-size-btn {
-        padding: 16px 12px;
-        border: 2px solid #dee2e6;
-        border-radius: 0;
-        background: white;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        text-align: center;
-        font-size: 0.95rem;
-        font-weight: 500;
-        color: #333;
-        box-shadow: none;
-      }
-
-      .customify-size-btn:hover {
-        border-color: #e55a2b;
-        background-color: #fff5f0;
-        transform: none;
-        box-shadow: none;
-      }
-
-      .customify-size-btn.active {
-        border-color: #ff6b35;
-        background: white;
-        color: #000;
-        transform: none;
-        box-shadow: none;
-      }
-
-      .customify-actions {
-        display: flex;
-        gap: 16px;
-        justify-content: center;
-        margin-top: 24px;
-        padding-top: 20px;
-        border-top: 1px solid #e9ecef;
-      }
-
-      .customify-btn {
-        padding: 16px 32px;
-        border: 2px solid #000;
-        border-radius: 0;
-        cursor: pointer;
-        font-size: 1rem;
-        font-weight: 500;
-        transition: all 0.2s ease;
-        min-width: 160px;
-        background: white;
-        color: #000;
-        text-transform: none;
-        letter-spacing: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        font-family: inherit;
-      }
-
-      .customify-btn:hover {
-        background: #000;
-        color: white;
-      }
-
-      .customify-btn:active {
-        transform: none;
-      }
-
-      .customify-btn-primary {
-        background: #ff6b35;
-        color: white;
-        border: 2px solid #ff6b35;
-      }
-
-      .customify-btn-primary:hover {
-        background: #e55a2b;
-        border-color: #e55a2b;
-        color: white;
-      }
-
-      .customify-btn-secondary {
-        background: white;
-        color: #000;
-        border: 2px solid #000;
-      }
-
-      .customify-btn-secondary:hover {
-        background: #000;
-        color: white;
-        border-color: #000;
-      }
-
-      .customify-loading {
-        display: none;
-        text-align: center;
-        padding: 20px;
-      }
-
-      .customify-spinner {
-        border: 3px solid #f3f3f3;
-        border-top: 3px solid #007bff;
-        border-radius: 0;
-        width: 30px;
-        height: 30px;
-        animation: spin 1s linear infinite;
-        margin: 0 auto 10px;
-      }
-
-      @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
-
-      .customify-result {
-        margin-top: 20px;
-        display: none;
-        background: white;
-        border-radius: 0;
-        padding: 24px 0;
-        box-shadow: none;
-        border: none;
-        border-top: 1px solid #e9ecef;
-      }
-
-      .customify-result h4 {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: #000;
-        margin: 0 0 20px 0;
-        text-align: center;
-      }
-
-      .customify-result img {
-        max-width: 100% !important;
-        max-height: 500px !important;
-        width: auto !important;
-        height: auto !important;
-        object-fit: contain !important;
-        border-radius: 0; /* Ostre kąty */
-        box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-        margin: 0 auto;
-        display: block;
-        border: 3px solid white;
-      }
-
-      .customify-error {
-        background-color: #f8d7da;
-        color: #721c24;
-        padding: 10px;
-        border-radius: 0; /* Ostre kąty */
-        margin: 10px 0;
-        display: none;
-      }
-
-      .customify-success {
-        background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
-        color: #155724;
-        padding: 16px 20px;
-        border-radius: 0; /* Ostre kąty */
-        margin: 20px 0;
-        display: none;
-        border: 1px solid #c3e6cb;
-        box-shadow: 0 4px 16px rgba(21, 87, 36, 0.1);
-        font-weight: 500;
-        text-align: center;
-        position: relative;
-        overflow: hidden;
-      }
-
-      .customify-success::before {
-        content: '✅';
-        margin-right: 8px;
-        font-size: 1.2rem;
-      }
-
-      @media (max-width: 768px) {
-        /* Mobile: tylko Customify, nie dotykaj elementów produktu */
-        #customify-app-container {
-          width: 100% !important;
-          float: none !important;
-          margin-right: 0 !important;
-        }
-      }
-
-    </style>
     {{ content_for_header }}
   </head>
 
   <body class="page-width-{{ settings.page_width }} card-hover-effect-{{ settings.card_hover_effect }}">
     {% render 'skip-to-content-link', href: '#MainContent', text: 'accessibility.skip_to_text' %}
+    
     <!-- KOMPLETNY NAGŁÓWEK CUSTOMIFY -->
     <header class="header-main">
       <div class="header-container">
@@ -1224,7 +55,7 @@
               <span class="logo-text">{{ shop.name }}</span>
             {% endif %}
           </a>
-    </div>
+        </div>
 
         <!-- Wyszukiwarka -->
         <div class="header-search">
@@ -1358,7 +189,205 @@
       {{ content_for_layout }}
     </main>
 
-    <!-- SEKCJA OPINII KLIENTÓW - POWYŻEJ STOPKI (TYLKO NA STRONIE PRODUKTU) -->
+    {% render 'search-modal' %}
+
+    {% if settings.quick_add or settings.mobile_quick_add %}
+      {% render 'quick-add-modal' %}
+          {% endif %}
+
+    {% comment %} CUSTOMIFY AI PHOTO CUSTOMIZATION {% endcomment %}
+    {% if template contains 'product' %}
+      <div id="customify-app-container" class="customify-shopify-container" style="display: none;">
+        <h3 class="customify-title">Wgraj zdjęcie - wybierz styl obrazu</h3>
+        <div class="customify-inline-wrapper">
+          <div class="customify-embed" id="customifyEmbed">
+          <div class="customify-upload-area" id="uploadArea">
+            <button class="customify-upload-btn" id="uploadBtn">
+              Wgraj zdjęcie
+            </button>
+            <div class="customify-upload-hint">Maksymalnie 10MB, formaty: JPG, PNG, GIF</div>
+            <input type="file" id="fileInput" class="customify-file-input" accept="image/*">
+          </div>
+
+            <div class="customify-preview" id="previewArea">
+              <h4>Twoje zdjęcie:</h4>
+              <img id="previewImage" alt="Podgląd zdjęcia">
+            </div>
+
+            <div class="customify-styles" id="stylesArea" style="display: none;">
+              <h4>Wybierz styl AI:</h4>
+              <div class="customify-style-grid">
+                <div class="customify-style-card" data-style="van gogh">
+                  <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/Screenshot%202025-09-29%20at%2022.17.01.png'); background-size: cover; background-position: center;"></div>
+                  <div class="style-info">
+                    <div class="style-name">Van Gogh</div>
+                  </div>
+                </div>
+                <div class="customify-style-card" data-style="picasso">
+                  <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/Screenshot%202025-09-29%20at%2022.17.14.png'); background-size: cover; background-position: center;"></div>
+                  <div class="style-info">
+                    <div class="style-name">Picasso</div>
+                  </div>
+                </div>
+                <div class="customify-style-card" data-style="monet">
+                  <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/Screenshot%202025-09-29%20at%2022.17.37.png'); background-size: cover; background-position: center;"></div>
+                  <div class="style-info">
+                    <div class="style-name">Monet</div>
+                  </div>
+                </div>
+                <div class="customify-style-card" data-style="anime">
+                  <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/Screenshot%202025-09-29%20at%2022.17.52.png'); background-size: cover; background-position: center;"></div>
+                  <div class="style-info">
+                    <div class="style-name">Anime</div>
+                  </div>
+                </div>
+                <div class="customify-style-card" data-style="cyberpunk">
+                  <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/Screenshot%202025-09-29%20at%2022.17.01.png'); background-size: cover; background-position: center;"></div>
+                  <div class="style-info">
+                    <div class="style-name">Cyberpunk</div>
+                  </div>
+                </div>
+                <div class="customify-style-card" data-style="watercolor">
+                  <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/Screenshot%202025-09-29%20at%2022.17.14.png'); background-size: cover; background-position: center;"></div>
+                  <div class="style-info">
+                    <div class="style-name">Akwarela</div>
+                  </div>
+                </div>
+                <div class="customify-style-card" data-style="pixar">
+                  <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/Screenshot%202025-09-29%20at%2022.17.37.png'); background-size: cover; background-position: center;"></div>
+                  <div class="style-info">
+                    <div class="style-name">Pixar</div>
+                  </div>
+                </div>
+              </div>
+        </div>
+
+            <div class="customify-actions" id="actionsArea" style="display: none;">
+              <button class="customify-btn customify-btn-primary" id="transformBtn">
+                Przekształć z AI
+              </button>
+              <button class="customify-btn customify-btn-secondary" id="resetBtn">
+                Wgraj inne zdjęcie
+              </button>
+      </div>
+
+            <div class="customify-loading" id="loadingArea">
+              <div class="customify-spinner"></div>
+              <div>Przetwarzanie z AI...</div>
+            </div>
+
+            <div class="customify-result" id="resultArea">
+              <h4>Wynik transformacji AI:</h4>
+              <img id="resultImage" alt="Wynik AI">
+              
+              <!-- Rozmiary pod zdjęciem wynikowym -->
+              <div class="customify-size-selector" id="sizeArea" style="display: none;">
+                <h4>Wybierz rozmiar:</h4>
+                <div class="customify-size-buttons">
+                  <div class="customify-size-btn" data-size="small">Mały (+0 zł)</div>
+                  <div class="customify-size-btn" data-size="medium">Średni (+25 zł)</div>
+                  <div class="customify-size-btn" data-size="large">Duży (+50 zł)</div>
+                  <div class="customify-size-btn" data-size="xlarge">Bardzo duży (+100 zł)</div>
+                  </div>
+                </div>
+              
+              <div class="customify-actions" style="margin-top: 15px;">
+                <button class="customify-btn customify-btn-primary" id="addToCartBtn">
+                  Dodaj do koszyka
+                </button>
+                <button class="customify-btn customify-btn-secondary" id="tryAgainBtn">
+                  Spróbuj ponownie
+                </button>
+            </div>
+        </div>
+
+            <div class="customify-error" id="errorMessage"></div>
+            <div class="customify-success" id="successMessage"></div>
+          </div>
+        </div>
+      </div>
+      
+      <style>
+        /* GRID STYLÓW AI - TYLKO STYLE, NIE DOTYKAM PROPORCJI */
+        .customify-style-grid {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 15px;
+          margin-bottom: 20px;
+        }
+
+        .customify-style-card {
+          border: 2px solid #dee2e6;
+          border-radius: 8px;
+          background: white;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          overflow: hidden;
+        }
+
+        .customify-style-card:hover {
+          border-color: #e55a2b;
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .customify-style-card.active {
+          border-color: #ff6b35;
+          box-shadow: 0 0 0 2px rgba(255, 107, 53, 0.2);
+        }
+
+        .style-image {
+          height: 80px;
+          background-size: cover;
+          background-position: center;
+        }
+
+        /* Gradienty usunięte - używamy obrazków */
+
+        .style-info {
+          padding: 8px;
+          text-align: center;
+        }
+
+        .style-name {
+          font-weight: 600;
+          font-size: 0.9rem;
+          color: #333;
+          margin-bottom: 2px;
+        }
+
+        /* Ceny stylów usunięte - style nie wpływają na cenę */
+
+        @media (max-width: 768px) {
+          .customify-style-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+          }
+        }
+      </style>
+    {% endif %}
+
+    {% comment %} CUSTOMIFY CART INTEGRATION {% endcomment %}
+    {% if template contains 'cart' %}
+      <style>
+        .cart-item__ai-image {
+          width: 80px;
+          height: 80px;
+          object-fit: cover;
+          border-radius: 0;
+          border: 2px solid #e0e0e0;
+          margin-right: 15px;
+        }
+        
+        .cart-item__content-wrapper {
+          display: flex;
+          gap: 15px;
+          align-items: start;
+        }
+      </style>
+    {% endif %}
+
+    {% comment %} CUSTOMIFY CUSTOMER REVIEWS {% endcomment %}
     {% if template contains 'product' %}
     <div class="customer-reviews-section">
       <div class="reviews-header">
@@ -1377,7 +406,6 @@
       </div>
       
       <div class="reviews-grid" id="customer-reviews">
-        <!-- Przykładowe opinie -->
         <div class="review-card">
           <div class="review-header">
             <div class="review-author">Anna K.</div>
@@ -1508,846 +536,5 @@
     {% endif %}
 
     {% sections 'footer-group' %}
-
-    {% render 'search-modal' %}
-
-    {% if settings.quick_add or settings.mobile_quick_add %}
-      {% render 'quick-add-modal' %}
-    {% endif %}
-
-{% if template contains 'cart' %}
-<!-- Customify AI - Wyświetlanie miniaturek w koszyku -->
-<style>
-  .cart-item__ai-image {
-    width: 80px;
-    height: 80px;
-    object-fit: cover;
-    border-radius: 0;
-    border: 2px solid #e0e0e0;
-    margin-right: 15px;
-  }
-  
-  .cart-item__content-wrapper {
-    display: flex;
-    gap: 15px;
-    align-items: start;
-  }
-      /* AGRESYWNE ZEROWANIE WSZYSTKICH ODSTĘPÓW - DODAJ DO <style> */
-      
-      /* ZERUJ WSZYSTKIE ODSTĘPY W GROUP-BLOCK */
-      .group-block[data-testid="group-block"],
-      .group-block[data-testid="group-block"] * {
-        margin: 0 !important;
-        padding: 0 !important;
-        --padding-block-start: 0px !important;
-        --padding-block-end: 0px !important;
-        --padding-inline-start: 20px !important;
-        --padding-inline-end: 20px !important;
-        --gap: 0px !important;
-        gap: 0px !important;
-      }
-      
-      /* FLEX CONTAINER - USUŃ GAP */
-      .group-block[data-testid="group-block"] .layout-panel-flex {
-        display: flex !important;
-        flex-direction: column !important;
-        gap: 0px !important;
-        --gap: 0px !important;
-        margin: 0 !important;
-        padding: 20px !important; /* Tylko zewnętrzny padding */
-      }
-      
-      /* KAŻDY ELEMENT OSOBNO - MAŁE KONTROLOWANE ODSTĘPY */
-      .group-block[data-testid="group-block"] .view-product-title {
-        margin: 0 0 8px 0 !important;
-        padding: 0 !important;
-      }
-      
-      .group-block[data-testid="group-block"] .product-badges {
-        margin: 0 0 12px 0 !important;
-        padding: 0 !important;
-      }
-      
-      .group-block[data-testid="group-block"] product-price {
-        margin: 0 0 16px 0 !important;
-        padding: 0 !important;
-      }
-      
-      .group-block[data-testid="group-block"] .buy-buttons-block {
-        margin: 0 !important;
-        padding: 0 !important;
-      }
-      
-      /* FORCE OVERRIDE WSZYSTKICH MOŻLIWYCH STYLI SHOPIFY */
-      .group-block[data-testid="group-block"] [class*="padding"],
-      .group-block[data-testid="group-block"] [class*="margin"],
-      .group-block[data-testid="group-block"] [class*="gap"],
-      .group-block[data-testid="group-block"] [style*="padding"],
-      .group-block[data-testid="group-block"] [style*="margin"],
-      .group-block[data-testid="group-block"] [style*="gap"] {
-        margin: 0 !important;
-        padding: 0 !important;
-        gap: 0 !important;
-      }      }</style>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-      
-      .group-block[data-testid="group-block"] .group-block-content {
-        margin: 0 !important;
-        padding: 0 !important;
-      }  // Znajdź wszystkie elementy koszyka z AI obrazkami
-  const cartItems = document.querySelectorAll('.cart-item, .cart-items__row');
-  
-  cartItems.forEach(item => {
-    // Znajdź ukryte property z AI obrazkiem
-    const aiImageProperty = item.querySelector('dd[data-property="_AI_Image_URL"], .cart-items__properties dd');
-    
-    if (aiImageProperty && aiImageProperty.textContent.includes('replicate.delivery')) {
-      const imageUrl = aiImageProperty.textContent.trim();
-      
-      // Ukryj surowy URL
-      const propertyDiv = aiImageProperty.closest('.cart-items__properties');
-      if (propertyDiv) {
-        propertyDiv.style.display = 'none';
-      }
-      
-      // Dodaj miniaturkę
-      const imageCell = item.querySelector('.cart-items__image, .cart-item__image-wrapper');
-      if (imageCell && !imageCell.querySelector('.cart-item__ai-image')) {
-        const aiImage = document.createElement('img');
-        aiImage.src = imageUrl;
-        aiImage.alt = 'AI Transformed Image';
-        aiImage.className = 'cart-item__ai-image';
-        aiImage.style.cssText = 'width: 80px; height: 80px; object-fit: cover; border-radius: 0; border: 2px solid #e0e0e0;';
-        
-        // Wstaw miniaturkę jako główny obrazek lub obok
-        const existingImage = imageCell.querySelector('img');
-        if (existingImage) {
-          existingImage.replaceWith(aiImage);
-        } else {
-          imageCell.appendChild(aiImage);
-        }
-      }
-    }
-  });
-});
-    // FORCE INLINE STYLES - NAJWYŻSZA SPECYFICZNOŚĆ
-    const groupBlock = document.querySelector(".group-block[data-testid="group-block"]");
-    if (groupBlock) {
-      console.log("🎯 [CUSTOMIFY] Force override spacing - START");
-      
-      // Wyzeruj wszystkie odstępy inline
-      groupBlock.style.setProperty("margin", "0", "important");
-      groupBlock.style.setProperty("padding", "20px", "important");
-      groupBlock.style.setProperty("gap", "0", "important");
-      groupBlock.style.setProperty("--padding-block-start", "0px", "important");
-      groupBlock.style.setProperty("--padding-block-end", "0px", "important");
-      groupBlock.style.setProperty("--gap", "0px", "important");
-      
-      // Znajdź flex container i wyzeruj gap
-      const flexContainer = groupBlock.querySelector(".layout-panel-flex");
-      if (flexContainer) {
-        flexContainer.style.setProperty("gap", "0", "important");
-        flexContainer.style.setProperty("margin", "0", "important");
-        flexContainer.style.setProperty("padding", "20px", "important");
-        flexContainer.style.setProperty("--gap", "0px", "important");
-        console.log("🎯 [CUSTOMIFY] Flex container styles overridden");
-      }
-      
-      // Ustaw konkretne marginesy dla każdego elementu
-      const title = groupBlock.querySelector(".view-product-title");
-      if (title) {
-        title.style.setProperty("margin", "0 0 8px 0", "important");
-        title.style.setProperty("padding", "0", "important");
-        console.log("🎯 [CUSTOMIFY] Title styles overridden");
-      }
-      
-      const badges = groupBlock.querySelector(".product-badges");
-      if (badges) {
-        badges.style.setProperty("margin", "0 0 12px 0", "important");
-        badges.style.setProperty("padding", "0", "important");
-        console.log("🎯 [CUSTOMIFY] Badges styles overridden");
-      }
-      
-      const price = groupBlock.querySelector("product-price");
-      if (price) {
-        price.style.setProperty("margin", "0 0 16px 0", "important");
-        price.style.setProperty("padding", "0", "important");
-        console.log("🎯 [CUSTOMIFY] Price styles overridden");
-      }
-      
-      console.log("🎯 [CUSTOMIFY] All spacing overridden successfully");
-    }</script>
-{% endif %}
-
-{% if template contains 'product' %}
-    <!-- Customify AI Photo Customization - CZYSTA WERSJA -->
-<!-- Aplikacja będzie wstrzykiwana JavaScript do kolumny 2 -->
-    <div id="customify-app-container" class="customify-shopify-container" style="display: none;">
-      <h3 class="customify-title" style="margin: 30px 0px 20px 0px; padding: 0px 0px 0px 0px; background: white; color: #000; border: none; border-radius: 0; font-size: 1.4rem; font-weight: 600; text-align: left;">Wgraj zdjęcie - wybierz styl obrazu</h3>
-      <div class="customify-inline-wrapper">
-        <div class="customify-embed" id="customifyEmbed">
-          <div class="customify-upload-area" id="uploadArea">
-            <button class="customify-upload-btn" id="uploadBtn">
-              Wgraj zdjęcie
-            </button>
-            <div class="customify-upload-hint">Maksymalnie 10MB, formaty: JPG, PNG, GIF</div>
-            <input type="file" id="fileInput" class="customify-file-input" accept="image/*">
-          </div>
-
-          <div class="customify-preview" id="previewArea">
-          <h4>Twoje zdjęcie:</h4>
-            <img id="previewImage" alt="Podgląd zdjęcia">
-          </div>
-
-          <div class="customify-styles" id="stylesArea" style="display: none;">
-            <h4>Wybierz styl AI:</h4>
-            <div class="customify-style-buttons">
-              <div class="customify-style-btn" data-style="van gogh" style="background-image: url('https://customify-s56o.vercel.app/Screenshot%202025-09-29%20at%2022.17.01.png'); background-size: cover; background-position: center;">
-                <span class="style-label">Van Gogh</span>
-              </div>
-              <div class="customify-style-btn" data-style="picasso" style="background-image: url('https://customify-s56o.vercel.app/Screenshot%202025-09-29%20at%2022.17.14.png'); background-size: cover; background-position: center;">
-                <span class="style-label">Picasso</span>
-              </div>
-              <div class="customify-style-btn" data-style="monet" style="background-image: url('https://customify-s56o.vercel.app/Screenshot%202025-09-29%20at%2022.17.37.png'); background-size: cover; background-position: center;">
-                <span class="style-label">Monet</span>
-              </div>
-              <div class="customify-style-btn" data-style="anime" style="background-image: url('https://customify-s56o.vercel.app/Screenshot%202025-09-29%20at%2022.17.52.png'); background-size: cover; background-position: center;">
-                <span class="style-label">Anime</span>
-              </div>
-              <div class="customify-style-btn" data-style="cyberpunk" style="background-image: url('https://customify-s56o.vercel.app/Screenshot%202025-09-29%20at%2022.17.01.png'); background-size: cover; background-position: center;">
-                <span class="style-label">Cyberpunk</span>
-              </div>
-              <div class="customify-style-btn" data-style="watercolor" style="background-image: url('https://customify-s56o.vercel.app/Screenshot%202025-09-29%20at%2022.17.14.png'); background-size: cover; background-position: center;">
-                <span class="style-label">Akwarela</span>
-              </div>
-              <div class="customify-style-btn" data-style="pixar" style="background-image: url('https://customify-s56o.vercel.app/Screenshot%202025-09-29%20at%2022.17.37.png'); background-size: cover; background-position: center;">
-                <span class="style-label">Pixar</span>
-              </div>
-            </div>
-          </div>
-
-
-          <div class="customify-actions" id="actionsArea" style="display: none;">
-            <button class="customify-btn customify-btn-primary" id="transformBtn">
-              Przekształć z AI
-            </button>
-            <button class="customify-btn customify-btn-secondary" id="resetBtn">
-              Wgraj inne zdjęcie
-            </button>
-          </div>
-
-          <div class="customify-loading" id="loadingArea">
-            <div class="customify-spinner"></div>
-            <div>Przetwarzanie z AI...</div>
-          </div>
-
-          <div class="customify-result" id="resultArea">
-            <h4>Wynik transformacji AI:</h4>
-            <img id="resultImage" alt="Wynik AI">
-            
-            <!-- Rozmiary pod zdjęciem wynikowym -->
-            <div class="customify-size-selector" id="sizeArea" style="display: none;">
-              <h4>Wybierz rozmiar:</h4>
-              <div class="customify-size-buttons">
-                <div class="customify-size-btn" data-size="small">Mały (+0 zł)</div>
-                <div class="customify-size-btn" data-size="medium">Średni (+25 zł)</div>
-                <div class="customify-size-btn" data-size="large">Duży (+50 zł)</div>
-                <div class="customify-size-btn" data-size="xlarge">Bardzo duży (+100 zł)</div>
-              </div>
-            </div>
-            
-            <div class="customify-actions" style="margin-top: 15px;">
-              <button class="customify-btn customify-btn-primary" id="addToCartBtn">
-                Dodaj do koszyka
-              </button>
-              <button class="customify-btn customify-btn-secondary" id="tryAgainBtn">
-                Spróbuj ponownie
-              </button>
-            </div>
-          </div>
-
-          <div class="customify-error" id="errorMessage"></div>
-          <div class="customify-success" id="successMessage"></div>
-        </div>
-      </div>
-    </div>
-
-
-    <script>
-      // Customify JavaScript - Z MINIATURKĄ W KOSZYKU
-      class CustomifyEmbed {
-        constructor() {
-          this.uploadArea = document.getElementById('uploadArea');
-          this.fileInput = document.getElementById('fileInput');
-          this.previewArea = document.getElementById('previewArea');
-          this.previewImage = document.getElementById('previewImage');
-          this.stylesArea = document.getElementById('stylesArea');
-          this.sizeArea = document.getElementById('sizeArea');
-          this.actionsArea = document.getElementById('actionsArea');
-          this.loadingArea = document.getElementById('loadingArea');
-          this.resultArea = document.getElementById('resultArea');
-          this.resultImage = document.getElementById('resultImage');
-          this.errorMessage = document.getElementById('errorMessage');
-          this.successMessage = document.getElementById('successMessage');
-          
-          this.uploadedFile = null;
-          this.selectedStyle = null;
-          this.selectedSize = null;
-          this.transformedImage = null;
-          
-          this.init();
-        }
-
-        init() {
-          if (!document.getElementById('uploadArea')) {
-            return; // Jeśli nie ma elementów, nie rób nic
-          }
-          this.setupEventListeners();
-          this.positionApp();
-        }
-
-        // WSTRZYJ APLIKACJĘ DO KOLUMNY 2
-        positionApp() {
-          if (!window.location.pathname.includes('/products/')) {
-            return;
-          }
-
-          const appContainer = document.getElementById('customify-app-container');
-          if (!appContainer) return;
-
-          // Znajdź kolumnę 2 (detale produktu)
-          const productDetails = document.querySelector('#ProductInformation-template--26351135293765__main') || 
-                                document.querySelector('.product-details') ||
-                                document.querySelector('.product__info');
-
-          if (productDetails) {
-            console.log('🎯 [CUSTOMIFY] Found product details column, inserting app at top');
-            
-            // Dodaj elementy pod tytułem
-            this.addProductBadges();
-            
-            // Pokaż aplikację
-            appContainer.style.display = 'block';
-            
-            // Wstaw na górę kolumny 2
-            productDetails.insertBefore(appContainer, productDetails.firstChild);
-          } else {
-            console.warn('⚠️ [CUSTOMIFY] Could not find product details column');
-          }
-        }
-
-        // DODAJ GWIAZDKI I OKAZJĘ POD TYTUŁEM
-        addProductBadges() {
-          // Znajdź tytuł produktu
-          const titleElement = document.querySelector('h1, .product-title, .view-product-title');
-          if (!titleElement) return;
-
-          // Sprawdź czy już nie ma badge'ów
-          if (document.querySelector('.product-badges')) return;
-
-          // Stwórz kontener dla badge'ów
-          const badgesContainer = document.createElement('div');
-          badgesContainer.className = 'product-badges';
-
-          // Dodaj badge z okazją
-          const discountBadge = document.createElement('div');
-          discountBadge.className = 'discount-badge';
-          discountBadge.textContent = 'Oszczędzasz 30%';
-
-          // Dodaj sekcję z gwiazdkami
-          const ratingSection = document.createElement('div');
-          ratingSection.className = 'rating-section';
-
-          // Stwórz jeden element z gwiazdkami i liczbą w jednej linii
-          const starsAndCount = document.createElement('div');
-          starsAndCount.className = 'stars-rating-inline';
-          starsAndCount.innerHTML = '★ ★ ★ ★ ★ (123)';
-
-          ratingSection.appendChild(starsAndCount);
-
-          // Dodaj do kontenera
-          badgesContainer.appendChild(discountBadge);
-          badgesContainer.appendChild(ratingSection);
-
-          // POŁĄCZ TYTUŁ Z BADGE'AMI W JEDEN ELEMENT
-          const titleBadgesContainer = document.createElement('div');
-          titleBadgesContainer.className = 'title-with-badges';
-          titleBadgesContainer.style.cssText = 'order: 1 !important; margin-bottom: 20px !important;';
-
-          // Przenieś tytuł do nowego kontenera
-          titleElement.parentNode.insertBefore(titleBadgesContainer, titleElement);
-          titleBadgesContainer.appendChild(titleElement);
-          
-          // Dodaj badge'y do tego samego kontenera
-          titleBadgesContainer.appendChild(badgesContainer);
-
-          // PRZENIEŚ CENĘ PO TYTULE Z BADGE'AMI
-          setTimeout(() => {
-            const priceElement = document.querySelector('product-price');
-            const titleBadgesContainer = document.querySelector('.title-with-badges');
-            if (priceElement && titleBadgesContainer) {
-              // Znajdź kontener flexbox
-              const flexContainer = document.querySelector('.layout-panel-flex');
-              if (flexContainer) {
-                // Przenieś cenę po tytule z badge'ami
-                flexContainer.insertBefore(priceElement, titleBadgesContainer.nextSibling);
-                console.log('🎯 [CUSTOMIFY] Cena przeniesiona po tytule z badge\'ami');
-              }
-            }
-          }, 100);
-        }
-
-        setupEventListeners() {
-          // Obsługa kliknięcia przycisku uploadu
-          const uploadBtn = document.getElementById('uploadBtn');
-          if (uploadBtn) {
-            uploadBtn.addEventListener('click', () => this.fileInput.click());
-          }
-          
-          // Obsługa kliknięcia całego obszaru uploadu (dla drag & drop)
-          this.uploadArea.addEventListener('click', () => this.fileInput.click());
-          this.fileInput.addEventListener('change', (e) => this.handleFileSelect(e.target.files[0]));
-          
-          this.uploadArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            this.uploadArea.classList.add('dragover');
-          });
-          
-          this.uploadArea.addEventListener('dragleave', () => {
-            this.uploadArea.classList.remove('dragover');
-          });
-          
-          this.uploadArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            this.uploadArea.classList.remove('dragover');
-            this.handleFileSelect(e.dataTransfer.files[0]);
-          });
-
-          this.stylesArea.addEventListener('click', (e) => {
-            if (e.target.classList.contains('customify-style-btn')) {
-              this.selectStyle(e.target);
-            }
-          });
-
-        // Event listener dla rozmiarów - sprawdź zarówno główny jak i w resultArea
-        document.addEventListener('click', (e) => {
-            if (e.target.classList.contains('customify-size-btn')) {
-              this.selectSize(e.target);
-            }
-          });
-
-          document.getElementById('transformBtn').addEventListener('click', () => this.transformImage());
-          document.getElementById('resetBtn').addEventListener('click', () => this.reset());
-          document.getElementById('addToCartBtn').addEventListener('click', () => this.addToCart());
-          document.getElementById('tryAgainBtn').addEventListener('click', () => this.tryAgain());
-        }
-
-        handleFileSelect(file) {
-          if (!file) return;
-          if (!file.type.startsWith('image/')) {
-            this.showError('Proszę wybrać plik obrazu (JPG, PNG, GIF)');
-            return;
-          }
-          if (file.size > 10 * 1024 * 1024) {
-            this.showError('Plik jest za duży. Maksymalny rozmiar to 10MB');
-            return;
-          }
-
-          this.uploadedFile = file;
-          this.showPreview(file);
-          this.showStyles();
-          this.hideError();
-        }
-
-        showPreview(file) {
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            this.previewImage.src = e.target.result;
-            this.previewArea.style.display = 'block';
-          };
-          reader.readAsDataURL(file);
-        }
-
-        showStyles() {
-          this.stylesArea.style.display = 'block';
-          this.sizeArea.style.display = 'none'; // Ukryj wymiary na początku
-          this.actionsArea.style.display = 'flex';
-        }
-
-        selectStyle(styleBtn) {
-          this.stylesArea.querySelectorAll('.customify-style-btn').forEach(btn => btn.classList.remove('active'));
-          styleBtn.classList.add('active');
-          this.selectedStyle = styleBtn.dataset.style;
-        }
-
-        selectSize(sizeBtn) {
-          this.sizeArea.querySelectorAll('.customify-size-btn').forEach(btn => btn.classList.remove('active'));
-          sizeBtn.classList.add('active');
-          this.selectedSize = sizeBtn.dataset.size;
-        }
-
-        async transformImage() {
-          if (!this.uploadedFile || !this.selectedStyle) {
-            this.showError('Proszę wybrać zdjęcie i styl');
-            return;
-          }
-
-          this.showLoading();
-          this.hideError();
-
-          try {
-            const base64 = await this.fileToBase64(this.uploadedFile);
-            const response = await fetch('https://customify-s56o.vercel.app/api/transform', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                imageData: base64,
-                prompt: `Transform this image in ${this.selectedStyle} style`
-              })
-            });
-
-            const result = await response.json();
-            if (result.success) {
-              this.transformedImage = result.transformedImage;
-              this.showResult(result.transformedImage);
-              this.showSuccess('Zdjęcie zostało pomyślnie przekształcone!');
-            } else {
-              this.showError('Błąd podczas transformacji: ' + (result.error || 'Nieznany błąd'));
-            }
-          } catch (error) {
-            this.showError('Błąd połączenia z serwerem');
-          } finally {
-            this.hideLoading();
-          }
-        }
-
-        showResult(imageUrl) {
-          console.log('🎯 [CUSTOMIFY] showResult called, hiding actionsArea and stylesArea');
-          this.resultImage.src = imageUrl;
-          this.resultArea.style.display = 'block';
-          
-          // Pokaż rozmiary pod zdjęciem wynikowym
-          const sizeAreaInResult = this.resultArea.querySelector('#sizeArea');
-          if (sizeAreaInResult) {
-            sizeAreaInResult.style.display = 'block';
-            console.log('🎯 [CUSTOMIFY] Size area shown under result image');
-          }
-          
-          // UKRYJ przyciski "Przekształć z AI" i "Resetuj" (główne actionsArea)
-          this.actionsArea.style.display = 'none';
-          console.log('🎯 [CUSTOMIFY] actionsArea hidden:', this.actionsArea.style.display);
-          
-          // UKRYJ style po przekształceniu
-          this.stylesArea.style.display = 'none';
-          console.log('🎯 [CUSTOMIFY] stylesArea hidden:', this.stylesArea.style.display);
-          
-          // UKRYJ pole upload po przekształceniu
-          this.uploadArea.style.display = 'none';
-          console.log('🎯 [CUSTOMIFY] uploadArea hidden:', this.uploadArea.style.display);
-        }
-
-
-        // NAPRAWIONA FUNKCJA: STWÓRZ NOWY PRODUKT Z OBRAZKIEM AI (UKRYTY W KATALOGU)
-        async addToCart() {
-          console.log('🛒 [CUSTOMIFY] addToCart called with:', {
-            transformedImage: !!this.transformedImage,
-            selectedStyle: this.selectedStyle,
-            selectedSize: this.selectedSize
-          });
-          
-          if (!this.transformedImage) {
-            this.showError('Brak przekształconego obrazu');
-            return;
-          }
-          
-          if (!this.selectedStyle) {
-            this.showError('Wybierz styl');
-            return;
-          }
-          
-          if (!this.selectedSize) {
-            this.showError('Wybierz rozmiar');
-            return;
-          }
-
-          this.hideError();
-          console.log('🛒 [CUSTOMIFY] Starting addToCart process...');
-
-          try {
-            const productData = {
-              originalImage: await this.fileToBase64(this.uploadedFile),
-              transformedImage: this.transformedImage,
-              style: this.selectedStyle,
-              size: this.selectedSize,
-              originalProductTitle: document.querySelector('h1, .product-title, .view-product-title')?.textContent?.trim() || 'Produkt'
-            };
-
-            console.log('🛒 [CUSTOMIFY] Creating product with data:', productData);
-            
-            // Stwórz nowy produkt z obrazkiem AI jako głównym obrazem
-            const response = await fetch('https://customify-s56o.vercel.app/api/products', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(productData)
-            });
-
-            console.log('🛒 [CUSTOMIFY] API response status:', response.status);
-            const result = await response.json();
-            console.log('🛒 [CUSTOMIFY] API response:', result);
-
-            if (result.success) {
-              this.showSuccess('✅ ' + (result.message || 'Produkt został utworzony!'));
-              console.log('✅ [CUSTOMIFY] Product created:', result.product);
-              
-              // Obraz AI jest już głównym obrazem produktu
-              
-              if (result.variantId) {
-                console.log('🛒 [CUSTOMIFY] Attempting to add to cart with Variant ID:', result.variantId);
-                console.log('🛒 [CUSTOMIFY] Product ID:', result.productId);
-                console.log('🛒 [CUSTOMIFY] Variant ID type:', typeof result.variantId);
-                console.log('🛒 [CUSTOMIFY] Variant ID length:', result.variantId.toString().length);
-                
-                // NAPRAWIONA METODA: Użyj bezpośredniego przekierowania zamiast formularza
-                const properties = {
-                  'AI Style': this.selectedStyle,
-                  'Size': this.selectedSize,
-                  'Original Product': productData.originalProductTitle,
-                  'Customization Type': 'AI Generated',
-                  '_AI_Image_URL': result.imageUrl || this.transformedImage
-                };
-                
-                // Buduj URL z parametrami
-                const params = new URLSearchParams();
-                params.append('id', result.variantId);
-                params.append('quantity', '1');
-                
-                // Dodaj właściwości
-                Object.entries(properties).forEach(([key, value]) => {
-                  params.append(`properties[${key}]`, value);
-                });
-                
-                const cartUrl = `/cart/add?${params.toString()}`;
-                console.log('🛒 [CUSTOMIFY] Cart URL:', cartUrl);
-                
-                // DODAJ DO KOSZYKA PRZEZ FETCH (żeby móc ukryć produkt po dodaniu)
-                try {
-                  const cartResponse = await fetch(cartUrl, {
-                    method: 'POST',
-                    headers: {
-                      'Content-Type': 'application/x-www-form-urlencoded',
-                    }
-                  });
-                  
-                  if (cartResponse.ok) {
-                    console.log('✅ [CUSTOMIFY] Product added to cart successfully');
-                    
-                    // USUNIĘTO: Ukrywanie produktów - wszystkie produkty pozostają widoczne
-                    
-                    // Przekieruj do koszyka
-                    window.location.href = '/cart';
-                    
-                    // PRODUKT ZOSTANIE UKRYTY PO FINALIZACJI TRANSAKCJI (webhook orders/paid)
-                  } else {
-                    console.error('❌ [CUSTOMIFY] Failed to add to cart:', cartResponse.status);
-                    this.showError('❌ Błąd podczas dodawania do koszyka');
-                  }
-                } catch (error) {
-                  console.error('❌ [CUSTOMIFY] Cart add error:', error);
-                  this.showError('❌ Błąd połączenia z koszykiem');
-                }
-              }
-            } else {
-              console.error('❌ [CUSTOMIFY] Product creation failed:', result);
-              this.showError('❌ Błąd podczas tworzenia produktu: ' + (result.error || 'Nieznany błąd'));
-            }
-          } catch (error) {
-            console.error('❌ [CUSTOMIFY] Add to cart error:', error);
-            this.showError('❌ Błąd połączenia z serwerem: ' + error.message);
-          }
-        }
-
-        // USUNIĘTO: Funkcja ukrywania produktów - wszystkie produkty są widoczne
-
-        // UKRYJ PRODUKT PO DODANIU DO KOSZYKA
-        async hideProductAfterCartAdd(productId) {
-          if (!productId) {
-            console.log('⚠️ [CUSTOMIFY] No product ID to hide');
-            return;
-          }
-
-          try {
-            console.log('🔒 [CUSTOMIFY] Hiding product after cart add:', productId);
-            
-            const response = await fetch('https://customify-s56o.vercel.app/api/hide-product', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ productId: productId })
-            });
-
-            if (response.ok) {
-              const result = await response.json();
-              console.log('✅ [CUSTOMIFY] Product hidden successfully:', result);
-            } else {
-              console.error('❌ [CUSTOMIFY] Failed to hide product:', response.status);
-            }
-          } catch (error) {
-            console.error('❌ [CUSTOMIFY] Error hiding product:', error);
-          }
-        }
-
-        fileToBase64(file) {
-          return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = () => resolve(reader.result.split(',')[1]);
-            reader.onerror = error => reject(error);
-          });
-        }
-
-        reset() {
-          this.uploadedFile = null;
-          this.selectedStyle = null;
-          this.selectedSize = null;
-          this.transformedImage = null;
-          
-          this.fileInput.value = '';
-          this.uploadArea.style.display = 'block'; // Pokaż pole upload z powrotem
-          this.previewArea.style.display = 'none';
-          this.stylesArea.style.display = 'none';
-          this.sizeArea.style.display = 'none';
-          this.actionsArea.style.display = 'none';
-          this.resultArea.style.display = 'none';
-          this.hideError();
-          this.hideSuccess();
-          
-          this.stylesArea.querySelectorAll('.customify-style-btn').forEach(btn => btn.classList.remove('active'));
-          this.sizeArea.querySelectorAll('.customify-size-btn').forEach(btn => btn.classList.remove('active'));
-        }
-
-        tryAgain() {
-          console.log('🔄 [CUSTOMIFY] tryAgain called - returning to style selection');
-          
-          // Ukryj wynik AI
-          this.resultArea.style.display = 'none';
-          
-          // Pokaż style AI i przyciski
-          this.stylesArea.style.display = 'block';
-          this.actionsArea.style.display = 'flex';
-          
-          // Pokaż pole upload (jeśli było ukryte)
-          this.uploadArea.style.display = 'block';
-          
-          // Zresetuj wybrane style i rozmiary
-          this.selectedStyle = null;
-          this.selectedSize = null;
-          this.transformedImage = null;
-          
-          // Usuń aktywne style
-          this.stylesArea.querySelectorAll('.customify-style-btn').forEach(btn => btn.classList.remove('active'));
-          
-          // Usuń aktywne rozmiary
-          this.sizeArea.querySelectorAll('.customify-size-btn').forEach(btn => btn.classList.remove('active'));
-          
-          // Ukryj wiadomości
-          this.hideSuccess();
-          this.hideError();
-          
-          console.log('🔄 [CUSTOMIFY] tryAgain completed - user can select new style');
-        }
-
-        showLoading() {
-          this.loadingArea.style.display = 'block';
-          this.actionsArea.style.display = 'none';
-        }
-
-        hideLoading() {
-          this.loadingArea.style.display = 'none';
-          // NIE pokazuj actionsArea jeśli mamy już wynik AI
-          console.log('🎯 [CUSTOMIFY] hideLoading called, transformedImage:', !!this.transformedImage);
-          if (!this.transformedImage) {
-          this.actionsArea.style.display = 'flex';
-            console.log('🎯 [CUSTOMIFY] actionsArea shown because no transformedImage');
-          } else {
-            console.log('🎯 [CUSTOMIFY] actionsArea NOT shown because transformedImage exists');
-          }
-        }
-
-        showError(message) {
-          this.errorMessage.textContent = message;
-          this.errorMessage.style.display = 'block';
-        }
-
-        hideError() {
-          this.errorMessage.style.display = 'none';
-        }
-
-        showSuccess(message) {
-          this.successMessage.textContent = message;
-          this.successMessage.style.display = 'block';
-        }
-
-        hideSuccess() {
-          this.successMessage.style.display = 'none';
-        }
-      }
-
-      // Initialize when DOM is loaded
-      document.addEventListener('DOMContentLoaded', () => {
-        new CustomifyEmbed();
-        
-        // USUNIĘTO: Wszystkie funkcje ukrywania produktów - wszystkie produkty są widoczne
-        
-        // DODATKOWA FUNKCJA DO USUNIĘCIA DIVIDERA (BEZ PRZENOSZENIA CENY)
-        // Użyj window.onload zamiast DOMContentLoaded - czeka na wszystkie style
-        window.addEventListener('load', () => {
-          setTimeout(() => {
-
-          // USUŃ DIVIDERY FIZYCZNIE Z DOM
-          const dividers = document.querySelectorAll('.divider, .divider__line, .divider-AM3M2YnhsTllLTUtCS__divider_VJhene');
-          dividers.forEach(divider => {
-            if (divider && divider.parentNode) {
-              divider.parentNode.removeChild(divider);
-              console.log('🎯 [CUSTOMIFY] Divider usunięty z DOM');
-            }
-          });
-
-          // AGRESYWNE USUNIĘCIE ODSTĘPÓW MIĘDZY TYTUŁEM A BADGE'AMI
-          const titleElement = document.querySelector('.view-product-title');
-          const badgesElement = document.querySelector('.product-badges');
-          
-          if (titleElement) {
-            titleElement.style.setProperty('margin-bottom', '0px', 'important');
-            titleElement.style.setProperty('padding-bottom', '0px', 'important');
-            titleElement.style.setProperty('margin', '0 0 0px 0', 'important');
-            console.log('🎯 [CUSTOMIFY] Odstępy tytułu usunięte (inline)');
-          }
-          
-          if (badgesElement) {
-            badgesElement.style.setProperty('margin-top', '0px', 'important');
-            badgesElement.style.setProperty('padding-top', '0px', 'important');
-            badgesElement.style.setProperty('margin', '0 0 4px 0', 'important');
-            badgesElement.style.setProperty('gap', '2px', 'important');
-            console.log('🎯 [CUSTOMIFY] Odstępy badge\'ów zminimalizowane (inline)');
-          }
-
-          // DODATKOWE FORCE HIDE DIVIDERS - INLINE STYLES
-          const allDividers = document.querySelectorAll('.divider, .divider__line, .divider-AM3M2YnhsTllLTUtCS__divider_VJhene');
-          allDividers.forEach(divider => {
-            divider.style.setProperty('display', 'none', 'important');
-            divider.style.setProperty('visibility', 'hidden', 'important');
-            divider.style.setProperty('opacity', '0', 'important');
-            divider.style.setProperty('height', '0', 'important');
-            divider.style.setProperty('margin', '0', 'important');
-            divider.style.setProperty('padding', '0', 'important');
-            divider.style.setProperty('border', 'none', 'important');
-            console.log('🎯 [CUSTOMIFY] Divider ukryty (inline styles)');
-          });
-          }, 1000); // Zwiększ opóźnienie do 1 sekundy
-        });
-      });
-    </script>
-
-    {% endif %}
   </body>
+</html>

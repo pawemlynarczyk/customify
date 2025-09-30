@@ -7,7 +7,9 @@
     "start": "vercel dev",
     "dev": "vercel dev",
     "build": "echo 'No build step required'",
-    "vercel-build": "echo 'Vercel build completed'"
+    "vercel-build": "echo 'Vercel build completed'",
+    "sync-theme": "node sync-theme-files.js",
+    "deploy": "node deploy-optimized-theme.js"
   },
   "keywords": [
     "shopify",

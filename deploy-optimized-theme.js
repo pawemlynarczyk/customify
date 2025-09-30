@@ -1,7 +1,11 @@
 const fs = require('fs');
 const path = require('path');
+const { syncThemeFiles } = require('./sync-theme-files');
 
 async function deployOptimizedTheme() {
+  // AUTOMATYCZNA SYNCHRONIZACJA PRZED WDROŻENIEM
+  console.log('🔄 Synchronizacja plików theme przed wdrożeniem...');
+  syncThemeFiles();
   try {
     console.log('🚀 Wdrażanie zoptymalizowanego motywu Customify...');
     
