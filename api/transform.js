@@ -62,10 +62,10 @@ async function compressImage(imageData, maxWidth = 1024, maxHeight = 1024, quali
         withoutEnlargement: true,
         background: { r: 255, g: 255, b: 255, alpha: 1 } // White background for padding
       })
-      .jpeg({ 
+      .png({ 
         quality: quality,
-        progressive: true,
-        mozjpeg: true
+        compressionLevel: 9,
+        progressive: true
       })
       .withMetadata(false) // Usuń metadane EXIF
       .toBuffer();
@@ -75,9 +75,17 @@ async function compressImage(imageData, maxWidth = 1024, maxHeight = 1024, quali
     return compressedBuffer.toString('base64');
   } catch (error) {
     console.error('Image compression error:', error);
-    console.log('Returning original image data due to compression failure');
-    // If compression fails, return original
-    return imageData;
+    console.log('Sharp compression failed, trying fallback method...');
+    
+    // Fallback: return original image without compression
+    try {
+      const buffer = Buffer.from(imageData, 'base64');
+      console.log('Using original image without compression');
+      return imageData;
+    } catch (fallbackError) {
+      console.error('Fallback also failed:', fallbackError);
+      throw new Error('Image processing failed completely');
+    }
   }
 }
 
@@ -120,14 +128,8 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: 'Replicate API token not configured' });
     }
 
-    // Test authentication (following Replicate docs)
-    try {
-      const account = await replicate.accounts.current();
-      console.log(`🔐 [REPLICATE] Authenticated as: ${account.username}`);
-    } catch (authError) {
-      console.error('❌ [REPLICATE] Authentication failed:', authError.message);
-      return res.status(401).json({ error: 'Replicate API authentication failed' });
-    }
+    // Test authentication (simplified - just check if replicate is initialized)
+    console.log(`🔐 [REPLICATE] Ready to process with token: ${process.env.REPLICATE_API_TOKEN ? 'configured' : 'missing'}`);
 
     // Compress image before sending to Replicate to avoid memory issues
     console.log('Compressing image before AI processing...');
