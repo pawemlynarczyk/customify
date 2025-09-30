@@ -136,8 +136,8 @@ module.exports = async (req, res) => {
     const compressedImageData = await compressImage(imageData, 1024, 1024, 80);
     console.log(`Image compressed: ${imageData.length} -> ${compressedImageData.length} bytes`);
     
-    // Convert compressed base64 to Buffer for Replicate (better than Data URI)
-    const imageBuffer = Buffer.from(compressedImageData, 'base64');
+    // Convert compressed base64 to Data URI for Replicate (required format)
+    const imageDataUri = `data:image/png;base64,${compressedImageData}`;
 
     // Use Replicate for AI image transformation with different models based on style
     
@@ -219,7 +219,7 @@ module.exports = async (req, res) => {
       // Ghibli anime model parameters
       inputParams = {
         ...inputParams,
-        image: imageBuffer,
+        image: imageDataUri,
         go_fast: config.go_fast,
         guidance_scale: config.guidance_scale,
         prompt_strength: config.prompt_strength,
@@ -231,7 +231,7 @@ module.exports = async (req, res) => {
         task: config.task,
         prompt: config.prompt,
         negative_prompt: config.negative_prompt,
-        image: imageBuffer,
+        image: imageDataUri,
         scheduler: config.scheduler,
         guidance_scale: config.guidance_scale,
         prompt_strength: config.prompt_strength,
@@ -246,7 +246,7 @@ module.exports = async (req, res) => {
       // Stable Diffusion model parameters (default)
       inputParams = {
         ...inputParams,
-        image: imageBuffer,
+        image: imageDataUri,
         num_inference_steps: config.num_inference_steps,
         guidance_scale: config.guidance_scale,
         strength: config.strength
