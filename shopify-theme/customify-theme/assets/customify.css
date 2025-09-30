@@ -765,7 +765,7 @@ div.discount-badge {
 }
 
 .stars {
-  display: flex;
+  display: inline-flex;
   gap: 2px;
 }
 
@@ -778,6 +778,8 @@ div.discount-badge {
   color: #666;
   font-size: 14px;
   font-weight: 500;
+  display: inline;
+  margin-left: 5px;
 }
 
 /* ========================================
