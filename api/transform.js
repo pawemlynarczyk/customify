@@ -90,6 +90,8 @@ async function compressImage(imageData, maxWidth = 1024, maxHeight = 1024, quali
 }
 
 module.exports = async (req, res) => {
+  console.log(`🚀 [TRANSFORM] API called - Method: ${req.method}, Headers:`, req.headers);
+  
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
@@ -98,24 +100,32 @@ module.exports = async (req, res) => {
 
   // RATE LIMITING - Sprawdź limit dla kosztownych operacji AI
   const ip = getClientIP(req);
+  console.log(`🔍 [TRANSFORM] Request from IP: ${ip}, Method: ${req.method}`);
+  
   if (!checkRateLimit(ip, 20, 15 * 60 * 1000)) { // 20 requestów na 15 minut
-    console.log(`Rate limit exceeded for IP: ${ip}`);
+    console.log(`❌ [TRANSFORM] Rate limit exceeded for IP: ${ip}`);
     return res.status(429).json({
       error: 'Rate limit exceeded',
       message: 'Too many AI requests. Please try again in 15 minutes.',
       retryAfter: 900 // 15 minut w sekundach
     });
   }
+  
+  console.log(`✅ [TRANSFORM] Rate limit OK for IP: ${ip}`);
 
   if (req.method === 'OPTIONS') {
+    console.log(`✅ [TRANSFORM] OPTIONS request handled for IP: ${ip}`);
     res.status(200).end();
     return;
   }
 
   if (req.method !== 'POST') {
+    console.log(`❌ [TRANSFORM] Invalid method: ${req.method} for IP: ${ip}`);
     res.status(405).json({ error: 'Method not allowed' });
     return;
   }
+  
+  console.log(`📝 [TRANSFORM] POST request processing for IP: ${ip}`);
 
   try {
     const { imageData, prompt } = req.body;
