@@ -680,9 +680,9 @@ class CustomifyEmbed {
         type: file.type
       });
       
-      // Sprawdź czy plik jest za duży (>3MB)
-      if (file.size > 3 * 1024 * 1024) {
-        console.log('📱 [MOBILE] File too large, compressing...');
+      // Sprawdź czy plik jest za duży (>4MB - Vercel limit)
+      if (file.size > 4 * 1024 * 1024) {
+        console.log('📱 [MOBILE] File too large for Vercel (>4MB), compressing...');
         this.compressImage(file).then(compressedFile => {
           this.convertToBase64(compressedFile, resolve, reject);
         }).catch(error => {
@@ -690,6 +690,7 @@ class CustomifyEmbed {
           reject(error);
         });
       } else {
+        console.log('📱 [MOBILE] File size OK, sending to API for compression');
         this.convertToBase64(file, resolve, reject);
       }
     });
