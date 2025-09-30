@@ -214,7 +214,7 @@ class CustomifyEmbed {
       margin: 0 !important;
       padding: 0 !important;
       background: transparent !important;
-      font-size: 2.5rem !important;
+      font-size: 2rem !important;
       font-weight: 700 !important;
       color: #000 !important;
     `;

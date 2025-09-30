@@ -99,7 +99,7 @@
   border: none !important;
   box-shadow: none !important;
   padding: 16px !important;
-  margin: 12px 0 !important;
+  margin: 6px 0 !important;
   background: white !important;
   outline: none !important;
 }
@@ -348,7 +348,7 @@ body * {
 }
 
 .search-button {
-  background: #ff6b35;
+  background: #dc3545;
   border: none;
   color: white;
   padding: 0 20px;
@@ -361,7 +361,7 @@ body * {
 }
 
 .search-button:hover {
-  background: #e55a2b;
+  background: #c82333;
 }
 
 /* Linki użytkownika */
@@ -381,7 +381,7 @@ body * {
 }
 
 .user-link:hover {
-  color: #ff6b35;
+  color: #dc3545;
 }
 
 /* Koszyk */
@@ -402,8 +402,8 @@ body * {
 }
 
 .cart-link:hover {
-  border-color: #ff6b35;
-  color: #ff6b35;
+  border-color: #dc3545;
+  color: #dc3545;
 }
 
 .cart-icon-wrapper {
@@ -419,7 +419,7 @@ body * {
   position: absolute;
   top: -8px;
   right: -8px;
-  background: #ff6b35;
+  background: #dc3545;
   color: white;
   font-size: 12px;
   font-weight: 600;
@@ -471,7 +471,7 @@ body * {
 }
 
 .nav-link:hover {
-  color: #ff6b35;
+  color: #dc3545;
 }
 
 .dropdown-arrow {
@@ -517,7 +517,7 @@ body * {
 
 .dropdown-link:hover {
   background: #f3f5f6;
-  color: #ff6b35;
+  color: #dc3545;
 }
 
 /* Breadcrumbs */
@@ -544,7 +544,7 @@ body * {
 }
 
 .breadcrumb-link:hover {
-  color: #ff6b35;
+  color: #dc3545;
 }
 
 .breadcrumb-separator {
@@ -752,8 +752,8 @@ main {
 .group-block[data-testid="group-block"] .discount-badge,
 .product-badges .discount-badge,
 div.discount-badge {
-  background: #28a745;
-  background-color: #28a745;
+  background: #dc3545;
+  background-color: #dc3545;
   color: white;
   padding: 4px 8px;
   border-radius: 0;
@@ -828,12 +828,12 @@ div.discount-badge {
 }
 
 .customify-upload-area:hover {
-  border-color: #007bff;
+  border-color: #dc3545;
   background-color: white;
 }
 
 .customify-upload-area.dragover {
-  border-color: #007bff;
+  border-color: #dc3545;
   background-color: white;
 }
 
@@ -933,7 +933,7 @@ div.discount-badge {
 }
 
 .customify-style-btn:hover {
-  border-color: #e55a2b;
+  border-color: #c82333;
   transform: scale(1.02);
 }
 
@@ -943,7 +943,7 @@ div.discount-badge {
 }
 
 .customify-style-btn.active {
-  border-color: #ff6b35;
+  border-color: #dc3545;
   transform: scale(1.05);
 }
 
@@ -995,14 +995,14 @@ div.discount-badge {
 }
 
 .customify-btn-primary {
-  background: #ff6b35;
+  background: #dc3545;
   color: white;
   border: 2px solid #ff6b35;
 }
 
 .customify-btn-primary:hover {
-  background: #e55a2b;
-  border-color: #e55a2b;
+  background: #c82333;
+  border-color: #c82333;
   color: white;
 }
 
@@ -1026,7 +1026,7 @@ div.discount-badge {
 
 .customify-spinner {
   border: 3px solid #f3f3f3;
-  border-top: 3px solid #007bff;
+  border-top: 3px solid #dc3545;
   border-radius: 0;
   width: 30px;
   height: 30px;
@@ -1148,7 +1148,7 @@ div.discount-badge {
 }
 
 .reviews-link {
-  color: #007bff;
+  color: #dc3545;
   text-decoration: none;
   font-size: 1.1rem;
   font-weight: 600;
