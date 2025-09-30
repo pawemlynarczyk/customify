@@ -650,8 +650,15 @@ main {
 .page-width, .main-content, .content-for-layout, 
 .product-page, .product-template, .product-single,
 .product__media-wrapper, .product__info-wrapper,
-.product-information, .product-details-wrapper {
+.product-details-wrapper {
   background: transparent; /* Przezroczyste tło dla kontenerów */
+}
+
+/* GŁÓWNA SEKCJA PRODUKTU - SZARE TŁO */
+.product-information {
+  background: #f3f5f6 !important; /* Szare tło dla głównej sekcji */
+  padding: 20px !important;
+  margin: 0 !important;
 }
 
 /* USUŃ BIAŁE TŁO Z ELEMENTÓW KTÓRE POWINNY BYĆ PRZEZROCZYSTE */
