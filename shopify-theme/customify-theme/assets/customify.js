@@ -126,7 +126,42 @@ class CustomifyEmbed {
     // POKAŻ CENĘ PONIŻEJ APLIKACJI CUSTOMIFY
     this.showPriceBelowApp();
 
+    // DODAJ DIVIDER POD TYTUŁEM
+    this.addDividerAfterTitle();
+
     console.log('✅ [CUSTOMIFY] Title moved to top successfully!');
+  }
+
+  // DODAJ DIVIDER POD TYTUŁEM
+  addDividerAfterTitle() {
+    // Sprawdź czy już nie ma dividera
+    if (document.querySelector('.customify-title-divider')) {
+      console.log('🎯 [CUSTOMIFY] Divider already exists');
+      return;
+    }
+
+    // Znajdź kontener z tytułem
+    const titleContainer = document.querySelector('.group-block[data-testid="group-block"].customify-title-moved');
+    if (!titleContainer) {
+      console.warn('⚠️ [CUSTOMIFY] Could not find title container for divider');
+      return;
+    }
+
+    // Stwórz divider
+    const divider = document.createElement('div');
+    divider.className = 'customify-title-divider';
+    divider.style.cssText = `
+      width: 100%;
+      height: 1px;
+      background-color: #ccc;
+      margin: 15px 0;
+      border-radius: 0.5px;
+    `;
+
+    // Dodaj divider po kontenerze z tytułem
+    titleContainer.parentNode.insertBefore(divider, titleContainer.nextSibling);
+
+    console.log('✅ [CUSTOMIFY] Divider added after title');
   }
 
   // POKAŻ CENĘ PONIŻEJ APLIKACJI CUSTOMIFY
