@@ -1229,68 +1229,7 @@ div.discount-badge {
    NEWSLETTER W STOPCE - GLOBALNE STYLE
    ======================================== */
 
-/* AGRESYWNE NADPISANIE - Newsletter w stopce */
-.group-block[data-testid="group-block"] {
-  padding: 0 !important;
-  margin: 0 !important;
-  width: 100% !important;
-}
-
-.group-block[data-testid="group-block"] .group-block__media-wrapper {
-  display: none !important;
-}
-
-.group-block[data-testid="group-block"] .group-block-content {
-  display: flex !important;
-  flex-direction: row !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 16px !important;
-  padding: 12px !important;
-  margin: 0 !important;
-  width: 100% !important;
-}
-
-/* Tekst "Dołącz do newslettera" w jednej linii */
-.group-block[data-testid="group-block"] .text-block h5 p {
-  white-space: nowrap !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  font-size: 16px !important;
-  font-weight: 600 !important;
-  color: #333 !important;
-}
-
-.group-block[data-testid="group-block"] .text-block {
-  padding: 0 !important;
-  margin: 0 !important;
-  width: auto !important;
-  max-width: none !important;
-}
-
-/* Email signup block */
-.email-signup-block {
-  padding: 0 !important;
-  margin: 0 !important;
-  width: auto !important;
-  max-width: none !important;
-}
-
-.email-signup__form {
-  padding: 0 !important;
-  margin: 0 !important;
-}
-
-.email-signup__input-group {
-  display: flex !important;
-  align-items: center !important;
-  gap: 12px !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  border: none !important;
-  border-radius: 0 !important;
-}
-
+/* Newsletter w stopce - tylko style input i przycisku */
 .email-signup__input {
   max-width: 200px !important;
   width: 200px !important;
@@ -1298,8 +1237,6 @@ div.discount-badge {
   border-radius: 8px !important;
   padding: 8px 12px !important;
   font-size: 14px !important;
-  margin: 0 !important;
-  background: white !important;
 }
 
 .email-signup__input:focus {
@@ -1318,27 +1255,11 @@ div.discount-badge {
   font-weight: 600 !important;
   cursor: pointer !important;
   transition: all 0.2s ease !important;
-  margin: 0 !important;
-  white-space: nowrap !important;
 }
 
 .email-signup__button:hover {
   background: #c82333 !important;
   transform: translateY(-1px) !important;
-}
-
-/* Mobile responsive */
-@media (max-width: 768px) {
-  .group-block[data-testid="group-block"] .group-block-content {
-    flex-direction: column !important;
-    gap: 12px !important;
-    padding: 8px !important;
-  }
-  
-  .email-signup__input {
-    width: 180px !important;
-    max-width: 180px !important;
-  }
 }
 
 /* ========================================
