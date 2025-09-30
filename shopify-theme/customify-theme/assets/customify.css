@@ -933,80 +933,9 @@ div.discount-badge {
   color: white;
 }
 
-/* Style dla kart stylów (customify-style-card) */
-.customify-style-card {
-  border: 2px solid #dee2e6;
-  border-radius: 8px;
-  background: white;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  overflow: hidden;
-}
+/* DUPLIKATY USUNIĘTE - UŻYWAMY THEME.LIQUID */
 
-.customify-style-card:hover {
-  border-color: #e55a2b;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-
-.customify-style-card.active {
-  border-color: #ff6b35;
-  box-shadow: 0 0 0 2px rgba(255, 107, 53, 0.2);
-  transform: scale(1.02);
-}
-
-.customify-size-selector {
-  display: none;
-  margin-bottom: 24px;
-  background: white;
-  border-radius: 0;
-  padding: 20px 0;
-  border: none;
-  border-top: 1px solid #e9ecef;
-}
-
-.customify-size-selector h4 {
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: #000;
-  margin: 0 0 16px 0;
-  text-align: center;
-}
-
-.customify-size-buttons {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 12px;
-}
-
-.customify-size-btn {
-  padding: 16px 12px;
-  border: 2px solid #dee2e6;
-  border-radius: 0;
-  background: white;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  text-align: center;
-  font-size: 0.95rem;
-  font-weight: 500;
-  color: #333;
-  box-shadow: none;
-}
-
-.customify-size-btn:hover {
-  border-color: #e55a2b;
-  background-color: #fff5f0;
-  transform: none;
-  box-shadow: none;
-}
-
-.customify-size-btn.active {
-  border-color: #ff6b35;
-  background: white;
-  color: #000;
-  transform: none;
-  box-shadow: none;
-}
+/* DUPLIKATY USUNIĘTE - UŻYWAMY THEME.LIQUID */
 
 .customify-actions {
   display: flex;
