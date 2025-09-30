@@ -680,22 +680,86 @@ class CustomifyEmbed {
         type: file.type
       });
       
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => {
-        const result = reader.result;
-        const base64 = result.split(',')[1];
-        console.log('📱 [MOBILE] Base64 conversion successful:', {
-          fullResultLength: result.length,
-          base64Length: base64.length,
-          preview: base64.substring(0, 50) + '...'
+      // Sprawdź czy plik jest za duży (>3MB)
+      if (file.size > 3 * 1024 * 1024) {
+        console.log('📱 [MOBILE] File too large, compressing...');
+        this.compressImage(file).then(compressedFile => {
+          this.convertToBase64(compressedFile, resolve, reject);
+        }).catch(error => {
+          console.error('📱 [MOBILE] Compression failed:', error);
+          reject(error);
         });
-        resolve(base64);
+      } else {
+        this.convertToBase64(file, resolve, reject);
+      }
+    });
+  }
+
+  convertToBase64(file, resolve, reject) {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => {
+      const result = reader.result;
+      const base64 = result.split(',')[1];
+      console.log('📱 [MOBILE] Base64 conversion successful:', {
+        fullResultLength: result.length,
+        base64Length: base64.length,
+        preview: base64.substring(0, 50) + '...'
+      });
+      resolve(base64);
+    };
+    reader.onerror = error => {
+      console.error('📱 [MOBILE] Base64 conversion failed:', error);
+      reject(error);
+    };
+  }
+
+  compressImage(file) {
+    return new Promise((resolve, reject) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      
+      img.onload = () => {
+        // Oblicz nowe wymiary (max 1024px)
+        const maxSize = 1024;
+        let { width, height } = img;
+        
+        if (width > height) {
+          if (width > maxSize) {
+            height = (height * maxSize) / width;
+            width = maxSize;
+          }
+        } else {
+          if (height > maxSize) {
+            width = (width * maxSize) / height;
+            height = maxSize;
+          }
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        
+        // Narysuj skompresowany obraz
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        // Konwertuj do blob z kompresją
+        canvas.toBlob(blob => {
+          console.log('📱 [MOBILE] Image compressed:', {
+            originalSize: file.size,
+            compressedSize: blob.size,
+            compressionRatio: ((1 - blob.size / file.size) * 100).toFixed(1) + '%'
+          });
+          resolve(blob);
+        }, 'image/jpeg', 0.8); // 80% jakość
       };
-      reader.onerror = error => {
-        console.error('📱 [MOBILE] Base64 conversion failed:', error);
+      
+      img.onerror = error => {
+        console.error('📱 [MOBILE] Image load failed:', error);
         reject(error);
       };
+      
+      img.src = URL.createObjectURL(file);
     });
   }
 
