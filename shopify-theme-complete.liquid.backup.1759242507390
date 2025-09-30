@@ -150,13 +150,10 @@
         <div class="breadcrumbs-container">
           <a href="{{ routes.root_url }}" class="breadcrumb-link">Home</a>
           {% if template contains 'product' %}
-            {% if product.collections.size > 0 %}
-              <span class="breadcrumb-separator">/</span>
-              <a href="{{ product.collections.first.url }}" class="breadcrumb-link">{{ product.collections.first.title }}</a>
-            {% elsif product.type != blank %}
-              <span class="breadcrumb-separator">/</span>
-              <a href="{{ routes.collections_url }}" class="breadcrumb-link">{{ product.type }}</a>
-            {% endif %}
+            <span class="breadcrumb-separator">/</span>
+            <a href="{{ routes.collections_url }}" class="breadcrumb-link">Personalizowane prezenty</a>
+            <span class="breadcrumb-separator">/</span>
+            <a href="{{ routes.collections_url }}" class="breadcrumb-link">Prezent dla Rodziców</a>
             <span class="breadcrumb-separator">/</span>
             <span class="breadcrumb-current">{{ product.title | truncate: 50 }}</span>
           {% elsif template contains 'collection' %}
