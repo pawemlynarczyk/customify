@@ -258,6 +258,19 @@ Customify is a Shopify app that allows customers to:
 - **STYLE PRICING**: Style NIE wpływają na cenę - tylko rozmiary wpływają na cenę
 - **PRIORITY**: NIE NISZCZ DZIAŁAJĄCYCH FUNKCJI - zachowaj wszystko co działa
 
+## CRITICAL: CSS DUPLICATION PROBLEM - CSS JEST W KILKU MIEJSCACH!
+- **PROBLEM**: CSS jest duplikowany w wielu plikach i synchronizacja nie działa poprawnie
+- **GŁÓWNE PLIKI CSS**:
+  - `theme.liquid` - GŁÓWNY (używany przez deploy script) - EDYTUJ TYLKO TEN!
+  - `shopify-theme/customify-theme/assets/customify.css` - BACKUP (synchronizowany automatycznie)
+  - `shopify-theme-complete.liquid` - BACKUP (synchronizowany automatycznie)
+- **KRYTYCZNE**: Zawsze edytuj CSS w `theme.liquid` - inne pliki są synchronizowane automatycznie
+- **DEPLOY SCRIPT**: `deploy-optimized-theme.js` używa `theme.liquid` jako głównego pliku
+- **SYNCHRONIZACJA**: `sync-theme-files.js` synchronizuje wszystkie pliki z `theme.liquid`
+- **WORKFLOW**: Edytuj `theme.liquid` → `npm run deploy` → automatyczna synchronizacja
+- **NIE EDYTUJ**: Plików w `shopify-theme/customify-theme/assets/` - są synchronizowane automatycznie
+- **DEBUGGING**: Jeśli zmiany nie działają, sprawdź czy edytowałeś `theme.liquid` a nie inne pliki
+
 ## CSS WORKFLOW INSTRUCTIONS - INSTRUKCJE PRACY Z CSS
 
 ### **🎯 GŁÓWNE ZASADY:**
