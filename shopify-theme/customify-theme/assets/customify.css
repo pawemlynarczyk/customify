@@ -933,6 +933,28 @@ div.discount-badge {
   color: white;
 }
 
+/* Style dla kart stylów (customify-style-card) */
+.customify-style-card {
+  border: 2px solid #dee2e6;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.customify-style-card:hover {
+  border-color: #e55a2b;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.customify-style-card.active {
+  border-color: #ff6b35;
+  box-shadow: 0 0 0 2px rgba(255, 107, 53, 0.2);
+  transform: scale(1.02);
+}
+
 .customify-size-selector {
   display: none;
   margin-bottom: 24px;
