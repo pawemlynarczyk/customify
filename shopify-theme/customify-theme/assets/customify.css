@@ -707,6 +707,7 @@ main {
   .product-information__grid {
     grid-template-columns: 1fr;
     gap: 20px;
+    padding: 1px !important; /* Zmniejszone z 20px na 1px */
   }
   
   .product-information__media,
