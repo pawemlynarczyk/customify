@@ -194,3 +194,62 @@ Customify is a Shopify app that allows customers to:
 - **NO GRADIENTS**: Tylko obrazki, nie gradienty CSS
 - **STYLE PRICING**: Style NIE wpływają na cenę - tylko rozmiary wpływają na cenę
 - **PRIORITY**: NIE NISZCZ DZIAŁAJĄCYCH FUNKCJI - zachowaj wszystko co działa
+
+## CSS WORKFLOW INSTRUCTIONS - INSTRUKCJE PRACY Z CSS
+
+### **🎯 GŁÓWNE ZASADY:**
+1. **EDYTUJ TYLKO**: `theme.liquid` (główny katalog) - inne pliki są synchronizowane automatycznie
+2. **DEPLOY**: Zawsze używaj `npm run deploy` - automatycznie synchronizuje + wdraża
+3. **BACKUPY**: Automatyczne backupy są tworzone przed każdą zmianą
+4. **TESTING**: Sprawdzaj zmiany na https://lumly.pl/products/custom
+
+### **🔧 ROZWIĄZANIE PROBLEMU DUPLIKACJI PLIKÓW THEME:**
+- **Problem**: 3 różne pliki theme (`theme.liquid`, `shopify-theme/customify-theme/layout/theme.liquid`, `shopify-theme-complete.liquid`)
+- **Rozwiązanie**: Automatyczna synchronizacja - edytuj tylko `theme.liquid`
+- **Skrypt**: `sync-theme-files.js` - synchronizuje wszystkie pliki z głównym
+- **Integracja**: `deploy-optimized-theme.js` automatycznie synchronizuje przed wdrożeniem
+
+### **📁 STRUKTURA PLIKÓW:**
+```
+theme.liquid                    ← EDYTUJ TYLKO TEN PLIK
+├── shopify-theme/customify-theme/layout/theme.liquid  ← SYNC
+├── shopify-theme-complete.liquid                      ← SYNC
+└── public/shopify-script.js                           ← TYLKO JS
+```
+
+### **🚀 WORKFLOW CSS:**
+1. **Edytuj**: `theme.liquid` (sekcja `<style>` lub linki do CSS)
+2. **Deploy**: `npm run deploy` (automatycznie synchronizuje + wdraża)
+3. **Test**: Sprawdź na https://lumly.pl/products/custom
+4. **Commit**: `git add . && git commit -m "opis" && git push origin main`
+
+### **⚠️ WAŻNE UWAGI:**
+- **NIE EDYTUJ** plików w `shopify-theme/customify-theme/` - są synchronizowane automatycznie
+- **NIE EDYTUJ** `shopify-theme-complete.liquid` - jest synchronizowany automatycznie
+- **ZAWSZE UŻYWAJ** `npm run deploy` zamiast `node deploy-optimized-theme.js`
+- **BACKUPY** są tworzone automatycznie przed każdą zmianą
+
+### **🎨 CSS SPECIFIC:**
+- **Style images**: Używaj obrazków z katalogu `public/` (screenshoty)
+- **NO GRADIENTS**: Tylko obrazki, nie gradienty CSS
+- **Style pricing**: Style NIE wpływają na cenę - tylko rozmiary
+- **Responsive**: Sprawdzaj na różnych urządzeniach
+
+### **🔍 DEBUGGING:**
+- **Cache**: Shopify cache może potrzebować kilku minut na odświeżenie
+- **Browser cache**: Użyj Ctrl+F5 (wymuszenie odświeżenia)
+- **Console**: Sprawdzaj błędy w konsoli przeglądarki
+- **Network**: Sprawdzaj czy CSS jest ładowany poprawnie
+
+### **📝 PRZYKŁAD WORKFLOW:**
+```bash
+# 1. Edytuj theme.liquid
+# 2. Deploy z automatyczną synchronizacją
+npm run deploy
+
+# 3. Sprawdź na żywo
+# https://lumly.pl/products/custom
+
+# 4. Commit zmiany
+git add . && git commit -m "CSS: opis zmian" && git push origin main
+```
