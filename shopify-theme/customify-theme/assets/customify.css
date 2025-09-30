@@ -1229,10 +1229,51 @@ div.discount-badge {
    NEWSLETTER W STOPCE - GLOBALNE STYLE
    ======================================== */
 
-/* Newsletter w stopce - kompaktowy layout */
+/* AGRESYWNE NADPISANIE - Newsletter w stopce */
+.group-block[data-testid="group-block"] {
+  padding: 0 !important;
+  margin: 0 !important;
+  width: 100% !important;
+}
+
+.group-block[data-testid="group-block"] .group-block__media-wrapper {
+  display: none !important;
+}
+
+.group-block[data-testid="group-block"] .group-block-content {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 16px !important;
+  padding: 12px !important;
+  margin: 0 !important;
+  width: 100% !important;
+}
+
+/* Tekst "Dołącz do newslettera" w jednej linii */
+.group-block[data-testid="group-block"] .text-block h5 p {
+  white-space: nowrap !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  color: #333 !important;
+}
+
+.group-block[data-testid="group-block"] .text-block {
+  padding: 0 !important;
+  margin: 0 !important;
+  width: auto !important;
+  max-width: none !important;
+}
+
+/* Email signup block */
 .email-signup-block {
   padding: 0 !important;
   margin: 0 !important;
+  width: auto !important;
+  max-width: none !important;
 }
 
 .email-signup__form {
@@ -1244,9 +1285,10 @@ div.discount-badge {
   display: flex !important;
   align-items: center !important;
   gap: 12px !important;
-  justify-content: center !important;
   padding: 0 !important;
   margin: 0 !important;
+  border: none !important;
+  border-radius: 0 !important;
 }
 
 .email-signup__input {
@@ -1257,6 +1299,7 @@ div.discount-badge {
   padding: 8px 12px !important;
   font-size: 14px !important;
   margin: 0 !important;
+  background: white !important;
 }
 
 .email-signup__input:focus {
@@ -1276,6 +1319,7 @@ div.discount-badge {
   cursor: pointer !important;
   transition: all 0.2s ease !important;
   margin: 0 !important;
+  white-space: nowrap !important;
 }
 
 .email-signup__button:hover {
@@ -1283,29 +1327,18 @@ div.discount-badge {
   transform: translateY(-1px) !important;
 }
 
-/* Tekst "Dołącz do newslettera" w jednej linii */
-.text-block.text-block--AWEZTZGNEcTlqdGxlT__text_3L9Fjq h5 p {
-  white-space: nowrap !important;
-  margin: 0 !important;
-  padding: 0 !important;
-}
-
-/* Kontener newslettera - wyśrodkowanie i kompaktowy layout */
-.group-block[data-testid="group-block"] .group-block-content {
-  justify-content: center !important;
-  align-items: center !important;
-  gap: 16px !important;
-  padding: 16px !important;
-}
-
-/* Usuń nadmiarowe marginesy i paddingi */
-.group-block[data-testid="group-block"] {
-  padding: 0 !important;
-  margin: 0 !important;
-}
-
-.group-block[data-testid="group-block"] .group-block__media-wrapper {
-  display: none !important;
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .group-block[data-testid="group-block"] .group-block-content {
+    flex-direction: column !important;
+    gap: 12px !important;
+    padding: 8px !important;
+  }
+  
+  .email-signup__input {
+    width: 180px !important;
+    max-width: 180px !important;
+  }
 }
 
 /* ========================================
