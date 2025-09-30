@@ -365,7 +365,7 @@ class CustomifyEmbed {
 
   showStyles() {
     this.stylesArea.style.display = 'block';
-    this.sizeArea.style.display = 'none'; // Wymiary pokażemy po wyborze stylu
+    this.sizeArea.style.display = 'block'; // Pokaż rozmiary od razu
     this.actionsArea.style.display = 'flex';
   }
 
@@ -374,8 +374,7 @@ class CustomifyEmbed {
     styleCard.classList.add('active');
     this.selectedStyle = styleCard.dataset.style;
     
-    // Pokaż wymiary po wyborze stylu
-    this.sizeArea.style.display = 'block';
+    // Rozmiary już są widoczne od razu
   }
 
   selectSize(sizeBtn) {

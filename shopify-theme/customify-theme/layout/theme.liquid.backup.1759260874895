@@ -284,7 +284,7 @@
               <img id="resultImage" alt="Wynik AI">
               
               <!-- Rozmiary pod zdjęciem wynikowym -->
-              <div class="customify-size-selector" id="sizeArea">
+              <div class="customify-size-selector" id="sizeArea" style="display: none;">
                 <h4>Wybierz rozmiar:</h4>
                 <div class="customify-size-buttons">
                   <div class="customify-size-btn" data-size="small">Mały (+0 zł)</div>
@@ -371,7 +371,7 @@
 
         /* CSS dla rozmiarów */
         .customify-size-selector {
-          display: block;
+          display: none;
           margin-bottom: 24px;
           background: white;
           border-radius: 0;
