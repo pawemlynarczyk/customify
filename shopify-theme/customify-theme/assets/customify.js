@@ -576,9 +576,9 @@ class CustomifyEmbed {
           
           // NAPRAWIONA METODA: Użyj bezpośredniego przekierowania zamiast formularza
           const properties = {
-            'AI Style': this.selectedStyle,
-            'Size': this.selectedSize,
-            'Original Product': productData.originalProductTitle,
+            'Styl AI': this.selectedStyle,
+            'Rozmiar': this.selectedSize,
+            'Oryginalny produkt': productData.originalProductTitle,
             '_AI_Image_URL': result.imageUrl || this.transformedImage,  // ✅ UKRYTY przed klientem (podkreślnik na początku)
             '_AI_Image_Direct': this.transformedImage,  // Oryginalny link z Replicate (backup)
             '_Order_ID': result.orderId || Date.now().toString()  // Unikalny ID zamówienia
