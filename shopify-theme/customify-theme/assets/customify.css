@@ -1082,6 +1082,17 @@ div.discount-badge {
   min-height: 20px;
 }
 
+/* Pasek postępu dla dodawania do koszyka */
+.customify-cart-loading {
+  display: none;
+  text-align: center;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin: 15px 0;
+  border: 2px solid #dc3545;
+}
+
 .customify-result {
   margin-top: 20px;
   display: none;

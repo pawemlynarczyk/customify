@@ -530,6 +530,9 @@ class CustomifyEmbed {
     this.hideError();
     console.log('🛒 [CUSTOMIFY] Starting addToCart process...');
 
+    // Pokaż pasek postępu dla koszyka
+    this.showCartLoading();
+
     try {
       // Pobierz ID produktu z różnych możliwych źródeł
       const productId = 
@@ -615,25 +618,32 @@ class CustomifyEmbed {
             if (cartResponse.ok) {
               console.log('✅ [CUSTOMIFY] Product added to cart successfully');
               
+              // Ukryj pasek postępu
+              this.hideCartLoading();
+              
               // Przekieruj do koszyka
               window.location.href = '/cart';
               
               // PRODUKT ZOSTANIE UKRYTY PO FINALIZACJI TRANSAKCJI (webhook orders/paid)
             } else {
               console.error('❌ [CUSTOMIFY] Failed to add to cart:', cartResponse.status);
+              this.hideCartLoading();
               this.showError('❌ Błąd podczas dodawania do koszyka');
             }
           } catch (error) {
             console.error('❌ [CUSTOMIFY] Cart add error:', error);
+            this.hideCartLoading();
             this.showError('❌ Błąd połączenia z koszykiem');
           }
         }
       } else {
         console.error('❌ [CUSTOMIFY] Product creation failed:', result);
+        this.hideCartLoading();
         this.showError('❌ Błąd podczas tworzenia produktu: ' + (result.error || 'Nieznany błąd'));
       }
     } catch (error) {
       console.error('❌ [CUSTOMIFY] Add to cart error:', error);
+      this.hideCartLoading();
       
       let errorMessage = '❌ Błąd połączenia z serwerem';
       
@@ -880,6 +890,63 @@ class CustomifyEmbed {
       console.log('🎯 [CUSTOMIFY] actionsArea shown because no transformedImage');
     } else {
       console.log('🎯 [CUSTOMIFY] actionsArea NOT shown because transformedImage exists');
+    }
+  }
+
+  showCartLoading() {
+    const cartLoadingArea = document.getElementById('cartLoadingArea');
+    if (cartLoadingArea) {
+      cartLoadingArea.style.display = 'block';
+      
+      // Animacja paska postępu dla koszyka
+      const progressBar = document.getElementById('cartProgressBar');
+      const loadingStage = document.getElementById('cartLoadingStage');
+      
+      if (progressBar && loadingStage) {
+        let progress = 0;
+        const stages = [
+          { percent: 25, text: 'Tworzenie produktu...' },
+          { percent: 50, text: 'Przesyłanie obrazu...' },
+          { percent: 75, text: 'Dodawanie do koszyka...' },
+          { percent: 90, text: 'Finalizowanie...' }
+        ];
+        
+        let currentStage = 0;
+        progressBar.style.width = '0%';
+        loadingStage.textContent = stages[0].text;
+        
+        this.cartProgressInterval = setInterval(() => {
+          if (currentStage < stages.length) {
+            const targetPercent = stages[currentStage].percent;
+            if (progress < targetPercent) {
+              progress += 1;
+              progressBar.style.width = progress + '%';
+            } else {
+              loadingStage.textContent = stages[currentStage].text;
+              currentStage++;
+            }
+          }
+        }, 80); // Szybsza animacja dla koszyka
+      }
+    }
+  }
+
+  hideCartLoading() {
+    const cartLoadingArea = document.getElementById('cartLoadingArea');
+    if (cartLoadingArea) {
+      // Zatrzymaj animację paska postępu
+      if (this.cartProgressInterval) {
+        clearInterval(this.cartProgressInterval);
+        this.cartProgressInterval = null;
+      }
+      
+      // Ustaw pasek na 100% przed ukryciem
+      const progressBar = document.getElementById('cartProgressBar');
+      if (progressBar) {
+        progressBar.style.width = '100%';
+      }
+      
+      cartLoadingArea.style.display = 'none';
     }
   }
 
