@@ -688,6 +688,112 @@ main {
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
+/* GALERIA ZDJĘĆ PRODUKTU - GŁÓWNE ZDJĘCIE */
+.product__media img:first-child,
+.product__media .product__media-item:first-child img,
+.product__media .product__media-wrapper:first-child img {
+  width: 100% !important;
+  height: auto !important;
+  max-height: 500px !important;
+  object-fit: contain !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+  margin-bottom: 15px !important;
+}
+
+/* MINIATURKI GALERII */
+.product__media img:not(:first-child),
+.product__media .product__media-item:not(:first-child) img,
+.product__media .product__media-wrapper:not(:first-child) img {
+  width: 80px !important;
+  height: 80px !important;
+  object-fit: cover !important;
+  border-radius: 6px !important;
+  border: 2px solid #e0e0e0 !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
+  margin: 5px !important;
+  display: inline-block !important;
+}
+
+/* HOVER EFFECT DLA MINIATUREK */
+.product__media img:not(:first-child):hover,
+.product__media .product__media-item:not(:first-child) img:hover {
+  border-color: #dc3545 !important;
+  transform: scale(1.05) !important;
+  box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3) !important;
+}
+
+/* KONTENER MINIATUREK */
+.product__media-thumbnails,
+.product__media-gallery {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+  justify-content: center !important;
+  margin-top: 10px !important;
+}
+
+/* ALTERNATYWNE SELEKTORY DLA RÓŻNYCH MOTYWÓW SHOPIFY */
+.product-media,
+.product-media-wrapper,
+.product-single__media,
+.product-single__photos,
+.product-photos,
+.product-gallery,
+.product-images {
+  position: relative;
+}
+
+/* GŁÓWNE ZDJĘCIE - ALTERNATYWNE SELEKTORY */
+.product-media img:first-child,
+.product-media-wrapper img:first-child,
+.product-single__media img:first-child,
+.product-single__photos img:first-child,
+.product-photos img:first-child,
+.product-gallery img:first-child,
+.product-images img:first-child {
+  width: 100% !important;
+  height: auto !important;
+  max-height: 500px !important;
+  object-fit: contain !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+  margin-bottom: 15px !important;
+}
+
+/* MINIATURKI - ALTERNATYWNE SELEKTORY */
+.product-media img:not(:first-child),
+.product-media-wrapper img:not(:first-child),
+.product-single__media img:not(:first-child),
+.product-single__photos img:not(:first-child),
+.product-photos img:not(:first-child),
+.product-gallery img:not(:first-child),
+.product-images img:not(:first-child) {
+  width: 80px !important;
+  height: 80px !important;
+  object-fit: cover !important;
+  border-radius: 6px !important;
+  border: 2px solid #e0e0e0 !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
+  margin: 5px !important;
+  display: inline-block !important;
+}
+
+/* HOVER EFFECT - ALTERNATYWNE SELEKTORY */
+.product-media img:not(:first-child):hover,
+.product-media-wrapper img:not(:first-child):hover,
+.product-single__media img:not(:first-child):hover,
+.product-single__photos img:not(:first-child):hover,
+.product-photos img:not(:first-child):hover,
+.product-gallery img:not(:first-child):hover,
+.product-images img:not(:first-child):hover {
+  border-color: #dc3545 !important;
+  transform: scale(1.05) !important;
+  box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3) !important;
+}
+
 /* Sekcja detali - zawsze w drugiej kolumnie */
 #ProductInformation-template--26351135293765__main,
 .product-details {
