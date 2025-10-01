@@ -52,7 +52,8 @@ module.exports = async (req, res) => {
     };
 
     const basePrice = 29.99;
-    const totalPrice = basePrice + (sizePrices[size] || 0); // ✅ Prosta matematyka, bez zbędnego * 100 / 100
+    const sizePrice = sizePrices[size] || 0;
+    const totalPrice = parseFloat((basePrice + sizePrice).toFixed(2)); // ✅ Naprawia floating point error (29.99 + 25 = 54.989999999999995)
 
     const shop = process.env.SHOP_DOMAIN || 'customify-ok.myshopify.com';
     const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
