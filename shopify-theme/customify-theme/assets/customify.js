@@ -579,8 +579,16 @@ class CustomifyEmbed {
             'Size': this.selectedSize,
             'Original Product': productData.originalProductTitle,
             'Customization Type': 'AI Generated',
-            '_AI_Image_URL': result.imageUrl || this.transformedImage
+            'AI Image URL': result.imageUrl || this.transformedImage,  // Widoczny link
+            '_AI_Image_Direct': this.transformedImage,  // Oryginalny link z Replicate (backup)
+            '_Order_ID': result.orderId || Date.now().toString()  // Unikalny ID zamówienia
           };
+          
+          console.log('🖼️ [CUSTOMIFY] Image URLs:', {
+            shopifyImageUrl: result.imageUrl,
+            replicateImageUrl: this.transformedImage,
+            orderId: result.orderId
+          });
           
           // Buduj URL z parametrami
           const params = new URLSearchParams();
