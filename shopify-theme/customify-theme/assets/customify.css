@@ -797,14 +797,18 @@ main {
 /* HORIZON THEME - SPECJALNE STYLE DLA GRID GALERII */
 .media-gallery__grid {
   display: flex !important;
-  flex-direction: column !important;
+  flex-direction: row !important;
+  flex-wrap: wrap !important;
   gap: 10px !important;
+  align-items: flex-start !important;
 }
 
 /* PIERWSZE ZDJĘCIE W GRID - GŁÓWNE */
 .media-gallery__grid li:first-child {
-  flex: 1 !important;
+  flex: 1 1 100% !important;
   width: 100% !important;
+  order: 1 !important;
+  margin-bottom: 10px !important;
 }
 
 .media-gallery__grid li:first-child .product-media__image {
@@ -816,12 +820,19 @@ main {
   box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
 }
 
-/* POZOSTAŁE ZDJĘCIA W GRID - MINIATURKI */
+/* KONTENER MINIATUREK - POZIOMY RZĄD */
 .media-gallery__grid li:not(:first-child) {
   flex: 0 0 80px !important;
   width: 80px !important;
   height: 80px !important;
-  align-self: flex-start !important;
+  margin: 5px !important;
+  order: 2 !important;
+}
+
+/* POZOSTAŁE ZDJĘCIA W GRID - MINIATURKI */
+.media-gallery__grid li:not(:first-child) .product-media {
+  width: 80px !important;
+  height: 80px !important;
 }
 
 .media-gallery__grid li:not(:first-child) .product-media__image {
