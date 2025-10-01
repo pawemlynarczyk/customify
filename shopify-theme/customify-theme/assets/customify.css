@@ -852,6 +852,58 @@ main {
   box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3) !important;
 }
 
+/* ZOOM DIALOG - NAPRAW PROBLEM Z ROZSYPIWANIEM */
+zoom-dialog dialog {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: 9999 !important;
+  background: rgba(0, 0, 0, 0.9) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+zoom-dialog dialog img {
+  max-width: 90vw !important;
+  max-height: 90vh !important;
+  object-fit: contain !important;
+  border-radius: 8px !important;
+}
+
+/* ZAPOBIEGAJ ROZSYPIWANIU GALERII PODCZAS ZOOM */
+.media-gallery__grid {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+/* ZAPOBIEGAJ PROBLEMOM Z FLEXBOX PODCZAS ZOOM */
+.media-gallery__grid li {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+/* ZAPOBIEGAJ ROZSYPIWANIU PODCZAS ZOOM - STABILNE WYMIARY */
+.media-gallery__grid li:not(:first-child) {
+  flex-shrink: 0 !important;
+  flex-grow: 0 !important;
+  flex-basis: 80px !important;
+}
+
+/* ZAPOBIEGAJ PROBLEMOM Z TRANSFORM PODCZAS ZOOM */
+.media-gallery__grid li:not(:first-child):hover .product-media__image {
+  transform: scale(1.05) !important;
+  will-change: transform !important;
+}
+
+/* ZAPOBIEGAJ PROBLEMOM Z OVERFLOW PODCZAS ZOOM */
+.media-gallery__grid {
+  overflow: visible !important;
+  contain: layout !important;
+}
+
 /* MOBILE - WSZYSTKIE ZDJĘCIA W RZĘDZIE */
 @media (max-width: 768px) {
   .media-gallery__grid {
