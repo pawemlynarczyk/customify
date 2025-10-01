@@ -108,31 +108,15 @@
       <!-- Menu główne -->
       <nav class="header-nav">
         <div class="nav-container">
-          {% for link in linklists.main-menu.links %}
-            <div class="nav-item">
-              <a href="{{ link.url }}" class="nav-link">
-                {{ link.title }}
-                {% if link.links.size > 0 %}
-                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" class="dropdown-arrow">
-                    <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
-                {% endif %}
-              </a>
-              
-              <!-- Dropdown menu -->
-              {% if link.links.size > 0 %}
-                <div class="nav-dropdown">
-                  <div class="dropdown-content">
-                    {% for child_link in link.links %}
-                      <a href="{{ child_link.url }}" class="dropdown-link">
-                        {{ child_link.title }}
-                      </a>
-                    {% endfor %}
-                  </div>
-                </div>
-              {% endif %}
-            </div>
-          {% endfor %}
+          <div class="nav-item">
+            <a href="/" class="nav-link">Główna</a>
+          </div>
+          <div class="nav-item">
+            <a href="/products/custom" class="nav-link">Kreator</a>
+          </div>
+          <div class="nav-item">
+            <a href="/pages/kontakt" class="nav-link">Kontakt</a>
+          </div>
         </div>
       </nav>
 
