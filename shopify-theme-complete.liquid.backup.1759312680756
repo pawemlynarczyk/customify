@@ -417,10 +417,8 @@
 
         .customify-size-btn.active {
           border-color: #dc3545 !important;
-          border-width: 2px !important;
-          background: #fff5f5 !important;
-          color: #dc3545 !important;
-          font-weight: 600 !important;
+          background: white !important;
+          color: #000 !important;
           transform: none !important;
           box-shadow: none !important;
         }
