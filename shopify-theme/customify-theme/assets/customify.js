@@ -540,12 +540,22 @@ class CustomifyEmbed {
     console.log('🛒 [CUSTOMIFY] Starting addToCart process...');
 
     try {
+      // Pobierz ID produktu z różnych możliwych źródeł
+      const productId = 
+        document.querySelector('[data-product-id]')?.getAttribute('data-product-id') ||
+        document.querySelector('form[action*="/cart/add"] input[name="id"]')?.value ||
+        window.ShopifyAnalytics?.meta?.product?.id ||
+        null;
+      
+      console.log('🆔 [CUSTOMIFY] Original product ID:', productId);
+      
       const productData = {
         originalImage: await this.fileToBase64(this.uploadedFile),
         transformedImage: this.transformedImage,
         style: this.selectedStyle,
         size: this.selectedSize,
-        originalProductTitle: document.querySelector('h1, .product-title, .view-product-title')?.textContent?.trim() || 'Produkt'
+        originalProductTitle: document.querySelector('h1, .product-title, .view-product-title')?.textContent?.trim() || 'Produkt',
+        originalProductId: productId // ✅ Dodano ID produktu do pobrania ceny z Shopify
       };
 
       console.log('🛒 [CUSTOMIFY] Creating product with data:', productData);

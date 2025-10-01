@@ -42,8 +42,43 @@ module.exports = async (req, res) => {
       });
     }
 
-    // Style nie wpływają na cenę - usunięto stylePrices
+    const shop = process.env.SHOP_DOMAIN || 'customify-ok.myshopify.com';
+    const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
 
+    if (!accessToken) {
+      return res.status(500).json({ error: 'Shopify access token not configured' });
+    }
+
+    // ✅ POBIERZ CENĘ BAZOWĄ Z ORYGINALNEGO PRODUKTU SHOPIFY
+    let basePrice = 99.00; // Domyślna cena fallback
+    
+    if (originalProductId) {
+      try {
+        console.log('💰 [PRODUCTS.JS] Fetching price from original product:', originalProductId);
+        const productResponse = await fetch(`https://${shop}/admin/api/2023-10/products/${originalProductId}.json`, {
+          headers: {
+            'X-Shopify-Access-Token': accessToken,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (productResponse.ok) {
+          const productData = await productResponse.json();
+          const originalPrice = parseFloat(productData.product.variants[0].price);
+          basePrice = originalPrice;
+          console.log('✅ [PRODUCTS.JS] Base price from Shopify:', basePrice, 'PLN');
+        } else {
+          console.warn('⚠️ [PRODUCTS.JS] Could not fetch original product price, using fallback:', basePrice, 'PLN');
+        }
+      } catch (priceError) {
+        console.error('❌ [PRODUCTS.JS] Error fetching price:', priceError.message);
+        console.log('⚠️ [PRODUCTS.JS] Using fallback price:', basePrice, 'PLN');
+      }
+    } else {
+      console.warn('⚠️ [PRODUCTS.JS] No originalProductId provided, using fallback price:', basePrice, 'PLN');
+    }
+
+    // Dopłaty za rozmiary (style nie wpływają na cenę)
     const sizePrices = {
       'small': 0,
       'medium': 25,
@@ -51,16 +86,8 @@ module.exports = async (req, res) => {
       'xlarge': 100
     };
 
-    const basePrice = 29.99;
     const sizePrice = sizePrices[size] || 0;
     const totalPrice = parseFloat((basePrice + sizePrice).toFixed(2)); // ✅ Naprawia floating point error (29.99 + 25 = 54.989999999999995)
-
-    const shop = process.env.SHOP_DOMAIN || 'customify-ok.myshopify.com';
-    const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
-
-    if (!accessToken) {
-      return res.status(500).json({ error: 'Shopify access token not configured' });
-    }
 
     console.log('📦 [PRODUCTS.JS] Creating product with AI image...');
     console.log('💰 [PRODUCTS.JS] Pricing details:', {
