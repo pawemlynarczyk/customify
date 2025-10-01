@@ -415,9 +415,6 @@ class CustomifyEmbed {
       
       console.log('📱 [MOBILE] Request body size:', JSON.stringify(requestBody).length, 'bytes');
       
-      // Tymczasowe alerty dla debugowania na mobilu
-      alert(`📱 Wysyłam request do API... Base64: ${base64.length} znaków`);
-      
       const response = await fetch('https://customify-s56o.vercel.app/api/transform', {
         method: 'POST',
         headers: { 
@@ -431,9 +428,6 @@ class CustomifyEmbed {
       clearTimeout(timeoutId);
       console.log('📱 [MOBILE] Response received:', response.status, response.statusText);
       console.log('📱 [MOBILE] Response headers:', Object.fromEntries(response.headers.entries()));
-      
-      // Tymczasowe alerty dla debugowania na mobilu
-      alert(`📱 Otrzymałem odpowiedź: ${response.status} ${response.statusText}`);
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -452,9 +446,6 @@ class CustomifyEmbed {
       }
     } catch (error) {
       console.error('📱 [MOBILE] Transform error:', error);
-      
-      // Tymczasowe alerty dla debugowania na mobilu
-      alert(`📱 BŁĄD: ${error.message}`);
       
       // Retry logic for network errors
       if (retryCount < 3 && (
