@@ -934,6 +934,11 @@ zoom-dialog dialog[open] img {
   z-index: 10 !important;
 }
 
+/* UKRYJ DUPLIKUJĄCE SIĘ ZDJĘCIA - DESKTOP */
+.media-gallery__grid li .product-media-container__zoom-button img {
+  display: none !important;
+}
+
 /* MOBILE - WSZYSTKIE ZDJĘCIA W RZĘDZIE */
 @media (max-width: 768px) {
   .media-gallery__grid {
@@ -980,7 +985,12 @@ zoom-dialog dialog[open] img {
     height: 80px !important;
   }
   
-  /* UKRYJ DUPLIKUJĄCE SIĘ ZDJĘCIA */
+  /* UKRYJ DUPLIKUJĄCE SIĘ ZDJĘCIA - UKRYJ ZDJĘCIA W BUTTON ZOOM */
+  .media-gallery__grid li .product-media-container__zoom-button img {
+    display: none !important;
+  }
+  
+  /* UKRYJ ZDJĘCIA KTÓRE NIE SĄ W GRID */
   .product-media img:not(.product-media__image) {
     display: none !important;
   }
