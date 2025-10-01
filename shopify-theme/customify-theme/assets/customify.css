@@ -811,6 +811,12 @@ main {
   margin-bottom: 10px !important;
 }
 
+.media-gallery__grid li:first-child .product-media-container {
+  width: 100% !important;
+  height: auto !important;
+  max-height: 500px !important;
+}
+
 .media-gallery__grid li:first-child .product-media__image {
   width: 100% !important;
   height: auto !important;
@@ -830,6 +836,11 @@ main {
 }
 
 /* POZOSTAŁE ZDJĘCIA W GRID - MINIATURKI */
+.media-gallery__grid li:not(:first-child) .product-media-container {
+  width: 80px !important;
+  height: 80px !important;
+}
+
 .media-gallery__grid li:not(:first-child) .product-media {
   width: 80px !important;
   height: 80px !important;
@@ -945,12 +956,28 @@ zoom-dialog dialog[open] img {
   }
   
   /* ZAPOBIEGAJ DUPLIKOWANIU GŁÓWNEGO ZDJĘCIA NA MOBILE */
+  .media-gallery__grid li:first-child .product-media-container {
+    width: 100% !important;
+    height: auto !important;
+    max-height: 500px !important;
+  }
+  
   .media-gallery__grid li:first-child .product-media__image {
     display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: 500px !important;
+  }
+  
+  .media-gallery__grid li:not(:first-child) .product-media-container {
+    width: 80px !important;
+    height: 80px !important;
   }
   
   .media-gallery__grid li:not(:first-child) .product-media__image {
     display: block !important;
+    width: 80px !important;
+    height: 80px !important;
   }
   
   /* UKRYJ DUPLIKUJĄCE SIĘ ZDJĘCIA */
