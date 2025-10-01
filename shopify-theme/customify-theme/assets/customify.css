@@ -794,129 +794,27 @@ main {
   box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3) !important;
 }
 
-/* HORIZON THEME - SPECJALNE STYLE DLA GRID GALERII */
-.media-gallery__grid {
-  display: flex !important;
-  flex-direction: row !important;
-  flex-wrap: wrap !important;
-  gap: 10px !important;
-  align-items: flex-start !important;
+/* HORIZON THEME - PROSTE ROZWIĄZANIE GALERII */
+/* POKAŻ GRID NA WSZYSTKICH URZĄDZENIACH - NADPISZ ORYGINALNY CSS */
+media-gallery:where(.media-gallery--grid) .media-gallery__grid {
+  display: grid !important;
+  grid-template-columns: 1fr;
+  gap: 10px;
 }
 
-/* PIERWSZE ZDJĘCIE W GRID - GŁÓWNE */
+.media-gallery__grid {
+  display: grid !important;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+/* PIERWSZE ZDJĘCIE - GŁÓWNE */
 .media-gallery__grid li:first-child {
-  flex: 1 1 100% !important;
-  width: 100% !important;
-  order: 1 !important;
-  margin-bottom: 10px !important;
+  grid-column: 1;
+  grid-row: 1;
 }
 
-.media-gallery__grid li:first-child .product-media-container {
-  width: 100% !important;
-  height: auto !important;
-  max-height: 500px !important;
-}
-
-/* USUNIĘTE - UKRYWAMY CAŁY PRODUCT-MEDIA */
-
-/* KONTENER MINIATUREK - POZIOMY RZĄD */
-.media-gallery__grid li:not(:first-child) {
-  flex: 0 0 80px !important;
-  width: 80px !important;
-  height: 80px !important;
-  margin: 5px !important;
-  order: 2 !important;
-}
-
-/* POZOSTAŁE ZDJĘCIA W GRID - MINIATURKI */
-.media-gallery__grid li:not(:first-child) .product-media-container {
-  width: 80px !important;
-  height: 80px !important;
-}
-
-.media-gallery__grid li:not(:first-child) .product-media {
-  width: 80px !important;
-  height: 80px !important;
-}
-
-/* USUNIĘTE - UKRYWAMY CAŁY PRODUCT-MEDIA */
-
-/* USUNIĘTE - UKRYWAMY CAŁY PRODUCT-MEDIA */
-
-/* ZOOM DIALOG - NAPRAW PROBLEM Z ROZSYPIWANIEM - TYLKO GDY OTWARTY */
-zoom-dialog dialog[open] {
-  position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  width: 100vw !important;
-  height: 100vh !important;
-  z-index: 9999 !important;
-  background: rgba(0, 0, 0, 0.9) !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
-
-zoom-dialog dialog[open] img {
-  max-width: 90vw !important;
-  max-height: 90vh !important;
-  object-fit: contain !important;
-  border-radius: 8px !important;
-}
-
-/* ZAPOBIEGAJ ROZSYPIWANIU GALERII PODCZAS ZOOM */
-.media-gallery__grid {
-  position: relative !important;
-  z-index: 1 !important;
-}
-
-/* ZAPOBIEGAJ PROBLEMOM Z FLEXBOX PODCZAS ZOOM */
-.media-gallery__grid li {
-  position: relative !important;
-  z-index: 1 !important;
-}
-
-/* UPEWNIJ SIĘ ŻE ZOOM BUTTON DZIAŁA */
-.product-media-container__zoom-button {
-  z-index: 10 !important;
-  pointer-events: auto !important;
-  cursor: zoom-in !important;
-}
-
-/* ZAPOBIEGAJ ROZSYPIWANIU PODCZAS ZOOM - STABILNE WYMIARY */
-.media-gallery__grid li:not(:first-child) {
-  flex-shrink: 0 !important;
-  flex-grow: 0 !important;
-  flex-basis: 80px !important;
-}
-
-/* ZAPOBIEGAJ PROBLEMOM Z TRANSFORM PODCZAS ZOOM */
-.media-gallery__grid li:not(:first-child):hover .product-media__image {
-  transform: scale(1.05) !important;
-  will-change: transform !important;
-}
-
-/* ZAPOBIEGAJ PROBLEMOM Z OVERFLOW PODCZAS ZOOM */
-.media-gallery__grid {
-  overflow: visible !important;
-  contain: layout !important;
-}
-
-/* USUNIĘTE - UKRYWAMY CAŁY PRODUCT-MEDIA */
-
-/* UPEWNIJ SIĘ ŻE ZOOM BUTTON JEST KLIKALNY */
-.media-gallery__grid li .product-media-container__zoom-button {
-  pointer-events: auto !important;
-  z-index: 10 !important;
-}
-
-/* UKRYJ DUPLIKUJĄCE SIĘ ZDJĘCIA - DESKTOP - UKRYJ PRODUCT-MEDIA */
-.media-gallery__grid li .product-media {
-  display: none !important;
-}
-
-/* STYLE DLA ZDJĘĆ W ZOOM BUTTON - GŁÓWNE ZDJĘCIE */
-.media-gallery__grid li:first-child .product-media-container__zoom-button img {
+.media-gallery__grid li:first-child img {
   width: 100% !important;
   height: auto !important;
   max-height: 500px !important;
@@ -925,8 +823,17 @@ zoom-dialog dialog[open] img {
   box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
 }
 
-/* STYLE DLA ZDJĘĆ W ZOOM BUTTON - MINIATURKI */
-.media-gallery__grid li:not(:first-child) .product-media-container__zoom-button img {
+/* POZOSTAŁE ZDJĘCIA - MINIATURKI W RZĘDZIE */
+.media-gallery__grid li:not(:first-child) {
+  grid-column: 1;
+  grid-row: 2;
+  display: inline-block;
+  width: 80px;
+  height: 80px;
+  margin: 5px;
+}
+
+.media-gallery__grid li:not(:first-child) img {
   width: 80px !important;
   height: 80px !important;
   object-fit: cover !important;
@@ -936,58 +843,16 @@ zoom-dialog dialog[open] img {
   transition: all 0.3s ease !important;
 }
 
-/* MOBILE - WSZYSTKIE ZDJĘCIA W RZĘDZIE */
+.media-gallery__grid li:not(:first-child):hover img {
+  border-color: #dc3545 !important;
+  transform: scale(1.05) !important;
+  box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3) !important;
+}
+
+/* MOBILE - TAKI SAM LAYOUT */
 @media (max-width: 768px) {
-  .media-gallery__grid {
-    flex-direction: row !important;
-    flex-wrap: wrap !important;
-    justify-content: center !important;
-  }
-  
-  .media-gallery__grid li:first-child {
-    flex: 1 1 100% !important;
-    width: 100% !important;
-    margin-bottom: 10px !important;
-  }
-  
-  .media-gallery__grid li:not(:first-child) {
-    flex: 0 0 80px !important;
-    width: 80px !important;
-    height: 80px !important;
-    margin: 5px !important;
-  }
-  
-  /* ZAPOBIEGAJ DUPLIKOWANIU GŁÓWNEGO ZDJĘCIA NA MOBILE */
-  .media-gallery__grid li:first-child .product-media-container {
-    width: 100% !important;
-    height: auto !important;
-    max-height: 500px !important;
-  }
-  
-  .media-gallery__grid li:first-child .product-media-container__zoom-button img {
-    width: 100% !important;
-    height: auto !important;
-    max-height: 500px !important;
-  }
-  
-  .media-gallery__grid li:not(:first-child) .product-media-container {
-    width: 80px !important;
-    height: 80px !important;
-  }
-  
-  .media-gallery__grid li:not(:first-child) .product-media-container__zoom-button img {
-    width: 80px !important;
-    height: 80px !important;
-  }
-  
-  /* UKRYJ DUPLIKUJĄCE SIĘ ZDJĘCIA - MOBILE - UKRYJ PRODUCT-MEDIA */
-  .media-gallery__grid li .product-media {
-    display: none !important;
-  }
-  
-  /* UKRYJ ZDJĘCIA KTÓRE NIE SĄ W GRID */
-  .product-media img:not(.product-media__image) {
-    display: none !important;
+  .media-gallery__grid li:first-child img {
+    max-height: 400px !important;
   }
 }
 
