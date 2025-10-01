@@ -52,7 +52,7 @@ module.exports = async (req, res) => {
     };
 
     const basePrice = 29.99;
-    const totalPrice = Math.round((basePrice + (sizePrices[size] || 0)) * 100) / 100; // Napraw błąd zmiennoprzecinkowy
+    const totalPrice = basePrice + (sizePrices[size] || 0); // ✅ Prosta matematyka, bez zbędnego * 100 / 100
 
     const shop = process.env.SHOP_DOMAIN || 'customify-ok.myshopify.com';
     const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
