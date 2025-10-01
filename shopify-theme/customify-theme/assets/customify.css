@@ -794,6 +794,75 @@ main {
   box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3) !important;
 }
 
+/* HORIZON THEME - SPECJALNE STYLE DLA GRID GALERII */
+.media-gallery__grid {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+}
+
+/* PIERWSZE ZDJĘCIE W GRID - GŁÓWNE */
+.media-gallery__grid li:first-child {
+  flex: 1 !important;
+  width: 100% !important;
+}
+
+.media-gallery__grid li:first-child .product-media__image {
+  width: 100% !important;
+  height: auto !important;
+  max-height: 500px !important;
+  object-fit: contain !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+}
+
+/* POZOSTAŁE ZDJĘCIA W GRID - MINIATURKI */
+.media-gallery__grid li:not(:first-child) {
+  flex: 0 0 80px !important;
+  width: 80px !important;
+  height: 80px !important;
+  align-self: flex-start !important;
+}
+
+.media-gallery__grid li:not(:first-child) .product-media__image {
+  width: 80px !important;
+  height: 80px !important;
+  object-fit: cover !important;
+  border-radius: 6px !important;
+  border: 2px solid #e0e0e0 !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
+}
+
+/* HOVER EFFECT DLA MINIATUREK W GRID */
+.media-gallery__grid li:not(:first-child):hover .product-media__image {
+  border-color: #dc3545 !important;
+  transform: scale(1.05) !important;
+  box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3) !important;
+}
+
+/* MOBILE - WSZYSTKIE ZDJĘCIA W RZĘDZIE */
+@media (max-width: 768px) {
+  .media-gallery__grid {
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+  }
+  
+  .media-gallery__grid li:first-child {
+    flex: 1 1 100% !important;
+    width: 100% !important;
+    margin-bottom: 10px !important;
+  }
+  
+  .media-gallery__grid li:not(:first-child) {
+    flex: 0 0 80px !important;
+    width: 80px !important;
+    height: 80px !important;
+    margin: 5px !important;
+  }
+}
+
 /* Sekcja detali - zawsze w drugiej kolumnie */
 #ProductInformation-template--26351135293765__main,
 .product-details {
