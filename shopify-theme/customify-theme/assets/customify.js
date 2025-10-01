@@ -825,9 +825,53 @@ class CustomifyEmbed {
   showLoading() {
     this.loadingArea.style.display = 'block';
     this.actionsArea.style.display = 'none';
+    
+    // Animacja paska postępu z etapami
+    const progressBar = document.getElementById('progressBar');
+    const loadingStage = document.getElementById('loadingStage');
+    
+    if (progressBar && loadingStage) {
+      let progress = 0;
+      const stages = [
+        { percent: 20, text: 'Przesyłanie zdjęcia...' },
+        { percent: 40, text: 'Przygotowywanie AI...' },
+        { percent: 60, text: 'Generowanie obrazu...' },
+        { percent: 80, text: 'Finalizowanie...' },
+        { percent: 95, text: 'Prawie gotowe...' }
+      ];
+      
+      let currentStage = 0;
+      progressBar.style.width = '0%';
+      loadingStage.textContent = stages[0].text;
+      
+      this.progressInterval = setInterval(() => {
+        if (currentStage < stages.length) {
+          const targetPercent = stages[currentStage].percent;
+          if (progress < targetPercent) {
+            progress += 1;
+            progressBar.style.width = progress + '%';
+          } else {
+            loadingStage.textContent = stages[currentStage].text;
+            currentStage++;
+          }
+        }
+      }, 100); // Aktualizacja co 100ms
+    }
   }
 
   hideLoading() {
+    // Zatrzymaj animację paska postępu
+    if (this.progressInterval) {
+      clearInterval(this.progressInterval);
+      this.progressInterval = null;
+    }
+    
+    // Ustaw pasek na 100% przed ukryciem
+    const progressBar = document.getElementById('progressBar');
+    if (progressBar) {
+      progressBar.style.width = '100%';
+    }
+    
     this.loadingArea.style.display = 'none';
     // NIE pokazuj actionsArea jeśli mamy już wynik AI
     console.log('🎯 [CUSTOMIFY] hideLoading called, transformedImage:', !!this.transformedImage);

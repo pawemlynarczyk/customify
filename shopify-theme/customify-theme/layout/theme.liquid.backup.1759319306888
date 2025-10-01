@@ -281,11 +281,7 @@
 
             <div class="customify-loading" id="loadingArea">
               <div class="customify-spinner"></div>
-              <div class="loading-text">Przetwarzanie...</div>
-              <div class="loading-progress">
-                <div class="loading-progress-bar" id="progressBar"></div>
-              </div>
-              <div class="loading-stage" id="loadingStage">Przesyłanie zdjęcia...</div>
+              <div>Przetwarzanie z AI...</div>
             </div>
 
             <div class="customify-result" id="resultArea">
