@@ -688,10 +688,10 @@ main {
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
-/* GALERIA ZDJĘĆ PRODUKTU - GŁÓWNE ZDJĘCIE */
-.product__media img:first-child,
-.product__media .product__media-item:first-child img,
-.product__media .product__media-wrapper:first-child img {
+/* GALERIA ZDJĘĆ PRODUKTU - GŁÓWNE ZDJĘCIE - TYLKO DLA STARYCH MOTYWÓW */
+.product__media img:first-child:not(.product-media__image),
+.product__media .product__media-item:first-child img:not(.product-media__image),
+.product__media .product__media-wrapper:first-child img:not(.product-media__image) {
   width: 100% !important;
   height: auto !important;
   max-height: 500px !important;
@@ -745,14 +745,14 @@ main {
   position: relative;
 }
 
-/* GŁÓWNE ZDJĘCIE - ALTERNATYWNE SELEKTORY */
-.product-media img:first-child,
-.product-media-wrapper img:first-child,
-.product-single__media img:first-child,
-.product-single__photos img:first-child,
-.product-photos img:first-child,
-.product-gallery img:first-child,
-.product-images img:first-child {
+/* GŁÓWNE ZDJĘCIE - ALTERNATYWNE SELEKTORY - TYLKO DLA STARYCH MOTYWÓW */
+.product-media img:first-child:not(.product-media__image),
+.product-media-wrapper img:first-child:not(.product-media__image),
+.product-single__media img:first-child:not(.product-media__image),
+.product-single__photos img:first-child:not(.product-media__image),
+.product-photos img:first-child:not(.product-media__image),
+.product-gallery img:first-child:not(.product-media__image),
+.product-images img:first-child:not(.product-media__image) {
   width: 100% !important;
   height: auto !important;
   max-height: 500px !important;
@@ -942,6 +942,20 @@ zoom-dialog dialog[open] img {
     width: 80px !important;
     height: 80px !important;
     margin: 5px !important;
+  }
+  
+  /* ZAPOBIEGAJ DUPLIKOWANIU GŁÓWNEGO ZDJĘCIA NA MOBILE */
+  .media-gallery__grid li:first-child .product-media__image {
+    display: block !important;
+  }
+  
+  .media-gallery__grid li:not(:first-child) .product-media__image {
+    display: block !important;
+  }
+  
+  /* UKRYJ DUPLIKUJĄCE SIĘ ZDJĘCIA */
+  .product-media img:not(.product-media__image) {
+    display: none !important;
   }
 }
 

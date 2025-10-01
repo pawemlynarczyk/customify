@@ -50,18 +50,7 @@
         style.textContent = `
             /* Layout controlled by theme.liquid - no conflicting styles */
 
-            /* Product image styling */
-            .product-media img,
-            .product__media img,
-            .product-single__media img,
-            .product__photo img,
-            .product__image img {
-                width: 100% !important;
-                height: auto !important;
-                object-fit: contain !important;
-                max-height: 500px !important;
-                border-radius: 8px;
-            }
+            /* Product image styling - USUNIĘTE - KONFLIKT Z CUSTOMIFY.CSS */
 
             /* Customify app images - force proper proportions */
             .customify-preview img,
@@ -169,21 +158,13 @@
 
             @media (max-width: 768px) {
                 /* Mobile: stack vertically */
-                #customify-app-container,
-                .product-media {
+                #customify-app-container {
                     width: 100%;
                     float: none;
                     margin-right: 0;
                 }
 
-                /* Mobile product image */
-                .product-media img,
-                .product__media img,
-                .product-single__media img,
-                .product__photo img,
-                .product__image img {
-                    max-height: 300px;
-                }
+                /* Mobile product image - USUNIĘTE - KONFLIKT Z CUSTOMIFY.CSS */
             }
         `;
         document.head.appendChild(style);
