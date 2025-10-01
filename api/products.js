@@ -68,7 +68,8 @@ module.exports = async (req, res) => {
       stylePrice: 0, // Style nie wpływają na cenę
       sizePrice: sizePrices[size] || 0,
       basePrice: basePrice,
-      totalPrice: totalPrice
+      totalPrice: totalPrice,
+      shopifyPrice: totalPrice.toFixed(2) + ' PLN' // ✅ Format dla Shopify
     });
 
     // KROK 1: Utwórz produkt BEZ obrazka (najpierw potrzebujemy product ID)
@@ -90,7 +91,7 @@ module.exports = async (req, res) => {
         published_scope: 'web',
         variants: [{
           title: `${style} - ${size || 'standard'} (${totalPrice} zł)`,
-          price: Math.round(totalPrice * 100).toString(), // Konwersja na centy dla Shopify
+          price: totalPrice.toFixed(2), // ✅ NAPRAWIONE: Shopify przyjmuje PLN jako string (np. "79.99")
           inventory_quantity: 100,
           inventory_management: 'shopify',
           fulfillment_service: 'manual'
