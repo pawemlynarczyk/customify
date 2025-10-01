@@ -817,14 +817,7 @@ main {
   max-height: 500px !important;
 }
 
-.media-gallery__grid li:first-child .product-media__image {
-  width: 100% !important;
-  height: auto !important;
-  max-height: 500px !important;
-  object-fit: contain !important;
-  border-radius: 8px !important;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
-}
+/* USUNIĘTE - UKRYWAMY CAŁY PRODUCT-MEDIA */
 
 /* KONTENER MINIATUREK - POZIOMY RZĄD */
 .media-gallery__grid li:not(:first-child) {
@@ -846,22 +839,9 @@ main {
   height: 80px !important;
 }
 
-.media-gallery__grid li:not(:first-child) .product-media__image {
-  width: 80px !important;
-  height: 80px !important;
-  object-fit: cover !important;
-  border-radius: 6px !important;
-  border: 2px solid #e0e0e0 !important;
-  cursor: pointer !important;
-  transition: all 0.3s ease !important;
-}
+/* USUNIĘTE - UKRYWAMY CAŁY PRODUCT-MEDIA */
 
-/* HOVER EFFECT DLA MINIATUREK W GRID */
-.media-gallery__grid li:not(:first-child):hover .product-media__image {
-  border-color: #dc3545 !important;
-  transform: scale(1.05) !important;
-  box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3) !important;
-}
+/* USUNIĘTE - UKRYWAMY CAŁY PRODUCT-MEDIA */
 
 /* ZOOM DIALOG - NAPRAW PROBLEM Z ROZSYPIWANIEM - TYLKO GDY OTWARTY */
 zoom-dialog dialog[open] {
@@ -922,11 +902,7 @@ zoom-dialog dialog[open] img {
   contain: layout !important;
 }
 
-/* UPEWNIJ SIĘ ŻE MINIATURKI SĄ KLIKALNE */
-.media-gallery__grid li:not(:first-child) .product-media__image {
-  pointer-events: auto !important;
-  cursor: pointer !important;
-}
+/* USUNIĘTE - UKRYWAMY CAŁY PRODUCT-MEDIA */
 
 /* UPEWNIJ SIĘ ŻE ZOOM BUTTON JEST KLIKALNY */
 .media-gallery__grid li .product-media-container__zoom-button {
@@ -934,9 +910,30 @@ zoom-dialog dialog[open] img {
   z-index: 10 !important;
 }
 
-/* UKRYJ DUPLIKUJĄCE SIĘ ZDJĘCIA - DESKTOP */
-.media-gallery__grid li .product-media-container__zoom-button img {
+/* UKRYJ DUPLIKUJĄCE SIĘ ZDJĘCIA - DESKTOP - UKRYJ PRODUCT-MEDIA */
+.media-gallery__grid li .product-media {
   display: none !important;
+}
+
+/* STYLE DLA ZDJĘĆ W ZOOM BUTTON - GŁÓWNE ZDJĘCIE */
+.media-gallery__grid li:first-child .product-media-container__zoom-button img {
+  width: 100% !important;
+  height: auto !important;
+  max-height: 500px !important;
+  object-fit: contain !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+}
+
+/* STYLE DLA ZDJĘĆ W ZOOM BUTTON - MINIATURKI */
+.media-gallery__grid li:not(:first-child) .product-media-container__zoom-button img {
+  width: 80px !important;
+  height: 80px !important;
+  object-fit: cover !important;
+  border-radius: 6px !important;
+  border: 2px solid #e0e0e0 !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
 }
 
 /* MOBILE - WSZYSTKIE ZDJĘCIA W RZĘDZIE */
@@ -967,8 +964,7 @@ zoom-dialog dialog[open] img {
     max-height: 500px !important;
   }
   
-  .media-gallery__grid li:first-child .product-media__image {
-    display: block !important;
+  .media-gallery__grid li:first-child .product-media-container__zoom-button img {
     width: 100% !important;
     height: auto !important;
     max-height: 500px !important;
@@ -979,14 +975,13 @@ zoom-dialog dialog[open] img {
     height: 80px !important;
   }
   
-  .media-gallery__grid li:not(:first-child) .product-media__image {
-    display: block !important;
+  .media-gallery__grid li:not(:first-child) .product-media-container__zoom-button img {
     width: 80px !important;
     height: 80px !important;
   }
   
-  /* UKRYJ DUPLIKUJĄCE SIĘ ZDJĘCIA - UKRYJ ZDJĘCIA W BUTTON ZOOM */
-  .media-gallery__grid li .product-media-container__zoom-button img {
+  /* UKRYJ DUPLIKUJĄCE SIĘ ZDJĘCIA - MOBILE - UKRYJ PRODUCT-MEDIA */
+  .media-gallery__grid li .product-media {
     display: none !important;
   }
   
