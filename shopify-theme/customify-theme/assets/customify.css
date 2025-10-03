@@ -274,7 +274,7 @@ header:not(.header-main) {
   z-index: 1000;
 }
 
-/* GÓRA HEADERA: Logo + Wyszukiwarka + Linki użytkownika + Koszyk */
+/* GÓRA HEADERA: Menu + Logo + Linki użytkownika + Koszyk */
 .header-top {
   border-bottom: 1px solid #e9ecef;
 }
@@ -293,19 +293,12 @@ header:not(.header-main) {
   height: 60px;
 }
 
-/* DÓŁ HEADERA: Menu nawigacji */
-.header-bottom {
-  background: #f8f9fa;
-}
-
-.header-bottom .header-container {
-  height: 50px;
-  justify-content: center;
-}
-
-/* Logo */
+/* Logo (środek) */
 .header-logo {
   flex-shrink: 0;
+  order: 2;
+  flex-grow: 1;
+  text-align: center;
 }
 
 .logo-link {
@@ -325,66 +318,27 @@ header:not(.header-main) {
   color: #000;
 }
 
-/* Wyszukiwarka */
-.header-search {
-  flex: 1;
-  max-width: 500px;
-}
 
-.search-form {
-  width: 100%;
-}
-
-.search-wrapper {
-  display: flex !important;
-  align-items: center !important;
-  background: white !important;
-  border: 3px solid #495057 !important;
-  border-radius: 0 !important;
+/* Ukryj domyślną wyszukiwarkę Shopify */
+.search-form,
+form.search-form,
+.header-top .search-form,
+banner .search-form {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  height: 0 !important;
+  width: 0 !important;
   overflow: hidden !important;
-  height: 48px !important;
 }
 
-.search-categories {
-  background: #f3f5f6;
-  border: none;
-  padding: 0 15px;
-  font-size: 14px;
-  color: #666;
-  cursor: pointer;
-  min-width: 150px;
-  height: 100%;
-}
-
-.search-input {
-  flex: 1;
-  border: none;
-  padding: 0 15px;
-  font-size: 16px;
-  color: #000;
-  background: white;
-  height: 100%;
-}
-
-.search-input:focus {
-  outline: none;
-}
-
-.search-button {
-  background: #dc3545;
-  border: none;
-  color: white;
-  padding: 0 20px;
-  cursor: pointer;
-  height: 100%;
+/* Kontener po prawej stronie */
+.header-right {
   display: flex;
   align-items: center;
-  justify-content: center;
-  transition: background-color 0.2s ease;
-}
-
-.search-button:hover {
-  background: #c82333;
+  gap: 20px;
+  flex-shrink: 0;
+  order: 3;
 }
 
 /* Linki użytkownika */
@@ -401,10 +355,28 @@ header:not(.header-main) {
   font-size: 14px;
   font-weight: 500;
   transition: color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
 }
 
 .user-link:hover {
   color: #dc3545;
+  background-color: #f8f9fa;
+  transform: translateY(-1px);
+}
+
+.user-link svg {
+  width: 20px;
+  height: 20px;
+  transition: transform 0.2s ease;
+}
+
+.user-link:hover svg {
+  transform: scale(1.1);
 }
 
 /* Koszyk */
@@ -459,12 +431,13 @@ header:not(.header-main) {
   font-weight: 500;
 }
 
-/* Menu główne */
+/* Menu główne (po lewej) */
 .header-nav {
   display: flex !important;
   align-items: center !important;
   gap: 20px !important;
   flex-shrink: 0 !important;
+  order: 1;
 }
 
 .nav-item {
@@ -581,13 +554,7 @@ header:not(.header-main) {
     gap: 20px;
   }
   
-  .header-search {
-    max-width: 400px;
-  }
   
-  .search-categories {
-    min-width: 120px;
-  }
 }
 
 @media (max-width: 768px) {
@@ -598,26 +565,26 @@ header:not(.header-main) {
     gap: 15px;
   }
   
-  .header-search {
-    order: 3;
-    max-width: 100%;
-    width: 100%;
-  }
-  
-  .header-user {
-    order: 2;
-  }
-  
-  .header-bottom .header-container {
-    padding: 10px 15px;
-    height: auto;
-  }
-  
   .header-nav {
+    order: 1;
     width: 100%;
     justify-content: center;
     flex-wrap: wrap;
     gap: 10px;
+    margin-bottom: 10px;
+  }
+  
+  .header-logo {
+    order: 2;
+    flex-grow: 0;
+    text-align: center;
+  }
+  
+  .header-right {
+    order: 3;
+    width: 100%;
+    justify-content: center;
+    gap: 15px;
   }
   
   .nav-item {
@@ -633,16 +600,15 @@ header:not(.header-main) {
 
 @media (max-width: 480px) {
   .header-user {
-    display: none;
+    display: flex;
+    gap: 10px;
   }
   
-  .search-categories {
-    display: none;
+  .user-link {
+    font-size: 12px;
   }
   
-  .search-wrapper {
-    height: 44px;
-  }
+  
   
   .cart-text {
     display: none;
