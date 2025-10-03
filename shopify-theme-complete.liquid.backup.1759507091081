@@ -44,83 +44,78 @@
     
     <!-- KOMPLETNY NAGŁÓWEK CUSTOMIFY -->
     <header class="header-main">
-      <!-- GÓRA HEADERA: Logo + Wyszukiwarka + Linki użytkownika + Koszyk -->
-      <div class="header-top">
-        <div class="header-container">
-          <!-- Logo -->
-          <div class="header-logo">
-            <a href="{{ routes.root_url }}" class="logo-link">
-              {% if settings.logo != blank %}
-                <img src="{{ settings.logo | image_url: width: 200 }}" alt="{{ shop.name }}" class="logo-image">
-              {% else %}
-                <span class="logo-text">{{ shop.name }}</span>
-              {% endif %}
-            </a>
-          </div>
-
-          <!-- Wyszukiwarka -->
-          <div class="header-search">
-            <form action="{{ routes.search_url }}" method="get" class="search-form">
-              <div class="search-wrapper">
-                <input 
-                  type="search" 
-                  name="q" 
-                  placeholder="Szukaj..." 
-                  class="search-input"
-                  value="{{ search.terms | escape }}"
-                >
-                <button type="submit" class="search-button">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                    <path d="M21 21L16.514 16.506M19 10.5C19 15.194 15.194 19 10.5 19S2 15.194 2 10.5 5.806 2 10.5 2 19 5.806 19 10.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
-                </button>
-              </div>
-            </form>
-          </div>
-
-          <!-- Linki użytkownika -->
-          <div class="header-user">
-            {% if customer %}
-              <a href="{{ routes.account_url }}" class="user-link">Moje konto</a>
-              <a href="{{ routes.account_logout_url }}" class="user-link">Wyloguj się</a>
+      <div class="header-container">
+        
+        <!-- Logo -->
+        <div class="header-logo">
+          <a href="{{ routes.root_url }}" class="logo-link">
+            {% if settings.logo != blank %}
+              <img src="{{ settings.logo | image_url: width: 200 }}" alt="{{ shop.name }}" class="logo-image">
             {% else %}
-              <a href="{{ routes.account_login_url }}" class="user-link">Zaloguj się</a>
-              <a href="{{ routes.account_register_url }}" class="user-link">Zarejestruj się</a>
+              <span class="logo-text">{{ shop.name }}</span>
             {% endif %}
-          </div>
+          </a>
+        </div>
 
-          <!-- Koszyk -->
-          <div class="header-cart">
-            <a href="{{ routes.cart_url }}" class="cart-link">
-              <div class="cart-icon-wrapper">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" class="cart-icon">
-                  <path d="M3 3H5L5.4 5M7 13H17L21 5H5.4M7 13L5.4 5M7 13L4.7 15.3C4.3 15.7 4.6 16.5 5.1 16.5H17M17 13V17C17 18.1 16.1 19 15 19H9C7.9 19 7 18.1 7 17V13M17 13H7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- Menu główne -->
+        <nav class="header-nav">
+          <div class="nav-item">
+            <a href="/" class="nav-link">Główna</a>
+          </div>
+          <div class="nav-item">
+            <a href="/products/custom" class="nav-link">Kreator</a>
+          </div>
+          <div class="nav-item">
+            <a href="/pages/kontakt" class="nav-link">Kontakt</a>
+          </div>
+        </nav>
+
+        <!-- Wyszukiwarka -->
+        <div class="header-search">
+          <form action="{{ routes.search_url }}" method="get" class="search-form">
+            <div class="search-wrapper">
+              <input 
+                type="search" 
+                name="q" 
+                placeholder="Szukaj..." 
+                class="search-input"
+                value="{{ search.terms | escape }}"
+              >
+              <button type="submit" class="search-button">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <path d="M21 21L16.514 16.506M19 10.5C19 15.194 15.194 19 10.5 19S2 15.194 2 10.5 5.806 2 10.5 2 19 5.806 19 10.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
-                {% if cart.item_count > 0 %}
-                  <span class="cart-count">{{ cart.item_count }}</span>
-                {% endif %}
-              </div>
-              <span class="cart-text">Koszyk</span>
-            </a>
-          </div>
+              </button>
+            </div>
+          </form>
         </div>
-      </div>
 
-      <!-- DÓŁ HEADERA: Menu nawigacji -->
-      <div class="header-bottom">
-        <div class="header-container">
-          <nav class="header-nav">
-            <div class="nav-item">
-              <a href="/" class="nav-link">Główna</a>
-            </div>
-            <div class="nav-item">
-              <a href="/products/custom" class="nav-link">Kreator</a>
-            </div>
-            <div class="nav-item">
-              <a href="/pages/kontakt" class="nav-link">Kontakt</a>
-            </div>
-          </nav>
+        <!-- Linki użytkownika -->
+        <div class="header-user">
+          {% if customer %}
+            <a href="{{ routes.account_url }}" class="user-link">Moje konto</a>
+            <a href="{{ routes.account_logout_url }}" class="user-link">Wyloguj się</a>
+          {% else %}
+            <a href="{{ routes.account_login_url }}" class="user-link">Zaloguj się</a>
+            <a href="{{ routes.account_register_url }}" class="user-link">Zarejestruj się</a>
+          {% endif %}
         </div>
+
+        <!-- Koszyk -->
+        <div class="header-cart">
+          <a href="{{ routes.cart_url }}" class="cart-link">
+            <div class="cart-icon-wrapper">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" class="cart-icon">
+                <path d="M3 3H5L5.4 5M7 13H17L21 5H5.4M7 13L5.4 5M7 13L4.7 15.3C4.3 15.7 4.6 16.5 5.1 16.5H17M17 13V17C17 18.1 16.1 19 15 19H9C7.9 19 7 18.1 7 17V13M17 13H7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              {% if cart.item_count > 0 %}
+                <span class="cart-count">{{ cart.item_count }}</span>
+              {% endif %}
+            </div>
+            <span class="cart-text">Koszyk</span>
+          </a>
+        </div>
+
       </div>
 
     </header>

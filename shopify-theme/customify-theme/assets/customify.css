@@ -274,6 +274,11 @@ header:not(.header-main) {
   z-index: 1000;
 }
 
+/* GÓRA HEADERA: Logo + Wyszukiwarka + Linki użytkownika + Koszyk */
+.header-top {
+  border-bottom: 1px solid #e9ecef;
+}
+
 .header-container {
   max-width: 1200px;
   margin: 0 auto;
@@ -281,8 +286,21 @@ header:not(.header-main) {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 80px;
   gap: 30px;
+}
+
+.header-top .header-container {
+  height: 60px;
+}
+
+/* DÓŁ HEADERA: Menu nawigacji */
+.header-bottom {
+  background: #f8f9fa;
+}
+
+.header-bottom .header-container {
+  height: 50px;
+  justify-content: center;
 }
 
 /* Logo */
@@ -573,7 +591,7 @@ header:not(.header-main) {
 }
 
 @media (max-width: 768px) {
-  .header-container {
+  .header-top .header-container {
     flex-wrap: wrap;
     height: auto;
     padding: 15px;
@@ -590,11 +608,16 @@ header:not(.header-main) {
     order: 2;
   }
   
+  .header-bottom .header-container {
+    padding: 10px 15px;
+    height: auto;
+  }
+  
   .header-nav {
-    order: 1;
     width: 100%;
     justify-content: center;
-    margin: 10px 0;
+    flex-wrap: wrap;
+    gap: 10px;
   }
   
   .nav-item {
