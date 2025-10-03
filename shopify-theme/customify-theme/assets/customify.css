@@ -339,7 +339,7 @@ header:not(.header-main) {
   display: flex;
   align-items: center;
   background: white;
-  border: 2px solid #e9ecef;
+  border: 3px solid #495057;
   border-radius: 0;
   overflow: hidden;
   height: 48px;
