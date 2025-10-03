@@ -850,6 +850,13 @@ main {
     gap: 8px !important;
     margin: 10px auto !important;
     justify-content: center !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+  
+  /* UPEWNIJ SIĘ ŻE THUMBNAILS SĄ WIDOCZNE */
+  media-gallery .slideshow-controls__thumbnails {
+    display: inline-flex !important;
   }
   
   .slideshow-controls__thumbnail {
@@ -1542,4 +1549,40 @@ div.discount-badge {
 /* Alternative: Hide products with "spersonalizowany" in URL */
 .product-card:has([href*="spersonalizowany"]) {
   display: none !important;
+}
+
+/* ========================================
+   MOBILE THUMBNAILS
+   ======================================== */
+
+.customify-mobile-thumbnails {
+  display: flex !important;
+  gap: 8px !important;
+  padding: 10px !important;
+  justify-content: center !important;
+  margin-top: 10px !important;
+  flex-wrap: wrap !important;
+}
+
+.customify-mobile-thumbnail {
+  width: 60px !important;
+  height: 60px !important;
+  border-radius: 6px !important;
+  border: 2px solid #e0e0e0 !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
+  overflow: hidden !important;
+  flex-shrink: 0 !important;
+}
+
+.customify-mobile-thumbnail:hover {
+  border-color: #dc3545 !important;
+  transform: scale(1.05) !important;
+}
+
+.customify-mobile-thumbnail img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  border-radius: 4px !important;
 }

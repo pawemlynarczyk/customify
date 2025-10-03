@@ -1010,6 +1010,98 @@ function initCartIntegration() {
 }
 
 /**
+ * MOBILE THUMBNAILS - Dodaj miniaturki na mobile
+ */
+function addMobileThumbnails() {
+  // Sprawdź czy jesteśmy na mobile
+  if (window.innerWidth > 749) return;
+  
+  // Znajdź właściwy container - media gallery grid
+  const mediaGallery = document.querySelector('.media-gallery__grid');
+  if (!mediaGallery) {
+    console.log('🎯 [CUSTOMIFY] Media gallery not found, skipping thumbnails');
+    return;
+  }
+  
+  // Sprawdź czy miniaturki już istnieją
+  if (mediaGallery.querySelector('.customify-mobile-thumbnails')) return;
+  
+  // Znajdź wszystkie obrazy w kontenerze
+  const productImages = mediaGallery.querySelectorAll('img');
+  if (productImages.length < 2) return; // Potrzebujemy co najmniej 2 obrazy
+  
+  console.log('🎯 [CUSTOMIFY] Dodaję miniaturki na mobile, znaleziono', productImages.length, 'obrazów');
+  
+  // Stwórz container dla miniaturek
+  const thumbnailsContainer = document.createElement('div');
+  thumbnailsContainer.className = 'customify-mobile-thumbnails';
+  thumbnailsContainer.style.cssText = `
+    display: flex !important;
+    gap: 8px !important;
+    padding: 10px !important;
+    justify-content: center !important;
+    margin-top: 10px !important;
+    flex-wrap: wrap !important;
+    width: 100% !important;
+  `;
+  
+  // Dodaj miniaturki (pomiń pierwszy obraz - to jest główny)
+  for (let i = 1; i < productImages.length; i++) {
+    const img = productImages[i];
+    const thumbnail = document.createElement('div');
+    thumbnail.className = 'customify-mobile-thumbnail';
+    thumbnail.style.cssText = `
+      width: 60px !important;
+      height: 60px !important;
+      border-radius: 6px !important;
+      border: 2px solid #e0e0e0 !important;
+      cursor: pointer !important;
+      transition: all 0.3s ease !important;
+      overflow: hidden !important;
+      flex-shrink: 0 !important;
+    `;
+    
+    // Skopiuj obraz
+    const thumbnailImg = img.cloneNode(true);
+    thumbnailImg.style.cssText = `
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: cover !important;
+      border-radius: 4px !important;
+    `;
+    
+    thumbnail.appendChild(thumbnailImg);
+    
+    // Dodaj event listener do kliknięcia
+    thumbnail.addEventListener('click', () => {
+      // Znajdź odpowiedni przycisk nawigacji i kliknij go
+      const navButtons = document.querySelectorAll('.slideshow-control');
+      if (navButtons[i]) {
+        navButtons[i].click();
+        console.log('🎯 [CUSTOMIFY] Kliknięto miniaturkę', i);
+      }
+    });
+    
+    // Hover effect
+    thumbnail.addEventListener('mouseenter', () => {
+      thumbnail.style.borderColor = '#dc3545';
+      thumbnail.style.transform = 'scale(1.05)';
+    });
+    
+    thumbnail.addEventListener('mouseleave', () => {
+      thumbnail.style.borderColor = '#e0e0e0';
+      thumbnail.style.transform = 'scale(1)';
+    });
+    
+    thumbnailsContainer.appendChild(thumbnail);
+  }
+  
+  // Dodaj container do media gallery
+  mediaGallery.appendChild(thumbnailsContainer);
+  console.log('✅ [CUSTOMIFY] Miniaturki na mobile dodane pomyślnie');
+}
+
+/**
  * INITIALIZATION
  */
 document.addEventListener('DOMContentLoaded', () => {
@@ -1019,9 +1111,19 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize cart integration
   initCartIntegration();
   
+  // Add mobile thumbnails
+  addMobileThumbnails();
+  
+  // Re-add thumbnails on resize
+  window.addEventListener('resize', () => {
+    addMobileThumbnails();
+  });
+  
   // Clean up dividers and spacing
   window.addEventListener('load', () => {
     setTimeout(() => {
+      // Add mobile thumbnails after load
+      addMobileThumbnails();
       // USUŃ DIVIDERY FIZYCZNIE Z DOM
       const dividers = document.querySelectorAll('.divider, .divider__line, .divider-AM3M2YnhsTllLTUtCS__divider_VJhene');
       dividers.forEach(divider => {
