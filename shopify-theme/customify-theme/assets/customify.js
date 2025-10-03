@@ -1016,18 +1016,18 @@ function addMobileThumbnails() {
   // Sprawdź czy jesteśmy na mobile
   if (window.innerWidth > 749) return;
   
-  // Znajdź właściwy container - media gallery grid
-  const mediaGallery = document.querySelector('.media-gallery__grid');
-  if (!mediaGallery) {
-    console.log('🎯 [CUSTOMIFY] Media gallery not found, skipping thumbnails');
+  // Znajdź właściwy container - product information media (widoczny na mobile)
+  const mediaContainer = document.querySelector('.product-information__media');
+  if (!mediaContainer) {
+    console.log('🎯 [CUSTOMIFY] Media container not found, skipping thumbnails');
     return;
   }
   
   // Sprawdź czy miniaturki już istnieją
-  if (mediaGallery.querySelector('.customify-mobile-thumbnails')) return;
+  if (mediaContainer.querySelector('.customify-mobile-thumbnails')) return;
   
   // Znajdź wszystkie obrazy w kontenerze
-  const productImages = mediaGallery.querySelectorAll('img');
+  const productImages = mediaContainer.querySelectorAll('img');
   if (productImages.length < 2) return; // Potrzebujemy co najmniej 2 obrazy
   
   console.log('🎯 [CUSTOMIFY] Dodaję miniaturki na mobile, znaleziono', productImages.length, 'obrazów');
@@ -1045,8 +1045,8 @@ function addMobileThumbnails() {
     width: 100% !important;
   `;
   
-  // Dodaj miniaturki (pomiń pierwszy obraz - to jest główny)
-  for (let i = 1; i < productImages.length; i++) {
+  // Dodaj miniaturki (użyj pierwszych 3 obrazów - 0, 1, 2)
+  for (let i = 0; i < Math.min(3, productImages.length); i++) {
     const img = productImages[i];
     const thumbnail = document.createElement('div');
     thumbnail.className = 'customify-mobile-thumbnail';
@@ -1061,8 +1061,10 @@ function addMobileThumbnails() {
       flex-shrink: 0 !important;
     `;
     
-    // Skopiuj obraz
-    const thumbnailImg = img.cloneNode(true);
+    // Stwórz nowy obraz z tym samym src
+    const thumbnailImg = document.createElement('img');
+    thumbnailImg.src = img.src;
+    thumbnailImg.alt = img.alt || 'Thumbnail';
     thumbnailImg.style.cssText = `
       width: 100% !important;
       height: 100% !important;
@@ -1096,8 +1098,8 @@ function addMobileThumbnails() {
     thumbnailsContainer.appendChild(thumbnail);
   }
   
-  // Dodaj container do media gallery
-  mediaGallery.appendChild(thumbnailsContainer);
+  // Dodaj container do media container
+  mediaContainer.appendChild(thumbnailsContainer);
   console.log('✅ [CUSTOMIFY] Miniaturki na mobile dodane pomyślnie');
 }
 

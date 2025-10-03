@@ -260,6 +260,11 @@ body * {
   padding: 8px !important;   /* Zmniejszone z 20px na 8px */
 }
 
+/* UKRYJ STANDARDOWY NAGŁÓWEK SHOPIFY */
+header:not(.header-main) {
+  display: none !important;
+}
+
 /* KOMPLETNY NAGŁÓWEK SHOPIFY */
 .header-main {
   background: white;
