@@ -336,13 +336,13 @@ header:not(.header-main) {
 }
 
 .search-wrapper {
-  display: flex;
-  align-items: center;
-  background: white;
-  border: 3px solid #495057;
-  border-radius: 0;
-  overflow: hidden;
-  height: 48px;
+  display: flex !important;
+  align-items: center !important;
+  background: white !important;
+  border: 3px solid #495057 !important;
+  border-radius: 0 !important;
+  overflow: hidden !important;
+  height: 48px !important;
 }
 
 .search-categories {
