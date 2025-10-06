@@ -254,12 +254,14 @@ Customify is a Shopify app that allows customers to:
 - Test changes on live site after deployment
 - Update cursor rules with new fixes and learnings
 
-## CRITICAL: Code Duplication Management - NIE NISZCZ DZIAŁAJĄCYCH FUNKCJI
-- **MAIN FILE**: `theme.liquid` - główny plik używany przez deploy-optimized-theme.js (PRIORYTET)
+## 🚨 CRITICAL: SINGLE SOURCE OF TRUTH - TYLKO THEME.LIQUID!
+- **GŁÓWNA ZASADA**: Używamy TYLKO `theme.liquid` - NIE MA DUPLIKACJI!
+- **MAIN FILE**: `theme.liquid` - JEDYNY plik używany przez deploy-optimized-theme.js (PRIORYTET)
 - **BACKUP FILES**: 
-  - `shopify-theme/customify-theme/layout/theme.liquid` - kopia w katalogu theme
-  - `shopify-theme-complete.liquid` - kopia kompletna (archive)
-  - `public/shopify-script.js` - JavaScript injection (tylko JS, nie HTML)
+  - `shopify-theme/customify-theme/layout/theme.liquid` - kopia w katalogu theme (SYNC)
+  - `shopify-theme-complete.liquid` - kopia kompletna (archive) (SYNC)
+  - `public/shopify-script.js` - NIE UŻYWANY (stary system)
+  - `public/shopify-embed.html` - NIE UŻYWANY (stary system)
 - **SYNC RULE**: ZAWSZE edytuj `theme.liquid` - inne pliki są synchronizowane automatycznie
 - **AUTOMATIC SYNC**: Przed każdym deployem wszystkie pliki są synchronizowane z `theme.liquid`
 - **DEPLOYMENT**: Używaj `npm run deploy` - automatycznie synchronizuje i wdraża
@@ -268,6 +270,7 @@ Customify is a Shopify app that allows customers to:
 - **NO GRADIENTS**: Tylko obrazki, nie gradienty CSS
 - **STYLE PRICING**: Style NIE wpływają na cenę - tylko rozmiary wpływają na cenę
 - **PRIORITY**: NIE NISZCZ DZIAŁAJĄCYCH FUNKCJI - zachowaj wszystko co działa
+- **NIGDY NIE EDYTUJ**: `shopify-embed.html`, `shopify-script.js`, plików w `shopify-theme/customify-theme/assets/`
 
 ## CRITICAL: Image Compression Strategy - DWUPOZIOMOWA KOMPRESJA
 - **VERCEL LIMIT**: 4.5MB request body limit - pliki większe powodują Status 413
@@ -286,10 +289,10 @@ Customify is a Shopify app that allows customers to:
 - **NO DOUBLE COMPRESSION**: Unikaj resize 1024px → 1024px (bez sensu)
 - **CORS**: Zawsze dodawaj `https://lumly.pl` do allowed origins
 
-## CRITICAL: CSS DUPLICATION PROBLEM - CSS JEST W KILKU MIEJSCACH!
-- **PROBLEM**: CSS jest duplikowany w wielu plikach i synchronizacja nie działa poprawnie
+## 🚨 CRITICAL: NO DUPLICATION - TYLKO THEME.LIQUID!
+- **PROBLEM SOLVED**: CSS był duplikowany w wielu plikach - TERAZ TYLKO `theme.liquid`!
 - **GŁÓWNE PLIKI CSS**:
-  - `theme.liquid` - GŁÓWNY (używany przez deploy script) - EDYTUJ TYLKO TEN!
+  - `theme.liquid` - **JEDYNY** (używany przez deploy script) - **EDYTUJ TYLKO TEN!**
   - `shopify-theme/customify-theme/assets/customify.css` - BACKUP (synchronizowany automatycznie)
   - `shopify-theme-complete.liquid` - BACKUP (synchronizowany automatycznie)
 - **KRYTYCZNE**: Zawsze edytuj CSS w `theme.liquid` - inne pliki są synchronizowane automatycznie
@@ -297,6 +300,7 @@ Customify is a Shopify app that allows customers to:
 - **SYNCHRONIZACJA**: `sync-theme-files.js` synchronizuje wszystkie pliki z `theme.liquid`
 - **WORKFLOW**: Edytuj `theme.liquid` → `npm run deploy` → automatyczna synchronizacja
 - **NIE EDYTUJ**: Plików w `shopify-theme/customify-theme/assets/` - są synchronizowane automatycznie
+- **NIE UŻYWAJ**: `shopify-embed.html`, `shopify-script.js` - to są stare pliki!
 - **DEBUGGING**: Jeśli zmiany nie działają, sprawdź czy edytowałeś `theme.liquid` a nie inne pliki
 
 ## CSS WORKFLOW INSTRUCTIONS - INSTRUKCJE PRACY Z CSS
@@ -306,6 +310,8 @@ Customify is a Shopify app that allows customers to:
 2. **DEPLOY**: Zawsze używaj `npm run deploy` - automatycznie synchronizuje + wdraża
 3. **BACKUPY**: Automatyczne backupy są tworzone przed każdą zmianą
 4. **TESTING**: Sprawdzaj zmiany na https://lumly.pl/products/custom
+5. **NIE UŻYWAJ**: `shopify-embed.html`, `shopify-script.js` - to są stare pliki!
+6. **NIE EDYTUJ**: Plików w `shopify-theme/customify-theme/assets/` - są synchronizowane automatycznie
 
 ### **🔧 ROZWIĄZANIE PROBLEMU DUPLIKACJI PLIKÓW THEME:**
 - **Problem**: 3 różne pliki theme (`theme.liquid`, `shopify-theme/customify-theme/layout/theme.liquid`, `shopify-theme-complete.liquid`)
