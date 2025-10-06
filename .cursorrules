@@ -272,6 +272,14 @@ Customify is a Shopify app that allows customers to:
 - **PRIORITY**: NIE NISZCZ DZIAŁAJĄCYCH FUNKCJI - zachowaj wszystko co działa
 - **NIGDY NIE EDYTUJ**: `shopify-embed.html`, `shopify-script.js`, plików w `shopify-theme/customify-theme/assets/`
 
+## 🚨 CRITICAL: JAVASCRIPT MUSI BYĆ ZAWSZE WŁĄCZONY!
+- **`customify.js`** - ZAWSZE WŁĄCZONY - obsługuje upload, style, cart, funkcjonalność
+- **NIE USUWAJ** `customify.js` z `theme.liquid` - aplikacja przestanie działać!
+- **`customify.js` to NIE DUPLIKACJA** - to jest potrzebny JavaScript
+- **DUPLIKACJA to** `shopify-embed.html` (HTML) - nie `customify.js` (JavaScript)
+- **ZASADA**: HTML w `theme.liquid` + JavaScript `customify.js` = działająca aplikacja
+- **BŁĄD**: Usuwanie `customify.js` = aplikacja nie działa (brak funkcjonalności)
+
 ## CRITICAL: Image Compression Strategy - DWUPOZIOMOWA KOMPRESJA
 - **VERCEL LIMIT**: 4.5MB request body limit - pliki większe powodują Status 413
 - **FRONTEND COMPRESSION** (JavaScript Canvas):
@@ -312,6 +320,8 @@ Customify is a Shopify app that allows customers to:
 4. **TESTING**: Sprawdzaj zmiany na https://lumly.pl/products/custom
 5. **NIE UŻYWAJ**: `shopify-embed.html`, `shopify-script.js` - to są stare pliki!
 6. **NIE EDYTUJ**: Plików w `shopify-theme/customify-theme/assets/` - są synchronizowane automatycznie
+7. **🚨 NIGDY NIE USUWAJ**: `customify.js` z `theme.liquid` - aplikacja przestanie działać!
+8. **🚨 ZAWSZE MIEJ**: HTML w `theme.liquid` + JavaScript `customify.js` = działająca aplikacja
 
 ### **🔧 ROZWIĄZANIE PROBLEMU DUPLIKACJI PLIKÓW THEME:**
 - **Problem**: 3 różne pliki theme (`theme.liquid`, `shopify-theme/customify-theme/layout/theme.liquid`, `shopify-theme-complete.liquid`)
