@@ -349,38 +349,58 @@ banner .search-form {
   flex-shrink: 0;
 }
 
-.user-link {
+/* Sekcja użytkownika - jedna ikona + napisy */
+.user-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: white;
+  border: 2px solid #000;
+  flex-shrink: 0;
+}
+
+.user-icon {
+  width: 24px;
+  height: 24px;
+  color: #000;
+}
+
+.user-links {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.user-text-link {
   color: #000;
   text-decoration: none;
   font-size: 14px;
   font-weight: 500;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8px;
-  border-radius: 50%;
-  background-color: white;
-  border: 2px solid #000;
-  width: 40px;
-  height: 40px;
+  line-height: 1.2;
+  transition: color 0.2s ease;
 }
 
-.user-link:hover {
+.user-text-link:hover {
   color: #dc3545;
-  background-color: #f8f9fa;
+}
+
+/* Hover effect dla całej sekcji */
+.user-section:hover .user-icon-wrapper {
   border-color: #dc3545;
-  transform: translateY(-1px);
+  background-color: #f8f9fa;
 }
 
-.user-link svg {
-  width: 24px;
-  height: 24px;
-  transition: transform 0.2s ease;
-}
-
-.user-link:hover svg {
-  transform: scale(1.1);
+.user-section:hover .user-icon {
+  color: #dc3545;
 }
 
 /* Koszyk */
