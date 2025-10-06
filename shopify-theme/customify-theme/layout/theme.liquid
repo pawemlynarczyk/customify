@@ -56,8 +56,8 @@
         console.log('🔧 Naprawiam proporcje galerii...');
         
         // Wymuś nowe wymiary przez JavaScript
-        galleryGrid.style.setProperty('grid-template-rows', 'minmax(300px, 1fr) 120px', 'important'); // RESPONSIVE WYSOKOŚĆ
-        galleryGrid.style.setProperty('grid-template-columns', '1fr 1fr', 'important');
+        galleryGrid.style.setProperty('grid-template-rows', 'minmax(300px, 1fr) 90px', 'important'); // RESPONSIVE WYSOKOŚĆ
+        galleryGrid.style.setProperty('grid-template-columns', '1fr 1fr 1fr', 'important'); // 3 KOLUMNY
         galleryGrid.style.setProperty('height', 'auto', 'important'); // Auto height
         galleryGrid.style.setProperty('width', '100%', 'important');
         
@@ -98,14 +98,8 @@
           thumb.style.setProperty('aspect-ratio', '1 / 1', 'important');
           thumb.style.setProperty('grid-row', '2 / 3', 'important');
           
-          // Ustaw kolumny: 2 miniaturki w pierwszym rzędzie, reszta w drugim
-          if (index < 2) {
-            thumb.style.setProperty('grid-column', index === 0 ? '1 / 2' : '2 / 3', 'important');
-          } else {
-            // Trzecia miniaturka i dalsze - nowy rząd
-            thumb.style.setProperty('grid-row', '3 / 4', 'important');
-            thumb.style.setProperty('grid-column', '1 / 2', 'important');
-          }
+          // Ustaw kolumny: wszystkie 3 miniaturki w jednym rzędzie
+          thumb.style.setProperty('grid-column', `${index + 1} / ${index + 2}`, 'important');
           
           // Styluj kontener product-media
           const productMedia = thumb.querySelector('.product-media');
