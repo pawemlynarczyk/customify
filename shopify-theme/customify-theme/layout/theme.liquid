@@ -86,14 +86,22 @@
           }
         }
         
-        // Miniaturki
-        const thumbnails = galleryGrid.querySelectorAll('li:nth-child(2), li:nth-child(3)');
+        // Miniaturki - WSZYSTKIE po pierwszym
+        const thumbnails = galleryGrid.querySelectorAll('li:not(:first-child)');
         thumbnails.forEach((thumb, index) => {
           thumb.style.setProperty('height', '120px', 'important');
           thumb.style.setProperty('width', '120px', 'important');
           thumb.style.setProperty('aspect-ratio', '1 / 1', 'important');
           thumb.style.setProperty('grid-row', '2 / 3', 'important');
-          thumb.style.setProperty('grid-column', index === 0 ? '1 / 2' : '2 / 3', 'important');
+          
+          // Ustaw kolumny: 2 miniaturki w pierwszym rzędzie, reszta w drugim
+          if (index < 2) {
+            thumb.style.setProperty('grid-column', index === 0 ? '1 / 2' : '2 / 3', 'important');
+          } else {
+            // Trzecia miniaturka i dalsze - nowy rząd
+            thumb.style.setProperty('grid-row', '3 / 4', 'important');
+            thumb.style.setProperty('grid-column', '1 / 2', 'important');
+          }
           
           const thumbImg = thumb.querySelector('img');
           if (thumbImg) {
