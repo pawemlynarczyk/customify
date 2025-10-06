@@ -45,10 +45,72 @@
     
     <!-- KOMPLETNY NAGŁÓWEK CUSTOMIFY -->
     <header class="header-main">
-      <!-- GÓRA HEADERA: Menu + Logo + Linki użytkownika + Koszyk -->
+      <!-- GÓRA HEADERA: Logo + Linki użytkownika + Koszyk -->
       <div class="header-top">
         <div class="header-container">
-          <!-- Menu nawigacji (po lewej) -->
+          <!-- Logo (środek) -->
+          <div class="header-logo">
+            <a href="{{ routes.root_url }}" class="logo-link">
+              {% if settings.logo != blank %}
+                <img src="{{ settings.logo | image_url: width: 200 }}" alt="{{ shop.name }}" class="logo-image">
+              {% else %}
+                <span class="logo-text">{{ shop.name }}</span>
+              {% endif %}
+            </a>
+          </div>
+          
+          <!-- Linki użytkownika + Koszyk (po prawej) -->
+          <div class="header-right">
+            <div class="header-user">
+              {% if customer %}
+                <div class="user-section">
+                  <div class="user-icon-wrapper">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" class="user-icon">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                  </div>
+                  <div class="user-links">
+                    <a href="{{ routes.account_url }}" class="user-text-link">Moje konto</a>
+                    <a href="{{ routes.account_logout_url }}" class="user-text-link">Wyloguj się</a>
+                  </div>
+                </div>
+              {% else %}
+                <div class="user-section">
+                  <div class="user-icon-wrapper">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" class="user-icon">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                  </div>
+                  <div class="user-links">
+                    <a href="{{ routes.account_login_url }}" class="user-text-link">Zaloguj</a>
+                    <a href="{{ routes.account_register_url }}" class="user-text-link">Zarejestruj</a>
+                  </div>
+                </div>
+              {% endif %}
+            </div>
+
+            <div class="header-cart">
+              <a href="{{ routes.cart_url }}" class="cart-link">
+                <div class="cart-icon-wrapper">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" class="cart-icon">
+                    <path d="M3 3H5L5.4 5M7 13H17L21 5H5.4M7 13L5.4 5M7 13L4.7 15.3C4.3 15.7 4.6 16.5 5.1 16.5H17M17 13V17C17 18.1 16.1 19 15 19H9C7.9 19 7 18.1 7 17V13M17 13H7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                  {% if cart.item_count > 0 %}
+                    <span class="cart-count">{{ cart.item_count }}</span>
+                  {% endif %}
+                </div>
+                <span class="cart-text">Koszyk</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DÓŁ HEADERA: Menu nawigacji -->
+      <div class="header-bottom">
+        <div class="header-container">
           <nav class="header-nav">
             <div class="nav-item">
               <a href="/" class="nav-link">Główna</a>
@@ -60,64 +122,6 @@
               <a href="/pages/kontakt" class="nav-link">Kontakt</a>
             </div>
           </nav>
-
-          <!-- Logo (środek) -->
-          <div class="header-logo">
-            <a href="{{ routes.root_url }}" class="logo-link">
-              {% if settings.logo != blank %}
-                <img src="{{ settings.logo | image_url: width: 200 }}" alt="{{ shop.name }}" class="logo-image">
-              {% else %}
-                <span class="logo-text">{{ shop.name }}</span>
-              {% endif %}
-            </a>
-            
-            <!-- Linki użytkownika + Koszyk (obok logo na mobile) -->
-            <div class="header-right">
-              <div class="header-user">
-                {% if customer %}
-                  <div class="user-section">
-                    <div class="user-icon-wrapper">
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" class="user-icon">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
-                      </svg>
-                    </div>
-                    <div class="user-links">
-                      <a href="{{ routes.account_url }}" class="user-text-link">Moje konto</a>
-                      <a href="{{ routes.account_logout_url }}" class="user-text-link">Wyloguj się</a>
-                    </div>
-                  </div>
-                {% else %}
-                  <div class="user-section">
-                    <div class="user-icon-wrapper">
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" class="user-icon">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
-                      </svg>
-                    </div>
-                    <div class="user-links">
-                      <a href="{{ routes.account_login_url }}" class="user-text-link">Zaloguj</a>
-                      <a href="{{ routes.account_register_url }}" class="user-text-link">Zarejestruj</a>
-                    </div>
-                  </div>
-                {% endif %}
-              </div>
-
-              <div class="header-cart">
-                <a href="{{ routes.cart_url }}" class="cart-link">
-                  <div class="cart-icon-wrapper">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" class="cart-icon">
-                      <path d="M3 3H5L5.4 5M7 13H17L21 5H5.4M7 13L5.4 5M7 13L4.7 15.3C4.3 15.7 4.6 16.5 5.1 16.5H17M17 13V17C17 18.1 16.1 19 15 19H9C7.9 19 7 18.1 7 17V13M17 13H7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                    {% if cart.item_count > 0 %}
-                      <span class="cart-count">{{ cart.item_count }}</span>
-                    {% endif %}
-                  </div>
-                  <span class="cart-text">Koszyk</span>
-                </a>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -364,26 +368,20 @@
 
         /* MOBILE HEADER STYLES */
         @media (max-width: 768px) {
+          /* GÓRA HEADERA: Logo + Ikony w jednej linii */
           .header-top .header-container {
             display: flex !important;
             flex-direction: row !important;
             align-items: center !important;
             justify-content: space-between !important;
-            flex-wrap: nowrap !important;
-            height: auto !important;
             padding: 15px !important;
             gap: 15px !important;
           }
           
-          /* LOGO I IKONKI W JEDNEJ LINII */
+          /* LOGO NA MOBILE */
           .header-logo {
-            order: 1 !important;
-            flex-grow: 0 !important;
+            flex-grow: 1 !important;
             text-align: center !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            gap: 20px !important;
           }
           
           /* ZMNIEJSZ LOGO NA MOBILE */
@@ -392,34 +390,48 @@
             height: auto !important;
           }
           
-          /* IKONKI OBOK LOGO */
+          /* IKONKI PO PRAWEJ */
           .header-right {
-            order: 1 !important;
-            width: auto !important;
-            justify-content: center !important;
-            gap: 15px !important;
             display: flex !important;
             align-items: center !important;
-            margin-left: 20px !important;
+            gap: 15px !important;
+          }
+          
+          /* DÓŁ HEADERA: Menu poniżej */
+          .header-bottom {
+            width: 100% !important;
+            background-color: #f8f9fa !important;
+            border-top: 1px solid #dee2e6 !important;
+          }
+          
+          .header-bottom .header-container {
+            padding: 10px 15px !important;
           }
           
           .header-nav {
-            order: 2 !important;
-            width: 100% !important;
+            display: flex !important;
             justify-content: center !important;
             flex-wrap: wrap !important;
-            gap: 10px !important;
-            margin-bottom: 10px !important;
+            gap: 15px !important;
           }
           
           .nav-item {
-            margin-right: 15px;
-            margin-bottom: 0;
+            margin-right: 0 !important;
+            margin-bottom: 0 !important;
           }
           
           .nav-link {
-            font-size: 14px;
-            padding: 10px 0;
+            font-size: 14px !important;
+            padding: 8px 12px !important;
+            color: #495057 !important;
+            text-decoration: none !important;
+            border-radius: 4px !important;
+            transition: background-color 0.2s !important;
+          }
+          
+          .nav-link:hover {
+            background-color: #e9ecef !important;
+            color: #dc3545 !important;
           }
           
           /* UKRYJ NAPISY "ZALOGUJ" I "ZAREJESTRUJ" NA MOBILE */
@@ -429,38 +441,38 @@
           
           /* ZOSTAW TYLKO IKONKĘ OSOBY */
           .user-section {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 0 !important;
           }
           
           /* ZMIEŃ IKONKĘ OSOBY NA BARDZIEJ POPULARNĄ I MNIEJ KOLOROWĄ */
           .user-icon-wrapper {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background-color: #f8f9fa;
-            border: 1px solid #dee2e6;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            width: 36px !important;
+            height: 36px !important;
+            border-radius: 50% !important;
+            background-color: #f8f9fa !important;
+            border: 1px solid #dee2e6 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
           }
           
           .user-icon {
-            width: 20px;
-            height: 20px;
-            color: #6c757d;
+            width: 20px !important;
+            height: 20px !important;
+            color: #6c757d !important;
           }
           
           /* HOVER EFFECT DLA IKONKI */
           .user-section:hover .user-icon-wrapper {
-            border-color: #dc3545;
-            background-color: #fff5f5;
+            border-color: #dc3545 !important;
+            background-color: #fff5f5 !important;
           }
           
           .user-section:hover .user-icon {
-            color: #dc3545;
+            color: #dc3545 !important;
           }
         }
 

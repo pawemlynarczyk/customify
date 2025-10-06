@@ -1,6 +1,154 @@
 // Customify Shopify Integration Script
 (function() {
     'use strict';
+    
+    // HEADER STICKY FIX - USUŃ STICKY
+    function fixHeaderSticky() {
+        const header = document.querySelector('.header-main');
+        if (header) {
+            header.style.position = 'relative';
+            header.style.top = 'auto';
+            header.style.zIndex = 'auto';
+            console.log('🔧 [HEADER] Usunięto sticky positioning');
+        }
+    }
+    
+    // MOBILE HEADER LAYOUT FIX - PRZEPISANIE STRUKTURY PRZEZ JAVASCRIPT
+    function fixMobileHeaderLayout() {
+        if (window.innerWidth <= 768) {
+            const headerMain = document.querySelector('.header-main');
+            const headerTop = document.querySelector('.header-top');
+            const headerNav = document.querySelector('.header-nav');
+            const headerLogo = document.querySelector('.header-logo');
+            const headerRight = document.querySelector('.header-right');
+            
+            if (headerMain && headerTop && headerNav && headerLogo && headerRight) {
+                console.log('🔧 [MOBILE HEADER] Przepisuję strukturę przez JavaScript');
+                
+                // Sprawdź czy już nie ma header-bottom
+                let headerBottom = document.querySelector('.header-bottom');
+                if (!headerBottom) {
+                    // Utwórz nową strukturę
+                    headerBottom = document.createElement('div');
+                    headerBottom.className = 'header-bottom';
+                    
+                    const headerBottomContainer = document.createElement('div');
+                    headerBottomContainer.className = 'header-container';
+                    
+                    // Przenieś menu do header-bottom
+                    const clonedNav = headerNav.cloneNode(true);
+                    headerBottomContainer.appendChild(clonedNav);
+                    headerBottom.appendChild(headerBottomContainer);
+                    
+                    // Dodaj header-bottom do header-main
+                    headerMain.appendChild(headerBottom);
+                    
+                    // Usuń menu z header-top
+                    headerNav.remove();
+                    
+                    console.log('✅ [MOBILE HEADER] Nowa struktura utworzona');
+                }
+                
+                // Ustaw style dla nowej struktury
+                headerTop.style.display = 'flex';
+                headerTop.style.flexDirection = 'row';
+                headerTop.style.alignItems = 'center';
+                headerTop.style.justifyContent = 'space-between';
+                headerTop.style.padding = '15px';
+                headerTop.style.gap = '15px';
+                
+                // Logo na mobile
+                headerLogo.style.flexGrow = '1';
+                headerLogo.style.textAlign = 'center';
+                
+                // Zmniejsz logo
+                const logoImg = headerLogo.querySelector('img');
+                if (logoImg) {
+                    logoImg.style.maxWidth = '120px';
+                    logoImg.style.height = 'auto';
+                }
+                
+                // Ikony po prawej
+                headerRight.style.display = 'flex';
+                headerRight.style.alignItems = 'center';
+                headerRight.style.gap = '15px';
+                
+                // Style dla header-bottom
+                headerBottom.style.width = '100%';
+                headerBottom.style.backgroundColor = '#f8f9fa';
+                headerBottom.style.borderTop = '1px solid #dee2e6';
+                
+                const headerBottomContainer = headerBottom.querySelector('.header-container');
+                if (headerBottomContainer) {
+                    headerBottomContainer.style.padding = '10px 15px';
+                }
+                
+                // Style dla menu w header-bottom
+                const newNav = headerBottom.querySelector('.header-nav');
+                if (newNav) {
+                    newNav.style.display = 'flex';
+                    newNav.style.justifyContent = 'center';
+                    newNav.style.flexWrap = 'wrap';
+                    newNav.style.gap = '15px';
+                }
+                
+                // Style dla linków menu
+                const navLinks = headerBottom.querySelectorAll('.nav-link');
+                navLinks.forEach(link => {
+                    link.style.fontSize = '14px';
+                    link.style.padding = '8px 12px';
+                    link.style.color = '#495057';
+                    link.style.textDecoration = 'none';
+                    link.style.borderRadius = '4px';
+                    link.style.transition = 'background-color 0.2s';
+                });
+                
+                // Ukryj napisy logowania
+                const userTextLinks = document.querySelectorAll('.user-text-link');
+                userTextLinks.forEach(link => {
+                    link.style.display = 'none';
+                });
+                
+                // Style dla ikonki użytkownika
+                const userIconWrapper = document.querySelector('.user-icon-wrapper');
+                if (userIconWrapper) {
+                    userIconWrapper.style.width = '36px';
+                    userIconWrapper.style.height = '36px';
+                    userIconWrapper.style.borderRadius = '50%';
+                    userIconWrapper.style.backgroundColor = '#f8f9fa';
+                    userIconWrapper.style.border = '1px solid #dee2e6';
+                    userIconWrapper.style.display = 'flex';
+                    userIconWrapper.style.alignItems = 'center';
+                    userIconWrapper.style.justifyContent = 'center';
+                }
+                
+                const userIcon = document.querySelector('.user-icon');
+                if (userIcon) {
+                    userIcon.style.width = '20px';
+                    userIcon.style.height = '20px';
+                    userIcon.style.color = '#6c757d';
+                }
+                
+                console.log('✅ [MOBILE HEADER] Layout przepisany przez JavaScript');
+            }
+        }
+    }
+    
+    // Uruchom na load i resize
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            fixHeaderSticky();
+            fixMobileHeaderLayout();
+        });
+    } else {
+        fixHeaderSticky();
+        fixMobileHeaderLayout();
+    }
+    
+    window.addEventListener('resize', () => {
+        fixHeaderSticky();
+        fixMobileHeaderLayout();
+    });
 
     // Configuration
     const CUSTOMIFY_CONFIG = {
