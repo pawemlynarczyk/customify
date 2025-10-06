@@ -63,18 +63,24 @@
         // Główne zdjęcie - WYPEŁNIA CAŁĄ SZEROKOŚĆ
         const mainImage = galleryGrid.querySelector('li:first-child');
         if (mainImage) {
+          // Usuń klasy które ograniczają wymiary
+          mainImage.classList.remove('constrain-height', 'media-fit-contain');
+          mainImage.classList.add('media-fit'); // Dodaj klasę która wypełnia
+          
           mainImage.style.setProperty('height', '400px', 'important');
-          mainImage.style.setProperty('width', '100%', 'important'); // WYPEŁNIA CAŁĄ SZEROKOŚĆ
+          mainImage.style.setProperty('width', '100%', 'important');
           mainImage.style.setProperty('grid-row', '1 / 2', 'important');
           mainImage.style.setProperty('grid-column', '1 / 3', 'important');
-          mainImage.style.setProperty('margin', '0', 'important'); // Usuń margin
+          mainImage.style.setProperty('margin', '0', 'important');
+          mainImage.style.setProperty('max-height', 'none', 'important'); // Usuń max-height
           
           const mainImg = mainImage.querySelector('img');
           if (mainImg) {
             mainImg.style.setProperty('height', '400px', 'important');
-            mainImg.style.setProperty('width', '100%', 'important'); // WYPEŁNIA CAŁĄ SZEROKOŚĆ
+            mainImg.style.setProperty('width', '100%', 'important');
             mainImg.style.setProperty('object-fit', 'cover', 'important');
             mainImg.style.setProperty('object-position', 'center', 'important');
+            mainImg.style.setProperty('aspect-ratio', 'unset', 'important'); // Usuń aspect-ratio
           }
         }
         
