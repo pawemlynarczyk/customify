@@ -222,6 +222,49 @@ module.exports = async (req, res) => {
         refine: "no_refiner",
         high_noise_frac: 0.7,
         output_format: "png"
+      },
+      // Style kotów - specjalne dla produktu "Koty Królewskie"
+      'royal-cat': {
+        model: "stability-ai/stable-diffusion:db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf",
+        prompt: `royal cat portrait, ${prompt}, majestic feline, regal pose, royal crown, luxurious fur, elegant, noble, kingly, royal garments, ornate details, golden accents, royal background, majestic lighting, high quality, detailed`,
+        guidance_scale: 7.5,
+        num_inference_steps: 50,
+        strength: 0.8
+      },
+      'crown-cat': {
+        model: "stability-ai/stable-diffusion:db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf",
+        prompt: `cat with crown, ${prompt}, royal feline, golden crown, majestic pose, regal expression, luxurious fur, elegant, noble, kingly, ornate crown details, royal background, majestic lighting, high quality, detailed`,
+        guidance_scale: 7.5,
+        num_inference_steps: 50,
+        strength: 0.8
+      },
+      'medieval-cat': {
+        model: "stability-ai/stable-diffusion:db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf",
+        prompt: `medieval cat portrait, ${prompt}, medieval feline, ancient style, historical, castle background, medieval clothing, armor details, ancient art style, historical painting, medieval lighting, high quality, detailed`,
+        guidance_scale: 7.5,
+        num_inference_steps: 50,
+        strength: 0.8
+      },
+      'renaissance-cat': {
+        model: "stability-ai/stable-diffusion:db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf",
+        prompt: `renaissance cat portrait, ${prompt}, renaissance feline, classical art style, renaissance painting, elegant pose, classical lighting, artistic details, renaissance background, high quality, detailed`,
+        guidance_scale: 7.5,
+        num_inference_steps: 50,
+        strength: 0.8
+      },
+      'baroque-cat': {
+        model: "stability-ai/stable-diffusion:db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf",
+        prompt: `baroque cat portrait, ${prompt}, baroque feline, dramatic lighting, ornate details, baroque art style, dramatic pose, luxurious fur, ornate background, baroque architecture, high quality, detailed`,
+        guidance_scale: 7.5,
+        num_inference_steps: 50,
+        strength: 0.8
+      },
+      'victorian-cat': {
+        model: "stability-ai/stable-diffusion:db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf",
+        prompt: `victorian cat portrait, ${prompt}, victorian feline, 19th century style, elegant pose, victorian clothing, ornate details, victorian background, classical lighting, high quality, detailed`,
+        guidance_scale: 7.5,
+        num_inference_steps: 50,
+        strength: 0.8
       }
     };
 
