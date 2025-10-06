@@ -466,60 +466,8 @@
                 this.selectedSize = null;
                 this.transformedImage = null;
                 
-                // Mapowanie stylów AI na produkty
-                this.styleMapping = {
-                    '15306975215941': { // Oryginalny produkt "custom"
-                        styles: [
-                            { id: 'van gogh', name: 'Van Gogh' },
-                            { id: 'picasso', name: 'Picasso' },
-                            { id: 'monet', name: 'Monet' },
-                            { id: 'anime', name: 'Anime' },
-                            { id: 'cyberpunk', name: 'Cyberpunk' },
-                            { id: 'watercolor', name: 'Akwarela' },
-                            { id: 'pixar', name: 'Pixar' }
-                        ]
-                    },
-                    '15343397732677': { // Zabawne Style AI
-                        styles: [
-                            { id: 'ghibli', name: 'Ghibli' },
-                            { id: 'pixar', name: 'Pixar' },
-                            { id: 'disney', name: 'Disney' },
-                            { id: 'anime', name: 'Anime' },
-                            { id: 'cartoon', name: 'Cartoon' },
-                            { id: 'kawaii', name: 'Kawaii' }
-                        ]
-                    },
-                    '15343398158661': { // Król i Królowa
-                        styles: [
-                            { id: 'royal-portrait', name: 'Portret Królewski' },
-                            { id: 'king-crown', name: 'Król z Koroną' },
-                            { id: 'queen-crown', name: 'Królowa z Koroną' },
-                            { id: 'medieval-royal', name: 'Średniowieczny Król' },
-                            { id: 'renaissance-royal', name: 'Renesansowy Król' },
-                            { id: 'baroque-royal', name: 'Barokowy Król' }
-                        ]
-                    },
-                    '15343398453573': { // Koty Królewskie
-                        styles: [
-                            { id: 'royal-cat', name: 'Królewski Kot' },
-                            { id: 'crown-cat', name: 'Kot z Koroną' },
-                            { id: 'medieval-cat', name: 'Średniowieczny Kot' },
-                            { id: 'renaissance-cat', name: 'Renesansowy Kot' },
-                            { id: 'baroque-cat', name: 'Barokowy Kot' },
-                            { id: 'victorian-cat', name: 'Wiktoriański Kot' }
-                        ]
-                    },
-                    '15343398781253': { // Rodzina AI
-                        styles: [
-                            { id: 'family-composition', name: 'Kompozycja Rodzinna' },
-                            { id: 'group-photo', name: 'Zdjęcie Grupowe' },
-                            { id: 'family-portrait', name: 'Portret Rodzinny' },
-                            { id: 'wedding-group', name: 'Grupa Weselna' },
-                            { id: 'reunion-photo', name: 'Zdjęcie Spotkania' },
-                            { id: 'generation-photo', name: 'Zdjęcie Pokoleń' }
-                        ]
-                    }
-                };
+                // Mapowanie stylów AI na produkty - USUNIĘTE STARE STYLE
+                // Używamy tylko dynamicznego systemu mapowania po handle produktu
                 
                 this.init();
             }
@@ -624,23 +572,78 @@
             }
 
             loadStylesForCurrentProduct() {
-                // Pobierz ID produktu z różnych możliwych źródeł
-                const productId = 
-                    document.querySelector('[data-product-id]')?.getAttribute('data-product-id') ||
-                    document.querySelector('form[action*="/cart/add"] input[name="id"]')?.value ||
-                    window.ShopifyAnalytics?.meta?.product?.id ||
-                    null;
+                console.log('🎨 [CUSTOMIFY] Loading dynamic styles for current product...');
                 
-                console.log('🎨 [CUSTOMIFY] Loading styles for product ID:', productId);
+                // Pobierz handle produktu z URL
+                const currentPath = window.location.pathname;
+                const productHandle = currentPath.split('/products/')[1]?.split('?')[0];
+                console.log('🔍 [CUSTOMIFY] Product handle:', productHandle);
                 
-                // Pobierz style dla tego produktu lub domyślne
-                const productStyles = this.styleMapping[productId] || this.styleMapping['15306975215941'];
+                // Definicja stylów dla każdego produktu
+                const productStyles = {
+                    'zabawne-style-ai-ghibli-pixar-i-wiecej': [
+                        { id: 'ghibli', name: 'Ghibli' },
+                        { id: 'pixar', name: 'Pixar' },
+                        { id: 'disney', name: 'Disney' },
+                        { id: 'anime', name: 'Anime' },
+                        { id: 'cartoon', name: 'Cartoon' },
+                        { id: 'kawaii', name: 'Kawaii' },
+                        { id: 'comic', name: 'Komiks' }
+                    ],
+                    'krol-i-krolowa-portrety-krolewskie': [
+                        { id: 'royal-portrait', name: 'Portret Królewski' },
+                        { id: 'king-crown', name: 'Król z Koroną' },
+                        { id: 'queen-elegant', name: 'Elegancka Królowa' },
+                        { id: 'medieval-royal', name: 'Średniowieczny' },
+                        { id: 'renaissance', name: 'Renesans' },
+                        { id: 'baroque', name: 'Barok' },
+                        { id: 'victorian', name: 'Wiktoriański' }
+                    ],
+                    'koty-krolewskie-zwierzeta-w-koronach': [
+                        { id: 'cat-king', name: 'Kot Król' },
+                        { id: 'cat-crown', name: 'Kot z Koroną' },
+                        { id: 'lion-cat', name: 'Kot Lew' },
+                        { id: 'tiger-cat', name: 'Kot Tygrys' },
+                        { id: 'royal-cat', name: 'Królewski Kot' },
+                        { id: 'noble-cat', name: 'Szlachecki Kot' },
+                        { id: 'majestic-cat', name: 'Majestatyczny' }
+                    ],
+                    'rodzina-ai-skladanie-zdjec-grupowych': [
+                        { id: 'family-portrait', name: 'Portret Rodzinny' },
+                        { id: 'family-collage', name: 'Kolaż Rodzinny' },
+                        { id: 'family-vintage', name: 'Vintage Rodzina' },
+                        { id: 'family-modern', name: 'Nowoczesna Rodzina' },
+                        { id: 'family-artistic', name: 'Artystyczna Rodzina' },
+                        { id: 'family-classic', name: 'Klasyczna Rodzina' },
+                        { id: 'family-fun', name: 'Zabawna Rodzina' }
+                    ],
+                    'custom': [ // Domyślny produkt
+                        { id: 'van gogh', name: 'Van Gogh' },
+                        { id: 'picasso', name: 'Picasso' },
+                        { id: 'monet', name: 'Monet' },
+                        { id: 'anime', name: 'Anime' },
+                        { id: 'cyberpunk', name: 'Cyberpunk' },
+                        { id: 'watercolor', name: 'Akwarela' },
+                        { id: 'pixar', name: 'Pixar' }
+                    ]
+                };
+                
+                // Znajdź odpowiednie style dla produktu
+                let stylesToShow = productStyles['custom']; // domyślne
+                
+                for (const [key, styles] of Object.entries(productStyles)) {
+                    if (productHandle && productHandle.includes(key)) {
+                        stylesToShow = styles;
+                        console.log('✅ [CUSTOMIFY] Found styles for:', key);
+                        break;
+                    }
+                }
                 
                 // Wyczyść istniejące style
                 this.styleButtons.innerHTML = '';
                 
-                // Dodaj style dla tego produktu
-                productStyles.styles.forEach(style => {
+                // Dodaj nowe style
+                stylesToShow.forEach(style => {
                     const styleBtn = document.createElement('div');
                     styleBtn.className = 'customify-style-btn';
                     styleBtn.setAttribute('data-style', style.id);
@@ -648,7 +651,7 @@
                     this.styleButtons.appendChild(styleBtn);
                 });
                 
-                console.log('🎨 [CUSTOMIFY] Loaded styles:', productStyles.styles.map(s => s.name));
+                console.log('✅ [CUSTOMIFY] Loaded styles:', stylesToShow.map(s => s.name).join(', '));
             }
             
             // Uruchom loadStylesForCurrentProduct po załadowaniu strony

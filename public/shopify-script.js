@@ -170,7 +170,7 @@
     // Configuration
     const CUSTOMIFY_CONFIG = {
         appUrl: 'https://customify-s56o.vercel.app',
-        embedUrl: 'https://customify-s56o.vercel.app/shopify-embed.html?v=' + Date.now(),
+        embedUrl: 'https://customify-s56o.vercel.app/shopify-embed.html?v=' + Date.now() + '&nocache=true&t=' + Math.random(),
         containerId: 'customify-app-container',
         enabledProducts: [], // Will be populated from Shopify
         debug: true,
