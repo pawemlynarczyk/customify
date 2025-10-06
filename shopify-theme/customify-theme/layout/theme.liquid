@@ -61,9 +61,39 @@
         galleryGrid.style.setProperty('height', 'auto', 'important');
         galleryGrid.style.setProperty('width', '100%', 'important');
         
-        // Stwórz kontener dla miniaturek
+        // Stwórz kontener dla miniaturek z nawigacją
         let thumbnailsContainer = galleryGrid.querySelector('.thumbnails-container');
         if (!thumbnailsContainer) {
+          // Kontener z nawigacją
+          const navigationContainer = document.createElement('div');
+          navigationContainer.className = 'thumbnails-navigation';
+          navigationContainer.style.cssText = `
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+          `;
+          
+          // Przycisk lewo
+          const leftBtn = document.createElement('button');
+          leftBtn.innerHTML = '←';
+          leftBtn.className = 'thumbnails-nav-btn left';
+          leftBtn.style.cssText = `
+            background: #333;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+          `;
+          
+          // Kontener miniaturek
           thumbnailsContainer = document.createElement('div');
           thumbnailsContainer.className = 'thumbnails-container';
           thumbnailsContainer.style.cssText = `
@@ -72,6 +102,29 @@
             overflow-x: auto;
             padding: 10px 0;
             scroll-behavior: smooth;
+            flex: 1;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+          `;
+          thumbnailsContainer.style.webkitScrollbar = 'none';
+          
+          // Przycisk prawo
+          const rightBtn = document.createElement('button');
+          rightBtn.innerHTML = '→';
+          rightBtn.className = 'thumbnails-nav-btn right';
+          rightBtn.style.cssText = `
+            background: #333;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
           `;
           
           // Przenieś miniaturki do kontenera
@@ -80,7 +133,21 @@
             thumbnailsContainer.appendChild(thumb);
           });
           
-          galleryGrid.appendChild(thumbnailsContainer);
+          // Składaj nawigację
+          navigationContainer.appendChild(leftBtn);
+          navigationContainer.appendChild(thumbnailsContainer);
+          navigationContainer.appendChild(rightBtn);
+          
+          galleryGrid.appendChild(navigationContainer);
+          
+          // Event listeners dla przycisków
+          leftBtn.addEventListener('click', () => {
+            thumbnailsContainer.scrollBy({ left: -100, behavior: 'smooth' });
+          });
+          
+          rightBtn.addEventListener('click', () => {
+            thumbnailsContainer.scrollBy({ left: 100, behavior: 'smooth' });
+          });
         }
         
         // Główne zdjęcie - WYPEŁNIA CAŁĄ SZEROKOŚĆ
