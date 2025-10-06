@@ -13,6 +13,20 @@
         }
     }
     
+    // DESKTOP LOGO FIX - LOGO DO LEWEJ NA DESKTOP
+    function fixDesktopLogo() {
+        if (window.innerWidth >= 769) {
+            const logo = document.querySelector('.header-logo');
+            if (logo) {
+                logo.style.order = '1';
+                logo.style.flexGrow = '0';
+                logo.style.textAlign = 'left';
+                logo.style.marginRight = 'auto';
+                console.log('🔧 [DESKTOP LOGO] Logo przesunięte do lewej');
+            }
+        }
+    }
+    
     // MOBILE HEADER LAYOUT FIX - PRZEPISANIE STRUKTURY PRZEZ JAVASCRIPT
     function fixMobileHeaderLayout() {
         if (window.innerWidth <= 768) {
@@ -138,15 +152,18 @@
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
             fixHeaderSticky();
+            fixDesktopLogo();
             fixMobileHeaderLayout();
         });
     } else {
         fixHeaderSticky();
+        fixDesktopLogo();
         fixMobileHeaderLayout();
     }
     
     window.addEventListener('resize', () => {
         fixHeaderSticky();
+        fixDesktopLogo();
         fixMobileHeaderLayout();
     });
 

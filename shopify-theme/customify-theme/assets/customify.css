@@ -291,12 +291,22 @@ header:not(.header-main) {
   height: 60px;
 }
 
-/* Logo (środek) */
+/* Logo (środek na mobile, lewa na desktop) */
 .header-logo {
   flex-shrink: 0;
   order: 2;
   flex-grow: 1;
   text-align: center;
+}
+
+/* DESKTOP: Logo do lewej */
+@media (min-width: 769px) {
+  .header-logo {
+    order: 1 !important;
+    flex-grow: 0 !important;
+    text-align: left !important;
+    margin-right: auto !important;
+  }
 }
 
 .logo-link {

@@ -357,3 +357,101 @@ npm run deploy
 # 4. Commit zmiany
 git add . && git commit -m "CSS: opis zmian" && git push origin main
 ```
+
+## CRITICAL: CSS ARCHITECTURE & HIERARCHY - STRUKTURA CSS
+
+### **🏗️ STRUKTURA PLIKÓW CSS:**
+```
+theme.liquid                           ← GŁÓWNY PLIK (EDYTUJ TYLKO TEN!)
+├── <style>...</style>                 ← CSS wbudowany w theme.liquid
+├── shopify-theme/customify-theme/assets/
+│   ├── customify.css                  ← BACKUP (synchronizowany automatycznie)
+│   ├── base.css                       ← BACKUP (synchronizowany automatycznie)
+│   └── styles.css                     ← Shopify core CSS (NIE EDYTUJ!)
+└── public/shopify-script.js           ← JavaScript fallback (inline styles)
+```
+
+### **📊 HIERARCHIA SPECIFICITY CSS (od najniższej do najwyższej):**
+1. **`theme.liquid`** - CSS wbudowany w HTML (najniższa)
+2. **`base.css`** - Ładowany przed styles.css
+3. **`customify.css`** - Nasze style (średnia)
+4. **`styles.css`** - Shopify core CSS (wysoka - NADPISUJE!)
+5. **`shopify-script.js`** - JavaScript inline styles (najwyższa - WYGRYWA!)
+
+### **🎯 ZASADY EDYCJI CSS:**
+
+#### **✅ CO ROBIĆ:**
+- **EDYTUJ TYLKO**: `theme.liquid` (sekcja `<style>`)
+- **UŻYWAJ `!important`**: W `customify.css` i `base.css` żeby nadpisać `styles.css`
+- **JAVASCRIPT FALLBACK**: Dla problemów z cache używaj `shopify-script.js`
+- **MEDIA QUERIES**: Desktop `@media (min-width: 769px)`, Mobile `@media (max-width: 768px)`
+- **TESTUJ ZAWSZE**: Na https://lumly.pl/products/custom po każdej zmianie
+
+#### **❌ CZEGO NIE ROBIĆ:**
+- **NIE EDYTUJ**: `shopify-theme/customify-theme/assets/customify.css` bezpośrednio
+- **NIE EDYTUJ**: `shopify-theme/customify-theme/assets/base.css` bezpośrednio
+- **NIE EDYTUJ**: `styles.css` (Shopify core - zostanie nadpisany)
+- **NIE IGNORUJ**: Shopify cache - może blokować zmiany przez 15-30 minut
+
+### **🔧 ROZWIĄZYWANIE PROBLEMÓW CSS:**
+
+#### **Problem: Zmiany CSS nie są widoczne**
+1. **Sprawdź czy edytowałeś `theme.liquid`** (nie inne pliki)
+2. **Użyj `!important`** w `customify.css` i `base.css`
+3. **Dodaj JavaScript fallback** w `shopify-script.js`
+4. **Wymuś cache refresh**: `?v=timestamp` w URL
+5. **Sprawdź konsolę**: Czy są błędy CSS
+
+#### **Problem: Style są nadpisywane przez Shopify**
+1. **Zwiększ specificity**: Użyj bardziej szczegółowych selektorów
+2. **Dodaj `!important`**: W `customify.css` i `base.css`
+3. **Użyj JavaScript**: Inline styles w `shopify-script.js` mają najwyższą priority
+
+#### **Problem: Mobile vs Desktop styles**
+1. **Sprawdź media queries**: `@media (max-width: 768px)` vs `@media (min-width: 769px)`
+2. **Użyj JavaScript**: `window.innerWidth` do wykrywania rozmiaru
+3. **Testuj na różnych urządzeniach**: Browser dev tools
+
+### **📱 RESPONSIVE DESIGN RULES:**
+
+#### **Mobile (≤768px):**
+- Logo + ikony w jednej linii
+- Menu poniżej logo
+- Ukryj napisy "Zaloguj"/"Zarejestruj"
+- Zmniejsz logo do 120px max-width
+
+#### **Desktop (≥769px):**
+- Logo po lewej stronie
+- Menu w środku
+- Ikony po prawej
+- Pełne napisy logowania
+
+### **🚀 DEPLOYMENT WORKFLOW:**
+```bash
+# 1. Edytuj theme.liquid (sekcja <style>)
+# 2. Deploy z synchronizacją
+npm run deploy
+
+# 3. Sprawdź na żywo
+# https://lumly.pl/products/custom?v=timestamp
+
+# 4. Jeśli nie działa, dodaj JavaScript fallback
+# Edytuj public/shopify-script.js
+
+# 5. Commit zmiany
+git add . && git commit -m "CSS: opis zmian" && git push origin main
+```
+
+### **🔍 DEBUGGING CSS:**
+- **Browser DevTools**: Sprawdź computed styles
+- **Console**: Sprawdź błędy CSS
+- **Network**: Sprawdź czy pliki CSS się ładują
+- **Cache**: Użyj Ctrl+F5 lub incognito mode
+- **JavaScript**: Sprawdź czy fallback działa
+
+### **⚠️ KRYTYCZNE UWAGI:**
+- **Shopify cache** może blokować zmiany przez 15-30 minut
+- **JavaScript inline styles** mają najwyższą priority
+- **`!important`** jest konieczne w `customify.css` i `base.css`
+- **Zawsze testuj** na https://lumly.pl/products/custom
+- **Commituj zmiany** po każdym działającym fixie
