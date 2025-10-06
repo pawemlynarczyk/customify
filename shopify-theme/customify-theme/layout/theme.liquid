@@ -36,6 +36,24 @@
     <!-- CUSTOMIFY INTEGRATION -->
     <link rel="stylesheet" href="{{ 'customify.css' | asset_url }}">
     <script src="{{ 'customify.js' | asset_url }}" defer></script>
+    
+    <!-- FIX: Kwadratowe miniaturki w galerii produktu -->
+    <style>
+      .media-gallery__grid {
+        grid-template-rows: 325.797px 178px !important;
+      }
+      .media-gallery__grid li:nth-child(2),
+      .media-gallery__grid li:nth-child(3) {
+        height: 178px !important;
+        aspect-ratio: 1 / 1 !important;
+      }
+      .media-gallery__grid li:nth-child(2) img,
+      .media-gallery__grid li:nth-child(3) img {
+        object-fit: cover !important;
+        width: 100% !important;
+        height: 100% !important;
+      }
+    </style>
 
     {{ content_for_header }}
   </head>
