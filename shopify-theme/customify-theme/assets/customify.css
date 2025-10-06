@@ -170,8 +170,10 @@ body * {
   border-radius: 8px !important;
 }
 
-/* Sekcja informacji - zawsze w drugiej kolumnie */
-#ProductInformation-template--26351135293765__main {
+/* Sekcja informacji - zawsze w drugiej kolumnie - WSZYSTKIE PRODUKTY */
+#ProductInformation-template--26351135293765__main,
+[data-testid="product-information-details"],
+.product-details {
   grid-column: 2 !important;
   width: 100% !important;
   box-sizing: border-box !important;
