@@ -350,6 +350,14 @@ module.exports = async (req, res) => {
     console.log(`Running model: ${config.model}`);
     console.log(`Input parameters:`, inputParams);
 
+    // Check if Replicate is available
+    if (!replicate) {
+      console.error('❌ [REPLICATE] Replicate not initialized - missing REPLICATE_API_TOKEN');
+      return res.status(500).json({ 
+        error: 'AI service not configured. Please contact support.' 
+      });
+    }
+
     // Add timeout and better error handling (following Replicate docs)
     const timeoutPromise = new Promise((_, reject) => {
       setTimeout(() => reject(new Error('Request timeout - model took too long')), 300000); // 5 minutes
@@ -362,10 +370,25 @@ module.exports = async (req, res) => {
 
     const output = await Promise.race([replicatePromise, timeoutPromise]);
     console.log(`✅ [REPLICATE] Prediction completed successfully`);
+    console.log(`📸 [REPLICATE] Output type:`, typeof output);
+    console.log(`📸 [REPLICATE] Output:`, output);
+
+    // Handle different output formats
+    let imageUrl;
+    if (Array.isArray(output)) {
+      imageUrl = output[0];
+    } else if (typeof output === 'string') {
+      imageUrl = output;
+    } else if (output && output.url) {
+      imageUrl = output.url();
+    } else {
+      console.error('❌ [REPLICATE] Unknown output format:', output);
+      return res.status(500).json({ error: 'Invalid response format from AI model' });
+    }
 
     res.json({ 
       success: true, 
-      transformedImage: output[0] 
+      transformedImage: imageUrl 
     });
   } catch (error) {
     console.error('AI transformation error:', error);
