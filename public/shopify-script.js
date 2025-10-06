@@ -438,11 +438,115 @@
                 
                 container.appendChild(wrapper);
                 log('Customify inline content loaded');
+                
+                // Load dynamic styles after content is loaded
+                loadDynamicStyles();
             })
             .catch(error => {
                 log('Error loading Customify content:', error);
                 container.innerHTML = '<p>Błąd ładowania aplikacji Customify. Spróbuj ponownie później.</p>';
             });
+    }
+    
+    // Load dynamic styles based on product
+    function loadDynamicStyles() {
+        console.log('🎨 [DYNAMIC STYLES] Loading styles based on product...');
+        
+        // Get product ID
+        const productId = getCurrentProductId();
+        console.log('🔍 [DYNAMIC STYLES] Product ID:', productId);
+        
+        // Define style groups
+        const styleGroups = {
+            'zabawne-style-ai-ghibli-pixar-i-wiecej': {
+                name: 'Zabawne Style AI',
+                styles: [
+                    { id: 'ghibli', name: 'Ghibli', description: 'Studio Ghibli' },
+                    { id: 'pixar', name: 'Pixar', description: 'Pixar Animation' },
+                    { id: 'disney', name: 'Disney', description: 'Disney Classic' },
+                    { id: 'anime', name: 'Anime', description: 'Anime Style' },
+                    { id: 'cartoon', name: 'Cartoon', description: 'Cartoon Style' },
+                    { id: 'kawaii', name: 'Kawaii', description: 'Kawaii Cute' }
+                ]
+            },
+            'krol-i-krolowa-portrety-krolewskie': {
+                name: 'Król i Królowa',
+                styles: [
+                    { id: 'royal-portrait', name: 'Portret Królewski', description: 'Królewski portret' },
+                    { id: 'crown-jewel', name: 'Korona i Klejnoty', description: 'Z koroną i klejnotami' },
+                    { id: 'medieval-king', name: 'Król Średniowieczny', description: 'Średniowieczny król' },
+                    { id: 'queen-elegant', name: 'Elegancka Królowa', description: 'Elegancka królowa' },
+                    { id: 'royal-court', name: 'Dwór Królewski', description: 'W stylu dworu' },
+                    { id: 'noble-portrait', name: 'Portret Szlachecki', description: 'Szlachecki portret' }
+                ]
+            },
+            'koty-w-koronie-i-stroju': {
+                name: 'Koty w Koronie',
+                styles: [
+                    { id: 'cat-king', name: 'Król Kot', description: 'Kot jako król' },
+                    { id: 'cat-crown', name: 'Kot z Koroną', description: 'Kot z koroną' },
+                    { id: 'cat-royal', name: 'Królewski Kot', description: 'Królewski kot' },
+                    { id: 'cat-noble', name: 'Szlachecki Kot', description: 'Szlachecki kot' },
+                    { id: 'cat-elegant', name: 'Elegancki Kot', description: 'Elegancki kot' },
+                    { id: 'cat-majestic', name: 'Majestatyczny Kot', description: 'Majestatyczny kot' }
+                ]
+            },
+            'rodzina-ze-zdjec-grupowych': {
+                name: 'Rodzina ze Zdjęć',
+                styles: [
+                    { id: 'family-portrait', name: 'Portret Rodzinny', description: 'Portret rodzinny' },
+                    { id: 'family-group', name: 'Grupa Rodzinna', description: 'Grupa rodzinna' },
+                    { id: 'family-collage', name: 'Kolaż Rodzinny', description: 'Kolaż rodzinny' },
+                    { id: 'family-memory', name: 'Wspomnienie Rodzinne', description: 'Wspomnienie rodzinne' },
+                    { id: 'family-together', name: 'Razem', description: 'Razem jako rodzina' },
+                    { id: 'family-love', name: 'Miłość Rodzinna', description: 'Miłość rodzinna' }
+                ]
+            }
+        };
+        
+        // Get current product handle from URL
+        const currentPath = window.location.pathname;
+        const productHandle = currentPath.split('/products/')[1];
+        console.log('🔍 [DYNAMIC STYLES] Product handle:', productHandle);
+        
+        // Find matching style group
+        let selectedGroup = null;
+        for (const [handle, group] of Object.entries(styleGroups)) {
+            if (productHandle && productHandle.includes(handle.split('-')[0])) {
+                selectedGroup = group;
+                break;
+            }
+        }
+        
+        // Fallback to first group if no match
+        if (!selectedGroup) {
+            selectedGroup = styleGroups['zabawne-style-ai-ghibli-pixar-i-wiecej'];
+            console.log('🔍 [DYNAMIC STYLES] Using fallback group');
+        }
+        
+        console.log('🎨 [DYNAMIC STYLES] Selected group:', selectedGroup.name);
+        
+        // Update styles area
+        const stylesArea = document.getElementById('stylesArea');
+        if (stylesArea) {
+            const styleButtons = stylesArea.querySelector('.customify-style-buttons');
+            if (styleButtons) {
+                // Clear existing buttons
+                styleButtons.innerHTML = '';
+                
+                // Add new style buttons
+                selectedGroup.styles.forEach(style => {
+                    const button = document.createElement('div');
+                    button.className = 'customify-style-btn';
+                    button.setAttribute('data-style', style.id);
+                    button.textContent = style.name;
+                    button.title = style.description;
+                    styleButtons.appendChild(button);
+                });
+                
+                console.log('✅ [DYNAMIC STYLES] Styles updated for:', selectedGroup.name);
+            }
+        }
     }
 
     // Find insertion point
