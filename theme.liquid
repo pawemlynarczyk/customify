@@ -149,24 +149,26 @@
             gap: 10px;
           `;
           
-          // Przycisk lewo
-          const leftBtn = document.createElement('button');
-          leftBtn.innerHTML = '←';
-          leftBtn.className = 'thumbnails-nav-btn left';
-          leftBtn.style.cssText = `
-            background: #333;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            cursor: pointer;
-            font-size: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-          `;
+                // Przycisk lewo
+                const leftBtn = document.createElement('button');
+                leftBtn.innerHTML = '←';
+                leftBtn.className = 'thumbnails-nav-btn left';
+                leftBtn.style.cssText = `
+                  background: white;
+                  color: #333;
+                  border: 1px solid #e0e0e0;
+                  border-radius: 50%;
+                  width: 36px;
+                  height: 36px;
+                  cursor: pointer;
+                  font-size: 16px;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  flex-shrink: 0;
+                  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                  transition: all 0.2s ease;
+                `;
           
           // Kontener miniaturek
           thumbnailsContainer = document.createElement('div');
@@ -183,24 +185,26 @@
           `;
           thumbnailsContainer.style.webkitScrollbar = 'none';
           
-          // Przycisk prawo
-          const rightBtn = document.createElement('button');
-          rightBtn.innerHTML = '→';
-          rightBtn.className = 'thumbnails-nav-btn right';
-          rightBtn.style.cssText = `
-            background: #333;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            cursor: pointer;
-            font-size: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-          `;
+                // Przycisk prawo
+                const rightBtn = document.createElement('button');
+                rightBtn.innerHTML = '→';
+                rightBtn.className = 'thumbnails-nav-btn right';
+                rightBtn.style.cssText = `
+                  background: white;
+                  color: #333;
+                  border: 1px solid #e0e0e0;
+                  border-radius: 50%;
+                  width: 36px;
+                  height: 36px;
+                  cursor: pointer;
+                  font-size: 16px;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  flex-shrink: 0;
+                  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                  transition: all 0.2s ease;
+                `;
           
           // Przenieś miniaturki do kontenera
           const thumbnails = Array.from(galleryGrid.querySelectorAll('li:not(:first-child)'));
@@ -215,14 +219,39 @@
           
           galleryGrid.appendChild(navigationContainer);
           
-          // Event listeners dla przycisków
-          leftBtn.addEventListener('click', () => {
-            thumbnailsContainer.scrollBy({ left: -100, behavior: 'smooth' });
-          });
-          
-          rightBtn.addEventListener('click', () => {
-            thumbnailsContainer.scrollBy({ left: 100, behavior: 'smooth' });
-          });
+                // Event listeners dla przycisków
+                leftBtn.addEventListener('click', () => {
+                  thumbnailsContainer.scrollBy({ left: -100, behavior: 'smooth' });
+                });
+                
+                rightBtn.addEventListener('click', () => {
+                  thumbnailsContainer.scrollBy({ left: 100, behavior: 'smooth' });
+                });
+                
+                // Hover effects
+                leftBtn.addEventListener('mouseenter', () => {
+                  leftBtn.style.background = '#f5f5f5';
+                  leftBtn.style.borderColor = '#ccc';
+                  leftBtn.style.transform = 'scale(1.05)';
+                });
+                
+                leftBtn.addEventListener('mouseleave', () => {
+                  leftBtn.style.background = 'white';
+                  leftBtn.style.borderColor = '#e0e0e0';
+                  leftBtn.style.transform = 'scale(1)';
+                });
+                
+                rightBtn.addEventListener('mouseenter', () => {
+                  rightBtn.style.background = '#f5f5f5';
+                  rightBtn.style.borderColor = '#ccc';
+                  rightBtn.style.transform = 'scale(1.05)';
+                });
+                
+                rightBtn.addEventListener('mouseleave', () => {
+                  rightBtn.style.background = 'white';
+                  rightBtn.style.borderColor = '#e0e0e0';
+                  rightBtn.style.transform = 'scale(1)';
+                });
         }
         
         // Główne zdjęcie - WYPEŁNIA CAŁĄ SZEROKOŚĆ
