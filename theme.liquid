@@ -103,6 +103,14 @@
             thumb.style.setProperty('grid-column', '1 / 2', 'important');
           }
           
+          // Styluj kontener product-media
+          const productMedia = thumb.querySelector('.product-media');
+          if (productMedia) {
+            productMedia.style.setProperty('width', '100%', 'important');
+            productMedia.style.setProperty('height', '100%', 'important');
+            productMedia.style.setProperty('aspect-ratio', '1 / 1', 'important');
+          }
+          
           const thumbImg = thumb.querySelector('img');
           if (thumbImg) {
             thumbImg.style.setProperty('object-fit', 'cover', 'important');
