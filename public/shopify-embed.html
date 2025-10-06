@@ -606,6 +606,12 @@
                 
                 console.log('🎨 [CUSTOMIFY] Loaded styles:', productStyles.styles.map(s => s.name));
             }
+            
+            // Uruchom loadStylesForCurrentProduct po załadowaniu strony
+            initializeStyles() {
+                console.log('🎨 [CUSTOMIFY] Initializing styles...');
+                this.loadStylesForCurrentProduct();
+            }
 
             selectStyle(styleBtn) {
                 // Remove active class from all buttons
@@ -943,7 +949,8 @@
 
         // Initialize when DOM is loaded
         document.addEventListener('DOMContentLoaded', () => {
-            new CustomifyEmbed();
+            const app = new CustomifyEmbed();
+            app.initializeStyles();
         });
     </script>
 </body>
