@@ -56,10 +56,10 @@
         console.log('🔧 Naprawiam proporcje galerii...');
         
         // Wymuś nowe wymiary przez JavaScript
-        galleryGrid.style.setProperty('grid-template-rows', '400px 120px', 'important');
-        galleryGrid.style.setProperty('grid-template-columns', '1fr 1fr', 'important'); // SZERSZY GRID
-        galleryGrid.style.setProperty('height', '524px', 'important');
-        galleryGrid.style.setProperty('width', '100%', 'important'); // Pełna szerokość
+        galleryGrid.style.setProperty('grid-template-rows', 'minmax(300px, 1fr) 120px', 'important'); // RESPONSIVE WYSOKOŚĆ
+        galleryGrid.style.setProperty('grid-template-columns', '1fr 1fr', 'important');
+        galleryGrid.style.setProperty('height', 'auto', 'important'); // Auto height
+        galleryGrid.style.setProperty('width', '100%', 'important');
         
         // Główne zdjęcie - WYPEŁNIA CAŁĄ SZEROKOŚĆ
         const mainImage = galleryGrid.querySelector('li:first-child');
@@ -68,20 +68,21 @@
           mainImage.classList.remove('constrain-height', 'media-fit-contain');
           mainImage.classList.add('media-fit'); // Dodaj klasę która wypełnia
           
-          mainImage.style.setProperty('height', '400px', 'important');
+          mainImage.style.setProperty('height', 'auto', 'important'); // RESPONSIVE
           mainImage.style.setProperty('width', '100%', 'important');
+          mainImage.style.setProperty('aspect-ratio', '1 / 1', 'important'); // KWADRAT RESPONSIVE
           mainImage.style.setProperty('grid-row', '1 / 2', 'important');
           mainImage.style.setProperty('grid-column', '1 / 3', 'important');
           mainImage.style.setProperty('margin', '0', 'important');
-          mainImage.style.setProperty('max-height', 'none', 'important'); // Usuń max-height
+          mainImage.style.setProperty('max-height', 'none', 'important');
           
           const mainImg = mainImage.querySelector('img');
           if (mainImg) {
-            mainImg.style.setProperty('height', '400px', 'important');
+            mainImg.style.setProperty('height', '100%', 'important'); // RESPONSIVE
             mainImg.style.setProperty('width', '100%', 'important');
             mainImg.style.setProperty('object-fit', 'cover', 'important');
             mainImg.style.setProperty('object-position', 'center', 'important');
-            mainImg.style.setProperty('aspect-ratio', 'unset', 'important'); // Usuń aspect-ratio
+            mainImg.style.setProperty('aspect-ratio', 'inherit', 'important'); // Dziedzicz z kontenera
           }
         }
         
