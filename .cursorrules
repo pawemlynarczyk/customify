@@ -280,6 +280,26 @@ Customify is a Shopify app that allows customers to:
 - **ZASADA**: HTML w `theme.liquid` + JavaScript `customify.js` = działająca aplikacja
 - **BŁĄD**: Usuwanie `customify.js` = aplikacja nie działa (brak funkcjonalności)
 
+## 🎯 DYNAMIC STYLE MANAGEMENT - POKAZYWANIE I UKRYWANIE STYLÓW
+- **GŁÓWNA ZASADA**: Style są zdefiniowane w HTML w `theme.liquid` (linie 206-248)
+- **UKRYWANIE GLOBALNE**: Dodaj `style="display: none;"` do elementu `<div class="customify-style-card" data-style="nazwa">`
+- **UKRYWANIE PER PRODUKT**: Użyj JavaScript w `theme.liquid` (po linii 38):
+  ```javascript
+  document.addEventListener('DOMContentLoaded', function() {
+    const productHandle = window.location.pathname;
+    if (productHandle.includes('nazwa-produktu')) {
+      const styleElement = document.querySelector('[data-style="nazwa-stylu"]');
+      if (styleElement) {
+        styleElement.style.display = 'none';
+      }
+    }
+  });
+  ```
+- **POKAZYWANIE STYLU**: Usuń `style="display: none;"` lub ustaw `style="display: block;"`
+- **STRUKTURA STYLU**: Każdy styl ma `data-style="nazwa"` - użyj tego do selekcji
+- **TESTING**: Zawsze sprawdzaj na konkretnym URL produktu
+- **PRZYKŁAD**: Ukryj "Van Gogh" tylko w "Koty Królewskie" - sprawdź URL zawiera `koty-krolewskie`
+
 ## CRITICAL: Image Compression Strategy - DWUPOZIOMOWA KOMPRESJA
 - **VERCEL LIMIT**: 4.5MB request body limit - pliki większe powodują Status 413
 - **FRONTEND COMPRESSION** (JavaScript Canvas):

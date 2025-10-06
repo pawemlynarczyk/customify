@@ -36,6 +36,22 @@
     <!-- CUSTOMIFY INTEGRATION - CSS + JAVASCRIPT -->
     <link rel="stylesheet" href="{{ 'customify.css' | asset_url }}">
     <script src="{{ 'customify.js' | asset_url }}" defer></script>
+    
+    <!-- Ukryj style dla konkretnych produktów -->
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        // Sprawdź czy jesteśmy na stronie produktu "Koty Królewskie"
+        const productHandle = window.location.pathname;
+        if (productHandle.includes('koty-krolewskie-zwierzeta-w-koronach')) {
+          // Ukryj styl Van Gogh tylko w tym produkcie
+          const vanGoghStyle = document.querySelector('[data-style="van gogh"]');
+          if (vanGoghStyle) {
+            vanGoghStyle.style.display = 'none';
+            console.log('🎯 Ukryto styl Van Gogh dla produktu Koty Królewskie');
+          }
+        }
+      });
+    </script>
 
     {{ content_for_header }}
   </head>
