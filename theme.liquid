@@ -55,11 +55,33 @@
         
         console.log('🔧 Naprawiam proporcje galerii...');
         
-        // Wymuś nowe wymiary przez JavaScript
-        galleryGrid.style.setProperty('grid-template-rows', 'minmax(300px, 1fr) 90px', 'important'); // RESPONSIVE WYSOKOŚĆ
-        galleryGrid.style.setProperty('grid-template-columns', '1fr 1fr 1fr', 'important'); // 3 KOLUMNY
-        galleryGrid.style.setProperty('height', 'auto', 'important'); // Auto height
+        // Wymuś nowe wymiary przez JavaScript - KARUZELA
+        galleryGrid.style.setProperty('display', 'flex', 'important');
+        galleryGrid.style.setProperty('flex-direction', 'column', 'important');
+        galleryGrid.style.setProperty('height', 'auto', 'important');
         galleryGrid.style.setProperty('width', '100%', 'important');
+        
+        // Stwórz kontener dla miniaturek
+        let thumbnailsContainer = galleryGrid.querySelector('.thumbnails-container');
+        if (!thumbnailsContainer) {
+          thumbnailsContainer = document.createElement('div');
+          thumbnailsContainer.className = 'thumbnails-container';
+          thumbnailsContainer.style.cssText = `
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding: 10px 0;
+            scroll-behavior: smooth;
+          `;
+          
+          // Przenieś miniaturki do kontenera
+          const thumbnails = Array.from(galleryGrid.querySelectorAll('li:not(:first-child)'));
+          thumbnails.forEach(thumb => {
+            thumbnailsContainer.appendChild(thumb);
+          });
+          
+          galleryGrid.appendChild(thumbnailsContainer);
+        }
         
         // Główne zdjęcie - WYPEŁNIA CAŁĄ SZEROKOŚĆ
         const mainImage = galleryGrid.querySelector('li:first-child');
@@ -86,20 +108,17 @@
           }
         }
         
-        // Miniaturki - WSZYSTKIE po pierwszym
-        const thumbnails = galleryGrid.querySelectorAll('li:not(:first-child)');
-        thumbnails.forEach((thumb, index) => {
+        // Miniaturki - KARUZELA
+        const thumbnails = thumbnailsContainer.querySelectorAll('li');
+        thumbnails.forEach((thumb) => {
           // Usuń inline styles które blokują
           thumb.removeAttribute('style');
           
-          // Ustaw nowe wymiary
+          // Ustaw nowe wymiary - KARUZELA
           thumb.style.setProperty('height', '90px', 'important');
           thumb.style.setProperty('width', '90px', 'important');
           thumb.style.setProperty('aspect-ratio', '1 / 1', 'important');
-          thumb.style.setProperty('grid-row', '2 / 3', 'important');
-          
-          // Ustaw kolumny: wszystkie 3 miniaturki w jednym rzędzie
-          thumb.style.setProperty('grid-column', `${index + 1} / ${index + 2}`, 'important');
+          thumb.style.setProperty('flex-shrink', '0', 'important'); // Nie kurcz się
           
           // Styluj kontener product-media
           const productMedia = thumb.querySelector('.product-media');
