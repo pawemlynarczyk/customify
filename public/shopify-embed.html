@@ -565,7 +565,8 @@
             }
 
             showStyles() {
-                this.loadStylesForCurrentProduct();
+                // WYŁĄCZONE - używamy stylów z HTML
+                // this.loadStylesForCurrentProduct();
                 this.stylesArea.style.display = 'block';
                 this.sizeArea.style.display = 'none'; // Ukryj wymiary na początku
                 this.actionsArea.style.display = 'flex';
@@ -654,10 +655,10 @@
                 console.log('✅ [CUSTOMIFY] Loaded styles:', stylesToShow.map(s => s.name).join(', '));
             }
             
-            // Uruchom loadStylesForCurrentProduct po załadowaniu strony
+            // WYŁĄCZONE - używamy stylów z HTML
             initializeStyles() {
-                console.log('🎨 [CUSTOMIFY] Initializing styles...');
-                this.loadStylesForCurrentProduct();
+                console.log('🎨 [CUSTOMIFY] Using styles from HTML - no dynamic loading');
+                // this.loadStylesForCurrentProduct();
             }
 
             selectStyle(styleBtn) {
