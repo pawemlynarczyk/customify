@@ -396,7 +396,7 @@
             <div class="customify-style-btn" data-style="picasso">Picasso</div>
             <div class="customify-style-btn" data-style="monet">Monet</div>
             <div class="customify-style-btn" data-style="cyberpunk">Cyberpunk</div>
-             <div class="customify-style-btn" data-style="akwarela">Farby</div>
+             <div class="customify-style-btn" data-style="akwarela" style="display: none;">Farby</div>
             </div>
         </div>
 
@@ -659,6 +659,32 @@
             initializeStyles() {
                 console.log('🎨 [CUSTOMIFY] Using styles from HTML - no dynamic loading');
                 // this.loadStylesForCurrentProduct();
+            }
+            
+            // Ukryj style na podstawie produktu
+            hideStylesForProduct() {
+                console.log('🎨 [CUSTOMIFY] Hiding styles based on product...');
+                
+                // Pobierz handle produktu z URL
+                const currentPath = window.location.pathname;
+                const productHandle = currentPath.split('/products/')[1]?.split('?')[0];
+                console.log('🔍 [CUSTOMIFY] Product handle:', productHandle);
+                
+                // Ukryj "Akwarela" dla wszystkich produktów
+                const akwarelaBtn = this.styleButtons.querySelector('[data-style="akwarela"]');
+                if (akwarelaBtn) {
+                    akwarelaBtn.style.display = 'none';
+                    console.log('✅ [CUSTOMIFY] Akwarela hidden for all products');
+                }
+                
+                // Przykład: Ukryj "Van Gogh" tylko dla produktu "custom"
+                if (productHandle === 'custom') {
+                    const vanGoghBtn = this.styleButtons.querySelector('[data-style="van gogh"]');
+                    if (vanGoghBtn) {
+                        vanGoghBtn.style.display = 'none';
+                        console.log('✅ [CUSTOMIFY] Van Gogh hidden for custom product');
+                    }
+                }
             }
 
             selectStyle(styleBtn) {
@@ -999,6 +1025,9 @@
         document.addEventListener('DOMContentLoaded', () => {
             const app = new CustomifyEmbed();
             app.initializeStyles();
+            
+            // Ukryj style na podstawie produktu
+            app.hideStylesForProduct();
         });
     </script>
 </body>
