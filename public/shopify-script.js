@@ -441,11 +441,111 @@
                 
                 // Load dynamic styles after content is loaded
                 loadDynamicStyles();
+                
+                // Podmień style po załadowaniu aplikacji
+                setTimeout(() => {
+                    updateStylesForProduct();
+                }, 500);
             })
             .catch(error => {
                 log('Error loading Customify content:', error);
                 container.innerHTML = '<p>Błąd ładowania aplikacji Customify. Spróbuj ponownie później.</p>';
             });
+    }
+    
+    // Podmień style w aplikacji Customify na podstawie produktu
+    function updateStylesForProduct() {
+        console.log('🎨 [DYNAMIC STYLES] Updating styles for current product...');
+        
+        // Pobierz ID produktu
+        const productId = getCurrentProductId();
+        console.log('🔍 [DYNAMIC STYLES] Product ID:', productId);
+        
+        // Pobierz handle produktu z URL
+        const currentPath = window.location.pathname;
+        const productHandle = currentPath.split('/products/')[1]?.split('?')[0];
+        console.log('🔍 [DYNAMIC STYLES] Product handle:', productHandle);
+        
+        // Definicja stylów dla każdego produktu
+        const productStyles = {
+            'zabawne-style-ai-ghibli-pixar-i-wiecej': [
+                { id: 'ghibli', name: 'Ghibli' },
+                { id: 'pixar', name: 'Pixar' },
+                { id: 'disney', name: 'Disney' },
+                { id: 'anime', name: 'Anime' },
+                { id: 'cartoon', name: 'Cartoon' },
+                { id: 'kawaii', name: 'Kawaii' },
+                { id: 'comic', name: 'Komiks' }
+            ],
+            'krol-i-krolowa-portrety-krolewskie': [
+                { id: 'royal-portrait', name: 'Portret Królewski' },
+                { id: 'king-crown', name: 'Król z Koroną' },
+                { id: 'queen-elegant', name: 'Elegancka Królowa' },
+                { id: 'medieval-royal', name: 'Średniowieczny' },
+                { id: 'renaissance', name: 'Renesans' },
+                { id: 'baroque', name: 'Barok' },
+                { id: 'victorian', name: 'Wiktoriański' }
+            ],
+            'koty-krolewskie-zwierzeta-w-koronach': [
+                { id: 'cat-king', name: 'Kot Król' },
+                { id: 'cat-crown', name: 'Kot z Koroną' },
+                { id: 'lion-cat', name: 'Kot Lew' },
+                { id: 'tiger-cat', name: 'Kot Tygrys' },
+                { id: 'royal-cat', name: 'Królewski Kot' },
+                { id: 'noble-cat', name: 'Szlachecki Kot' },
+                { id: 'majestic-cat', name: 'Majestatyczny' }
+            ],
+            'rodzina-ai-skladanie-zdjec-grupowych': [
+                { id: 'family-portrait', name: 'Portret Rodzinny' },
+                { id: 'family-collage', name: 'Kolaż Rodzinny' },
+                { id: 'family-vintage', name: 'Vintage Rodzina' },
+                { id: 'family-modern', name: 'Nowoczesna Rodzina' },
+                { id: 'family-artistic', name: 'Artystyczna Rodzina' },
+                { id: 'family-classic', name: 'Klasyczna Rodzina' },
+                { id: 'family-fun', name: 'Zabawna Rodzina' }
+            ],
+            'custom': [ // Domyślny produkt
+                { id: 'van gogh', name: 'Van Gogh' },
+                { id: 'picasso', name: 'Picasso' },
+                { id: 'monet', name: 'Monet' },
+                { id: 'anime', name: 'Anime' },
+                { id: 'cyberpunk', name: 'Cyberpunk' },
+                { id: 'watercolor', name: 'Akwarela' },
+                { id: 'pixar', name: 'Pixar' }
+            ]
+        };
+        
+        // Znajdź odpowiednie style dla produktu
+        let stylesToShow = productStyles['custom']; // domyślne
+        
+        for (const [key, styles] of Object.entries(productStyles)) {
+            if (productHandle && productHandle.includes(key)) {
+                stylesToShow = styles;
+                console.log('✅ [DYNAMIC STYLES] Found styles for:', key);
+                break;
+            }
+        }
+        
+        // Znajdź kontener na style
+        const styleContainer = document.querySelector('.customify-style-buttons');
+        if (!styleContainer) {
+            console.log('❌ [DYNAMIC STYLES] Style container not found');
+            return;
+        }
+        
+        // Wyczyść istniejące style
+        styleContainer.innerHTML = '';
+        
+        // Dodaj nowe style
+        stylesToShow.forEach(style => {
+            const button = document.createElement('div');
+            button.className = 'customify-style-btn';
+            button.setAttribute('data-style', style.id);
+            button.textContent = style.name;
+            styleContainer.appendChild(button);
+        });
+        
+        console.log('✅ [DYNAMIC STYLES] Styles updated:', stylesToShow.map(s => s.name).join(', '));
     }
     
     // Load dynamic styles based on product
