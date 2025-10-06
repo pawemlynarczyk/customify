@@ -57,8 +57,9 @@
         
         // Wymuś nowe wymiary przez JavaScript
         galleryGrid.style.setProperty('grid-template-rows', '400px 120px', 'important');
-        galleryGrid.style.setProperty('grid-template-columns', '120px 120px', 'important');
+        galleryGrid.style.setProperty('grid-template-columns', '1fr 1fr', 'important'); // SZERSZY GRID
         galleryGrid.style.setProperty('height', '524px', 'important');
+        galleryGrid.style.setProperty('width', '100%', 'important'); // Pełna szerokość
         
         // Główne zdjęcie - WYPEŁNIA CAŁĄ SZEROKOŚĆ
         const mainImage = galleryGrid.querySelector('li:first-child');
