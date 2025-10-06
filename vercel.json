@@ -80,6 +80,10 @@
       "dest": "/api/setup-webhook.js"
     },
     {
+      "src": "/api/create-products",
+      "dest": "/api/create-products.js"
+    },
+    {
       "src": "/(.*)",
       "dest": "/public/$1"
     }
