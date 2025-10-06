@@ -89,8 +89,12 @@
         // Miniaturki - WSZYSTKIE po pierwszym
         const thumbnails = galleryGrid.querySelectorAll('li:not(:first-child)');
         thumbnails.forEach((thumb, index) => {
-          thumb.style.setProperty('height', '120px', 'important');
-          thumb.style.setProperty('width', '120px', 'important');
+          // Usuń inline styles które blokują
+          thumb.removeAttribute('style');
+          
+          // Ustaw nowe wymiary
+          thumb.style.setProperty('height', '90px', 'important');
+          thumb.style.setProperty('width', '90px', 'important');
           thumb.style.setProperty('aspect-ratio', '1 / 1', 'important');
           thumb.style.setProperty('grid-row', '2 / 3', 'important');
           
