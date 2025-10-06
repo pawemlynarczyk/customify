@@ -33,41 +33,9 @@
       {%- render 'theme-editor' -%}
     {% endif %}
 
-    <!-- CUSTOMIFY INTEGRATION - CSS + JAVASCRIPT -->
+    <!-- CUSTOMIFY INTEGRATION -->
     <link rel="stylesheet" href="{{ 'customify.css' | asset_url }}">
     <script src="{{ 'customify.js' | asset_url }}" defer></script>
-    
-    <!-- Ukryj style dla konkretnych produktów -->
-    <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        const productHandle = window.location.pathname;
-        
-        // Sprawdź czy jesteśmy na stronie produktu "Koty Królewskie"
-        if (productHandle.includes('koty-krolewskie-zwierzeta-w-koronach')) {
-          // Ukryj styl Van Gogh tylko w tym produkcie
-          const vanGoghStyle = document.querySelector('[data-style="van gogh"]');
-          if (vanGoghStyle) {
-            vanGoghStyle.style.display = 'none';
-            console.log('🎯 Ukryto styl Van Gogh dla produktu Koty Królewskie');
-          }
-        } else {
-          // Ukryj style kotów we wszystkich innych produktach
-          const catStyles = [
-            'royal-cat', 'crown-cat', 'medieval-cat', 
-            'renaissance-cat', 'baroque-cat', 'victorian-cat'
-          ];
-          
-          catStyles.forEach(styleId => {
-            const styleElement = document.querySelector(`[data-style="${styleId}"]`);
-            if (styleElement) {
-              styleElement.style.display = 'none';
-            }
-          });
-          
-          console.log('🎯 Ukryto style kotów - widoczne tylko w produkcie Koty Królewskie');
-        }
-      });
-    </script>
 
     {{ content_for_header }}
   </head>
@@ -215,7 +183,7 @@
 
     {% comment %} CUSTOMIFY AI PHOTO CUSTOMIZATION {% endcomment %}
     {% if template contains 'product' %}
-      <div id="customify-app-container" class="customify-shopify-container" style="display: block;">
+      <div id="customify-app-container" class="customify-shopify-container" style="display: none;">
         <h3 class="customify-title">Wgraj zdjęcie - wybierz styl obrazu</h3>
         <div class="customify-inline-wrapper">
           <div class="customify-embed" id="customifyEmbed">
@@ -277,42 +245,40 @@
                     <div class="style-name">Pixar</div>
                   </div>
                 </div>
-                
-                <!-- Style kotów - widoczne tylko w produkcie Koty Królewskie -->
-                <div class="customify-style-card" data-style="royal-cat">
-                  <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/koty/Gemini_Generated_Image_3qegvr3qegvr3qeg.png'); background-size: cover; background-position: center;"></div>
+                <div class="customify-style-card" data-style="krolewski">
+                  <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/koty/krolewski.png'); background-size: contain; background-position: center; background-repeat: no-repeat;"></div>
                   <div class="style-info">
                     <div class="style-name">Królewski Kot</div>
                   </div>
                 </div>
-                <div class="customify-style-card" data-style="crown-cat">
-                  <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/koty/Gemini_Generated_Image_4zndln4zndln4znd.png'); background-size: cover; background-position: center;"></div>
+                <div class="customify-style-card" data-style="na-tronie">
+                  <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/koty/na_tronie.png'); background-size: contain; background-position: center; background-repeat: no-repeat;"></div>
                   <div class="style-info">
-                    <div class="style-name">Kot z Koroną</div>
+                    <div class="style-name">Kot na Tronie</div>
                   </div>
                 </div>
-                <div class="customify-style-card" data-style="medieval-cat">
-                  <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/koty/Gemini_Generated_Image_620ikr620ikr620i.png'); background-size: cover; background-position: center;"></div>
+                <div class="customify-style-card" data-style="wojenny">
+                  <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/koty/wojenny.png'); background-size: contain; background-position: center; background-repeat: no-repeat;"></div>
                   <div class="style-info">
-                    <div class="style-name">Średniowieczny Kot</div>
+                    <div class="style-name">Wojenny Kot</div>
                   </div>
                 </div>
-                <div class="customify-style-card" data-style="renaissance-cat">
-                  <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/koty/Gemini_Generated_Image_620ikr620ikr620i%20(1).png'); background-size: cover; background-position: center;"></div>
-                  <div class="style-info">
-                    <div class="style-name">Renesansowy Kot</div>
-                  </div>
-                </div>
-                <div class="customify-style-card" data-style="baroque-cat">
-                  <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/koty/Screenshot%202025-10-06%20at%2019.06.13.png'); background-size: cover; background-position: center;"></div>
+                <div class="customify-style-card" data-style="barokowy">
+                  <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/koty/barokowy.png'); background-size: contain; background-position: center; background-repeat: no-repeat;"></div>
                   <div class="style-info">
                     <div class="style-name">Barokowy Kot</div>
                   </div>
                 </div>
-                <div class="customify-style-card" data-style="victorian-cat">
-                  <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/koty/Screenshot%202025-10-06%20at%2019.10.10.png'); background-size: cover; background-position: center;"></div>
+                <div class="customify-style-card" data-style="wiktorianski">
+                  <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/koty/wiktorianski.png'); background-size: contain; background-position: center; background-repeat: no-repeat;"></div>
                   <div class="style-info">
                     <div class="style-name">Wiktoriański Kot</div>
+                  </div>
+                </div>
+                <div class="customify-style-card" data-style="renesansowy">
+                  <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/koty/renesansowy.png'); background-size: contain; background-position: center; background-repeat: no-repeat;"></div>
+                  <div class="style-info">
+                    <div class="style-name">Renesansowy Kot</div>
                   </div>
                 </div>
               </div>
@@ -408,9 +374,11 @@
         }
 
         .style-image {
-          height: 80px;
-          background-size: cover;
+          width: 100%;
+          aspect-ratio: 1 / 1;
+          background-size: contain;
           background-position: center;
+          background-repeat: no-repeat;
         }
 
         /* Gradienty usunięte - używamy obrazków */

@@ -223,48 +223,66 @@ module.exports = async (req, res) => {
         high_noise_frac: 0.7,
         output_format: "png"
       },
-      // Style kotów - specjalne dla produktu "Koty Królewskie"
-      'royal-cat': {
-        model: "stability-ai/stable-diffusion:db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf",
-        prompt: `royal cat portrait, ${prompt}, majestic feline, regal pose, royal crown, luxurious fur, elegant, noble, kingly, royal garments, ornate details, golden accents, royal background, majestic lighting, high quality, detailed`,
-        guidance_scale: 7.5,
-        num_inference_steps: 50,
-        strength: 0.8
+      // Style kotów - używają nano-banana z 2 obrazkami
+      'krolewski': {
+        model: "google/nano-banana",
+        prompt: "wygeneruj obraz dokładnie jak na pierwszym obrazku tylko z pyskiem i glowa kota z drugiego obrazka. zachowaj kolor siersci jej dlugosc, kolor ksztalt oczu, kształt wielkość zrenic; ksztalt uszu i inne cechy identyfikujace kota z drugiego obrazka. zwroc uwage na glowe by kot mial tylko dwoje uszu i zeby ladnie komponowaly sie z akcesoriami ze zdjecia i mialy taki kolor jak uszy kota z drugiego obrazka. by pozycja glowy kota byla jak w pierwszym zdjeciu. jako wynik mam miec fotorealistyczne zdjecie dokladnie w stylu pierwszego zdjecia.",
+        apiType: "nano-banana",
+        parameters: {
+          image_input: ["https://customify-s56o.vercel.app/koty/krolewski.png", "USER_IMAGE"],
+          aspect_ratio: "match_input_image",
+          output_format: "jpg"
+        }
       },
-      'crown-cat': {
-        model: "stability-ai/stable-diffusion:db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf",
-        prompt: `cat with crown, ${prompt}, royal feline, golden crown, majestic pose, regal expression, luxurious fur, elegant, noble, kingly, ornate crown details, royal background, majestic lighting, high quality, detailed`,
-        guidance_scale: 7.5,
-        num_inference_steps: 50,
-        strength: 0.8
+      'na-tronie': {
+        model: "google/nano-banana", 
+        prompt: "wygeneruj obraz dokładnie jak na pierwszym obrazku tylko z pyskiem i glowa kota z drugiego obrazka. zachowaj kolor siersci jej dlugosc, kolor ksztalt oczu, kształt wielkość zrenic; ksztalt uszu i inne cechy identyfikujace kota z drugiego obrazka. zwroc uwage na glowe by kot mial tylko dwoje uszu i zeby ladnie komponowaly sie z akcesoriami ze zdjecia i mialy taki kolor jak uszy kota z drugiego obrazka. by pozycja glowy kota byla jak w pierwszym zdjeciu. jako wynik mam miec fotorealistyczne zdjecie dokladnie w stylu pierwszego zdjecia.",
+        apiType: "nano-banana",
+        parameters: {
+          image_input: ["https://customify-s56o.vercel.app/koty/na_tronie.png", "USER_IMAGE"],
+          aspect_ratio: "match_input_image",
+          output_format: "jpg"
+        }
       },
-      'medieval-cat': {
-        model: "stability-ai/stable-diffusion:db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf",
-        prompt: `medieval cat portrait, ${prompt}, medieval feline, ancient style, historical, castle background, medieval clothing, armor details, ancient art style, historical painting, medieval lighting, high quality, detailed`,
-        guidance_scale: 7.5,
-        num_inference_steps: 50,
-        strength: 0.8
+      'wojenny': {
+        model: "google/nano-banana",
+        prompt: "wygeneruj obraz dokładnie jak na pierwszym obrazku tylko z pyskiem i glowa kota z drugiego obrazka. zachowaj kolor siersci jej dlugosc, kolor ksztalt oczu, kształt wielkość zrenic; ksztalt uszu i inne cechy identyfikujace kota z drugiego obrazka. zwroc uwage na glowe by kot mial tylko dwoje uszu i zeby ladnie komponowaly sie z akcesoriami ze zdjecia i mialy taki kolor jak uszy kota z drugiego obrazka. by pozycja glowy kota byla jak w pierwszym zdjeciu. jako wynik mam miec fotorealistyczne zdjecie dokladnie w stylu pierwszego zdjecia.",
+        apiType: "nano-banana",
+        parameters: {
+          image_input: ["https://customify-s56o.vercel.app/koty/wojenny.png", "USER_IMAGE"],
+          aspect_ratio: "match_input_image",
+          output_format: "jpg"
+        }
       },
-      'renaissance-cat': {
-        model: "stability-ai/stable-diffusion:db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf",
-        prompt: `renaissance cat portrait, ${prompt}, renaissance feline, classical art style, renaissance painting, elegant pose, classical lighting, artistic details, renaissance background, high quality, detailed`,
-        guidance_scale: 7.5,
-        num_inference_steps: 50,
-        strength: 0.8
+      'barokowy': {
+        model: "google/nano-banana",
+        prompt: "wygeneruj obraz dokładnie jak na pierwszym obrazku tylko z pyskiem i glowa kota z drugiego obrazka. zachowaj kolor siersci jej dlugosc, kolor ksztalt oczu, kształt wielkość zrenic; ksztalt uszu i inne cechy identyfikujace kota z drugiego obrazka. zwroc uwage na glowe by kot mial tylko dwoje uszu i zeby ladnie komponowaly sie z akcesoriami ze zdjecia i mialy taki kolor jak uszy kota z drugiego obrazka. by pozycja glowy kota byla jak w pierwszym zdjeciu. jako wynik mam miec fotorealistyczne zdjecie dokladnie w stylu pierwszego zdjecia.",
+        apiType: "nano-banana",
+        parameters: {
+          image_input: ["https://customify-s56o.vercel.app/koty/barokowy.png", "USER_IMAGE"],
+          aspect_ratio: "match_input_image",
+          output_format: "jpg"
+        }
       },
-      'baroque-cat': {
-        model: "stability-ai/stable-diffusion:db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf",
-        prompt: `baroque cat portrait, ${prompt}, baroque feline, dramatic lighting, ornate details, baroque art style, dramatic pose, luxurious fur, ornate background, baroque architecture, high quality, detailed`,
-        guidance_scale: 7.5,
-        num_inference_steps: 50,
-        strength: 0.8
+      'wiktorianski': {
+        model: "google/nano-banana",
+        prompt: "wygeneruj obraz dokładnie jak na pierwszym obrazku tylko z pyskiem i glowa kota z drugiego obrazka. zachowaj kolor siersci jej dlugosc, kolor ksztalt oczu, kształt wielkość zrenic; ksztalt uszu i inne cechy identyfikujace kota z drugiego obrazka. zwroc uwage na glowe by kot mial tylko dwoje uszu i zeby ladnie komponowaly sie z akcesoriami ze zdjecia i mialy taki kolor jak uszy kota z drugiego obrazka. by pozycja glowy kota byla jak w pierwszym zdjeciu. jako wynik mam miec fotorealistyczne zdjecie dokladnie w stylu pierwszego zdjecia.",
+        apiType: "nano-banana",
+        parameters: {
+          image_input: ["https://customify-s56o.vercel.app/koty/wiktorianski.png", "USER_IMAGE"],
+          aspect_ratio: "match_input_image",
+          output_format: "jpg"
+        }
       },
-      'victorian-cat': {
-        model: "stability-ai/stable-diffusion:db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf",
-        prompt: `victorian cat portrait, ${prompt}, victorian feline, 19th century style, elegant pose, victorian clothing, ornate details, victorian background, classical lighting, high quality, detailed`,
-        guidance_scale: 7.5,
-        num_inference_steps: 50,
-        strength: 0.8
+      'renesansowy': {
+        model: "google/nano-banana",
+        prompt: "wygeneruj obraz dokładnie jak na pierwszym obrazku tylko z pyskiem i glowa kota z drugiego obrazka. zachowaj kolor siersci jej dlugosc, kolor ksztalt oczu, kształt wielkość zrenic; ksztalt uszu i inne cechy identyfikujace kota z drugiego obrazka. zwroc uwage na glowe by kot mial tylko dwoje uszu i zeby ladnie komponowaly sie z akcesoriami ze zdjecia i mialy taki kolor jak uszy kota z drugiego obrazka. by pozycja glowy kota byla jak w pierwszym zdjeciu. jako wynik mam miec fotorealistyczne zdjecie dokladnie w stylu pierwszego zdjecia.",
+        apiType: "nano-banana",
+        parameters: {
+          image_input: ["https://customify-s56o.vercel.app/koty/renesansowy.png", "USER_IMAGE"],
+          aspect_ratio: "match_input_image",
+          output_format: "jpg"
+        }
       }
     };
 
@@ -306,6 +324,17 @@ module.exports = async (req, res) => {
         refine: config.refine,
         high_noise_frac: config.high_noise_frac,
         output_format: config.output_format
+      };
+    } else if (config.apiType === 'nano-banana') {
+      // Nano-banana model parameters - 2 obrazki
+      inputParams = {
+        prompt: config.prompt,
+        image_input: [
+          config.parameters.image_input[0], // Miniaturka stylu z parameters
+          imageDataUri // Obrazek użytkownika
+        ],
+        aspect_ratio: config.parameters.aspect_ratio,
+        output_format: config.parameters.output_format
       };
     } else {
       // Stable Diffusion model parameters (default)

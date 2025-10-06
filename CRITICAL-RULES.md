@@ -34,3 +34,57 @@
 - NIE zmieniaj nazw plików bez powodu
 - NIE ignoruj błędów 404
 - NIE zostawiaj aplikacji niewidocznej
+
+## 🎯 ZASADA KONFIGURACJI STYLÓW AI:
+
+### **Struktura konfiguracji stylów w `api/transform.js`:**
+```javascript
+const styleConfig = {
+  'nazwa-stylu': {
+    model: "nazwa-modelu-ai",           // Model AI (np. google/nano-banana, swartype/sdxl-pixar)
+    prompt: "prompt dla AI",            // Prompt tekstowy dla modelu
+    apiType: "typ-api",                 // Typ API (nano-banana, replicate, openai, etc.)
+    parameters: {                       // Parametry specyficzne dla API
+      // Parametry zależą od apiType
+    }
+  }
+}
+```
+
+### **Typy API i ich parametry:**
+
+#### **1. nano-banana (google/nano-banana):**
+```javascript
+'styl-kota': {
+  model: "google/nano-banana",
+  prompt: "wygeneruj obraz dokładnie jak na pierwszym obrazku...",
+  apiType: "nano-banana",
+  parameters: {
+    image_input: ["URL_MINIATURKI", "USER_IMAGE"], // Array z 2 obrazkami
+    aspect_ratio: "match_input_image",
+    output_format: "jpg"
+  }
+}
+```
+
+#### **2. replicate (stability-ai, sdxl-pixar, etc.):**
+```javascript
+'pixar': {
+  model: "swartype/sdxl-pixar:...",
+  prompt: "Pixar style 3D animation...",
+  apiType: "replicate", // lub brak apiType = domyślnie replicate
+  parameters: {
+    task: "img2img",
+    guidance_scale: 7.5,
+    num_inference_steps: 25,
+    // ... inne parametry Replicate
+  }
+}
+```
+
+### **Zasady dodawania nowych stylów:**
+1. **Dodaj do `styleConfig`** z wszystkimi wymaganymi polami
+2. **Ustaw `apiType`** (nano-banana, replicate, openai, etc.)
+3. **Zdefiniuj `parameters`** specyficzne dla danego API
+4. **Dodaj logikę** w sekcji wykonywania modeli jeśli potrzeba
+5. **Przetestuj** z różnymi obrazkami
