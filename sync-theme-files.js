@@ -22,20 +22,14 @@ function syncThemeFiles() {
   
   // Pliki do synchronizacji
   const filesToSync = [
-    'shopify-theme/customify-theme/layout/theme.liquid',
-    'shopify-theme-complete.liquid'
+    'shopify-theme/customify-theme/layout/theme.liquid'
   ];
   
   filesToSync.forEach(filePath => {
     const fullPath = path.join(__dirname, filePath);
     
     try {
-      // Backup przed synchronizacją
-      const backupPath = fullPath + '.backup.' + Date.now();
-      fs.copyFileSync(fullPath, backupPath);
-      console.log('💾 Backup utworzony:', backupPath);
-      
-      // Synchronizacja
+      // Synchronizacja bez backupu (backupy są niepotrzebne)
       fs.writeFileSync(fullPath, mainThemeContent);
       console.log('✅ Zsynchronizowano:', filePath);
       

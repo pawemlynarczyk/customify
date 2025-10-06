@@ -583,42 +583,83 @@ banner .search-form {
 
 @media (max-width: 768px) {
   .header-top .header-container {
-    flex-wrap: wrap;
-    height: auto;
-    padding: 15px;
-    gap: 15px;
-  }
-  
-  .header-nav {
-    order: 1;
-    width: 100%;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-bottom: 10px;
+    flex-wrap: wrap !important;
+    height: auto !important;
+    padding: 15px !important;
+    gap: 15px !important;
   }
   
   .header-logo {
-    order: 2;
-    flex-grow: 0;
-    text-align: center;
+    order: 1 !important;
+    flex-grow: 0 !important;
+    text-align: center !important;
   }
   
   .header-right {
-    order: 3;
-    width: 100%;
-    justify-content: center;
-    gap: 15px;
+    order: 2 !important;
+    width: 100% !important;
+    justify-content: center !important;
+    gap: 15px !important;
+  }
+  
+  .header-nav {
+    order: 3 !important;
+    width: 100% !important;
+    justify-content: center !important;
+    flex-wrap: wrap !important;
+    gap: 10px !important;
+    margin-bottom: 10px !important;
   }
   
   .nav-item {
-    margin-right: 15px;
-    margin-bottom: 0;
+    margin-right: 15px !important;
+    margin-bottom: 0 !important;
   }
   
   .nav-link {
-    font-size: 14px;
-    padding: 10px 0;
+    font-size: 14px !important;
+    padding: 10px 0 !important;
+  }
+  
+  /* UKRYJ NAPISY "ZALOGUJ" I "ZAREJESTRUJ" NA MOBILE */
+  .user-text-link {
+    display: none !important;
+  }
+  
+  /* ZOSTAW TYLKO IKONKĘ OSOBY */
+  .user-section {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0 !important;
+  }
+  
+  /* ZMIEŃ IKONKĘ OSOBY NA BARDZIEJ POPULARNĄ I MNIEJ KOLOROWĄ */
+  .user-icon-wrapper {
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 50% !important;
+    background-color: #f8f9fa !important;
+    border: 1px solid #dee2e6 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  
+  .user-icon {
+    width: 20px !important;
+    height: 20px !important;
+    color: #6c757d !important;
+  }
+  
+  /* HOVER EFFECT DLA IKONKI */
+  .user-section:hover .user-icon-wrapper {
+    border-color: #dc3545 !important;
+    background-color: #fff5f5 !important;
+  }
+  
+  .user-section:hover .user-icon {
+    color: #dc3545 !important;
   }
 }
 

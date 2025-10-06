@@ -4270,5 +4270,115 @@ text-component {
 }
 
 /* ========================================
+   MOBILE HEADER STYLES - OVERRIDE SHOPIFY
+   ======================================== */
+
+@media (max-width: 768px) {
+  .header-top .header-container {
+    flex-wrap: wrap !important;
+    height: auto !important;
+    padding: 15px !important;
+    gap: 15px !important;
+  }
+  
+  /* LOGO I IKONKI W JEDNEJ LINII - UŻYJ FLEXBOX */
+  .header-top .header-container {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    flex-wrap: nowrap !important;
+  }
+  
+  /* LOGO Z IKONKAMI W JEDNEJ LINII */
+  .header-logo {
+    order: 1 !important;
+    flex-grow: 0 !important;
+    text-align: center !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 20px !important;
+  }
+  
+  /* ZMNIEJSZ LOGO NA MOBILE */
+  .header-logo img {
+    max-width: 120px !important;
+    height: auto !important;
+  }
+  
+  /* IKONKI OBOK LOGO - PRZENIEŚ DO LOGO */
+  .header-right {
+    order: 1 !important;
+    width: auto !important;
+    justify-content: center !important;
+    gap: 15px !important;
+    display: flex !important;
+    align-items: center !important;
+    margin-left: 20px !important;
+  }
+  
+  .header-nav {
+    order: 2 !important;
+    width: 100% !important;
+    justify-content: center !important;
+    flex-wrap: wrap !important;
+    gap: 10px !important;
+    margin-bottom: 10px !important;
+  }
+  
+  .nav-item {
+    margin-right: 15px !important;
+    margin-bottom: 0 !important;
+  }
+  
+  .nav-link {
+    font-size: 14px !important;
+    padding: 10px 0 !important;
+  }
+  
+  /* UKRYJ NAPISY "ZALOGUJ" I "ZAREJESTRUJ" NA MOBILE */
+  .user-text-link {
+    display: none !important;
+  }
+  
+  /* ZOSTAW TYLKO IKONKĘ OSOBY */
+  .user-section {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0 !important;
+  }
+  
+  /* ZMIEŃ IKONKĘ OSOBY NA BARDZIEJ POPULARNĄ I MNIEJ KOLOROWĄ */
+  .user-icon-wrapper {
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 50% !important;
+    background-color: #f8f9fa !important;
+    border: 1px solid #dee2e6 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  
+  .user-icon {
+    width: 20px !important;
+    height: 20px !important;
+    color: #6c757d !important;
+  }
+  
+  /* HOVER EFFECT DLA IKONKI */
+  .user-section:hover .user-icon-wrapper {
+    border-color: #dc3545 !important;
+    background-color: #fff5f5 !important;
+  }
+  
+  .user-section:hover .user-icon {
+    color: #dc3545 !important;
+  }
+}
+
+/* ========================================
    DUPLIKATY USUNIĘTE - UŻYWAMY CUSTOMIFY.CSS
    ======================================== */

@@ -1,3 +1,4 @@
+<!-- Cache buster: 20250115123456 -->
 <!doctype html>
 <html
   class="no-js{% if request.design_mode %} shopify-design-mode{% endif %}"
@@ -69,54 +70,52 @@
                 <span class="logo-text">{{ shop.name }}</span>
               {% endif %}
             </a>
-          </div>
+            
+            <!-- Linki użytkownika + Koszyk (obok logo na mobile) -->
+            <div class="header-right">
+              <div class="header-user">
+                {% if customer %}
+                  <div class="user-section">
+                    <div class="user-icon-wrapper">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" class="user-icon">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
+                      </svg>
+                    </div>
+                    <div class="user-links">
+                      <a href="{{ routes.account_url }}" class="user-text-link">Moje konto</a>
+                      <a href="{{ routes.account_logout_url }}" class="user-text-link">Wyloguj się</a>
+                    </div>
+                  </div>
+                {% else %}
+                  <div class="user-section">
+                    <div class="user-icon-wrapper">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" class="user-icon">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
+                      </svg>
+                    </div>
+                    <div class="user-links">
+                      <a href="{{ routes.account_login_url }}" class="user-text-link">Zaloguj</a>
+                      <a href="{{ routes.account_register_url }}" class="user-text-link">Zarejestruj</a>
+                    </div>
+                  </div>
+                {% endif %}
+              </div>
 
-          <!-- Linki użytkownika + Koszyk (po prawej) -->
-          <div class="header-right">
-            <div class="header-user">
-              {% if customer %}
-                <div class="user-section">
-                  <div class="user-icon-wrapper">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" class="user-icon">
-                      <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                      <path d="M8 14s1.5 2 4 2 4-2 4-2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                      <circle cx="12" cy="9" r="2.5" stroke="currentColor" stroke-width="2"/>
+              <div class="header-cart">
+                <a href="{{ routes.cart_url }}" class="cart-link">
+                  <div class="cart-icon-wrapper">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" class="cart-icon">
+                      <path d="M3 3H5L5.4 5M7 13H17L21 5H5.4M7 13L5.4 5M7 13L4.7 15.3C4.3 15.7 4.6 16.5 5.1 16.5H17M17 13V17C17 18.1 16.1 19 15 19H9C7.9 19 7 18.1 7 17V13M17 13H7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
+                    {% if cart.item_count > 0 %}
+                      <span class="cart-count">{{ cart.item_count }}</span>
+                    {% endif %}
                   </div>
-                  <div class="user-links">
-                    <a href="{{ routes.account_url }}" class="user-text-link">Moje konto</a>
-                    <a href="{{ routes.account_logout_url }}" class="user-text-link">Wyloguj się</a>
-                  </div>
-                </div>
-              {% else %}
-                <div class="user-section">
-                  <div class="user-icon-wrapper">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" class="user-icon">
-                      <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                      <path d="M8 14s1.5 2 4 2 4-2 4-2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                      <circle cx="12" cy="9" r="2.5" stroke="currentColor" stroke-width="2"/>
-                    </svg>
-                  </div>
-                  <div class="user-links">
-                    <a href="{{ routes.account_login_url }}" class="user-text-link">Zaloguj</a>
-                    <a href="{{ routes.account_register_url }}" class="user-text-link">Zarejestruj</a>
-                  </div>
-                </div>
-              {% endif %}
-            </div>
-
-            <div class="header-cart">
-              <a href="{{ routes.cart_url }}" class="cart-link">
-                <div class="cart-icon-wrapper">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" class="cart-icon">
-                    <path d="M3 3H5L5.4 5M7 13H17L21 5H5.4M7 13L5.4 5M7 13L4.7 15.3C4.3 15.7 4.6 16.5 5.1 16.5H17M17 13V17C17 18.1 16.1 19 15 19H9C7.9 19 7 18.1 7 17V13M17 13H7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
-                  {% if cart.item_count > 0 %}
-                    <span class="cart-count">{{ cart.item_count }}</span>
-                  {% endif %}
-                </div>
-                <span class="cart-text">Koszyk</span>
-              </a>
+                  <span class="cart-text">Koszyk</span>
+                </a>
+              </div>
             </div>
           </div>
         </div>
@@ -360,6 +359,108 @@
           .customify-style-grid {
             grid-template-columns: repeat(2, 1fr);
             gap: 10px;
+          }
+        }
+
+        /* MOBILE HEADER STYLES */
+        @media (max-width: 768px) {
+          .header-top .header-container {
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            flex-wrap: nowrap !important;
+            height: auto !important;
+            padding: 15px !important;
+            gap: 15px !important;
+          }
+          
+          /* LOGO I IKONKI W JEDNEJ LINII */
+          .header-logo {
+            order: 1 !important;
+            flex-grow: 0 !important;
+            text-align: center !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 20px !important;
+          }
+          
+          /* ZMNIEJSZ LOGO NA MOBILE */
+          .header-logo img {
+            max-width: 120px !important;
+            height: auto !important;
+          }
+          
+          /* IKONKI OBOK LOGO */
+          .header-right {
+            order: 1 !important;
+            width: auto !important;
+            justify-content: center !important;
+            gap: 15px !important;
+            display: flex !important;
+            align-items: center !important;
+            margin-left: 20px !important;
+          }
+          
+          .header-nav {
+            order: 2 !important;
+            width: 100% !important;
+            justify-content: center !important;
+            flex-wrap: wrap !important;
+            gap: 10px !important;
+            margin-bottom: 10px !important;
+          }
+          
+          .nav-item {
+            margin-right: 15px;
+            margin-bottom: 0;
+          }
+          
+          .nav-link {
+            font-size: 14px;
+            padding: 10px 0;
+          }
+          
+          /* UKRYJ NAPISY "ZALOGUJ" I "ZAREJESTRUJ" NA MOBILE */
+          .user-text-link {
+            display: none !important;
+          }
+          
+          /* ZOSTAW TYLKO IKONKĘ OSOBY */
+          .user-section {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+          }
+          
+          /* ZMIEŃ IKONKĘ OSOBY NA BARDZIEJ POPULARNĄ I MNIEJ KOLOROWĄ */
+          .user-icon-wrapper {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+          
+          .user-icon {
+            width: 20px;
+            height: 20px;
+            color: #6c757d;
+          }
+          
+          /* HOVER EFFECT DLA IKONKI */
+          .user-section:hover .user-icon-wrapper {
+            border-color: #dc3545;
+            background-color: #fff5f5;
+          }
+          
+          .user-section:hover .user-icon {
+            color: #dc3545;
           }
         }
 
