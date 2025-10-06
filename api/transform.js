@@ -373,13 +373,19 @@ module.exports = async (req, res) => {
     console.log(`📸 [REPLICATE] Output type:`, typeof output);
     console.log(`📸 [REPLICATE] Output:`, output);
 
-    // Handle different output formats
+    // Handle different output formats based on model
     let imageUrl;
-    if (Array.isArray(output)) {
+    if (config.model.includes('nano-banana')) {
+      // Nano-banana returns direct string URL
+      imageUrl = output;
+    } else if (Array.isArray(output)) {
+      // Standard Replicate models return array
       imageUrl = output[0];
     } else if (typeof output === 'string') {
+      // Fallback for string output
       imageUrl = output;
     } else if (output && output.url) {
+      // Some models return object with url() method
       imageUrl = output.url();
     } else {
       console.error('❌ [REPLICATE] Unknown output format:', output);
