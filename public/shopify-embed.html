@@ -351,14 +351,8 @@
 
         <div class="customify-styles" id="stylesArea" style="display: none;">
             <h4>Wybierz styl AI:</h4>
-            <div class="customify-style-buttons">
-            <div class="customify-style-btn" data-style="van gogh">Van Gogh</div>
-            <div class="customify-style-btn" data-style="picasso">Picasso</div>
-            <div class="customify-style-btn" data-style="monet">Monet</div>
-            <div class="customify-style-btn" data-style="anime">Anime</div>
-            <div class="customify-style-btn" data-style="cyberpunk">Cyberpunk</div>
-            <div class="customify-style-btn" data-style="watercolor">Akwarela</div>
-            <div class="customify-style-btn" data-style="pixar">Pixar</div>
+            <div class="customify-style-buttons" id="styleButtons">
+            <!-- Style będą ładowane dynamicznie w zależności od produktu -->
             </div>
         </div>
 
@@ -414,6 +408,7 @@
                 this.previewArea = document.getElementById('previewArea');
                 this.previewImage = document.getElementById('previewImage');
                 this.stylesArea = document.getElementById('stylesArea');
+                this.styleButtons = document.getElementById('styleButtons');
                 this.sizeArea = document.getElementById('sizeArea');
                 this.actionsArea = document.getElementById('actionsArea');
                 this.loadingArea = document.getElementById('loadingArea');
@@ -426,6 +421,61 @@
                 this.selectedStyle = null;
                 this.selectedSize = null;
                 this.transformedImage = null;
+                
+                // Mapowanie stylów AI na produkty
+                this.styleMapping = {
+                    '15306975215941': { // Oryginalny produkt "custom"
+                        styles: [
+                            { id: 'van gogh', name: 'Van Gogh' },
+                            { id: 'picasso', name: 'Picasso' },
+                            { id: 'monet', name: 'Monet' },
+                            { id: 'anime', name: 'Anime' },
+                            { id: 'cyberpunk', name: 'Cyberpunk' },
+                            { id: 'watercolor', name: 'Akwarela' },
+                            { id: 'pixar', name: 'Pixar' }
+                        ]
+                    },
+                    '15343397732677': { // Zabawne Style AI
+                        styles: [
+                            { id: 'ghibli', name: 'Ghibli' },
+                            { id: 'pixar', name: 'Pixar' },
+                            { id: 'disney', name: 'Disney' },
+                            { id: 'anime', name: 'Anime' },
+                            { id: 'cartoon', name: 'Cartoon' },
+                            { id: 'kawaii', name: 'Kawaii' }
+                        ]
+                    },
+                    '15343398158661': { // Król i Królowa
+                        styles: [
+                            { id: 'royal-portrait', name: 'Portret Królewski' },
+                            { id: 'king-crown', name: 'Król z Koroną' },
+                            { id: 'queen-crown', name: 'Królowa z Koroną' },
+                            { id: 'medieval-royal', name: 'Średniowieczny Król' },
+                            { id: 'renaissance-royal', name: 'Renesansowy Król' },
+                            { id: 'baroque-royal', name: 'Barokowy Król' }
+                        ]
+                    },
+                    '15343398453573': { // Koty Królewskie
+                        styles: [
+                            { id: 'royal-cat', name: 'Królewski Kot' },
+                            { id: 'crown-cat', name: 'Kot z Koroną' },
+                            { id: 'medieval-cat', name: 'Średniowieczny Kot' },
+                            { id: 'renaissance-cat', name: 'Renesansowy Kot' },
+                            { id: 'baroque-cat', name: 'Barokowy Kot' },
+                            { id: 'victorian-cat', name: 'Wiktoriański Kot' }
+                        ]
+                    },
+                    '15343398781253': { // Rodzina AI
+                        styles: [
+                            { id: 'family-composition', name: 'Kompozycja Rodzinna' },
+                            { id: 'group-photo', name: 'Zdjęcie Grupowe' },
+                            { id: 'family-portrait', name: 'Portret Rodzinny' },
+                            { id: 'wedding-group', name: 'Grupa Weselna' },
+                            { id: 'reunion-photo', name: 'Zdjęcie Spotkania' },
+                            { id: 'generation-photo', name: 'Zdjęcie Pokoleń' }
+                        ]
+                    }
+                };
                 
                 this.init();
             }
@@ -523,9 +573,38 @@
             }
 
             showStyles() {
+                this.loadStylesForCurrentProduct();
                 this.stylesArea.style.display = 'block';
                 this.sizeArea.style.display = 'none'; // Ukryj wymiary na początku
                 this.actionsArea.style.display = 'flex';
+            }
+
+            loadStylesForCurrentProduct() {
+                // Pobierz ID produktu z różnych możliwych źródeł
+                const productId = 
+                    document.querySelector('[data-product-id]')?.getAttribute('data-product-id') ||
+                    document.querySelector('form[action*="/cart/add"] input[name="id"]')?.value ||
+                    window.ShopifyAnalytics?.meta?.product?.id ||
+                    null;
+                
+                console.log('🎨 [CUSTOMIFY] Loading styles for product ID:', productId);
+                
+                // Pobierz style dla tego produktu lub domyślne
+                const productStyles = this.styleMapping[productId] || this.styleMapping['15306975215941'];
+                
+                // Wyczyść istniejące style
+                this.styleButtons.innerHTML = '';
+                
+                // Dodaj style dla tego produktu
+                productStyles.styles.forEach(style => {
+                    const styleBtn = document.createElement('div');
+                    styleBtn.className = 'customify-style-btn';
+                    styleBtn.setAttribute('data-style', style.id);
+                    styleBtn.textContent = style.name;
+                    this.styleButtons.appendChild(styleBtn);
+                });
+                
+                console.log('🎨 [CUSTOMIFY] Loaded styles:', productStyles.styles.map(s => s.name));
             }
 
             selectStyle(styleBtn) {
