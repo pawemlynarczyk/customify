@@ -162,19 +162,22 @@
         galleryGrid.style.setProperty('grid-template-columns', '120px 120px', 'important');
         galleryGrid.style.setProperty('height', '524px', 'important');
         
-        // Główne zdjęcie
+        // Główne zdjęcie - KWADRAT 400x400
         const mainImage = galleryGrid.querySelector('li:first-child');
         if (mainImage) {
           mainImage.style.setProperty('height', '400px', 'important');
-          mainImage.style.setProperty('width', '100%', 'important');
+          mainImage.style.setProperty('width', '400px', 'important'); // ZMIANA: 400px zamiast 100%
+          mainImage.style.setProperty('aspect-ratio', '1 / 1', 'important');
           mainImage.style.setProperty('grid-row', '1 / 2', 'important');
           mainImage.style.setProperty('grid-column', '1 / 3', 'important');
+          mainImage.style.setProperty('margin', '0 auto', 'important'); // Wyśrodkuj
           
           const mainImg = mainImage.querySelector('img');
           if (mainImg) {
             mainImg.style.setProperty('height', '400px', 'important');
-            mainImg.style.setProperty('width', '100%', 'important');
+            mainImg.style.setProperty('width', '400px', 'important'); // ZMIANA: 400px zamiast 100%
             mainImg.style.setProperty('object-fit', 'cover', 'important');
+            mainImg.style.setProperty('object-position', 'center', 'important');
           }
         }
         
