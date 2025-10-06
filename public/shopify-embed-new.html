@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customify - AI Photo Customization</title>
+    <style>
+        .customify-embed {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        .customify-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .customify-header h3 {
+            color: #2c3e50;
+            margin-bottom: 8px;
+            font-size: 1.4rem;
+        }
+
+        .customify-header p {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .customify-upload-area {
+            border: 2px dashed #dee2e6;
+            border-radius: 8px;
+            padding: 20px; /* Zmniejszony padding */
+            text-align: center;
+            margin-bottom: 15px; /* Zmniejszona przestrzeń na dole */
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f8f9fa; /* Szare tło tylko w sekcji upload */
+        }
+
+        .customify-upload-area:hover {
+            border-color: #007bff;
+            background-color: #f8f9ff;
+        }
+
+        .customify-upload-area.dragover {
+            border-color: #007bff;
+            background-color: #e3f2fd;
+        }
+
+        .customify-upload-text {
+            font-size: 1.4rem;
+            color: #333;
+            margin-bottom: 8px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .customify-upload-icon {
+            font-size: 2rem;
+            color: #6c757d;
+            margin-bottom: 10px;
+        }
+
+        .customify-upload-text {
+            color: #495057;
+            font-size: 1rem;
+            margin-bottom: 5px;
+        }
+
+        .customify-upload-hint {
+            color: #6c757d;
+            font-size: 0.8rem;
+        }
+
+        .customify-file-input {
+            display: none;
+        }
+
+        .customify-preview {
+            display: none;
+            margin-top: 20px;
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            border: 1px solid #e9ecef;
+        }
+
+        .customify-preview h4 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #000;
+            margin: 0 0 20px 0;
+            text-align: center;
+        }
+
+        .customify-preview img {
+            max-width: 100% !important;
+            max-height: 500px !important;
+            width: auto !important;
+            height: auto !important;
+            object-fit: contain !important;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            margin: 0 auto;
+            display: block;
+            border: 3px solid #f8f9fa;
+        }
+
+        .customify-styles {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .customify-style-btn {
+            padding: 10px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        .customify-style-btn:hover {
+            border-color: #e55a2b;
+            background-color: #fff5f0;
+        }
+
+        .customify-style-btn.active {
+            border-color: #ff6b35;
+            background: white;
+            color: #000;
+        }
+
+        .customify-size-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .customify-size-btn {
+            padding: 10px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        .customify-size-btn:hover {
+            border-color: #007bff;
+            background-color: #f8f9ff;
+        }
+
+        .customify-size-btn.active {
+            border-color: #007bff;
+            background-color: #007bff;
+            color: white;
+        }
+
+        .customify-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .customify-btn {
+            padding: 16px 32px;
+            border: 2px solid #000;
+            border-radius: 0;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            min-width: 160px;
+            background: white;
+            color: #000;
+            text-transform: none;
+            letter-spacing: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-family: inherit;
+        }
+
+        .customify-btn:hover {
+            background: #000;
+            color: white;
+        }
+
+        .customify-btn:active {
+            transform: none;
+        }
+
+        .customify-btn-primary {
+            background: #ff6b35;
+            color: white;
+            border: 2px solid #ff6b35;
+        }
+
+        .customify-btn-primary:hover {
+            background: #e55a2b;
+            border-color: #e55a2b;
+            color: white;
+        }
+
+        .customify-btn-secondary {
+            background: white;
+            color: #000;
+            border: 2px solid #000;
+        }
+
+        .customify-btn-secondary:hover {
+            background: #000;
+            color: white;
+            border-color: #000;
+        }
+
+        .customify-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .customify-loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .customify-spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #007bff;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .customify-result {
+            margin-top: 20px;
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            border: 1px solid #e9ecef;
+        }
+
+        .customify-result h4 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #000;
+            margin: 0 0 20px 0;
+            text-align: center;
+        }
+
+        .customify-result img {
+            max-width: 100% !important;
+            max-height: 500px !important;
+            width: auto !important;
+            height: auto !important;
+            object-fit: contain !important;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            margin: 0 auto;
+            display: block;
+            border: 3px solid #f8f9fa;
+        }
+
+        .customify-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+            display: none;
+        }
+
+        .customify-success {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+            display: none;
+        }
+
+        /* Layout controlled by theme.liquid - no conflicting styles */
+
+        /* Clear floats */
+        .product-page-layout::after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+
+        @media (max-width: 768px) {
+            .customify-embed {
+                padding: 15px;
+                margin: 15px 0;
+            }
+            
+            .customify-styles {
+                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            }
+            
+            .customify-actions {
+                flex-direction: column;
+            }
+
+            /* Mobile: stack vertically */
+            #customify-app-container,
+            .product-media {
+                width: 100%;
+                float: none;
+                margin-right: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="customify-embed" id="customifyEmbed">
+        <div class="customify-upload-area" id="uploadArea">
+            <div class="customify-upload-icon">📷</div>
+            <div class="customify-upload-text">Wgraj swoje zdjęcie tutaj</div>
+            <div class="customify-upload-hint">Maksymalnie 10MB, formaty: JPG, PNG, GIF</div>
+            <input type="file" id="fileInput" class="customify-file-input" accept="image/*">
+        </div>
+
+        <div class="customify-preview" id="previewArea">
+            <h4>Twoje zdjęcie:</h4>
+            <img id="previewImage" alt="Podgląd zdjęcia">
+        </div>
+
+        <div class="customify-styles" id="stylesArea" style="display: none;">
+            <h4>Wybierz styl AI:</h4>
+            <div class="customify-style-buttons" id="styleButtons">
+            <!-- WSZYSTKIE STYLE - TESTOWO -->
+            <!-- Zabawne -->
+            <div class="customify-style-btn" data-style="ghibli" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white;">Ghibli</div>
+            <div class="customify-style-btn" data-style="pixar" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white;">Pixar</div>
+            <div class="customify-style-btn" data-style="disney" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white;">Disney</div>
+            <div class="customify-style-btn" data-style="anime" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white;">Anime</div>
+            <div class="customify-style-btn" data-style="cartoon" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white;">Cartoon</div>
+            <div class="customify-style-btn" data-style="kawaii" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white;">Kawaii</div>
+            <div class="customify-style-btn" data-style="comic" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white;">Komiks</div>
+            <div class="customify-style-btn" data-style="manga" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white;">Manga</div>
+            
+            <!-- Król/Królowa -->
+            <div class="customify-style-btn" data-style="king" style="background: linear-gradient(135deg, #f093fb, #f5576c); color: white;">Król</div>
+            <div class="customify-style-btn" data-style="queen" style="background: linear-gradient(135deg, #f093fb, #f5576c); color: white;">Królowa</div>
+            <div class="customify-style-btn" data-style="renaissance" style="background: linear-gradient(135deg, #f093fb, #f5576c); color: white;">Renesans</div>
+            <div class="customify-style-btn" data-style="baroque" style="background: linear-gradient(135deg, #f093fb, #f5576c); color: white;">Barok</div>
+            <div class="customify-style-btn" data-style="royal portrait" style="background: linear-gradient(135deg, #f093fb, #f5576c); color: white;">Portret Królewski</div>
+            <div class="customify-style-btn" data-style="medieval" style="background: linear-gradient(135deg, #f093fb, #f5576c); color: white;">Średniowiecze</div>
+            <div class="customify-style-btn" data-style="victorian" style="background: linear-gradient(135deg, #f093fb, #f5576c); color: white;">Wiktoriański</div>
+            <div class="customify-style-btn" data-style="noble" style="background: linear-gradient(135deg, #f093fb, #f5576c); color: white;">Szlachecki</div>
+            
+            <!-- Zwierzęta -->
+            <div class="customify-style-btn" data-style="cat" style="background: linear-gradient(135deg, #4facfe, #00f2fe); color: white;">Kot</div>
+            <div class="customify-style-btn" data-style="dog" style="background: linear-gradient(135deg, #4facfe, #00f2fe); color: white;">Pies</div>
+            <div class="customify-style-btn" data-style="lion" style="background: linear-gradient(135deg, #4facfe, #00f2fe); color: white;">Lew</div>
+            <div class="customify-style-btn" data-style="tiger" style="background: linear-gradient(135deg, #4facfe, #00f2fe); color: white;">Tygrys</div>
+            <div class="customify-style-btn" data-style="panda" style="background: linear-gradient(135deg, #4facfe, #00f2fe); color: white;">Panda</div>
+            <div class="customify-style-btn" data-style="wolf" style="background: linear-gradient(135deg, #4facfe, #00f2fe); color: white;">Wilk</div>
+            <div class="customify-style-btn" data-style="fox" style="background: linear-gradient(135deg, #4facfe, #00f2fe); color: white;">Lis</div>
+            <div class="customify-style-btn" data-style="bear" style="background: linear-gradient(135deg, #4facfe, #00f2fe); color: white;">Niedźwiedź</div>
+            
+            <!-- Rodzina -->
+            <div class="customify-style-btn" data-style="family portrait" style="background: linear-gradient(135deg, #fa709a, #fee140); color: white;">Portret Rodzinny</div>
+            <div class="customify-style-btn" data-style="group photo" style="background: linear-gradient(135deg, #fa709a, #fee140); color: white;">Zdjęcie Grupowe</div>
+            <div class="customify-style-btn" data-style="vintage family" style="background: linear-gradient(135deg, #fa709a, #fee140); color: white;">Vintage Rodzina</div>
+            <div class="customify-style-btn" data-style="modern family" style="background: linear-gradient(135deg, #fa709a, #fee140); color: white;">Nowoczesna Rodzina</div>
+            <div class="customify-style-btn" data-style="christmas family" style="background: linear-gradient(135deg, #fa709a, #fee140); color: white;">Świąteczna Rodzina</div>
+            <div class="customify-style-btn" data-style="summer family" style="background: linear-gradient(135deg, #fa709a, #fee140); color: white;">Letnia Rodzina</div>
+            
+            <!-- Stare style (też zostawmy) -->
+            <div class="customify-style-btn" data-style="van gogh">Van Gogh</div>
+            <div class="customify-style-btn" data-style="picasso">Picasso</div>
+            <div class="customify-style-btn" data-style="monet">Monet</div>
+            <div class="customify-style-btn" data-style="cyberpunk">Cyberpunk</div>
+            <div class="customify-style-btn" data-style="akwarela">Akwarela</div>
+            </div>
+        </div>
+
+
+        <div class="customify-actions" id="actionsArea" style="display: none;">
+            <button class="customify-btn customify-btn-primary" id="transformBtn">
+                Przekształć z AI
+            </button>
+            <button class="customify-btn customify-btn-secondary" id="resetBtn">
+                Wgraj inne zdjęcie
+            </button>
+        </div>
+
+        <div class="customify-loading" id="loadingArea">
+            <div class="customify-spinner"></div>
+            <div>Przetwarzanie z AI...</div>
+        </div>
+
+        <div class="customify-result" id="resultArea">
+            <h4>Wynik transformacji AI:</h4>
+            <img id="resultImage" alt="Wynik AI">
+            
+            <!-- Rozmiary pod zdjęciem wynikowym -->
+            <div class="customify-size-selector" id="sizeArea" style="display: none;">
+                <h4>Wybierz rozmiar:</h4>
+                <div class="customify-size-buttons">
+                    <div class="customify-size-btn" data-size="small">Mały (+0 zł)</div>
+                    <div class="customify-size-btn" data-size="medium">Średni (+25 zł)</div>
+                    <div class="customify-size-btn" data-size="large">Duży (+50 zł)</div>
+                    <div class="customify-size-btn" data-size="xlarge">Bardzo duży (+100 zł)</div>
+                </div>
+            </div>
+            
+            <div class="customify-actions" style="margin-top: 15px;">
+            <button class="customify-btn customify-btn-primary" id="addToCartBtn">
+                Dodaj do koszyka
+            </button>
+                <button class="customify-btn customify-btn-secondary" id="tryAgainBtn">
+                    Spróbuj ponownie
+                </button>
+            </div>
+        </div>
+
+        <div class="customify-error" id="errorMessage"></div>
+        <div class="customify-success" id="successMessage"></div>
+    </div>
+
+    <script>
+        class CustomifyEmbed {
+            constructor() {
+                this.uploadArea = document.getElementById('uploadArea');
+                this.fileInput = document.getElementById('fileInput');
+                this.previewArea = document.getElementById('previewArea');
+                this.previewImage = document.getElementById('previewImage');
+                this.stylesArea = document.getElementById('stylesArea');
+                this.styleButtons = document.getElementById('styleButtons');
+                this.sizeArea = document.getElementById('sizeArea');
+                this.actionsArea = document.getElementById('actionsArea');
+                this.loadingArea = document.getElementById('loadingArea');
+                this.resultArea = document.getElementById('resultArea');
+                this.resultImage = document.getElementById('resultImage');
+                this.errorMessage = document.getElementById('errorMessage');
+                this.successMessage = document.getElementById('successMessage');
+                
+                this.uploadedFile = null;
+                this.selectedStyle = null;
+                this.selectedSize = null;
+                this.transformedImage = null;
+                
+                // Mapowanie stylów AI na produkty - USUNIĘTE STARE STYLE
+                // Używamy tylko dynamicznego systemu mapowania po handle produktu
+                
+                this.init();
+            }
+
+            init() {
+                this.setupEventListeners();
+            }
+
+            setupEventListeners() {
+                // Upload area click
+                this.uploadArea.addEventListener('click', () => {
+                    this.fileInput.click();
+                });
+
+                // File input change
+                this.fileInput.addEventListener('change', (e) => {
+                    this.handleFileSelect(e.target.files[0]);
+                });
+
+                // Drag and drop
+                this.uploadArea.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    this.uploadArea.classList.add('dragover');
+                });
+
+                this.uploadArea.addEventListener('dragleave', () => {
+                    this.uploadArea.classList.remove('dragover');
+                });
+
+                this.uploadArea.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    this.uploadArea.classList.remove('dragover');
+                    this.handleFileSelect(e.dataTransfer.files[0]);
+                });
+
+                // Style selection
+                this.stylesArea.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('customify-style-btn')) {
+                        this.selectStyle(e.target);
+                    }
+                });
+
+                // Size selection
+            // Event listener dla rozmiarów - sprawdź zarówno główny jak i w resultArea
+            document.addEventListener('click', (e) => {
+                if (e.target.classList.contains('customify-size-btn')) {
+                    this.selectSize(e.target);
+                }
+            });
+
+                // Action buttons
+                document.getElementById('transformBtn').addEventListener('click', () => {
+                    this.transformImage();
+                });
+
+                document.getElementById('resetBtn').addEventListener('click', () => {
+                    this.reset();
+                });
+
+                document.getElementById('addToCartBtn').addEventListener('click', () => {
+                    this.addToCart();
+                });
+
+                document.getElementById('tryAgainBtn').addEventListener('click', () => {
+                    this.tryAgain();
+                });
+            }
+
+            handleFileSelect(file) {
+                if (!file) return;
+
+                if (!file.type.startsWith('image/')) {
+                    this.showError('Proszę wybrać plik obrazu (JPG, PNG, GIF)');
+                    return;
+                }
+
+                if (file.size > 10 * 1024 * 1024) {
+                    this.showError('Plik jest za duży. Maksymalny rozmiar to 10MB');
+                    return;
+                }
+
+                this.uploadedFile = file;
+                this.showPreview(file);
+                this.showStyles();
+                this.hideError();
+            }
+
+            showPreview(file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    this.previewImage.src = e.target.result;
+                    this.previewArea.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+
+            showStyles() {
+                // WYŁĄCZONE - używamy stylów z HTML
+                // this.loadStylesForCurrentProduct();
+                this.stylesArea.style.display = 'block';
+                this.sizeArea.style.display = 'none'; // Ukryj wymiary na początku
+                this.actionsArea.style.display = 'flex';
+            }
+
+            loadStylesForCurrentProduct() {
+                console.log('🎨 [CUSTOMIFY] Loading dynamic styles for current product...');
+                
+                // Pobierz handle produktu z URL
+                const currentPath = window.location.pathname;
+                const productHandle = currentPath.split('/products/')[1]?.split('?')[0];
+                console.log('🔍 [CUSTOMIFY] Product handle:', productHandle);
+                
+                // Definicja stylów dla każdego produktu
+                const productStyles = {
+                    'zabawne-style-ai-ghibli-pixar-i-wiecej': [
+                        { id: 'ghibli', name: 'Ghibli' },
+                        { id: 'pixar', name: 'Pixar' },
+                        { id: 'disney', name: 'Disney' },
+                        { id: 'anime', name: 'Anime' },
+                        { id: 'cartoon', name: 'Cartoon' },
+                        { id: 'kawaii', name: 'Kawaii' },
+                        { id: 'comic', name: 'Komiks' }
+                    ],
+                    'krol-i-krolowa-portrety-krolewskie': [
+                        { id: 'royal-portrait', name: 'Portret Królewski' },
+                        { id: 'king-crown', name: 'Król z Koroną' },
+                        { id: 'queen-elegant', name: 'Elegancka Królowa' },
+                        { id: 'medieval-royal', name: 'Średniowieczny' },
+                        { id: 'renaissance', name: 'Renesans' },
+                        { id: 'baroque', name: 'Barok' },
+                        { id: 'victorian', name: 'Wiktoriański' }
+                    ],
+                    'koty-krolewskie-zwierzeta-w-koronach': [
+                        { id: 'cat-king', name: 'Kot Król' },
+                        { id: 'cat-crown', name: 'Kot z Koroną' },
+                        { id: 'lion-cat', name: 'Kot Lew' },
+                        { id: 'tiger-cat', name: 'Kot Tygrys' },
+                        { id: 'royal-cat', name: 'Królewski Kot' },
+                        { id: 'noble-cat', name: 'Szlachecki Kot' },
+                        { id: 'majestic-cat', name: 'Majestatyczny' }
+                    ],
+                    'rodzina-ai-skladanie-zdjec-grupowych': [
+                        { id: 'family-portrait', name: 'Portret Rodzinny' },
+                        { id: 'family-collage', name: 'Kolaż Rodzinny' },
+                        { id: 'family-vintage', name: 'Vintage Rodzina' },
+                        { id: 'family-modern', name: 'Nowoczesna Rodzina' },
+                        { id: 'family-artistic', name: 'Artystyczna Rodzina' },
+                        { id: 'family-classic', name: 'Klasyczna Rodzina' },
+                        { id: 'family-fun', name: 'Zabawna Rodzina' }
+                    ],
+                    'custom': [ // Domyślny produkt
+                        { id: 'van gogh', name: 'Van Gogh' },
+                        { id: 'picasso', name: 'Picasso' },
+                        { id: 'monet', name: 'Monet' },
+                        { id: 'anime', name: 'Anime' },
+                        { id: 'cyberpunk', name: 'Cyberpunk' },
+                        { id: 'watercolor', name: 'Akwarela' },
+                        { id: 'pixar', name: 'Pixar' }
+                    ]
+                };
+                
+                // Znajdź odpowiednie style dla produktu
+                let stylesToShow = productStyles['custom']; // domyślne
+                
+                for (const [key, styles] of Object.entries(productStyles)) {
+                    if (productHandle && productHandle.includes(key)) {
+                        stylesToShow = styles;
+                        console.log('✅ [CUSTOMIFY] Found styles for:', key);
+                        break;
+                    }
+                }
+                
+                // Wyczyść istniejące style
+                this.styleButtons.innerHTML = '';
+                
+                // Dodaj nowe style
+                stylesToShow.forEach(style => {
+                    const styleBtn = document.createElement('div');
+                    styleBtn.className = 'customify-style-btn';
+                    styleBtn.setAttribute('data-style', style.id);
+                    styleBtn.textContent = style.name;
+                    this.styleButtons.appendChild(styleBtn);
+                });
+                
+                console.log('✅ [CUSTOMIFY] Loaded styles:', stylesToShow.map(s => s.name).join(', '));
+            }
+            
+            // WYŁĄCZONE - używamy stylów z HTML
+            initializeStyles() {
+                console.log('🎨 [CUSTOMIFY] Using styles from HTML - no dynamic loading');
+                // this.loadStylesForCurrentProduct();
+            }
+
+            selectStyle(styleBtn) {
+                // Remove active class from all buttons
+                this.stylesArea.querySelectorAll('.customify-style-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                
+                // Add active class to selected button
+                styleBtn.classList.add('active');
+                this.selectedStyle = styleBtn.dataset.style;
+            }
+
+            selectSize(sizeBtn) {
+                // Remove active class from all buttons
+                this.sizeArea.querySelectorAll('.customify-size-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                
+                // Add active class to selected button
+                sizeBtn.classList.add('active');
+                this.selectedSize = sizeBtn.dataset.size;
+            }
+
+            async transformImage() {
+                if (!this.uploadedFile || !this.selectedStyle) {
+                    this.showError('Proszę wybrać zdjęcie i styl');
+                    return;
+                }
+
+                console.log('🚀 Starting AI transformation...', {
+                    style: this.selectedStyle,
+                    size: this.selectedSize,
+                    file: this.uploadedFile.name
+                });
+
+                this.showLoading();
+                this.hideError();
+
+                try {
+                    // Convert file to base64
+                    const base64 = await this.fileToBase64(this.uploadedFile);
+                    
+                    // Call transform API
+                    const response = await fetch('https://customify-s56o.vercel.app/api/transform', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            imageData: base64,
+                            prompt: `Transform this image in ${this.selectedStyle} style`
+                        })
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        console.log('✅ [SHOPIFY-EMBED.HTML] AI transformation successful:', result.transformedImage);
+                        this.transformedImage = result.transformedImage;
+                        this.showResult(result.transformedImage);
+                        this.showSuccess('Zdjęcie zostało pomyślnie przekształcone!');
+                    } else {
+                        console.error('❌ [SHOPIFY-EMBED.HTML] AI transformation failed:', result.error);
+                        this.showError('Błąd podczas transformacji: ' + (result.error || 'Nieznany błąd'));
+                    }
+                } catch (error) {
+                    console.error('Transform error:', error);
+                    this.showError('Błąd połączenia z serwerem');
+                } finally {
+                    this.hideLoading();
+                }
+            }
+
+            showResult(imageUrl) {
+                console.log('🎯 [SHOPIFY-EMBED.HTML] showResult called with:', imageUrl);
+                this.resultImage.src = imageUrl;
+                this.resultArea.style.display = 'block';
+                
+                // Pokaż rozmiary pod zdjęciem wynikowym
+                const sizeAreaInResult = this.resultArea.querySelector('#sizeArea');
+                if (sizeAreaInResult) {
+                    sizeAreaInResult.style.display = 'block';
+                }
+                console.log('🎯 [SHOPIFY-EMBED.HTML] resultArea display set to block');
+                
+                // UKRYJ przyciski "Przekształć z AI" i "Resetuj"
+                this.actionsArea.style.display = 'none';
+                
+                // UKRYJ style po przekształceniu
+                this.stylesArea.style.display = 'none';
+                
+                // UKRYJ pole upload po przekształceniu
+                this.uploadArea.style.display = 'none';
+                
+                // Check if buttons exist
+                const addToCartBtn = document.getElementById('addToCartBtn');
+                const tryAgainBtn = document.getElementById('tryAgainBtn');
+                console.log('🎯 Add to cart button found:', !!addToCartBtn);
+                console.log('🎯 Try again button found:', !!tryAgainBtn);
+                
+                if (addToCartBtn) {
+                    console.log('🎯 Add to cart button style:', addToCartBtn.style.cssText);
+                    console.log('🎯 Add to cart button computed style:', window.getComputedStyle(addToCartBtn).display);
+                }
+                
+                // Check resultArea visibility
+                console.log('🎯 resultArea computed style:', window.getComputedStyle(this.resultArea).display);
+                console.log('🎯 resultArea visibility:', window.getComputedStyle(this.resultArea).visibility);
+                console.log('🎯 resultArea opacity:', window.getComputedStyle(this.resultArea).opacity);
+            }
+
+
+            async addToCart() {
+                if (!this.transformedImage || !this.selectedStyle || !this.selectedSize) {
+                    this.showError('Brak przekształconego obrazu, stylu lub rozmiaru');
+                    return;
+                }
+
+                // Don't show loading - product is already transformed
+                this.hideError();
+                console.log('🛒 [CUSTOMIFY] Starting addToCart process...');
+
+                try {
+                    // Get original product info
+                    const originalImage = await this.fileToBase64(this.uploadedFile);
+                    const originalProductTitle = document.querySelector('h1, .product-title, .view-product-title')?.textContent?.trim() || 'Produkt';
+                    
+                    const productData = {
+                        originalImage: originalImage,
+                        transformedImage: this.transformedImage,
+                        style: this.selectedStyle,
+                        size: this.selectedSize || 'A3', // Default size if not set
+                        originalProductTitle: originalProductTitle,
+                        originalProductId: document.querySelector('[data-product-id]')?.dataset?.productId || null
+                    };
+
+                    console.log('🛒 [CUSTOMIFY] Creating product with data:', productData);
+                    
+                    // Create product with transformed image
+                    const response = await fetch('https://customify-s56o.vercel.app/api/products', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(productData)
+                    });
+
+            console.log('🛒 [CUSTOMIFY] API response status:', response.status);
+            
+            if (!response.ok) {
+              console.error('❌ [CUSTOMIFY] API error:', response.status, response.statusText);
+              const errorText = await response.text();
+              console.error('❌ [CUSTOMIFY] Error response:', errorText);
+              this.showError('Błąd API: ' + response.status);
+              return;
+            }
+            
+            const result = await response.json();
+            console.log('🛒 [CUSTOMIFY] API response:', result);
+            console.log('🛒 [CUSTOMIFY] Result success:', result.success);
+            console.log('🛒 [CUSTOMIFY] Result variantId:', result.variantId);
+            console.log('🛒 [CUSTOMIFY] Result productId:', result.productId);
+
+                    if (result.success) {
+                        this.showSuccess('✅ ' + (result.message || 'Produkt został utworzony!'));
+                        console.log('✅ [CUSTOMIFY] Product created:', result.product);
+                        
+                        // Użyj stałego URL z Shopify zamiast tymczasowego linku z Replicate
+                        if (result.imageUrl) {
+                            this.shopifyImageUrl = result.imageUrl;
+                            this.transformedImage = result.imageUrl;
+                            console.log('🖼️ [CUSTOMIFY] Using Shopify image URL:', this.shopifyImageUrl);
+                        }
+                        
+                        // Add to cart using POST form submission
+                        if (result.variantId) {
+                            console.log('🛒 [CUSTOMIFY] Attempting to add to cart with Variant ID:', result.variantId);
+                            console.log('🛒 [CUSTOMIFY] Product ID:', result.productId);
+                            console.log('🛒 [CUSTOMIFY] Variant ID type:', typeof result.variantId);
+                            console.log('🛒 [CUSTOMIFY] Variant ID length:', result.variantId.toString().length);
+                            
+                            // Create form and submit to add to cart
+                            const form = document.createElement('form');
+                            form.method = 'POST';
+                            form.action = '/cart/add';
+                            form.style.display = 'none';
+                            
+                            // Add variant ID
+                            const variantInput = document.createElement('input');
+                            variantInput.type = 'hidden';
+                            variantInput.name = 'id';
+                            variantInput.value = result.variantId;
+                            form.appendChild(variantInput);
+                            
+                            console.log('🛒 [CUSTOMIFY] Form variant ID:', result.variantId);
+                            console.log('🛒 [CUSTOMIFY] Form action:', form.action);
+                            
+                            // Add quantity
+                            const quantityInput = document.createElement('input');
+                            quantityInput.type = 'hidden';
+                            quantityInput.name = 'quantity';
+                            quantityInput.value = '1';
+                            form.appendChild(quantityInput);
+                            
+                            // Add properties (image is already the main product image)
+                            const properties = {
+                                'AI Style': this.selectedStyle,
+                                'Size': this.selectedSize,
+                                'Original Product': originalProductTitle,
+                                'Customization Type': 'AI Generated',
+                                '_AI_Image_URL': this.shopifyImageUrl || this.transformedImage  // Prefix _ ukrywa przed klientem
+                            };
+                            
+                            Object.entries(properties).forEach(([key, value]) => {
+                                const propInput = document.createElement('input');
+                                propInput.type = 'hidden';
+                                propInput.name = `properties[${key}]`;
+                                propInput.value = value;
+                                form.appendChild(propInput);
+                            });
+                            
+                console.log('🛒 [CUSTOMIFY] Submitting form with variantId:', result.variantId);
+                console.log('🛒 [CUSTOMIFY] Form HTML:', form.outerHTML);
+                document.body.appendChild(form);
+                form.submit();
+                        }
+                    } else {
+                        console.error('❌ [CUSTOMIFY] Product creation failed:', result);
+                        this.showError('❌ Błąd podczas tworzenia produktu: ' + (result.error || 'Nieznany błąd'));
+                    }
+                } catch (error) {
+                    console.error('❌ [CUSTOMIFY] Add to cart error:', error);
+                    this.showError('❌ Błąd połączenia z serwerem: ' + error.message);
+                }
+            }
+
+            fileToBase64(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.readAsDataURL(file);
+                    reader.onload = () => {
+                        const base64 = reader.result.split(',')[1];
+                        resolve(base64);
+                    };
+                    reader.onerror = error => reject(error);
+                });
+            }
+
+            reset() {
+                this.uploadedFile = null;
+                this.selectedStyle = null;
+                this.selectedSize = null;
+                this.transformedImage = null;
+                
+                this.fileInput.value = '';
+                this.uploadArea.style.display = 'block'; // Pokaż pole upload z powrotem
+                this.previewArea.style.display = 'none';
+                this.stylesArea.style.display = 'none';
+                this.sizeArea.style.display = 'none';
+                this.actionsArea.style.display = 'none';
+                this.resultArea.style.display = 'none';
+                this.hideError();
+                this.hideSuccess();
+                
+                // Reset style buttons
+                this.stylesArea.querySelectorAll('.customify-style-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                
+                // Reset size buttons
+                this.sizeArea.querySelectorAll('.customify-size-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+            }
+
+        tryAgain() {
+            console.log('🔄 [CUSTOMIFY] tryAgain called - returning to style selection');
+            
+            // Ukryj wynik AI
+            this.resultArea.style.display = 'none';
+            
+            // Pokaż style AI i przyciski
+            this.stylesArea.style.display = 'block';
+            this.actionsArea.style.display = 'flex';
+            
+            // Pokaż pole upload (jeśli było ukryte)
+            this.uploadArea.style.display = 'block';
+            
+            // Zresetuj wybrane style i rozmiary
+            this.selectedStyle = null;
+            this.selectedSize = null;
+            this.transformedImage = null;
+            
+            // Usuń aktywne style
+            this.stylesArea.querySelectorAll('.customify-style-btn').forEach(btn => btn.classList.remove('active'));
+            
+            // Usuń aktywne rozmiary
+            this.sizeArea.querySelectorAll('.customify-size-btn').forEach(btn => btn.classList.remove('active'));
+            
+            // Ukryj wiadomości
+            this.hideSuccess();
+            this.hideError();
+            
+            console.log('🔄 [CUSTOMIFY] tryAgain completed - user can select new style');
+        }
+
+            showLoading() {
+                this.loadingArea.style.display = 'block';
+                this.actionsArea.style.display = 'none';
+            }
+
+            hideLoading() {
+                this.loadingArea.style.display = 'none';
+                this.actionsArea.style.display = 'flex';
+            }
+
+            showError(message) {
+                this.errorMessage.textContent = message;
+                this.errorMessage.style.display = 'block';
+            }
+
+            hideError() {
+                this.errorMessage.style.display = 'none';
+            }
+
+            showSuccess(message) {
+                this.successMessage.textContent = message;
+                this.successMessage.style.display = 'block';
+            }
+
+            hideSuccess() {
+                this.successMessage.style.display = 'none';
+            }
+        }
+
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            const app = new CustomifyEmbed();
+            app.initializeStyles();
+        });
+    </script>
+</body>
+</html>
