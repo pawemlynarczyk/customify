@@ -39,7 +39,10 @@
     
     <!-- FIX: CSS dla galerii - wymuś stałe wymiary -->
     <style>
-      .media-gallery__grid {
+      /* WYŻSZA SPECIFICITY - nadpisz base.css */
+      media-gallery .media-gallery__grid,
+      .product-media .media-gallery__grid,
+      .product-information .media-gallery__grid {
         grid-template-rows: 400px 120px !important;
         grid-template-columns: 120px 120px !important;
         height: 524px !important;
