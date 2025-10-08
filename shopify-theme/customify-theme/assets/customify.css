@@ -1189,8 +1189,8 @@ main {
 .product-media__image {
   width: 100% !important;
   height: auto !important;
-  max-height: 500px !important;
-  object-fit: contain !important;
+  max-height: none !important;
+  object-fit: cover !important;
   border-radius: 8px !important;
   box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
   margin-bottom: 15px !important;
@@ -1250,8 +1250,8 @@ main {
 .product-images img:first-child {
   width: 100% !important;
   height: auto !important;
-  max-height: 500px !important;
-  object-fit: contain !important;
+  max-height: none !important;
+  object-fit: cover !important;
   border-radius: 8px !important;
   box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
   margin-bottom: 15px !important;
@@ -1302,8 +1302,8 @@ main {
   .media-gallery__grid li:first-child img {
     width: 100% !important;
     height: auto !important;
-    max-height: 500px !important;
-    object-fit: contain !important;
+    max-height: none !important;
+    object-fit: cover !important;
     border-radius: 8px !important;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
   }
@@ -1333,7 +1333,7 @@ main {
     width: 100% !important;
     height: auto !important;
     max-height: 400px !important;
-    object-fit: contain !important;
+    object-fit: cover !important;
     border-radius: 8px !important;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
   }

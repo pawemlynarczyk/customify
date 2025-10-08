@@ -1271,3 +1271,51 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
+// FUNKCJA NAPRAWY POWIĘKSZONYCH ZDJĘĆ W DIALOGU - UNIWERSALNA
+function fixDialogImages() {
+  const dialog = document.querySelector('dialog[open]');
+  if (!dialog) return;
+  
+  // Znajdź wszystkie zdjęcia w dialogu
+  const allImages = dialog.querySelectorAll('img');
+  let largestImg = null;
+  let largestWidth = 0;
+  
+  allImages.forEach(img => {
+    const width = img.clientWidth;
+    if (width > largestWidth) {
+      largestWidth = width;
+      largestImg = img;
+    }
+  });
+  
+  if (!largestImg) return;
+  
+  // Wymuś poprawne style - WYPEŁNIA CAŁY KONTENER
+  largestImg.style.setProperty('object-fit', 'cover', 'important');
+  largestImg.style.setProperty('max-height', 'none', 'important');
+  largestImg.style.setProperty('height', '100%', 'important');
+  largestImg.style.setProperty('width', '100%', 'important');
+  largestImg.style.setProperty('object-position', 'center', 'important');
+  
+  // Styluj kontener
+  if (largestImg.parentElement) {
+    largestImg.parentElement.style.setProperty('height', '100%', 'important');
+  }
+  
+  console.log('✅ Zdjęcie w dialogu naprawione - brak białych pól!');
+}
+
+// Event listener dla kliknięć w przyciski powiększenia
+document.addEventListener('click', function(e) {
+  const zoomButton = e.target.closest('.product-media-container__zoom-button, button[class*="zoom"]');
+  if (zoomButton) {
+    setTimeout(fixDialogImages, 100);  // Czekaj aż dialog się otworzy
+    setTimeout(fixDialogImages, 300);  // Ponownie po załadowaniu
+    setTimeout(fixDialogImages, 600);  // I jeszcze raz dla pewności
+  }
+});
+
+// Regularnie sprawdzaj czy dialog jest otwarty i naprawiaj
+setInterval(fixDialogImages, 300);
+
