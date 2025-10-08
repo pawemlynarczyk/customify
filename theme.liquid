@@ -72,16 +72,33 @@
         overflow: hidden !important;
       }
       
-      /* Obraz w modalu */
+      /* Obraz w modalu - WYPEŁNIA CAŁY KONTENER BEZ BIAŁYCH PÓL */
       .media-gallery__modal img,
       .product-media-modal img,
       [data-modal] img,
       .modal img {
-        max-width: 100% !important;
-        max-height: 100% !important;
-        width: auto !important;
-        height: auto !important;
-        object-fit: contain !important;
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
+        object-position: center !important;
+      }
+      
+      /* FIX: Zdjęcia w galerii - WYPEŁNIAJĄ CAŁY KONTENER */
+      .product-media__image {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
+        object-position: center !important;
+        max-height: none !important;
+      }
+      
+      /* FIX: Kontener zdjęcia */
+      .product-media {
+        width: 100% !important;
+        height: 100% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
       }
       
       /* Overlay */
@@ -98,8 +115,8 @@
         z-index: 9998 !important;
       }
       
-      /* OGRANICZ SZEROKOŚĆ GŁÓWNEGO KONTENERA */
-      main#MainContent.content-for-layout {
+      /* OGRANICZ SZEROKOŚĆ TYLKO STRON PRODUKTÓW */
+      .product-information__grid {
         max-width: 1400px !important;
         margin: 0 auto !important;
         padding: 0 20px !important;
@@ -107,7 +124,7 @@
       
       /* Responsive - tablet */
       @media (max-width: 768px) {
-        main#MainContent.content-for-layout {
+        .product-information__grid {
           max-width: 768px !important;
           padding: 0 15px !important;
         }
@@ -115,20 +132,230 @@
       
       /* Responsive - mobile */
       @media (max-width: 480px) {
-        main#MainContent.content-for-layout {
+        .product-information__grid {
           max-width: 100% !important;
           padding: 0 10px !important;
+        }
+      }
+      
+      /* FIX: POKAŻ WSZYSTKIE ELEMENTY STOPKI ZAMIAST POPOVER */
+      .terms-policies-popover {
+        position: static !important;
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        transform: none !important;
+        box-shadow: none !important;
+        border: none !important;
+        background: transparent !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: none !important;
+        width: auto !important;
+        height: auto !important;
+        z-index: auto !important;
+      }
+      
+      .policy_list {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 15px !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        list-style: none !important;
+      }
+      
+      .policy_list li {
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      
+      .policy_list a {
+        color: inherit !important;
+        text-decoration: none !important;
+        font-size: 0.75rem !important;
+        transition: opacity 0.2s ease !important;
+      }
+      
+      .policy_list a:hover {
+        opacity: 0.7 !important;
+      }
+      
+      /* UKRYJ PRZYCISK POPOVER - POKAŻ TYLKO LISTĘ */
+      .policy-list-trigger {
+        display: none !important;
+      }
+      
+      /* RESPONSIVE - MOBILE */
+      @media (max-width: 768px) {
+        .policy_list {
+          flex-direction: column !important;
+          gap: 8px !important;
         }
       }
     </style>
     
     <!-- FIX: Poprawne proporcje galerii - JavaScript wymusza zmiany -->
     <script>
+      // FUNKCJA UKRYWANIA STAREJ SEKCJI POLITYK
+      function hideOldPolicySection() {
+        // Ukryj cały popover z politykami
+        const policyPopover = document.querySelector('.footer-utilities__group--left anchored-popover-component');
+        if (policyPopover) {
+          policyPopover.style.display = 'none';
+          policyPopover.style.visibility = 'hidden';
+          policyPopover.style.opacity = '0';
+          policyPopover.style.height = '0';
+          policyPopover.style.overflow = 'hidden';
+          console.log('✅ Ukryto stary popover z politykami');
+        }
+        
+        // Ukryj element "Preferencje dotyczące plików cookie"
+        const cookieLink = document.querySelector('a[href="/policies/#shopifyReshowConsentBanner"]');
+        if (cookieLink) {
+          cookieLink.style.display = 'none';
+          cookieLink.style.visibility = 'hidden';
+          cookieLink.style.opacity = '0';
+          cookieLink.style.height = '0';
+          cookieLink.style.overflow = 'hidden';
+          
+          const parentLi = cookieLink.closest('li');
+          if (parentLi) {
+            parentLi.style.display = 'none';
+            parentLi.style.visibility = 'hidden';
+            parentLi.style.opacity = '0';
+            parentLi.style.height = '0';
+            parentLi.style.overflow = 'hidden';
+          }
+          
+          console.log('✅ Ukryto element "Preferencje dotyczące plików cookie"');
+        }
+      }
+
+      // FUNKCJA DODAWANIA NAWIGACJI NA STRONACH POLITYK
+      function addPolicyNavigation() {
+        // Dodaj nawigację do stopki (przed popoverem)
+        const footerLeft = document.querySelector('.footer-utilities__group--left');
+        if (!footerLeft) {
+          console.log('❌ Footer left nie znaleziony');
+          return;
+        }
+        
+        const policyPopover = footerLeft.querySelector('anchored-popover-component');
+        if (!policyPopover) {
+          console.log('❌ Policy popover nie znaleziony');
+          return;
+        }
+        
+        // Sprawdzam czy nawigacja już istnieje
+        if (document.querySelector('.policy-nav-container-footer')) {
+          return;
+        }
+        
+        // Stwórz aktywną nawigację
+        const navContainer = document.createElement('div');
+        navContainer.className = 'policy-nav-container-footer';
+          navContainer.style.cssText = `
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin-top: 30px;
+            text-align: center;
+            font-size: 0.9rem;
+          `;
+          
+          const navTitle = document.createElement('div');
+          navTitle.textContent = '🔗 Szybka nawigacja:';
+          navTitle.style.cssText = `
+            color: #666;
+            margin-bottom: 10px;
+            font-weight: 500;
+          `;
+          
+          const navLinks = document.createElement('div');
+          navLinks.className = 'policy-nav-links';
+          navLinks.style.cssText = `
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+          `;
+          
+          const links = [
+            { text: 'Polityka Prywatności', url: '/policies/privacy-policy' },
+            { text: 'Polityka Zwrotów', url: '/policies/refund-policy' },
+            { text: 'Dane Kontaktowe', url: '/policies/contact-information' },
+            { text: 'Warunki Usług', url: '/policies/terms-of-service' },
+            { text: 'Polityka Wysyłki', url: '/policies/shipping-policy' }
+          ];
+          
+          links.forEach(link => {
+            const linkEl = document.createElement('a');
+            linkEl.href = link.url;
+            linkEl.textContent = link.text;
+            linkEl.style.cssText = `
+              color: #666;
+              text-decoration: none;
+              font-weight: 500;
+              padding: 8px 16px;
+              border-radius: 6px;
+              transition: all 0.3s ease;
+              display: inline-block;
+              border: 1px solid transparent;
+            `;
+            
+            linkEl.addEventListener('mouseenter', function() {
+              this.style.color = '#333';
+              this.style.backgroundColor = '#fff';
+              this.style.borderColor = '#666';
+              this.style.transform = 'translateY(-2px)';
+              this.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
+            });
+            
+            linkEl.addEventListener('mouseleave', function() {
+              this.style.color = '#666';
+              this.style.backgroundColor = 'transparent';
+              this.style.borderColor = 'transparent';
+              this.style.transform = 'translateY(0)';
+              this.style.boxShadow = 'none';
+            });
+            
+            navLinks.appendChild(linkEl);
+          });
+          
+          navContainer.appendChild(navTitle);
+          navContainer.appendChild(navLinks);
+          
+          // Wstaw nawigację przed popoverem w stopce
+          footerLeft.insertBefore(navContainer, policyPopover);
+          
+          console.log('✅ [v2] Nawigacja dodana w stopce przed popoverem');
+      }
+
       function fixGalleryProportions() {
         const galleryGrid = document.querySelector('.media-gallery__grid');
         if (!galleryGrid) return;
         
         console.log('🔧 Naprawiam proporcje galerii...');
+        
+        // UKRYJ SLIDESHOW-COMPONENT NA MOBILE (powoduje duplikację głównego zdjęcia)
+        if (window.innerWidth <= 749) {
+          const slideshow = document.querySelector('slideshow-component');
+          if (slideshow) {
+            slideshow.style.setProperty('display', 'none', 'important');
+            slideshow.style.setProperty('visibility', 'hidden', 'important');
+            slideshow.style.setProperty('opacity', '0', 'important');
+            slideshow.style.setProperty('height', '0', 'important');
+            slideshow.style.setProperty('overflow', 'hidden', 'important');
+            console.log('🎯 Ukryto slideshow-component na mobile');
+          }
+        }
+        
+        // Dodaj aktywną nawigację na stronach polityk
+        if (window.location.pathname.includes('/policies/')) {
+          addPolicyNavigation();
+        }
         
         // Wymuś nowe wymiary przez JavaScript - KARUZELA
         galleryGrid.style.setProperty('display', 'flex', 'important');
@@ -317,6 +544,12 @@
         
         // Uruchom ponownie co 500ms żeby nadpisać style Shopify
         setInterval(fixGalleryProportions, 500);
+        
+        // Dodaj nawigację w stopce (na wszystkich stronach)
+        addPolicyNavigation();
+        
+        // Ukryj starą sekcję polityk
+        hideOldPolicySection();
       });
     </script>
     

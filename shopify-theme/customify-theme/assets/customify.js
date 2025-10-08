@@ -501,9 +501,88 @@ class CustomifyEmbed {
     }
   }
 
-  showResult(imageUrl) {
+  // FUNKCJA DODAWANIA WATERMARKU
+  async addWatermark(imageUrl) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          
+          canvas.width = img.width;
+          canvas.height = img.height;
+          
+          // Rysuj oryginalny obraz
+          ctx.drawImage(img, 0, 0);
+          
+          // ===== WZÓR DIAGONALNY - "Lumly.pl" i "Podgląd" NA PRZEMIAN =====
+          ctx.save();
+          ctx.font = 'bold 30px Arial';
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+          ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
+          ctx.lineWidth = 1.5;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          
+          // Obróć canvas
+          ctx.translate(canvas.width/2, canvas.height/2);
+          ctx.rotate(-30 * Math.PI / 180);
+          ctx.translate(-canvas.width/2, -canvas.height/2);
+          
+          // Rysuj watermarki w siatce - na przemian "Lumly.pl" i "Podgląd"
+          const spacing = 180;
+          let textIndex = 0;
+          const texts = ['Lumly.pl', 'Podgląd'];
+          
+          for(let y = -canvas.height; y < canvas.height * 2; y += spacing) {
+            for(let x = -canvas.width; x < canvas.width * 2; x += spacing * 1.5) {
+              const text = texts[textIndex % 2];
+              ctx.strokeText(text, x, y);
+              ctx.fillText(text, x, y);
+              textIndex++;
+            }
+            // Zmień wzór co wiersz dla lepszego efektu
+            textIndex++;
+          }
+          
+          ctx.restore();
+          
+          // Zwróć obraz z watermarkiem jako Data URL
+          resolve(canvas.toDataURL('image/jpeg', 0.92));
+        } catch (error) {
+          console.error('❌ Watermark error:', error);
+          reject(error);
+        }
+      };
+      
+      img.onerror = (error) => {
+        console.error('❌ Image load error:', error);
+        reject(error);
+      };
+      
+      img.src = imageUrl;
+    });
+  }
+
+  async showResult(imageUrl) {
     console.log('🎯 [CUSTOMIFY] showResult called, hiding actionsArea and stylesArea');
+    
+    // WATERMARK WYŁĄCZONY - odkomentuj poniższe linie żeby włączyć
+    // try {
+    //   const watermarkedImage = await this.addWatermark(imageUrl);
+    //   this.resultImage.src = watermarkedImage;
+    //   console.log('🎨 [CUSTOMIFY] Watermark dodany do podglądu');
+    // } catch (error) {
+    //   console.error('❌ [CUSTOMIFY] Watermark error:', error);
+    //   this.resultImage.src = imageUrl;
+    // }
+    
+    // Pokaż obraz bez watermarku
     this.resultImage.src = imageUrl;
+    
     this.resultArea.style.display = 'block';
     
     // Pokaż rozmiary pod zdjęciem wynikowym
@@ -1135,19 +1214,19 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize cart integration
   initCartIntegration();
   
-  // Add mobile thumbnails
-  addMobileThumbnails();
+  // Add mobile thumbnails - WYŁĄCZONE (miniaturki są obsługiwane przez theme.liquid)
+  // addMobileThumbnails();
   
-  // Re-add thumbnails on resize
-  window.addEventListener('resize', () => {
-    addMobileThumbnails();
-  });
+  // Re-add thumbnails on resize - WYŁĄCZONE
+  // window.addEventListener('resize', () => {
+  //   addMobileThumbnails();
+  // });
   
   // Clean up dividers and spacing
   window.addEventListener('load', () => {
     setTimeout(() => {
-      // Add mobile thumbnails after load
-      addMobileThumbnails();
+      // Add mobile thumbnails after load - WYŁĄCZONE
+      // addMobileThumbnails();
       // USUŃ DIVIDERY FIZYCZNIE Z DOM
       const dividers = document.querySelectorAll('.divider, .divider__line, .divider-AM3M2YnhsTllLTUtCS__divider_VJhene');
       dividers.forEach(divider => {

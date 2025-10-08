@@ -1,4 +1,433 @@
 /* ========================================
+   CUSTOMIFY FOOTER STYLES - POKAŻ WSZYSTKIE ELEMENTY
+   ======================================== */
+
+/* FIX: POKAŻ WSZYSTKIE ELEMENTY STOPKI ZAMIAST POPOVER */
+.terms-policies-popover {
+  position: static !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  transform: none !important;
+  box-shadow: none !important;
+  border: none !important;
+  background: #f8f9fa !important; /* Jasne tło dla stopki */
+  padding: 20px !important; /* Większy padding */
+  margin: 15px 0 !important; /* Marginesy */
+  max-width: none !important;
+  width: 100% !important;
+  height: auto !important;
+  z-index: auto !important;
+  border-radius: 8px !important; /* Zaokrąglone rogi */
+  border: 1px solid #e9ecef !important; /* Subtelna ramka */
+}
+
+.policy_list {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 25px !important; /* Jeszcze większy gap */
+  margin: 0 !important;
+  padding: 0 !important;
+  list-style: none !important;
+  justify-content: center !important; /* Wyśrodkuj elementy menu */
+  align-items: center !important; /* Wyśrodkuj wertykalnie */
+}
+
+.policy_list li {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.policy_list a {
+  color: #222 !important; /* Ciemny kolor na jasnym tle */
+  text-decoration: none !important;
+  font-size: 1.6rem !important; /* Jeszcze większy font (z 1.4rem na 1.6rem) */
+  font-weight: 400 !important; /* Normalny, bez pogrubienia */
+  transition: all 0.3s ease !important; /* Płynniejsza animacja */
+  padding: 12px 20px !important; /* Większy padding dla linków */
+  border-radius: 8px !important; /* Większe zaokrąglone rogi */
+  display: inline-block !important;
+  line-height: 1.5 !important; /* Lepszy line-height */
+  text-align: center !important; /* Wyśrodkuj tekst w linkach */
+  letter-spacing: 0.5px !important; /* Lepsze odstępy między literami */
+  text-shadow: 0 1px 2px rgba(0,0,0,0.1) !important; /* Subtelny cień dla czytelności */
+}
+
+.policy_list a:hover {
+  color: #dc3545 !important; /* Kolor hover */
+  background-color: #fff !important; /* Tło hover */
+  transform: translateY(-2px) !important; /* Większy efekt hover */
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important; /* Większy cień hover */
+  text-shadow: 0 2px 4px rgba(220,53,69,0.3) !important; /* Cień w kolorze hover */
+}
+
+/* UKRYJ PRZYCISK POPOVER - POKAŻ TYLKO LISTĘ */
+.policy-list-trigger {
+  display: none !important;
+}
+
+/* RESPONSIVE - MOBILE */
+@media (max-width: 768px) {
+  .policy_list {
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+}
+
+/* FIX: PRZENIEŚ COPYRIGHT PONIŻEJ MENU W STOPCE */
+.footer-utilities {
+  background: #f8f9fa !important; /* Jasne tło dla całej stopki */
+  padding: 30px 20px !important; /* Większy padding */
+  margin-top: 40px !important; /* Margines od góry */
+  border-top: 2px solid #e9ecef !important; /* Linia na górze */
+}
+
+.footer-utilities__group--left {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 20px !important; /* Większy gap */
+}
+
+.footer-utilities__group-copyright {
+  order: 2 !important; /* Po menu (order: 1) */
+  font-size: 1.1rem !important; /* Większy font dla copyright */
+  font-weight: 500 !important; /* Półpogrubiony */
+  color: #666 !important; /* Ciemny kolor na jasnym tle */
+  text-align: center !important; /* Wyśrodkuj cały element copyright */
+  width: 100% !important; /* Pełna szerokość */
+}
+
+.footer-utilities__group-copyright a {
+  color: #dc3545 !important; /* Czerwony kolor linku */
+  text-decoration: none !important;
+  font-weight: 600 !important; /* Pogrubiony link */
+  display: inline-block !important; /* Inline-block dla lepszego wyśrodkowania */
+}
+
+.footer-utilities__group-copyright a:hover {
+  text-decoration: underline !important;
+}
+
+.anchored-popover-component {
+  order: 1 !important; /* Przed copyright */
+}
+
+/* UKRYJ "PREFERENCJE DOTYCZĄCE PLIKÓW COOKIE" Z DOLNEGO MENU */
+.footer-utilities__text[href="/policies/#shopifyReshowConsentBanner"],
+.footer-utilities a[href="/policies/#shopifyReshowConsentBanner"],
+.footer-utilities li:has(a[href="/policies/#shopifyReshowConsentBanner"]) {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  height: 0 !important;
+  overflow: hidden !important;
+}
+
+/* UKRYJ DUPLIKATY MINIATUREK NA MOBILE */
+.customify-mobile-thumbnails {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  height: 0 !important;
+  overflow: hidden !important;
+}
+
+/* UKRYJ STARY POPOVER Z POLITYKAMI W STOPCE */
+.footer-utilities__group--left anchored-popover-component,
+.footer-utilities__group--left .anchored-popover-component {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  height: 0 !important;
+  overflow: hidden !important;
+}
+
+/* STYLIZUJ NOWĄ NAWIGACJĘ POLITYK W STOPCE */
+.policy-nav-container-footer {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  text-align: center !important;
+}
+
+.policy-nav-container-footer .policy-nav-links a {
+  color: #666 !important; /* Szary kolor zamiast czerwonego */
+}
+
+.policy-nav-container-footer .policy-nav-links a:hover {
+  color: #333 !important; /* Ciemniejszy szary przy hover */
+  background-color: #fff !important;
+  border-color: #666 !important;
+}
+
+.footer-utilities__group--right {
+  display: flex !important;
+  justify-content: flex-end !important;
+  align-items: flex-start !important;
+}
+
+/* MOBILE - STACK VERTICAL */
+@media (max-width: 768px) {
+  .footer-utilities {
+    padding: 20px 15px !important; /* Mniejszy padding na mobile */
+    margin-top: 30px !important;
+    background: #f8f9fa !important; /* Jasne tło na mobile */
+  }
+  
+  .footer-utilities__group--left {
+    gap: 15px !important;
+  }
+  
+  .footer-utilities__group--right {
+    justify-content: flex-start !important;
+    margin-top: 15px !important;
+  }
+  
+  .policy_list {
+    flex-direction: column !important;
+    gap: 15px !important; /* Większy gap na mobile */
+    justify-content: center !important; /* Wyśrodkuj na mobile */
+    align-items: center !important; /* Wyśrodkuj wertykalnie na mobile */
+  }
+  
+  .policy_list a {
+    font-size: 1.3rem !important; /* Większy font na mobile (z 1.1rem na 1.3rem) */
+    padding: 14px 20px !important; /* Większy padding na mobile */
+    text-align: center !important;
+    font-weight: 700 !important; /* Bardziej pogrubiony na mobile */
+    letter-spacing: 0.3px !important; /* Lepsze odstępy na mobile */
+    width: 100% !important; /* Pełna szerokość na mobile */
+    max-width: 300px !important; /* Maksymalna szerokość na mobile */
+  }
+  
+  .footer-utilities__group-copyright {
+    font-size: 1rem !important; /* Mniejszy font na mobile */
+    text-align: center !important; /* Wyśrodkuj na mobile */
+    width: 100% !important; /* Pełna szerokość na mobile */
+  }
+  
+  .footer-utilities__group-copyright a {
+    display: inline-block !important; /* Inline-block na mobile */
+    text-align: center !important; /* Wyśrodkuj link na mobile */
+  }
+}
+
+/* ========================================
+   CUSTOMIFY MOBILE GALLERY FIX - UKRYJ DUPLIKATY
+   ======================================== */
+
+/* UKRYJ DUPLIKATY GŁÓWNEGO ZDJĘCIA NA MOBILE */
+@media screen and (max-width: 749px) {
+  /* UKRYJ SLIDESHOW-COMPONENT - powoduje duplikację głównego zdjęcia */
+  slideshow-component {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+  }
+  
+  /* ZOSTAW TYLKO media-gallery__grid */
+  .media-gallery__grid {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+}
+
+/* ========================================
+   CUSTOMIFY POLICY PAGES MENU
+   ======================================== */
+
+/* BIAŁE MENU NA STRONACH POLITYK */
+.shopify-policy__container {
+  background: white !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1) !important;
+  margin: 20px auto !important;
+  max-width: 1200px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+/* MENU NAWIGACYJNE NA GÓRZE STRONY POLITYK */
+.shopify-policy__container::before {
+  content: '';
+  display: block;
+  background: #f8f9fa;
+  border-bottom: 2px solid #e9ecef;
+  padding: 20px;
+  margin-bottom: 0;
+}
+
+/* UKRYJ TYTUŁ STRONY POLITYK */
+.shopify-policy__container .shopify-policy__title {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  height: 0 !important;
+  overflow: hidden !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.shopify-policy__container .shopify-policy__title h1 {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  height: 0 !important;
+  overflow: hidden !important;
+}
+
+/* KONTENER Z TREŚCIĄ POLITYK */
+.shopify-policy__container .shopify-policy__body {
+  background: white !important;
+  padding: 40px !important;
+  margin: 0 !important;
+}
+
+/* DODAJ MENU NAWIGACYJNE W TREŚCI */
+.shopify-policy__container .rte::before {
+  content: '';
+  display: block;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 30px;
+  position: relative;
+}
+
+/* DOLNA NAWIGACJA POLITYK - AKTYWNE LINKI (JavaScript) */
+.shopify-policy__container .policy-nav-container {
+  background: #f8f9fa !important;
+  border: 1px solid #e9ecef !important;
+  border-radius: 8px !important;
+  padding: 15px 20px !important;
+  margin-top: 30px !important;
+  text-align: center !important;
+  font-size: 0.9rem !important;
+}
+
+.shopify-policy__container .policy-nav-links {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: center !important;
+  gap: 15px !important;
+  margin-top: 10px !important;
+}
+
+.shopify-policy__container .policy-nav-links a {
+  color: #dc3545 !important;
+  text-decoration: none !important;
+  font-weight: 500 !important;
+  padding: 8px 16px !important;
+  border-radius: 6px !important;
+  transition: all 0.3s ease !important;
+  display: inline-block !important;
+  border: 1px solid transparent !important;
+}
+
+.shopify-policy__container .policy-nav-links a:hover {
+  color: #c82333 !important;
+  background-color: #fff !important;
+  border-color: #dc3545 !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1) !important;
+}
+
+/* STYLIZUJ NAGŁÓWKI W TREŚCI POLITYK */
+.shopify-policy__container .rte h1 {
+  color: #dc3545 !important;
+  font-size: 2.2rem !important;
+  font-weight: 700 !important;
+  text-align: center !important;
+  margin: 30px 0 !important;
+  padding: 20px !important;
+  background: #f8f9fa !important;
+  border-radius: 8px !important;
+  border-left: 4px solid #dc3545 !important;
+}
+
+.shopify-policy__container .rte h2 {
+  color: #333 !important;
+  font-size: 1.5rem !important;
+  font-weight: 600 !important;
+  margin: 25px 0 15px 0 !important;
+  padding: 15px !important;
+  background: #f8f9fa !important;
+  border-radius: 6px !important;
+  border-left: 3px solid #dc3545 !important;
+}
+
+/* STYLIZUJ PARAGRAFY */
+.shopify-policy__container .rte p {
+  line-height: 1.7 !important;
+  margin: 15px 0 !important;
+  color: #444 !important;
+  font-size: 1rem !important;
+}
+
+/* STYLIZUJ LINKI W TREŚCI */
+.shopify-policy__container .rte a {
+  color: #dc3545 !important;
+  text-decoration: none !important;
+  font-weight: 600 !important;
+  border-bottom: 1px solid transparent !important;
+  transition: all 0.2s ease !important;
+}
+
+.shopify-policy__container .rte a:hover {
+  color: #b02a37 !important;
+  border-bottom-color: #dc3545 !important;
+}
+
+/* STYLIZUJ LINIE POZIOME */
+.shopify-policy__container .rte hr {
+  border: none !important;
+  height: 2px !important;
+  background: linear-gradient(90deg, #dc3545, #e9ecef, #dc3545) !important;
+  margin: 30px 0 !important;
+  border-radius: 1px !important;
+}
+
+/* RESPONSIVE - MOBILE */
+@media (max-width: 768px) {
+  .shopify-policy__container {
+    margin: 10px !important;
+    border-radius: 8px !important;
+  }
+  
+  .shopify-policy__container .shopify-policy__title {
+    padding: 15px !important;
+  }
+  
+  .shopify-policy__container .shopify-policy__title h1 {
+    font-size: 1.5rem !important;
+  }
+  
+  .shopify-policy__container .shopify-policy__body {
+    padding: 20px !important;
+  }
+  
+  .shopify-policy__container .rte h1 {
+    font-size: 1.8rem !important;
+    padding: 15px !important;
+  }
+  
+  .shopify-policy__container .rte h2 {
+    font-size: 1.3rem !important;
+    padding: 12px !important;
+  }
+  
+  .shopify-policy__container .rte::after {
+    font-size: 0.8rem !important;
+    padding: 12px !important;
+  }
+}
+
+/* ========================================
    CUSTOMIFY HEADER STYLES
    ======================================== */
 
