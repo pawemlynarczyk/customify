@@ -208,6 +208,21 @@ class CustomifyEmbed {
       return;
     }
 
+    // SPRAWDŹ CZY OPIS ZAWIERA ROZMIARY - jeśli nie, dodaj je
+    if (!allText.includes('rozmiary') && !allText.includes('A2') && !allText.includes('A3')) {
+      console.log('📏 [CUSTOMIFY] Adding sizes to description');
+      
+      // Dodaj rozmiary do opisu
+      const sizesText = '\n\nZobacz rozmiary jakie drukujemy:\nA2 (42×59 cm), A3 (30×42 cm), A4 (21×30 cm), A5 (15×21 cm)';
+      
+      // Aktualizuj kontener z rozmiarami
+      descriptionContainer.innerHTML += `<p>${sizesText}</p>`;
+      
+      // Pobierz zaktualizowany tekst
+      const updatedText = descriptionContainer.textContent.trim();
+      console.log('✅ [CUSTOMIFY] Description updated with sizes, new length:', updatedText.length);
+    }
+
     const shortText = allText.substring(0, charLimit) + '...';
     
     // Zapisz oryginalną zawartość HTML (wszystkie paragrafy!)
