@@ -470,10 +470,11 @@
   order: 2 !important; /* Gwiazdki zaraz po tytule */
 }
 
-/* OPIS POD GWIAZDKAMI - WYMUSZA ORDER */
+/* OPIS POD GWIAZDKAMI - WYMUSZA ORDER + WIĘKSZY ODSTĘP */
 .group-block-content > .text-block.rte {
   order: 10 !important; /* Opis na końcu - po tytule + gwiazdkach */
-  margin-top: 12px !important;
+  margin-top: 24px !important; /* Większy odstęp - gwiazdki nie zasłaniają */
+  clear: both !important;
 }
 
 .group-block[data-testid="group-block"].customify-title-moved .product-badges .discount-badge,
@@ -483,8 +484,11 @@
   vertical-align: middle !important;
 }
 
-/* UKRYJ BADGE "OSZCZĘDZASZ 30%" - NIE POKAZUJ GO W OGÓLE */
-.group-block[data-testid="group-block"].customify-title-moved .discount-badge {
+/* UKRYJ BADGE "OSZCZĘDZASZ 30%" - NIE POKAZUJ GO W OGÓLE - WSZĘDZIE */
+.discount-badge,
+.group-block[data-testid="group-block"] .discount-badge,
+.group-block[data-testid="group-block"].customify-title-moved .discount-badge,
+[class*="discount-badge"] {
   display: none !important;
   visibility: hidden !important;
   opacity: 0 !important;
@@ -492,6 +496,8 @@
   width: 0 !important;
   margin: 0 !important;
   padding: 0 !important;
+  position: absolute !important;
+  left: -9999px !important;
 }
 
 /* USUŃ CIENIE Z ELEMENTU TYTUŁU */
