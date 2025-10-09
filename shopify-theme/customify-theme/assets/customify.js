@@ -34,6 +34,7 @@ class CustomifyEmbed {
     this.positionApp();
     this.showStyles(); // Pokaż style od razu
     this.filterStylesForProduct();
+    this.setupExpandableDescription(); // Rozwijany opis produktu
   }
 
   filterStylesForProduct() {
@@ -152,6 +153,69 @@ class CustomifyEmbed {
     this.addDividerAfterTitle();
 
     console.log('✅ [CUSTOMIFY] Title moved to top successfully!');
+  }
+
+  // ROZWIJANY OPIS PRODUKTU
+  setupExpandableDescription() {
+    const descriptionElement = document.querySelector('.group-block-content > .text-block.rte p');
+    if (!descriptionElement) return;
+
+    const fullText = descriptionElement.textContent.trim();
+    const charLimit = 150;
+
+    // Tylko dla długich opisów
+    if (fullText.length <= charLimit) return;
+
+    const shortText = fullText.substring(0, charLimit) + '...';
+    
+    // Stwórz wrapper dla opisu
+    const wrapper = document.createElement('div');
+    wrapper.className = 'description-expandable';
+    
+    // Tekst skrócony
+    const shortParagraph = document.createElement('p');
+    shortParagraph.className = 'description-short';
+    shortParagraph.textContent = shortText;
+    
+    // Tekst pełny (ukryty)
+    const fullParagraph = document.createElement('p');
+    fullParagraph.className = 'description-full';
+    fullParagraph.textContent = fullText;
+    fullParagraph.style.display = 'none';
+    
+    // Przycisk rozwijania
+    const toggleButton = document.createElement('button');
+    toggleButton.className = 'description-toggle';
+    toggleButton.innerHTML = 'Szczegóły produktu <span class="toggle-icon">▼</span>';
+    toggleButton.setAttribute('aria-expanded', 'false');
+    
+    // Event listener
+    let isExpanded = false;
+    toggleButton.addEventListener('click', () => {
+      isExpanded = !isExpanded;
+      
+      if (isExpanded) {
+        shortParagraph.style.display = 'none';
+        fullParagraph.style.display = 'block';
+        toggleButton.innerHTML = 'Zwiń opis <span class="toggle-icon">▲</span>';
+        toggleButton.setAttribute('aria-expanded', 'true');
+      } else {
+        shortParagraph.style.display = 'block';
+        fullParagraph.style.display = 'none';
+        toggleButton.innerHTML = 'Szczegóły produktu <span class="toggle-icon">▼</span>';
+        toggleButton.setAttribute('aria-expanded', 'false');
+      }
+    });
+    
+    // Złóż wszystko
+    wrapper.appendChild(shortParagraph);
+    wrapper.appendChild(fullParagraph);
+    wrapper.appendChild(toggleButton);
+    
+    // Zamień oryginalny opis
+    descriptionElement.parentNode.replaceChild(wrapper, descriptionElement);
+    
+    console.log('✅ [CUSTOMIFY] Expandable description setup');
   }
 
   // DODAJ DIVIDER POD TYTUŁEM
