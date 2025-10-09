@@ -450,7 +450,7 @@
 }
 
 .group-block[data-testid="group-block"].customify-title-moved .view-product-title {
-  margin: 0 0 12px 0 !important;
+  margin: 0 0 4px 0 !important; /* Zmniejszony odstęp - gwiazdki bliżej tytułu */
   padding: 0 !important;
   display: block !important;
   width: 100% !important;
@@ -459,7 +459,7 @@
 }
 
 .group-block[data-testid="group-block"].customify-title-moved .product-badges {
-  margin: 0 !important;
+  margin: 0 !important; /* BEZ górnego marginesu - tuż pod tytułem */
   padding: 0 !important;
   display: block !important;
   width: 100% !important;
@@ -558,10 +558,11 @@
   display: none !important;
 }
 
-/* ZOSTAW BADGE'Y WIDOCZNE */
+/* ZOSTAW BADGE'Y WIDOCZNE - TUŻ POD TYTUŁEM */
 .group-block[data-testid="group-block"].customify-title-moved .product-badges {
   display: flex !important;
-  margin: 8px 0 0 0 !important;
+  margin: 0 !important; /* BEZ marginesu - tuż pod tytułem */
+  padding-top: 2px !important; /* Minimalny odstęp */
 }
 
 
