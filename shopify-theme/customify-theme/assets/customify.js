@@ -34,18 +34,6 @@ class CustomifyEmbed {
     this.positionApp();
     this.showStyles(); // Pokaż style od razu
     this.filterStylesForProduct();
-    
-    // Rozwijany opis - uruchom po opóźnieniu (czekaj na załadowanie DOM)
-    setTimeout(() => {
-      this.setupExpandableDescription();
-    }, 1500);
-    
-    // Dodatkowe wywołanie po 3s dla pewności
-    setTimeout(() => {
-      if (!document.querySelector('.description-expandable')) {
-        this.setupExpandableDescription();
-      }
-    }, 3000);
   }
 
   filterStylesForProduct() {
@@ -166,118 +154,6 @@ class CustomifyEmbed {
     console.log('✅ [CUSTOMIFY] Title moved to top successfully!');
   }
 
-  // ROZWIJANY OPIS PRODUKTU
-  setupExpandableDescription() {
-    // DEBUG: Sprawdź WSZYSTKIE kontenery z opisem
-    console.log('🔍 [CUSTOMIFY] DEBUGGING DESCRIPTION STRUCTURE:');
-    
-    const allTextBlocks = document.querySelectorAll('.text-block, .group-block-content, [class*="description"], [class*="product-info"]');
-    console.log('📋 [CUSTOMIFY] Found text blocks:', allTextBlocks.length);
-    
-    allTextBlocks.forEach((block, index) => {
-      console.log(`📝 [CUSTOMIFY] Block ${index}:`, {
-        className: block.className,
-        textLength: block.textContent.trim().length,
-        textPreview: block.textContent.trim().substring(0, 100) + '...',
-        innerHTML: block.innerHTML.substring(0, 200) + '...'
-      });
-    });
-
-    // Znajdź kontener z opisem produktu
-    const descriptionContainer = document.querySelector('.text-block.rte');
-    
-    if (!descriptionContainer) {
-      console.log('⚠️ [CUSTOMIFY] Description container .text-block.rte not found');
-      return;
-    }
-
-    // Zbierz CAŁY tekst ze wszystkich paragrafów
-    const allText = descriptionContainer.textContent.trim();
-    const charLimit = 100;
-
-    console.log('📊 [CUSTOMIFY] Description analysis:', {
-      containerHTML: descriptionContainer.innerHTML,
-      textLength: allText.length,
-      textContent: allText,
-      charLimit: charLimit
-    });
-
-    // Tylko dla długich opisów
-    if (allText.length <= charLimit) {
-      console.log('⚠️ [CUSTOMIFY] Description too short for expanding');
-      return;
-    }
-
-    // SPRAWDŹ CZY OPIS ZAWIERA ROZMIARY - jeśli nie, dodaj je
-    if (!allText.includes('rozmiary') && !allText.includes('A2') && !allText.includes('A3')) {
-      console.log('📏 [CUSTOMIFY] Adding sizes to description');
-      
-      // Dodaj rozmiary do opisu
-      const sizesText = '\n\nZobacz rozmiary jakie drukujemy:\nA2 (42×59 cm), A3 (30×42 cm), A4 (21×30 cm), A5 (15×21 cm)';
-      
-      // Aktualizuj kontener z rozmiarami
-      descriptionContainer.innerHTML += `<p>${sizesText}</p>`;
-      
-      // Pobierz zaktualizowany tekst
-      const updatedText = descriptionContainer.textContent.trim();
-      console.log('✅ [CUSTOMIFY] Description updated with sizes, new length:', updatedText.length);
-    }
-
-    const shortText = allText.substring(0, charLimit) + '...';
-    
-    // Zapisz oryginalną zawartość HTML (wszystkie paragrafy!)
-    const originalHTML = descriptionContainer.innerHTML;
-    
-    // Stwórz wrapper dla opisu
-    const wrapper = document.createElement('div');
-    wrapper.className = 'description-expandable';
-    
-    // Tekst skrócony (tylko prosty tekst)
-    const shortDiv = document.createElement('div');
-    shortDiv.className = 'description-short';
-    shortDiv.innerHTML = `<p>${shortText}</p>`;
-    
-    // Pełna zawartość (WSZYSTKIE paragrafy z HTML)
-    const fullDiv = document.createElement('div');
-    fullDiv.className = 'description-full';
-    fullDiv.innerHTML = originalHTML;
-    fullDiv.style.display = 'none';
-    
-    // Przycisk rozwijania
-    const toggleButton = document.createElement('button');
-    toggleButton.className = 'description-toggle';
-    toggleButton.innerHTML = 'Szczegóły produktu <span class="toggle-icon">▼</span>';
-    toggleButton.setAttribute('aria-expanded', 'false');
-    toggleButton.style.color = '#333';
-    
-    // Event listener
-    let isExpanded = false;
-    toggleButton.addEventListener('click', () => {
-      isExpanded = !isExpanded;
-      
-      if (isExpanded) {
-        shortDiv.style.display = 'none';
-        fullDiv.style.display = 'block';
-        toggleButton.innerHTML = 'Zwiń opis <span class="toggle-icon">▲</span>';
-        toggleButton.setAttribute('aria-expanded', 'true');
-      } else {
-        shortDiv.style.display = 'block';
-        fullDiv.style.display = 'none';
-        toggleButton.innerHTML = 'Szczegóły produktu <span class="toggle-icon">▼</span>';
-        toggleButton.setAttribute('aria-expanded', 'false');
-      }
-    });
-    
-    // Złóż wszystko
-    wrapper.appendChild(shortDiv);
-    wrapper.appendChild(fullDiv);
-    wrapper.appendChild(toggleButton);
-    
-    // Zamień cały kontener opisu
-    descriptionContainer.parentNode.replaceChild(wrapper, descriptionContainer);
-    
-    console.log('✅ [CUSTOMIFY] Expandable description setup (full HTML)');
-  }
 
   // DODAJ DIVIDER POD TYTUŁEM
   addDividerAfterTitle() {

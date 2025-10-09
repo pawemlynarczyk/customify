@@ -84,14 +84,6 @@
       "dest": "/api/create-products.js"
     },
     {
-      "src": "/api/get-product-description",
-      "dest": "/api/get-product-description.js"
-    },
-    {
-      "src": "/api/get-all-products",
-      "dest": "/api/get-all-products.js"
-    },
-    {
       "src": "/(.*)",
       "dest": "/public/$1"
     }
