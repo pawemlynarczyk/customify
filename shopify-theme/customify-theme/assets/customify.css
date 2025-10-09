@@ -473,7 +473,7 @@
 /* OPIS POD GWIAZDKAMI - WYMUSZA ORDER + WIĘKSZY ODSTĘP */
 .group-block-content > .text-block.rte {
   order: 10 !important; /* Opis na końcu - po tytule + gwiazdkach */
-  margin-top: 24px !important; /* Większy odstęp - gwiazdki nie zasłaniają */
+  margin-top: 40px !important; /* Zwiększony odstęp między tytułem a opisem */
   clear: both !important;
 }
 
