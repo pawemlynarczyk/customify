@@ -35,8 +35,7 @@ class CustomifyEmbed {
     this.showStyles(); // Pokaż style od razu
     // filterStylesForProduct() USUNIĘTE - logika przeniesiona na server-side (Shopify Liquid)
     
-    // Setup expandable description (Etsy-style) - BEZ setTimeout!
-    this.setupExpandableDescription();
+    // Setup expandable description USUNIĘTE - opisy produktów są teraz pełne
     
     // Setup accordion for product details - BEZ setTimeout!
     this.setupAccordion();
@@ -44,54 +43,7 @@ class CustomifyEmbed {
 
   // filterStylesForProduct() USUNIĘTE - logika przeniesiona na server-side (Shopify Liquid)
 
-  // ETSY-STYLE EXPANDABLE DESCRIPTION
-  setupExpandableDescription() {
-    // Znajdź kontener z opisem produktu
-    const descriptionContainer = document.querySelector('.text-block.rte, .product-description, [class*="description"]');
-    
-    if (!descriptionContainer) {
-      console.log('⚠️ [CUSTOMIFY] Description container not found');
-      return;
-    }
-
-    // Sprawdź czy opis jest wystarczająco długi (>150px wysokości)
-    const height = descriptionContainer.scrollHeight;
-    if (height <= 150) {
-      console.log('⚠️ [CUSTOMIFY] Description too short for expanding');
-      return;
-    }
-
-    console.log('✅ [CUSTOMIFY] Description height:', height, 'px - adding expand button');
-
-    // Dodaj przycisk "Szczegóły produktu"
-    const button = document.createElement('button');
-    button.className = 'description-toggle-btn';
-    button.textContent = 'Szczegóły produktu';
-    button.setAttribute('aria-expanded', 'false');
-    
-    // Event listener - TYLKO toggle klasy (BEZ DOM manipulation)
-    button.addEventListener('click', () => {
-      const isExpanded = descriptionContainer.classList.contains('expanded');
-      
-      if (isExpanded) {
-        // Zwiń
-        descriptionContainer.classList.remove('expanded');
-        button.classList.remove('hidden');
-        button.textContent = 'Szczegóły produktu';
-        button.setAttribute('aria-expanded', 'false');
-      } else {
-        // Rozwiń
-        descriptionContainer.classList.add('expanded');
-        button.classList.add('hidden');
-        button.setAttribute('aria-expanded', 'true');
-      }
-    });
-    
-    // Wstaw przycisk po opisie
-    descriptionContainer.parentNode.insertBefore(button, descriptionContainer.nextSibling);
-    
-    console.log('✅ [CUSTOMIFY] Expandable description setup complete');
-  }
+  // ETSY-STYLE EXPANDABLE DESCRIPTION USUNIĘTE - opisy produktów są teraz pełne
 
   // ACCORDION: SZCZEGÓŁY PRODUKTU
   setupAccordion() {

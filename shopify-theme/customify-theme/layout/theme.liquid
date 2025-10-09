@@ -194,76 +194,7 @@
         }
       }
 
-      /* ETSY-STYLE EXPANDABLE DESCRIPTION - CSS NATYCHMIAST UKRYWA (BEZ OPÓŹNIENIA) */
-      .text-block.rte,
-      .product-description,
-      [class*="description"] {
-        position: relative;
-        max-height: 150px;
-        overflow: hidden;
-        transition: max-height 0.3s ease;
-      }
-
-      /* FADE GRADIENT na dole opisu */
-      .text-block.rte::after,
-      .product-description::after,
-      [class*="description"]::after {
-        content: '';
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 60px;
-        background: linear-gradient(to bottom, transparent, white);
-        pointer-events: none;
-        transition: opacity 0.3s ease;
-      }
-
-      /* PO rozwinięciu - pokaż cały opis */
-      .text-block.rte.expanded,
-      .product-description.expanded,
-      [class*="description"].expanded {
-        max-height: none;
-      }
-
-      /* Ukryj gradient po rozwinięciu */
-      .text-block.rte.expanded::after,
-      .product-description.expanded::after,
-      [class*="description"].expanded::after {
-        opacity: 0;
-      }
-
-      /* Przycisk "Szczegóły produktu" */
-      .description-toggle-btn {
-        display: block;
-        margin: 16px auto 0;
-        background: #333;
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 0.9rem;
-        font-weight: 500;
-        transition: all 0.2s ease;
-      }
-
-      .description-toggle-btn:hover {
-        background: #555;
-        transform: translateY(-1px);
-      }
-
-      /* Ukryj przycisk po rozwinięciu */
-      .description-toggle-btn.hidden {
-        display: none;
-      }
-
-      @media (max-width: 768px) {
-        .description-toggle-btn {
-          font-size: 0.85rem;
-          padding: 8px 16px;
-        }
-      }
+      /* EXPANDABLE DESCRIPTION USUNIĘTE - opisy produktów są teraz pełne */
 
       /* ACCORDION POD PRZYCISKAMI - SZCZEGÓŁY PRODUKTU */
       .product-details-accordion {
