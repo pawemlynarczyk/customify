@@ -176,62 +176,42 @@ class CustomifyEmbed {
       return;
     }
 
-    // Zbierz wszystkie paragrafy z opisu (pomijamy tytuł i gwiazdki)
-    const paragraphs = descriptionContainer.querySelectorAll('p');
-    
-    if (paragraphs.length === 0) {
-      console.log('⚠️ [CUSTOMIFY] No paragraphs in description');
-      return;
-    }
-
-    // Znajdź pierwszy znaczący paragraf (nie tytuł, nie krótki tekst)
-    let descriptionElement = null;
-    for (const p of paragraphs) {
-      const text = p.textContent.trim();
-      // Pomiń puste, bardzo krótkie (<20 znaków) i te które zawierają tylko znaki specjalne
-      if (text.length > 20 && !p.closest('.product-badges') && !p.closest('.view-product-title')) {
-        descriptionElement = p;
-        break;
-      }
-    }
-    
-    if (!descriptionElement) {
-      console.log('⚠️ [CUSTOMIFY] Description paragraph not found');
-      return;
-    }
-
-    const fullText = descriptionElement.textContent.trim();
-    const charLimit = 100; // Zmniejszony limit - bardziej widoczna różnica
+    // Zbierz CAŁY tekst ze wszystkich paragrafów
+    const allText = descriptionContainer.textContent.trim();
+    const charLimit = 100;
 
     // Tylko dla długich opisów
-    if (fullText.length <= charLimit) {
+    if (allText.length <= charLimit) {
       console.log('⚠️ [CUSTOMIFY] Description too short for expanding');
       return;
     }
 
-    const shortText = fullText.substring(0, charLimit) + '...';
+    const shortText = allText.substring(0, charLimit) + '...';
+    
+    // Zapisz oryginalną zawartość HTML (wszystkie paragrafy!)
+    const originalHTML = descriptionContainer.innerHTML;
     
     // Stwórz wrapper dla opisu
     const wrapper = document.createElement('div');
     wrapper.className = 'description-expandable';
     
-    // Tekst skrócony
-    const shortParagraph = document.createElement('p');
-    shortParagraph.className = 'description-short';
-    shortParagraph.textContent = shortText;
+    // Tekst skrócony (tylko prosty tekst)
+    const shortDiv = document.createElement('div');
+    shortDiv.className = 'description-short';
+    shortDiv.innerHTML = `<p>${shortText}</p>`;
     
-    // Tekst pełny (ukryty)
-    const fullParagraph = document.createElement('p');
-    fullParagraph.className = 'description-full';
-    fullParagraph.textContent = fullText;
-    fullParagraph.style.display = 'none';
+    // Pełna zawartość (WSZYSTKIE paragrafy z HTML)
+    const fullDiv = document.createElement('div');
+    fullDiv.className = 'description-full';
+    fullDiv.innerHTML = originalHTML;
+    fullDiv.style.display = 'none';
     
     // Przycisk rozwijania
     const toggleButton = document.createElement('button');
     toggleButton.className = 'description-toggle';
     toggleButton.innerHTML = 'Szczegóły produktu <span class="toggle-icon">▼</span>';
     toggleButton.setAttribute('aria-expanded', 'false');
-    toggleButton.style.color = '#333'; // Wymusza ciemnoszary kolor (omija Shopify cache)
+    toggleButton.style.color = '#333';
     
     // Event listener
     let isExpanded = false;
@@ -239,27 +219,27 @@ class CustomifyEmbed {
       isExpanded = !isExpanded;
       
       if (isExpanded) {
-        shortParagraph.style.display = 'none';
-        fullParagraph.style.display = 'block';
+        shortDiv.style.display = 'none';
+        fullDiv.style.display = 'block';
         toggleButton.innerHTML = 'Zwiń opis <span class="toggle-icon">▲</span>';
         toggleButton.setAttribute('aria-expanded', 'true');
       } else {
-        shortParagraph.style.display = 'block';
-        fullParagraph.style.display = 'none';
+        shortDiv.style.display = 'block';
+        fullDiv.style.display = 'none';
         toggleButton.innerHTML = 'Szczegóły produktu <span class="toggle-icon">▼</span>';
         toggleButton.setAttribute('aria-expanded', 'false');
       }
     });
     
     // Złóż wszystko
-    wrapper.appendChild(shortParagraph);
-    wrapper.appendChild(fullParagraph);
+    wrapper.appendChild(shortDiv);
+    wrapper.appendChild(fullDiv);
     wrapper.appendChild(toggleButton);
     
-    // Zamień oryginalny opis
-    descriptionElement.parentNode.replaceChild(wrapper, descriptionElement);
+    // Zamień cały kontener opisu
+    descriptionContainer.parentNode.replaceChild(wrapper, descriptionContainer);
     
-    console.log('✅ [CUSTOMIFY] Expandable description setup');
+    console.log('✅ [CUSTOMIFY] Expandable description setup (full HTML)');
   }
 
   // DODAJ DIVIDER POD TYTUŁEM
