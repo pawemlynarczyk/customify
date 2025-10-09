@@ -245,12 +245,7 @@ class CustomifyEmbed {
     const badgesContainer = document.createElement('div');
     badgesContainer.className = 'product-badges';
 
-    // Dodaj badge z okazją
-    const discountBadge = document.createElement('div');
-    discountBadge.className = 'discount-badge';
-    discountBadge.textContent = 'Oszczędzasz 30%';
-
-    // Dodaj sekcję z gwiazdkami
+    // Dodaj sekcję z gwiazdkami (discount badge USUNIĘTY)
     const ratingSection = document.createElement('div');
     ratingSection.className = 'rating-section';
 
@@ -270,8 +265,7 @@ class CustomifyEmbed {
     ratingSection.appendChild(stars);
     ratingSection.appendChild(reviewCount);
 
-    // Dodaj do kontenera
-    badgesContainer.appendChild(discountBadge);
+    // Dodaj do kontenera (discount badge USUNIĘTY)
     badgesContainer.appendChild(ratingSection);
 
     // POŁĄCZ TYTUŁ Z BADGE'AMI W JEDEN ELEMENT
