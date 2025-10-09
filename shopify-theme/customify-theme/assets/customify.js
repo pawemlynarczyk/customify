@@ -34,6 +34,11 @@ class CustomifyEmbed {
     this.positionApp();
     this.showStyles(); // Pokaż style od razu
     this.filterStylesForProduct();
+    
+    // Etsy-style expandable description - uruchom po opóźnieniu
+    setTimeout(() => {
+      this.setupEtsyStyleDescription();
+    }, 1500);
   }
 
   filterStylesForProduct() {
@@ -152,6 +157,83 @@ class CustomifyEmbed {
     this.addDividerAfterTitle();
 
     console.log('✅ [CUSTOMIFY] Title moved to top successfully!');
+  }
+
+  // ETSY-STYLE EXPANDABLE DESCRIPTION
+  setupEtsyStyleDescription() {
+    // Znajdź kontener z opisem produktu
+    const descriptionContainer = document.querySelector('.text-block.rte');
+    
+    if (!descriptionContainer) {
+      console.log('⚠️ [CUSTOMIFY] Description container not found');
+      return;
+    }
+
+    // Sprawdź czy opis jest wystarczająco długi
+    const allText = descriptionContainer.textContent.trim();
+    const charLimit = 150; // Limit dla fade efektu
+
+    if (allText.length <= charLimit) {
+      console.log('⚠️ [CUSTOMIFY] Description too short for expanding');
+      return;
+    }
+
+    // Zapisz oryginalny HTML
+    const originalHTML = descriptionContainer.innerHTML;
+    
+    // Stwórz wrapper
+    const wrapper = document.createElement('div');
+    wrapper.className = 'etsy-description-wrapper';
+    
+    // Skrócony tekst z fade gradientem
+    const shortDiv = document.createElement('div');
+    shortDiv.className = 'etsy-description-short';
+    shortDiv.innerHTML = originalHTML;
+    
+    // Pełny tekst (ukryty)
+    const fullDiv = document.createElement('div');
+    fullDiv.className = 'etsy-description-full';
+    fullDiv.innerHTML = originalHTML;
+    fullDiv.style.display = 'none';
+    
+    // Przycisk jak na Etsy
+    const buttonDiv = document.createElement('div');
+    buttonDiv.className = 'etsy-description-button-wrapper';
+    
+    const toggleButton = document.createElement('button');
+    toggleButton.className = 'etsy-description-toggle';
+    toggleButton.innerHTML = 'Szczegóły produktu';
+    toggleButton.setAttribute('aria-expanded', 'false');
+    
+    // Event listener
+    let isExpanded = false;
+    toggleButton.addEventListener('click', () => {
+      isExpanded = !isExpanded;
+      
+      if (isExpanded) {
+        shortDiv.style.display = 'none';
+        fullDiv.style.display = 'block';
+        buttonDiv.style.display = 'none';
+        toggleButton.setAttribute('aria-expanded', 'true');
+      } else {
+        shortDiv.style.display = 'block';
+        fullDiv.style.display = 'block';
+        buttonDiv.style.display = 'flex';
+        toggleButton.setAttribute('aria-expanded', 'false');
+      }
+    });
+    
+    buttonDiv.appendChild(toggleButton);
+    
+    // Złóż wszystko
+    wrapper.appendChild(shortDiv);
+    wrapper.appendChild(fullDiv);
+    wrapper.appendChild(buttonDiv);
+    
+    // Zamień oryginalny kontener
+    descriptionContainer.parentNode.replaceChild(wrapper, descriptionContainer);
+    
+    console.log('✅ [CUSTOMIFY] Etsy-style description setup');
   }
 
 

@@ -477,6 +477,84 @@
   clear: both !important;
 }
 
+/* ETSY-STYLE EXPANDABLE DESCRIPTION */
+.etsy-description-wrapper {
+  position: relative !important;
+  margin-top: 24px !important;
+  clear: both !important;
+}
+
+.etsy-description-short {
+  position: relative !important;
+  max-height: 120px !important; /* Ogranicza wysokość */
+  overflow: hidden !important;
+}
+
+/* FADE GRADIENT jak na Etsy */
+.etsy-description-short::after {
+  content: '' !important;
+  position: absolute !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: 40px !important;
+  background: linear-gradient(transparent, white) !important;
+  pointer-events: none !important;
+}
+
+.etsy-description-full {
+  display: none !important;
+  animation: fadeIn 0.3s ease-in-out !important;
+}
+
+.etsy-description-button-wrapper {
+  display: flex !important;
+  justify-content: center !important;
+  margin-top: 16px !important;
+}
+
+.etsy-description-toggle {
+  background: #333 !important;
+  color: white !important;
+  border: none !important;
+  padding: 8px 16px !important;
+  border-radius: 4px !important;
+  cursor: pointer !important;
+  font-size: 0.9rem !important;
+  font-weight: 500 !important;
+  transition: all 0.2s ease !important;
+  text-decoration: none !important;
+}
+
+.etsy-description-toggle:hover {
+  background: #555 !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Animacja rozwijania */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .etsy-description-short {
+    max-height: 100px !important;
+  }
+  
+  .etsy-description-toggle {
+    font-size: 0.85rem !important;
+    padding: 6px 12px !important;
+  }
+}
+
 
 .group-block[data-testid="group-block"].customify-title-moved .product-badges .discount-badge,
 .group-block[data-testid="group-block"].customify-title-moved .product-badges .rating-section {
