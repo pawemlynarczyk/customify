@@ -470,10 +470,10 @@
   order: 2 !important; /* Gwiazdki zaraz po tytule */
 }
 
-/* OPIS POD GWIAZDKAMI */
-.group-block[data-testid="group-block"].customify-title-moved p {
-  order: 3 !important; /* Opis pod gwiazdkami */
-  margin-top: 8px !important;
+/* OPIS POD GWIAZDKAMI - WYMUSZA ORDER */
+.group-block-content > .text-block.rte {
+  order: 10 !important; /* Opis na końcu - po tytule + gwiazdkach */
+  margin-top: 12px !important;
 }
 
 .group-block[data-testid="group-block"].customify-title-moved .product-badges .discount-badge,
