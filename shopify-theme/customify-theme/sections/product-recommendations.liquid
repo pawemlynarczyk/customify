@@ -80,7 +80,22 @@
       {% capture list_items %}
         {% for product in products limit: section.settings.max_products %}
           <div class="resource-list__item">
-            {% content_for 'block', type: '_product-card', id: 'static-product-card', closest.product: product %}
+            <div class="product-card">
+              <a href="{{ product.url }}" class="product-card__link">
+                {% if product.featured_image %}
+                  <img 
+                    src="{{ product.featured_image | image_url: width: 400 }}" 
+                    alt="{{ product.featured_image.alt | escape }}"
+                    loading="lazy"
+                    class="product-card__image"
+                  />
+                {% endif %}
+                <h3 class="product-card__title">{{ product.title }}</h3>
+                <div class="product-card__price">
+                  {{ product.price | money }}
+                </div>
+              </a>
+            </div>
           </div>
           {% unless forloop.last %}
             <!--@list/split-->
@@ -183,6 +198,51 @@
 
   product-recommendations:has([data-has-recommendations='false']) {
     display: none;
+  }
+
+  /* Simple product card styles */
+  .product-card {
+    display: block;
+    background: white;
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .product-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .product-card__link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .product-card__image {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    display: block;
+  }
+
+  .product-card__title {
+    padding: 12px 16px 8px;
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 500;
+    color: #333;
+    line-height: 1.4;
+  }
+
+  .product-card__price {
+    padding: 0 16px 16px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #000;
   }
 {% endstylesheet %}
 
