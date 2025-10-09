@@ -187,10 +187,13 @@ class CustomifyEmbed {
     }
 
     const fullText = descriptionElement.textContent.trim();
-    const charLimit = 150;
+    const charLimit = 100; // Zmniejszony limit - bardziej widoczna różnica
 
     // Tylko dla długich opisów
-    if (fullText.length <= charLimit) return;
+    if (fullText.length <= charLimit) {
+      console.log('⚠️ [CUSTOMIFY] Description too short for expanding');
+      return;
+    }
 
     const shortText = fullText.substring(0, charLimit) + '...';
     
