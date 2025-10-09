@@ -214,6 +214,7 @@ class CustomifyEmbed {
     toggleButton.className = 'description-toggle';
     toggleButton.innerHTML = 'Szczegóły produktu <span class="toggle-icon">▼</span>';
     toggleButton.setAttribute('aria-expanded', 'false');
+    toggleButton.style.color = '#333'; // Wymusza ciemnoszary kolor (omija Shopify cache)
     
     // Event listener
     let isExpanded = false;
