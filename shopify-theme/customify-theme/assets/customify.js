@@ -38,7 +38,14 @@ class CustomifyEmbed {
     // Rozwijany opis - uruchom po opóźnieniu (czekaj na załadowanie DOM)
     setTimeout(() => {
       this.setupExpandableDescription();
-    }, 500);
+    }, 1500);
+    
+    // Dodatkowe wywołanie po 3s dla pewności
+    setTimeout(() => {
+      if (!document.querySelector('.description-expandable')) {
+        this.setupExpandableDescription();
+      }
+    }, 3000);
   }
 
   filterStylesForProduct() {

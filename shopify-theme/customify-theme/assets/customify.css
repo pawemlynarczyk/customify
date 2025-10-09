@@ -492,7 +492,7 @@
 .description-toggle {
   background: none !important;
   border: none !important;
-  color: #dc3545 !important;
+  color: #333 !important;
   cursor: pointer !important;
   padding: 0 !important;
   font-size: 0.9rem !important;
