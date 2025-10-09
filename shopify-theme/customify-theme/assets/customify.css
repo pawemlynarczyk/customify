@@ -479,28 +479,12 @@
 
 
 
-.group-block[data-testid="group-block"].customify-title-moved .product-badges .discount-badge,
 .group-block[data-testid="group-block"].customify-title-moved .product-badges .rating-section {
   display: inline-block !important;
   margin-right: 12px !important;
   vertical-align: middle !important;
 }
 
-/* UKRYJ BADGE "OSZCZĘDZASZ 30%" - NIE POKAZUJ GO W OGÓLE - WSZĘDZIE */
-.discount-badge,
-.group-block[data-testid="group-block"] .discount-badge,
-.group-block[data-testid="group-block"].customify-title-moved .discount-badge,
-[class*="discount-badge"] {
-  display: none !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-  height: 0 !important;
-  width: 0 !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  position: absolute !important;
-  left: -9999px !important;
-}
 
 /* USUŃ CIENIE Z ELEMENTU TYTUŁU */
 .group-block[data-testid="group-block"].customify-title-moved {
@@ -1462,24 +1446,6 @@ main {
   z-index: 3;
 }
 
-.discount-badge,
-.group-block[data-testid="group-block"] .discount-badge,
-.product-badges .discount-badge,
-div.discount-badge {
-  background: #dc3545;
-  background-color: #dc3545;
-  color: white;
-  padding: 4px 8px;
-  border-radius: 0;
-  font-size: 12px;
-  font-weight: 600;
-  display: inline-block;
-  width: fit-content;
-  border: none;
-  box-shadow: 0 1px 2px rgba(40, 167, 69, 0.3);
-  text-shadow: none;
-  margin: 0;
-}
 
 .rating-section {
   display: flex;

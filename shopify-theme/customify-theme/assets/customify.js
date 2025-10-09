@@ -33,30 +33,10 @@ class CustomifyEmbed {
     this.setupEventListeners();
     this.positionApp();
     this.showStyles(); // Pokaż style od razu
-    this.filterStylesForProduct();
-    
+    // filterStylesForProduct() USUNIĘTE - logika przeniesiona na server-side (Shopify Liquid)
   }
 
-  filterStylesForProduct() {
-    if (!this.stylesArea) return;
-
-    const productHandle = window.location.pathname;
-    const catStyles = ['krolewski', 'na-tronie', 'wojenny', 'barokowy', 'wiktorianski', 'renesansowy'];
-
-    this.stylesArea.querySelectorAll('.customify-style-card').forEach(card => {
-      const isCatStyle = catStyles.includes(card.dataset.style);
-
-      if (productHandle.includes('koty-krolewskie-zwierzeta-w-koronach')) {
-        card.style.display = isCatStyle ? 'block' : 'none';
-      } else {
-        card.style.display = isCatStyle ? 'none' : 'block';
-      }
-    });
-
-    console.log(productHandle.includes('koty-krolewskie-zwierzeta-w-koronach')
-      ? '🎯 [CUSTOMIFY] Pokazuję tylko style kotów dla koty-krolewskie'
-      : '🎯 [CUSTOMIFY] Ukrywam style kotów na innych produktach');
-  }
+  // filterStylesForProduct() USUNIĘTE - logika przeniesiona na server-side (Shopify Liquid)
 
   // WSTRZYJ APLIKACJĘ DO KOLUMNY 2
   positionApp() {

@@ -769,49 +769,10 @@
             <div class="customify-styles" id="stylesArea" style="display: none;">
               <h4>Wybierz styl</h4>
               <div class="customify-style-grid">
-                <div class="customify-style-card" data-style="van gogh">
-                  <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/Screenshot%202025-09-29%20at%2022.17.01.png'); background-size: cover; background-position: center;"></div>
-                  <div class="style-info">
-                    <div class="style-name">Van Gogh</div>
-                  </div>
-                </div>
-                <div class="customify-style-card" data-style="picasso">
-                  <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/Screenshot%202025-09-29%20at%2022.17.14.png'); background-size: cover; background-position: center;"></div>
-                  <div class="style-info">
-                    <div class="style-name">Picasso</div>
-                  </div>
-                </div>
-                <div class="customify-style-card" data-style="monet">
-                  <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/Screenshot%202025-09-29%20at%2022.17.37.png'); background-size: cover; background-position: center;"></div>
-                  <div class="style-info">
-                    <div class="style-name">Monet</div>
-                  </div>
-                </div>
-                <div class="customify-style-card" data-style="anime">
-                  <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/Screenshot%202025-09-29%20at%2022.17.52.png'); background-size: cover; background-position: center;"></div>
-                  <div class="style-info">
-                    <div class="style-name">Anime</div>
-                  </div>
-                </div>
-                <div class="customify-style-card" data-style="cyberpunk">
-                  <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/Screenshot%202025-09-29%20at%2022.17.01.png'); background-size: cover; background-position: center;"></div>
-                  <div class="style-info">
-                    <div class="style-name">Cyberpunk</div>
-                  </div>
-                </div>
-                <div class="customify-style-card" data-style="watercolor">
-                  <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/Screenshot%202025-09-29%20at%2022.17.14.png'); background-size: cover; background-position: center;"></div>
-                  <div class="style-info">
-                    <div class="style-name">Akwarela</div>
-                  </div>
-                </div>
-                <div class="customify-style-card" data-style="pixar">
-                  <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/Screenshot%202025-09-29%20at%2022.17.37.png'); background-size: cover; background-position: center;"></div>
-                  <div class="style-info">
-                    <div class="style-name">Pixar</div>
-                  </div>
-                </div>
-                <div class="customify-style-card" data-style="krolewski">
+                {% comment %} LOGIKA SERVER-SIDE: Filtruj style per produkt {% endcomment %}
+                {% if product.handle == 'koty-krolewskie-zwierzeta-w-koronach' %}
+                  {% comment %} TYLKO STYLE KOTÓW dla produktu kotów {% endcomment %}
+                  <div class="customify-style-card" data-style="krolewski">
                   <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/koty/krolewski.png'); background-size: contain; background-position: center; background-repeat: no-repeat;"></div>
                   <div class="style-info">
                     <div class="style-name">Królewski Kot</div>
@@ -847,6 +808,51 @@
                     <div class="style-name">Renesansowy Kot</div>
                   </div>
                 </div>
+                {% else %}
+                  {% comment %} WSZYSTKIE STYLE NORMALNE dla innych produktów {% endcomment %}
+                  <div class="customify-style-card" data-style="van gogh">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/Screenshot%202025-09-29%20at%2022.17.01.png'); background-size: cover; background-position: center;"></div>
+                    <div class="style-info">
+                      <div class="style-name">Van Gogh</div>
+                    </div>
+                  </div>
+                  <div class="customify-style-card" data-style="picasso">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/Screenshot%202025-09-29%20at%2022.17.14.png'); background-size: cover; background-position: center;"></div>
+                    <div class="style-info">
+                      <div class="style-name">Picasso</div>
+                    </div>
+                  </div>
+                  <div class="customify-style-card" data-style="monet">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/Screenshot%202025-09-29%20at%2022.17.37.png'); background-size: cover; background-position: center;"></div>
+                    <div class="style-info">
+                      <div class="style-name">Monet</div>
+                    </div>
+                  </div>
+                  <div class="customify-style-card" data-style="anime">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/Screenshot%202025-09-29%20at%2022.17.52.png'); background-size: cover; background-position: center;"></div>
+                    <div class="style-info">
+                      <div class="style-name">Anime</div>
+                    </div>
+                  </div>
+                  <div class="customify-style-card" data-style="cyberpunk">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/Screenshot%202025-09-29%20at%2022.17.01.png'); background-size: cover; background-position: center;"></div>
+                    <div class="style-info">
+                      <div class="style-name">Cyberpunk</div>
+                    </div>
+                  </div>
+                  <div class="customify-style-card" data-style="watercolor">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/Screenshot%202025-09-29%20at%2022.17.14.png'); background-size: cover; background-position: center;"></div>
+                    <div class="style-info">
+                      <div class="style-name">Akwarela</div>
+                    </div>
+                  </div>
+                  <div class="customify-style-card" data-style="pixar">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/Screenshot%202025-09-29%20at%2022.17.37.png'); background-size: cover; background-position: center;"></div>
+                    <div class="style-info">
+                      <div class="style-name">Pixar</div>
+                    </div>
+                  </div>
+                {% endif %}
               </div>
         </div>
 
