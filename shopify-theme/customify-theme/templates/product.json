@@ -260,14 +260,31 @@
     },
     "recommendations": {
       "type": "product-recommendations",
+      "blocks": {
+        "heading": {
+          "type": "text",
+          "settings": {
+            "text": "<h3>You may also like</h3>",
+            "width": "fit-content",
+            "alignment": "left",
+            "type_preset": "h4"
+          }
+        }
+      },
+      "block_order": ["heading"],
       "settings": {
-        "heading": "You may also like",
-        "products_to_show": 4,
-        "columns_desktop": 4,
-        "columns_mobile": "2",
-        "page_width": "page-width",
-        "show_vendor": false,
-        "show_rating": false
+        "recommendation_type": "related",
+        "layout_type": "grid",
+        "max_products": 4,
+        "columns": 4,
+        "mobile_columns": "2",
+        "columns_gap": 12,
+        "rows_gap": 24,
+        "section_width": "page-width",
+        "gap": 28,
+        "color_scheme": "scheme-1",
+        "padding-block-start": 48,
+        "padding-block-end": 48
       }
     }
   },
