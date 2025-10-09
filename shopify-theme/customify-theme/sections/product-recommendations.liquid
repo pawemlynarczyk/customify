@@ -55,28 +55,33 @@
       {% content_for 'blocks' %}
     </div>
 
-    {%- if recommendations.performed or section.settings.product == blank -%}
-      {% liquid
-        if section.settings.product == blank
-          assign products = null
-          # Onboarding mode: Show placeholder products
-          for i in (1..section.settings.max_products)
-            assign products = products | append: ', '
-            assign products = products | split: ','
-          endfor
-        elsif recommendations.performed and recommendations.products_count == 0
-          # No recommendations found, pull from catalog
-          if section.settings.recommendation_type == 'related'
-            assign products = collections.all.products | reject: 'id', section.settings.product.id
-          elsif section.settings.recommendation_type == 'complementary'
-            # Do not recommend the All collection as complementary products
-            assign products = null
+    {% liquid
+      # SIMPLIFIED: Always show products from catalog (no JS dependency)
+      # Get all products except current one
+      assign current_product_id = section.settings.product.id | default: product.id
+      assign products = collections.all.products
+      
+      # Filter out current product
+      assign filtered_products = ''
+      for p in products
+        if p.id != current_product_id
+          if filtered_products == ''
+            assign filtered_products = p
+          else
+            assign filtered_products = filtered_products | append: '|||' | append: p
           endif
-
-        else
-          assign products = recommendations.products
         endif
-      %}
+      endfor
+      
+      # Convert to array
+      if filtered_products != ''
+        assign products = filtered_products | split: '|||'
+      else
+        assign products = collections.all.products
+      endif
+    %}
+    
+    {%- if products.size > 0 -%}
       {% capture list_items %}
         {% for product in products limit: section.settings.max_products %}
           <div class="resource-list__item">
@@ -174,15 +179,8 @@
         </div>
       {% endif %}
     {%- else -%}
-      <div
-        class="resource-list resource-list--grid"
-      >
-        {% for i in (1..section.settings.columns) %}
-          <div
-            class="product-recommendations__skeleton-item"
-            aria-label="{{ 'accessibility.loading_product_recommendations' | t }}"
-          ></div>
-        {% endfor %}
+      <div class="no-products-message" style="padding: 40px; text-align: center; color: #666;">
+        <p>No products available to recommend.</p>
       </div>
     {%- endif -%}
   </div>
