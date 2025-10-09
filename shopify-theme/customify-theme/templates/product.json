@@ -217,7 +217,7 @@
               "settings": {
                 "text": "{{ closest.product.description }}",
                 "width": "100%",
-                "max_width": "normal",
+                "max_width": "full",
                 "alignment": "left",
                 "type_preset": "rte",
                 "font": "var(--font-primary--family)",
