@@ -168,14 +168,28 @@ class CustomifyEmbed {
 
   // ROZWIJANY OPIS PRODUKTU
   setupExpandableDescription() {
-    // Znajdź wszystkie paragrafy i wybierz ten z opisem (drugi paragraf, nie tytuł)
-    const allParagraphs = document.querySelectorAll('.group-block-content p, .text-block.rte p');
-    let descriptionElement = null;
+    // Znajdź kontener z opisem produktu
+    const descriptionContainer = document.querySelector('.text-block.rte');
     
-    // Znajdź paragraf z długim tekstem (opis, nie tytuł)
-    for (const p of allParagraphs) {
+    if (!descriptionContainer) {
+      console.log('⚠️ [CUSTOMIFY] Description container not found');
+      return;
+    }
+
+    // Zbierz wszystkie paragrafy z opisu (pomijamy tytuł i gwiazdki)
+    const paragraphs = descriptionContainer.querySelectorAll('p');
+    
+    if (paragraphs.length === 0) {
+      console.log('⚠️ [CUSTOMIFY] No paragraphs in description');
+      return;
+    }
+
+    // Znajdź pierwszy znaczący paragraf (nie tytuł, nie krótki tekst)
+    let descriptionElement = null;
+    for (const p of paragraphs) {
       const text = p.textContent.trim();
-      if (text.length > 50 && text.includes('Wgraj')) {
+      // Pomiń puste, bardzo krótkie (<20 znaków) i te które zawierają tylko znaki specjalne
+      if (text.length > 20 && !p.closest('.product-badges') && !p.closest('.view-product-title')) {
         descriptionElement = p;
         break;
       }
