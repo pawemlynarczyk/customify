@@ -1,0 +1,343 @@
+{% comment %}
+  Product Information Section
+  Based on Horizon theme structure
+{% endcomment %}
+
+<div class="product-information">
+  <div class="product-information__container">
+    <div class="product-information__content">
+      
+      {% comment %} Product Title {% endcomment %}
+      <h1 class="product-information__title">
+        {{ product.title }}
+      </h1>
+      
+      {% comment %} Product Price {% endcomment %}
+      <div class="product-information__price">
+        {% if product.compare_at_price > product.price %}
+          <span class="product-information__price--sale">
+            {{ product.price | money }}
+          </span>
+          <span class="product-information__price--compare">
+            {{ product.compare_at_price | money }}
+          </span>
+        {% else %}
+          <span class="product-information__price--regular">
+            {{ product.price | money }}
+          </span>
+        {% endif %}
+      </div>
+      
+      {% comment %} Product Description {% endcomment %}
+      {% if product.description != blank %}
+        <div class="product-information__description">
+          {{ product.description }}
+        </div>
+      {% endif %}
+      
+      {% comment %} Variant Selector {% endcomment %}
+      {% unless product.has_only_default_variant %}
+        <div class="product-information__variants">
+          {% for option in product.options_with_values %}
+            <div class="product-information__variant-option">
+              <label class="product-information__variant-label">
+                {{ option.name }}:
+              </label>
+              <select class="product-information__variant-select" 
+                      name="id" 
+                      data-variant-select>
+                {% for value in option.values %}
+                  <option value="{{ value | escape }}" 
+                          {% if option.selected_value == value %}selected{% endif %}>
+                    {{ value }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+          {% endfor %}
+        </div>
+      {% endunless %}
+      
+      {% comment %} Quantity Selector {% endcomment %}
+      <div class="product-information__quantity">
+        <label class="product-information__quantity-label">
+          Ilość:
+        </label>
+        <div class="product-information__quantity-controls">
+          <button type="button" class="product-information__quantity-btn" data-quantity-minus>-</button>
+          <input type="number" 
+                 class="product-information__quantity-input" 
+                 name="quantity" 
+                 value="1" 
+                 min="1" 
+                 data-quantity-input>
+          <button type="button" class="product-information__quantity-btn" data-quantity-plus>+</button>
+        </div>
+      </div>
+      
+      {% comment %} Add to Cart Button {% endcomment %}
+      <div class="product-information__actions">
+        <button type="submit" 
+                class="product-information__add-to-cart" 
+                data-add-to-cart
+                {% unless product.available %}disabled{% endunless %}>
+          {% if product.available %}
+            Dodaj do koszyka
+          {% else %}
+            Niedostępny
+          {% endif %}
+        </button>
+      </div>
+      
+      {% comment %} Product Meta {% endcomment %}
+      <div class="product-information__meta">
+        {% if product.vendor != blank %}
+          <div class="product-information__vendor">
+            <span class="product-information__meta-label">Marka:</span>
+            <span class="product-information__meta-value">{{ product.vendor }}</span>
+          </div>
+        {% endif %}
+        
+        {% if product.type != blank %}
+          <div class="product-information__type">
+            <span class="product-information__meta-label">Typ:</span>
+            <span class="product-information__meta-value">{{ product.type }}</span>
+          </div>
+        {% endif %}
+        
+        {% if product.sku != blank %}
+          <div class="product-information__sku">
+            <span class="product-information__meta-label">SKU:</span>
+            <span class="product-information__meta-value">{{ product.sku }}</span>
+          </div>
+        {% endif %}
+      </div>
+      
+    </div>
+  </div>
+</div>
+
+<style>
+.product-information {
+  padding: 2rem 0;
+}
+
+.product-information__container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.product-information__content {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.product-information__title {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.product-information__price {
+  margin-bottom: 1.5rem;
+}
+
+.product-information__price--sale {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #e74c3c;
+}
+
+.product-information__price--compare {
+  font-size: 1rem;
+  color: #999;
+  text-decoration: line-through;
+  margin-left: 0.5rem;
+}
+
+.product-information__price--regular {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #333;
+}
+
+.product-information__description {
+  margin-bottom: 2rem;
+  line-height: 1.6;
+  color: #666;
+}
+
+.product-information__variants {
+  margin-bottom: 1.5rem;
+}
+
+.product-information__variant-option {
+  margin-bottom: 1rem;
+}
+
+.product-information__variant-label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.product-information__variant-select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.product-information__quantity {
+  margin-bottom: 2rem;
+}
+
+.product-information__quantity-label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.product-information__quantity-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.product-information__quantity-btn {
+  width: 40px;
+  height: 40px;
+  border: 1px solid #ddd;
+  background: #fff;
+  cursor: pointer;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.product-information__quantity-btn:hover {
+  background: #f5f5f5;
+}
+
+.product-information__quantity-input {
+  width: 80px;
+  height: 40px;
+  text-align: center;
+  border: 1px solid #ddd;
+  font-size: 1rem;
+}
+
+.product-information__add-to-cart {
+  width: 100%;
+  padding: 1rem 2rem;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  margin-bottom: 2rem;
+}
+
+.product-information__add-to-cart:hover {
+  background: #0056b3;
+}
+
+.product-information__add-to-cart:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.product-information__meta {
+  border-top: 1px solid #eee;
+  padding-top: 1rem;
+}
+
+.product-information__vendor,
+.product-information__type,
+.product-information__sku {
+  margin-bottom: 0.5rem;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.product-information__meta-label {
+  font-weight: bold;
+  color: #333;
+}
+
+.product-information__meta-value {
+  color: #666;
+}
+
+@media (max-width: 768px) {
+  .product-information__title {
+    font-size: 1.5rem;
+  }
+  
+  .product-information__container {
+    padding: 0 0.5rem;
+  }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Quantity controls
+  const quantityInput = document.querySelector('[data-quantity-input]');
+  const quantityMinus = document.querySelector('[data-quantity-minus]');
+  const quantityPlus = document.querySelector('[data-quantity-plus]');
+  
+  if (quantityMinus) {
+    quantityMinus.addEventListener('click', function() {
+      const currentValue = parseInt(quantityInput.value);
+      if (currentValue > 1) {
+        quantityInput.value = currentValue - 1;
+      }
+    });
+  }
+  
+  if (quantityPlus) {
+    quantityPlus.addEventListener('click', function() {
+      const currentValue = parseInt(quantityInput.value);
+      quantityInput.value = currentValue + 1;
+    });
+  }
+  
+  // Add to cart
+  const addToCartBtn = document.querySelector('[data-add-to-cart]');
+  if (addToCartBtn) {
+    addToCartBtn.addEventListener('click', function() {
+      const formData = {
+        'items': [{
+          'id': {{ product.selected_or_first_available_variant.id | json }},
+          'quantity': parseInt(quantityInput.value)
+        }]
+      };
+      
+      fetch('/cart/add.js', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData)
+      })
+      .then(response => response.json())
+      .then(data => {
+        // Redirect to cart or show success message
+        window.location.href = '/cart';
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
+    });
+  }
+});
+</script>
