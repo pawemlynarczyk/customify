@@ -20,7 +20,7 @@ if (process.env.REPLICATE_API_TOKEN && process.env.REPLICATE_API_TOKEN !== 'leav
 }
 
 // Function to compress and resize images for SDXL models
-async function compressImage(imageData, maxWidth = 1024, maxHeight = 1024, quality = 80) {
+async function compressImage(imageData, maxWidth = 1152, maxHeight = 1152, quality = 85) {
   if (!sharp) {
     console.log('Sharp not available, returning original image');
     return imageData;
@@ -55,19 +55,20 @@ async function compressImage(imageData, maxWidth = 1024, maxHeight = 1024, quali
     }
     
     console.log(`SDXL optimal resolution: ${targetWidth}x${targetHeight} (aspect ratio: ${aspectRatio.toFixed(2)})`);
+    console.log(`Frontend already compressed to max 1152px, backend fine-tunes to SDXL dimensions`);
     
     const compressedBuffer = await sharp(buffer)
       .resize(targetWidth, targetHeight, {
         fit: 'inside',
-        withoutEnlargement: true,
+        withoutEnlargement: true, // Nie powiększaj jeśli już jest mniejszy (np. z frontend)
         background: { r: 255, g: 255, b: 255, alpha: 1 } // White background for padding
       })
-      .png({ 
+      .jpeg({ 
         quality: quality,
-        compressionLevel: 9,
-        progressive: true
+        progressive: true,
+        mozjpeg: true // Lepsza kompresja JPEG
       })
-      .withMetadata(false) // Usuń metadane EXIF
+      .withMetadata(false) // Usuń metadane EXIF (prywatność + mniejszy plik)
       .toBuffer();
     
     console.log(`Compressed image size: ${compressedBuffer.length} bytes (${(compressedBuffer.length / 1024 / 1024).toFixed(2)} MB)`);

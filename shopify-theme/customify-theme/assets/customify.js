@@ -774,19 +774,14 @@ class CustomifyEmbed {
         type: file.type
       });
       
-      // Sprawdź czy plik jest za duży (>4MB - Vercel limit)
-      if (file.size > 4 * 1024 * 1024) {
-        console.log('📱 [MOBILE] File too large for Vercel (>4MB), compressing...');
-        this.compressImage(file).then(compressedFile => {
-          this.convertToBase64(compressedFile, resolve, reject);
-        }).catch(error => {
-          console.error('📱 [MOBILE] Compression failed:', error);
-          reject(error);
-        });
-      } else {
-        console.log('📱 [MOBILE] File size OK, sending to API for compression');
-        this.convertToBase64(file, resolve, reject);
-      }
+      // ZAWSZE kompresuj na frontend (optymalizacja dla SDXL)
+      console.log('📱 [MOBILE] Compressing image for SDXL optimization...');
+      this.compressImage(file).then(compressedFile => {
+        this.convertToBase64(compressedFile, resolve, reject);
+      }).catch(error => {
+        console.error('📱 [MOBILE] Compression failed:', error);
+        reject(error);
+      });
     });
   }
 
@@ -816,8 +811,8 @@ class CustomifyEmbed {
       const img = new Image();
       
       img.onload = () => {
-        // Oblicz nowe wymiary (max 1024px)
-        const maxSize = 1024;
+        // Oblicz nowe wymiary (max 1152px - dopasowane do SDXL)
+        const maxSize = 1152;
         let { width, height } = img;
         
         if (width > height) {
@@ -843,10 +838,12 @@ class CustomifyEmbed {
           console.log('📱 [MOBILE] Image compressed:', {
             originalSize: file.size,
             compressedSize: blob.size,
-            compressionRatio: ((1 - blob.size / file.size) * 100).toFixed(1) + '%'
+            compressionRatio: ((1 - blob.size / file.size) * 100).toFixed(1) + '%',
+            dimensions: `${width}x${height}`,
+            maxSize: maxSize
           });
           resolve(blob);
-        }, 'image/jpeg', 0.8); // 80% jakość
+        }, 'image/jpeg', 0.85); // 85% jakość (optymalne dla SDXL)
       };
       
       img.onerror = error => {
