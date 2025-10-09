@@ -37,6 +37,9 @@ class CustomifyEmbed {
     
     // Setup expandable description (Etsy-style) - BEZ setTimeout!
     this.setupExpandableDescription();
+    
+    // Setup accordion for product details - BEZ setTimeout!
+    this.setupAccordion();
   }
 
   // filterStylesForProduct() USUNIĘTE - logika przeniesiona na server-side (Shopify Liquid)
@@ -88,6 +91,51 @@ class CustomifyEmbed {
     descriptionContainer.parentNode.insertBefore(button, descriptionContainer.nextSibling);
     
     console.log('✅ [CUSTOMIFY] Expandable description setup complete');
+  }
+
+  // ACCORDION: SZCZEGÓŁY PRODUKTU
+  setupAccordion() {
+    console.log('🎯 [CUSTOMIFY] Setting up accordion...');
+    
+    // Znajdź wszystkie accordion items
+    const accordionItems = document.querySelectorAll('.accordion-item');
+    
+    if (!accordionItems || accordionItems.length === 0) {
+      console.log('⚠️ [CUSTOMIFY] No accordion items found');
+      return;
+    }
+    
+    console.log('✅ [CUSTOMIFY] Found', accordionItems.length, 'accordion items');
+    
+    // Dodaj event listener do każdego accordion header
+    accordionItems.forEach((item, index) => {
+      const header = item.querySelector('.accordion-header');
+      
+      if (!header) {
+        console.log('⚠️ [CUSTOMIFY] No header found for item', index);
+        return;
+      }
+      
+      // Event listener - TYLKO toggle klasy (BEZ DOM manipulation)
+      header.addEventListener('click', () => {
+        const isExpanded = item.classList.contains('expanded');
+        
+        if (isExpanded) {
+          // Zwiń
+          item.classList.remove('expanded');
+          console.log('🔽 [CUSTOMIFY] Collapsed:', item.dataset.accordion);
+        } else {
+          // Rozwiń (opcjonalnie: zwiń inne)
+          // accordionItems.forEach(otherItem => otherItem.classList.remove('expanded'));
+          item.classList.add('expanded');
+          console.log('🔼 [CUSTOMIFY] Expanded:', item.dataset.accordion);
+        }
+      });
+      
+      console.log('✅ [CUSTOMIFY] Accordion item', index, 'setup complete');
+    });
+    
+    console.log('✅ [CUSTOMIFY] Accordion setup complete!');
   }
 
   // WSTRZYJ APLIKACJĘ DO KOLUMNY 2
