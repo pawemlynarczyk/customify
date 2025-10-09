@@ -56,14 +56,18 @@
     </div>
 
     {% comment %}
-      SIMPLE VERSION: Just get all products from catalog
-      No filtering, no JavaScript dependency
+      Get all products from catalog and filter out current product
     {% endcomment %}
+    {% assign current_product_id = product.id %}
     {% assign all_products = collections.all.products %}
     
     {% if all_products.size > 0 %}
       {% capture list_items %}
-        {% for product in all_products limit: section.settings.max_products %}
+        {% assign count = 0 %}
+        {% for p in all_products %}
+          {% if p.id != current_product_id and count < section.settings.max_products %}
+            {% assign count = count | plus: 1 %}
+            {% assign product = p %}
           <div class="resource-list__item">
             <div class="product-card-simple">
               <a href="{{ product.url }}" class="product-card-simple__link">
@@ -91,6 +95,7 @@
           {% unless forloop.last %}
             <!--@list/split-->
           {% endunless %}
+          {% endif %}
         {% endfor %}
       {% endcapture %}
 
