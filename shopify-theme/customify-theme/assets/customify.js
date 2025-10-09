@@ -168,17 +168,39 @@ class CustomifyEmbed {
 
   // ROZWIJANY OPIS PRODUKTU
   setupExpandableDescription() {
+    // DEBUG: Sprawdź WSZYSTKIE kontenery z opisem
+    console.log('🔍 [CUSTOMIFY] DEBUGGING DESCRIPTION STRUCTURE:');
+    
+    const allTextBlocks = document.querySelectorAll('.text-block, .group-block-content, [class*="description"], [class*="product-info"]');
+    console.log('📋 [CUSTOMIFY] Found text blocks:', allTextBlocks.length);
+    
+    allTextBlocks.forEach((block, index) => {
+      console.log(`📝 [CUSTOMIFY] Block ${index}:`, {
+        className: block.className,
+        textLength: block.textContent.trim().length,
+        textPreview: block.textContent.trim().substring(0, 100) + '...',
+        innerHTML: block.innerHTML.substring(0, 200) + '...'
+      });
+    });
+
     // Znajdź kontener z opisem produktu
     const descriptionContainer = document.querySelector('.text-block.rte');
     
     if (!descriptionContainer) {
-      console.log('⚠️ [CUSTOMIFY] Description container not found');
+      console.log('⚠️ [CUSTOMIFY] Description container .text-block.rte not found');
       return;
     }
 
     // Zbierz CAŁY tekst ze wszystkich paragrafów
     const allText = descriptionContainer.textContent.trim();
     const charLimit = 100;
+
+    console.log('📊 [CUSTOMIFY] Description analysis:', {
+      containerHTML: descriptionContainer.innerHTML,
+      textLength: allText.length,
+      textContent: allText,
+      charLimit: charLimit
+    });
 
     // Tylko dla długich opisów
     if (allText.length <= charLimit) {
