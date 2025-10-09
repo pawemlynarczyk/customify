@@ -34,7 +34,11 @@ class CustomifyEmbed {
     this.positionApp();
     this.showStyles(); // Pokaż style od razu
     this.filterStylesForProduct();
-    this.setupExpandableDescription(); // Rozwijany opis produktu
+    
+    // Rozwijany opis - uruchom po opóźnieniu (czekaj na załadowanie DOM)
+    setTimeout(() => {
+      this.setupExpandableDescription();
+    }, 500);
   }
 
   filterStylesForProduct() {
@@ -157,8 +161,23 @@ class CustomifyEmbed {
 
   // ROZWIJANY OPIS PRODUKTU
   setupExpandableDescription() {
-    const descriptionElement = document.querySelector('.group-block-content > .text-block.rte p');
-    if (!descriptionElement) return;
+    // Znajdź wszystkie paragrafy i wybierz ten z opisem (drugi paragraf, nie tytuł)
+    const allParagraphs = document.querySelectorAll('.group-block-content p, .text-block.rte p');
+    let descriptionElement = null;
+    
+    // Znajdź paragraf z długim tekstem (opis, nie tytuł)
+    for (const p of allParagraphs) {
+      const text = p.textContent.trim();
+      if (text.length > 50 && text.includes('Wgraj')) {
+        descriptionElement = p;
+        break;
+      }
+    }
+    
+    if (!descriptionElement) {
+      console.log('⚠️ [CUSTOMIFY] Description paragraph not found');
+      return;
+    }
 
     const fullText = descriptionElement.textContent.trim();
     const charLimit = 150;
