@@ -55,35 +55,15 @@
       {% content_for 'blocks' %}
     </div>
 
-    {% liquid
-      # SIMPLIFIED: Always show products from catalog (no JS dependency)
-      # Get all products except current one
-      assign current_product_id = section.settings.product.id | default: product.id
-      assign products = collections.all.products
-      
-      # Filter out current product
-      assign filtered_products = ''
-      for p in products
-        if p.id != current_product_id
-          if filtered_products == ''
-            assign filtered_products = p
-          else
-            assign filtered_products = filtered_products | append: '|||' | append: p
-          endif
-        endif
-      endfor
-      
-      # Convert to array
-      if filtered_products != ''
-        assign products = filtered_products | split: '|||'
-      else
-        assign products = collections.all.products
-      endif
-    %}
+    {% comment %}
+      SIMPLE VERSION: Just get all products from catalog
+      No filtering, no JavaScript dependency
+    {% endcomment %}
+    {% assign all_products = collections.all.products %}
     
-    {%- if products.size > 0 -%}
+    {% if all_products.size > 0 %}
       {% capture list_items %}
-        {% for product in products limit: section.settings.max_products %}
+        {% for product in all_products limit: section.settings.max_products %}
           <div class="resource-list__item">
             <div class="product-card-simple">
               <a href="{{ product.url }}" class="product-card-simple__link">
@@ -119,7 +99,7 @@
         assign slide_content = list_items | strip
         assign slides = slide_content | split: '<!--@list/split-->'
 
-        if products != blank and products.size > 0
+        if all_products != blank and all_products.size > 0
           assign has_recommendations = 'true'
         else
           assign has_recommendations = 'false'
@@ -149,7 +129,7 @@
             {% render 'resource-list-carousel',
               ref: 'resourceListCarousel',
               slides: slides,
-              slide_count: recommendations.products.size,
+              slide_count: all_products.size,
               settings: section.settings
             %}
         {% endcase %}
@@ -173,7 +153,7 @@
           {% render 'resource-list-carousel',
             ref: 'resourceListCarouselMobile',
             slides: slides,
-            slide_count: recommendations.products.size,
+            slide_count: all_products.size,
             settings: section.settings
           %}
         </div>
