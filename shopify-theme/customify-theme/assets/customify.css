@@ -444,27 +444,36 @@
 
 /* AGRESYWNE NAPRAWY - TYTUŁ I BADGE'Y */
 .group-block[data-testid="group-block"].customify-title-moved .title-with-badges {
-  display: block !important;
+  display: flex !important;
+  flex-direction: column !important;
   margin-bottom: 0px !important;
   padding-bottom: 0px !important;
 }
 
 .group-block[data-testid="group-block"].customify-title-moved .view-product-title {
-  margin: 0 0 4px 0 !important; /* Zmniejszony odstęp - gwiazdki bliżej tytułu */
+  margin: 0 0 4px 0 !important; /* Minimalny odstęp pod tytułem */
   padding: 0 !important;
   display: block !important;
   width: 100% !important;
   float: none !important;
   clear: both !important;
+  order: 1 !important; /* Tytuł na górze */
 }
 
 .group-block[data-testid="group-block"].customify-title-moved .product-badges {
-  margin: 0 !important; /* BEZ górnego marginesu - tuż pod tytułem */
-  padding: 0 !important;
-  display: block !important;
+  margin: 0 !important; /* BEZ marginesu - tuż pod tytułem */
+  padding: 4px 0 8px 0 !important; /* Minimalny padding */
+  display: flex !important;
   width: 100% !important;
   float: none !important;
   clear: both !important;
+  order: 2 !important; /* Gwiazdki zaraz po tytule */
+}
+
+/* OPIS POD GWIAZDKAMI */
+.group-block[data-testid="group-block"].customify-title-moved p {
+  order: 3 !important; /* Opis pod gwiazdkami */
+  margin-top: 8px !important;
 }
 
 .group-block[data-testid="group-block"].customify-title-moved .product-badges .discount-badge,

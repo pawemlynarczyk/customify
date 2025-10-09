@@ -145,6 +145,9 @@ class CustomifyEmbed {
       console.log('🎯 [CUSTOMIFY] Price hidden in moved container');
     }
 
+    // PRZENIEŚ GWIAZDKI POD TYTUŁ (NAD OPIS)
+    this.moveStarsUnderTitle();
+
     // POKAŻ CENĘ PONIŻEJ APLIKACJI CUSTOMIFY
     this.showPriceBelowApp();
 
@@ -152,6 +155,36 @@ class CustomifyEmbed {
     this.addDividerAfterTitle();
 
     console.log('✅ [CUSTOMIFY] Title moved to top successfully!');
+  }
+
+  // PRZENIEŚ GWIAZDKI BEZPOŚREDNIO POD TYTUŁ (NAD OPIS)
+  moveStarsUnderTitle() {
+    const titleContainer = document.querySelector('.group-block[data-testid="group-block"].customify-title-moved');
+    if (!titleContainer) {
+      console.warn('⚠️ [CUSTOMIFY] Could not find title container for stars');
+      return;
+    }
+
+    // Znajdź tytuł i gwiazdki
+    const titleElement = titleContainer.querySelector('.view-product-title, h1');
+    const starsElement = titleContainer.querySelector('.product-badges, .rating-section');
+    const descriptionElement = titleContainer.querySelector('p, .product-description');
+
+    if (!titleElement || !starsElement) {
+      console.warn('⚠️ [CUSTOMIFY] Could not find title or stars elements');
+      return;
+    }
+
+    console.log('🎯 [CUSTOMIFY] Moving stars directly under title (above description)');
+
+    // Przenieś gwiazdki bezpośrednio po tytule (przed opisem)
+    if (descriptionElement) {
+      titleContainer.insertBefore(starsElement, descriptionElement);
+    } else {
+      titleElement.parentNode.insertBefore(starsElement, titleElement.nextSibling);
+    }
+
+    console.log('✅ [CUSTOMIFY] Stars moved under title successfully!');
   }
 
   // DODAJ DIVIDER POD TYTUŁEM
