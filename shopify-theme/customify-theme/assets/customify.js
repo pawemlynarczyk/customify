@@ -490,14 +490,20 @@ class CustomifyEmbed {
       console.log('📱 [MOBILE] Base64 length:', base64.length, 'characters');
       console.log('📱 [MOBILE] Base64 preview:', base64.substring(0, 50) + '...');
       
-      // Wykryj typ produktu: koty vs inne
-      const catStyles = ['krolewski', 'na-tronie', 'wojenny', 'barokowy', 'wiktorianski', 'renesansowy', 'barokowy-nowy'];
-      const isCatProduct = catStyles.includes(this.selectedStyle);
+      // Wykryj typ produktu na podstawie URL produktu (jak w theme.liquid)
+      const currentPath = window.location.pathname;
+      let productType = 'other'; // domyślnie
+      
+      if (currentPath.includes('koty-krolewskie-zwierzeta-w-koronach')) {
+        productType = 'cats';
+      } else if (currentPath.includes('personalizowany-portret-w-stylu-boho')) {
+        productType = 'boho';
+      }
       
       const requestBody = {
         imageData: base64,
         prompt: `Transform this image in ${this.selectedStyle} style`,
-        productType: isCatProduct ? 'cats' : 'other' // Przekaż typ produktu do API
+        productType: productType // Przekaż typ produktu do API
       };
       
       console.log('📱 [MOBILE] Request body size:', JSON.stringify(requestBody).length, 'bytes');
