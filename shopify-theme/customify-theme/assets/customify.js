@@ -459,9 +459,14 @@ class CustomifyEmbed {
       console.log('📱 [MOBILE] Base64 length:', base64.length, 'characters');
       console.log('📱 [MOBILE] Base64 preview:', base64.substring(0, 50) + '...');
       
+      // Wykryj typ produktu: koty vs inne
+      const catStyles = ['krolewski', 'na-tronie', 'wojenny', 'barokowy', 'wiktorianski', 'renesansowy'];
+      const isCatProduct = catStyles.includes(this.selectedStyle);
+      
       const requestBody = {
         imageData: base64,
-        prompt: `Transform this image in ${this.selectedStyle} style`
+        prompt: `Transform this image in ${this.selectedStyle} style`,
+        productType: isCatProduct ? 'cats' : 'other' // Przekaż typ produktu do API
       };
       
       console.log('📱 [MOBILE] Request body size:', JSON.stringify(requestBody).length, 'bytes');

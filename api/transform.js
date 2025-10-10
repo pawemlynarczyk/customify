@@ -141,11 +141,14 @@ module.exports = async (req, res) => {
   console.log(`📝 [TRANSFORM] POST request processing for IP: ${ip}`);
 
   try {
-    const { imageData, prompt } = req.body;
+    const { imageData, prompt, productType } = req.body;
 
     if (!imageData || !prompt) {
       return res.status(400).json({ error: 'Image data and prompt are required' });
     }
+    
+    console.log(`🎯 [TRANSFORM] Product type: ${productType || 'not specified'}`);
+    console.log(`🎯 [TRANSFORM] Style: ${prompt}`);
 
     if (!replicate) {
       return res.status(400).json({ error: 'Replicate API token not configured' });
@@ -190,6 +193,7 @@ module.exports = async (req, res) => {
       'anime': {
         model: "aaronaftab/mirage-ghibli:166efd159b4138da932522bc5af40d39194033f587d9bdbab1e594119eae3e7f",
         prompt: `GHIBLI anime style, ${prompt}`,
+        productType: "other", // Identyfikator typu produktu
         go_fast: true,
         guidance_scale: 10,
         prompt_strength: 0.4,
@@ -213,6 +217,7 @@ module.exports = async (req, res) => {
         model: "swartype/sdxl-pixar:81f8bbd3463056c8521eb528feb10509cc1385e2fabef590747f159848589048",
         prompt: `Pixar style 3D animation portrait, smooth plastic-like skin, big expressive eyes, rounded soft facial features, vibrant colors, warm cinematic lighting, stylized like Pixar movies (Toy Story, Soul, The Incredibles, Inside Out), exaggerated expressions, cartoon look, wholesome family atmosphere, ultra clean render, cinematic contrast, high quality, looks like a Pixar movie frame, ${prompt}`,
         negative_prompt: "realistic, photo, muted colors, dull, gritty, textured skin, pores, wrinkles, grainy, lowres, blurry, deformed, bad anatomy, bad proportions, creepy, asymmetrical, extra fingers, extra limbs, duplicate face, duplicate body, watermark, logo, text",
+        productType: "other", // Identyfikator typu produktu
         task: "img2img",
         scheduler: "KarrasDPM",
         guidance_scale: 7.5,
@@ -229,60 +234,66 @@ module.exports = async (req, res) => {
         model: "google/nano-banana",
         prompt: "wygeneruj obraz dokładnie jak na pierwszym obrazku tylko z pyskiem i glowa kota z drugiego obrazka. zachowaj kolor siersci jej dlugosc, kolor ksztalt oczu, kształt wielkość zrenic; ksztalt uszu i inne cechy identyfikujace kota z drugiego obrazka. zwroc uwage na glowe by kot mial tylko dwoje uszu i zeby ladnie komponowaly sie z akcesoriami ze zdjecia i mialy taki kolor jak uszy kota z drugiego obrazka. by pozycja glowy kota byla jak w pierwszym zdjeciu. jako wynik mam miec fotorealistyczne zdjecie dokladnie w stylu pierwszego zdjecia.",
         apiType: "nano-banana",
+        productType: "cats", // Identyfikator typu produktu
         parameters: {
           image_input: ["https://customify-s56o.vercel.app/koty/krolewski.png", "USER_IMAGE"],
-          aspect_ratio: "match_input_image",
-          output_format: "jpg"
+          aspect_ratio: "match_input_image", // ZMIEŃ NA: "1:1", "16:9", "4:3" itp.
+          output_format: "jpg" // ZMIEŃ NA: "png", "webp" itp.
         }
       },
       'na-tronie': {
         model: "google/nano-banana", 
         prompt: "wygeneruj obraz dokładnie jak na pierwszym obrazku tylko z pyskiem i glowa kota z drugiego obrazka. zachowaj kolor siersci jej dlugosc, kolor ksztalt oczu, kształt wielkość zrenic; ksztalt uszu i inne cechy identyfikujace kota z drugiego obrazka. zwroc uwage na glowe by kot mial tylko dwoje uszu i zeby ladnie komponowaly sie z akcesoriami ze zdjecia i mialy taki kolor jak uszy kota z drugiego obrazka. by pozycja glowy kota byla jak w pierwszym zdjeciu. jako wynik mam miec fotorealistyczne zdjecie dokladnie w stylu pierwszego zdjecia.",
         apiType: "nano-banana",
+        productType: "cats", // Identyfikator typu produktu
         parameters: {
           image_input: ["https://customify-s56o.vercel.app/koty/na_tronie.png", "USER_IMAGE"],
-          aspect_ratio: "match_input_image",
-          output_format: "jpg"
+          aspect_ratio: "match_input_image", // ZMIEŃ NA: "1:1", "16:9", "4:3" itp.
+          output_format: "jpg" // ZMIEŃ NA: "png", "webp" itp.
         }
       },
       'wojenny': {
         model: "google/nano-banana",
         prompt: "wygeneruj obraz dokładnie jak na pierwszym obrazku tylko z pyskiem i glowa kota z drugiego obrazka. zachowaj kolor siersci jej dlugosc, kolor ksztalt oczu, kształt wielkość zrenic; ksztalt uszu i inne cechy identyfikujace kota z drugiego obrazka. zwroc uwage na glowe by kot mial tylko dwoje uszu i zeby ladnie komponowaly sie z akcesoriami ze zdjecia i mialy taki kolor jak uszy kota z drugiego obrazka. by pozycja glowy kota byla jak w pierwszym zdjeciu. jako wynik mam miec fotorealistyczne zdjecie dokladnie w stylu pierwszego zdjecia.",
         apiType: "nano-banana",
+        productType: "cats", // Identyfikator typu produktu
         parameters: {
           image_input: ["https://customify-s56o.vercel.app/koty/wojenny.png", "USER_IMAGE"],
-          aspect_ratio: "match_input_image",
-          output_format: "jpg"
+          aspect_ratio: "match_input_image", // ZMIEŃ NA: "1:1", "16:9", "4:3" itp.
+          output_format: "jpg" // ZMIEŃ NA: "png", "webp" itp.
         }
       },
       'barokowy': {
         model: "google/nano-banana",
         prompt: "wygeneruj obraz dokładnie jak na pierwszym obrazku tylko z pyskiem i glowa kota z drugiego obrazka. zachowaj kolor siersci jej dlugosc, kolor ksztalt oczu, kształt wielkość zrenic; ksztalt uszu i inne cechy identyfikujace kota z drugiego obrazka. zwroc uwage na glowe by kot mial tylko dwoje uszu i zeby ladnie komponowaly sie z akcesoriami ze zdjecia i mialy taki kolor jak uszy kota z drugiego obrazka. by pozycja glowy kota byla jak w pierwszym zdjeciu. jako wynik mam miec fotorealistyczne zdjecie dokladnie w stylu pierwszego zdjecia.",
         apiType: "nano-banana",
+        productType: "cats", // Identyfikator typu produktu
         parameters: {
           image_input: ["https://customify-s56o.vercel.app/koty/barokowy.png", "USER_IMAGE"],
-          aspect_ratio: "match_input_image",
-          output_format: "jpg"
+          aspect_ratio: "match_input_image", // ZMIEŃ NA: "1:1", "16:9", "4:3" itp.
+          output_format: "jpg" // ZMIEŃ NA: "png", "webp" itp.
         }
       },
       'wiktorianski': {
         model: "google/nano-banana",
         prompt: "wygeneruj obraz dokładnie jak na pierwszym obrazku tylko z pyskiem i glowa kota z drugiego obrazka. zachowaj kolor siersci jej dlugosc, kolor ksztalt oczu, kształt wielkość zrenic; ksztalt uszu i inne cechy identyfikujace kota z drugiego obrazka. zwroc uwage na glowe by kot mial tylko dwoje uszu i zeby ladnie komponowaly sie z akcesoriami ze zdjecia i mialy taki kolor jak uszy kota z drugiego obrazka. by pozycja glowy kota byla jak w pierwszym zdjeciu. jako wynik mam miec fotorealistyczne zdjecie dokladnie w stylu pierwszego zdjecia.",
         apiType: "nano-banana",
+        productType: "cats", // Identyfikator typu produktu
         parameters: {
           image_input: ["https://customify-s56o.vercel.app/koty/wiktorianski.png", "USER_IMAGE"],
-          aspect_ratio: "match_input_image",
-          output_format: "jpg"
+          aspect_ratio: "match_input_image", // ZMIEŃ NA: "1:1", "16:9", "4:3" itp.
+          output_format: "jpg" // ZMIEŃ NA: "png", "webp" itp.
         }
       },
       'renesansowy': {
         model: "google/nano-banana",
         prompt: "wygeneruj obraz dokładnie jak na pierwszym obrazku tylko z pyskiem i glowa kota z drugiego obrazka. zachowaj kolor siersci jej dlugosc, kolor ksztalt oczu, kształt wielkość zrenic; ksztalt uszu i inne cechy identyfikujace kota z drugiego obrazka. zwroc uwage na glowe by kot mial tylko dwoje uszu i zeby ladnie komponowaly sie z akcesoriami ze zdjecia i mialy taki kolor jak uszy kota z drugiego obrazka. by pozycja glowy kota byla jak w pierwszym zdjeciu. jako wynik mam miec fotorealistyczne zdjecie dokladnie w stylu pierwszego zdjecia.",
         apiType: "nano-banana",
+        productType: "cats", // Identyfikator typu produktu
         parameters: {
           image_input: ["https://customify-s56o.vercel.app/koty/renesansowy.png", "USER_IMAGE"],
-          aspect_ratio: "match_input_image",
-          output_format: "jpg"
+          aspect_ratio: "match_input_image", // ZMIEŃ NA: "1:1", "16:9", "4:3" itp.
+          output_format: "jpg" // ZMIEŃ NA: "png", "webp" itp.
         }
       }
     };
@@ -292,6 +303,7 @@ module.exports = async (req, res) => {
     const config = styleConfig[style] || styleConfig['anime'];
 
     console.log(`Using style: ${style}, model: ${config.model}`);
+    console.log(`Config productType: ${config.productType}, Request productType: ${productType}`);
 
     // Prepare input parameters based on model
     let inputParams = {
@@ -328,14 +340,32 @@ module.exports = async (req, res) => {
       };
     } else if (config.apiType === 'nano-banana') {
       // Nano-banana model parameters - 2 obrazki
+      // ✅ MOŻLIWOŚĆ NADPISANIA PARAMETRÓW per productType
+      
+      // Domyślne parametry z config
+      let aspectRatio = config.parameters.aspect_ratio;
+      let outputFormat = config.parameters.output_format;
+      
+      // 🎯 LOGIKA NADPISYWANIA: Tutaj możesz dostosować parametry w zależności od productType
+      // Przykład:
+      // if (productType === 'cats') {
+      //   aspectRatio = '1:1';      // Koty zawsze kwadrat
+      //   outputFormat = 'png';     // Koty PNG
+      // } else if (productType === 'other') {
+      //   aspectRatio = '16:9';     // Inne produkty krajobraz
+      //   outputFormat = 'jpg';     // Inne produkty JPEG
+      // }
+      
+      console.log(`🖼️ [NANO-BANANA] Using aspect_ratio: ${aspectRatio}, output_format: ${outputFormat}`);
+      
       inputParams = {
         prompt: config.prompt,
         image_input: [
           config.parameters.image_input[0], // Miniaturka stylu z parameters
           imageDataUri // Obrazek użytkownika
         ],
-        aspect_ratio: config.parameters.aspect_ratio,
-        output_format: config.parameters.output_format
+        aspect_ratio: aspectRatio,
+        output_format: outputFormat
       };
     } else {
       // Stable Diffusion model parameters (default)
