@@ -306,6 +306,37 @@ module.exports = async (req, res) => {
           aspect_ratio: "3:4", // Portret pionowy dla druku A3/A2/A1
           output_format: "jpg"
         }
+      },
+      // Style boho - używają nano-banana z 1 obrazkiem (tylko użytkownika)
+      'minimalistyczny': {
+        model: "google/nano-banana",
+        prompt: "Create a very minimalist portrait illustration based on the uploaded photo of people. Apply a style with smooth pastel tones, clean shapes, subtle flat shading, no outlines. For the faces of all individuals (for the faces of all individuals): Featureless mid-face (featureless mid-face) with omitted eyes and nose (eyes and nose omitted). Crucially, ensure every person has distinct and prominent eyebrows and a clearly defined mouth. Hair should be detailed hair. Background is bright warm beige background (#E9D6C6). The overall impression should be an elegant and warm emotional atmosphere, trendy Etsy-style portrait.",
+        negative_prompt: "eyes, nose, naturalistic eyes, realistic nose, detailed eyes, detailed nose, pupils, nostrils, facial features, bridge of nose, tip of nose, septum, face inconsistency, face mismatch",
+        apiType: "nano-banana",
+        productType: "boho", // Identyfikator typu produktu
+        parameters: {
+          image_input: ["USER_IMAGE"],
+          prompt: "Create a very minimalist portrait illustration based on the uploaded photo of people. Apply a style with smooth pastel tones, clean shapes, subtle flat shading, no outlines. For the faces of all individuals (for the faces of all individuals): Featureless mid-face (featureless mid-face) with omitted eyes and nose (eyes and nose omitted). Crucially, ensure every person has distinct and prominent eyebrows and a clearly defined mouth. Hair should be detailed hair. Background is bright warm beige background (#E9D6C6). The overall impression should be an elegant and warm emotional atmosphere, trendy Etsy-style portrait.",
+          negative_prompt: "eyes, nose, naturalistic eyes, realistic nose, detailed eyes, detailed nose, pupils, nostrils, facial features, bridge of nose, tip of nose, septum, face inconsistency, face mismatch",
+          aspect_ratio: "3:4",
+          output_format: "jpg",
+          guidance: 3.5
+        }
+      },
+      'realistyczny': {
+        model: "google/nano-banana",
+        prompt: "Create a slightly detailed, minimalist portrait illustration based on the uploaded photo of people. Apply a style with smooth pastel tones, clean shapes, subtle flat shading, no outlines. For the characters' faces: ensure they have simple, stylized, and elegantly small eyes that are strictly proportional to the face (simple, stylized, and elegantly small eyes that are strictly proportional to the face), with clear whites, defined pupils, and subtle, minimalist eyelashes (subtle, minimalist eyelashes). They must also have distinct eyebrows and a clearly defined mouth with visible lips and teeth. They should also have a simple, light, minimalist nose. Hair should be detailed hair. Background is bright warm beige background (#E9D6C6). The overall impression should be an elegant and warm emotional atmosphere, trendy Etsy-style portrait.",
+        negative_prompt: "bulging eyes, huge eyes, oversized eyes, no lips, thin line mouth, hyper-realistic eyes, hyper-detailed eyes, detailed nose, prominent nose, strong nose bridge, deep shadows on nose, photo-realistic details, thick eyelashes, exaggerated eyelashes",
+        apiType: "nano-banana",
+        productType: "boho", // Identyfikator typu produktu
+        parameters: {
+          image_input: ["USER_IMAGE"],
+          prompt: "Create a slightly detailed, minimalist portrait illustration based on the uploaded photo of people. Apply a style with smooth pastel tones, clean shapes, subtle flat shading, no outlines. For the characters' faces: ensure they have simple, stylized, and elegantly small eyes that are strictly proportional to the face (simple, stylized, and elegantly small eyes that are strictly proportional to the face), with clear whites, defined pupils, and subtle, minimalist eyelashes (subtle, minimalist eyelashes). They must also have distinct eyebrows and a clearly defined mouth with visible lips and teeth. They should also have a simple, light, minimalist nose. Hair should be detailed hair. Background is bright warm beige background (#E9D6C6). The overall impression should be an elegant and warm emotional atmosphere, trendy Etsy-style portrait.",
+          negative_prompt: "bulging eyes, huge eyes, oversized eyes, no lips, thin line mouth, hyper-realistic eyes, hyper-detailed eyes, detailed nose, prominent nose, strong nose bridge, deep shadows on nose, photo-realistic details, thick eyelashes, exaggerated eyelashes",
+          aspect_ratio: "3:4",
+          output_format: "jpg",
+          guidance: 3.5
+        }
       }
     };
 
@@ -350,39 +381,46 @@ module.exports = async (req, res) => {
         output_format: config.output_format
       };
     } else if (config.apiType === 'nano-banana') {
-      // Nano-banana model parameters - 2 obrazki
+      // Nano-banana model parameters - obsługuje 1 lub 2 obrazki
       // ✅ MOŻLIWOŚĆ NADPISANIA PARAMETRÓW per productType
       
       // Domyślne parametry z config
       let aspectRatio = config.parameters.aspect_ratio;
       let outputFormat = config.parameters.output_format;
+      let guidance = config.parameters.guidance;
       
-      // 🎯 LOGIKA NADPISYWANIA: Tutaj możesz dostosować parametry w zależności od productType
-      // Przykład:
-      // if (productType === 'cats') {
-      //   aspectRatio = '1:1';      // Koty zawsze kwadrat
-      //   outputFormat = 'png';     // Koty PNG
-      // } else if (productType === 'other') {
-      //   aspectRatio = '16:9';     // Inne produkty krajobraz
-      //   outputFormat = 'jpg';     // Inne produkty JPEG
-      // }
+      console.log(`🖼️ [NANO-BANANA] Using aspect_ratio: ${aspectRatio}, output_format: ${outputFormat}, guidance: ${guidance}`);
       
-      console.log(`🖼️ [NANO-BANANA] Using aspect_ratio: ${aspectRatio}, output_format: ${outputFormat}`);
-      
-      inputParams = {
-        prompt: config.prompt,
-        image_input: [
-          config.parameters.image_input[0], // Miniaturka stylu z parameters
-          imageDataUri // Obrazek użytkownika
-        ],
-        aspect_ratio: aspectRatio,
-        output_format: outputFormat
-      };
-      
-      // Szczegółowe logowanie dla debugowania
-      console.log(`📸 [NANO-BANANA] Obraz 1 (miniaturka): ${config.parameters.image_input[0]}`);
-      console.log(`📸 [NANO-BANANA] Obraz 2 (user): ${imageDataUri.substring(0, 50)}...`);
-      console.log(`📸 [NANO-BANANA] image_input array length: ${inputParams.image_input.length}`);
+      // Sprawdź czy to styl boho (1 obrazek) czy koty (2 obrazki)
+      if (productType === 'boho') {
+        // Style boho - tylko obrazek użytkownika
+        inputParams = {
+          prompt: config.prompt,
+          image_input: [imageDataUri], // Tylko obrazek użytkownika
+          aspect_ratio: aspectRatio,
+          output_format: outputFormat,
+          guidance: guidance
+        };
+        
+        console.log(`📸 [NANO-BANANA] Boho style - 1 obrazek (user): ${imageDataUri.substring(0, 50)}...`);
+        console.log(`📸 [NANO-BANANA] image_input array length: ${inputParams.image_input.length}`);
+      } else {
+        // Style kotów - 2 obrazki (miniaturka + użytkownik)
+        inputParams = {
+          prompt: config.prompt,
+          image_input: [
+            config.parameters.image_input[0], // Miniaturka stylu z parameters
+            imageDataUri // Obrazek użytkownika
+          ],
+          aspect_ratio: aspectRatio,
+          output_format: outputFormat
+        };
+        
+        // Szczegółowe logowanie dla debugowania
+        console.log(`📸 [NANO-BANANA] Cats style - Obraz 1 (miniaturka): ${config.parameters.image_input[0]}`);
+        console.log(`📸 [NANO-BANANA] Cats style - Obraz 2 (user): ${imageDataUri.substring(0, 50)}...`);
+        console.log(`📸 [NANO-BANANA] image_input array length: ${inputParams.image_input.length}`);
+      }
     } else {
       // Stable Diffusion model parameters (default)
       inputParams = {

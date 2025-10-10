@@ -198,6 +198,7 @@
 
       /* ACCORDION POD PRZYCISKAMI - STYL ETSY */
       .product-details-accordion {
+        display: block !important;
         margin-top: 24px;
         border-top: 1px solid #e5e5e5;
         padding-top: 8px;
@@ -398,6 +399,21 @@
       }
     </style>
     
+    {% if template contains 'collection' %}
+    <style>
+      /* Nadpisz ukrywanie produktów na stronach kolekcji (pokazuj wszystkie karty) */
+      .product-card:has([data-product-title*="rozmiar"]),
+      .product-card:has([href*="spersonalizowany"]) {
+        display: block !important;
+      }
+
+      /* Ukryj nagłówek "Produkty" na stronie kolekcji */
+      #shopify-section-template--26450137481541__section {
+        display: none !important;
+      }
+    </style>
+    {% endif %}
+    
     <!-- FIX: Poprawne proporcje galerii - JavaScript wymusza zmiany -->
     <script>
       // FUNKCJA NAPRAWY POWIĘKSZONEGO ZDJĘCIA W DIALOGU
@@ -575,16 +591,9 @@
         const galleryGrid = document.querySelector('.media-gallery__grid');
         if (!galleryGrid) return;
         
-        // WYKRYJ CZY TO PRODUKT KOTÓW
-        const isCatProduct = window.location.pathname.includes('koty-krolewskie');
-        
-        if (isCatProduct) {
-          console.log('🔧 [ETSY GALLERY] Tworzę galerię w stylu Etsy dla kotów...');
-          createEtsyGallery(galleryGrid);
-        } else {
-          console.log('🔧 [STANDARD GALLERY] Tworzę standardową karuzelę...');
-          createStandardCarousel(galleryGrid);
-        }
+        // ZAWSZE uruchamiaj galerię w stylu Etsy na stronach produktu
+        console.log('🔧 [ETSY GALLERY] Tworzę galerię w stylu Etsy dla produktu...');
+        createEtsyGallery(galleryGrid);
       }
       
       // ETSY-STYLE GALLERY (miniaturki poniżej)
@@ -601,15 +610,30 @@
         galleryGrid.style.setProperty('height', 'auto', 'important');
         galleryGrid.style.setProperty('width', '100%', 'important');
         
-        // Pobierz wszystkie zdjęcia
+        // Pobierz wszystkie elementy listy (oryginalne media)
         const allImages = Array.from(galleryGrid.querySelectorAll('li'));
         if (allImages.length === 0) return;
         
         // Zapisz URL wszystkich obrazków PRZED usunięciem elementów
         const imageUrls = allImages.map(li => {
           const img = li.querySelector('img');
-          return img ? img.src : null;
-        }).filter(url => url !== null);
+          if (!img) return null;
+          // Spróbuj wyciągnąć URL z currentSrc, src lub srcset
+          const direct = img.currentSrc || img.src || '';
+          if (direct) return direct;
+          const srcset = img.getAttribute('srcset') || '';
+          if (srcset) {
+            // Weź największy URL z srcset
+            const candidates = srcset.split(',').map(s => s.trim().split(' ')[0]).filter(Boolean);
+            return candidates[candidates.length - 1] || null;
+          }
+          return null;
+        }).filter(url => url !== null && url !== '');
+        
+        if (imageUrls.length === 0) {
+          console.warn('⏳ [ETSY] Brak gotowych obrazów (lazy-load). Spróbuję ponownie później.');
+          return; // Nie usuwaj oryginalnych elementów dopóki nie mamy URLi
+        }
         
         console.log(`📸 [ETSY] Znaleziono ${imageUrls.length} obrazków`);
         
@@ -653,8 +677,12 @@
             mainImageContainer.appendChild(mainImg);
           }
           
-          // Wyłącz również kliknięcie w kontener
+          // Wyłącz również kliknięcie w kontener (ale przepuść kliknięcia strzałek)
           mainImageContainer.addEventListener('click', (e) => {
+            // Pozwól na kliknięcia przycisków nawigacji
+            if (e.target.closest && e.target.closest('.etsy-nav-btn')) {
+              return;
+            }
             e.preventDefault();
             e.stopPropagation();
           }, true);
@@ -926,9 +954,11 @@
               counter.textContent = `${currentIndex + 1} / ${imageUrls.length}`;
               
               // Aktualizuj active state miniaturek
-              thumbsRow.querySelectorAll('li').forEach((t, i) => {
-                t.style.borderColor = i === currentIndex ? '#000' : '#e0e0e0';
-              });
+              if (thumbsRow) {
+                thumbsRow.querySelectorAll('li').forEach((t, i) => {
+                  t.style.borderColor = i === currentIndex ? '#000' : '#e0e0e0';
+                });
+              }
               
               console.log(`🔧 [ETSY] Strzałka ← : Zdjęcie ${currentIndex + 1}/${imageUrls.length}`);
             }
@@ -946,9 +976,11 @@
               counter.textContent = `${currentIndex + 1} / ${imageUrls.length}`;
               
               // Aktualizuj active state miniaturek
-              thumbsRow.querySelectorAll('li').forEach((t, i) => {
-                t.style.borderColor = i === currentIndex ? '#000' : '#e0e0e0';
-              });
+              if (thumbsRow) {
+                thumbsRow.querySelectorAll('li').forEach((t, i) => {
+                  t.style.borderColor = i === currentIndex ? '#000' : '#e0e0e0';
+                });
+              }
               
               console.log(`🔧 [ETSY] Strzałka → : Zdjęcie ${currentIndex + 1}/${imageUrls.length}`);
             }
@@ -1288,7 +1320,7 @@
               <a href="/" class="nav-link">Główna</a>
             </div>
             <div class="nav-item">
-              <a href="/products/custom" class="nav-link">Kreator</a>
+              <a href="/collections/all" class="nav-link">Produkty</a>
             </div>
             <div class="nav-item">
               <a href="/pages/kontakt" class="nav-link">Kontakt</a>
@@ -1305,13 +1337,8 @@
         <div class="breadcrumbs-container">
           <a href="{{ routes.root_url }}" class="breadcrumb-link">Home</a>
           {% if template contains 'product' %}
-            {% if product.collections.size > 0 %}
               <span class="breadcrumb-separator">/</span>
-              <a href="{{ product.collections.first.url }}" class="breadcrumb-link">{{ product.collections.first.title }}</a>
-            {% elsif product.type != blank %}
-              <span class="breadcrumb-separator">/</span>
-              <a href="{{ routes.collections_url }}" class="breadcrumb-link">{{ product.type }}</a>
-            {% endif %}
+            <a href="/collections/all" class="breadcrumb-link">Produkty</a>
             <span class="breadcrumb-separator">/</span>
             <span class="breadcrumb-current">{{ product.title | truncate: 50 }}</span>
           {% elsif template contains 'collection' %}
@@ -1345,6 +1372,50 @@
       data-template="{{ template }}"
     >
       {{ content_for_layout }}
+
+      {% if template contains 'collection' %}
+        <div class="custom-collection-wrapper">
+          <h1 class="custom-collection-title">{{ collection.title }}</h1>
+          {% if collection.description != blank %}
+            <div class="custom-collection-description">{{ collection.description }}</div>
+          {% endif %}
+          {% if collection.products_count > 0 %}
+            <div class="custom-collection-grid">
+              {% for product in collection.products %}
+                <a href="{{ product.url }}" class="custom-collection-card">
+                  <div class="custom-collection-image">
+                    {% if product.featured_image %}
+                      <img src="{{ product.featured_image | image_url: width: 600 }}" alt="{{ product.title }}">
+                    {% endif %}
+                  </div>
+                  <div class="custom-collection-meta">
+                    <div class="custom-collection-card-title">{{ product.title }}</div>
+                    {% if product.price %}
+                      <div class="custom-collection-price">{{ product.price | money }}</div>
+                    {% endif %}
+                  </div>
+                </a>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="custom-collection-empty">Brak produktów do wyświetlenia.</div>
+          {% endif %}
+        </div>
+        <style>
+          .custom-collection-wrapper { max-width: 1200px; margin: 20px auto; padding: 0 20px; }
+          .custom-collection-title { font-size: 1.8rem; margin: 10px 0 15px; }
+          .custom-collection-description { color: #666; margin-bottom: 15px; }
+          .custom-collection-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+          .custom-collection-card { display: block; border: 1px solid #e5e5e5; border-radius: 8px; overflow: hidden; background: #fff; text-decoration: none; color: inherit; transition: box-shadow .2s ease, transform .2s ease; }
+          .custom-collection-card:hover { box-shadow: 0 6px 18px rgba(0,0,0,.08); transform: translateY(-2px); }
+          .custom-collection-image { aspect-ratio: 1 / 1; background: #f8f9fa; display: flex; align-items: center; justify-content: center; }
+          .custom-collection-image img { width: 100%; height: 100%; object-fit: cover; }
+          .custom-collection-meta { padding: 10px 12px; }
+          .custom-collection-card-title { font-weight: 600; font-size: .95rem; margin-bottom: 6px; }
+          .custom-collection-price { color: #d32f2f; font-weight: 700; }
+          .custom-collection-empty { color: #666; padding: 20px 0; }
+        </style>
+      {% endif %}
     </main>
 
     {% render 'search-modal' %}
@@ -1382,7 +1453,18 @@
               <h4>Wybierz styl</h4>
               <div class="customify-style-grid">
                 {% comment %} LOGIKA SERVER-SIDE: Filtruj style per produkt {% endcomment %}
-                {% if product.handle == 'koty-krolewskie-zwierzeta-w-koronach' %}
+                {% if product.handle == 'personalizowany-portret-w-stylu-boho' %}
+                  {% comment %} NOWE STYLE BOHO dla produktu boho {% endcomment %}
+                  <div class="customify-style-card" data-style="minimalistyczny">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/boho/minimal.png'); background-size: cover; background-position: center;"></div>
+                    <div class="style-name">Minimalistyczny</div>
+                  </div>
+                  
+                  <div class="customify-style-card" data-style="realistyczny">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/boho/detail.png'); background-size: cover; background-position: center;"></div>
+                    <div class="style-name">Realistyczny</div>
+                  </div>
+                {% elsif product.handle == 'koty-krolewskie-zwierzeta-w-koronach' %}
                   {% comment %} TYLKO STYLE KOTÓW dla produktu kotów {% endcomment %}
                   <div class="customify-style-card" data-style="krolewski">
                   <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/koty/krolewski.png'); background-size: cover; background-position: center;"></div>
@@ -1529,6 +1611,7 @@
                 <div class="loading-progress-bar" id="cartProgressBar"></div>
               </div>
               <div class="loading-stage" id="cartLoadingStage">Tworzenie produktu...</div>
+            </div>
             </div>
 
             <!-- ACCORDION: SZCZEGÓŁY PRODUKTU (NA SAMYM DOLE APLIKACJI) -->
@@ -1689,7 +1772,7 @@
             </div>
             <!-- KONIEC ACCORDION (NA SAMYM DOLE) -->
 
-        </div>
+              </div>
           </div>
         </div>
       </div>
