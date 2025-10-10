@@ -491,7 +491,7 @@ class CustomifyEmbed {
       console.log('📱 [MOBILE] Base64 preview:', base64.substring(0, 50) + '...');
       
       // Wykryj typ produktu: koty vs inne
-      const catStyles = ['krolewski', 'na-tronie', 'wojenny', 'barokowy', 'wiktorianski', 'renesansowy'];
+      const catStyles = ['krolewski', 'na-tronie', 'wojenny', 'barokowy', 'wiktorianski', 'renesansowy', 'barokowy-nowy'];
       const isCatProduct = catStyles.includes(this.selectedStyle);
       
       const requestBody = {

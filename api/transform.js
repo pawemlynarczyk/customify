@@ -295,6 +295,17 @@ module.exports = async (req, res) => {
           aspect_ratio: "3:4", // Portret pionowy dla druku A3/A2/A1
           output_format: "jpg"
         }
+      },
+      'barokowy-nowy': {
+        model: "google/nano-banana",
+        prompt: "Stwórz obraz w stylu jak na pierwszym obrazku, z pyskiem i głową kota z drugiego obrazka. Zachowaj kolor sierści, jej długość, kolor oczu, kształt uszu i inne cechy identyfikujące kota z drugiego obrazka. Zwróć uwagę na koronę, aby kot miał tylko dwoje uszu, które ładnie komponują się z koroną i mają taki kolor jak u kota z drugiego obrazka.",
+        apiType: "nano-banana",
+        productType: "cats", // Identyfikator typu produktu
+        parameters: {
+          image_input: ["https://customify-s56o.vercel.app/koty/barokowy_.png", "USER_IMAGE"],
+          aspect_ratio: "3:4", // Portret pionowy dla druku A3/A2/A1
+          output_format: "jpg"
+        }
       }
     };
 
