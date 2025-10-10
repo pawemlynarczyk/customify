@@ -19,43 +19,36 @@ if (process.env.REPLICATE_API_TOKEN && process.env.REPLICATE_API_TOKEN !== 'leav
   });
 }
 
-// Function to compress and resize images for SDXL models
-async function compressImage(imageData, maxWidth = 1152, maxHeight = 1152, quality = 85) {
+// Function to compress and resize images for AI models (Nano Banana)
+async function compressImage(imageData, maxLongerSide = 1024, quality = 85) {
   if (!sharp) {
     console.log('Sharp not available, returning original image');
     return imageData;
   }
   
   try {
-    console.log('Starting image compression for SDXL...');
+    console.log('Starting image compression for Nano Banana...');
     const buffer = Buffer.from(imageData, 'base64');
     console.log(`Original image size: ${buffer.length} bytes (${(buffer.length / 1024 / 1024).toFixed(2)} MB)`);
     
-    // Get image metadata to determine optimal SDXL resolution
+    // Get image metadata
     const metadata = await sharp(buffer).metadata();
     const { width, height } = metadata;
     console.log(`Original dimensions: ${width}x${height}`);
     
-    // Calculate optimal SDXL resolution based on aspect ratio
-    let targetWidth, targetHeight;
-    const aspectRatio = width / height;
+    // Calculate new dimensions - max 1024px for longer side, maintain aspect ratio
+    const longerSide = Math.max(width, height);
+    let targetWidth = width;
+    let targetHeight = height;
     
-    if (aspectRatio > 1.2) {
-      // Landscape - use 1152x896 (SDXL recommended)
-      targetWidth = 1152;
-      targetHeight = 896;
-    } else if (aspectRatio < 0.8) {
-      // Portrait - use 896x1152 (SDXL recommended)
-      targetWidth = 896;
-      targetHeight = 1152;
-    } else {
-      // Square-ish - use 1024x1024 (SDXL standard)
-      targetWidth = 1024;
-      targetHeight = 1024;
+    if (longerSide > maxLongerSide) {
+      const scale = maxLongerSide / longerSide;
+      targetWidth = Math.round(width * scale);
+      targetHeight = Math.round(height * scale);
     }
     
-    console.log(`SDXL optimal resolution: ${targetWidth}x${targetHeight} (aspect ratio: ${aspectRatio.toFixed(2)})`);
-    console.log(`Frontend already compressed to max 1152px, backend fine-tunes to SDXL dimensions`);
+    console.log(`Target resolution: ${targetWidth}x${targetHeight} (max longer side: ${maxLongerSide}px)`);
+    console.log(`Frontend already compressed, backend fine-tunes if needed`);
     
     const compressedBuffer = await sharp(buffer)
       .resize(targetWidth, targetHeight, {
@@ -159,7 +152,7 @@ module.exports = async (req, res) => {
 
     // Compress image before sending to Replicate to avoid memory issues
     console.log('Compressing image before AI processing...');
-    const compressedImageData = await compressImage(imageData, 1024, 1024, 80);
+    const compressedImageData = await compressImage(imageData, 1024, 80);
     console.log(`Image compressed: ${imageData.length} -> ${compressedImageData.length} bytes`);
     
     // Convert compressed base64 to Data URI for Replicate (required format)
