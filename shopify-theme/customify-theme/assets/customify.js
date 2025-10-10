@@ -411,8 +411,8 @@ class CustomifyEmbed {
       // Walidacja rozdzielczości obrazu
       const img = new Image();
       img.onload = () => {
-        const minWidth = 512;
-        const minHeight = 512;
+        const minWidth = 768;
+        const minHeight = 768;
         
         console.log(`🖼️ [IMAGE] Rozdzielczość: ${img.width}×${img.height}`);
         
