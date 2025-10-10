@@ -367,6 +367,11 @@ module.exports = async (req, res) => {
         aspect_ratio: aspectRatio,
         output_format: outputFormat
       };
+      
+      // Szczegółowe logowanie dla debugowania
+      console.log(`📸 [NANO-BANANA] Obraz 1 (miniaturka): ${config.parameters.image_input[0]}`);
+      console.log(`📸 [NANO-BANANA] Obraz 2 (user): ${imageDataUri.substring(0, 50)}...`);
+      console.log(`📸 [NANO-BANANA] image_input array length: ${inputParams.image_input.length}`);
     } else {
       // Stable Diffusion model parameters (default)
       inputParams = {
