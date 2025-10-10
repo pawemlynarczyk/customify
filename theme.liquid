@@ -960,8 +960,14 @@
             <button class="customify-upload-btn" id="uploadBtn">
               Wgraj zdjęcie
             </button>
-            <div class="customify-upload-hint">Maksymalnie 10MB, formaty: JPG, PNG, GIF</div>
+            {% if product.handle == 'koty-krolewskie-zwierzeta-w-koronach' %}
+              <div class="customify-upload-hint">Min. 600×600px, max 10MB, formaty: JPG, PNG, GIF</div>
+            {% else %}
+              <div class="customify-upload-hint">Min. 768×768px, max 10MB, formaty: JPG, PNG, GIF</div>
+            {% endif %}
             <input type="file" id="fileInput" class="customify-file-input" accept="image/*">
+            <!-- Komunikat błędu - od razu pod uploadem -->
+            <div class="customify-error" id="errorMessage" style="display: none; margin-top: 10px;"></div>
           </div>
 
             <div class="customify-preview" id="previewArea">
@@ -1274,8 +1280,6 @@
               <div class="loading-stage" id="cartLoadingStage">Tworzenie produktu...</div>
             </div>
         </div>
-
-            <div class="customify-error" id="errorMessage"></div>
           </div>
         </div>
       </div>

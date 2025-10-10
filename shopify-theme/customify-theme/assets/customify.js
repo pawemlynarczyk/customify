@@ -411,10 +411,13 @@ class CustomifyEmbed {
       // Walidacja rozdzielczości obrazu
       const img = new Image();
       img.onload = () => {
-        const minWidth = 768;
-        const minHeight = 768;
+        // Wykryj typ produktu - koty mają niższy limit
+        const isCatProduct = window.location.pathname.includes('koty-krolewskie');
+        const minWidth = isCatProduct ? 600 : 768;
+        const minHeight = isCatProduct ? 600 : 768;
         
         console.log(`🖼️ [IMAGE] Rozdzielczość: ${img.width}×${img.height}`);
+        console.log(`🖼️ [IMAGE] Produkt: ${isCatProduct ? 'Koty (600px min)' : 'Inne (768px min)'}`);
         
         // Sprawdź minimalną rozdzielczość
         if (img.width < minWidth || img.height < minHeight) {
