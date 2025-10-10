@@ -237,8 +237,8 @@ module.exports = async (req, res) => {
         productType: "cats", // Identyfikator typu produktu
         parameters: {
           image_input: ["https://customify-s56o.vercel.app/koty/krolewski.png", "USER_IMAGE"],
-          aspect_ratio: "match_input_image", // ZMIEŃ NA: "1:1", "16:9", "4:3" itp.
-          output_format: "jpg" // ZMIEŃ NA: "png", "webp" itp.
+          aspect_ratio: "3:4", // Portret pionowy dla druku A3/A2/A1
+          output_format: "jpg"
         }
       },
       'na-tronie': {
@@ -248,8 +248,8 @@ module.exports = async (req, res) => {
         productType: "cats", // Identyfikator typu produktu
         parameters: {
           image_input: ["https://customify-s56o.vercel.app/koty/na_tronie.png", "USER_IMAGE"],
-          aspect_ratio: "match_input_image", // ZMIEŃ NA: "1:1", "16:9", "4:3" itp.
-          output_format: "jpg" // ZMIEŃ NA: "png", "webp" itp.
+          aspect_ratio: "3:4", // Portret pionowy dla druku A3/A2/A1
+          output_format: "jpg"
         }
       },
       'wojenny': {
@@ -259,8 +259,8 @@ module.exports = async (req, res) => {
         productType: "cats", // Identyfikator typu produktu
         parameters: {
           image_input: ["https://customify-s56o.vercel.app/koty/wojenny.png", "USER_IMAGE"],
-          aspect_ratio: "match_input_image", // ZMIEŃ NA: "1:1", "16:9", "4:3" itp.
-          output_format: "jpg" // ZMIEŃ NA: "png", "webp" itp.
+          aspect_ratio: "3:4", // Portret pionowy dla druku A3/A2/A1
+          output_format: "jpg"
         }
       },
       'barokowy': {
@@ -270,8 +270,8 @@ module.exports = async (req, res) => {
         productType: "cats", // Identyfikator typu produktu
         parameters: {
           image_input: ["https://customify-s56o.vercel.app/koty/barokowy.png", "USER_IMAGE"],
-          aspect_ratio: "match_input_image", // ZMIEŃ NA: "1:1", "16:9", "4:3" itp.
-          output_format: "jpg" // ZMIEŃ NA: "png", "webp" itp.
+          aspect_ratio: "3:4", // Portret pionowy dla druku A3/A2/A1
+          output_format: "jpg"
         }
       },
       'wiktorianski': {
@@ -281,8 +281,8 @@ module.exports = async (req, res) => {
         productType: "cats", // Identyfikator typu produktu
         parameters: {
           image_input: ["https://customify-s56o.vercel.app/koty/wiktorianski.png", "USER_IMAGE"],
-          aspect_ratio: "match_input_image", // ZMIEŃ NA: "1:1", "16:9", "4:3" itp.
-          output_format: "jpg" // ZMIEŃ NA: "png", "webp" itp.
+          aspect_ratio: "3:4", // Portret pionowy dla druku A3/A2/A1
+          output_format: "jpg"
         }
       },
       'renesansowy': {
@@ -292,8 +292,8 @@ module.exports = async (req, res) => {
         productType: "cats", // Identyfikator typu produktu
         parameters: {
           image_input: ["https://customify-s56o.vercel.app/koty/renesansowy.png", "USER_IMAGE"],
-          aspect_ratio: "match_input_image", // ZMIEŃ NA: "1:1", "16:9", "4:3" itp.
-          output_format: "jpg" // ZMIEŃ NA: "png", "webp" itp.
+          aspect_ratio: "3:4", // Portret pionowy dla druku A3/A2/A1
+          output_format: "jpg"
         }
       }
     };

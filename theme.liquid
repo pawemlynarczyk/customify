@@ -1076,7 +1076,53 @@
               </button>
       </div>
 
-            <!-- ACCORDION: SZCZEGÓŁY PRODUKTU (SERVER-SIDE RENDERING) -->
+            <div class="customify-loading" id="loadingArea">
+              <div class="customify-spinner"></div>
+              <div class="loading-text">Przetwarzanie...</div>
+              <div class="loading-progress">
+                <div class="loading-progress-bar" id="progressBar"></div>
+              </div>
+              <div class="loading-stage" id="loadingStage">Przesyłanie zdjęcia...</div>
+            </div>
+
+            <div class="customify-result" id="resultArea">
+              <h4>Wynik transformacji AI:</h4>
+              <img id="resultImage" alt="Wynik AI">
+              
+              <!-- Komunikat sukcesu -->
+              <div class="customify-success" id="successMessage"></div>
+              
+              <!-- Rozmiary po transformacji -->
+              <div class="customify-size-selector" id="sizeArea" style="display: none;">
+                <h4>Wybierz rozmiar:</h4>
+                <div class="customify-size-buttons">
+                  <div class="customify-size-btn" data-size="small">Mały (+0 zł)</div>
+                  <div class="customify-size-btn" data-size="medium">Średni (+25 zł)</div>
+                  <div class="customify-size-btn" data-size="large">Duży (+50 zł)</div>
+                  <div class="customify-size-btn" data-size="xlarge">Bardzo duży (+100 zł)</div>
+                </div>
+              </div>
+              
+              <div class="customify-actions" style="margin-top: 15px;">
+                <button class="customify-btn customify-btn-primary" id="addToCartBtn">
+                  Dodaj do koszyka
+                </button>
+                <button class="customify-btn customify-btn-secondary" id="tryAgainBtn">
+                  Spróbuj ponownie
+                </button>
+            </div>
+            
+            <!-- Pasek postępu dla dodawania do koszyka -->
+            <div class="customify-cart-loading" id="cartLoadingArea" style="display: none;">
+              <div class="customify-spinner"></div>
+              <div class="loading-text">Dodawanie do koszyka...</div>
+              <div class="loading-progress">
+                <div class="loading-progress-bar" id="cartProgressBar"></div>
+              </div>
+              <div class="loading-stage" id="cartLoadingStage">Tworzenie produktu...</div>
+            </div>
+
+            <!-- ACCORDION: SZCZEGÓŁY PRODUKTU (NA SAMYM DOLE APLIKACJI) -->
             <div class="product-details-accordion">
               
               <!-- 1. Szczegóły produktu -->
@@ -1232,53 +1278,8 @@
               </div>
 
             </div>
-            <!-- KONIEC ACCORDION -->
+            <!-- KONIEC ACCORDION (NA SAMYM DOLE) -->
 
-            <div class="customify-loading" id="loadingArea">
-              <div class="customify-spinner"></div>
-              <div class="loading-text">Przetwarzanie...</div>
-              <div class="loading-progress">
-                <div class="loading-progress-bar" id="progressBar"></div>
-              </div>
-              <div class="loading-stage" id="loadingStage">Przesyłanie zdjęcia...</div>
-            </div>
-
-            <div class="customify-result" id="resultArea">
-              <h4>Wynik transformacji AI:</h4>
-              <img id="resultImage" alt="Wynik AI">
-              
-              <!-- Komunikat sukcesu -->
-              <div class="customify-success" id="successMessage"></div>
-              
-              <!-- Rozmiary po transformacji -->
-              <div class="customify-size-selector" id="sizeArea" style="display: none;">
-                <h4>Wybierz rozmiar:</h4>
-                <div class="customify-size-buttons">
-                  <div class="customify-size-btn" data-size="small">Mały (+0 zł)</div>
-                  <div class="customify-size-btn" data-size="medium">Średni (+25 zł)</div>
-                  <div class="customify-size-btn" data-size="large">Duży (+50 zł)</div>
-                  <div class="customify-size-btn" data-size="xlarge">Bardzo duży (+100 zł)</div>
-                </div>
-              </div>
-              
-              <div class="customify-actions" style="margin-top: 15px;">
-                <button class="customify-btn customify-btn-primary" id="addToCartBtn">
-                  Dodaj do koszyka
-                </button>
-                <button class="customify-btn customify-btn-secondary" id="tryAgainBtn">
-                  Spróbuj ponownie
-                </button>
-            </div>
-            
-            <!-- Pasek postępu dla dodawania do koszyka -->
-            <div class="customify-cart-loading" id="cartLoadingArea" style="display: none;">
-              <div class="customify-spinner"></div>
-              <div class="loading-text">Dodawanie do koszyka...</div>
-              <div class="loading-progress">
-                <div class="loading-progress-bar" id="cartProgressBar"></div>
-              </div>
-              <div class="loading-stage" id="cartLoadingStage">Tworzenie produktu...</div>
-            </div>
         </div>
           </div>
         </div>
