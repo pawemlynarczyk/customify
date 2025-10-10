@@ -859,8 +859,8 @@ class CustomifyEmbed {
         type: file.type
       });
       
-      // ZAWSZE kompresuj na frontend (optymalizacja dla Nano Banana)
-      console.log('📱 [MOBILE] Compressing image for Nano Banana optimization...');
+      // ZAWSZE kompresuj na frontend (optymalizacja dla SDXL)
+      console.log('📱 [MOBILE] Compressing image for SDXL optimization...');
       this.compressImage(file).then(compressedFile => {
         this.convertToBase64(compressedFile, resolve, reject);
       }).catch(error => {
@@ -896,17 +896,20 @@ class CustomifyEmbed {
       const img = new Image();
       
       img.onload = () => {
-        // Oblicz nowe wymiary (max 1024px dla dłuższego boku - optymalne dla Nano Banana)
-        const maxSize = 1024;
+        // Oblicz nowe wymiary (max 1152px - dopasowane do SDXL)
+        const maxSize = 1152;
         let { width, height } = img;
         
-        // Znajdź dłuższy bok i przeskaluj zachowując proporcje
-        const longerSide = Math.max(width, height);
-        
-        if (longerSide > maxSize) {
-          const scale = maxSize / longerSide;
-          width = Math.round(width * scale);
-          height = Math.round(height * scale);
+        if (width > height) {
+          if (width > maxSize) {
+            height = (height * maxSize) / width;
+            width = maxSize;
+          }
+        } else {
+          if (height > maxSize) {
+            width = (width * maxSize) / height;
+            height = maxSize;
+          }
         }
         
         canvas.width = width;
@@ -925,7 +928,7 @@ class CustomifyEmbed {
             maxSize: maxSize
           });
           resolve(blob);
-        }, 'image/jpeg', 0.85); // 85% jakość (optymalne dla Nano Banana)
+        }, 'image/jpeg', 0.85); // 85% jakość (optymalne dla SDXL)
       };
       
       img.onerror = error => {
