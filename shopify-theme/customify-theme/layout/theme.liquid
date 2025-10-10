@@ -587,16 +587,16 @@
         }
       }
       
-      // ETSY-STYLE GALLERY (miniaturki po lewej)
+      // ETSY-STYLE GALLERY (miniaturki poniżej)
       function createEtsyGallery(galleryGrid) {
         // Sprawdź czy już utworzono
         if (galleryGrid.classList.contains('etsy-gallery-initialized')) {
           return;
         }
         
-        // Wymuś layout flexbox poziomy (lewo-prawo)
+        // Wymuś layout flexbox pionowy (góra-dół)
         galleryGrid.style.setProperty('display', 'flex', 'important');
-        galleryGrid.style.setProperty('flex-direction', 'row', 'important');
+        galleryGrid.style.setProperty('flex-direction', 'column', 'important');
         galleryGrid.style.setProperty('gap', '16px', 'important');
         galleryGrid.style.setProperty('height', 'auto', 'important');
         galleryGrid.style.setProperty('width', '100%', 'important');
@@ -605,89 +605,13 @@
         const allImages = Array.from(galleryGrid.querySelectorAll('li'));
         if (allImages.length === 0) return;
         
-        // Stwórz kontener dla miniaturek (pionowo po lewej)
-        let thumbsColumn = galleryGrid.querySelector('.etsy-thumbnails-column');
-        if (!thumbsColumn) {
-          thumbsColumn = document.createElement('div');
-          thumbsColumn.className = 'etsy-thumbnails-column';
-          thumbsColumn.style.cssText = `
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            overflow-y: auto;
-            max-height: 600px;
-            width: 80px;
-            flex-shrink: 0;
-            scrollbar-width: thin;
-          `;
-          
-          // Przenieś miniaturki
-          allImages.forEach((img, index) => {
-            const thumb = img.cloneNode(true);
-            
-            // Usuń wszystkie atrybuty które mogą powodować zoom/modal
-            const links = thumb.querySelectorAll('a, button');
-            links.forEach(link => {
-              link.removeAttribute('href');
-              link.removeAttribute('data-modal');
-              link.removeAttribute('data-pswp-width');
-              link.removeAttribute('data-pswp-height');
-              link.style.pointerEvents = 'none'; // Wyłącz kliknięcia w linki
-            });
-            
-            thumb.style.cssText = `
-              width: 80px;
-              height: 80px;
-              border: 2px solid #e0e0e0;
-              border-radius: 4px;
-              cursor: pointer;
-              transition: all 0.2s ease;
-              flex-shrink: 0;
-            `;
-            
-            // Dodaj active state
-            if (index === 0) {
-              thumb.style.borderColor = '#000';
-            }
-            
-            // Kliknięcie zmienia główny obraz (BEZ ZOOM/MODAL)
-            thumb.addEventListener('click', (e) => {
-              e.preventDefault(); // Zatrzymaj domyślne zachowanie Shopify
-              e.stopPropagation(); // Zatrzymaj propagację (zoom/modal)
-              
-              // Usuń active ze wszystkich
-              thumbsColumn.querySelectorAll('li').forEach(t => {
-                t.style.borderColor = '#e0e0e0';
-              });
-              // Dodaj active
-              thumb.style.borderColor = '#000';
-              
-              // Zmień główny obraz
-              const mainImg = mainImageContainer.querySelector('img');
-              const clickedImg = thumb.querySelector('img');
-              if (mainImg && clickedImg) {
-                mainImg.src = clickedImg.src;
-                // Aktualizuj licznik
-                const counter = mainImageContainer.querySelector('.etsy-counter');
-                if (counter) {
-                  counter.textContent = `${index + 1} / ${allImages.length}`;
-                }
-              }
-            }, true); // useCapture = true (przechwytuj PRZED Shopify)
-            
-            thumbsColumn.appendChild(thumb);
-          });
-          
-          galleryGrid.appendChild(thumbsColumn);
-        }
-        
-        // Stwórz kontener dla głównego obrazu (po prawej)
+        // NAJPIERW stwórz kontener dla głównego obrazu (będzie potrzebny w event listenerach)
         let mainImageContainer = galleryGrid.querySelector('.etsy-main-image');
         if (!mainImageContainer) {
           mainImageContainer = document.createElement('div');
           mainImageContainer.className = 'etsy-main-image';
           mainImageContainer.style.cssText = `
-            flex: 1;
+            width: 100%;
             position: relative;
             aspect-ratio: 1 / 1;
             background: #f5f5f5;
@@ -739,15 +663,92 @@
             font-size: 14px;
           `;
           mainImageContainer.appendChild(counter);
+        }
+        
+        // POTEM stwórz kontener dla miniaturek (poziomo poniżej)
+        let thumbsRow = galleryGrid.querySelector('.etsy-thumbnails-row');
+        if (!thumbsRow) {
+          thumbsRow = document.createElement('div');
+          thumbsRow.className = 'etsy-thumbnails-row';
+          thumbsRow.style.cssText = `
+            display: flex;
+            flex-direction: row;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 10px 0;
+            width: 100%;
+            scrollbar-width: thin;
+          `;
           
+          // Przenieś miniaturki
+          allImages.forEach((img, index) => {
+            const thumb = img.cloneNode(true);
+            
+            // Usuń wszystkie atrybuty które mogą powodować zoom/modal
+            const links = thumb.querySelectorAll('a, button');
+            links.forEach(link => {
+              link.removeAttribute('href');
+              link.removeAttribute('data-modal');
+              link.removeAttribute('data-pswp-width');
+              link.removeAttribute('data-pswp-height');
+              link.style.pointerEvents = 'none'; // Wyłącz kliknięcia w linki
+            });
+            
+            thumb.style.cssText = `
+              width: 80px;
+              height: 80px;
+              border: 2px solid #e0e0e0;
+              border-radius: 4px;
+              cursor: pointer;
+              transition: all 0.2s ease;
+              flex-shrink: 0;
+            `;
+            
+            // Dodaj active state
+            if (index === 0) {
+              thumb.style.borderColor = '#000';
+            }
+            
+            // Kliknięcie zmienia główny obraz (BEZ ZOOM/MODAL)
+            thumb.addEventListener('click', (e) => {
+              e.preventDefault(); // Zatrzymaj domyślne zachowanie Shopify
+              e.stopPropagation(); // Zatrzymaj propagację (zoom/modal)
+              
+              // Usuń active ze wszystkich
+              thumbsRow.querySelectorAll('li').forEach(t => {
+                t.style.borderColor = '#e0e0e0';
+              });
+              // Dodaj active
+              thumb.style.borderColor = '#000';
+              
+              // Zmień główny obraz
+              const mainImg = mainImageContainer.querySelector('img');
+              const clickedImg = thumb.querySelector('img');
+              if (mainImg && clickedImg) {
+                mainImg.src = clickedImg.src;
+                // Aktualizuj licznik
+                const counter = mainImageContainer.querySelector('.etsy-counter');
+                if (counter) {
+                  counter.textContent = `${index + 1} / ${allImages.length}`;
+                }
+              }
+            }, true); // useCapture = true (przechwytuj PRZED Shopify)
+            
+            thumbsRow.appendChild(thumb);
+          });
+          
+          // Dodaj NAJPIERW główny obraz (góra)
           galleryGrid.appendChild(mainImageContainer);
+          
+          // POTEM miniaturki (dół)
+          galleryGrid.appendChild(thumbsRow);
         }
         
         // Usuń oryginalne elementy
         allImages.forEach(img => img.remove());
         
         galleryGrid.classList.add('etsy-gallery-initialized');
-        console.log('✅ [ETSY] Galeria utworzona: miniaturki po lewej, obraz po prawej');
+        console.log('✅ [ETSY] Galeria utworzona: główny obraz na górze, miniaturki poniżej');
       }
       
       // STANDARD CAROUSEL (dla innych produktów)
