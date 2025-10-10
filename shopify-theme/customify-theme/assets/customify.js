@@ -408,8 +408,36 @@ class CustomifyEmbed {
   showPreview(file) {
     const reader = new FileReader();
     reader.onload = (e) => {
-      this.previewImage.src = e.target.result;
-      this.previewArea.style.display = 'block';
+      // Walidacja rozdzielczości obrazu
+      const img = new Image();
+      img.onload = () => {
+        const minWidth = 512;
+        const minHeight = 512;
+        
+        console.log(`🖼️ [IMAGE] Rozdzielczość: ${img.width}×${img.height}`);
+        
+        // Sprawdź minimalną rozdzielczość
+        if (img.width < minWidth || img.height < minHeight) {
+          this.showError(`Zdjęcie jest za małe. Minimalna rozdzielczość to ${minWidth}×${minHeight}px. Twoje zdjęcie: ${img.width}×${img.height}px`);
+          this.previewArea.style.display = 'none';
+          this.uploadedFile = null;
+          this.fileInput.value = '';
+          return;
+        }
+        
+        // Zdjęcie OK - pokaż podgląd
+        this.previewImage.src = e.target.result;
+        this.previewArea.style.display = 'block';
+        console.log(`✅ [IMAGE] Rozdzielczość OK (min ${minWidth}×${minHeight}px)`);
+      };
+      
+      img.onerror = () => {
+        this.showError('Nie można wczytać obrazu. Wybierz inny plik.');
+        this.uploadedFile = null;
+        this.fileInput.value = '';
+      };
+      
+      img.src = e.target.result;
     };
     reader.readAsDataURL(file);
   }
