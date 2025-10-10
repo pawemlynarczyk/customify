@@ -605,6 +605,14 @@
         const allImages = Array.from(galleryGrid.querySelectorAll('li'));
         if (allImages.length === 0) return;
         
+        // Zapisz URL wszystkich obrazków PRZED usunięciem elementów
+        const imageUrls = allImages.map(li => {
+          const img = li.querySelector('img');
+          return img ? img.src : null;
+        }).filter(url => url !== null);
+        
+        console.log(`📸 [ETSY] Znaleziono ${imageUrls.length} obrazków`);
+        
         // Zmienna do śledzenia aktualnego indexu (globalna dla całej galerii)
         let currentIndex = 0;
         
@@ -654,7 +662,7 @@
           // Licznik zdjęć
           const counter = document.createElement('div');
           counter.className = 'etsy-counter';
-          counter.textContent = `1 / ${allImages.length}`;
+          counter.textContent = `1 / ${imageUrls.length}`;
           counter.style.cssText = `
             position: absolute;
             bottom: 16px;
@@ -856,16 +864,16 @@
               // Dodaj active
               thumb.style.borderColor = '#000';
               
-              // Zmień główny obraz
+              // Zmień główny obraz używając zapisanego URL
               const mainImg = mainImageContainer.querySelector('img');
-              const clickedImg = thumb.querySelector('img');
-              if (mainImg && clickedImg) {
-                mainImg.src = clickedImg.src;
+              if (mainImg && imageUrls[index]) {
+                mainImg.src = imageUrls[index];
                 // Aktualizuj licznik
                 const counter = mainImageContainer.querySelector('.etsy-counter');
                 if (counter) {
-                  counter.textContent = `${index + 1} / ${allImages.length}`;
+                  counter.textContent = `${index + 1} / ${imageUrls.length}`;
                 }
+                console.log(`🖼️ [ETSY] Kliknięcie miniaturki ${index + 1}: ${imageUrls[index]}`);
               }
             }, true); // useCapture = true (przechwytuj PRZED Shopify)
             
@@ -882,56 +890,72 @@
           
           // POTEM miniaturki z nawigacją (dół)
           galleryGrid.appendChild(thumbsNavigationContainer);
+        }
+        
+        // Event listenery dla strzałek głównego obrazu (NA ZEWNĄTRZ if'a - działają zawsze)
+        const prevBtn = mainImageContainer.querySelector('.etsy-nav-btn.prev');
+        const nextBtn = mainImageContainer.querySelector('.etsy-nav-btn.next');
+        const counter = mainImageContainer.querySelector('.etsy-counter');
+        const mainImg = mainImageContainer.querySelector('img');
+        const thumbsRow = galleryGrid.querySelector('.etsy-thumbnails-row');
+        
+        console.log('🔍 [ETSY] Sprawdzam elementy:', {
+          prevBtn: !!prevBtn,
+          nextBtn: !!nextBtn,
+          mainImg: !!mainImg,
+          thumbsRow: !!thumbsRow,
+          counter: !!counter
+        });
+        
+        if (prevBtn && nextBtn && mainImg && thumbsRow) {
+          // Usuń stare event listenery (klonuj przyciski)
+          const newPrevBtn = prevBtn.cloneNode(true);
+          const newNextBtn = nextBtn.cloneNode(true);
+          prevBtn.replaceWith(newPrevBtn);
+          nextBtn.replaceWith(newNextBtn);
           
-          // Event listenery dla strzałek głównego obrazu (muszą być PO utworzeniu thumbsRow)
-          const prevBtn = mainImageContainer.querySelector('.etsy-nav-btn.prev');
-          const nextBtn = mainImageContainer.querySelector('.etsy-nav-btn.next');
-          const counter = mainImageContainer.querySelector('.etsy-counter');
-          
-          prevBtn.addEventListener('click', (e) => {
+          newPrevBtn.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
             
-            currentIndex = currentIndex === 0 ? allImages.length - 1 : currentIndex - 1;
+            currentIndex = currentIndex === 0 ? imageUrls.length - 1 : currentIndex - 1;
             
-            // Zmień obraz
-            const mainImg = mainImageContainer.querySelector('img');
-            const targetImg = allImages[currentIndex]?.querySelector('img');
-            
-            if (mainImg && targetImg) {
-              mainImg.src = targetImg.src;
-              counter.textContent = `${currentIndex + 1} / ${allImages.length}`;
+            // Zmień obraz używając zapisanego URL
+            if (mainImg && imageUrls[currentIndex]) {
+              mainImg.src = imageUrls[currentIndex];
+              counter.textContent = `${currentIndex + 1} / ${imageUrls.length}`;
               
               // Aktualizuj active state miniaturek
               thumbsRow.querySelectorAll('li').forEach((t, i) => {
                 t.style.borderColor = i === currentIndex ? '#000' : '#e0e0e0';
               });
+              
+              console.log(`🔧 [ETSY] Strzałka ← : Zdjęcie ${currentIndex + 1}/${imageUrls.length}`);
             }
           });
           
-          nextBtn.addEventListener('click', (e) => {
+          newNextBtn.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
             
-            currentIndex = currentIndex === allImages.length - 1 ? 0 : currentIndex + 1;
+            currentIndex = currentIndex === imageUrls.length - 1 ? 0 : currentIndex + 1;
             
-            // Zmień obraz
-            const mainImg = mainImageContainer.querySelector('img');
-            const targetImg = allImages[currentIndex]?.querySelector('img');
-            
-            if (mainImg && targetImg) {
-              mainImg.src = targetImg.src;
-              counter.textContent = `${currentIndex + 1} / ${allImages.length}`;
+            // Zmień obraz używając zapisanego URL
+            if (mainImg && imageUrls[currentIndex]) {
+              mainImg.src = imageUrls[currentIndex];
+              counter.textContent = `${currentIndex + 1} / ${imageUrls.length}`;
               
               // Aktualizuj active state miniaturek
               thumbsRow.querySelectorAll('li').forEach((t, i) => {
                 t.style.borderColor = i === currentIndex ? '#000' : '#e0e0e0';
               });
+              
+              console.log(`🔧 [ETSY] Strzałka → : Zdjęcie ${currentIndex + 1}/${imageUrls.length}`);
             }
           });
           
           // Hover effects dla strzałek głównego obrazu
-          [prevBtn, nextBtn].forEach(btn => {
+          [newPrevBtn, newNextBtn].forEach(btn => {
             btn.addEventListener('mouseenter', () => {
               btn.style.background = 'white';
               btn.style.transform = 'translateY(-50%) scale(1.1)';
@@ -941,6 +965,10 @@
               btn.style.transform = 'translateY(-50%) scale(1)';
             });
           });
+          
+          console.log('✅ [ETSY] Event listenery dla strzałek głównego obrazu dodane');
+        } else {
+          console.error('❌ [ETSY] Brak elementów:', { prevBtn, nextBtn, mainImg, thumbsRow });
         }
         
         // Usuń oryginalne elementy
