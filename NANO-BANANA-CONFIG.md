@@ -144,8 +144,9 @@ if (productType === 'cats') {
 ### **Style kotów** (productType: "cats"):
 - `krolewski`, `na-tronie`, `wojenny`, `barokowy`, `wiktorianski`, `renesansowy`
 - **Model**: `google/nano-banana`
-- **aspect_ratio**: `match_input_image` (zachowuje proporcje zdjęcia użytkownika)
+- **aspect_ratio**: `"3:4"` ✅ **WYMUSZONY PORTRET** (dla druku A3/A2/A1)
 - **output_format**: `jpg`
+- **Min. rozdzielczość**: 600×600px
 
 ### **Inne style** (productType: "other"):
 - `anime` (Ghibli), `pixar`, `van gogh`, `picasso`, `monet`, `cyberpunk`, `watercolor`
@@ -172,8 +173,11 @@ Config productType: cats, Request productType: cats
 - ✅ Frontend wykrywa typ produktu (koty vs inne)
 - ✅ Backend odbiera productType w API request
 - ✅ Każdy styl ma identyfikator productType
-- ✅ Logika nadpisywania parametrów przygotowana
-- ⚠️ **Domyślne parametry nie zostały zmienione** - nadal używamy `match_input_image` + `jpg`
+- ✅ **Koty: aspect_ratio = "3:4"** - WYMUSZONY PORTRET dla druku A3/A2/A1
+- ✅ **Koty: Min. 600px** - niższy limit rozdzielczości
+- ✅ **Inne: Min. 768px** - wyższy limit rozdzielczości
+- ✅ **Miniaturki kotów: 3:4** - pokazują prawdziwe proporcje outputu
+- ✅ **Accordion przeniesiony na dół** - szczegóły produktu na końcu aplikacji
 
 ---
 
