@@ -1318,6 +1318,16 @@
           background-repeat: no-repeat;
         }
 
+        /* Miniaturki kotów - portret 3:4 (jak będzie wysyłane do Nano Banana) */
+        [data-style="krolewski"] .style-image,
+        [data-style="na-tronie"] .style-image,
+        [data-style="wojenny"] .style-image,
+        [data-style="barokowy"] .style-image,
+        [data-style="wiktorianski"] .style-image,
+        [data-style="renesansowy"] .style-image {
+          aspect-ratio: 3 / 4; /* Portret - jak w API */
+        }
+
         /* Gradienty usunięte - używamy obrazków */
 
         .style-info {
