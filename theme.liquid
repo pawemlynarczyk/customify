@@ -575,16 +575,9 @@
         const galleryGrid = document.querySelector('.media-gallery__grid');
         if (!galleryGrid) return;
         
-        // WYKRYJ CZY TO PRODUKT KOTÓW
-        const isCatProduct = window.location.pathname.includes('koty-krolewskie');
-        
-        if (isCatProduct) {
-          console.log('🔧 [ETSY GALLERY] Tworzę galerię w stylu Etsy dla kotów...');
-          createEtsyGallery(galleryGrid);
-        } else {
-          console.log('🔧 [STANDARD GALLERY] Tworzę standardową karuzelę...');
-          createStandardCarousel(galleryGrid);
-        }
+        // ZAWSZE uruchamiaj galerię w stylu Etsy na stronach produktu
+        console.log('🔧 [ETSY GALLERY] Tworzę galerię w stylu Etsy dla produktu...');
+        createEtsyGallery(galleryGrid);
       }
       
       // ETSY-STYLE GALLERY (miniaturki poniżej)
@@ -1689,7 +1682,7 @@
             </div>
             <!-- KONIEC ACCORDION (NA SAMYM DOLE) -->
 
-        </div>
+              </div>
           </div>
         </div>
       </div>
