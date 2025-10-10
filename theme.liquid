@@ -624,6 +624,17 @@
           // Przenieś miniaturki
           allImages.forEach((img, index) => {
             const thumb = img.cloneNode(true);
+            
+            // Usuń wszystkie atrybuty które mogą powodować zoom/modal
+            const links = thumb.querySelectorAll('a, button');
+            links.forEach(link => {
+              link.removeAttribute('href');
+              link.removeAttribute('data-modal');
+              link.removeAttribute('data-pswp-width');
+              link.removeAttribute('data-pswp-height');
+              link.style.pointerEvents = 'none'; // Wyłącz kliknięcia w linki
+            });
+            
             thumb.style.cssText = `
               width: 80px;
               height: 80px;
@@ -639,8 +650,11 @@
               thumb.style.borderColor = '#000';
             }
             
-            // Kliknięcie zmienia główny obraz
-            thumb.addEventListener('click', () => {
+            // Kliknięcie zmienia główny obraz (BEZ ZOOM/MODAL)
+            thumb.addEventListener('click', (e) => {
+              e.preventDefault(); // Zatrzymaj domyślne zachowanie Shopify
+              e.stopPropagation(); // Zatrzymaj propagację (zoom/modal)
+              
               // Usuń active ze wszystkich
               thumbsColumn.querySelectorAll('li').forEach(t => {
                 t.style.borderColor = '#e0e0e0';
@@ -653,8 +667,13 @@
               const clickedImg = thumb.querySelector('img');
               if (mainImg && clickedImg) {
                 mainImg.src = clickedImg.src;
+                // Aktualizuj licznik
+                const counter = mainImageContainer.querySelector('.etsy-counter');
+                if (counter) {
+                  counter.textContent = `${index + 1} / ${allImages.length}`;
+                }
               }
-            });
+            }, true); // useCapture = true (przechwytuj PRZED Shopify)
             
             thumbsColumn.appendChild(thumb);
           });
@@ -686,9 +705,24 @@
               width: 100%;
               height: 100%;
               object-fit: cover;
+              cursor: default;
             `;
+            
+            // Wyłącz zoom/modal na głównym obrazie
+            mainImg.addEventListener('click', (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              console.log('🖼️ [ETSY] Kliknięcie w główny obraz - zoom wyłączony');
+            }, true);
+            
             mainImageContainer.appendChild(mainImg);
           }
+          
+          // Wyłącz również kliknięcie w kontener
+          mainImageContainer.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }, true);
           
           // Licznik zdjęć
           const counter = document.createElement('div');
