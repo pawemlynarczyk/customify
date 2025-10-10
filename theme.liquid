@@ -605,6 +605,9 @@
         const allImages = Array.from(galleryGrid.querySelectorAll('li'));
         if (allImages.length === 0) return;
         
+        // Zmienna do śledzenia aktualnego indexu (globalna dla całej galerii)
+        let currentIndex = 0;
+        
         // NAJPIERW stwórz kontener dla głównego obrazu (będzie potrzebny w event listenerach)
         let mainImageContainer = galleryGrid.querySelector('.etsy-main-image');
         if (!mainImageContainer) {
@@ -663,22 +666,151 @@
             font-size: 14px;
           `;
           mainImageContainer.appendChild(counter);
+          
+          // Strzałka LEWA na głównym obrazie
+          const prevBtn = document.createElement('button');
+          prevBtn.innerHTML = '‹';
+          prevBtn.className = 'etsy-nav-btn prev';
+          prevBtn.style.cssText = `
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 28px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            transition: all 0.2s ease;
+            z-index: 10;
+          `;
+          
+          // Strzałka PRAWA na głównym obrazie
+          const nextBtn = document.createElement('button');
+          nextBtn.innerHTML = '›';
+          nextBtn.className = 'etsy-nav-btn next';
+          nextBtn.style.cssText = `
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 28px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            transition: all 0.2s ease;
+            z-index: 10;
+          `;
+          
+          mainImageContainer.appendChild(prevBtn);
+          mainImageContainer.appendChild(nextBtn);
         }
         
-        // POTEM stwórz kontener dla miniaturek (poziomo poniżej)
-        let thumbsRow = galleryGrid.querySelector('.etsy-thumbnails-row');
-        if (!thumbsRow) {
-          thumbsRow = document.createElement('div');
+        // POTEM stwórz kontener dla miniaturek z nawigacją (poziomo poniżej)
+        let thumbsNavigationContainer = galleryGrid.querySelector('.etsy-thumbs-navigation');
+        if (!thumbsNavigationContainer) {
+          thumbsNavigationContainer = document.createElement('div');
+          thumbsNavigationContainer.className = 'etsy-thumbs-navigation';
+          thumbsNavigationContainer.style.cssText = `
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+          `;
+          
+          // Strzałka LEWA dla miniaturek
+          const thumbsPrevBtn = document.createElement('button');
+          thumbsPrevBtn.innerHTML = '‹';
+          thumbsPrevBtn.style.cssText = `
+            width: 36px;
+            height: 36px;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 24px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: all 0.2s ease;
+          `;
+          
+          // Kontener miniaturek
+          let thumbsRow = document.createElement('div');
           thumbsRow.className = 'etsy-thumbnails-row';
           thumbsRow.style.cssText = `
             display: flex;
             flex-direction: row;
             gap: 8px;
             overflow-x: auto;
+            overflow-y: hidden;
             padding: 10px 0;
-            width: 100%;
-            scrollbar-width: thin;
+            flex: 1;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
           `;
+          thumbsRow.style.setProperty('-webkit-scrollbar', 'none');
+          
+          // Strzałka PRAWA dla miniaturek
+          const thumbsNextBtn = document.createElement('button');
+          thumbsNextBtn.innerHTML = '›';
+          thumbsNextBtn.style.cssText = `
+            width: 36px;
+            height: 36px;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 24px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: all 0.2s ease;
+          `;
+          
+          // Event listenery dla strzałek miniaturek
+          thumbsPrevBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            thumbsRow.scrollBy({ left: -200, behavior: 'smooth' });
+          });
+          
+          thumbsNextBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            thumbsRow.scrollBy({ left: 200, behavior: 'smooth' });
+          });
+          
+          // Hover effects
+          [thumbsPrevBtn, thumbsNextBtn].forEach(btn => {
+            btn.addEventListener('mouseenter', () => {
+              btn.style.background = '#f5f5f5';
+              btn.style.transform = 'scale(1.1)';
+            });
+            btn.addEventListener('mouseleave', () => {
+              btn.style.background = 'white';
+              btn.style.transform = 'scale(1)';
+            });
+          });
           
           // Przenieś miniaturki
           allImages.forEach((img, index) => {
@@ -714,6 +846,9 @@
               e.preventDefault(); // Zatrzymaj domyślne zachowanie Shopify
               e.stopPropagation(); // Zatrzymaj propagację (zoom/modal)
               
+              // Aktualizuj currentIndex (dla synchronizacji ze strzałkami)
+              currentIndex = index;
+              
               // Usuń active ze wszystkich
               thumbsRow.querySelectorAll('li').forEach(t => {
                 t.style.borderColor = '#e0e0e0';
@@ -737,18 +872,82 @@
             thumbsRow.appendChild(thumb);
           });
           
+          // Składaj nawigację miniaturek
+          thumbsNavigationContainer.appendChild(thumbsPrevBtn);
+          thumbsNavigationContainer.appendChild(thumbsRow);
+          thumbsNavigationContainer.appendChild(thumbsNextBtn);
+          
           // Dodaj NAJPIERW główny obraz (góra)
           galleryGrid.appendChild(mainImageContainer);
           
-          // POTEM miniaturki (dół)
-          galleryGrid.appendChild(thumbsRow);
+          // POTEM miniaturki z nawigacją (dół)
+          galleryGrid.appendChild(thumbsNavigationContainer);
+          
+          // Event listenery dla strzałek głównego obrazu (muszą być PO utworzeniu thumbsRow)
+          const prevBtn = mainImageContainer.querySelector('.etsy-nav-btn.prev');
+          const nextBtn = mainImageContainer.querySelector('.etsy-nav-btn.next');
+          const counter = mainImageContainer.querySelector('.etsy-counter');
+          
+          prevBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            currentIndex = currentIndex === 0 ? allImages.length - 1 : currentIndex - 1;
+            
+            // Zmień obraz
+            const mainImg = mainImageContainer.querySelector('img');
+            const targetImg = allImages[currentIndex]?.querySelector('img');
+            
+            if (mainImg && targetImg) {
+              mainImg.src = targetImg.src;
+              counter.textContent = `${currentIndex + 1} / ${allImages.length}`;
+              
+              // Aktualizuj active state miniaturek
+              thumbsRow.querySelectorAll('li').forEach((t, i) => {
+                t.style.borderColor = i === currentIndex ? '#000' : '#e0e0e0';
+              });
+            }
+          });
+          
+          nextBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            currentIndex = currentIndex === allImages.length - 1 ? 0 : currentIndex + 1;
+            
+            // Zmień obraz
+            const mainImg = mainImageContainer.querySelector('img');
+            const targetImg = allImages[currentIndex]?.querySelector('img');
+            
+            if (mainImg && targetImg) {
+              mainImg.src = targetImg.src;
+              counter.textContent = `${currentIndex + 1} / ${allImages.length}`;
+              
+              // Aktualizuj active state miniaturek
+              thumbsRow.querySelectorAll('li').forEach((t, i) => {
+                t.style.borderColor = i === currentIndex ? '#000' : '#e0e0e0';
+              });
+            }
+          });
+          
+          // Hover effects dla strzałek głównego obrazu
+          [prevBtn, nextBtn].forEach(btn => {
+            btn.addEventListener('mouseenter', () => {
+              btn.style.background = 'white';
+              btn.style.transform = 'translateY(-50%) scale(1.1)';
+            });
+            btn.addEventListener('mouseleave', () => {
+              btn.style.background = 'rgba(255, 255, 255, 0.9)';
+              btn.style.transform = 'translateY(-50%) scale(1)';
+            });
+          });
         }
         
         // Usuń oryginalne elementy
         allImages.forEach(img => img.remove());
         
         galleryGrid.classList.add('etsy-gallery-initialized');
-        console.log('✅ [ETSY] Galeria utworzona: główny obraz na górze, miniaturki poniżej');
+        console.log('✅ [ETSY] Galeria utworzona: główny obraz + strzałki ← → + miniaturki poniżej');
       }
       
       // STANDARD CAROUSEL (dla innych produktów)
