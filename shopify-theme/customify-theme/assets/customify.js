@@ -689,6 +689,9 @@ class CustomifyEmbed {
     this.stylesArea.style.display = 'none';
     console.log('🎯 [CUSTOMIFY] stylesArea hidden:', this.stylesArea.style.display);
     
+    // Zmień kolory przycisków po wygenerowaniu AI
+    this.swapButtonColors();
+    
     // UKRYJ pole upload po przekształceniu
     this.uploadArea.style.display = 'none';
     console.log('🎯 [CUSTOMIFY] uploadArea hidden:', this.uploadArea.style.display);
@@ -992,6 +995,9 @@ class CustomifyEmbed {
     if (resetBtn) {
       resetBtn.style.display = 'none';
     }
+    
+    // Przywróć kolory przycisków do stanu początkowego
+    this.resetButtonColors();
   }
 
   tryAgain() {
@@ -1159,6 +1165,36 @@ class CustomifyEmbed {
 
   hideSuccess() {
     this.successMessage.style.display = 'none';
+  }
+
+  // Zmień kolory przycisków po wygenerowaniu AI
+  swapButtonColors() {
+    const transformBtn = document.getElementById('transformBtn');
+    const addToCartBtnMain = document.getElementById('addToCartBtnMain');
+    
+    if (transformBtn && addToCartBtnMain) {
+      // Po AI: "Zobacz Podgląd" -> czarny, "Dodaj do koszyka" -> czerwony
+      transformBtn.classList.remove('customify-btn-red');
+      transformBtn.classList.add('customify-btn-primary');
+      addToCartBtnMain.classList.remove('customify-btn-primary');
+      addToCartBtnMain.classList.add('customify-btn-red');
+      console.log('🔄 [CUSTOMIFY] Button colors swapped after AI generation');
+    }
+  }
+
+  // Przywróć kolory przycisków do stanu początkowego
+  resetButtonColors() {
+    const transformBtn = document.getElementById('transformBtn');
+    const addToCartBtnMain = document.getElementById('addToCartBtnMain');
+    
+    if (transformBtn && addToCartBtnMain) {
+      // Na początku: "Zobacz Podgląd" -> czerwony, "Dodaj do koszyka" -> czarny
+      transformBtn.classList.remove('customify-btn-primary');
+      transformBtn.classList.add('customify-btn-red');
+      addToCartBtnMain.classList.remove('customify-btn-red');
+      addToCartBtnMain.classList.add('customify-btn-primary');
+      console.log('🔄 [CUSTOMIFY] Button colors reset to initial state');
+    }
   }
 }
 
