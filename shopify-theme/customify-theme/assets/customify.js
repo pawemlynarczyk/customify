@@ -463,6 +463,7 @@ class CustomifyEmbed {
     this.sizeArea.querySelectorAll('.customify-size-btn').forEach(btn => btn.classList.remove('active'));
     sizeBtn.classList.add('active');
     this.selectedSize = sizeBtn.dataset.size;
+    console.log('📏 [SIZE] Selected size:', this.selectedSize);
   }
 
   async transformImage(retryCount = 0) {
