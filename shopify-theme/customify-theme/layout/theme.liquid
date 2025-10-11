@@ -404,12 +404,17 @@
       .product-card:has([data-product-title*="A5"]),
       .product-card:has([data-product-title*="A4"]),
       .product-card:has([data-product-title*="A3"]),
-      .product-card:has([data-product-title*="A2"]) {
+      .product-card:has([data-product-title*="A2"]),
+      .product-card:has([href*="A5"]),
+      .product-card:has([href*="A4"]),
+      .product-card:has([href*="A3"]),
+      .product-card:has([href*="A2"]) {
         display: none !important;
       }
       
       /* Zachowaj główny produkt Customify widoczny */
-      .product-card:has([data-product-title*="Obraz ze zdjęcia w stylu Ghibli"]) {
+      .product-card:has([data-product-title*="Obraz ze zdjęcia w stylu Ghibli"]),
+      .product-card:has([href*="custom"]) {
         display: block !important;
       }
     </style>
