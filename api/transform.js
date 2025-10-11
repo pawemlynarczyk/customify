@@ -266,18 +266,6 @@ module.exports = async (req, res) => {
           guidance: 10 // Testowa wartość
         }
       },
-      'barokowy': {
-        model: "google/nano-banana",
-        prompt: "Stwórz obraz w stylu jak na pierwszym obrazku, z pyskiem i głową kota z drugiego obrazka. Zidentyfikuj kota z drugiego obrazka [Rasa/Typ] face features: specific large [Kolor] eyes, distinct [Kształt] head, short snout, prominent [Umaszczenie] cheek fur, tiny [Kształt/Typ] ears. Zachowaj te cechy tworząc nowy obrazek. Zwróć uwagę na nakrycie głowy, jeśli było na pierwszym obrazku aby komponowało się z głową kota.",
-        apiType: "nano-banana",
-        productType: "cats", // Identyfikator typu produktu
-        parameters: {
-          image_input: ["https://customify-s56o.vercel.app/koty/barokowy.png", "USER_IMAGE"],
-          aspect_ratio: "3:4", // Portret pionowy dla druku A3/A2/A1
-          output_format: "jpg",
-          guidance: 10 // Testowa wartość
-        }
-      },
       'wiktorianski': {
         model: "google/nano-banana",
         prompt: "Stwórz obraz w stylu jak na pierwszym obrazku, z pyskiem i głową kota z drugiego obrazka. Zidentyfikuj kota z drugiego obrazka [Rasa/Typ] face features: specific large [Kolor] eyes, distinct [Kształt] head, short snout, prominent [Umaszczenie] cheek fur, tiny [Kształt/Typ] ears. Zachowaj te cechy tworząc nowy obrazek. Zwróć uwagę na nakrycie głowy, jeśli było na pierwszym obrazku aby komponowało się z głową kota.",
@@ -297,18 +285,6 @@ module.exports = async (req, res) => {
         productType: "cats", // Identyfikator typu produktu
         parameters: {
           image_input: ["https://customify-s56o.vercel.app/koty/renesansowy.png", "USER_IMAGE"],
-          aspect_ratio: "3:4", // Portret pionowy dla druku A3/A2/A1
-          output_format: "jpg",
-          guidance: 10 // Testowa wartość
-        }
-      },
-      'barokowy-nowy': {
-        model: "google/nano-banana",
-        prompt: "Stwórz obraz w stylu jak na pierwszym obrazku, z pyskiem i głową kota z drugiego obrazka. Zidentyfikuj kota z drugiego obrazka [Rasa/Typ] face features: specific large [Kolor] eyes, distinct [Kształt] head, short snout, prominent [Umaszczenie] cheek fur, tiny [Kształt/Typ] ears. Zachowaj te cechy tworząc nowy obrazek. Zwróć uwagę na nakrycie głowy, jeśli było na pierwszym obrazku aby komponowało się z głową kota.",
-        apiType: "nano-banana",
-        productType: "cats", // Identyfikator typu produktu
-        parameters: {
-          image_input: ["https://customify-s56o.vercel.app/koty/barokowy_.png", "USER_IMAGE"],
           aspect_ratio: "3:4", // Portret pionowy dla druku A3/A2/A1
           output_format: "jpg",
           guidance: 10 // Testowa wartość
