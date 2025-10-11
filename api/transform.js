@@ -232,7 +232,7 @@ module.exports = async (req, res) => {
       // Style kotów - używają nano-banana z 2 obrazkami
       'krolewski': {
         model: "google/nano-banana",
-        prompt: "Stwórz obraz w stylu jak na pierwszym obrazku, z pyskiem i głową kota z drugiego obrazka. Zachowaj kolor sierści, jej długość, kolor oczu, kształt uszu i inne cechy identyfikujące kota z drugiego obrazka. Zwróć uwagę na koronę, aby kot miał tylko dwoje uszu, które ładnie komponują się z koroną i mają taki kolor jak u kota z drugiego obrazka.",
+        prompt: "Stwórz obraz w stylu jak na pierwszym obrazku, z pyskiem i głową kota z drugiego obrazka. Zachowaj kolor sierści, jej długość, kolor oczu, kształt uszu i inne cechy identyfikujące kota z drugiego obrazka. Zwróć uwagę na nakrycie głowy, aby kot miał tylko dwoje uszu, które ładnie komponują się z nakryciem głowy i mają taki kolor jak u kota z drugiego obrazka.",
         apiType: "nano-banana",
         productType: "cats", // Identyfikator typu produktu
         parameters: {
@@ -244,7 +244,7 @@ module.exports = async (req, res) => {
       },
       'na-tronie': {
         model: "google/nano-banana", 
-        prompt: "Stwórz obraz w stylu jak na pierwszym obrazku, z pyskiem i głową kota z drugiego obrazka. Zachowaj kolor sierści, jej długość, kolor oczu, kształt uszu i inne cechy identyfikujące kota z drugiego obrazka. Zwróć uwagę na koronę, aby kot miał tylko dwoje uszu, które ładnie komponują się z koroną i mają taki kolor jak u kota z drugiego obrazka.",
+        prompt: "Stwórz obraz w stylu jak na pierwszym obrazku, z pyskiem i głową kota z drugiego obrazka. Zachowaj kolor sierści, jej długość, kolor oczu, kształt uszu i inne cechy identyfikujące kota z drugiego obrazka. Zwróć uwagę na nakrycie głowy, aby kot miał tylko dwoje uszu, które ładnie komponują się z nakryciem głowy i mają taki kolor jak u kota z drugiego obrazka.",
         apiType: "nano-banana",
         productType: "cats", // Identyfikator typu produktu
         parameters: {
@@ -256,7 +256,7 @@ module.exports = async (req, res) => {
       },
       'wojenny': {
         model: "google/nano-banana",
-        prompt: "Stwórz obraz w stylu jak na pierwszym obrazku, z pyskiem i głową kota z drugiego obrazka. Zachowaj kolor sierści, jej długość, kolor oczu, kształt uszu i inne cechy identyfikujące kota z drugiego obrazka. Zwróć uwagę na koronę, aby kot miał tylko dwoje uszu, które ładnie komponują się z koroną i mają taki kolor jak u kota z drugiego obrazka.",
+        prompt: "Stwórz obraz w stylu jak na pierwszym obrazku, z pyskiem i głową kota z drugiego obrazka. Zachowaj kolor sierści, jej długość, kolor oczu, kształt uszu i inne cechy identyfikujące kota z drugiego obrazka. Zwróć uwagę na nakrycie głowy, aby kot miał tylko dwoje uszu, które ładnie komponują się z nakryciem głowy i mają taki kolor jak u kota z drugiego obrazka.",
         apiType: "nano-banana",
         productType: "cats", // Identyfikator typu produktu
         parameters: {
@@ -268,7 +268,7 @@ module.exports = async (req, res) => {
       },
       'barokowy': {
         model: "google/nano-banana",
-        prompt: "Stwórz obraz w stylu jak na pierwszym obrazku, z pyskiem i głową kota z drugiego obrazka. Zachowaj kolor sierści, jej długość, kolor oczu, kształt uszu i inne cechy identyfikujące kota z drugiego obrazka. Zwróć uwagę na koronę, aby kot miał tylko dwoje uszu, które ładnie komponują się z koroną i mają taki kolor jak u kota z drugiego obrazka.",
+        prompt: "Stwórz obraz w stylu jak na pierwszym obrazku, z pyskiem i głową kota z drugiego obrazka. Zachowaj kolor sierści, jej długość, kolor oczu, kształt uszu i inne cechy identyfikujące kota z drugiego obrazka. Zwróć uwagę na nakrycie głowy, aby kot miał tylko dwoje uszu, które ładnie komponują się z nakryciem głowy i mają taki kolor jak u kota z drugiego obrazka.",
         apiType: "nano-banana",
         productType: "cats", // Identyfikator typu produktu
         parameters: {
@@ -280,7 +280,7 @@ module.exports = async (req, res) => {
       },
       'wiktorianski': {
         model: "google/nano-banana",
-        prompt: "Stwórz obraz w stylu jak na pierwszym obrazku, z pyskiem i głową kota z drugiego obrazka. Zachowaj kolor sierści, jej długość, kolor oczu, kształt uszu i inne cechy identyfikujące kota z drugiego obrazka. Zwróć uwagę na koronę, aby kot miał tylko dwoje uszu, które ładnie komponują się z koroną i mają taki kolor jak u kota z drugiego obrazka.",
+        prompt: "Stwórz obraz w stylu jak na pierwszym obrazku, z pyskiem i głową kota z drugiego obrazka. Zachowaj kolor sierści, jej długość, kolor oczu, kształt uszu i inne cechy identyfikujące kota z drugiego obrazka. Zwróć uwagę na nakrycie głowy, aby kot miał tylko dwoje uszu, które ładnie komponują się z nakryciem głowy i mają taki kolor jak u kota z drugiego obrazka.",
         apiType: "nano-banana",
         productType: "cats", // Identyfikator typu produktu
         parameters: {
@@ -292,7 +292,7 @@ module.exports = async (req, res) => {
       },
       'renesansowy': {
         model: "google/nano-banana",
-        prompt: "Stwórz obraz w stylu jak na pierwszym obrazku, z pyskiem i głową kota z drugiego obrazka. Zachowaj kolor sierści, jej długość, kolor oczu, kształt uszu i inne cechy identyfikujące kota z drugiego obrazka. Zwróć uwagę na koronę, aby kot miał tylko dwoje uszu, które ładnie komponują się z koroną i mają taki kolor jak u kota z drugiego obrazka.",
+        prompt: "Stwórz obraz w stylu jak na pierwszym obrazku, z pyskiem i głową kota z drugiego obrazka. Zachowaj kolor sierści, jej długość, kolor oczu, kształt uszu i inne cechy identyfikujące kota z drugiego obrazka. Zwróć uwagę na nakrycie głowy, aby kot miał tylko dwoje uszu, które ładnie komponują się z nakryciem głowy i mają taki kolor jak u kota z drugiego obrazka.",
         apiType: "nano-banana",
         productType: "cats", // Identyfikator typu produktu
         parameters: {
@@ -304,7 +304,7 @@ module.exports = async (req, res) => {
       },
       'barokowy-nowy': {
         model: "google/nano-banana",
-        prompt: "Stwórz obraz w stylu jak na pierwszym obrazku, z pyskiem i głową kota z drugiego obrazka. Zachowaj kolor sierści, jej długość, kolor oczu, kształt uszu i inne cechy identyfikujące kota z drugiego obrazka. Zwróć uwagę na koronę, aby kot miał tylko dwoje uszu, które ładnie komponują się z koroną i mają taki kolor jak u kota z drugiego obrazka.",
+        prompt: "Stwórz obraz w stylu jak na pierwszym obrazku, z pyskiem i głową kota z drugiego obrazka. Zachowaj kolor sierści, jej długość, kolor oczu, kształt uszu i inne cechy identyfikujące kota z drugiego obrazka. Zwróć uwagę na nakrycie głowy, aby kot miał tylko dwoje uszu, które ładnie komponują się z nakryciem głowy i mają taki kolor jak u kota z drugiego obrazka.",
         apiType: "nano-banana",
         productType: "cats", // Identyfikator typu produktu
         parameters: {
