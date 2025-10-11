@@ -411,13 +411,20 @@ class CustomifyEmbed {
       // Walidacja rozdzielczości obrazu
       const img = new Image();
       img.onload = () => {
-        // Wykryj typ produktu - koty mają niższy limit
-        const isCatProduct = window.location.pathname.includes('koty-krolewskie');
-        const minWidth = isCatProduct ? 600 : 768;
-        const minHeight = isCatProduct ? 600 : 768;
+        // Wykryj typ produktu - różne limity dla różnych produktów
+        const currentPath = window.location.pathname;
+        let minWidth, minHeight, productType;
+        
+        if (currentPath.includes('koty-krolewskie-zwierzeta-w-koronach')) {
+          minWidth = 600; minHeight = 600; productType = 'Koty (600px min)';
+        } else if (currentPath.includes('personalizowany-portret-w-stylu-boho')) {
+          minWidth = 512; minHeight = 512; productType = 'Boho (512px min)';
+        } else {
+          minWidth = 768; minHeight = 768; productType = 'Inne (768px min)';
+        }
         
         console.log(`🖼️ [IMAGE] Rozdzielczość: ${img.width}×${img.height}`);
-        console.log(`🖼️ [IMAGE] Produkt: ${isCatProduct ? 'Koty (600px min)' : 'Inne (768px min)'}`);
+        console.log(`🖼️ [IMAGE] Produkt: ${productType}`);
         
         // Sprawdź minimalną rozdzielczość
         if (img.width < minWidth || img.height < minHeight) {
