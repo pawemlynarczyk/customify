@@ -1698,6 +1698,18 @@ main {
   border-color: #d0d0d0;
 }
 
+.customify-btn-red {
+  background: #dc3545 !important;
+  color: white !important;
+  border: 2px solid #dc3545 !important;
+}
+
+.customify-btn-red:hover {
+  background: #c82333 !important;
+  border-color: #c82333 !important;
+  color: white !important;
+}
+
 .customify-loading {
   display: none;
   text-align: center;
