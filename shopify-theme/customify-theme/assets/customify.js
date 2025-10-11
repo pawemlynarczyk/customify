@@ -16,6 +16,7 @@ class CustomifyEmbed {
     this.resultArea = document.getElementById('resultArea');
     this.resultImage = document.getElementById('resultImage');
     this.errorMessage = document.getElementById('errorMessage');
+    this.errorMessageBottom = document.getElementById('errorMessageBottom');
     this.successMessage = document.getElementById('successMessage');
     
     this.uploadedFile = null;
@@ -1084,12 +1085,21 @@ class CustomifyEmbed {
   }
 
   showError(message) {
+    // Pokaż błąd w OBUMIASTA miejscach (góra + dół)
     this.errorMessage.textContent = message;
     this.errorMessage.style.display = 'block';
+    if (this.errorMessageBottom) {
+      this.errorMessageBottom.textContent = message;
+      this.errorMessageBottom.style.display = 'block';
+    }
   }
 
   hideError() {
+    // Ukryj błąd w OBUMIASTA miejscach
     this.errorMessage.style.display = 'none';
+    if (this.errorMessageBottom) {
+      this.errorMessageBottom.style.display = 'none';
+    }
   }
 
   showSuccess(message) {
