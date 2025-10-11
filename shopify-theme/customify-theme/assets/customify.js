@@ -713,12 +713,12 @@ class CustomifyEmbed {
     }
     
     if (!this.selectedSize) {
-      this.showError('Wybierz rozmiar');
+      this.showError('Nie wybrałeś rozmiaru');
       return;
     }
 
-    this.hideError();
     console.log('🛒 [CUSTOMIFY] Starting addToCart process...');
+    this.hideError();
 
     // Pokaż pasek postępu dla koszyka
     this.showCartLoading();
