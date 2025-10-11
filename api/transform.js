@@ -232,7 +232,7 @@ module.exports = async (req, res) => {
       // Style kotów - używają nano-banana z 2 obrazkami
       'krolewski': {
         model: "google/nano-banana",
-        prompt: "Stwórz obraz w stylu jak na pierwszym obrazku, z pyskiem i głową kota z drugiego obrazka. Zidentyfikuj kota z drugiego obrazka [Rasa/Typ] face features: specific large [Kolor] eyes, distinct [Kształt] head, short snout, prominent [Umaszczenie] cheek fur, tiny [Kształt/Typ] ears. Zachowaj te cechy tworząc nowy obrazek. Zwróć uwagę na nakrycie głowy, jeśli było na pierwszym obrazku aby komponowało się z głową kota.",
+        prompt: "Analyze and identify the exact breed characteristics, face shape, eye setting, and cheek fur texture of the cat in the second image. Transform the entire scene into the style of the first image (e.g., highly detailed oil painting). Generate the new image using the cat's head and face from the second image. It is critical to absolutely preserve the unique, identified facial features of the cat (snout shape, eyes, ear set, cheek structure) while adapting to the new style. Ensure the headwear from the first image is perfectly integrated and complements the cat's head",
         apiType: "nano-banana",
         productType: "cats", // Identyfikator typu produktu
         parameters: {
@@ -244,7 +244,7 @@ module.exports = async (req, res) => {
       },
       'na-tronie': {
         model: "google/nano-banana", 
-        prompt: "Stwórz obraz w stylu jak na pierwszym obrazku, z pyskiem i głową kota z drugiego obrazka. Zidentyfikuj kota z drugiego obrazka [Rasa/Typ] face features: specific large [Kolor] eyes, distinct [Kształt] head, short snout, prominent [Umaszczenie] cheek fur, tiny [Kształt/Typ] ears. Zachowaj te cechy tworząc nowy obrazek. Zwróć uwagę na nakrycie głowy, jeśli było na pierwszym obrazku aby komponowało się z głową kota.",
+        prompt: "Analyze and identify the exact breed characteristics, face shape, eye setting, and cheek fur texture of the cat in the second image. Transform the entire scene into the style of the first image (e.g., highly detailed oil painting). Generate the new image using the cat's head and face from the second image. It is critical to absolutely preserve the unique, identified facial features of the cat (snout shape, eyes, ear set, cheek structure) while adapting to the new style. Ensure the headwear from the first image is perfectly integrated and complements the cat's head",
         apiType: "nano-banana",
         productType: "cats", // Identyfikator typu produktu
         parameters: {
@@ -256,7 +256,7 @@ module.exports = async (req, res) => {
       },
       'wojenny': {
         model: "google/nano-banana",
-        prompt: "Stwórz obraz w stylu jak na pierwszym obrazku, z pyskiem i głową kota z drugiego obrazka. Zidentyfikuj kota z drugiego obrazka [Rasa/Typ] face features: specific large [Kolor] eyes, distinct [Kształt] head, short snout, prominent [Umaszczenie] cheek fur, tiny [Kształt/Typ] ears. Zachowaj te cechy tworząc nowy obrazek. Zwróć uwagę na nakrycie głowy, jeśli było na pierwszym obrazku aby komponowało się z głową kota.",
+        prompt: "Analyze and identify the exact breed characteristics, face shape, eye setting, and cheek fur texture of the cat in the second image. Transform the entire scene into the style of the first image (e.g., highly detailed oil painting). Generate the new image using the cat's head and face from the second image. It is critical to absolutely preserve the unique, identified facial features of the cat (snout shape, eyes, ear set, cheek structure) while adapting to the new style. Ensure the headwear from the first image is perfectly integrated and complements the cat's head",
         apiType: "nano-banana",
         productType: "cats", // Identyfikator typu produktu
         parameters: {
@@ -268,7 +268,7 @@ module.exports = async (req, res) => {
       },
       'wiktorianski': {
         model: "google/nano-banana",
-        prompt: "Stwórz obraz w stylu jak na pierwszym obrazku, z pyskiem i głową kota z drugiego obrazka. Zidentyfikuj kota z drugiego obrazka [Rasa/Typ] face features: specific large [Kolor] eyes, distinct [Kształt] head, short snout, prominent [Umaszczenie] cheek fur, tiny [Kształt/Typ] ears. Zachowaj te cechy tworząc nowy obrazek. Zwróć uwagę na nakrycie głowy, jeśli było na pierwszym obrazku aby komponowało się z głową kota.",
+        prompt: "Analyze and identify the exact breed characteristics, face shape, eye setting, and cheek fur texture of the cat in the second image. Transform the entire scene into the style of the first image (e.g., highly detailed oil painting). Generate the new image using the cat's head and face from the second image. It is critical to absolutely preserve the unique, identified facial features of the cat (snout shape, eyes, ear set, cheek structure) while adapting to the new style. Ensure the headwear from the first image is perfectly integrated and complements the cat's head",
         apiType: "nano-banana",
         productType: "cats", // Identyfikator typu produktu
         parameters: {
@@ -280,7 +280,7 @@ module.exports = async (req, res) => {
       },
       'renesansowy': {
         model: "google/nano-banana",
-        prompt: "Stwórz obraz w stylu jak na pierwszym obrazku, z pyskiem i głową kota z drugiego obrazka. Zidentyfikuj kota z drugiego obrazka [Rasa/Typ] face features: specific large [Kolor] eyes, distinct [Kształt] head, short snout, prominent [Umaszczenie] cheek fur, tiny [Kształt/Typ] ears. Zachowaj te cechy tworząc nowy obrazek. Zwróć uwagę na nakrycie głowy, jeśli było na pierwszym obrazku aby komponowało się z głową kota.",
+        prompt: "Analyze and identify the exact breed characteristics, face shape, eye setting, and cheek fur texture of the cat in the second image. Transform the entire scene into the style of the first image (e.g., highly detailed oil painting). Generate the new image using the cat's head and face from the second image. It is critical to absolutely preserve the unique, identified facial features of the cat (snout shape, eyes, ear set, cheek structure) while adapting to the new style. Ensure the headwear from the first image is perfectly integrated and complements the cat's head",
         apiType: "nano-banana",
         productType: "cats", // Identyfikator typu produktu
         parameters: {
