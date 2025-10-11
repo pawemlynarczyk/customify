@@ -80,10 +80,10 @@ module.exports = async (req, res) => {
 
     // Dopłaty za rozmiary (style nie wpływają na cenę)
     const sizePrices = {
-      'small': 0,
-      'medium': 25,
-      'large': 50,
-      'xlarge': 100
+      'a5': 30,
+      'a4': 89,
+      'a3': 139,
+      'a2': 189
     };
 
     const sizePrice = sizePrices[size] || 0;
@@ -103,11 +103,11 @@ module.exports = async (req, res) => {
     // KROK 1: Utwórz produkt BEZ obrazka (najpierw potrzebujemy product ID)
     const productData = {
       product: {
-        title: `Spersonalizowany ${originalProductTitle || 'Produkt'} - Styl ${style} - Rozmiar ${size || 'standard'}`,
+        title: `Spersonalizowany ${originalProductTitle || 'Produkt'} - Styl ${style} - Rozmiar ${size?.toUpperCase() || 'standard'}`,
         body_html: `
           <p><strong>Spersonalizowany produkt z AI</strong></p>
           <p><strong>Styl:</strong> ${style}</p>
-          <p><strong>Rozmiar:</strong> ${size || 'standardowy'} (+${sizePrices[size] || 0} zł)</p>
+          <p><strong>Rozmiar:</strong> ${size?.toUpperCase() || 'standardowy'} (+${sizePrices[size] || 0} zł)</p>
           <p><strong>Cena bazowa:</strong> ${basePrice} zł</p>
           <p><strong>Cena całkowita:</strong> ${totalPrice} zł</p>
           <p>Twoje zdjęcie zostało przekształcone przez AI w stylu ${style}.</p>
@@ -118,7 +118,7 @@ module.exports = async (req, res) => {
         published: true,
         published_scope: 'web',
         variants: [{
-          title: `${style} - ${size || 'standard'} (${totalPrice} zł)`,
+          title: `${style} - ${size?.toUpperCase() || 'standard'} (${totalPrice} zł)`,
           price: totalPrice.toFixed(2), // ✅ NAPRAWIONE: Shopify przyjmuje PLN jako string (np. "79.99")
           inventory_quantity: 100,
           inventory_management: 'shopify',
