@@ -371,15 +371,11 @@ class CustomifyEmbed {
         // Ukryj "Dodaj do koszyka" i pokaż "Wgraj inne zdjęcie" po wgraniu zdjęcia
         const addToCartBtnMain = document.getElementById('addToCartBtnMain');
         const resetBtn = document.getElementById('resetBtn');
-        const instructionMobile = document.querySelector('.customify-instruction-mobile');
         if (addToCartBtnMain) {
           addToCartBtnMain.style.display = 'none';
         }
         if (resetBtn) {
           resetBtn.style.display = 'inline-block';
-        }
-        if (instructionMobile) {
-          instructionMobile.style.display = 'none';
         }
       };
       
@@ -401,12 +397,8 @@ class CustomifyEmbed {
     
     // Pokaż przycisk "Dodaj do koszyka" jeśli użytkownik nie wgrał zdjęcia
     const addToCartBtnMain = document.getElementById('addToCartBtnMain');
-    const instructionMobile = document.querySelector('.customify-instruction-mobile');
     if (addToCartBtnMain) {
       addToCartBtnMain.style.display = 'inline-block';
-    }
-    if (instructionMobile) {
-      instructionMobile.style.display = 'block';
     }
   }
 
@@ -931,15 +923,11 @@ class CustomifyEmbed {
     // Przywróć stan początkowy przycisków
     const addToCartBtnMain = document.getElementById('addToCartBtnMain');
     const resetBtn = document.getElementById('resetBtn');
-    const instructionMobile = document.querySelector('.customify-instruction-mobile');
     if (addToCartBtnMain) {
       addToCartBtnMain.style.display = 'inline-block';
     }
     if (resetBtn) {
       resetBtn.style.display = 'none';
-    }
-    if (instructionMobile) {
-      instructionMobile.style.display = 'block';
     }
     
     // Przywróć kolory przycisków do stanu początkowego
