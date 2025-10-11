@@ -399,69 +399,6 @@
       }
     </style>
     
-    <style>
-      /* Customify Product Info Styles */
-      .customify-product-info {
-        text-align: center;
-        margin-bottom: 30px;
-        padding: 20px 0;
-      }
-      
-      .customify-product-title {
-        font-size: 2.5rem;
-        font-weight: 700;
-        color: #333;
-        margin: 0 0 10px 0;
-        line-height: 1.2;
-      }
-      
-      .product-badges {
-        margin: 10px 0 !important;
-        padding-top: 0px !important;
-        gap: 2px !important;
-      }
-      
-      .rating-section {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        margin-bottom: 15px;
-      }
-      
-      .stars {
-        display: flex;
-        gap: 2px;
-      }
-      
-      .star {
-        color: #ffc107;
-        font-size: 1.2rem;
-      }
-      
-      .review-count {
-        color: #666;
-        font-size: 0.9rem;
-      }
-      
-      .customify-product-price {
-        font-size: 3rem;
-        font-weight: 900;
-        color: #d32f2f;
-        margin: 15px 0;
-        text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
-      }
-      
-      @media (max-width: 768px) {
-        .customify-product-title {
-          font-size: 2rem;
-        }
-        
-        .customify-product-price {
-          font-size: 2.5rem;
-        }
-      }
-    </style>
     
     <style>
       /* Ukryj produkty Customify z nowymi nazwami rozmiarów (A5/A4/A3/A2) */
@@ -1510,24 +1447,6 @@
 
     {% comment %} CUSTOMIFY AI PHOTO CUSTOMIZATION {% endcomment %}
     {% if template contains 'product' %}
-      <!-- Product Info -->
-      <div class="customify-product-info">
-        <h1 class="customify-product-title">{{ product.title }}</h1>
-        <div class="product-badges" style="margin: 0px 0px 4px !important; padding-top: 0px !important; gap: 2px !important;">
-          <div class="rating-section">
-            <div class="stars">
-              <span class="star">★</span>
-              <span class="star">★</span>
-              <span class="star">★</span>
-              <span class="star">★</span>
-              <span class="star">★</span>
-            </div>
-            <span class="review-count">(143)</span>
-          </div>
-        </div>
-        <div class="customify-product-price">{{ product.price | money }}</div>
-      </div>
-      
       <div id="customify-app-container" class="customify-shopify-container">
         <h3 class="customify-title">Wgraj zdjęcie - wybierz styl obrazu</h3>
         <div class="customify-inline-wrapper">

@@ -249,19 +249,40 @@ class CustomifyEmbed {
       return;
     }
 
-    console.log('🎯 [CUSTOMIFY] Showing price below Customify app');
+    console.log('🎯 [CUSTOMIFY] Showing price ABOVE Customify app');
 
-    // Stwórz kontener dla ceny poniżej aplikacji
+    // Stwórz kontener dla ceny POWYŻEJ aplikacji
     const priceContainer = document.createElement('div');
     priceContainer.className = 'customify-price-below-app';
     priceContainer.style.cssText = `
-      margin: 5px 0 0 0 !important;
-      padding: 8px 20px !important;
+      margin: 0 0 20px 0 !important;
+      padding: 15px 20px !important;
       background: white !important;
       border-radius: 8px !important;
       box-shadow: none !important;
       text-align: center !important;
     `;
+
+    // Dodaj gwiazdki i recenzje
+    const ratingDiv = document.createElement('div');
+    ratingDiv.style.cssText = `
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    `;
+    ratingDiv.innerHTML = `
+      <div style="display: flex; gap: 2px;">
+        <span style="color: #ffc107; font-size: 1.2rem;">★</span>
+        <span style="color: #ffc107; font-size: 1.2rem;">★</span>
+        <span style="color: #ffc107; font-size: 1.2rem;">★</span>
+        <span style="color: #ffc107; font-size: 1.2rem;">★</span>
+        <span style="color: #ffc107; font-size: 1.2rem;">★</span>
+      </div>
+      <span style="color: #666; font-size: 0.9rem;">(143)</span>
+    `;
+    priceContainer.appendChild(ratingDiv);
 
     // Skopiuj cenę do nowego kontenera
     const clonedPrice = priceElement.cloneNode(true);
@@ -271,15 +292,16 @@ class CustomifyEmbed {
       margin: 0 !important;
       padding: 0 !important;
       background: transparent !important;
-      font-size: 2rem !important;
-      font-weight: 700 !important;
-      color: #000 !important;
+      font-size: 3rem !important;
+      font-weight: 900 !important;
+      color: #d32f2f !important;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.1) !important;
     `;
 
     priceContainer.appendChild(clonedPrice);
 
-    // Wstaw cenę poniżej aplikacji
-    appContainer.parentNode.insertBefore(priceContainer, appContainer.nextSibling);
+    // Wstaw cenę POWYŻEJ aplikacji (przed appContainer)
+    appContainer.parentNode.insertBefore(priceContainer, appContainer);
 
     console.log('✅ [CUSTOMIFY] Price shown below app successfully!');
   }
