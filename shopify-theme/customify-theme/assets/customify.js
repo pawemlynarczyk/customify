@@ -171,15 +171,8 @@ class CustomifyEmbed {
       z-index: 10 !important;
     `;
 
-    // UKRYJ CENĘ W PRZENIESIONYM KONTENERZE
-    const priceElement = titleContainer.querySelector('product-price, .price');
-    if (priceElement) {
-      priceElement.style.display = 'none';
-      console.log('🎯 [CUSTOMIFY] Price hidden in moved container');
-    }
-
-    // POKAŻ CENĘ PONIŻEJ APLIKACJI CUSTOMIFY
-    this.showPriceBelowApp();
+    // NIE ukrywamy ceny - zostawiamy oryginalną pozycję Shopify
+    // (usunięto klonowanie ceny ze względu na potencjalne problemy z cloakingiem Google)
 
     // DODAJ DIVIDER POD TYTUŁEM
     this.addDividerAfterTitle();
@@ -221,90 +214,9 @@ class CustomifyEmbed {
     console.log('✅ [CUSTOMIFY] Divider added after title');
   }
 
-  // POKAŻ CENĘ PONIŻEJ APLIKACJI CUSTOMIFY
-  showPriceBelowApp() {
-    // Znajdź aplikację Customify
-    const appContainer = document.getElementById('customify-app-container');
-    if (!appContainer) {
-      console.warn('⚠️ [CUSTOMIFY] Could not find app container for price');
-      return;
-    }
-
-    // Znajdź cenę w przeniesionym kontenerze
-    const titleContainer = document.querySelector('.group-block[data-testid="group-block"].customify-title-moved');
-    if (!titleContainer) {
-      console.warn('⚠️ [CUSTOMIFY] Could not find title container for price');
-      return;
-    }
-
-    const priceElement = titleContainer.querySelector('product-price, .price');
-    if (!priceElement) {
-      console.warn('⚠️ [CUSTOMIFY] Could not find price element');
-      return;
-    }
-
-    // Sprawdź czy już nie ma ceny poniżej aplikacji
-    if (document.querySelector('.customify-price-below-app')) {
-      console.log('🎯 [CUSTOMIFY] Price already shown below app');
-      return;
-    }
-
-    console.log('🎯 [CUSTOMIFY] Showing price ABOVE Customify app');
-
-    // Stwórz kontener dla ceny POWYŻEJ aplikacji
-    const priceContainer = document.createElement('div');
-    priceContainer.className = 'customify-price-below-app';
-    priceContainer.style.cssText = `
-      margin: 0 0 20px 0 !important;
-      padding: 15px 20px !important;
-      background: white !important;
-      border-radius: 8px !important;
-      box-shadow: none !important;
-      text-align: center !important;
-    `;
-
-    // Dodaj gwiazdki i recenzje
-    const ratingDiv = document.createElement('div');
-    ratingDiv.style.cssText = `
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      margin-bottom: 12px;
-    `;
-    ratingDiv.innerHTML = `
-      <div style="display: flex; gap: 2px;">
-        <span style="color: #ffc107; font-size: 1.2rem;">★</span>
-        <span style="color: #ffc107; font-size: 1.2rem;">★</span>
-        <span style="color: #ffc107; font-size: 1.2rem;">★</span>
-        <span style="color: #ffc107; font-size: 1.2rem;">★</span>
-        <span style="color: #ffc107; font-size: 1.2rem;">★</span>
-      </div>
-      <span style="color: #666; font-size: 0.9rem;">(143)</span>
-    `;
-    priceContainer.appendChild(ratingDiv);
-
-    // Skopiuj cenę do nowego kontenera
-    const clonedPrice = priceElement.cloneNode(true);
-    clonedPrice.style.display = 'block';
-    clonedPrice.style.cssText = `
-      display: block !important;
-      margin: 0 !important;
-      padding: 0 !important;
-      background: transparent !important;
-      font-size: 3rem !important;
-      font-weight: 900 !important;
-      color: #d32f2f !important;
-      text-shadow: 1px 1px 2px rgba(0,0,0,0.1) !important;
-    `;
-
-    priceContainer.appendChild(clonedPrice);
-
-    // Wstaw cenę POWYŻEJ aplikacji (przed appContainer)
-    appContainer.parentNode.insertBefore(priceContainer, appContainer);
-
-    console.log('✅ [CUSTOMIFY] Price shown below app successfully!');
-  }
+  // FUNKCJA USUNIĘTA: showPriceBelowApp()
+  // Powód: Potencjalne problemy z cloakingiem Google (klonowanie elementów DOM)
+  // Cena pozostaje w oryginalnej pozycji Shopify
 
   // DODAJ GWIAZDKI I OKAZJĘ POD TYTUŁEM
   addProductBadges() {
