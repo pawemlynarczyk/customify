@@ -1575,10 +1575,10 @@
               <div class="customify-size-selector" id="sizeArea" style="display: none;">
                 <h4>Wybierz rozmiar:</h4>
                 <div class="customify-size-buttons">
-                  <div class="customify-size-btn" data-size="small">A5 - 15×21 cm (+30 zł)</div>
-                  <div class="customify-size-btn" data-size="medium">A4 - 21×30 cm (+89 zł)</div>
-                  <div class="customify-size-btn" data-size="large">A3 - 30×42 cm (+139 zł)</div>
-                  <div class="customify-size-btn" data-size="xlarge">A2 - 42×59 cm (+189 zł)</div>
+                  <div class="customify-size-btn" data-size="small">A5 - 15×21 cm<br>+30 zł</div>
+                  <div class="customify-size-btn" data-size="medium">A4 - 21×30 cm<br>+89 zł</div>
+                  <div class="customify-size-btn" data-size="large">A3 - 30×42 cm<br>+139 zł</div>
+                  <div class="customify-size-btn" data-size="xlarge">A2 - 42×59 cm<br>+189 zł</div>
                 </div>
               </div>
               
@@ -1979,7 +1979,7 @@
 
         .customify-size-btn {
           padding: 16px 12px;
-          border: 2px solid #000000;
+          border: 2px solid #000000 !important;
           border-radius: 0;
           background: white;
           cursor: pointer;
@@ -1989,6 +1989,11 @@
           font-weight: 500;
           color: #333;
           box-shadow: none;
+          line-height: 1.3;
+          min-height: 80px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
 
         .customify-size-btn:hover {
