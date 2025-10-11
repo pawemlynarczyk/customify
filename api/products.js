@@ -167,21 +167,59 @@ module.exports = async (req, res) => {
       });
     }
 
-    console.log('✅ [PRODUCTS.JS] Product created successfully without image upload');
-    
-    // Generuj unikalny identyfikator zamówienia
+    const imageBuffer = await imageResponse.arrayBuffer();
+    const base64Image = Buffer.from(imageBuffer).toString('base64');
+
+    console.log('📤 [PRODUCTS.JS] Uploading image to NEW product...');
+
+    // Generuj unikalny identyfikator z nazwą klienta, stylem i timestamp
     const customerName = (originalProductTitle || 'Customer').replace(/[^a-zA-Z0-9]/g, '').substring(0, 10);
     const timestamp = Date.now().toString().slice(-8);
     const uniqueId = `${customerName}-${style}-${timestamp}`;
+    
+    const imageUploadData = {
+      image: {
+        attachment: base64Image,
+        filename: `ai-${uniqueId}.webp`,
+        alt: `AI ${style} for ${customerName} - ${timestamp}`
+      }
+    };
+
+    const uploadResponse = await fetch(`https://${shop}/admin/api/2023-10/products/${productId}/images.json`, {
+      method: 'POST',
+      headers: {
+        'X-Shopify-Access-Token': accessToken,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(imageUploadData)
+    });
+
+    if (!uploadResponse.ok) {
+      const uploadError = await uploadResponse.text();
+      console.error('❌ [PRODUCTS.JS] Image upload error:', uploadError);
+      return res.json({
+        success: true,
+        product: product,
+        variantId: product.variants[0].id,
+        productId: productId,
+        warning: 'Product created but image upload failed',
+        imageUrl: transformedImage
+      });
+    }
+
+    const uploadResult = await uploadResponse.json();
+    const shopifyImageUrl = uploadResult.image.src;
+
+    console.log('✅ [PRODUCTS.JS] Image uploaded to NEW product:', shopifyImageUrl);
 
     res.json({ 
       success: true, 
       product: product,
       variantId: product.variants[0].id,
       productId: productId,
-      imageUrl: transformedImage,  // ✅ URL z Replicate (bez dodawania do produktu)
+      imageUrl: shopifyImageUrl,  // ✅ URL z Shopify (w nowym produkcie)
       orderId: uniqueId,  // ✅ Unikalny identyfikator zamówienia
-      message: 'Produkt został utworzony!',
+      message: 'Produkt został utworzony z obrazkiem AI!',
       cartUrl: `https://${shop}/cart/add?id=${product.variants[0].id}&quantity=1`
     });
 
