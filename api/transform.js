@@ -238,7 +238,8 @@ module.exports = async (req, res) => {
         parameters: {
           image_input: ["https://customify-s56o.vercel.app/koty/krolewski.png", "USER_IMAGE"],
           aspect_ratio: "3:4", // Portret pionowy dla druku A3/A2/A1
-          output_format: "jpg"
+          output_format: "jpg",
+          guidance: 10 // Testowa wartość
         }
       },
       'na-tronie': {
@@ -249,7 +250,8 @@ module.exports = async (req, res) => {
         parameters: {
           image_input: ["https://customify-s56o.vercel.app/koty/na_tronie.png", "USER_IMAGE"],
           aspect_ratio: "3:4", // Portret pionowy dla druku A3/A2/A1
-          output_format: "jpg"
+          output_format: "jpg",
+          guidance: 10 // Testowa wartość
         }
       },
       'wojenny': {
@@ -260,7 +262,8 @@ module.exports = async (req, res) => {
         parameters: {
           image_input: ["https://customify-s56o.vercel.app/koty/wojenny.png", "USER_IMAGE"],
           aspect_ratio: "3:4", // Portret pionowy dla druku A3/A2/A1
-          output_format: "jpg"
+          output_format: "jpg",
+          guidance: 10 // Testowa wartość
         }
       },
       'barokowy': {
@@ -271,7 +274,8 @@ module.exports = async (req, res) => {
         parameters: {
           image_input: ["https://customify-s56o.vercel.app/koty/barokowy.png", "USER_IMAGE"],
           aspect_ratio: "3:4", // Portret pionowy dla druku A3/A2/A1
-          output_format: "jpg"
+          output_format: "jpg",
+          guidance: 10 // Testowa wartość
         }
       },
       'wiktorianski': {
@@ -282,7 +286,8 @@ module.exports = async (req, res) => {
         parameters: {
           image_input: ["https://customify-s56o.vercel.app/koty/wiktorianski.png", "USER_IMAGE"],
           aspect_ratio: "3:4", // Portret pionowy dla druku A3/A2/A1
-          output_format: "jpg"
+          output_format: "jpg",
+          guidance: 10 // Testowa wartość
         }
       },
       'renesansowy': {
@@ -293,7 +298,8 @@ module.exports = async (req, res) => {
         parameters: {
           image_input: ["https://customify-s56o.vercel.app/koty/renesansowy.png", "USER_IMAGE"],
           aspect_ratio: "3:4", // Portret pionowy dla druku A3/A2/A1
-          output_format: "jpg"
+          output_format: "jpg",
+          guidance: 10 // Testowa wartość
         }
       },
       'barokowy-nowy': {
@@ -304,7 +310,8 @@ module.exports = async (req, res) => {
         parameters: {
           image_input: ["https://customify-s56o.vercel.app/koty/barokowy_.png", "USER_IMAGE"],
           aspect_ratio: "3:4", // Portret pionowy dla druku A3/A2/A1
-          output_format: "jpg"
+          output_format: "jpg",
+          guidance: 10 // Testowa wartość
         }
       },
       // Style boho - używają nano-banana z 1 obrazkiem (tylko użytkownika)
