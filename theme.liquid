@@ -399,6 +399,21 @@
       }
     </style>
     
+    <style>
+      /* Ukryj produkty Customify z nowymi nazwami rozmiarów (A5/A4/A3/A2) */
+      .product-card:has([data-product-title*="A5"]),
+      .product-card:has([data-product-title*="A4"]),
+      .product-card:has([data-product-title*="A3"]),
+      .product-card:has([data-product-title*="A2"]) {
+        display: none !important;
+      }
+      
+      /* Zachowaj główny produkt Customify widoczny */
+      .product-card:has([data-product-title*="Obraz ze zdjęcia w stylu Ghibli"]) {
+        display: block !important;
+      }
+    </style>
+    
     {% if template contains 'collection' %}
     <style>
       /* Nadpisz ukrywanie produktów na stronach kolekcji (pokazuj wszystkie karty) */
