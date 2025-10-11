@@ -167,71 +167,22 @@ module.exports = async (req, res) => {
       });
     }
 
-    const imageBuffer = await imageResponse.arrayBuffer();
-    const base64Image = Buffer.from(imageBuffer).toString('base64');
-
-    console.log('📤 [PRODUCTS.JS] Uploading image to Shopify product...');
-
-    // KROK 3: Upload obrazka BEZPOŚREDNIO do produktu (attachment method)
-    // Generuj unikalny identyfikator z nazwą klienta, stylem i timestamp
-    const customerName = (originalProductTitle || 'Customer').replace(/[^a-zA-Z0-9]/g, '').substring(0, 10);
-    const timestamp = Date.now().toString().slice(-8); // Ostatnie 8 cyfr timestamp
-    const uniqueId = `${customerName}-${style}-${timestamp}`;
+    console.log('✅ [PRODUCTS.JS] Product created successfully without image upload');
     
-    const imageUploadData = {
-      image: {
-        attachment: base64Image,  // ✅ ATTACHMENT zamiast src!
-        filename: `ai-${uniqueId}.webp`,
-        alt: `AI ${style} for ${customerName} - ${timestamp}`
-      }
-    };
-
-    const uploadResponse = await fetch(`https://${shop}/admin/api/2023-10/products/${productId}/images.json`, {
-      method: 'POST',
-      headers: {
-        'X-Shopify-Access-Token': accessToken,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(imageUploadData)
-    });
-
-    if (!uploadResponse.ok) {
-      const uploadError = await uploadResponse.text();
-      console.error('❌ [PRODUCTS.JS] Image upload error:', uploadError);
-      return res.json({
-        success: true,
-        product: product,
-        variantId: product.variants[0].id,
-        productId: productId,
-        warning: 'Product created but image upload failed',
-        uploadError: uploadError
-      });
-    }
-
-    const uploadResult = await uploadResponse.json();
-    const shopifyImageUrl = uploadResult.image.src;
-
-    console.log('✅ [PRODUCTS.JS] Image uploaded to Shopify:', shopifyImageUrl);
-
-    // KROK 4: Odśwież dane produktu żeby mieć aktualny obrazek
-    const finalProductResponse = await fetch(`https://${shop}/admin/api/2023-10/products/${productId}.json`, {
-      headers: {
-        'X-Shopify-Access-Token': accessToken,
-        'Content-Type': 'application/json'
-      }
-    });
-
-    const finalProduct = await finalProductResponse.json();
+    // Generuj unikalny identyfikator zamówienia
+    const customerName = (originalProductTitle || 'Customer').replace(/[^a-zA-Z0-9]/g, '').substring(0, 10);
+    const timestamp = Date.now().toString().slice(-8);
+    const uniqueId = `${customerName}-${style}-${timestamp}`;
 
     res.json({ 
       success: true, 
-      product: finalProduct.product,
-      variantId: finalProduct.product.variants[0].id,
+      product: product,
+      variantId: product.variants[0].id,
       productId: productId,
-      imageUrl: shopifyImageUrl,  // ✅ Stały URL z Shopify CDN
+      imageUrl: transformedImage,  // ✅ URL z Replicate (bez dodawania do produktu)
       orderId: uniqueId,  // ✅ Unikalny identyfikator zamówienia
-      message: 'Produkt został utworzony z obrazkiem AI!',
-      cartUrl: `https://${shop}/cart/add?id=${finalProduct.product.variants[0].id}&quantity=1`
+      message: 'Produkt został utworzony!',
+      cartUrl: `https://${shop}/cart/add?id=${product.variants[0].id}&quantity=1`
     });
 
   } catch (error) {
