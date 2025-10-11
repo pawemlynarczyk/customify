@@ -37,12 +37,36 @@
 
 ## 🎯 ZASADA KONFIGURACJI STYLÓW AI:
 
+### **RÓŻNICE MIĘDZY TYPAMI STYLÓW:**
+
+#### **🐱 STYLE KOTÓW (productType: "cats"):**
+- **API:** Nano Banana z **2 obrazkami**
+- **Obrazki:** Miniaturka stylu + zdjęcie użytkownika
+- **Format:** `image_input: ["https://url-miniaturki.png", "USER_IMAGE"]`
+- **Prompt:** "Stwórz obraz w stylu jak na pierwszym obrazku, z pyskiem i głową kota z drugiego obrazka..."
+- **Parametry:** `aspect_ratio: "3:4"`, `output_format: "jpg"`
+
+#### **🎨 STYLE BOHO (productType: "boho"):**
+- **API:** Nano Banana z **1 obrazkiem**
+- **Obrazki:** Tylko zdjęcie użytkownika (BEZ miniaturki)
+- **Format:** `image_input: ["USER_IMAGE"]`
+- **Prompt:** Różne prompty (minimalistyczny vs realistyczny)
+- **Parametry:** `aspect_ratio: "3:4"`, `output_format: "jpg"`, `guidance: 3.5`
+
+#### **🎭 INNE STYLE (productType: "other"):**
+- **API:** Różne modele (SDXL, Ghibli, Pixar, etc.)
+- **Obrazki:** 1 obrazek (zdjęcie użytkownika)
+- **Format:** `image: "USER_IMAGE"`
+- **Prompt:** Zależny od stylu
+- **Parametry:** Zależne od modelu
+
 ### **Struktura konfiguracji stylów w `api/transform.js`:**
 ```javascript
 const styleConfig = {
   'nazwa-stylu': {
     model: "nazwa-modelu-ai",           // Model AI (np. google/nano-banana, swartype/sdxl-pixar)
     prompt: "prompt dla AI",            // Prompt tekstowy dla modelu
+    productType: "typ-produktu",        // "cats", "boho", "other"
     apiType: "typ-api",                 // Typ API (nano-banana, replicate, openai, etc.)
     parameters: {                       // Parametry specyficzne dla API
       // Parametry zależą od apiType
