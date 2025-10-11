@@ -551,7 +551,7 @@ class CustomifyEmbed {
       if (result.success) {
         this.transformedImage = result.transformedImage;
         this.showResult(result.transformedImage);
-        this.showSuccess('Zdjęcie zostało pomyślnie przekształcone!');
+        this.showSuccess('Teraz wybierz rozmiar obrazu');
       } else {
         this.showError('Błąd podczas transformacji: ' + (result.error || 'Nieznany błąd'));
       }
