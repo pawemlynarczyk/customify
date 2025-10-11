@@ -386,6 +386,7 @@ class CustomifyEmbed {
     document.getElementById('transformBtn').addEventListener('click', () => this.transformImage());
     document.getElementById('resetBtn').addEventListener('click', () => this.reset());
     document.getElementById('addToCartBtn').addEventListener('click', () => this.addToCart());
+    document.getElementById('addToCartBtnMain').addEventListener('click', () => this.addToCart());
     document.getElementById('tryAgainBtn').addEventListener('click', () => this.tryAgain());
   }
 
@@ -432,6 +433,16 @@ class CustomifyEmbed {
         this.previewImage.src = e.target.result;
         this.previewArea.style.display = 'block';
         console.log(`✅ [IMAGE] Rozdzielczość OK (min ${minWidth}×${minHeight}px)`);
+        
+        // Ukryj "Dodaj do koszyka" i pokaż "Wgraj inne zdjęcie" po wgraniu zdjęcia
+        const addToCartBtnMain = document.getElementById('addToCartBtnMain');
+        const resetBtn = document.getElementById('resetBtn');
+        if (addToCartBtnMain) {
+          addToCartBtnMain.style.display = 'none';
+        }
+        if (resetBtn) {
+          resetBtn.style.display = 'inline-block';
+        }
       };
       
       img.onerror = () => {
@@ -449,6 +460,12 @@ class CustomifyEmbed {
     this.stylesArea.style.display = 'block';
     this.sizeArea.style.display = 'block'; // Pokaż rozmiary od razu
     this.actionsArea.style.display = 'flex';
+    
+    // Pokaż przycisk "Dodaj do koszyka" jeśli użytkownik nie wgrał zdjęcia
+    const addToCartBtnMain = document.getElementById('addToCartBtnMain');
+    if (addToCartBtnMain) {
+      addToCartBtnMain.style.display = 'inline-block';
+    }
   }
 
   selectStyle(styleCard) {
@@ -965,6 +982,16 @@ class CustomifyEmbed {
     
     this.stylesArea.querySelectorAll('.customify-style-card').forEach(card => card.classList.remove('active'));
     this.sizeArea.querySelectorAll('.customify-size-btn').forEach(btn => btn.classList.remove('active'));
+    
+    // Przywróć stan początkowy przycisków
+    const addToCartBtnMain = document.getElementById('addToCartBtnMain');
+    const resetBtn = document.getElementById('resetBtn');
+    if (addToCartBtnMain) {
+      addToCartBtnMain.style.display = 'inline-block';
+    }
+    if (resetBtn) {
+      resetBtn.style.display = 'none';
+    }
   }
 
   tryAgain() {
