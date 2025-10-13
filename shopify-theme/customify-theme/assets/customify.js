@@ -424,6 +424,20 @@ class CustomifyEmbed {
       return;
     }
 
+    // ✅ Google Analytics Event Tracking - "Zobacz Podgląd" kliknięty
+    if (retryCount === 0 && typeof gtag !== 'undefined') {
+      gtag('event', 'zobacz_podglad_click', {
+        'event_category': 'Customify',
+        'event_label': this.selectedStyle,
+        'style_name': this.selectedStyle,
+        'product_url': window.location.pathname
+      });
+      console.log('📊 [GA4] Event sent: zobacz_podglad_click', {
+        style: this.selectedStyle,
+        url: window.location.pathname
+      });
+    }
+
     this.showLoading();
     this.hideError();
     
@@ -609,12 +623,9 @@ class CustomifyEmbed {
     
     this.resultArea.style.display = 'block';
     
-    // Pokaż rozmiary pod zdjęciem wynikowym
-    const sizeAreaInResult = this.resultArea.querySelector('#sizeArea');
-    if (sizeAreaInResult) {
-      sizeAreaInResult.style.display = 'block';
-      console.log('🎯 [CUSTOMIFY] Size area shown under result image');
-    }
+    // Rozmiary są zawsze widoczne na górze (poza resultArea)
+    this.sizeArea.style.display = 'block';
+    console.log('🎯 [CUSTOMIFY] Size area visible on top (outside resultArea)');
     
     // UKRYJ przyciski "Przekształć z AI" i "Resetuj" (główne actionsArea)
     this.actionsArea.style.display = 'none';
@@ -912,7 +923,7 @@ class CustomifyEmbed {
     this.uploadArea.style.display = 'block'; // Pokaż pole upload z powrotem
     this.previewArea.style.display = 'none';
     this.stylesArea.style.display = 'none';
-    this.sizeArea.style.display = 'none';
+    this.sizeArea.style.display = 'block'; // ✅ ZAWSZE WIDOCZNE - nie ukrywaj rozmiarów
     this.actionsArea.style.display = 'none';
     this.resultArea.style.display = 'none';
     this.hideError();
