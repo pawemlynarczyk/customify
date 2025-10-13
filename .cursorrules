@@ -154,12 +154,12 @@ Customify is a Shopify app that allows customers to:
 - **For store**: Order contains AI image for printing + original user photo + style/size info
 
 ## Product Visibility Management
-- **Products are created as HIDDEN** (published: false) to prevent catalog clutter
-- **Products are hidden immediately** after adding to cart via `/api/hide-product` endpoint
-- **Hidden products** are not visible in store catalog but remain accessible for order fulfillment
-- **API Endpoint**: `/api/hide-product` - hides products by setting published: false
-- **Automatic hiding**: Called from `addToCart()` function after successful cart addition
-- **Purpose**: Keep catalog clean while preserving order data and AI-generated images
+- **Products are created as DRAFT** (status: 'draft', published: false) to prevent catalog clutter
+- **Draft products** are visible in admin panel as "Draft" but hidden from store catalog
+- **Benefits**: Easy to manage in Shopify admin, clean catalog, accessible for order fulfillment
+- **Tags**: Products tagged with 'customer-order' for easy filtering in admin panel
+- **API Endpoint**: `/api/hide-product` - can hide products by setting published: false (backup)
+- **Purpose**: Keep catalog clean while preserving order data and AI-generated images in admin
 
 ## Product Identification Strategy
 - **Main Product**: "Obraz ze zdjęcia w stylu Ghibli" (URL: /products/custom) - ALWAYS VISIBLE
