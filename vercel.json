@@ -104,6 +104,10 @@
       "dest": "/api/fix-metafield.js"
     },
     {
+      "src": "/api/test-metafield-simple",
+      "dest": "/api/test-metafield-simple.js"
+    },
+    {
       "src": "/(.*)",
       "dest": "/public/$1"
     }
