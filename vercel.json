@@ -100,6 +100,10 @@
       "dest": "/api/list-customers.js"
     },
     {
+      "src": "/api/fix-metafield",
+      "dest": "/api/fix-metafield.js"
+    },
+    {
       "src": "/(.*)",
       "dest": "/public/$1"
     }
