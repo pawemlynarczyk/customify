@@ -43,7 +43,10 @@ async function urlToBase64(imageUrl) {
 async function segmindFaceswap(targetImageUrl, swapImageBase64) {
   const SEGMIND_API_KEY = process.env.SEGMIND_API_KEY;
   
+  console.log('🔑 [SEGMIND] Checking API key...', SEGMIND_API_KEY ? `Key present (${SEGMIND_API_KEY.substring(0, 10)}...)` : 'KEY MISSING!');
+  
   if (!SEGMIND_API_KEY) {
+    console.error('❌ [SEGMIND] SEGMIND_API_KEY not found in environment variables!');
     throw new Error('SEGMIND_API_KEY not configured');
   }
 
@@ -58,6 +61,23 @@ async function segmindFaceswap(targetImageUrl, swapImageBase64) {
   const cleanSwapImage = swapImageBase64.replace(/^data:image\/[a-z]+;base64,/, '');
   
   console.log('🚀 [SEGMIND] Sending request to Segmind API...');
+  console.log('🔑 [SEGMIND] Using API key:', SEGMIND_API_KEY.substring(0, 15) + '...');
+  console.log('📦 [SEGMIND] Request payload size - source:', cleanSwapImage.length, 'target:', targetImageBase64.length);
+
+  const requestBody = {
+    source_image: cleanSwapImage,      // Twarz użytkownika (źródło twarzy)
+    target_image: targetImageBase64,   // Obraz króla (na co nakładamy twarz)
+    model_type: "speed",               // 8 steps - szybko
+    swap_type: "head",                 // Zamień całą głowę
+    style_type: "normal",              // Zachowaj styl source
+    seed: 42,
+    image_format: "jpeg",
+    image_quality: 90,
+    hardware: "fast",
+    base64: true                       // Zwróć jako base64
+  };
+
+  console.log('📋 [SEGMIND] Request body keys:', Object.keys(requestBody));
 
   const response = await fetch('https://api.segmind.com/v1/faceswap-v4', {
     method: 'POST',
@@ -65,19 +85,11 @@ async function segmindFaceswap(targetImageUrl, swapImageBase64) {
       'x-api-key': SEGMIND_API_KEY,
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({
-      source_image: cleanSwapImage,      // Twarz użytkownika (źródło twarzy)
-      target_image: targetImageBase64,   // Obraz króla (na co nakładamy twarz)
-      model_type: "speed",               // 8 steps - szybko
-      swap_type: "head",                 // Zamień całą głowę
-      style_type: "normal",              // Zachowaj styl source
-      seed: 42,
-      image_format: "jpeg",
-      image_quality: 90,
-      hardware: "fast",
-      base64: true                       // Zwróć jako base64
-    })
+    body: JSON.stringify(requestBody)
   });
+
+  console.log('📡 [SEGMIND] Response status:', response.status);
+  console.log('📡 [SEGMIND] Response headers:', Object.fromEntries(response.headers.entries()));
 
   if (!response.ok) {
     const errorText = await response.text();
