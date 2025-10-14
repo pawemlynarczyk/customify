@@ -84,6 +84,18 @@
       "dest": "/api/create-products.js"
     },
     {
+      "src": "/api/setup-metafield",
+      "dest": "/api/setup-metafield.js"
+    },
+    {
+      "src": "/api/check-usage",
+      "dest": "/api/check-usage.js"
+    },
+    {
+      "src": "/api/increment-usage",
+      "dest": "/api/increment-usage.js"
+    },
+    {
       "src": "/(.*)",
       "dest": "/public/$1"
     }
