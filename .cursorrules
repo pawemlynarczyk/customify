@@ -310,12 +310,21 @@ Customify is a Shopify app that allows customers to:
 - **BACKEND COMPRESSION** (Sharp API):
   - **Trigger**: Wszystkie pliki (bez względu na rozmiar)
   - **Method**: Sharp resize z SDXL optimization
-  - **Sizes**: 1024x1024 (kwadrat), 1152x896 (krajobraz), 896x1152 (portret)
+  - **Sizes**: 1152x896 (krajobraz 4:3), 896x1152 (portret 3:4) - **NIE UŻYWAMY KWADRATÓW**
+  - **Format druku**: Obrazy drukowane na format A4 - używamy tylko prostokątów zbliżonych do 3:4 i 4:3
   - **Quality**: JPEG 80%, EXIF removal
   - **Purpose**: Optymalizacja dla Replicate AI models
 - **LOGIC**: Frontend kompresuje tylko jeśli trzeba, API robi profesjonalną kompresję
 - **NO DOUBLE COMPRESSION**: Unikaj resize 1024px → 1024px (bez sensu)
 - **CORS**: Zawsze dodawaj `https://lumly.pl` do allowed origins
+
+## CRITICAL: Face-Swap Models (Koty, Król) - Aspect Ratio
+- **Model**: Segmind Faceswap (król) i Nano-Banana (koty)
+- **Aspect Ratio**: ZAWSZE `3:4` (portret) - niezależnie od orientacji wgrywanego obrazu
+- **Dlaczego**: Model wycina tylko twarz z obrazu użytkownika, więc orientacja nie ma znaczenia
+- **Target Image**: Miniaturka stylu (krol-styl-X.jpg, koty/*.png) - zawsze w formacie 3:4 pionowym
+- **Source Image**: Zdjęcie użytkownika (dowolna orientacja) - model wykrywa i wycina twarz
+- **Nie zmieniaj aspect_ratio** dynamicznie dla face-swap - zawsze 3:4!
 
 ## 🚨 CRITICAL: NO DUPLICATION - TYLKO THEME.LIQUID!
 - **PROBLEM SOLVED**: CSS był duplikowany w wielu plikach - TERAZ TYLKO `theme.liquid`!
