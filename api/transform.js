@@ -87,8 +87,16 @@ async function segmindFaceswap(targetImageUrl, swapImageBase64) {
 
   const resultBase64 = await response.text();
   console.log('✅ [SEGMIND] Face-swap completed! Result length:', resultBase64.length, 'chars');
+  console.log('🔍 [SEGMIND] Result preview (first 100 chars):', resultBase64.substring(0, 100));
+  
+  // Check if result already has data URI prefix
+  if (resultBase64.startsWith('data:image')) {
+    console.log('✅ [SEGMIND] Result already has data URI prefix');
+    return resultBase64;
+  }
   
   // Return as data URI for consistency
+  console.log('✅ [SEGMIND] Adding data URI prefix');
   return `data:image/jpeg;base64,${resultBase64}`;
 }
 
