@@ -1011,18 +1011,15 @@ class CustomifyEmbed {
   async showResult(imageUrl) {
     console.log('🎯 [CUSTOMIFY] showResult called, hiding actionsArea and stylesArea');
     
-    // WATERMARK WYŁĄCZONY - odkomentuj poniższe linie żeby włączyć
-    // try {
-    //   const watermarkedImage = await this.addWatermark(imageUrl);
-    //   this.resultImage.src = watermarkedImage;
-    //   console.log('🎨 [CUSTOMIFY] Watermark dodany do podglądu');
-    // } catch (error) {
-    //   console.error('❌ [CUSTOMIFY] Watermark error:', error);
-    //   this.resultImage.src = imageUrl;
-    // }
-    
-    // Pokaż obraz bez watermarku
-    this.resultImage.src = imageUrl;
+    // WATERMARK WŁĄCZONY
+    try {
+      const watermarkedImage = await this.addWatermark(imageUrl);
+      this.resultImage.src = watermarkedImage;
+      console.log('🎨 [CUSTOMIFY] Watermark dodany do podglądu');
+    } catch (error) {
+      console.error('❌ [CUSTOMIFY] Watermark error:', error);
+      this.resultImage.src = imageUrl;
+    }
     
     this.resultArea.style.display = 'block';
     
