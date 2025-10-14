@@ -318,13 +318,16 @@ Customify is a Shopify app that allows customers to:
 - **NO DOUBLE COMPRESSION**: Unikaj resize 1024px → 1024px (bez sensu)
 - **CORS**: Zawsze dodawaj `https://lumly.pl` do allowed origins
 
-## CRITICAL: Face-Swap Models (Koty, Król) - Aspect Ratio
+## CRITICAL: Face-Swap Models (Koty, Król) - ZAWSZE PIONOWY OBRAZ
 - **Model**: Segmind Faceswap (król) i Nano-Banana (koty)
-- **Aspect Ratio**: ZAWSZE `3:4` (portret) - niezależnie od orientacji wgrywanego obrazu
-- **Dlaczego**: Model wycina tylko twarz z obrazu użytkownika, więc orientacja nie ma znaczenia
-- **Target Image**: Miniaturka stylu (krol-styl-X.jpg, koty/*.png) - zawsze w formacie 3:4 pionowym
-- **Source Image**: Zdjęcie użytkownika (dowolna orientacja) - model wykrywa i wycina twarz
-- **Nie zmieniaj aspect_ratio** dynamicznie dla face-swap - zawsze 3:4!
+- **Output Format**: ZAWSZE pionowy obraz 3:4 (896x1152) - **NIE MA ZNACZENIA** co user wgra (poziomy/pionowy)
+- **Dlaczego**: Model wycina tylko twarz z obrazu użytkownika i nakłada na miniaturkę (która jest pionowa 3:4)
+- **Target Image (miniaturka)**: krol-styl-X.jpg, koty/*.png - zawsze w formacie 3:4 pionowym
+- **Source Image (user)**: Zdjęcie użytkownika (dowolna orientacja) - model wykrywa i wycina twarz
+- **KRYTYCZNE**: 
+  - **NIE ZMIENIAJ** `aspect_ratio` dynamicznie dla kotów/króla - ZAWSZE `"3:4"`
+  - **NIE DOSTOSOWUJ** do orientacji obrazu użytkownika
+  - Wynik ZAWSZE pionowy, nawet jeśli user wgra poziomy obraz
 
 ## 🚨 CRITICAL: NO DUPLICATION - TYLKO THEME.LIQUID!
 - **PROBLEM SOLVED**: CSS był duplikowany w wielu plikach - TERAZ TYLKO `theme.liquid`!

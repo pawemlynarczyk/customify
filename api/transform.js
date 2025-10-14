@@ -525,12 +525,15 @@ module.exports = async (req, res) => {
       };
     } else if (config.apiType === 'nano-banana') {
       // Nano-banana model parameters - obsługuje 1 lub 2 obrazki
-      // ✅ MOŻLIWOŚĆ NADPISANIA PARAMETRÓW per productType
       
       // Domyślne parametry z config
       let aspectRatio = config.parameters.aspect_ratio;
       let outputFormat = config.parameters.output_format;
       let guidance = config.parameters.guidance;
+      
+      // ⚠️ KRYTYCZNE: Dla kotów aspect_ratio ZAWSZE "3:4" (pionowy)!
+      // NIE ZMIENIAJ dynamicznie na podstawie obrazu użytkownika!
+      // Model wycina twarz i nakłada na pionową miniaturkę.
       
       console.log(`🖼️ [NANO-BANANA] Using aspect_ratio: ${aspectRatio}, output_format: ${outputFormat}, guidance: ${guidance}`);
       
