@@ -528,11 +528,11 @@ module.exports = async (req, res) => {
       console.log(`➕ [TRANSFORM] Inkrementuję licznik dla użytkownika ${customerId}`);
       
       try {
-        // Pobierz obecną wartość
+        // Pobierz obecną wartość (namespace: custom, key: usage_count)
         const getQuery = `
           query getCustomerUsage($id: ID!) {
             customer(id: $id) {
-              metafield(namespace: "customify", key: "usage_count") {
+              metafield(namespace: "custom", key: "usage_count") {
                 value
               }
             }
@@ -588,7 +588,7 @@ module.exports = async (req, res) => {
                 id: `gid://shopify/Customer/${customerId}`,
                 metafields: [
                   {
-                    namespace: 'customify',
+                    namespace: 'custom',
                     key: 'usage_count',
                     value: newUsage.toString(),
                     type: 'number_integer'

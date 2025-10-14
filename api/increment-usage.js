@@ -66,12 +66,12 @@ module.exports = async (req, res) => {
       return res.status(500).json({ error: 'Shopify not configured' });
     }
 
-    // 1. Pobierz obecną wartość metafield
+    // 1. Pobierz obecną wartość metafield (namespace: custom, key: usage_count)
     const getQuery = `
       query getCustomerUsage($id: ID!) {
         customer(id: $id) {
           id
-          metafield(namespace: "customify", key: "usage_count") {
+          metafield(namespace: "custom", key: "usage_count") {
             id
             value
           }
@@ -138,7 +138,7 @@ module.exports = async (req, res) => {
             id: `gid://shopify/Customer/${customerId}`,
             metafields: [
               {
-                namespace: 'customify',
+                namespace: 'custom',
                 key: 'usage_count',
                 value: newUsage.toString(),
                 type: 'number_integer'
