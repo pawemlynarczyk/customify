@@ -149,13 +149,13 @@ class CustomifyEmbed {
   }
 
   /**
-   * Pokazuje modal z wymogiem logowania + auto-redirect
+   * Pokazuje modal z wymogiem rejestracji + auto-redirect
    */
   showLoginModal(usedCount, limit) {
-    // Return URL - wróć na tę samą stronę po zalogowaniu
+    // Return URL - wróć na tę samą stronę po rejestracji
     const returnUrl = window.location.pathname + window.location.search;
-    const loginUrl = `/account/login?return_url=${encodeURIComponent(returnUrl)}`;
     const registerUrl = `/account/register?return_url=${encodeURIComponent(returnUrl)}`;
+    const loginUrl = `/account/login?return_url=${encodeURIComponent(returnUrl)}`;
     
     const modalHTML = `
       <div id="loginModal" style="
@@ -196,15 +196,15 @@ class CustomifyEmbed {
             line-height: 1.6;
           ">
             Użyłeś <strong style="color: #FF6B6B;">${usedCount}/${limit}</strong> darmowych transformacji.<br>
-            <strong style="color: #4CAF50; font-size: 18px;">Zaloguj się aby otrzymać +10 dodatkowych!</strong>
+            <strong style="color: #4CAF50; font-size: 18px;">Załóż darmowe konto aby otrzymać +10 dodatkowych!</strong>
           </p>
           
           <div id="countdownText" style="
             margin-bottom: 25px;
             padding: 15px;
-            background: #FFF3CD;
+            background: #E8F5E9;
             border-radius: 8px;
-            color: #856404;
+            color: #2E7D32;
             font-weight: 600;
             font-size: 16px;
           ">
@@ -217,7 +217,7 @@ class CustomifyEmbed {
             justify-content: center;
             flex-wrap: wrap;
           ">
-            <a href="${loginUrl}" style="
+            <a href="${registerUrl}" style="
               background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
               color: white;
               padding: 14px 32px;
@@ -229,10 +229,10 @@ class CustomifyEmbed {
               box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
               transition: transform 0.2s;
             " onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
-              ✅ Zaloguj się teraz
+              🆕 Załóż darmowe konto
             </a>
             
-            <a href="${registerUrl}" style="
+            <a href="${loginUrl}" style="
               background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
               color: white;
               padding: 14px 32px;
@@ -244,7 +244,7 @@ class CustomifyEmbed {
               box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
               transition: transform 0.2s;
             " onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
-              🆕 Zarejestruj się
+              ✅ Mam już konto
             </a>
             
             <button onclick="window.customifyLoginModal.cancel()" style="
@@ -293,8 +293,8 @@ class CustomifyEmbed {
       
       if (countdown <= 0) {
         clearInterval(countdownInterval);
-        // Auto-redirect do logowania
-        window.location.href = loginUrl;
+        // Auto-redirect do REJESTRACJI (główny CTA)
+        window.location.href = registerUrl;
       }
     }, 1000);
     
@@ -307,7 +307,7 @@ class CustomifyEmbed {
       }
     };
     
-    console.log('⏰ [USAGE] Countdown started - auto-redirect in 5 seconds');
+    console.log('⏰ [USAGE] Countdown started - auto-redirect to REGISTER in 5 seconds');
   }
 
   /**
