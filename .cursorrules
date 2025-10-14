@@ -319,7 +319,8 @@ Customify is a Shopify app that allows customers to:
 - **CORS**: Zawsze dodawaj `https://lumly.pl` do allowed origins
 
 ## CRITICAL: Face-Swap Models (Koty, Król) - ZAWSZE PIONOWY OBRAZ
-- **Model**: Segmind Faceswap (król) i Nano-Banana (koty)
+- **Model Król**: Segmind Faceswap v4 (synchroniczne API, brak pollingu)
+- **Model Koty**: Nano-Banana (Replicate)
 - **Output Format**: ZAWSZE pionowy obraz 3:4 (896x1152) - **NIE MA ZNACZENIA** co user wgra (poziomy/pionowy)
 - **Dlaczego**: Model wycina tylko twarz z obrazu użytkownika i nakłada na miniaturkę (która jest pionowa 3:4)
 - **Target Image (miniaturka)**: krol-styl-X.jpg, koty/*.png - zawsze w formacie 3:4 pionowym
@@ -328,6 +329,42 @@ Customify is a Shopify app that allows customers to:
   - **NIE ZMIENIAJ** `aspect_ratio` dynamicznie dla kotów/króla - ZAWSZE `"3:4"`
   - **NIE DOSTOSOWUJ** do orientacji obrazu użytkownika
   - Wynik ZAWSZE pionowy, nawet jeśli user wgra poziomy obraz
+
+### **Segmind Faceswap v4 (Król) - Konfiguracja:**
+```javascript
+// Style króla w theme.liquid (linie 1533-1552):
+'krol-krolewski': {
+  model: "segmind/faceswap-v4",
+  apiType: "segmind-faceswap",
+  productType: "king",
+  parameters: {
+    target_image: "https://customify-s56o.vercel.app/krol/krol-styl-1.jpg",
+    swap_image: "USER_IMAGE"
+  }
+}
+
+// API call do Segmind (transform.js):
+{
+  source_image: cleanSwapImage,      // Twarz użytkownika (base64)
+  target_image: targetImageBase64,   // Obraz króla (base64)
+  model_type: "speed",               // 8 steps
+  swap_type: "head",                 // Zamień całą głowę
+  style_type: "normal",
+  image_format: "jpeg",
+  image_quality: 90,
+  hardware: "fast",
+  base64: true
+}
+```
+
+### **Kolejność parametrów Segmind:**
+- `source_image` = twarz użytkownika (SOURCE - źródło twarzy)
+- `target_image` = miniaturka króla (TARGET - na co nakładamy)
+- **NIE ZAMIENIAJ** kolejności - to jest poprawna!
+
+### **Environment Variables potrzebne:**
+- `SEGMIND_API_KEY` - klucz API do Segmind (dodaj w Vercel Dashboard)
+- Pobierz z: https://www.segmind.com/api-keys
 
 ## 🚨 CRITICAL: NO DUPLICATION - TYLKO THEME.LIQUID!
 - **PROBLEM SOLVED**: CSS był duplikowany w wielu plikach - TERAZ TYLKO `theme.liquid`!
