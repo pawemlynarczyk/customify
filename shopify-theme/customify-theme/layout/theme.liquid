@@ -35,6 +35,19 @@
 
     <!-- CUSTOMIFY INTEGRATION -->
     <link rel="stylesheet" href="{{ 'customify.css' | asset_url }}">
+    
+    <!-- CRITICAL: Customer data from Shopify Liquid (New OAuth system) -->
+    <script>
+      window.ShopifyCustomer = {
+        loggedIn: {{ customer | json }},
+        email: {{ customer.email | json }},
+        id: {{ customer.id | json }},
+        firstName: {{ customer.first_name | json }},
+        lastName: {{ customer.last_name | json }}
+      };
+      console.log('🔐 [SHOPIFY] Customer data loaded:', window.ShopifyCustomer);
+    </script>
+    
     <script src="{{ 'customify.js' | asset_url }}" defer></script>
     
     <!-- FIX: CSS dla galerii - TYLKO JEDEN MIEJSCE -->

@@ -52,17 +52,28 @@ class CustomifyEmbed {
    * @returns {Object|null} {customerId, email, customerAccessToken} lub null jeśli niezalogowany
    */
   getCustomerInfo() {
-    // Sprawdź czy użytkownik jest zalogowany (Shopify Customer Account)
-    // Shopify dostarcza dane klienta w window.Shopify.customerData (jeśli jest zalogowany)
+    // NOWY SYSTEM: Sprawdź window.ShopifyCustomer (z Liquid w theme.liquid)
+    // Działa z nowym Shopify OAuth Customer Accounts
+    if (window.ShopifyCustomer && window.ShopifyCustomer.loggedIn && window.ShopifyCustomer.email) {
+      console.log('✅ [USAGE] Zalogowany użytkownik (NEW OAuth):', window.ShopifyCustomer.email);
+      console.log('📊 [USAGE] Customer ID:', window.ShopifyCustomer.id);
+      
+      // W nowym systemie OAuth nie potrzebujemy customerAccessToken
+      // Shopify zarządza sesją przez cookies
+      return {
+        customerId: window.ShopifyCustomer.id,
+        email: window.ShopifyCustomer.email,
+        firstName: window.ShopifyCustomer.firstName,
+        lastName: window.ShopifyCustomer.lastName,
+        customerAccessToken: 'oauth_session' // Placeholder - sesja zarządzana przez Shopify
+      };
+    }
+    
+    // STARY SYSTEM: Fallback dla starszych wersji Shopify (Classic Customer Accounts)
     if (window.Shopify && window.Shopify.customerEmail) {
-      console.log('✅ [USAGE] Zalogowany użytkownik:', window.Shopify.customerEmail);
-      
-      // Pobierz customer access token z localStorage (Shopify zapisuje tam token po logowaniu)
-      const customerAccessToken = localStorage.getItem('shopify_customer_access_token');
-      
-      // Jeśli nie ma tokena w localStorage, sprawdź czy możemy go pobrać z API Shopify
-      // Alternatywnie: użyj window.meta.customer (jeśli dostępne)
+      console.log('✅ [USAGE] Zalogowany użytkownik (OLD system):', window.Shopify.customerEmail);
       const customerId = window.meta?.customer?.id || null;
+      const customerAccessToken = localStorage.getItem('shopify_customer_access_token');
       
       return {
         customerId: customerId,
