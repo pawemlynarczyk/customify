@@ -109,22 +109,18 @@ async function compressImage(imageData, maxWidth = 1152, maxHeight = 1152, quali
     const { width, height } = metadata;
     console.log(`Original dimensions: ${width}x${height}`);
     
-    // Calculate optimal SDXL resolution based on aspect ratio
+    // Calculate optimal resolution based on aspect ratio (A4 format: 3:4 or 4:3)
     let targetWidth, targetHeight;
     const aspectRatio = width / height;
     
-    if (aspectRatio > 1.2) {
-      // Landscape - use 1152x896 (SDXL recommended)
+    if (aspectRatio >= 1.0) {
+      // Landscape or square - use 4:3 format (1152x896)
       targetWidth = 1152;
       targetHeight = 896;
-    } else if (aspectRatio < 0.8) {
-      // Portrait - use 896x1152 (SDXL recommended)
+    } else {
+      // Portrait - use 3:4 format (896x1152)
       targetWidth = 896;
       targetHeight = 1152;
-    } else {
-      // Square-ish - use 1024x1024 (SDXL standard)
-      targetWidth = 1024;
-      targetHeight = 1024;
     }
     
     console.log(`SDXL optimal resolution: ${targetWidth}x${targetHeight} (aspect ratio: ${aspectRatio.toFixed(2)})`);
