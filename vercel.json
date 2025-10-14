@@ -96,6 +96,10 @@
       "dest": "/api/increment-usage.js"
     },
     {
+      "src": "/api/list-customers",
+      "dest": "/api/list-customers.js"
+    },
+    {
       "src": "/(.*)",
       "dest": "/public/$1"
     }
