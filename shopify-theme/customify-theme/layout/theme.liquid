@@ -36,16 +36,16 @@
     <!-- CUSTOMIFY INTEGRATION -->
     <link rel="stylesheet" href="{{ 'customify.css' | asset_url }}">
     
-    <!-- CRITICAL: Customer data from Shopify Liquid (New OAuth system) -->
+    <!-- CRITICAL: Customer data from Shopify Liquid (New OAuth system) - v2 -->
     <script>
       window.ShopifyCustomer = {
-        loggedIn: {{ customer | json }},
+        loggedIn: {% if customer %}true{% else %}false{% endif %},
         email: {{ customer.email | json }},
         id: {{ customer.id | json }},
         firstName: {{ customer.first_name | json }},
         lastName: {{ customer.last_name | json }}
       };
-      console.log('🔐 [SHOPIFY] Customer data loaded:', window.ShopifyCustomer);
+      console.log('🔐 [SHOPIFY] Customer data loaded (v2):', window.ShopifyCustomer);
     </script>
     
     <script src="{{ 'customify.js' | asset_url }}" defer></script>

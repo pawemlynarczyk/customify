@@ -52,37 +52,78 @@ class CustomifyEmbed {
    * @returns {Object|null} {customerId, email, customerAccessToken} lub null jeśli niezalogowany
    */
   getCustomerInfo() {
-    // NOWY SYSTEM: Sprawdź window.ShopifyCustomer (z Liquid w theme.liquid)
-    // Działa z nowym Shopify OAuth Customer Accounts
-    if (window.ShopifyCustomer && window.ShopifyCustomer.loggedIn && window.ShopifyCustomer.email) {
-      console.log('✅ [USAGE] Zalogowany użytkownik (NEW OAuth):', window.ShopifyCustomer.email);
+    console.log('🔍 [USAGE] === DEBUGGING CUSTOMER DETECTION ===');
+    console.log('🔍 [USAGE] window.ShopifyCustomer:', window.ShopifyCustomer);
+    console.log('🔍 [USAGE] window.Shopify:', window.Shopify);
+    console.log('🔍 [USAGE] document.cookie:', document.cookie);
+    
+    // METODA 1: NOWY SYSTEM - window.ShopifyCustomer (z Liquid w theme.liquid)
+    if (window.ShopifyCustomer && window.ShopifyCustomer.loggedIn && window.ShopifyCustomer.id) {
+      console.log('✅ [USAGE] METODA 1: Zalogowany użytkownik (NEW OAuth)');
+      console.log('📊 [USAGE] Customer Email:', window.ShopifyCustomer.email);
       console.log('📊 [USAGE] Customer ID:', window.ShopifyCustomer.id);
       
-      // W nowym systemie OAuth nie potrzebujemy customerAccessToken
-      // Shopify zarządza sesją przez cookies
       return {
         customerId: window.ShopifyCustomer.id,
-        email: window.ShopifyCustomer.email,
+        email: window.ShopifyCustomer.email || 'no-email@shopify.com',
         firstName: window.ShopifyCustomer.firstName,
         lastName: window.ShopifyCustomer.lastName,
         customerAccessToken: 'oauth_session' // Placeholder - sesja zarządzana przez Shopify
       };
     }
     
-    // STARY SYSTEM: Fallback dla starszych wersji Shopify (Classic Customer Accounts)
+    // METODA 2: FALLBACK - Sprawdź cookie Shopify (customer_auth_token)
+    const cookies = document.cookie.split(';').map(c => c.trim());
+    const hasCustomerCookie = cookies.some(cookie => 
+      cookie.startsWith('_shopify_customer_') || 
+      cookie.startsWith('customer_auth_token') ||
+      cookie.startsWith('customer_id')
+    );
+    
+    if (hasCustomerCookie) {
+      console.log('✅ [USAGE] METODA 2: Wykryto cookie Shopify - użytkownik zalogowany');
+      
+      // Spróbuj wyciągnąć ID z cookie
+      const customerIdCookie = cookies.find(c => c.startsWith('customer_id='));
+      let customerId = null;
+      
+      if (customerIdCookie) {
+        customerId = customerIdCookie.split('=')[1];
+        console.log('📊 [USAGE] Customer ID z cookie:', customerId);
+      }
+      
+      // Jeśli brak ID, użyj window.ShopifyCustomer.id jako fallback
+      if (!customerId && window.ShopifyCustomer && window.ShopifyCustomer.id) {
+        customerId = window.ShopifyCustomer.id;
+        console.log('📊 [USAGE] Customer ID z window.ShopifyCustomer:', customerId);
+      }
+      
+      return {
+        customerId: customerId || 'unknown',
+        email: window.ShopifyCustomer?.email || 'cookie-user@shopify.com',
+        firstName: window.ShopifyCustomer?.firstName || '',
+        lastName: window.ShopifyCustomer?.lastName || '',
+        customerAccessToken: 'oauth_session'
+      };
+    }
+    
+    // METODA 3: STARY SYSTEM - window.Shopify.customerEmail (Classic Customer Accounts)
     if (window.Shopify && window.Shopify.customerEmail) {
-      console.log('✅ [USAGE] Zalogowany użytkownik (OLD system):', window.Shopify.customerEmail);
-      const customerId = window.meta?.customer?.id || null;
+      console.log('✅ [USAGE] METODA 3: Zalogowany użytkownik (OLD system)');
+      console.log('📊 [USAGE] Customer Email:', window.Shopify.customerEmail);
+      
+      const customerId = window.meta?.customer?.id || window.ShopifyCustomer?.id || null;
       const customerAccessToken = localStorage.getItem('shopify_customer_access_token');
       
       return {
         customerId: customerId,
         email: window.Shopify.customerEmail,
-        customerAccessToken: customerAccessToken
+        customerAccessToken: customerAccessToken || 'oauth_session'
       };
     }
     
-    console.log('❌ [USAGE] Niezalogowany użytkownik');
+    console.log('❌ [USAGE] WSZYSTKIE METODY FAILED - Niezalogowany użytkownik');
+    console.log('🔍 [USAGE] === END DEBUGGING ===');
     return null;
   }
 
