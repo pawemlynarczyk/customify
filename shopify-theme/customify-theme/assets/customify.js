@@ -196,7 +196,7 @@ class CustomifyEmbed {
             line-height: 1.6;
           ">
             Użyłeś <strong style="color: #FF6B6B;">${usedCount}/${limit}</strong> darmowych transformacji.<br>
-            <strong style="color: #4CAF50; font-size: 18px;">Załóż darmowe konto aby otrzymać +10 dodatkowych!</strong>
+            <strong style="color: #4CAF50; font-size: 18px;">Załóż bezpłatne konto (bez hasła!) i otrzymaj +10 dodatkowych!</strong>
           </p>
           
           <div id="countdownText" style="
@@ -229,22 +229,7 @@ class CustomifyEmbed {
               box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
               transition: transform 0.2s;
             " onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
-              🆕 Załóż darmowe konto
-            </a>
-            
-            <a href="${loginUrl}" style="
-              background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
-              color: white;
-              padding: 14px 32px;
-              border-radius: 8px;
-              text-decoration: none;
-              font-weight: bold;
-              font-size: 16px;
-              display: inline-block;
-              box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
-              transition: transform 0.2s;
-            " onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
-              ✅ Mam już konto
+              ✉️ Kontynuuj (podaj email)
             </a>
             
             <button onclick="window.customifyLoginModal.cancel()" style="
