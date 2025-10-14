@@ -961,10 +961,10 @@ class CustomifyEmbed {
           
           // ===== WZÓR DIAGONALNY - "Lumly.pl" i "Podgląd" NA PRZEMIAN =====
           ctx.save();
-          ctx.font = 'bold 30px Arial';
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-          ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
-          ctx.lineWidth = 1.5;
+          ctx.font = 'bold 50px Arial';
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+          ctx.strokeStyle = 'rgba(0, 0, 0, 0.15)';
+          ctx.lineWidth = 2;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           
@@ -974,7 +974,7 @@ class CustomifyEmbed {
           ctx.translate(-canvas.width/2, -canvas.height/2);
           
           // Rysuj watermarki w siatce - na przemian "Lumly.pl" i "Podgląd"
-          const spacing = 180;
+          const spacing = 280;
           let textIndex = 0;
           const texts = ['Lumly.pl', 'Podgląd'];
           
