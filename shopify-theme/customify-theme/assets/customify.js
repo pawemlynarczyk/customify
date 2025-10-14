@@ -149,9 +149,14 @@ class CustomifyEmbed {
   }
 
   /**
-   * Pokazuje modal z wymogiem logowania
+   * Pokazuje modal z wymogiem logowania + auto-redirect
    */
   showLoginModal(usedCount, limit) {
+    // Return URL - wróć na tę samą stronę po zalogowaniu
+    const returnUrl = window.location.pathname + window.location.search;
+    const loginUrl = `/account/login?return_url=${encodeURIComponent(returnUrl)}`;
+    const registerUrl = `/account/register?return_url=${encodeURIComponent(returnUrl)}`;
+    
     const modalHTML = `
       <div id="loginModal" style="
         position: fixed;
@@ -159,59 +164,150 @@ class CustomifyEmbed {
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0,0,0,0.7);
+        background: rgba(0,0,0,0.75);
         display: flex;
         align-items: center;
         justify-content: center;
         z-index: 99999;
+        animation: fadeIn 0.3s ease;
       ">
         <div style="
           background: white;
-          padding: 40px;
-          border-radius: 12px;
-          max-width: 500px;
+          padding: 50px 40px;
+          border-radius: 16px;
+          max-width: 550px;
           text-align: center;
-          box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+          box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+          animation: slideUp 0.3s ease;
         ">
-          <h2 style="margin-bottom: 20px; color: #333;">🎨 Wykorzystałeś darmowe transformacje!</h2>
-          <p style="margin-bottom: 20px; color: #666; font-size: 16px;">
-            Użyłeś <strong>${usedCount}/${limit}</strong> darmowych transformacji.<br>
-            Zaloguj się aby otrzymać <strong>+10 dodatkowych</strong> transformacji!
+          <div style="font-size: 60px; margin-bottom: 20px;">🎨</div>
+          
+          <h2 style="
+            margin-bottom: 15px; 
+            color: #333; 
+            font-size: 24px;
+            font-weight: 600;
+          ">Wykorzystałeś darmowe transformacje!</h2>
+          
+          <p style="
+            margin-bottom: 25px; 
+            color: #666; 
+            font-size: 16px;
+            line-height: 1.6;
+          ">
+            Użyłeś <strong style="color: #FF6B6B;">${usedCount}/${limit}</strong> darmowych transformacji.<br>
+            <strong style="color: #4CAF50; font-size: 18px;">Zaloguj się aby otrzymać +10 dodatkowych!</strong>
           </p>
-          <div style="display: flex; gap: 15px; justify-content: center;">
-            <a href="/account/login" style="
-              background: #4CAF50;
+          
+          <div id="countdownText" style="
+            margin-bottom: 25px;
+            padding: 15px;
+            background: #FFF3CD;
+            border-radius: 8px;
+            color: #856404;
+            font-weight: 600;
+            font-size: 16px;
+          ">
+            ⏰ Przekierowanie za: <span id="countdownSeconds">5</span> sekund...
+          </div>
+          
+          <div style="
+            display: flex; 
+            gap: 12px; 
+            justify-content: center;
+            flex-wrap: wrap;
+          ">
+            <a href="${loginUrl}" style="
+              background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
               color: white;
-              padding: 12px 30px;
-              border-radius: 6px;
+              padding: 14px 32px;
+              border-radius: 8px;
               text-decoration: none;
               font-weight: bold;
+              font-size: 16px;
               display: inline-block;
-            ">Zaloguj się</a>
-            <a href="/account/register" style="
-              background: #2196F3;
+              box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+              transition: transform 0.2s;
+            " onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+              ✅ Zaloguj się teraz
+            </a>
+            
+            <a href="${registerUrl}" style="
+              background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
               color: white;
-              padding: 12px 30px;
-              border-radius: 6px;
+              padding: 14px 32px;
+              border-radius: 8px;
               text-decoration: none;
               font-weight: bold;
+              font-size: 16px;
               display: inline-block;
-            ">Zarejestruj się</a>
-            <button onclick="document.getElementById('loginModal').remove()" style="
-              background: #999;
-              color: white;
-              padding: 12px 30px;
-              border-radius: 6px;
-              border: none;
+              box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
+              transition: transform 0.2s;
+            " onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+              🆕 Zarejestruj się
+            </a>
+            
+            <button onclick="window.customifyLoginModal.cancel()" style="
+              background: #f5f5f5;
+              color: #666;
+              padding: 14px 32px;
+              border-radius: 8px;
+              border: 2px solid #ddd;
               font-weight: bold;
+              font-size: 16px;
               cursor: pointer;
-            ">Zamknij</button>
+              transition: all 0.2s;
+            " onmouseover="this.style.background='#e0e0e0'" onmouseout="this.style.background='#f5f5f5'">
+              ❌ Anuluj
+            </button>
           </div>
         </div>
       </div>
     `;
     
+    // CSS Animations
+    const styleEl = document.createElement('style');
+    styleEl.textContent = `
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      @keyframes slideUp {
+        from { transform: translateY(50px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+      }
+    `;
+    document.head.appendChild(styleEl);
+    
     document.body.insertAdjacentHTML('beforeend', modalHTML);
+    
+    // Countdown timer (5 sekund)
+    let countdown = 5;
+    const countdownEl = document.getElementById('countdownSeconds');
+    
+    const countdownInterval = setInterval(() => {
+      countdown--;
+      if (countdownEl) {
+        countdownEl.textContent = countdown;
+      }
+      
+      if (countdown <= 0) {
+        clearInterval(countdownInterval);
+        // Auto-redirect do logowania
+        window.location.href = loginUrl;
+      }
+    }, 1000);
+    
+    // Global function to cancel countdown
+    window.customifyLoginModal = {
+      cancel: () => {
+        clearInterval(countdownInterval);
+        document.getElementById('loginModal')?.remove();
+        console.log('🚫 [USAGE] Użytkownik anulował przekierowanie');
+      }
+    };
+    
+    console.log('⏰ [USAGE] Countdown started - auto-redirect in 5 seconds');
   }
 
   /**
