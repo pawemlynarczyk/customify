@@ -77,7 +77,6 @@ module.exports = async (req, res) => {
       query getCustomerUsage($id: ID!) {
         customer(id: $id) {
           id
-          email
           metafield(namespace: "customify", key: "usage_count") {
             value
           }
