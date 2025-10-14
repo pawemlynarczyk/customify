@@ -85,18 +85,20 @@ async function segmindFaceswap(targetImageUrl, swapImageBase64) {
     throw new Error(`Segmind face-swap failed: ${response.status} - ${errorText}`);
   }
 
-  const resultBase64 = await response.text();
-  console.log('✅ [SEGMIND] Face-swap completed! Result length:', resultBase64.length, 'chars');
-  console.log('🔍 [SEGMIND] Result preview (first 100 chars):', resultBase64.substring(0, 100));
+  // Segmind zwraca JSON z kluczem "image"
+  const resultJson = await response.json();
+  console.log('✅ [SEGMIND] Face-swap completed! Response:', Object.keys(resultJson));
   
-  // Check if result already has data URI prefix
-  if (resultBase64.startsWith('data:image')) {
-    console.log('✅ [SEGMIND] Result already has data URI prefix');
-    return resultBase64;
+  const resultBase64 = resultJson.image;
+  if (!resultBase64) {
+    console.error('❌ [SEGMIND] No image in response:', resultJson);
+    throw new Error('Segmind response missing image field');
   }
   
+  console.log('✅ [SEGMIND] Extracted base64, length:', resultBase64.length, 'chars');
+  console.log('🔍 [SEGMIND] Base64 preview (first 50 chars):', resultBase64.substring(0, 50));
+  
   // Return as data URI for consistency
-  console.log('✅ [SEGMIND] Adding data URI prefix');
   return `data:image/jpeg;base64,${resultBase64}`;
 }
 
