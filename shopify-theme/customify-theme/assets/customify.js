@@ -351,8 +351,11 @@ class CustomifyEmbed {
    * Pokazuje licznik użyć w UI
    */
   async showUsageCounter() {
+    console.log('🔍 [USAGE] showUsageCounter called');
     const customerInfo = this.getCustomerInfo();
     let counterHTML = '';
+    
+    console.log('🔍 [USAGE] customerInfo:', customerInfo);
     
     if (!customerInfo) {
       // Niezalogowany
@@ -417,8 +420,14 @@ class CustomifyEmbed {
       existingCounter.remove();
     }
     
+    console.log('🔍 [USAGE] uploadArea:', this.uploadArea);
+    console.log('🔍 [USAGE] counterHTML:', counterHTML);
+    
     if (this.uploadArea && counterHTML) {
       this.uploadArea.insertAdjacentHTML('beforebegin', counterHTML);
+      console.log('✅ [USAGE] Counter inserted successfully');
+    } else {
+      console.log('❌ [USAGE] Cannot insert counter - uploadArea or counterHTML missing');
     }
   }
 
