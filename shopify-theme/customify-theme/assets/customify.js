@@ -40,6 +40,253 @@ class CustomifyEmbed {
     
     // Setup accordion for product details - BEZ setTimeout!
     this.setupAccordion();
+    
+    // ✅ USAGE LIMITS: Pokaż licznik użyć
+    this.showUsageCounter();
+  }
+
+  // ===== USAGE LIMITS FUNCTIONS =====
+  
+  /**
+   * Pobiera informacje o zalogowanym użytkowniku Shopify
+   * @returns {Object|null} {customerId, email, customerAccessToken} lub null jeśli niezalogowany
+   */
+  getCustomerInfo() {
+    // Sprawdź czy użytkownik jest zalogowany (Shopify Customer Account)
+    // Shopify dostarcza dane klienta w window.Shopify.customerData (jeśli jest zalogowany)
+    if (window.Shopify && window.Shopify.customerEmail) {
+      console.log('✅ [USAGE] Zalogowany użytkownik:', window.Shopify.customerEmail);
+      
+      // Pobierz customer access token z localStorage (Shopify zapisuje tam token po logowaniu)
+      const customerAccessToken = localStorage.getItem('shopify_customer_access_token');
+      
+      // Jeśli nie ma tokena w localStorage, sprawdź czy możemy go pobrać z API Shopify
+      // Alternatywnie: użyj window.meta.customer (jeśli dostępne)
+      const customerId = window.meta?.customer?.id || null;
+      
+      return {
+        customerId: customerId,
+        email: window.Shopify.customerEmail,
+        customerAccessToken: customerAccessToken
+      };
+    }
+    
+    console.log('❌ [USAGE] Niezalogowany użytkownik');
+    return null;
+  }
+
+  /**
+   * Sprawdza liczbę użyć z localStorage (dla niezalogowanych)
+   * @returns {number} Liczba użyć
+   */
+  getLocalUsageCount() {
+    const count = parseInt(localStorage.getItem('customify_usage_count') || '0', 10);
+    console.log('📊 [USAGE] localStorage usage count:', count);
+    return count;
+  }
+
+  /**
+   * Inkrementuje licznik w localStorage (dla niezalogowanych)
+   */
+  incrementLocalUsage() {
+    const currentCount = this.getLocalUsageCount();
+    const newCount = currentCount + 1;
+    localStorage.setItem('customify_usage_count', newCount.toString());
+    console.log('➕ [USAGE] localStorage incremented:', currentCount, '→', newCount);
+    this.showUsageCounter(); // Odśwież licznik w UI
+  }
+
+  /**
+   * Sprawdza czy użytkownik może wykonać transformację
+   * @returns {Promise<boolean>} true jeśli może, false jeśli przekroczył limit
+   */
+  async checkUsageLimit() {
+    const customerInfo = this.getCustomerInfo();
+    
+    if (!customerInfo) {
+      // Niezalogowany - sprawdź localStorage (limit 3)
+      const localCount = this.getLocalUsageCount();
+      const FREE_LIMIT = 3;
+      
+      console.log(`📊 [USAGE] Niezalogowany: ${localCount}/${FREE_LIMIT} użyć`);
+      
+      if (localCount >= FREE_LIMIT) {
+        this.showLoginModal(localCount, FREE_LIMIT);
+        return false;
+      }
+      
+      return true;
+    } else {
+      // Zalogowany - sprawdź Shopify Metafields przez API
+      console.log('📊 [USAGE] Zalogowany - sprawdzam limit przez API');
+      
+      try {
+        const response = await fetch('https://customify-s56o.vercel.app/api/check-usage', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            customerId: customerInfo.customerId,
+            customerAccessToken: customerInfo.customerAccessToken
+          })
+        });
+        
+        const data = await response.json();
+        console.log('📊 [USAGE] API response:', data);
+        
+        if (data.remainingCount <= 0) {
+          this.showError(`Wykorzystałeś wszystkie transformacje (${data.totalLimit}). Skontaktuj się z nami dla więcej.`);
+          return false;
+        }
+        
+        console.log(`✅ [USAGE] Pozostało ${data.remainingCount} transformacji`);
+        return true;
+      } catch (error) {
+        console.error('❌ [USAGE] Błąd sprawdzania limitu:', error);
+        // W razie błędu - pozwól (fallback)
+        return true;
+      }
+    }
+  }
+
+  /**
+   * Pokazuje modal z wymogiem logowania
+   */
+  showLoginModal(usedCount, limit) {
+    const modalHTML = `
+      <div id="loginModal" style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 99999;
+      ">
+        <div style="
+          background: white;
+          padding: 40px;
+          border-radius: 12px;
+          max-width: 500px;
+          text-align: center;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        ">
+          <h2 style="margin-bottom: 20px; color: #333;">🎨 Wykorzystałeś darmowe transformacje!</h2>
+          <p style="margin-bottom: 20px; color: #666; font-size: 16px;">
+            Użyłeś <strong>${usedCount}/${limit}</strong> darmowych transformacji.<br>
+            Zaloguj się aby otrzymać <strong>+10 dodatkowych</strong> transformacji!
+          </p>
+          <div style="display: flex; gap: 15px; justify-content: center;">
+            <a href="/account/login" style="
+              background: #4CAF50;
+              color: white;
+              padding: 12px 30px;
+              border-radius: 6px;
+              text-decoration: none;
+              font-weight: bold;
+              display: inline-block;
+            ">Zaloguj się</a>
+            <a href="/account/register" style="
+              background: #2196F3;
+              color: white;
+              padding: 12px 30px;
+              border-radius: 6px;
+              text-decoration: none;
+              font-weight: bold;
+              display: inline-block;
+            ">Zarejestruj się</a>
+            <button onclick="document.getElementById('loginModal').remove()" style="
+              background: #999;
+              color: white;
+              padding: 12px 30px;
+              border-radius: 6px;
+              border: none;
+              font-weight: bold;
+              cursor: pointer;
+            ">Zamknij</button>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+  }
+
+  /**
+   * Pokazuje licznik użyć w UI
+   */
+  async showUsageCounter() {
+    const customerInfo = this.getCustomerInfo();
+    let counterHTML = '';
+    
+    if (!customerInfo) {
+      // Niezalogowany
+      const localCount = this.getLocalUsageCount();
+      const FREE_LIMIT = 3;
+      const remaining = Math.max(0, FREE_LIMIT - localCount);
+      
+      counterHTML = `
+        <div id="usageCounter" style="
+          background: ${remaining > 0 ? '#E8F5E9' : '#FFEBEE'};
+          color: ${remaining > 0 ? '#2E7D32' : '#C62828'};
+          padding: 12px;
+          border-radius: 8px;
+          margin-bottom: 15px;
+          text-align: center;
+          font-weight: bold;
+        ">
+          ${remaining > 0 
+            ? `🎨 Pozostało ${remaining}/${FREE_LIMIT} darmowych transformacji` 
+            : `❌ Wykorzystano ${FREE_LIMIT}/${FREE_LIMIT} - Zaloguj się dla więcej!`
+          }
+        </div>
+      `;
+    } else {
+      // Zalogowany - pobierz z API
+      try {
+        const response = await fetch('https://customify-s56o.vercel.app/api/check-usage', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            customerId: customerInfo.customerId,
+            customerAccessToken: customerInfo.customerAccessToken
+          })
+        });
+        
+        const data = await response.json();
+        
+        counterHTML = `
+          <div id="usageCounter" style="
+            background: ${data.remainingCount > 0 ? '#E3F2FD' : '#FFEBEE'};
+            color: ${data.remainingCount > 0 ? '#1565C0' : '#C62828'};
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: bold;
+          ">
+            ${data.remainingCount > 0 
+              ? `✅ Zalogowany: ${data.remainingCount}/${data.totalLimit} transformacji` 
+              : `❌ Wykorzystano ${data.totalLimit}/${data.totalLimit} transformacji`
+            }
+          </div>
+        `;
+      } catch (error) {
+        console.error('❌ [USAGE] Błąd pobierania licznika:', error);
+      }
+    }
+    
+    // Wstaw licznik przed uploadArea
+    const existingCounter = document.getElementById('usageCounter');
+    if (existingCounter) {
+      existingCounter.remove();
+    }
+    
+    if (this.uploadArea && counterHTML) {
+      this.uploadArea.insertAdjacentHTML('beforebegin', counterHTML);
+    }
   }
 
   // filterStylesForProduct() USUNIĘTE - logika przeniesiona na server-side (Shopify Liquid)
@@ -424,6 +671,15 @@ class CustomifyEmbed {
       return;
     }
 
+    // ✅ USAGE LIMITS: Sprawdź limit PRZED transformacją
+    if (retryCount === 0) { // Tylko przy pierwszej próbie (nie przy retry)
+      const canTransform = await this.checkUsageLimit();
+      if (!canTransform) {
+        console.log('❌ [USAGE] Limit przekroczony - przerwano transformację');
+        return;
+      }
+    }
+
     // ✅ Google Analytics Event Tracking - "Zobacz Podgląd" kliknięty
     if (retryCount === 0 && typeof gtag !== 'undefined') {
       gtag('event', 'zobacz_podglad_click', {
@@ -467,13 +723,19 @@ class CustomifyEmbed {
         productType = 'boho';
       }
       
+      // ✅ USAGE LIMITS: Pobierz dane użytkownika do przekazania do API
+      const customerInfo = this.getCustomerInfo();
+      
       const requestBody = {
         imageData: base64,
         prompt: `Transform this image in ${this.selectedStyle} style`,
-        productType: productType // Przekaż typ produktu do API
+        productType: productType, // Przekaż typ produktu do API
+        customerId: customerInfo?.customerId || null,
+        customerAccessToken: customerInfo?.customerAccessToken || null
       };
       
       console.log('📱 [MOBILE] Request body size:', JSON.stringify(requestBody).length, 'bytes');
+      console.log('👤 [MOBILE] Customer info:', customerInfo ? 'zalogowany' : 'niezalogowany');
       
       const response = await fetch('https://customify-s56o.vercel.app/api/transform', {
         method: 'POST',
@@ -501,6 +763,16 @@ class CustomifyEmbed {
         this.transformedImage = result.transformedImage;
         this.showResult(result.transformedImage);
         this.showSuccess('Teraz wybierz rozmiar obrazu');
+        
+        // ✅ USAGE LIMITS: Inkrementuj licznik dla niezalogowanych (zalogowani są inkrementowani w API)
+        if (!customerInfo) {
+          this.incrementLocalUsage();
+          console.log('➕ [USAGE] localStorage incremented after successful transform');
+        } else {
+          // Zalogowani - odśwież licznik z API (został zaktualizowany w backend)
+          this.showUsageCounter();
+          console.log('🔄 [USAGE] Counter refreshed for logged-in user');
+        }
       } else {
         this.showError('Błąd podczas transformacji: ' + (result.error || 'Nieznany błąd'));
       }

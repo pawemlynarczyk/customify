@@ -141,7 +141,7 @@ module.exports = async (req, res) => {
   console.log(`📝 [TRANSFORM] POST request processing for IP: ${ip}`);
 
   try {
-    const { imageData, prompt, productType } = req.body;
+    const { imageData, prompt, productType, customerId, customerAccessToken } = req.body;
 
     if (!imageData || !prompt) {
       return res.status(400).json({ error: 'Image data and prompt are required' });
@@ -149,6 +149,69 @@ module.exports = async (req, res) => {
     
     console.log(`🎯 [TRANSFORM] Product type: ${productType || 'not specified'}`);
     console.log(`🎯 [TRANSFORM] Style: ${prompt}`);
+    console.log(`👤 [TRANSFORM] Customer ID: ${customerId || 'not logged in'}`);
+
+    // ✅ SPRAWDZENIE LIMITÓW UŻYCIA PRZED TRANSFORMACJĄ
+    const shopDomain = process.env.SHOPIFY_STORE_DOMAIN || 'customify-ok.myshopify.com';
+    const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
+
+    if (customerId && customerAccessToken && accessToken) {
+      // Zalogowany użytkownik - sprawdź Shopify Metafields
+      console.log(`🔍 [TRANSFORM] Sprawdzam limity dla zalogowanego użytkownika...`);
+      
+      try {
+        const metafieldQuery = `
+          query getCustomerUsage($id: ID!) {
+            customer(id: $id) {
+              id
+              email
+              metafield(namespace: "customify", key: "usage_count") {
+                value
+              }
+            }
+          }
+        `;
+
+        const metafieldResponse = await fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Shopify-Access-Token': accessToken
+          },
+          body: JSON.stringify({
+            query: metafieldQuery,
+            variables: {
+              id: `gid://shopify/Customer/${customerId}`
+            }
+          })
+        });
+
+        const metafieldData = await metafieldResponse.json();
+        const customer = metafieldData.data?.customer;
+        const usedCount = parseInt(customer?.metafield?.value || '0', 10);
+        const totalLimit = 13; // 3 darmowe + 10 po zalogowaniu
+
+        console.log(`📊 [TRANSFORM] Użytkownik ${customer?.email}: ${usedCount}/${totalLimit} użyć`);
+
+        if (usedCount >= totalLimit) {
+          console.log(`❌ [TRANSFORM] Limit przekroczony dla użytkownika ${customer?.email}`);
+          return res.status(403).json({
+            error: 'Usage limit exceeded',
+            message: 'Wykorzystałeś wszystkie dostępne transformacje (13). Skontaktuj się z nami dla więcej.',
+            usedCount: usedCount,
+            totalLimit: totalLimit
+          });
+        }
+
+        console.log(`✅ [TRANSFORM] Limit OK - kontynuuję transformację`);
+      } catch (limitError) {
+        console.error('⚠️ [TRANSFORM] Błąd sprawdzania limitów:', limitError);
+        // Kontynuuj mimo błędu (fallback do IP rate limiting)
+      }
+    } else {
+      // Niezalogowany użytkownik - frontend sprawdza localStorage (3 użycia)
+      console.log(`👤 [TRANSFORM] Niezalogowany użytkownik - frontend sprawdza localStorage`);
+    }
 
     if (!replicate) {
       return res.status(400).json({ error: 'Replicate API token not configured' });
@@ -458,6 +521,94 @@ module.exports = async (req, res) => {
     } else {
       console.error('❌ [REPLICATE] Unknown output format:', output);
       return res.status(500).json({ error: 'Invalid response format from AI model' });
+    }
+
+    // ✅ INKREMENTACJA LICZNIKA PO UDANEJ TRANSFORMACJI
+    if (customerId && customerAccessToken && accessToken) {
+      console.log(`➕ [TRANSFORM] Inkrementuję licznik dla użytkownika ${customerId}`);
+      
+      try {
+        // Pobierz obecną wartość
+        const getQuery = `
+          query getCustomerUsage($id: ID!) {
+            customer(id: $id) {
+              metafield(namespace: "customify", key: "usage_count") {
+                value
+              }
+            }
+          }
+        `;
+
+        const getResponse = await fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Shopify-Access-Token': accessToken
+          },
+          body: JSON.stringify({
+            query: getQuery,
+            variables: {
+              id: `gid://shopify/Customer/${customerId}`
+            }
+          })
+        });
+
+        const getData = await getResponse.json();
+        const currentUsage = parseInt(getData.data?.customer?.metafield?.value || '0', 10);
+        const newUsage = currentUsage + 1;
+
+        // Zaktualizuj metafield
+        const updateMutation = `
+          mutation updateCustomerUsage($input: CustomerInput!) {
+            customerUpdate(input: $input) {
+              customer {
+                id
+                metafield(namespace: "customify", key: "usage_count") {
+                  value
+                }
+              }
+              userErrors {
+                field
+                message
+              }
+            }
+          }
+        `;
+
+        const updateResponse = await fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Shopify-Access-Token': accessToken
+          },
+          body: JSON.stringify({
+            query: updateMutation,
+            variables: {
+              input: {
+                id: `gid://shopify/Customer/${customerId}`,
+                metafields: [
+                  {
+                    namespace: 'customify',
+                    key: 'usage_count',
+                    value: newUsage.toString(),
+                    type: 'number_integer'
+                  }
+                ]
+              }
+            }
+          })
+        });
+
+        const updateData = await updateResponse.json();
+        console.log(`✅ [TRANSFORM] Licznik zaktualizowany: ${currentUsage} → ${newUsage}`);
+        
+        if (updateData.data?.customerUpdate?.userErrors?.length > 0) {
+          console.error('⚠️ [TRANSFORM] Błąd aktualizacji metafield:', updateData.data.customerUpdate.userErrors);
+        }
+      } catch (incrementError) {
+        console.error('⚠️ [TRANSFORM] Błąd inkrementacji licznika:', incrementError);
+        // Nie blokuj odpowiedzi - transformacja się udała
+      }
     }
 
     res.json({ 
