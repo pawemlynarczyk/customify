@@ -19,6 +19,77 @@ if (process.env.REPLICATE_API_TOKEN && process.env.REPLICATE_API_TOKEN !== 'leav
   });
 }
 
+// Function to convert URL to base64
+async function urlToBase64(imageUrl) {
+  try {
+    console.log('📥 [SEGMIND] Fetching image from URL:', imageUrl);
+    const response = await fetch(imageUrl);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch image: ${response.status}`);
+    }
+    const buffer = await response.buffer();
+    const base64 = buffer.toString('base64');
+    console.log('✅ [SEGMIND] Converted to base64:', base64.length, 'chars');
+    return base64;
+  } catch (error) {
+    console.error('❌ [SEGMIND] URL to base64 conversion failed:', error);
+    throw error;
+  }
+}
+
+// Function to handle Segmind Faceswap v4
+async function segmindFaceswap(targetImageUrl, swapImageBase64) {
+  const SEGMIND_API_KEY = process.env.SEGMIND_API_KEY;
+  
+  if (!SEGMIND_API_KEY) {
+    throw new Error('SEGMIND_API_KEY not configured');
+  }
+
+  console.log('🎭 [SEGMIND] Starting face-swap (synchronous)...');
+  console.log('🎭 [SEGMIND] Target image URL:', targetImageUrl);
+  console.log('🎭 [SEGMIND] Swap image (base64):', swapImageBase64.substring(0, 50) + '...');
+
+  // Convert target image URL to base64
+  const targetImageBase64 = await urlToBase64(targetImageUrl);
+
+  // Remove data URI prefix if present (keep only base64 string)
+  const cleanSwapImage = swapImageBase64.replace(/^data:image\/[a-z]+;base64,/, '');
+  
+  console.log('🚀 [SEGMIND] Sending request to Segmind API...');
+
+  const response = await fetch('https://api.segmind.com/v1/faceswap-v4', {
+    method: 'POST',
+    headers: {
+      'x-api-key': SEGMIND_API_KEY,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      source_image: cleanSwapImage,      // Twarz użytkownika
+      target_image: targetImageBase64,   // Obraz króla
+      model_type: "speed",               // 8 steps - szybko
+      swap_type: "head",                 // Zamień całą głowę
+      style_type: "normal",              // Zachowaj styl source
+      seed: 42,
+      image_format: "jpeg",
+      image_quality: 90,
+      hardware: "fast",
+      base64: true                       // Zwróć jako base64
+    })
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('❌ [SEGMIND] Face-swap failed:', response.status, errorText);
+    throw new Error(`Segmind face-swap failed: ${response.status} - ${errorText}`);
+  }
+
+  const resultBase64 = await response.text();
+  console.log('✅ [SEGMIND] Face-swap completed! Result length:', resultBase64.length, 'chars');
+  
+  // Return as data URI for consistency
+  return `data:image/jpeg;base64,${resultBase64}`;
+}
+
 // Function to compress and resize images for SDXL models
 async function compressImage(imageData, maxWidth = 1152, maxHeight = 1152, quality = 85) {
   if (!sharp) {
@@ -383,6 +454,34 @@ module.exports = async (req, res) => {
           output_format: "jpg",
           guidance: 3.5
         }
+      },
+      // Style króla - używają Segmind Faceswap v4
+      'krol-krolewski': {
+        model: "segmind/faceswap-v4",
+        apiType: "segmind-faceswap",
+        productType: "king", // Identyfikator typu produktu
+        parameters: {
+          target_image: "https://customify-s56o.vercel.app/krol/krol-styl-1.jpg",
+          swap_image: "USER_IMAGE"
+        }
+      },
+      'krol-majestatyczny': {
+        model: "segmind/faceswap-v4",
+        apiType: "segmind-faceswap",
+        productType: "king",
+        parameters: {
+          target_image: "https://customify-s56o.vercel.app/krol/krol-styl-2.jpg",
+          swap_image: "USER_IMAGE"
+        }
+      },
+      'krol-triumfalny': {
+        model: "segmind/faceswap-v4",
+        apiType: "segmind-faceswap",
+        productType: "king",
+        parameters: {
+          target_image: "https://customify-s56o.vercel.app/krol/krol-styl-3.jpg",
+          swap_image: "USER_IMAGE"
+        }
       }
     };
 
@@ -488,47 +587,76 @@ module.exports = async (req, res) => {
     console.log(`Running model: ${config.model}`);
     console.log(`Input parameters:`, inputParams);
 
-    // Check if Replicate is available
-    if (!replicate) {
-      console.error('❌ [REPLICATE] Replicate not initialized - missing REPLICATE_API_TOKEN');
-      return res.status(500).json({ 
-        error: 'AI service not configured. Please contact support.' 
-      });
-    }
-
-    // Add timeout and better error handling (following Replicate docs)
-    const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Request timeout - model took too long')), 300000); // 5 minutes
-    });
-
-    console.log(`🚀 [REPLICATE] Starting prediction with model: ${config.model}`);
-    const replicatePromise = replicate.run(config.model, {
-      input: inputParams
-    });
-
-    const output = await Promise.race([replicatePromise, timeoutPromise]);
-    console.log(`✅ [REPLICATE] Prediction completed successfully`);
-    console.log(`📸 [REPLICATE] Output type:`, typeof output);
-    console.log(`📸 [REPLICATE] Output:`, output);
-
-    // Handle different output formats based on model
+    let output;
     let imageUrl;
-    if (config.model.includes('nano-banana')) {
-      // Nano-banana returns direct string URL
-      imageUrl = output;
-    } else if (Array.isArray(output)) {
-      // Standard Replicate models return array
-      imageUrl = output[0];
-    } else if (typeof output === 'string') {
-      // Fallback for string output
-      imageUrl = output;
-    } else if (output && output.url) {
-      // Some models return object with url() method
-      imageUrl = output.url();
+
+    // ✅ STYLE KRÓLA - UŻYWAJ SEGMIND FACESWAP
+    if (config.apiType === 'segmind-faceswap') {
+      console.log('🎭 [SEGMIND] Detected king style - using Segmind Faceswap v4');
+      
+      try {
+        // Wywołaj Segmind z target_image (URL) i swap_image (base64)
+        const targetImageUrl = config.parameters.target_image;
+        const swapImageBase64 = imageDataUri; // Zdjęcie użytkownika (data URI)
+        
+        imageUrl = await segmindFaceswap(targetImageUrl, swapImageBase64);
+        console.log('✅ [SEGMIND] Face-swap completed successfully');
+        
+      } catch (error) {
+        console.error('❌ [SEGMIND] Face-swap failed:', error);
+        return res.status(500).json({ 
+          error: 'Face-swap failed',
+          details: error.message 
+        });
+      }
+      
     } else {
-      console.error('❌ [REPLICATE] Unknown output format:', output);
-      return res.status(500).json({ error: 'Invalid response format from AI model' });
+      // ✅ INNE STYLE - UŻYWAJ REPLICATE
+      console.log('🎨 [REPLICATE] Using Replicate for non-king styles');
+      
+      // Check if Replicate is available
+      if (!replicate) {
+        console.error('❌ [REPLICATE] Replicate not initialized - missing REPLICATE_API_TOKEN');
+        return res.status(500).json({ 
+          error: 'AI service not configured. Please contact support.' 
+        });
+      }
+
+      // Add timeout and better error handling (following Replicate docs)
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Request timeout - model took too long')), 300000); // 5 minutes
+      });
+
+      console.log(`🚀 [REPLICATE] Starting prediction with model: ${config.model}`);
+      const replicatePromise = replicate.run(config.model, {
+        input: inputParams
+      });
+
+      output = await Promise.race([replicatePromise, timeoutPromise]);
+      console.log(`✅ [REPLICATE] Prediction completed successfully`);
+      console.log(`📸 [REPLICATE] Output type:`, typeof output);
+      console.log(`📸 [REPLICATE] Output:`, output);
+
+      // Handle different output formats based on model
+      if (config.model.includes('nano-banana')) {
+        // Nano-banana returns direct string URL
+        imageUrl = output;
+      } else if (Array.isArray(output)) {
+        // Standard Replicate models return array
+        imageUrl = output[0];
+      } else if (typeof output === 'string') {
+        // Fallback for string output
+        imageUrl = output;
+      } else if (output && output.url) {
+        // Some models return object with url() method
+        imageUrl = output.url();
+      } else {
+        console.error('❌ [REPLICATE] Unknown output format:', output);
+        return res.status(500).json({ error: 'Invalid response format from AI model' });
+      }
     }
+
+    // ✅ WSPÓLNA LOGIKA - imageUrl jest już ustawione (z PiAPI lub Replicate)
 
     // ✅ INKREMENTACJA LICZNIKA PO UDANEJ TRANSFORMACJI
     if (customerId && customerAccessToken && accessToken) {
