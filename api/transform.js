@@ -440,8 +440,15 @@ module.exports = async (req, res) => {
       // Sprawdź czy to styl boho (1 obrazek) czy koty (2 obrazki)
       if (productType === 'boho') {
         // Style boho - tylko obrazek użytkownika
+        // ✅ FIX: Dodaj negative_prompt do głównego promptu
+        let fullPrompt = config.prompt;
+        if (config.negative_prompt) {
+          fullPrompt += ` [NEGATIVE PROMPT: ${config.negative_prompt}]`;
+          console.log(`✅ [NANO-BANANA] Added negative prompt to boho style`);
+        }
+        
         inputParams = {
-          prompt: config.prompt,
+          prompt: fullPrompt,
           image_input: [imageDataUri], // Tylko obrazek użytkownika
           aspect_ratio: aspectRatio,
           output_format: outputFormat,
