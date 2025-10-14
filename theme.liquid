@@ -1593,7 +1593,16 @@
               </button>
       </div>
 
-            <!-- Rozmiary - przesunięte poniżej przycisków -->
+            <div class="customify-loading" id="loadingArea">
+              <div class="customify-spinner"></div>
+              <div class="loading-text">Przetwarzanie...</div>
+              <div class="loading-progress">
+                <div class="loading-progress-bar" id="progressBar"></div>
+              </div>
+              <div class="loading-stage" id="loadingStage">Przesyłanie zdjęcia...</div>
+            </div>
+
+            <!-- Rozmiary - przesunięte poniżej paska postępu -->
             <div class="customify-size-selector" id="sizeArea" style="display: block;">
               <h4>Wybierz rozmiar:</h4>
               <div class="customify-size-buttons">
@@ -1602,15 +1611,6 @@
                 <div class="customify-size-btn" data-size="a3">A3 - 30×42 cm<br>+139 zł</div>
                 <div class="customify-size-btn" data-size="a2">A2 - 42×59 cm<br>+189 zł</div>
               </div>
-            </div>
-
-            <div class="customify-loading" id="loadingArea">
-              <div class="customify-spinner"></div>
-              <div class="loading-text">Przetwarzanie...</div>
-              <div class="loading-progress">
-                <div class="loading-progress-bar" id="progressBar"></div>
-              </div>
-              <div class="loading-stage" id="loadingStage">Przesyłanie zdjęcia...</div>
             </div>
 
             <div class="customify-result" id="resultArea">
