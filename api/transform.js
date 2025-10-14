@@ -27,7 +27,9 @@ async function urlToBase64(imageUrl) {
     if (!response.ok) {
       throw new Error(`Failed to fetch image: ${response.status}`);
     }
-    const buffer = await response.buffer();
+    // Use arrayBuffer() instead of buffer() for modern fetch API
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
     const base64 = buffer.toString('base64');
     console.log('✅ [SEGMIND] Converted to base64:', base64.length, 'chars');
     return base64;
