@@ -66,8 +66,8 @@ async function segmindFaceswap(targetImageUrl, swapImageBase64) {
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      source_image: cleanSwapImage,      // Twarz użytkownika
-      target_image: targetImageBase64,   // Obraz króla
+      source_image: targetImageBase64,   // Obraz króla (źródło stylu/twarzy)
+      target_image: cleanSwapImage,      // Twarz użytkownika (na co nakładamy)
       model_type: "speed",               // 8 steps - szybko
       swap_type: "head",                 // Zamień całą głowę
       style_type: "normal",              // Zachowaj styl source
