@@ -973,20 +973,15 @@ class CustomifyEmbed {
           ctx.rotate(-30 * Math.PI / 180);
           ctx.translate(-canvas.width/2, -canvas.height/2);
           
-          // Rysuj watermarki w siatce - na przemian "Lumly.pl" i "Podgląd"
+          // Rysuj watermarki w siatce - tylko "Lumly.pl"
           const spacing = 280;
-          let textIndex = 0;
-          const texts = ['Lumly.pl', 'Podgląd'];
+          const text = 'Lumly.pl';
           
           for(let y = -canvas.height; y < canvas.height * 2; y += spacing) {
             for(let x = -canvas.width; x < canvas.width * 2; x += spacing * 1.5) {
-              const text = texts[textIndex % 2];
               ctx.strokeText(text, x, y);
               ctx.fillText(text, x, y);
-              textIndex++;
             }
-            // Zmień wzór co wiersz dla lepszego efektu
-            textIndex++;
           }
           
           ctx.restore();
