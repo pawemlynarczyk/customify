@@ -1530,6 +1530,26 @@
                     <div class="style-name">Renesansowy Kot</div>
                   </div>
                 </div>
+                {% elsif product.handle == 'obraz-krola' %}
+                  {% comment %} TYLKO STYLE KRÓLA dla produktu Obraz króla {% endcomment %}
+                  <div class="customify-style-card" data-style="krol-krolewski">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/krol/krol-styl-1.jpg'); background-size: cover; background-position: center;"></div>
+                    <div class="style-info">
+                      <div class="style-name">Król Królewski</div>
+                    </div>
+                  </div>
+                  <div class="customify-style-card" data-style="krol-majestatyczny">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/krol/krol-styl-2.jpg'); background-size: cover; background-position: center;"></div>
+                    <div class="style-info">
+                      <div class="style-name">Król Majestatyczny</div>
+                    </div>
+                  </div>
+                  <div class="customify-style-card" data-style="krol-triumfalny">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/krol/krol-styl-3.jpg'); background-size: cover; background-position: center;"></div>
+                    <div class="style-info">
+                      <div class="style-name">Król Triumfalny</div>
+                    </div>
+                  </div>
                 {% else %}
                   {% comment %} WSZYSTKIE STYLE NORMALNE dla innych produktów {% endcomment %}
                   <div class="customify-style-card" data-style="van gogh">
@@ -1602,23 +1622,23 @@
               <div class="loading-stage" id="loadingStage">Przesyłanie zdjęcia...</div>
             </div>
 
-            <!-- Rozmiary - przesunięte poniżej paska postępu -->
-            <div class="customify-size-selector" id="sizeArea" style="display: block;">
-              <h4>Wybierz rozmiar:</h4>
-              <div class="customify-size-buttons">
-                <div class="customify-size-btn" data-size="a5">A5 - 15×21 cm<br>+30 zł</div>
-                <div class="customify-size-btn" data-size="a4">A4 - 21×30 cm<br>+89 zł</div>
-                <div class="customify-size-btn" data-size="a3">A3 - 30×42 cm<br>+139 zł</div>
-                <div class="customify-size-btn" data-size="a2">A2 - 42×59 cm<br>+189 zł</div>
-              </div>
-            </div>
-
             <div class="customify-result" id="resultArea">
               <h4>Twój obraz:</h4>
               <img id="resultImage" alt="Wynik AI">
               
               <!-- Komunikat sukcesu -->
               <div class="customify-success" id="successMessage"></div>
+              
+              <!-- Rozmiary - przeniesione zaraz nad przyciski -->
+              <div class="customify-size-selector" id="sizeArea" style="display: block;">
+                <h4>Wybierz rozmiar:</h4>
+                <div class="customify-size-buttons">
+                  <div class="customify-size-btn" data-size="a5">A5 - 15×21 cm<br>+30 zł</div>
+                  <div class="customify-size-btn" data-size="a4">A4 - 21×30 cm<br>+89 zł</div>
+                  <div class="customify-size-btn" data-size="a3">A3 - 30×42 cm<br>+139 zł</div>
+                  <div class="customify-size-btn" data-size="a2">A2 - 42×59 cm<br>+189 zł</div>
+                </div>
+              </div>
               
               <div class="customify-actions" style="margin-top: 15px;">
                 <button class="customify-btn customify-btn-primary customify-btn-red" id="addToCartBtn">

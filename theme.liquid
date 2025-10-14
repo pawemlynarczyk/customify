@@ -1530,6 +1530,26 @@
                     <div class="style-name">Renesansowy Kot</div>
                   </div>
                 </div>
+                {% elsif product.handle == 'obraz-krola' %}
+                  {% comment %} TYLKO STYLE KRÓLA dla produktu Obraz króla {% endcomment %}
+                  <div class="customify-style-card" data-style="krol-krolewski">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/krol/krol-styl-1.jpg'); background-size: cover; background-position: center;"></div>
+                    <div class="style-info">
+                      <div class="style-name">Król Królewski</div>
+                    </div>
+                  </div>
+                  <div class="customify-style-card" data-style="krol-majestatyczny">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/krol/krol-styl-2.jpg'); background-size: cover; background-position: center;"></div>
+                    <div class="style-info">
+                      <div class="style-name">Król Majestatyczny</div>
+                    </div>
+                  </div>
+                  <div class="customify-style-card" data-style="krol-triumfalny">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/krol/krol-styl-3.jpg'); background-size: cover; background-position: center;"></div>
+                    <div class="style-info">
+                      <div class="style-name">Król Triumfalny</div>
+                    </div>
+                  </div>
                 {% else %}
                   {% comment %} WSZYSTKIE STYLE NORMALNE dla innych produktów {% endcomment %}
                   <div class="customify-style-card" data-style="van gogh">
