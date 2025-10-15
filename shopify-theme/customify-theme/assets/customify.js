@@ -1116,9 +1116,14 @@ class CustomifyEmbed {
             'Styl AI': this.selectedStyle,
             'Rozmiar': this.selectedSize,
             '_AI_Image_URL': result.imageUrl || this.transformedImage,  // ✅ UKRYTY przed klientem (podkreślnik na początku)
-            '_AI_Image_Direct': this.transformedImage,  // Oryginalny link z Replicate (backup)
             '_Order_ID': result.orderId || Date.now().toString()  // Unikalny ID zamówienia
           };
+          
+          // ✅ Dodaj _AI_Image_Direct TYLKO jeśli to NIE jest base64 (tylko dla Replicate URLs)
+          // Segmind zwraca base64 data URI (256KB+) co przekracza limit URL
+          if (this.transformedImage && !this.transformedImage.startsWith('data:')) {
+            properties['_AI_Image_Direct'] = this.transformedImage;  // Replicate URL (krótki)
+          }
           
           console.log('🖼️ [CUSTOMIFY] Image URLs:', {
             shopifyImageUrl: result.imageUrl,
