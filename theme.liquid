@@ -1402,6 +1402,19 @@
       {{ content_for_layout }}
     {% comment %} CUSTOMIFY AI PHOTO CUSTOMIZATION {% endcomment %}
     {% if template contains 'product' %}
+      <script>
+        // Przenieś aplikację Customify do środka .product-details
+        document.addEventListener('DOMContentLoaded', function() {
+          const customifyApp = document.getElementById('customify-app-container');
+          const productDetails = document.querySelector('.product-details');
+          
+          if (customifyApp && productDetails) {
+            // Przenieś na koniec product-details
+            productDetails.appendChild(customifyApp);
+            console.log('✅ [CUSTOMIFY] Aplikacja przeniesiona do .product-details');
+          }
+        });
+      </script>
       <div id="customify-app-container" class="customify-shopify-container">
         <h3 class="customify-title">Wgraj zdjęcie - wybierz styl obrazu</h3>
         <div class="customify-inline-wrapper">
