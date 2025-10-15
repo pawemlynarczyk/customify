@@ -502,6 +502,15 @@ module.exports = async (req, res) => {
           target_image: "https://customify-s56o.vercel.app/krol/krol-styl-3.jpg",
           swap_image: "USER_IMAGE"
         }
+      },
+      'krol-imponujacy': {
+        model: "segmind/faceswap-v4",
+        apiType: "segmind-faceswap",
+        productType: "king",
+        parameters: {
+          target_image: "https://customify-s56o.vercel.app/krol/krol_4.png",
+          swap_image: "USER_IMAGE"
+        }
       }
     };
 
