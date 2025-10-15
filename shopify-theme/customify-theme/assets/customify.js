@@ -773,9 +773,6 @@ class CustomifyEmbed {
         'style_name': this.selectedStyle,
         'product_url': window.location.pathname
       });
-        style: this.selectedStyle,
-        url: window.location.pathname
-      });
     }
 
     this.showLoading();
@@ -974,11 +971,6 @@ class CustomifyEmbed {
 
   // NAPRAWIONA FUNKCJA: STWÓRZ NOWY PRODUKT Z OBRAZKIEM AI (UKRYTY W KATALOGU)
   async addToCart() {
-      transformedImage: !!this.transformedImage,
-      selectedStyle: this.selectedStyle,
-      selectedSize: this.selectedSize
-    });
-    
     if (!this.transformedImage) {
       this.showError('Brak przekształconego obrazu');
       return;
@@ -1047,11 +1039,6 @@ class CustomifyEmbed {
           if (this.transformedImage && !this.transformedImage.startsWith('data:')) {
             properties['_AI_Image_Direct'] = this.transformedImage;  // Replicate URL (krótki)
           }
-          
-            shopifyImageUrl: result.imageUrl,
-            replicateImageUrl: this.transformedImage,
-            orderId: result.orderId
-          });
           
           // Buduj URL z parametrami
           const params = new URLSearchParams();
@@ -1125,11 +1112,6 @@ class CustomifyEmbed {
 
   fileToBase64(file) {
     return new Promise((resolve, reject) => {
-        name: file.name,
-        size: file.size,
-        type: file.type
-      });
-      
       // ZAWSZE kompresuj na frontend (optymalizacja dla Nano Banana)
       this.compressImage(file).then(compressedFile => {
         this.convertToBase64(compressedFile, resolve, reject);
@@ -1146,10 +1128,6 @@ class CustomifyEmbed {
     reader.onload = () => {
       const result = reader.result;
       const base64 = result.split(',')[1];
-        fullResultLength: result.length,
-        base64Length: base64.length,
-        preview: base64.substring(0, 50) + '...'
-      });
       resolve(base64);
     };
     reader.onerror = error => {
@@ -1186,12 +1164,6 @@ class CustomifyEmbed {
         
         // Konwertuj do blob z kompresją
         canvas.toBlob(blob => {
-            originalSize: file.size,
-            compressedSize: blob.size,
-            compressionRatio: ((1 - blob.size / file.size) * 100).toFixed(1) + '%',
-            dimensions: `${width}x${height}`,
-            maxSize: maxSize
-          });
           resolve(blob);
         }, 'image/jpeg', 0.85); // 85% jakość (optymalne dla Nano Banana)
       };
