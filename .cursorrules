@@ -25,6 +25,66 @@
 - ❌ **Nie ignoruj błędów** - napraw zanim przejdziesz dalej
 - ❌ **Nie zmieniaj logiki globalnie** - tylko dla konkretnych produktów/stylów
 
+## 🚨 CRITICAL: UMIEJSCOWIENIE APLIKACJI W THEME.LIQUID
+
+### **📍 GDZIE APLIKACJA MUSI BYĆ:**
+- **Lokalizacja**: Po `</main>` (około linia 1466-1485 w theme.liquid)
+- **Warunek**: Zawsze w bloku `{% if template contains 'product' %}`
+- **Element główny**: `<div id="customify-app-container" class="customify-shopify-container">`
+
+### **🔧 STRUKTURA UMIEJSCOWIENIA:**
+```liquid
+</main>  <!-- Koniec głównej zawartości strony -->
+
+{% render 'search-modal' %}
+{% if settings.quick_add or settings.mobile_quick_add %}
+  {% render 'quick-add-modal' %}
+{% endif %}
+
+{% comment %} CUSTOMIFY AI PHOTO CUSTOMIZATION {% endcomment %}
+{% if template contains 'product' %}
+  <script>
+    // JavaScript przenosi aplikację do właściwego miejsca
+    document.addEventListener('DOMContentLoaded', function() {
+      const app = document.getElementById('customify-app-container');
+      const placeholder = document.getElementById('customify-placeholder');
+      if (app && placeholder) {
+        placeholder.appendChild(app);
+      }
+    });
+  </script>
+  <div id="customify-app-container" class="customify-shopify-container">
+    <!-- Cała aplikacja Customify tutaj -->
+  </div>
+{% endif %}
+
+{% render 'footer-group' %}  <!-- Footer -->
+```
+
+### **⚙️ JAK DZIAŁA DYNAMICZNE PRZENOSZENIE:**
+1. **HTML w theme.liquid**: Aplikacja renderuje się po `</main>` (domyślnie na dole strony)
+2. **JavaScript (linie 448-463)**: Automatycznie przenosi `#customify-app-container` do `ProductInformation` sekcji
+3. **Docelowe miejsce**: `[id^="ProductInformation-"]` (produktowa sekcja informacji)
+4. **Timing**: `setTimeout(100ms)` żeby DOM się załadował
+
+### **🎯 KLUCZOWE ELEMENTY:**
+- `#customify-app-container` - główny kontener aplikacji (ID jest KRYTYCZNE!)
+- `customify.js` - JavaScript obsługuje upload, transformację, style, cart
+- `customify.css` - Style aplikacji
+- JavaScript w `<head>`: `<script src="{{ 'customify.js' | asset_url }}" defer></script>` (linia 38)
+
+### **❌ CZEGO NIE ROBIĆ:**
+- ❌ **NIE USUWAJ** `id="customify-app-container"` - JavaScript nie znajdzie aplikacji
+- ❌ **NIE PRZENOŚ** aplikacji do `product-information.liquid` - duplikacja!
+- ❌ **NIE ZMIENIAJ** kolejności ładowania `customify.js` - musi być w `<head>` z `defer`
+- ❌ **NIE EDYTUJ** starych plików: `shopify-embed.html`, `shopify-script.js` (nieużywane!)
+
+### **✅ JEŚLI APLIKACJA NIE DZIAŁA:**
+1. Sprawdź czy `#customify-app-container` istnieje w HTML (DevTools)
+2. Sprawdź czy `customify.js` się załadował (brak błędów składni w konsoli)
+3. Sprawdź czy JavaScript przeniesienia działa (setTimeout w liniach 448-463)
+4. Sprawdź czy aplikacja jest w `{% if template contains 'product' %}` bloku
+
 ## WAŻNE: ZASADY BEZPIECZEŃSTWA SHOPIFY
 
 ### **🔐 BEZPIECZEŃSTWO:**
