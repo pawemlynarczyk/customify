@@ -444,6 +444,20 @@
     
     <!-- FIX: Poprawne proporcje galerii - JavaScript wymusza zmiany -->
     <script>
+      // PRZENIEŚ APLIKACJĘ DO PRODUCT INFORMATION
+      document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(function() {
+          const app = document.getElementById('customify-app-container');
+          const prodInfo = document.querySelector('[id^="ProductInformation-"]');
+          
+          if (app && prodInfo) {
+            // Dodaj na koniec ProductInformation
+            prodInfo.appendChild(app);
+            console.log('✅ Aplikacja przeniesiona do ProductInformation');
+          }
+        }, 100);
+      });
+      
       // FUNKCJA NAPRAWY POWIĘKSZONEGO ZDJĘCIA W DIALOGU
       function fixDialogImages() {
         const dialog = document.querySelector('dialog[open]');
@@ -1454,6 +1468,15 @@
 
     {% comment %} CUSTOMIFY AI PHOTO CUSTOMIZATION {% endcomment %}
     {% if template contains 'product' %}
+      <script>
+        document.addEventListener('DOMContentLoaded', function() {
+          const app = document.getElementById('customify-app-container');
+          const placeholder = document.getElementById('customify-placeholder');
+          if (app && placeholder) {
+            placeholder.appendChild(app);
+          }
+        });
+      </script>
       <div id="customify-app-container" class="customify-shopify-container">
         <h3 class="customify-title">Wgraj zdjęcie - wybierz styl obrazu</h3>
         <div class="customify-inline-wrapper">
