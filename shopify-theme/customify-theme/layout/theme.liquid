@@ -432,13 +432,12 @@
         display: block !important;
       }
       
-      /* Ukryj TYLKO przyciski Shopify (quantity + dodaj do koszyka + kup teraz) - zostaw ceny i opisy */
-      product-form-component,
-      .product-form-buttons,
-      quantity-selector-component,
-      .add-to-cart-button,
-      .shopify-payment-button,
-      .accelerated-checkout-block {
+      /* Ukryj TYLKO przyciski - NIE cały product-form-component (zostawia ceny, opisy, gwiazdki) */
+      product-form-component .product-form-buttons,
+      product-form-component quantity-selector-component,
+      product-form-component .add-to-cart-button,
+      product-form-component .shopify-payment-button,
+      product-form-component .accelerated-checkout-block {
         display: none !important;
       }
     </style>
