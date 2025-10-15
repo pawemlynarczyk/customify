@@ -444,7 +444,7 @@
     
     <!-- FIX: Poprawne proporcje galerii - JavaScript wymusza zmiany -->
     <script>
-      // PRZENIEŚ APLIKACJĘ DO PRODUCT INFORMATION - OPÓŹNIJ żeby customify.js się zainicjalizował
+      // PRZENIEŚ APLIKACJĘ DO PRODUCT INFORMATION
       document.addEventListener('DOMContentLoaded', function() {
         setTimeout(function() {
           const app = document.getElementById('customify-app-container');
@@ -459,13 +459,8 @@
             if (placeholder) {
               placeholder.remove();
             }
-            
-            // REINICJALIZUJ customify.js po przeniesieniu
-            if (window.CustomifyEmbed) {
-              new CustomifyEmbed();
-            }
           }
-        }, 500); // Zwiększam timeout żeby customify.js się zainicjalizował
+        }, 100);
       });
       
       // FUNKCJA NAPRAWY POWIĘKSZONEGO ZDJĘCIA W DIALOGU
