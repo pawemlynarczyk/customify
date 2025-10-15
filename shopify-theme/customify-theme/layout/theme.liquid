@@ -432,8 +432,9 @@
         display: block !important;
       }
       
-      /* Ukryj przyciski "Dodaj do koszyka" i "Kup teraz" na stronach produktów Customify */
-      .buy-buttons-block {
+      /* Ukryj TYLKO formularz "Dodaj do koszyka" (quantity + przyciski) */
+      form[action="/cart/add"],
+      .shopify-product-form {
         display: none !important;
       }
     </style>
