@@ -354,4 +354,194 @@ this.setupExpandableDescription();
 
 ---
 
+## 🎯 **FLOW UŻYTKOWNIKA - KOMPLETNY PRZEWODNIK**
+
+### **📱 KROK 1: UPLOAD I WYBÓR STYLU**
+```
+┌─────────────────────────────────────┐
+│ 1. Upload area (wgraj zdjęcie)      │
+│ 2. Style selection (wybierz styl)   │
+│ 3. "Zobacz Podgląd" button          │
+│ 4. Rozmiary: HIDDEN ❌              │
+└─────────────────────────────────────┘
+```
+
+**Stan:**
+- Upload area: `display: block`
+- Style selection: `display: block`
+- Actions area: `display: none`
+- Size area: `display: none`
+- Result area: `display: none`
+
+---
+
+### **🔄 KROK 2: LOADING (PO KLIKNIĘCIU "ZOBACZ PODGLĄD")**
+```
+┌─────────────────────────────────────┐
+│ 1. Upload area: HIDDEN ❌           │
+│ 2. Style selection: HIDDEN ❌       │
+│ 3. "Zobacz Podgląd": HIDDEN ❌      │
+│ 4. Rozmiary: VISIBLE ✅ (na górze)  │
+│ 5. Loading spinner                  │
+└─────────────────────────────────────┘
+```
+
+**Stan:**
+- Upload area: `display: none`
+- Style selection: `display: none`
+- Actions area: `display: none`
+- Size area: `display: block` ← **POKAZUJE SIĘ**
+- Loading area: `display: block`
+- Result area: `display: none`
+
+---
+
+### **🎨 KROK 3: WYNIK AI (PO WYGENEROWANIU)**
+```
+┌─────────────────────────────────────┐
+│ 1. "Twój obraz:" + wygenerowany     │
+│ 2. Rozmiary: VISIBLE ✅ (nad obrazem)│
+│ 3. "Dodaj do koszyka" button        │
+│ 4. "Spróbuj ponownie" button        │
+└─────────────────────────────────────┘
+```
+
+**Stan:**
+- Upload area: `display: none`
+- Style selection: `display: none`
+- Actions area: `display: none`
+- Size area: `display: block` ← **NAD OBRAZEM**
+- Loading area: `display: none`
+- Result area: `display: block` ← **POKAZUJE SIĘ**
+
+---
+
+### **🎯 STRUKTURA HTML (KOLEJNOŚĆ ELEMENTÓW):**
+
+```html
+<!-- 1. Upload area -->
+<div class="customify-upload" id="uploadArea">
+  <!-- Pole upload zdjęcia -->
+</div>
+
+<!-- 2. Style selection -->
+<div class="customify-styles" id="stylesArea">
+  <!-- Karty stylów AI -->
+</div>
+
+<!-- 3. Rozmiary (na górze, gdzie JavaScript ich szuka) -->
+<div class="customify-size-selector" id="sizeArea" style="display: none;">
+  <h4>Wybierz rozmiar:</h4>
+  <div class="customify-size-buttons">
+    <div class="customify-size-btn" data-size="a5">A5 - 15×21 cm<br>+30 zł</div>
+    <div class="customify-size-btn" data-size="a4">A4 - 21×30 cm<br>+89 zł</div>
+    <div class="customify-size-btn" data-size="a3">A3 - 30×42 cm<br>+139 zł</div>
+    <div class="customify-size-btn" data-size="a2">A2 - 42×59 cm<br>+189 zł</div>
+  </div>
+</div>
+
+<!-- 4. Główne przyciski -->
+<div class="customify-actions" id="actionsArea" style="display: none;">
+  <button id="transformBtn">Zobacz Podgląd</button>
+  <button id="resetBtn">Wgraj inne zdjęcie</button>
+</div>
+
+<!-- 5. Loading area -->
+<div class="customify-loading" id="loadingArea">
+  <!-- Spinner + pasek postępu -->
+</div>
+
+<!-- 6. Result area -->
+<div class="customify-result" id="resultArea">
+  <h4>Twój obraz:</h4>
+  <img id="resultImage" alt="Wynik AI">
+  
+  <!-- Komunikat sukcesu -->
+  <div class="customify-success" id="successMessage"></div>
+  
+  <!-- Przyciski w resultArea -->
+  <div class="customify-actions">
+    <button id="addToCartBtn">Dodaj do koszyka</button>
+    <button id="tryAgainBtn">Spróbuj ponownie</button>
+  </div>
+</div>
+```
+
+---
+
+### **🎨 ZNAK WODNY:**
+
+**Kiedy się pojawia:**
+- ✅ **Tylko w podglądzie** po wygenerowaniu obrazu AI
+- ✅ **Nie na finalnym produkcie** - tylko na podglądzie
+- ✅ **Automatycznie** - bez dodatkowych kroków
+
+**Wzór:**
+- 🔤 **Tekst:** "Lumly.pl" i "Podgląd" na przemian
+- 🎨 **Styl:** Biały z czarną obwódką, przezroczysty
+- 📐 **Kąt:** -30 stopni (ukośnie)
+- 📏 **Rozmiar:** 30px Arial Bold
+- 🔄 **Siatka:** 180px odstępy
+
+---
+
+### **🔄 JAVASCRIPT FLOW:**
+
+```javascript
+// 1. Po wybraniu stylu
+showStyles() {
+  this.stylesArea.style.display = 'block';
+  this.sizeArea.style.display = 'block'; // ← POKAZUJE ROZMIARY
+  this.actionsArea.style.display = 'flex';
+}
+
+// 2. Po kliknięciu "Zobacz Podgląd"
+showLoading() {
+  this.loadingArea.style.display = 'block';
+  this.actionsArea.style.display = 'none';
+  // sizeArea zostaje visible
+}
+
+// 3. Po wygenerowaniu obrazu
+showResult(imageUrl) {
+  // Dodaj watermark
+  const watermarkedImage = await this.addWatermark(imageUrl);
+  this.resultImage.src = watermarkedImage;
+  
+  this.resultArea.style.display = 'block';
+  this.sizeArea.style.display = 'block'; // ← NAD OBRAZEM
+  this.actionsArea.style.display = 'none';
+  this.stylesArea.style.display = 'none';
+}
+```
+
+---
+
+### **📱 RESPONSIVE DESIGN:**
+
+**Mobile (≤768px):**
+- Logo + ikony w jednej linii
+- Menu poniżej logo
+- Ukryj napisy "Zaloguj"/"Zarejestruj"
+- Zmniejsz logo do 120px max-width
+
+**Desktop (≥769px):**
+- Logo po lewej stronie
+- Menu w środku
+- Ikony po prawej
+- Pełne napisy logowania
+
+---
+
+### **🎯 KLUCZOWE ZASADY FLOW:**
+
+1. **Rozmiary pokazują się** po wybraniu stylu (KROK 2)
+2. **Rozmiary pozostają widoczne** nad obrazem (KROK 3)
+3. **Znak wodny** tylko w podglądzie, nie w finalnym produkcie
+4. **Przyciski** w resultArea (nie w głównym actionsArea)
+5. **Loading** ukrywa wszystko oprócz rozmiarów
+6. **Try Again** wraca do wyboru stylu
+
+---
+
 **PAMIĘTAJ: Jeśli masz wątpliwości czy coś może być uznane za cloaking - PYTAJ ZANIM ZAIMPLEMENTUJESZ!**
