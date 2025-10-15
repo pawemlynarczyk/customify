@@ -163,11 +163,11 @@ Customify is a Shopify app that allows customers to:
 - **For store**: Order contains AI image for printing + original user photo + style/size info
 
 ## Product Visibility Management
-- **Products are created as DRAFT** (status: 'draft', published: false) to prevent catalog clutter
-- **Draft products** are visible in admin panel as "Draft" but hidden from store catalog
-- **Benefits**: Easy to manage in Shopify admin, clean catalog, accessible for order fulfillment
+- **Products are created as ACTIVE** (status: 'active', published: true) - **MUSI BYĆ ACTIVE** żeby dodać do koszyka
+- **🚨 CRITICAL**: Shopify zwraca **422 Unprocessable Content** dla produktów DRAFT - NIE MOŻNA ich dodać do koszyka!
+- **Ukrywanie**: Produkty ukrywane przez tagi 'hidden-from-catalog', 'no-recommendations' (nie przez draft)
 - **Tags**: Products tagged with 'customer-order' for easy filtering in admin panel
-- **API Endpoint**: `/api/hide-product` - can hide products by setting published: false (backup)
+- **Benefits**: Produkty widoczne w admin, dostępne w koszyku, ukryte w katalogu przez tagi
 - **Purpose**: Keep catalog clean while preserving order data and AI-generated images in admin
 
 ## Product Identification Strategy

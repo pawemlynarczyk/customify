@@ -115,8 +115,8 @@ module.exports = async (req, res) => {
         vendor: 'Customify',
         product_type: 'Custom AI Product',
         tags: ['custom', 'ai', 'personalized', style, 'no-recommendations', 'hidden-from-catalog', 'customer-order'],
-        status: 'draft', // ✅ DRAFT - widoczny w panelu admin jako szkic, ukryty w katalogu
-        published: false, // ✅ Dodatkowa ochrona - nie publikuj
+        status: 'active', // ✅ ACTIVE - MUSI być active żeby dodać do koszyka (Shopify zwraca 422 dla draft)
+        published: true, // ✅ MUSI być published=true żeby variant działał w koszyku
         published_scope: 'web',
         variants: [{
           title: `${style} - ${size?.toUpperCase() || 'standard'} (${totalPrice} zł)`,
