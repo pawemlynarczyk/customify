@@ -449,11 +449,16 @@
         setTimeout(function() {
           const app = document.getElementById('customify-app-container');
           const prodInfo = document.querySelector('[id^="ProductInformation-"]');
+          const placeholder = document.getElementById('customify-placeholder');
           
           if (app && prodInfo) {
             // Dodaj na koniec ProductInformation
             prodInfo.appendChild(app);
-            console.log('✅ Aplikacja przeniesiona do ProductInformation');
+            
+            // Ukryj placeholder jeśli istnieje
+            if (placeholder) {
+              placeholder.remove();
+            }
           }
         }, 100);
       });
