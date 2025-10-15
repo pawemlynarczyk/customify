@@ -431,6 +431,11 @@
       .product-card:has([href*="custom"]) {
         display: block !important;
       }
+      
+      /* Ukryj przyciski "Dodaj do koszyka" i "Kup teraz" na stronach produktów Customify */
+      .buy-buttons-block {
+        display: none !important;
+      }
     </style>
     
     {% if template contains 'collection' %}
