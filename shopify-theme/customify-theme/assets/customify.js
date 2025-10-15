@@ -1143,36 +1143,16 @@ class CustomifyEmbed {
           
           const cartUrl = `/cart/add?${params.toString()}`;
           console.log('🛒 [CUSTOMIFY] Cart URL:', cartUrl);
+          console.log('🛒 [CUSTOMIFY] URL length:', cartUrl.length);
           
-          // DODAJ DO KOSZYKA PRZEZ FETCH (żeby móc ukryć produkt po dodaniu)
-          try {
-            const cartResponse = await fetch(cartUrl, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-              }
-            });
-            
-            if (cartResponse.ok) {
-              console.log('✅ [CUSTOMIFY] Product added to cart successfully');
-              
-              // Ukryj pasek postępu
-              this.hideCartLoading();
-              
-              // Przekieruj do koszyka
-              window.location.href = '/cart';
-              
-              // PRODUKT ZOSTANIE UKRYTY PO FINALIZACJI TRANSAKCJI (webhook orders/paid)
-            } else {
-              console.error('❌ [CUSTOMIFY] Failed to add to cart:', cartResponse.status);
-              this.hideCartLoading();
-              this.showError('❌ Błąd podczas dodawania do koszyka');
-            }
-          } catch (error) {
-            console.error('❌ [CUSTOMIFY] Cart add error:', error);
-            this.hideCartLoading();
-            this.showError('❌ Błąd połączenia z koszykiem');
-          }
+          // ✅ UŻYWAJ DIRECT NAVIGATION (nie fetch) - unika CORS i działa zawsze
+          // Ukryj pasek postępu
+          this.hideCartLoading();
+          
+          // Bezpośrednie przekierowanie - Shopify obsłuży dodanie do koszyka
+          window.location.href = cartUrl;
+          
+          // PRODUKT ZOSTANIE UKRYTY PO FINALIZACJI TRANSAKCJI (webhook orders/paid)
         }
       } else {
         console.error('❌ [CUSTOMIFY] Product creation failed:', result);
