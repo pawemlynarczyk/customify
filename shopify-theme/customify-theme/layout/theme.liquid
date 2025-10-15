@@ -45,7 +45,6 @@
         firstName: {{ customer.first_name | json }},
         lastName: {{ customer.last_name | json }}
       };
-      console.log('🔐 [SHOPIFY] Customer data loaded (v2):', window.ShopifyCustomer);
     </script>
     
     <script src="{{ 'customify.js' | asset_url }}" defer></script>
@@ -482,7 +481,6 @@
           largestImg.parentElement.style.setProperty('height', '100%', 'important');
         }
         
-        console.log('✅ Zdjęcie w dialogu naprawione - brak białych pól!');
       }
       
       // FUNKCJA UKRYWANIA STAREJ SEKCJI POLITYK
@@ -495,7 +493,6 @@
           policyPopover.style.opacity = '0';
           policyPopover.style.height = '0';
           policyPopover.style.overflow = 'hidden';
-          console.log('✅ Ukryto stary popover z politykami');
         }
         
         // Ukryj element "Preferencje dotyczące plików cookie"
@@ -516,7 +513,6 @@
             parentLi.style.overflow = 'hidden';
           }
           
-          console.log('✅ Ukryto element "Preferencje dotyczące plików cookie"');
         }
       }
 
@@ -525,13 +521,11 @@
         // Dodaj nawigację do stopki (przed popoverem)
         const footerLeft = document.querySelector('.footer-utilities__group--left');
         if (!footerLeft) {
-          console.log('❌ Footer left nie znaleziony');
           return;
         }
         
         const policyPopover = footerLeft.querySelector('anchored-popover-component');
         if (!policyPopover) {
-          console.log('❌ Policy popover nie znaleziony');
           return;
         }
         
@@ -618,7 +612,6 @@
           // Wstaw nawigację przed popoverem w stopce
           footerLeft.insertBefore(navContainer, policyPopover);
           
-          console.log('✅ [v2] Nawigacja dodana w stopce przed popoverem');
       }
 
       function fixGalleryProportions() {
@@ -626,7 +619,6 @@
         if (!galleryGrid) return;
         
         // ZAWSZE uruchamiaj galerię w stylu Etsy na stronach produktu
-        console.log('🔧 [ETSY GALLERY] Tworzę galerię w stylu Etsy dla produktu...');
         createEtsyGallery(galleryGrid);
       }
       
@@ -669,7 +661,6 @@
           return; // Nie usuwaj oryginalnych elementów dopóki nie mamy URLi
         }
         
-        console.log(`📸 [ETSY] Znaleziono ${imageUrls.length} obrazków`);
         
         // Zmienna do śledzenia aktualnego indexu (globalna dla całej galerii)
         let currentIndex = 0;
@@ -705,7 +696,6 @@
             mainImg.addEventListener('click', (e) => {
               e.preventDefault();
               e.stopPropagation();
-              console.log('🖼️ [ETSY] Kliknięcie w główny obraz - zoom wyłączony');
             }, true);
             
             mainImageContainer.appendChild(mainImg);
@@ -935,7 +925,6 @@
                 if (counter) {
                   counter.textContent = `${index + 1} / ${imageUrls.length}`;
                 }
-                console.log(`🖼️ [ETSY] Kliknięcie miniaturki ${index + 1}: ${imageUrls[index]}`);
               }
             }, true); // useCapture = true (przechwytuj PRZED Shopify)
             
@@ -961,7 +950,6 @@
         const mainImg = mainImageContainer.querySelector('img');
         const thumbsRow = galleryGrid.querySelector('.etsy-thumbnails-row');
         
-        console.log('🔍 [ETSY] Sprawdzam elementy:', {
           prevBtn: !!prevBtn,
           nextBtn: !!nextBtn,
           mainImg: !!mainImg,
@@ -994,7 +982,6 @@
                 });
               }
               
-              console.log(`🔧 [ETSY] Strzałka ← : Zdjęcie ${currentIndex + 1}/${imageUrls.length}`);
             }
           });
           
@@ -1016,7 +1003,6 @@
                 });
               }
               
-              console.log(`🔧 [ETSY] Strzałka → : Zdjęcie ${currentIndex + 1}/${imageUrls.length}`);
             }
           });
           
@@ -1032,7 +1018,6 @@
             });
           });
           
-          console.log('✅ [ETSY] Event listenery dla strzałek głównego obrazu dodane');
         } else {
           console.error('❌ [ETSY] Brak elementów:', { prevBtn, nextBtn, mainImg, thumbsRow });
         }
@@ -1041,7 +1026,6 @@
         allImages.forEach(img => img.remove());
         
         galleryGrid.classList.add('etsy-gallery-initialized');
-        console.log('✅ [ETSY] Galeria utworzona: główny obraz + strzałki ← → + miniaturki poniżej');
       }
       
       // STANDARD CAROUSEL (dla innych produktów)
@@ -1055,7 +1039,6 @@
             slideshow.style.setProperty('opacity', '0', 'important');
             slideshow.style.setProperty('height', '0', 'important');
             slideshow.style.setProperty('overflow', 'hidden', 'important');
-            console.log('🎯 Ukryto slideshow-component na mobile');
           }
         }
         
@@ -1241,7 +1224,6 @@
           }
         });
         
-        console.log('✅ Proporcje galerii naprawione!');
       }
 
       // Uruchom naprawę galerii po załadowaniu strony

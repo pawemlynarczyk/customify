@@ -52,16 +52,9 @@ class CustomifyEmbed {
    * @returns {Object|null} {customerId, email, customerAccessToken} lub null jeśli niezalogowany
    */
   getCustomerInfo() {
-    console.log('🔍 [USAGE] === DEBUGGING CUSTOMER DETECTION ===');
-    console.log('🔍 [USAGE] window.ShopifyCustomer:', window.ShopifyCustomer);
-    console.log('🔍 [USAGE] window.Shopify:', window.Shopify);
-    console.log('🔍 [USAGE] document.cookie:', document.cookie);
     
     // METODA 1: NOWY SYSTEM - window.ShopifyCustomer (z Liquid w theme.liquid)
     if (window.ShopifyCustomer && window.ShopifyCustomer.loggedIn && window.ShopifyCustomer.id) {
-      console.log('✅ [USAGE] METODA 1: Zalogowany użytkownik (NEW OAuth)');
-      console.log('📊 [USAGE] Customer Email:', window.ShopifyCustomer.email);
-      console.log('📊 [USAGE] Customer ID:', window.ShopifyCustomer.id);
       
       return {
         customerId: window.ShopifyCustomer.id,
@@ -81,7 +74,6 @@ class CustomifyEmbed {
     );
     
     if (hasCustomerCookie) {
-      console.log('✅ [USAGE] METODA 2: Wykryto cookie Shopify - użytkownik zalogowany');
       
       // Spróbuj wyciągnąć ID z cookie
       const customerIdCookie = cookies.find(c => c.startsWith('customer_id='));
@@ -89,13 +81,11 @@ class CustomifyEmbed {
       
       if (customerIdCookie) {
         customerId = customerIdCookie.split('=')[1];
-        console.log('📊 [USAGE] Customer ID z cookie:', customerId);
       }
       
       // Jeśli brak ID, użyj window.ShopifyCustomer.id jako fallback
       if (!customerId && window.ShopifyCustomer && window.ShopifyCustomer.id) {
         customerId = window.ShopifyCustomer.id;
-        console.log('📊 [USAGE] Customer ID z window.ShopifyCustomer:', customerId);
       }
       
       return {
@@ -109,8 +99,6 @@ class CustomifyEmbed {
     
     // METODA 3: STARY SYSTEM - window.Shopify.customerEmail (Classic Customer Accounts)
     if (window.Shopify && window.Shopify.customerEmail) {
-      console.log('✅ [USAGE] METODA 3: Zalogowany użytkownik (OLD system)');
-      console.log('📊 [USAGE] Customer Email:', window.Shopify.customerEmail);
       
       const customerId = window.meta?.customer?.id || window.ShopifyCustomer?.id || null;
       const customerAccessToken = localStorage.getItem('shopify_customer_access_token');
@@ -122,8 +110,6 @@ class CustomifyEmbed {
       };
     }
     
-    console.log('❌ [USAGE] WSZYSTKIE METODY FAILED - Niezalogowany użytkownik');
-    console.log('🔍 [USAGE] === END DEBUGGING ===');
     return null;
   }
 
@@ -133,7 +119,6 @@ class CustomifyEmbed {
    */
   getLocalUsageCount() {
     const count = parseInt(localStorage.getItem('customify_usage_count') || '0', 10);
-    console.log('📊 [USAGE] localStorage usage count:', count);
     return count;
   }
 
@@ -144,7 +129,6 @@ class CustomifyEmbed {
     const currentCount = this.getLocalUsageCount();
     const newCount = currentCount + 1;
     localStorage.setItem('customify_usage_count', newCount.toString());
-    console.log('➕ [USAGE] localStorage incremented:', currentCount, '→', newCount);
     this.showUsageCounter(); // Odśwież licznik w UI
   }
 
@@ -160,7 +144,6 @@ class CustomifyEmbed {
       const localCount = this.getLocalUsageCount();
       const FREE_LIMIT = 3;
       
-      console.log(`📊 [USAGE] Niezalogowany: ${localCount}/${FREE_LIMIT} użyć`);
       
       if (localCount >= FREE_LIMIT) {
         this.showLoginModal(localCount, FREE_LIMIT);
@@ -170,7 +153,6 @@ class CustomifyEmbed {
       return true;
     } else {
       // Zalogowany - sprawdź Shopify Metafields przez API
-      console.log('📊 [USAGE] Zalogowany - sprawdzam limit przez API');
       
       try {
         const response = await fetch('https://customify-s56o.vercel.app/api/check-usage', {
@@ -183,14 +165,12 @@ class CustomifyEmbed {
         });
         
         const data = await response.json();
-        console.log('📊 [USAGE] API response:', data);
         
         if (data.remainingCount <= 0) {
           this.showError(`Wykorzystałeś wszystkie transformacje (${data.totalLimit}). Skontaktuj się z nami dla więcej.`);
           return false;
         }
         
-        console.log(`✅ [USAGE] Pozostało ${data.remainingCount} transformacji`);
         return true;
       } catch (error) {
         console.error('❌ [USAGE] Błąd sprawdzania limitu:', error);
@@ -340,22 +320,18 @@ class CustomifyEmbed {
       cancel: () => {
         clearInterval(countdownInterval);
         document.getElementById('loginModal')?.remove();
-        console.log('🚫 [USAGE] Użytkownik anulował przekierowanie');
       }
     };
     
-    console.log('⏰ [USAGE] Countdown started - auto-redirect to REGISTER in 5 seconds');
   }
 
   /**
    * Pokazuje licznik użyć w UI
    */
   async showUsageCounter() {
-    console.log('🔍 [USAGE] showUsageCounter called');
     const customerInfo = this.getCustomerInfo();
     let counterHTML = '';
     
-    console.log('🔍 [USAGE] customerInfo:', customerInfo);
     
     if (!customerInfo) {
       // Niezalogowany
@@ -416,8 +392,6 @@ class CustomifyEmbed {
     
     // LICZNIK UKRYTY - nie pokazujemy użytkownikowi
     // Funkcjonalność API działa w tle dla limitów użyć
-    console.log('🔍 [USAGE] Counter hidden from user - API functionality works in background');
-    console.log('🔍 [USAGE] Usage data:', customerInfo ? 'Logged in user' : 'Anonymous user');
   }
 
   // filterStylesForProduct() USUNIĘTE - logika przeniesiona na server-side (Shopify Liquid)
@@ -426,24 +400,20 @@ class CustomifyEmbed {
 
   // ACCORDION: SZCZEGÓŁY PRODUKTU
   setupAccordion() {
-    console.log('🎯 [CUSTOMIFY] Setting up accordion...');
     
     // Znajdź wszystkie accordion items
     const accordionItems = document.querySelectorAll('.accordion-item');
     
     if (!accordionItems || accordionItems.length === 0) {
-      console.log('⚠️ [CUSTOMIFY] No accordion items found');
       return;
     }
     
-    console.log('✅ [CUSTOMIFY] Found', accordionItems.length, 'accordion items');
     
     // Dodaj event listener do każdego accordion header
     accordionItems.forEach((item, index) => {
       const header = item.querySelector('.accordion-header');
       
       if (!header) {
-        console.log('⚠️ [CUSTOMIFY] No header found for item', index);
         return;
       }
       
@@ -454,19 +424,15 @@ class CustomifyEmbed {
         if (isExpanded) {
           // Zwiń
           item.classList.remove('expanded');
-          console.log('🔽 [CUSTOMIFY] Collapsed:', item.dataset.accordion);
         } else {
           // Rozwiń (opcjonalnie: zwiń inne)
           // accordionItems.forEach(otherItem => otherItem.classList.remove('expanded'));
           item.classList.add('expanded');
-          console.log('🔼 [CUSTOMIFY] Expanded:', item.dataset.accordion);
         }
       });
       
-      console.log('✅ [CUSTOMIFY] Accordion item', index, 'setup complete');
     });
     
-    console.log('✅ [CUSTOMIFY] Accordion setup complete!');
   }
 
   // WSTRZYJ APLIKACJĘ DO KOLUMNY 2
@@ -484,7 +450,6 @@ class CustomifyEmbed {
                           document.querySelector('.product__info');
 
     if (productDetails) {
-      console.log('🎯 [CUSTOMIFY] Found product details column, inserting app at top');
       
       // Dodaj elementy pod tytułem
       this.addProductBadges();
@@ -525,11 +490,9 @@ class CustomifyEmbed {
 
     // Sprawdź czy już nie jest przeniesiony
     if (titleContainer.classList.contains('customify-title-moved')) {
-      console.log('🎯 [CUSTOMIFY] Title already moved to top');
       return;
     }
 
-    console.log('🎯 [CUSTOMIFY] Moving title to top of product info column');
 
     // Oznacz jako przeniesiony
     titleContainer.classList.add('customify-title-moved');
@@ -556,7 +519,6 @@ class CustomifyEmbed {
     // DODAJ DIVIDER POD TYTUŁEM
     this.addDividerAfterTitle();
 
-    console.log('✅ [CUSTOMIFY] Title moved to top successfully!');
   }
 
 
@@ -565,7 +527,6 @@ class CustomifyEmbed {
   addDividerAfterTitle() {
     // Sprawdź czy już nie ma dividera
     if (document.querySelector('.customify-title-divider')) {
-      console.log('🎯 [CUSTOMIFY] Divider already exists');
       return;
     }
 
@@ -590,7 +551,6 @@ class CustomifyEmbed {
     // Dodaj divider po kontenerze z tytułem
     titleContainer.parentNode.insertBefore(divider, titleContainer.nextSibling);
 
-    console.log('✅ [CUSTOMIFY] Divider added after title');
   }
 
   // FUNKCJA USUNIĘTA: showPriceBelowApp()
@@ -655,7 +615,6 @@ class CustomifyEmbed {
         if (flexContainer) {
           // Przenieś cenę po tytule z badge'ami
           flexContainer.insertBefore(priceElement, titleBadgesContainer.nextSibling);
-          console.log('🎯 [CUSTOMIFY] Cena przeniesiona po tytule z badge\'ami');
         }
       }
     }, 100);
@@ -730,8 +689,6 @@ class CustomifyEmbed {
         const minWidth = isCatProduct ? 600 : 768;
         const minHeight = isCatProduct ? 600 : 768;
         
-        console.log(`🖼️ [IMAGE] Rozdzielczość: ${img.width}×${img.height}`);
-        console.log(`🖼️ [IMAGE] Produkt: ${isCatProduct ? 'Koty (600px min)' : 'Inne (768px min)'}`);
         
         // Sprawdź minimalną rozdzielczość
         if (img.width < minWidth || img.height < minHeight) {
@@ -745,7 +702,6 @@ class CustomifyEmbed {
         // Zdjęcie OK - pokaż podgląd
         this.previewImage.src = e.target.result;
         this.previewArea.style.display = 'block';
-        console.log(`✅ [IMAGE] Rozdzielczość OK (min ${minWidth}×${minHeight}px)`);
         
         // Ukryj "Dodaj do koszyka" i pokaż "Wgraj inne zdjęcie" po wgraniu zdjęcia
         const addToCartBtnMain = document.getElementById('addToCartBtnMain');
@@ -793,7 +749,6 @@ class CustomifyEmbed {
     this.sizeArea.querySelectorAll('.customify-size-btn').forEach(btn => btn.classList.remove('active'));
     sizeBtn.classList.add('active');
     this.selectedSize = sizeBtn.dataset.size;
-    console.log('📏 [SIZE] Selected size:', this.selectedSize);
   }
 
   async transformImage(retryCount = 0) {
@@ -806,7 +761,6 @@ class CustomifyEmbed {
     if (retryCount === 0) { // Tylko przy pierwszej próbie (nie przy retry)
       const canTransform = await this.checkUsageLimit();
       if (!canTransform) {
-        console.log('❌ [USAGE] Limit przekroczony - przerwano transformację');
         return;
       }
     }
@@ -819,7 +773,6 @@ class CustomifyEmbed {
         'style_name': this.selectedStyle,
         'product_url': window.location.pathname
       });
-      console.log('📊 [GA4] Event sent: zobacz_podglad_click', {
         style: this.selectedStyle,
         url: window.location.pathname
       });
@@ -829,20 +782,15 @@ class CustomifyEmbed {
     this.hideError();
     
     if (retryCount > 0) {
-      console.log(`🔄 [MOBILE] Retry attempt ${retryCount}/3`);
     }
 
     try {
       const base64 = await this.fileToBase64(this.uploadedFile);
-      console.log('📱 [MOBILE] Starting transform request...');
       
       // Create AbortController for timeout
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 300000); // 5 minutes
       
-      console.log('📱 [MOBILE] Sending request to transform API...');
-      console.log('📱 [MOBILE] Base64 length:', base64.length, 'characters');
-      console.log('📱 [MOBILE] Base64 preview:', base64.substring(0, 50) + '...');
       
       // Wykryj typ produktu na podstawie URL produktu (jak w theme.liquid)
       const currentPath = window.location.pathname;
@@ -865,8 +813,6 @@ class CustomifyEmbed {
         customerAccessToken: customerInfo?.customerAccessToken || null
       };
       
-      console.log('📱 [MOBILE] Request body size:', JSON.stringify(requestBody).length, 'bytes');
-      console.log('👤 [MOBILE] Customer info:', customerInfo ? 'zalogowany' : 'niezalogowany');
       
       const response = await fetch('https://customify-s56o.vercel.app/api/transform', {
         method: 'POST',
@@ -879,8 +825,6 @@ class CustomifyEmbed {
       });
       
       clearTimeout(timeoutId);
-      console.log('📱 [MOBILE] Response received:', response.status, response.statusText);
-      console.log('📱 [MOBILE] Response headers:', Object.fromEntries(response.headers.entries()));
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -889,7 +833,6 @@ class CustomifyEmbed {
       }
 
       const result = await response.json();
-      console.log('📱 [MOBILE] Response JSON parsed successfully');
       if (result.success) {
         this.transformedImage = result.transformedImage;
         this.showResult(result.transformedImage);
@@ -898,11 +841,9 @@ class CustomifyEmbed {
         // ✅ USAGE LIMITS: Inkrementuj licznik dla niezalogowanych (zalogowani są inkrementowani w API)
         if (!customerInfo) {
           this.incrementLocalUsage();
-          console.log('➕ [USAGE] localStorage incremented after successful transform');
         } else {
           // Zalogowani - odśwież licznik z API (został zaktualizowany w backend)
           this.showUsageCounter();
-          console.log('🔄 [USAGE] Counter refreshed for logged-in user');
         }
       } else {
         this.showError('Błąd podczas transformacji: ' + (result.error || 'Nieznany błąd'));
@@ -916,7 +857,6 @@ class CustomifyEmbed {
         error.message.includes('Failed to fetch') || 
         error.message.includes('NetworkError')
       )) {
-        console.log(`🔄 [MOBILE] Retrying in 2 seconds... (attempt ${retryCount + 1}/3)`);
         alert(`🔄 Ponawiam próbę ${retryCount + 1}/3...`);
         setTimeout(() => {
           this.transformImage(retryCount + 1);
@@ -1004,13 +944,11 @@ class CustomifyEmbed {
   }
 
   async showResult(imageUrl) {
-    console.log('🎯 [CUSTOMIFY] showResult called, hiding actionsArea and stylesArea');
     
     // WATERMARK WŁĄCZONY
     try {
       const watermarkedImage = await this.addWatermark(imageUrl);
       this.resultImage.src = watermarkedImage;
-      console.log('🎨 [CUSTOMIFY] Watermark dodany do podglądu');
     } catch (error) {
       console.error('❌ [CUSTOMIFY] Watermark error:', error);
       this.resultImage.src = imageUrl;
@@ -1020,27 +958,22 @@ class CustomifyEmbed {
     
     // Rozmiary są zawsze widoczne na górze (poza resultArea)
     this.sizeArea.style.display = 'block';
-    console.log('🎯 [CUSTOMIFY] Size area visible on top (outside resultArea)');
     
     // UKRYJ przyciski "Przekształć z AI" i "Resetuj" (główne actionsArea)
     this.actionsArea.style.display = 'none';
-    console.log('🎯 [CUSTOMIFY] actionsArea hidden:', this.actionsArea.style.display);
     
     // UKRYJ style po przekształceniu
     this.stylesArea.style.display = 'none';
-    console.log('🎯 [CUSTOMIFY] stylesArea hidden:', this.stylesArea.style.display);
     
     // Zmień kolory przycisków po wygenerowaniu AI
     this.swapButtonColors();
     
     // UKRYJ pole upload po przekształceniu
     this.uploadArea.style.display = 'none';
-    console.log('🎯 [CUSTOMIFY] uploadArea hidden:', this.uploadArea.style.display);
   }
 
   // NAPRAWIONA FUNKCJA: STWÓRZ NOWY PRODUKT Z OBRAZKIEM AI (UKRYTY W KATALOGU)
   async addToCart() {
-    console.log('🛒 [CUSTOMIFY] addToCart called with:', {
       transformedImage: !!this.transformedImage,
       selectedStyle: this.selectedStyle,
       selectedSize: this.selectedSize
@@ -1061,7 +994,6 @@ class CustomifyEmbed {
       return;
     }
 
-    console.log('🛒 [CUSTOMIFY] Starting addToCart process...');
     this.hideError();
 
     // Pokaż pasek postępu dla koszyka
@@ -1075,7 +1007,6 @@ class CustomifyEmbed {
         window.ShopifyAnalytics?.meta?.product?.id ||
         null;
       
-      console.log('🆔 [CUSTOMIFY] Original product ID:', productId);
       
       const productData = {
         originalImage: await this.fileToBase64(this.uploadedFile),
@@ -1086,7 +1017,6 @@ class CustomifyEmbed {
         originalProductId: productId // ✅ Dodano ID produktu do pobrania ceny z Shopify
       };
 
-      console.log('🛒 [CUSTOMIFY] Creating product with data:', productData);
       
       // Stwórz nowy produkt z obrazkiem AI jako głównym obrazem
       const response = await fetch('https://customify-s56o.vercel.app/api/products', {
@@ -1095,21 +1025,14 @@ class CustomifyEmbed {
         body: JSON.stringify(productData)
       });
 
-      console.log('🛒 [CUSTOMIFY] API response status:', response.status);
       const result = await response.json();
-      console.log('🛒 [CUSTOMIFY] API response:', result);
 
       if (result.success) {
         this.showSuccess('✅ ' + (result.message || 'Produkt został utworzony!'));
-        console.log('✅ [CUSTOMIFY] Product created:', result.product);
         
         // Obraz AI jest już głównym obrazem produktu
         
         if (result.variantId) {
-          console.log('🛒 [CUSTOMIFY] Attempting to add to cart with Variant ID:', result.variantId);
-          console.log('🛒 [CUSTOMIFY] Product ID:', result.productId);
-          console.log('🛒 [CUSTOMIFY] Variant ID type:', typeof result.variantId);
-          console.log('🛒 [CUSTOMIFY] Variant ID length:', result.variantId.toString().length);
           
           // NAPRAWIONA METODA: Użyj bezpośredniego przekierowania zamiast formularza
           const properties = {
@@ -1125,7 +1048,6 @@ class CustomifyEmbed {
             properties['_AI_Image_Direct'] = this.transformedImage;  // Replicate URL (krótki)
           }
           
-          console.log('🖼️ [CUSTOMIFY] Image URLs:', {
             shopifyImageUrl: result.imageUrl,
             replicateImageUrl: this.transformedImage,
             orderId: result.orderId
@@ -1142,8 +1064,6 @@ class CustomifyEmbed {
           });
           
           const cartUrl = `/cart/add?${params.toString()}`;
-          console.log('🛒 [CUSTOMIFY] Cart URL:', cartUrl);
-          console.log('🛒 [CUSTOMIFY] URL length:', cartUrl.length);
           
           // ✅ UŻYWAJ DIRECT NAVIGATION (nie fetch) - unika CORS i działa zawsze
           // Ukryj pasek postępu
@@ -1182,12 +1102,10 @@ class CustomifyEmbed {
   // UKRYJ PRODUKT PO DODANIU DO KOSZYKA
   async hideProductAfterCartAdd(productId) {
     if (!productId) {
-      console.log('⚠️ [CUSTOMIFY] No product ID to hide');
       return;
     }
 
     try {
-      console.log('🔒 [CUSTOMIFY] Hiding product after cart add:', productId);
       
       const response = await fetch('https://customify-s56o.vercel.app/api/hide-product', {
         method: 'POST',
@@ -1197,7 +1115,6 @@ class CustomifyEmbed {
 
       if (response.ok) {
         const result = await response.json();
-        console.log('✅ [CUSTOMIFY] Product hidden successfully:', result);
       } else {
         console.error('❌ [CUSTOMIFY] Failed to hide product:', response.status);
       }
@@ -1208,15 +1125,12 @@ class CustomifyEmbed {
 
   fileToBase64(file) {
     return new Promise((resolve, reject) => {
-      console.log('📱 [MOBILE] Converting file to base64...');
-      console.log('📱 [MOBILE] File details:', {
         name: file.name,
         size: file.size,
         type: file.type
       });
       
       // ZAWSZE kompresuj na frontend (optymalizacja dla Nano Banana)
-      console.log('📱 [MOBILE] Compressing image for Nano Banana optimization...');
       this.compressImage(file).then(compressedFile => {
         this.convertToBase64(compressedFile, resolve, reject);
       }).catch(error => {
@@ -1232,7 +1146,6 @@ class CustomifyEmbed {
     reader.onload = () => {
       const result = reader.result;
       const base64 = result.split(',')[1];
-      console.log('📱 [MOBILE] Base64 conversion successful:', {
         fullResultLength: result.length,
         base64Length: base64.length,
         preview: base64.substring(0, 50) + '...'
@@ -1273,7 +1186,6 @@ class CustomifyEmbed {
         
         // Konwertuj do blob z kompresją
         canvas.toBlob(blob => {
-          console.log('📱 [MOBILE] Image compressed:', {
             originalSize: file.size,
             compressedSize: blob.size,
             compressionRatio: ((1 - blob.size / file.size) * 100).toFixed(1) + '%',
@@ -1327,7 +1239,6 @@ class CustomifyEmbed {
   }
 
   tryAgain() {
-    console.log('🔄 [CUSTOMIFY] tryAgain called - returning to style selection');
     
     // Ukryj wynik AI
     this.resultArea.style.display = 'none';
@@ -1354,7 +1265,6 @@ class CustomifyEmbed {
     this.hideSuccess();
     this.hideError();
     
-    console.log('🔄 [CUSTOMIFY] tryAgain completed - user can select new style');
   }
 
   showLoading() {
@@ -1409,12 +1319,9 @@ class CustomifyEmbed {
     
     this.loadingArea.style.display = 'none';
     // NIE pokazuj actionsArea jeśli mamy już wynik AI
-    console.log('🎯 [CUSTOMIFY] hideLoading called, transformedImage:', !!this.transformedImage);
     if (!this.transformedImage) {
       this.actionsArea.style.display = 'flex';
-      console.log('🎯 [CUSTOMIFY] actionsArea shown because no transformedImage');
     } else {
-      console.log('🎯 [CUSTOMIFY] actionsArea NOT shown because transformedImage exists');
     }
   }
 
@@ -1513,7 +1420,6 @@ class CustomifyEmbed {
       transformBtn.classList.add('customify-btn-primary');
       addToCartBtnMain.classList.remove('customify-btn-primary');
       addToCartBtnMain.classList.add('customify-btn-red');
-      console.log('🔄 [CUSTOMIFY] Button colors swapped after AI generation');
     }
   }
 
@@ -1528,7 +1434,6 @@ class CustomifyEmbed {
       transformBtn.classList.add('customify-btn-red');
       addToCartBtnMain.classList.remove('customify-btn-red');
       addToCartBtnMain.classList.add('customify-btn-primary');
-      console.log('🔄 [CUSTOMIFY] Button colors reset to initial state');
     }
   }
 }
@@ -1584,7 +1489,6 @@ function addMobileThumbnails() {
   // Znajdź właściwy container - product information media (widoczny na mobile)
   const mediaContainer = document.querySelector('.product-information__media');
   if (!mediaContainer) {
-    console.log('🎯 [CUSTOMIFY] Media container not found, skipping thumbnails');
     return;
   }
   
@@ -1595,7 +1499,6 @@ function addMobileThumbnails() {
   const productImages = mediaContainer.querySelectorAll('img');
   if (productImages.length < 2) return; // Potrzebujemy co najmniej 2 obrazy
   
-  console.log('🎯 [CUSTOMIFY] Dodaję miniaturki na mobile, znaleziono', productImages.length, 'obrazów');
   
   // Stwórz container dla miniaturek
   const thumbnailsContainer = document.createElement('div');
@@ -1645,7 +1548,6 @@ function addMobileThumbnails() {
       const navButtons = document.querySelectorAll('.slideshow-control');
       if (navButtons[i]) {
         navButtons[i].click();
-        console.log('🎯 [CUSTOMIFY] Kliknięto miniaturkę', i);
       }
     });
     
@@ -1665,7 +1567,6 @@ function addMobileThumbnails() {
   
   // Dodaj container do media container
   mediaContainer.appendChild(thumbnailsContainer);
-  console.log('✅ [CUSTOMIFY] Miniaturki na mobile dodane pomyślnie');
 }
 
 /**
@@ -1696,7 +1597,6 @@ document.addEventListener('DOMContentLoaded', () => {
       dividers.forEach(divider => {
         if (divider && divider.parentNode) {
           divider.parentNode.removeChild(divider);
-          console.log('🎯 [CUSTOMIFY] Divider usunięty z DOM');
         }
       });
 
@@ -1708,7 +1608,6 @@ document.addEventListener('DOMContentLoaded', () => {
         titleElement.style.setProperty('margin-bottom', '0px', 'important');
         titleElement.style.setProperty('padding-bottom', '0px', 'important');
         titleElement.style.setProperty('margin', '0 0 0px 0', 'important');
-        console.log('🎯 [CUSTOMIFY] Odstępy tytułu usunięte (inline)');
       }
       
       if (badgesElement) {
@@ -1716,7 +1615,6 @@ document.addEventListener('DOMContentLoaded', () => {
         badgesElement.style.setProperty('padding-top', '0px', 'important');
         badgesElement.style.setProperty('margin', '0 0 4px 0', 'important');
         badgesElement.style.setProperty('gap', '2px', 'important');
-        console.log('🎯 [CUSTOMIFY] Odstępy badge\'ów zminimalizowane (inline)');
       }
 
       // DODATKOWE FORCE HIDE DIVIDERS - INLINE STYLES
@@ -1729,7 +1627,6 @@ document.addEventListener('DOMContentLoaded', () => {
         divider.style.setProperty('margin', '0', 'important');
         divider.style.setProperty('padding', '0', 'important');
         divider.style.setProperty('border', 'none', 'important');
-        console.log('🎯 [CUSTOMIFY] Divider ukryty (inline styles)');
       });
     }, 1000); // Zwiększ opóźnienie do 1 sekundy
   });
@@ -1767,7 +1664,6 @@ function fixDialogImages() {
     largestImg.parentElement.style.setProperty('height', '100%', 'important');
   }
   
-  console.log('✅ Zdjęcie w dialogu naprawione - brak białych pól!');
 }
 
 // Event listener dla kliknięć w przyciski powiększenia
