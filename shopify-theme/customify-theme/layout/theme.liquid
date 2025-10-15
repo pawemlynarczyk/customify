@@ -432,9 +432,13 @@
         display: block !important;
       }
       
-      /* Ukryj TYLKO formularz "Dodaj do koszyka" (quantity + przyciski) */
-      form[action="/cart/add"],
-      .shopify-product-form {
+      /* Ukryj TYLKO przyciski Shopify (quantity + dodaj do koszyka + kup teraz) - zostaw ceny i opisy */
+      product-form-component,
+      .product-form-buttons,
+      quantity-selector-component,
+      .add-to-cart-button,
+      .shopify-payment-button,
+      .accelerated-checkout-block {
         display: none !important;
       }
     </style>
