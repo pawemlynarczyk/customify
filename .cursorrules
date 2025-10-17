@@ -416,6 +416,39 @@ Customify is a Shopify app that allows customers to:
 - **NIE TWÓRZ OVERRIDÓW**: Wszystkie style mają mieć ten sam format
 - **PRZED ZMIANĄ**: Zawsze pytaj czy zmiana dotyczy WSZYSTKICH stylów czy tylko niektórych
 
+## 📸 GALERIA ETSY-STYLE - WYŚWIETLANIE ZDJĘĆ PRODUKTU
+- **LOKALIZACJA**: Funkcja `createEtsyGallery()` w `theme.liquid` (linie 640-1043)
+- **WYWOŁANIE**: 
+  ```javascript
+  document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(fixGalleryProportions, 1500);
+    setInterval(fixGalleryProportions, 500);
+  });
+  ```
+  - Linia 1246-1249 w `theme.liquid`
+- **STRUKTURA GALERII**:
+  1. **Główny obraz** (na górze):
+     - Aspect ratio: 1:1 (kwadrat)
+     - Strzałki nawigacji ← →
+     - Licznik zdjęć (np. "1 / 5")
+     - Wyłączony zoom/modal Shopify
+  2. **Miniaturki** (poniżej głównego obrazu):
+     - Układ poziomy (flex-row)
+     - Scrollowanie poziome
+     - Strzałki ← → dla przewijania
+     - Kliknięcie zmienia główny obraz
+     - Border: 2px solid (#e0e0e0 domyślnie, #000 dla aktywnej)
+- **OCHRONA PRZED DUPLIKACJĄ**: 
+  ```javascript
+  if (galleryGrid.classList.contains('etsy-gallery-initialized')) {
+    return; // Już utworzono
+  }
+  ```
+- **WYŁĄCZENIE ZOOM/MODAL**: Usunięte atrybuty Shopify (`data-modal`, `data-pswp-*`), `e.preventDefault()`
+- **WŁĄCZONE**: Dla WSZYSTKICH produktów (commit `5677be9` usunął warunek `isCatProduct`)
+- **DEBUGGING**: Log konsoli `🔧 [ETSY GALLERY] Tworzę galerię w stylu Etsy dla produktu...`
+- **NIE USUWAJ**: Funkcji `fixGalleryProportions()`, `createEtsyGallery()`, wywołań setTimeout/setInterval
+
 ## CRITICAL: Image Compression Strategy - DWUPOZIOMOWA KOMPRESJA
 - **VERCEL LIMIT**: 4.5MB request body limit - pliki większe powodują Status 413
 - **FRONTEND COMPRESSION** (JavaScript Canvas):
