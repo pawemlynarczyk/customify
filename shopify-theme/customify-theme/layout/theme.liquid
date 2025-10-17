@@ -35,6 +35,23 @@
 
     <!-- CUSTOMIFY INTEGRATION -->
     <link rel="stylesheet" href="{{ 'customify.css' | asset_url }}">
+    
+    <!-- Shopify Customer Info for Customify -->
+    <script>
+      {% if customer %}
+        window.ShopifyCustomer = {
+          id: {{ customer.id | json }},
+          email: {{ customer.email | json }},
+          firstName: {{ customer.first_name | json }},
+          lastName: {{ customer.last_name | json }}
+        };
+        console.log('✅ [CUSTOMIFY] Zalogowany użytkownik:', window.ShopifyCustomer);
+      {% else %}
+        window.ShopifyCustomer = null;
+        console.log('👤 [CUSTOMIFY] Niezalogowany użytkownik');
+      {% endif %}
+    </script>
+    
     <script src="{{ 'customify.js' | asset_url }}" defer></script>
     
     <!-- FIX: CSS dla galerii - TYLKO JEDEN MIEJSCE -->
