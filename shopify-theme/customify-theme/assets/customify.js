@@ -390,8 +390,19 @@ class CustomifyEmbed {
       }
     }
     
-    // LICZNIK UKRYTY - nie pokazujemy użytkownikowi
-    // Funkcjonalność API działa w tle dla limitów użyć
+    // Wstaw licznik do DOM - na górze aplikacji Customify
+    const customifyEmbed = document.getElementById('customifyEmbed');
+    if (customifyEmbed && counterHTML) {
+      // Usuń stary licznik jeśli istnieje
+      const oldCounter = document.getElementById('usageCounter');
+      if (oldCounter) {
+        oldCounter.remove();
+      }
+      
+      // Wstaw nowy licznik na samej górze
+      customifyEmbed.insertAdjacentHTML('afterbegin', counterHTML);
+      console.log('🔧 [USAGE] Licznik wyświetlony w UI');
+    }
   }
 
   // filterStylesForProduct() USUNIĘTE - logika przeniesiona na server-side (Shopify Liquid)
