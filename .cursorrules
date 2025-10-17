@@ -394,6 +394,28 @@ Customify is a Shopify app that allows customers to:
 - **TESTING**: Zawsze sprawdzaj na konkretnym URL produktu
 - **PRZYKŁAD**: Ukryj "Van Gogh" tylko w "Koty Królewskie" - sprawdź URL zawiera `koty-krolewskie`
 
+## 🚨 CRITICAL: MINIATURKI STYLÓW - JEDNOLITY FORMAT PIONOWY
+- **🎯 WSZYSTKIE STYLE MUSZĄ MIEĆ TEN SAM FORMAT**: 3:4 (pionowy portret)
+- **NIGDY nie używaj**: kwadratów (1:1) ani innych proporcji dla miniaturek
+- **CSS RULE**:
+  ```css
+  .style-image {
+    width: 100%;
+    aspect-ratio: 3 / 4; /* 🎯 WSZYSTKIE style - jednolity pionowy format portret */
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+  ```
+- **Format miniaturek**: 3:4 = klasyczny portret pionowy (wysokość = 133% szerokości)
+- **Dlaczego 3:4**: 
+  - ✅ Jednolity wygląd na stronie
+  - ✅ Pasuje do formatu wydruku
+  - ✅ Wszystkie style wyglądają spójnie
+- **OBOWIĄZUJE DLA**: Van Gogh, Pixar, Boho, Koty, Król, wszystkie inne style
+- **NIE TWÓRZ OVERRIDÓW**: Wszystkie style mają mieć ten sam format
+- **PRZED ZMIANĄ**: Zawsze pytaj czy zmiana dotyczy WSZYSTKICH stylów czy tylko niektórych
+
 ## CRITICAL: Image Compression Strategy - DWUPOZIOMOWA KOMPRESJA
 - **VERCEL LIMIT**: 4.5MB request body limit - pliki większe powodują Status 413
 - **FRONTEND COMPRESSION** (JavaScript Canvas):
