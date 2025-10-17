@@ -1836,25 +1836,10 @@
 
         .style-image {
           width: 100%;
-          aspect-ratio: 1 / 1;
+          aspect-ratio: 3 / 4; /* 🎯 WSZYSTKIE style - jednolity pionowy format portret */
           background-size: contain;
           background-position: center;
           background-repeat: no-repeat;
-        }
-
-        /* Miniaturki kotów - portret 3:4 (jak będzie wysyłane do Nano Banana) */
-        [data-style="krolewski"] .style-image,
-        [data-style="na-tronie"] .style-image,
-        [data-style="wojenny"] .style-image,
-        [data-style="wiktorianski"] .style-image,
-        [data-style="renesansowy"] .style-image {
-          aspect-ratio: 3 / 4; /* Portret - jak w API */
-        }
-
-        /* Miniaturki boho - portret 3:4 (jak koty, bo używają tego samego API) */
-        [data-style="minimalistyczny"] .style-image,
-        [data-style="realistyczny"] .style-image {
-          aspect-ratio: 3 / 4; /* Portret - jak w API */
         }
 
         /* Gradienty usunięte - używamy obrazków */
