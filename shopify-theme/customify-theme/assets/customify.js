@@ -890,65 +890,18 @@ class CustomifyEmbed {
     }
   }
 
-  // FUNKCJA DODAWANIA WATERMARKU
+  // FUNKCJA DODAWANIA WATERMARKU - UPROSZCZONA (API robi watermark)
   async addWatermark(imageUrl) {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      
-      img.onload = () => {
-        try {
-          const canvas = document.createElement('canvas');
-          const ctx = canvas.getContext('2d');
-          
-          canvas.width = img.width;
-          canvas.height = img.height;
-          
-          // Rysuj oryginalny obraz
-          ctx.drawImage(img, 0, 0);
-          
-          // ===== WZÓR DIAGONALNY - "Lumly.pl" i "Podgląd" NA PRZEMIAN =====
-          ctx.save();
-          ctx.font = 'bold 50px Arial';
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
-          ctx.strokeStyle = 'rgba(0, 0, 0, 0.15)';
-          ctx.lineWidth = 2;
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          
-          // Obróć canvas
-          ctx.translate(canvas.width/2, canvas.height/2);
-          ctx.rotate(-30 * Math.PI / 180);
-          ctx.translate(-canvas.width/2, -canvas.height/2);
-          
-          // Rysuj watermarki w siatce - tylko "Lumly.pl"
-          const spacing = 280;
-          const text = 'Lumly.pl';
-          
-          for(let y = -canvas.height; y < canvas.height * 2; y += spacing) {
-            for(let x = -canvas.width; x < canvas.width * 2; x += spacing * 1.5) {
-              ctx.strokeText(text, x, y);
-              ctx.fillText(text, x, y);
-            }
-          }
-          
-          ctx.restore();
-          
-          // Zwróć obraz z watermarkiem jako Data URL
-          resolve(canvas.toDataURL('image/jpeg', 0.92));
-        } catch (error) {
-          console.error('❌ Watermark error:', error);
-          reject(error);
-        }
-      };
-      
-      img.onerror = (error) => {
-        console.error('❌ Image load error:', error);
-        reject(error);
-      };
-      
-      img.src = imageUrl;
-    });
+    // ✅ NOWA LOGIKA: API już nakłada watermark dla wszystkich obrazów
+    // Jeśli to base64 (już z watermarkiem z API), zwróć bez zmian
+    if (imageUrl.startsWith('data:')) {
+      console.log('✅ [WATERMARK] Obraz już ma watermark z API (base64)');
+      return imageUrl;
+    }
+    
+    // Fallback: jeśli to nadal zewnętrzny URL, zwróć bez watermarku (błąd API)
+    console.warn('⚠️ [WATERMARK] Obraz bez watermarku z API:', imageUrl);
+    return imageUrl;
   }
 
   async showResult(imageUrl) {
