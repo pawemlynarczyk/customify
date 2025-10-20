@@ -40,6 +40,7 @@
     <script>
       {% if customer %}
         window.ShopifyCustomer = {
+          loggedIn: true,
           id: {{ customer.id | json }},
           email: {{ customer.email | json }},
           firstName: {{ customer.first_name | json }},
