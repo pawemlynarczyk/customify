@@ -19,74 +19,8 @@ if (process.env.REPLICATE_API_TOKEN && process.env.REPLICATE_API_TOKEN !== 'leav
   });
 }
 
-// Function to add watermark to base64 image
-async function addWatermarkToBase64(base64String) {
-  try {
-    // Check if sharp is available
-    if (!sharp) {
-      console.warn('⚠️ [WATERMARK] Sharp not available, skipping watermark');
-      return base64String;
-    }
-    
-    console.log('🔧 [WATERMARK] Adding watermark to base64 image...');
-    
-    // Convert base64 to buffer
-    const imageBuffer = Buffer.from(base64String, 'base64');
-    console.log(`📊 [WATERMARK] Image buffer size: ${imageBuffer.length} bytes`);
-    
-    // Get image metadata
-    const metadata = await sharp(imageBuffer).metadata();
-    const { width, height } = metadata;
-    console.log(`📐 [WATERMARK] Image dimensions: ${width}x${height}`);
-    
-    // Create watermark text
-    const watermarkText = 'Lumly.pl';
-    const fontSize = Math.max(50, Math.min(width, height) / 20); // Responsive font size
-    
-    // Create watermark SVG
-    const watermarkSvg = `
-      <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <pattern id="watermark" patternUnits="userSpaceOnUse" width="280" height="280">
-            <text x="140" y="140" 
-                  font-family="Arial, sans-serif" 
-                  font-size="${fontSize}" 
-                  font-weight="bold"
-                  fill="rgba(255,255,255,0.2)" 
-                  stroke="rgba(0,0,0,0.15)" 
-                  stroke-width="2"
-                  text-anchor="middle" 
-                  dominant-baseline="middle"
-                  transform="rotate(-30 140 140)">
-              ${watermarkText}
-            </text>
-          </pattern>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#watermark)"/>
-      </svg>
-    `;
-    
-    console.log('🎨 [WATERMARK] Applying watermark with Sharp...');
-    
-    // Apply watermark
-    const watermarkedBuffer = await sharp(imageBuffer)
-      .composite([{
-        input: Buffer.from(watermarkSvg),
-        blend: 'over'
-      }])
-      .jpeg({ quality: 92 })
-      .toBuffer();
-    
-    console.log(`✅ [WATERMARK] Watermark applied successfully, output size: ${watermarkedBuffer.length} bytes`);
-    return watermarkedBuffer.toString('base64');
-    
-  } catch (error) {
-    console.error('❌ [WATERMARK] Error adding watermark:', error);
-    console.error('❌ [WATERMARK] Error details:', error.message);
-    // Fallback: return original base64
-    return base64String;
-  }
-}
+// Function to add watermark to base64 image - USUNIĘTA (problemy z Sharp w Vercel)
+// TODO: Przywrócić po rozwiązaniu problemów z Sharp
 
 // Function to convert URL to base64
 async function urlToBase64(imageUrl) {
@@ -759,36 +693,8 @@ module.exports = async (req, res) => {
 
     // ✅ WSPÓLNA LOGIKA - imageUrl jest już ustawione (z PiAPI lub Replicate)
 
-    // ✅ WATERMARK DLA REPLICATE URL-I (CORS fix) - TYMCZASOWO WYŁĄCZONY
-    // TODO: Włączyć po naprawie problemów z Sharp w Vercel
-    if (false && imageUrl && imageUrl.includes('replicate.delivery')) {
-      try {
-        console.log('🔧 [WATERMARK] Nakładam watermark na Replicate URL:', imageUrl);
-        
-        // Pobierz obraz z Replicate
-        const imageResponse = await fetch(imageUrl);
-        if (!imageResponse.ok) {
-          throw new Error(`Failed to fetch image: ${imageResponse.status}`);
-        }
-        
-        const imageBuffer = await imageResponse.arrayBuffer();
-        const base64 = Buffer.from(imageBuffer).toString('base64');
-        console.log(`📥 [WATERMARK] Downloaded image, base64 length: ${base64.length}`);
-        
-        // Nakładaj watermark na base64
-        const watermarkedBase64 = await addWatermarkToBase64(base64);
-        
-        // Konwertuj na Data URI z watermarkiem
-        imageUrl = `data:image/jpeg;base64,${watermarkedBase64}`;
-        console.log('✅ [WATERMARK] Replicate URL przekonwertowany na base64 z watermarkem');
-        
-      } catch (error) {
-        console.error('❌ [WATERMARK] Błąd nakładania watermarku na Replicate:', error);
-        console.error('❌ [WATERMARK] Error details:', error.message);
-        // Fallback: zwróć oryginalny URL (bez watermarku)
-        console.log('⚠️ [WATERMARK] Używam oryginalnego URL bez watermarku');
-      }
-    }
+    // ✅ WATERMARK DLA REPLICATE URL-I - USUNIĘTY (problemy z Sharp w Vercel)
+    // TODO: Przywrócić po rozwiązaniu problemów z Sharp
 
     // ✅ INKREMENTACJA LICZNIKA PO UDANEJ TRANSFORMACJI
     if (customerId && customerAccessToken && accessToken) {
