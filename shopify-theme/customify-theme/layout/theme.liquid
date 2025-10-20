@@ -431,6 +431,17 @@
         display: none !important;
       }
       
+      /* ✅ NOWE: Ukryj produkty z "Spersonalizowany" w tytule (nowe produkty AI) */
+      .product-card:has([data-product-title*="Spersonalizowany"]),
+      .product-card:has([href*="spersonalizowany"]) {
+        display: none !important;
+      }
+      
+      /* ✅ NOWE: Ukryj produkty z "Rozmiar" (wielkie R) w tytule */
+      .product-card:has([data-product-title*="Rozmiar"]) {
+        display: none !important;
+      }
+      
       /* Zachowaj główny produkt Customify widoczny */
       .product-card:has([data-product-title*="Obraz ze zdjęcia w stylu Ghibli"]),
       .product-card:has([href*="custom"]) {
