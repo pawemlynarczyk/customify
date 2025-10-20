@@ -759,8 +759,9 @@ module.exports = async (req, res) => {
 
     // ✅ WSPÓLNA LOGIKA - imageUrl jest już ustawione (z PiAPI lub Replicate)
 
-    // ✅ WATERMARK DLA REPLICATE URL-I (CORS fix)
-    if (imageUrl && imageUrl.includes('replicate.delivery')) {
+    // ✅ WATERMARK DLA REPLICATE URL-I (CORS fix) - TYMCZASOWO WYŁĄCZONY
+    // TODO: Włączyć po naprawie problemów z Sharp w Vercel
+    if (false && imageUrl && imageUrl.includes('replicate.delivery')) {
       try {
         console.log('🔧 [WATERMARK] Nakładam watermark na Replicate URL:', imageUrl);
         
