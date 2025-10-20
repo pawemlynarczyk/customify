@@ -799,6 +799,8 @@ module.exports = async (req, res) => {
       errorMessage = 'Request timed out. The model is taking longer than expected. Please try again.';
     } else if (error.message.includes('rate limit')) {
       errorMessage = 'Too many requests. Please wait a moment before trying again.';
+    } else if (error.message.includes('402') || error.message.includes('Payment Required') || error.message.includes('spend limit')) {
+      errorMessage = 'AI service temporarily unavailable due to billing limits. Please try again later or contact support.';
     }
     
     res.status(500).json({ error: errorMessage });
