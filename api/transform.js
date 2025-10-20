@@ -22,14 +22,22 @@ if (process.env.REPLICATE_API_TOKEN && process.env.REPLICATE_API_TOKEN !== 'leav
 // Function to add watermark to base64 image
 async function addWatermarkToBase64(base64String) {
   try {
-    const sharp = require('sharp');
+    // Check if sharp is available
+    if (!sharp) {
+      console.warn('⚠️ [WATERMARK] Sharp not available, skipping watermark');
+      return base64String;
+    }
+    
+    console.log('🔧 [WATERMARK] Adding watermark to base64 image...');
     
     // Convert base64 to buffer
     const imageBuffer = Buffer.from(base64String, 'base64');
+    console.log(`📊 [WATERMARK] Image buffer size: ${imageBuffer.length} bytes`);
     
     // Get image metadata
     const metadata = await sharp(imageBuffer).metadata();
     const { width, height } = metadata;
+    console.log(`📐 [WATERMARK] Image dimensions: ${width}x${height}`);
     
     // Create watermark text
     const watermarkText = 'Lumly.pl';
@@ -58,6 +66,8 @@ async function addWatermarkToBase64(base64String) {
       </svg>
     `;
     
+    console.log('🎨 [WATERMARK] Applying watermark with Sharp...');
+    
     // Apply watermark
     const watermarkedBuffer = await sharp(imageBuffer)
       .composite([{
@@ -67,10 +77,12 @@ async function addWatermarkToBase64(base64String) {
       .jpeg({ quality: 92 })
       .toBuffer();
     
+    console.log(`✅ [WATERMARK] Watermark applied successfully, output size: ${watermarkedBuffer.length} bytes`);
     return watermarkedBuffer.toString('base64');
     
   } catch (error) {
     console.error('❌ [WATERMARK] Error adding watermark:', error);
+    console.error('❌ [WATERMARK] Error details:', error.message);
     // Fallback: return original base64
     return base64String;
   }
@@ -760,6 +772,7 @@ module.exports = async (req, res) => {
         
         const imageBuffer = await imageResponse.arrayBuffer();
         const base64 = Buffer.from(imageBuffer).toString('base64');
+        console.log(`📥 [WATERMARK] Downloaded image, base64 length: ${base64.length}`);
         
         // Nakładaj watermark na base64
         const watermarkedBase64 = await addWatermarkToBase64(base64);
@@ -770,7 +783,9 @@ module.exports = async (req, res) => {
         
       } catch (error) {
         console.error('❌ [WATERMARK] Błąd nakładania watermarku na Replicate:', error);
+        console.error('❌ [WATERMARK] Error details:', error.message);
         // Fallback: zwróć oryginalny URL (bez watermarku)
+        console.log('⚠️ [WATERMARK] Używam oryginalnego URL bez watermarku');
       }
     }
 
