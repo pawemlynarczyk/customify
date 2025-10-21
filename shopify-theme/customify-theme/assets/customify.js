@@ -335,6 +335,33 @@ class CustomifyEmbed {
   }
 
   /**
+   * Konwertuje base64 na File object
+   */
+  base64ToFile(base64String, filename) {
+    return new Promise((resolve, reject) => {
+      try {
+        // Wyciągnij typ MIME i dane z base64
+        const [header, data] = base64String.split(',');
+        const mimeType = header.match(/data:([^;]+)/)[1];
+        
+        // Konwertuj base64 na binary
+        const binaryString = atob(data);
+        const bytes = new Uint8Array(binaryString.length);
+        
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        
+        // Utwórz File object
+        const file = new File([bytes], filename, { type: mimeType });
+        resolve(file);
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+
+  /**
    * Używa ponownie wybraną generację
    */
   reuseGeneration(generation) {
@@ -342,8 +369,15 @@ class CustomifyEmbed {
     
     // Ustaw obraz jako aktualny
     if (generation.originalImage) {
-      this.uploadedFile = null; // Reset
-      this.showUploadedImage(generation.originalImage);
+      // Konwertuj base64 na File object
+      this.base64ToFile(generation.originalImage, 'reused-image.jpg').then(file => {
+        this.uploadedFile = file;
+        this.showPreview(file);
+        this.hideError();
+      }).catch(error => {
+        console.error('❌ [GALLERY] Error converting base64 to file:', error);
+        this.showError('Błąd podczas ładowania obrazu z galerii');
+      });
     }
     
     // Ustaw styl
