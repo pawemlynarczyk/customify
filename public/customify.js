@@ -219,8 +219,15 @@ class CustomifyEmbed {
     console.log('💾 [USAGE] Saved return URL to localStorage:', returnUrl);
     console.log('💾 [USAGE] Timestamp:', Date.now());
     
-    const registerUrl = `/account/register?return_url=${encodeURIComponent(returnUrl)}`;
-    const loginUrl = `/account/login?return_url=${encodeURIComponent(returnUrl)}`;
+    // Użyj pełnego URL z domeną - Shopify potrzebuje pełnego URL dla return_url
+    const fullReturnUrl = window.location.origin + returnUrl;
+    console.log('🌐 [DEBUG] Full return URL:', fullReturnUrl);
+    
+    const registerUrl = `/account/register?return_url=${encodeURIComponent(fullReturnUrl)}`;
+    const loginUrl = `/account/login?return_url=${encodeURIComponent(fullReturnUrl)}`;
+    
+    console.log('🔗 [DEBUG] Register URL:', registerUrl);
+    console.log('🔗 [DEBUG] Login URL:', loginUrl);
     
     const modalHTML = `
       <div id="loginModal" style="
