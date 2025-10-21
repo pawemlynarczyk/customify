@@ -340,6 +340,12 @@ class CustomifyEmbed {
   base64ToFile(base64String, filename) {
     return new Promise((resolve, reject) => {
       try {
+        // Sprawdź czy to już jest string (base64)
+        if (typeof base64String !== 'string') {
+          reject(new Error('originalImage is not a base64 string'));
+          return;
+        }
+        
         // Wyciągnij typ MIME i dane z base64
         const [header, data] = base64String.split(',');
         const mimeType = header.match(/data:([^;]+)/)[1];
@@ -376,7 +382,8 @@ class CustomifyEmbed {
         this.hideError();
       }).catch(error => {
         console.error('❌ [GALLERY] Error converting base64 to file:', error);
-        this.showError('Błąd podczas ładowania obrazu z galerii');
+        console.log('⚠️ [GALLERY] Stare generacje z nieprawidłowym formatem - wyczyść localStorage lub wygeneruj nową');
+        this.showError('Ta generacja ma stary format. Wygeneruj nowy obraz AI.');
       });
     }
     
