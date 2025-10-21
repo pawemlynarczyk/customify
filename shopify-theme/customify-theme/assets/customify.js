@@ -690,8 +690,9 @@ class CustomifyEmbed {
       this.showError('Proszę wybrać plik obrazu (JPG, PNG, GIF, HEIC)');
       return;
     }
-    if (file.size > 10 * 1024 * 1024) {
-      this.showError('Plik jest za duży. Maksymalny rozmiar to 10MB');
+    // ✅ ZMNIEJSZONY LIMIT: 5MB zamiast 10MB (lepsze dla przeglądarek)
+    if (file.size > 5 * 1024 * 1024) {
+      this.showError('Plik jest za duży. Maksymalny rozmiar to 5MB. Spróbuj skompresować zdjęcie.');
       return;
     }
 
@@ -702,6 +703,14 @@ class CustomifyEmbed {
 
   showPreview(file) {
     const reader = new FileReader();
+    
+    // ✅ DODANO: Error handling dla FileReader
+    reader.onerror = () => {
+      this.showError('Nie można wczytać pliku. Plik może być uszkodzony lub za duży. Spróbuj inny plik.');
+      this.uploadedFile = null;
+      this.fileInput.value = '';
+    };
+    
     reader.onload = (e) => {
       // Walidacja rozdzielczości obrazu
       const img = new Image();
@@ -737,7 +746,7 @@ class CustomifyEmbed {
       };
       
       img.onerror = () => {
-        this.showError('Nie można wczytać obrazu. Wybierz inny plik.');
+        this.showError('Nie można wczytać obrazu. Plik może być uszkodzony lub za duży. Spróbuj inny plik.');
         this.uploadedFile = null;
         this.fileInput.value = '';
       };
