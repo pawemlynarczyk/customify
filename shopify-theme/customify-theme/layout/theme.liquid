@@ -1358,6 +1358,9 @@
     <script>
       // NATYCHMIAST sprawdź i przekieruj - zanim Shopify przekieruje na /account
       (function() {
+        console.log('🚀 [REDIRECT] Skrypt uruchomiony na:', window.location.href);
+        console.log('🚀 [REDIRECT] Domena:', window.location.hostname);
+        
         const isLoggedIn = {{ customer.id | json }} !== null;
         const returnUrl = localStorage.getItem('customify_return_url');
         const timestamp = localStorage.getItem('customify_return_url_timestamp');
@@ -1371,6 +1374,7 @@
         console.log('📍 Current full:', currentFull);
         console.log('🎯 Return URL from localStorage:', returnUrl);
         console.log('⏰ Timestamp:', timestamp ? new Date(parseInt(timestamp)).toLocaleString() : 'brak');
+        console.log('🌐 Hostname:', window.location.hostname);
         console.log('═══════════════════════════════════════════');
         
         if (isLoggedIn && returnUrl) {
