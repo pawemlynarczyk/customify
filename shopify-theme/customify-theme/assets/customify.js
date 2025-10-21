@@ -675,8 +675,19 @@ class CustomifyEmbed {
 
   handleFileSelect(file) {
     if (!file) return;
-    if (!file.type.startsWith('image/')) {
-      this.showError('Proszę wybrać plik obrazu (JPG, PNG, GIF)');
+    
+    // ✅ ROZSZERZONA OBSŁUGA: Dodaj HEIC/HEIF (iPhone)
+    const supportedTypes = [
+      'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp',
+      'image/heic', 'image/heif', // iPhone HEIC format
+      'image/avif' // Nowoczesny format
+    ];
+    
+    const isImageType = file.type.startsWith('image/') || 
+                       file.name.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp|heic|heif|avif)$/);
+    
+    if (!isImageType) {
+      this.showError('Proszę wybrać plik obrazu (JPG, PNG, GIF, HEIC)');
       return;
     }
     if (file.size > 10 * 1024 * 1024) {
