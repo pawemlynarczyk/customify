@@ -1186,7 +1186,7 @@ class CustomifyEmbed {
         
         // 🎨 GALERIA: Zapisz generację do localStorage
         this.saveAIGeneration(
-          this.uploadedFile,          // Oryginalne zdjęcie
+          base64,                     // Oryginalne zdjęcie (base64)
           result.transformedImage,    // AI obraz URL
           this.selectedStyle,         // Styl (pixar, boho, etc)
           this.selectedSize           // Rozmiar (a4, a3, etc)
