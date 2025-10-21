@@ -676,18 +676,22 @@ class CustomifyEmbed {
   handleFileSelect(file) {
     if (!file) return;
     
-    // ✅ ROZSZERZONA OBSŁUGA: Dodaj HEIC/HEIF (iPhone)
+    // ✅ OBSŁUGA FORMATÓW: JPG, PNG, GIF, WEBP (HEIC może nie działać w przeglądarce)
     const supportedTypes = [
-      'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp',
-      'image/heic', 'image/heif', // iPhone HEIC format
-      'image/avif' // Nowoczesny format
+      'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'
     ];
     
     const isImageType = file.type.startsWith('image/') || 
-                       file.name.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp|heic|heif|avif)$/);
+                       file.name.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp)$/);
+    
+    // ✅ SPECJALNA OBSŁUGA HEIC: Sprawdź czy to HEIC i ostrzeż
+    if (file.name.toLowerCase().match(/\.(heic|heif)$/)) {
+      this.showError('Format HEIC może nie działać w przeglądarce. Spróbuj przekonwertować na JPG lub PNG.');
+      return;
+    }
     
     if (!isImageType) {
-      this.showError('Proszę wybrać plik obrazu (JPG, PNG, GIF, HEIC)');
+      this.showError('Proszę wybrać plik obrazu (JPG, PNG, GIF)');
       return;
     }
     // ✅ ZMNIEJSZONY LIMIT: 5MB zamiast 10MB (lepsze dla przeglądarek)
