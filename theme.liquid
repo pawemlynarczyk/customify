@@ -1352,6 +1352,32 @@
   <body class="page-width-{{ settings.page_width }} card-hover-effect-{{ settings.card_hover_effect }}">
     {% render 'skip-to-content-link', href: '#MainContent', text: 'accessibility.skip_to_text' %}
     
+    <!-- REDIRECT AFTER LOGIN - Przekieruj użytkownika z powrotem na produkt po zalogowaniu -->
+    <script>
+      (function() {
+        // Sprawdź czy użytkownik jest zalogowany (Shopify ustawia window.Shopify.customerEmail)
+        const isLoggedIn = window.Shopify && window.Shopify.customerEmail;
+        
+        if (isLoggedIn) {
+          // Sprawdź czy jest zapisany return URL w localStorage
+          const returnUrl = localStorage.getItem('customify_return_url');
+          
+          if (returnUrl) {
+            console.log('🔄 [REDIRECT] Użytkownik zalogowany - znaleziono return URL:', returnUrl);
+            
+            // Usuń z localStorage (użyj tylko raz)
+            localStorage.removeItem('customify_return_url');
+            
+            // Małe opóźnienie żeby Shopify zakończył swoje rzeczy
+            setTimeout(() => {
+              console.log('➡️ [REDIRECT] Przekierowuję do:', returnUrl);
+              window.location.href = returnUrl;
+            }, 500);
+          }
+        }
+      })();
+    </script>
+    
     <!-- KOMPLETNY NAGŁÓWEK CUSTOMIFY -->
     <header class="header-main">
       <!-- GÓRA HEADERA: Logo + Linki użytkownika + Koszyk -->
@@ -1373,12 +1399,12 @@
             <div class="header-user">
               {% if customer %}
                 <div class="user-section">
-                  <div class="user-icon-wrapper">
+                  <a href="{{ routes.account_url }}" class="user-icon-wrapper">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" class="user-icon">
                       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                       <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
                     </svg>
-                  </div>
+                  </a>
                   <div class="user-links">
                     <a href="{{ routes.account_url }}" class="user-text-link">Moje konto</a>
                     <a href="{{ routes.account_logout_url }}" class="user-text-link">Wyloguj się</a>
@@ -1386,12 +1412,12 @@
                 </div>
               {% else %}
                 <div class="user-section">
-                  <div class="user-icon-wrapper">
+                  <a href="{{ routes.account_login_url }}" class="user-icon-wrapper">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" class="user-icon">
                       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                       <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
                     </svg>
-                  </div>
+                  </a>
                   <div class="user-links">
                     <a href="{{ routes.account_login_url }}" class="user-text-link">Zaloguj</a>
                     <a href="{{ routes.account_register_url }}" class="user-text-link">Zarejestruj</a>
@@ -2031,6 +2057,8 @@
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
+            text-decoration: none !important;
+            cursor: pointer !important;
           }
           
           .user-icon {

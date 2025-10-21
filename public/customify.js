@@ -206,6 +206,11 @@ class CustomifyEmbed {
   showLoginModal(usedCount, limit) {
     // Return URL - wróć na tę samą stronę po rejestracji
     const returnUrl = window.location.pathname + window.location.search;
+    
+    // Zapisz return URL w localStorage (Shopify może ignorować return_url parameter)
+    localStorage.setItem('customify_return_url', returnUrl);
+    console.log('💾 [USAGE] Saved return URL to localStorage:', returnUrl);
+    
     const registerUrl = `/account/register?return_url=${encodeURIComponent(returnUrl)}`;
     const loginUrl = `/account/login?return_url=${encodeURIComponent(returnUrl)}`;
     
