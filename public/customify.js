@@ -227,6 +227,7 @@ class CustomifyEmbed {
    */
   updateGallery() {
     const generations = this.getAIGenerations();
+    console.log('🎨 [GALLERY] updateGallery called, generations:', generations.length);
     
     if (generations.length === 0) {
       // Ukryj galerię jeśli brak generacji
@@ -234,6 +235,7 @@ class CustomifyEmbed {
       if (gallery) {
         gallery.style.display = 'none';
       }
+      console.log('🎨 [GALLERY] No generations, hiding gallery');
       return;
     }
 
@@ -292,8 +294,14 @@ class CustomifyEmbed {
 
     // Wstaw galerię przed accordion
     const accordion = document.querySelector('.product-details-accordion');
+    console.log('🎨 [GALLERY] Looking for accordion:', accordion);
     if (accordion) {
       accordion.parentNode.insertBefore(gallery, accordion);
+      console.log('🎨 [GALLERY] Gallery inserted before accordion');
+    } else {
+      // Fallback - wstaw na końcu body
+      document.body.appendChild(gallery);
+      console.log('🎨 [GALLERY] Gallery inserted at end of body (fallback)');
     }
 
     return gallery;
