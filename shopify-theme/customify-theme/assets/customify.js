@@ -676,22 +676,25 @@ class CustomifyEmbed {
   handleFileSelect(file) {
     if (!file) return;
     
-    // ✅ OBSŁUGA FORMATÓW: JPG, PNG, GIF, WEBP (HEIC może nie działać w przeglądarce)
+    // ✅ DEBUG: Sprawdź co iPhone wysyła
+    console.log('📱 [FILE DEBUG] Plik z iPhone:', {
+      name: file.name,
+      type: file.type,
+      size: file.size,
+      lastModified: file.lastModified
+    });
+    
+    // ✅ OBSŁUGA FORMATÓW: JPG, PNG, GIF, WEBP, HEIC (iPhone może obsłużyć HEIC)
     const supportedTypes = [
-      'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'
+      'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp',
+      'image/heic', 'image/heif' // iPhone może obsłużyć HEIC
     ];
     
     const isImageType = file.type.startsWith('image/') || 
-                       file.name.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp)$/);
-    
-    // ✅ SPECJALNA OBSŁUGA HEIC: Sprawdź czy to HEIC i ostrzeż
-    if (file.name.toLowerCase().match(/\.(heic|heif)$/)) {
-      this.showError('Format HEIC może nie działać w przeglądarce. Spróbuj przekonwertować na JPG lub PNG.');
-      return;
-    }
+                       file.name.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp|heic|heif)$/);
     
     if (!isImageType) {
-      this.showError('Proszę wybrać plik obrazu (JPG, PNG, GIF)');
+      this.showError('Proszę wybrać plik obrazu (JPG, PNG, GIF, HEIC)');
       return;
     }
     // ✅ ZMNIEJSZONY LIMIT: 5MB zamiast 10MB (lepsze dla przeglądarek)
