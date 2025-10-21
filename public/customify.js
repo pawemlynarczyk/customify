@@ -156,9 +156,9 @@ class CustomifyEmbed {
     const customerInfo = this.getCustomerInfo();
     
     if (!customerInfo) {
-      // Niezalogowany - sprawdź localStorage (limit 3)
+      // Niezalogowany - sprawdź localStorage (limit 10)
       const localCount = this.getLocalUsageCount();
-      const FREE_LIMIT = 3;
+      const FREE_LIMIT = 10;
       
       console.log(`📊 [USAGE] Niezalogowany: ${localCount}/${FREE_LIMIT} użyć`);
       
@@ -223,11 +223,17 @@ class CustomifyEmbed {
     const fullReturnUrl = window.location.origin + returnUrl;
     console.log('🌐 [DEBUG] Full return URL:', fullReturnUrl);
     
-    const registerUrl = `/account/register?return_url=${encodeURIComponent(fullReturnUrl)}`;
-    const loginUrl = `/account/login?return_url=${encodeURIComponent(fullReturnUrl)}`;
+    // Shopify Customer Account może wymagać specjalnego formatu return_url
+    const encodedReturnUrl = encodeURIComponent(fullReturnUrl);
+    console.log('🔐 [DEBUG] Encoded return URL:', encodedReturnUrl);
+    
+    const registerUrl = `/account/register?return_url=${encodedReturnUrl}`;
+    const loginUrl = `/account/login?return_url=${encodedReturnUrl}`;
     
     console.log('🔗 [DEBUG] Register URL:', registerUrl);
     console.log('🔗 [DEBUG] Login URL:', loginUrl);
+    console.log('🔗 [DEBUG] Register URL (decoded):', decodeURIComponent(registerUrl));
+    console.log('🔗 [DEBUG] Login URL (decoded):', decodeURIComponent(loginUrl));
     
     const modalHTML = `
       <div id="loginModal" style="
@@ -400,25 +406,28 @@ class CustomifyEmbed {
     if (!customerInfo) {
       // Niezalogowany
       const localCount = this.getLocalUsageCount();
-      const FREE_LIMIT = 3;
+      const FREE_LIMIT = 10;
       const remaining = Math.max(0, FREE_LIMIT - localCount);
       
-      counterHTML = `
-        <div id="usageCounter" style="
-          background: ${remaining > 0 ? '#E8F5E9' : '#FFEBEE'};
-          color: ${remaining > 0 ? '#2E7D32' : '#C62828'};
-          padding: 12px;
-          border-radius: 8px;
-          margin-bottom: 15px;
-          text-align: center;
-          font-weight: bold;
-        ">
-          ${remaining > 0 
-            ? `🎨 Pozostało ${remaining}/${FREE_LIMIT} darmowych transformacji` 
-            : `❌ Wykorzystano ${FREE_LIMIT}/${FREE_LIMIT} - <a href="/account/login" style="color: #C62828; text-decoration: underline; font-weight: bold;">Zaloguj się dla więcej!</a>`
-          }
-        </div>
-      `;
+      // Pokaż komunikat tylko gdy zostanie 3 lub mniej transformacji
+      if (remaining <= 3) {
+        counterHTML = `
+          <div id="usageCounter" style="
+            background: ${remaining > 0 ? '#E8F5E9' : '#FFEBEE'};
+            color: ${remaining > 0 ? '#2E7D32' : '#C62828'};
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: bold;
+          ">
+            ${remaining > 0 
+              ? `🎨 Pozostało ${remaining}/${FREE_LIMIT} darmowych transformacji` 
+              : `❌ Wykorzystano ${FREE_LIMIT}/${FREE_LIMIT} - <a href="/account/login" style="color: #C62828; text-decoration: underline; font-weight: bold;">Zaloguj się dla więcej!</a>`
+            }
+          </div>
+        `;
+      }
     } else {
       // Zalogowany - pobierz z API
       try {
