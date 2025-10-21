@@ -1013,6 +1013,11 @@ class CustomifyEmbed {
       if (result.success) {
         this.showSuccess('✅ ' + (result.message || 'Produkt został utworzony!'));
         
+        // ✅ UKRYJ PRODUKT PO UTWORZENIU (przed dodaniem do koszyka)
+        if (result.productId) {
+          await this.hideProductAfterCartAdd(result.productId);
+        }
+        
         // Obraz AI jest już głównym obrazem produktu
         
         if (result.variantId) {
