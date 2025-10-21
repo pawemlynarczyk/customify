@@ -45,6 +45,7 @@ class CustomifyEmbed {
     this.showUsageCounter();
     
     // 🎨 GALERIA: Załaduj galerię przy starcie (jeśli są zapisane generacje)
+    console.log('🎨 [GALLERY] Calling updateGallery from init()');
     this.updateGallery();
   }
 
