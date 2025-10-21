@@ -1356,33 +1356,29 @@
     
     <!-- REDIRECT AFTER LOGIN - Przekieruj użytkownika z powrotem na produkt po zalogowaniu -->
     <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        // Sprawdź czy użytkownik jest zalogowany (Shopify Liquid)
+      // NATYCHMIAST sprawdź i przekieruj - zanim Shopify przekieruje na /account
+      (function() {
         const isLoggedIn = {{ customer.id | json }} !== null;
+        const returnUrl = localStorage.getItem('customify_return_url');
         
-        if (isLoggedIn) {
-          // Sprawdź czy jest zapisany return URL w localStorage
-          const returnUrl = localStorage.getItem('customify_return_url');
+        console.log('🔍 [REDIRECT DEBUG] Zalogowany:', isLoggedIn, 'Return URL:', returnUrl, 'Current:', window.location.href);
+        
+        if (isLoggedIn && returnUrl) {
+          const currentPath = window.location.pathname;
           
-          if (returnUrl) {
-            console.log('🔄 [REDIRECT] Użytkownik zalogowany - znaleziono return URL:', returnUrl);
-            
-            // Sprawdź czy NIE jesteśmy już na stronie docelowej (zapobiega pętli)
-            const currentPath = window.location.pathname + window.location.search;
-            if (currentPath !== returnUrl) {
-              // Usuń z localStorage (użyj tylko raz)
-              localStorage.removeItem('customify_return_url');
-              
-              console.log('➡️ [REDIRECT] Przekierowuję do:', returnUrl);
-              window.location.href = returnUrl;
-            } else {
-              // Jesteśmy już na właściwej stronie - wyczyść localStorage
-              localStorage.removeItem('customify_return_url');
-              console.log('✅ [REDIRECT] Już na właściwej stronie - wyczyściłem localStorage');
-            }
+          // Jeśli jesteśmy na /account/* i mamy return URL - przekieruj NATYCHMIAST
+          if (currentPath.startsWith('/account')) {
+            console.log('➡️ [REDIRECT] Jestem na /account - przekierowuję do:', returnUrl);
+            localStorage.removeItem('customify_return_url');
+            window.location.replace(returnUrl); // replace() nie dodaje do historii przeglądarki
+          } 
+          // Jeśli jesteśmy już na stronie produktu - wyczyść localStorage
+          else if (currentPath === returnUrl || window.location.pathname + window.location.search === returnUrl) {
+            console.log('✅ [REDIRECT] Już na właściwej stronie - czyszczę localStorage');
+            localStorage.removeItem('customify_return_url');
           }
         }
-      });
+      })();
     </script>
     
     <!-- KOMPLETNY NAGŁÓWEK CUSTOMIFY -->
