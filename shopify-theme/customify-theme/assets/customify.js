@@ -398,30 +398,13 @@ class CustomifyEmbed {
     console.log('🔍 [USAGE] customerInfo:', customerInfo);
     
     if (!customerInfo) {
-      // Niezalogowany
+      // Niezalogowany - NIE POKAZUJ komunikatu o punktach
+      // Modal rejestracji pojawi się dopiero po wyczerpaniu wszystkich 10 transformacji
       const localCount = this.getLocalUsageCount();
       const FREE_LIMIT = 10;
-      const remaining = Math.max(0, FREE_LIMIT - localCount);
       
-      // Pokaż komunikat tylko gdy zostanie 3 lub mniej transformacji
-      if (remaining <= 3) {
-        counterHTML = `
-          <div id="usageCounter" style="
-            background: ${remaining > 0 ? '#E8F5E9' : '#FFEBEE'};
-            color: ${remaining > 0 ? '#2E7D32' : '#C62828'};
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            text-align: center;
-            font-weight: bold;
-          ">
-            ${remaining > 0 
-              ? `🎨 Pozostało ${remaining}/${FREE_LIMIT} darmowych transformacji` 
-              : `❌ Wykorzystano ${FREE_LIMIT}/${FREE_LIMIT} - <a href="/account/login" style="color: #C62828; text-decoration: underline; font-weight: bold;">Zaloguj się dla więcej!</a>`
-            }
-          </div>
-        `;
-      }
+      // Brak komunikatu - użytkownik nie wie ile ma punktów
+      // Dopiero po 10 transformacjach pojawi się modal rejestracji
     } else {
       // Zalogowany - pobierz z API
       try {
