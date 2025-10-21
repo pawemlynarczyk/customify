@@ -200,7 +200,10 @@ const shopifyRequest = async (endpoint, options = {}) => {
 ## Theme Editing Workflow
 1. **Edit**: Modify `customify-theme/layout/theme.liquid` (main file)
 2. **Deploy**: Use Node.js script to upload via `/api/update-theme-simple`
-3. **Test**: Check changes on lumly.pl/products/custom
+3. **Test**: Check changes on:
+   - https://lumly.pl/products/personalizowany-portret-w-stylu-boho (Boho)
+   - https://lumly.pl/products/krol-personalizowany-portret (Król)
+   - https://lumly.pl/products/koty-krolewskie (Koty)
 4. **Backup**: Keep `theme.liquid` as backup copy
 - **IMPORTANT**: Always edit the main theme file, not the backup
 - **DEPLOYMENT**: Use our app's API endpoint (has write_themes permission)
@@ -230,9 +233,27 @@ Customify is a Shopify app that allows customers to:
 - **Benefits**: Produkty widoczne w admin, dostępne w koszyku, ukryte w katalogu przez tagi
 - **Purpose**: Keep catalog clean while preserving order data and AI-generated images in admin
 
-## Product Identification Strategy
-- **Main Product**: "Obraz ze zdjęcia w stylu Ghibli" (URL: /products/custom) - ALWAYS VISIBLE
-- **New Customify Products**: Contain word "rozmiar" in title (e.g., "Styl pixar - Rozmiar medium")
+## Product Identification Strategy - PRAWDZIWE PRODUKTY
+- **🎨 Główne produkty Customify** (ZAWSZE WIDOCZNE w katalogu):
+  1. **Personalizowany portret w stylu Boho** - `/products/personalizowany-portret-w-stylu-boho`
+     - Style: Minimalistyczny, Realistyczny
+     - Cena bazowa: 49 zł
+     - Rozmiary: 20×30, 30×40, 40×60, 60×85 cm
+  
+  2. **Król - personalizowany portret ze zdjęcia** - `/products/krol-personalizowany-portret`
+     - Style: Król w różnych stylach (Segmind Faceswap)
+     - Cena bazowa: 99 zł
+  
+  3. **Królewski portret Twojego Kota** - `/products/koty-krolewskie` lub `/products/krolewskie-portrety-kotow`
+     - Style: Królewski, Barokowy, Renesansowy, Wiktoriański, Wojenny, Na tronie
+     - Cena bazowa: 69 zł
+
+- **🛒 Produkty wygenerowane przez użytkowników** (UKRYTE z katalogu):
+  - Zawierają słowo "rozmiar" w tytule (np. "Styl pixar - Rozmiar medium")
+  - Tagged with: 'customer-order', 'hidden-from-catalog', 'no-recommendations'
+  - Status: ACTIVE (żeby można było dodać do koszyka)
+  - Ukrywane przez tagi, NIE przez status DRAFT
+
 - **CSS Selectors for Hiding**:
   ```css
   /* Hide ONLY new Customify products (containing "rozmiar") */
@@ -240,12 +261,15 @@ Customify is a Shopify app that allows customers to:
     display: none !important;
   }
   
-  /* PROTECTION: Main product NEVER hidden */
-  .product-card:has([data-product-title*="Obraz ze zdjęcia w stylu Ghibli"]) {
+  /* PROTECTION: Main products NEVER hidden */
+  .product-card:has([href*="personalizowany-portret-w-stylu-boho"]),
+  .product-card:has([href*="krol-personalizowany-portret"]),
+  .product-card:has([href*="koty-krolewskie"]) {
     display: block !important;
   }
   ```
-- **Why "rozmiar" works**: New products always have size in title, main product doesn't
+
+- **Why "rozmiar" works**: Generated products always have size in title, main products don't
 - **Alternative selectors**: `[href*="spersonalizowany"]` for URL-based hiding
 
 ## Communication Rules
@@ -287,19 +311,17 @@ Customify is a Shopify app that allows customers to:
 - **Status**: ✅ Fixed and deployed
 
 ### Product Visibility Issue Fix
-- **Problem**: Główny produkt "custom" nie był widoczny w katalogu mimo że był w HTML
-- **Root Cause**: Style CSS w `customify.css` ukrywały produkty:
-  ```css
-  .product-card:has([href*="custom"]) {
-    display: none !important;
-  }
-  ```
+- **Problem**: Główne produkty Customify nie były widoczne w katalogu mimo że były w HTML
+- **Root Cause**: Style CSS w `customify.css` ukrywały produkty przez nieprecyzyjne selektory
 - **Why it was hard to find**: 
   - Produkty były w HTML (curl pokazywał je)
   - JavaScript nie ukrywał (usunęliśmy funkcje JS)
   - Problem był w CSS - `display: none !important` ukrywał wizualnie
-  - Selektor `[href*="custom"]` łapał główny produkt z URL `/products/custom`
-- **Solution**: Usunięto wszystkie style CSS ukrywające produkty
+  - Selektor łapał główne produkty zamiast tylko wygenerowanych
+- **Solution**: 
+  - Usunięto wszystkie globalne style CSS ukrywające produkty
+  - Dodano precyzyjne selektory tylko dla produktów z "rozmiar" w tytule
+  - Dodano ochronę dla głównych produktów (Boho, Król, Koty)
 - **Files Modified**: `shopify-theme/customify-theme/assets/customify.css`
 - **Status**: ✅ Fixed and deployed
 
@@ -535,7 +557,10 @@ Customify is a Shopify app that allows customers to:
 1. **EDYTUJ TYLKO**: `theme.liquid` (główny katalog) - inne pliki są synchronizowane automatycznie
 2. **DEPLOY**: Zawsze używaj `npm run deploy` - automatycznie synchronizuje + wdraża
 3. **BACKUPY**: Automatyczne backupy są tworzone przed każdą zmianą
-4. **TESTING**: Sprawdzaj zmiany na https://lumly.pl/products/custom
+4. **TESTING**: Sprawdzaj zmiany na:
+   - https://lumly.pl/products/personalizowany-portret-w-stylu-boho (Boho)
+   - https://lumly.pl/products/krol-personalizowany-portret (Król)
+   - https://lumly.pl/products/koty-krolewskie (Koty)
 5. **NIE UŻYWAJ**: `shopify-embed.html`, `shopify-script.js` - to są stare pliki!
 6. **NIE EDYTUJ**: Plików w `shopify-theme/customify-theme/assets/` - są synchronizowane automatycznie
 7. **🚨 NIGDY NIE USUWAJ**: `customify.js` z `theme.liquid` - aplikacja przestanie działać!
