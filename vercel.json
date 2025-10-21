@@ -101,10 +101,6 @@
       "dest": "/api/increment-usage.js"
     },
     {
-      "src": "/api/list-customers",
-      "dest": "/api/list-customers.js"
-    },
-    {
       "src": "/api/fix-metafield",
       "dest": "/api/fix-metafield.js"
     },
