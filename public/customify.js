@@ -300,9 +300,16 @@ class CustomifyEmbed {
       accordion.parentNode.insertBefore(gallery, accordion);
       console.log('🎨 [GALLERY] Gallery inserted before accordion');
     } else {
-      // Fallback - wstaw na końcu body
-      document.body.appendChild(gallery);
-      console.log('🎨 [GALLERY] Gallery inserted at end of body (fallback)');
+      // Fallback - wstaw w kontener aplikacji
+      const appContainer = document.getElementById('customify-app-container');
+      if (appContainer) {
+        appContainer.appendChild(gallery);
+        console.log('🎨 [GALLERY] Gallery inserted in app container');
+      } else {
+        // Ostatni fallback - wstaw na końcu body
+        document.body.appendChild(gallery);
+        console.log('🎨 [GALLERY] Gallery inserted at end of body (fallback)');
+      }
     }
 
     return gallery;
