@@ -419,10 +419,21 @@ class CustomifyEmbed {
       }
     }
     
-    // LICZNIK UKRYTY - nie pokazujemy użytkownikowi
-    // Funkcjonalność API działa w tle dla limitów użyć
-    console.log('🔍 [USAGE] Counter hidden from user - API functionality works in background');
-    console.log('🔍 [USAGE] Usage data:', customerInfo ? 'Logged in user' : 'Anonymous user');
+    // Wstaw licznik do DOM (przed upload area)
+    const uploadArea = document.getElementById('uploadArea');
+    if (uploadArea && counterHTML) {
+      // Usuń stary licznik jeśli istnieje
+      const oldCounter = document.getElementById('usageCounter');
+      if (oldCounter) {
+        oldCounter.remove();
+      }
+      
+      // Wstaw nowy licznik przed upload area
+      uploadArea.insertAdjacentHTML('beforebegin', counterHTML);
+      console.log('✅ [USAGE] Counter displayed:', customerInfo ? 'Logged in' : 'Anonymous');
+    } else {
+      console.log('⚠️ [USAGE] Upload area not found - counter not displayed');
+    }
   }
 
   // filterStylesForProduct() USUNIĘTE - logika przeniesiona na server-side (Shopify Liquid)
