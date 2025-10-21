@@ -43,6 +43,9 @@ class CustomifyEmbed {
     
     // ✅ USAGE LIMITS: Pokaż licznik użyć
     this.showUsageCounter();
+    
+    // 🎨 GALERIA: Załaduj galerię przy starcie (jeśli są zapisane generacje)
+    this.updateGallery();
   }
 
   // ===== USAGE LIMITS FUNCTIONS =====
@@ -146,6 +149,221 @@ class CustomifyEmbed {
     localStorage.setItem('customify_usage_count', newCount.toString());
     console.log('➕ [USAGE] localStorage incremented:', currentCount, '→', newCount);
     this.showUsageCounter(); // Odśwież licznik w UI
+  }
+
+  /**
+   * Zapisuje generację AI w localStorage
+   */
+  saveAIGeneration(originalImage, transformedImage, style, size) {
+    const generation = {
+      id: Date.now(),
+      timestamp: new Date().toISOString(),
+      originalImage: originalImage, // base64 lub URL
+      transformedImage: transformedImage, // URL do AI obrazu
+      style: style,
+      size: size,
+      thumbnail: transformedImage // dla szybkiego podglądu
+    };
+
+    // Pobierz istniejące generacje
+    const existingGenerations = this.getAIGenerations();
+    
+    // Dodaj nową generację na początku
+    existingGenerations.unshift(generation);
+    
+    // Zachowaj tylko ostatnie 10 generacji
+    const limitedGenerations = existingGenerations.slice(0, 10);
+    
+    // Zapisz z powrotem do localStorage
+    localStorage.setItem('customify_ai_generations', JSON.stringify(limitedGenerations));
+    
+    console.log('🎨 [GALLERY] Saved AI generation:', generation.id, style, size);
+    
+    // Odśwież galerię
+    this.updateGallery();
+  }
+
+  /**
+   * Pobiera zapisane generacje AI
+   */
+  getAIGenerations() {
+    try {
+      const stored = localStorage.getItem('customify_ai_generations');
+      return stored ? JSON.parse(stored) : [];
+    } catch (error) {
+      console.error('❌ [GALLERY] Error loading generations:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Aktualizuje galerię ostatnich generacji
+   */
+  updateGallery() {
+    const generations = this.getAIGenerations();
+    
+    if (generations.length === 0) {
+      // Ukryj galerię jeśli brak generacji
+      const gallery = document.getElementById('aiGallery');
+      if (gallery) {
+        gallery.style.display = 'none';
+      }
+      return;
+    }
+
+    // Znajdź lub stwórz kontener galerii
+    let gallery = document.getElementById('aiGallery');
+    if (!gallery) {
+      gallery = this.createGalleryContainer();
+    }
+
+    // Wyczyść poprzednie elementy
+    gallery.innerHTML = '';
+
+    // Dodaj nagłówek
+    const header = document.createElement('h4');
+    header.textContent = '🎨 Ostatnie generacje';
+    header.style.cssText = `
+      margin: 0 0 15px 0;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #333;
+      text-align: center;
+    `;
+    gallery.appendChild(header);
+
+    // Stwórz grid z generacjami
+    const grid = document.createElement('div');
+    grid.style.cssText = `
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    `;
+
+    generations.forEach(generation => {
+      const item = this.createGalleryItem(generation);
+      grid.appendChild(item);
+    });
+
+    gallery.appendChild(grid);
+    gallery.style.display = 'block';
+  }
+
+  /**
+   * Tworzy kontener galerii
+   */
+  createGalleryContainer() {
+    const gallery = document.createElement('div');
+    gallery.id = 'aiGallery';
+    gallery.style.cssText = `
+      margin: 20px 0;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      border: 1px solid #e9ecef;
+    `;
+
+    // Wstaw galerię przed accordion
+    const accordion = document.querySelector('.product-details-accordion');
+    if (accordion) {
+      accordion.parentNode.insertBefore(gallery, accordion);
+    }
+
+    return gallery;
+  }
+
+  /**
+   * Tworzy element galerii dla pojedynczej generacji
+   */
+  createGalleryItem(generation) {
+    const item = document.createElement('div');
+    item.style.cssText = `
+      position: relative;
+      cursor: pointer;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      transition: transform 0.2s ease;
+    `;
+
+    // Obraz
+    const img = document.createElement('img');
+    img.src = generation.thumbnail;
+    img.style.cssText = `
+      width: 100%;
+      height: 120px;
+      object-fit: cover;
+      display: block;
+    `;
+    img.alt = `${generation.style} - ${generation.size}`;
+
+    // Overlay z informacjami
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(transparent, rgba(0,0,0,0.8));
+      color: white;
+      padding: 8px;
+      font-size: 0.8rem;
+    `;
+    overlay.innerHTML = `
+      <div style="font-weight: 600;">${generation.style}</div>
+      <div style="opacity: 0.8;">${generation.size}</div>
+    `;
+
+    // Hover effect
+    item.addEventListener('mouseenter', () => {
+      item.style.transform = 'translateY(-4px)';
+    });
+    item.addEventListener('mouseleave', () => {
+      item.style.transform = 'translateY(0)';
+    });
+
+    // Kliknięcie - użyj ponownie
+    item.addEventListener('click', () => {
+      this.reuseGeneration(generation);
+    });
+
+    item.appendChild(img);
+    item.appendChild(overlay);
+
+    return item;
+  }
+
+  /**
+   * Używa ponownie wybraną generację
+   */
+  reuseGeneration(generation) {
+    console.log('🔄 [GALLERY] Reusing generation:', generation.id);
+    
+    // Ustaw obraz jako aktualny
+    if (generation.originalImage) {
+      this.uploadedFile = null; // Reset
+      this.showUploadedImage(generation.originalImage);
+    }
+    
+    // Ustaw styl
+    if (generation.style) {
+      const styleCard = document.querySelector(`[data-style="${generation.style}"]`);
+      if (styleCard) {
+        this.selectStyle(styleCard);
+      }
+    }
+    
+    // Ustaw rozmiar
+    if (generation.size) {
+      const sizeBtn = document.querySelector(`[data-size="${generation.size}"]`);
+      if (sizeBtn) {
+        this.selectSize(sizeBtn);
+      }
+    }
+
+    // Pokaż komunikat
+    this.showSuccess('Generacja załadowana! Możesz teraz wykonać transformację.');
   }
 
   /**
@@ -937,6 +1155,14 @@ class CustomifyEmbed {
         this.transformedImage = result.transformedImage;
         this.showResult(result.transformedImage);
         this.showSuccess('Teraz wybierz rozmiar obrazu');
+        
+        // 🎨 GALERIA: Zapisz generację do localStorage
+        this.saveAIGeneration(
+          this.uploadedFile,          // Oryginalne zdjęcie
+          result.transformedImage,    // AI obraz URL
+          this.selectedStyle,         // Styl (pixar, boho, etc)
+          this.selectedSize           // Rozmiar (a4, a3, etc)
+        );
         
         // ✅ USAGE LIMITS: Inkrementuj licznik dla niezalogowanych (zalogowani są inkrementowani w API)
         if (!customerInfo) {
