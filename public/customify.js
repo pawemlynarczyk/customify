@@ -189,7 +189,33 @@ class CustomifyEmbed {
   getAIGenerations() {
     try {
       const stored = localStorage.getItem('customify_ai_generations');
-      return stored ? JSON.parse(stored) : [];
+      if (!stored) return [];
+      
+      const parsed = JSON.parse(stored);
+      
+      // Filtruj tylko generacje z poprawnym formatem base64
+      const validGenerations = parsed.filter(gen => {
+        if (!gen.originalImage || typeof gen.originalImage !== 'string') {
+          console.log('⚠️ [GALLERY] Usuwam generację z niepoprawnym originalImage:', gen.id);
+          return false;
+        }
+        
+        // Sprawdź czy to base64 data URI
+        if (!gen.originalImage.startsWith('data:image/')) {
+          console.log('⚠️ [GALLERY] Usuwam generację bez data URI:', gen.id);
+          return false;
+        }
+        
+        return true;
+      });
+      
+      // Jeśli usunięto jakieś generacje, zapisz tylko poprawne
+      if (validGenerations.length !== parsed.length) {
+        localStorage.setItem('customify_ai_generations', JSON.stringify(validGenerations));
+        console.log(`🧹 [GALLERY] Wyczyszczono ${parsed.length - validGenerations.length} niepoprawnych generacji`);
+      }
+      
+      return validGenerations;
     } catch (error) {
       console.error('❌ [GALLERY] Error loading generations:', error);
       return [];
