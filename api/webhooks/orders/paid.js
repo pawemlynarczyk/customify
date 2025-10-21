@@ -28,15 +28,34 @@ module.exports = async (req, res) => {
       return res.status(500).json({ error: 'No access token' });
     }
     
-    // Ukryj każdy produkt Customify
+    // Ukryj każdy produkt Customify w adminie (nie blokuj zamówień)
     for (const item of customifyProducts) {
       if (item.product_id) {
-        console.log('🔒 [ORDER-PAID-WEBHOOK] Hiding product:', item.product_id);
+        console.log('🔒 [ORDER-PAID-WEBHOOK] Hiding product from admin:', item.product_id);
+        
+        // Najpierw pobierz aktualne tagi produktu
+        const getProductResponse = await fetch(`https://${shop}/admin/api/2023-10/products/${item.product_id}.json`, {
+          headers: {
+            'X-Shopify-Access-Token': accessToken,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (!getProductResponse.ok) {
+          console.error('❌ [ORDER-PAID-WEBHOOK] Failed to get product:', item.product_id);
+          continue;
+        }
+        
+        const productData = await getProductResponse.json();
+        const currentTags = productData.product.tags ? productData.product.tags.split(', ') : [];
+        
+        // Dodaj nowe tagi (nie nadpisuj istniejących)
+        const newTags = [...new Set([...currentTags, 'order-completed', 'hidden-from-admin'])];
         
         const hideData = {
           product: {
             id: parseInt(item.product_id),
-            published: false
+            tags: newTags.join(', ')
           }
         };
         
@@ -50,16 +69,16 @@ module.exports = async (req, res) => {
         });
         
         if (hideResponse.ok) {
-          console.log('✅ [ORDER-PAID-WEBHOOK] Product hidden:', item.product_id);
+          console.log('✅ [ORDER-PAID-WEBHOOK] Product hidden from admin:', item.product_id);
         } else {
-          console.error('❌ [ORDER-PAID-WEBHOOK] Failed to hide product:', item.product_id);
+          console.error('❌ [ORDER-PAID-WEBHOOK] Failed to hide product from admin:', item.product_id);
         }
       }
     }
     
     res.status(200).json({ 
       success: true, 
-      message: 'Customify products hidden after order payment',
+      message: 'Customify products hidden from admin after order payment (still available for reorders)',
       hiddenCount: customifyProducts.length
     });
     
