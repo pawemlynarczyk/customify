@@ -1356,9 +1356,9 @@
     
     <!-- REDIRECT AFTER LOGIN - Przekieruj użytkownika z powrotem na produkt po zalogowaniu -->
     <script>
-      (function() {
-        // Sprawdź czy użytkownik jest zalogowany (Shopify ustawia window.Shopify.customerEmail)
-        const isLoggedIn = window.Shopify && window.Shopify.customerEmail;
+      document.addEventListener('DOMContentLoaded', function() {
+        // Sprawdź czy użytkownik jest zalogowany (Shopify Liquid)
+        const isLoggedIn = {{ customer.id | json }} !== null;
         
         if (isLoggedIn) {
           // Sprawdź czy jest zapisany return URL w localStorage
@@ -1367,17 +1367,22 @@
           if (returnUrl) {
             console.log('🔄 [REDIRECT] Użytkownik zalogowany - znaleziono return URL:', returnUrl);
             
-            // Usuń z localStorage (użyj tylko raz)
-            localStorage.removeItem('customify_return_url');
-            
-            // Małe opóźnienie żeby Shopify zakończył swoje rzeczy
-            setTimeout(() => {
+            // Sprawdź czy NIE jesteśmy już na stronie docelowej (zapobiega pętli)
+            const currentPath = window.location.pathname + window.location.search;
+            if (currentPath !== returnUrl) {
+              // Usuń z localStorage (użyj tylko raz)
+              localStorage.removeItem('customify_return_url');
+              
               console.log('➡️ [REDIRECT] Przekierowuję do:', returnUrl);
               window.location.href = returnUrl;
-            }, 500);
+            } else {
+              // Jesteśmy już na właściwej stronie - wyczyść localStorage
+              localStorage.removeItem('customify_return_url');
+              console.log('✅ [REDIRECT] Już na właściwej stronie - wyczyściłem localStorage');
+            }
           }
         }
-      })();
+      });
     </script>
     
     <!-- KOMPLETNY NAGŁÓWEK CUSTOMIFY -->
