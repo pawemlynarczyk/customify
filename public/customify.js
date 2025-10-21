@@ -303,6 +303,26 @@ class CustomifyEmbed {
               ❌ Anuluj
             </button>
           </div>
+          
+          <div style="
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+          ">
+            <p style="
+              color: #666;
+              font-size: 14px;
+              margin: 0;
+            ">
+              Masz już konto? 
+              <a href="${loginUrl}" style="
+                color: #1565C0;
+                text-decoration: underline;
+                font-weight: bold;
+              ">Zaloguj się tutaj</a>
+            </p>
+          </div>
         </div>
       </div>
     `;
@@ -380,7 +400,7 @@ class CustomifyEmbed {
         ">
           ${remaining > 0 
             ? `🎨 Pozostało ${remaining}/${FREE_LIMIT} darmowych transformacji` 
-            : `❌ Wykorzystano ${FREE_LIMIT}/${FREE_LIMIT} - Zaloguj się dla więcej!`
+            : `❌ Wykorzystano ${FREE_LIMIT}/${FREE_LIMIT} - <a href="/account/login" style="color: #C62828; text-decoration: underline; font-weight: bold;">Zaloguj się dla więcej!</a>`
           }
         </div>
       `;

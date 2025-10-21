@@ -49,69 +49,9 @@
         };
         console.log('✅ [CUSTOMIFY LIQUID] Zalogowany użytkownik:', window.ShopifyCustomer);
       {% else %}
-        // METODA 2: Fallback - sprawdź czy Shopify załadował dane klienta przez JavaScript
+        // Użytkownik niezalogowany
         window.ShopifyCustomer = null;
-        console.log('👤 [CUSTOMIFY LIQUID] Liquid wykrył: niezalogowany');
-        
-        // FALLBACK: Sprawdź czy Shopify Analytics ma dane klienta
-        setTimeout(() => {
-          console.log('🔍 [CUSTOMIFY] === FALLBACK DEBUGGING ===');
-          console.log('🔍 [CUSTOMIFY] window.ShopifyAnalytics:', window.ShopifyAnalytics);
-          console.log('🔍 [CUSTOMIFY] window.Shopify:', window.Shopify);
-          console.log('🔍 [CUSTOMIFY] window.meta:', window.meta);
-          
-          if (window.ShopifyAnalytics && window.ShopifyAnalytics.meta && window.ShopifyAnalytics.meta.page) {
-            const analytics = window.ShopifyAnalytics.meta.page;
-            console.log('🔍 [CUSTOMIFY] ShopifyAnalytics.meta.page:', analytics);
-            
-            // Jeśli customerId istnieje w analytics, użytkownik jest zalogowany
-            if (analytics.customerId) {
-              console.log('✅ [CUSTOMIFY FALLBACK] Zalogowany przez ShopifyAnalytics:', analytics.customerId);
-              window.ShopifyCustomer = {
-                loggedIn: true,
-                id: analytics.customerId,
-                email: 'analytics-user@shopify.com', // Email może być niedostępny
-                firstName: '',
-                lastName: ''
-              };
-            } else {
-              console.log('❌ [CUSTOMIFY FALLBACK] Brak customerId w analytics');
-            }
-          } else {
-            console.log('❌ [CUSTOMIFY FALLBACK] Brak ShopifyAnalytics lub meta.page');
-          }
-          
-          // FALLBACK 2: Sprawdź cookies (z try-catch dla sandboxed error)
-          try {
-            const cookies = document.cookie.split(';').reduce((acc, cookie) => {
-              const [key, value] = cookie.trim().split('=');
-              acc[key] = value;
-              return acc;
-            }, {});
-            
-            console.log('🍪 [CUSTOMIFY] Cookies:', Object.keys(cookies));
-            
-            if (cookies._shopify_y || cookies.customer_id) {
-              console.log('✅ [CUSTOMIFY FALLBACK] Wykryto cookie sesji - użytkownik może być zalogowany');
-            }
-          } catch (error) {
-            console.log('⚠️ [CUSTOMIFY] Cookie access blocked (sandboxed):', error.message);
-          }
-          
-          // FALLBACK 3: Sprawdź inne możliwe źródła customerId
-          if (window.meta && window.meta.customer && window.meta.customer.id) {
-            console.log('✅ [CUSTOMIFY FALLBACK] Zalogowany przez window.meta.customer:', window.meta.customer.id);
-            window.ShopifyCustomer = {
-              loggedIn: true,
-              id: window.meta.customer.id,
-              email: window.meta.customer.email || 'meta-user@shopify.com',
-              firstName: window.meta.customer.firstName || '',
-              lastName: window.meta.customer.lastName || ''
-            };
-          } else {
-            console.log('❌ [CUSTOMIFY FALLBACK] Brak window.meta.customer');
-          }
-        }, 100);
+        console.log('👤 [CUSTOMIFY LIQUID] Użytkownik niezalogowany');
       {% endif %}
     </script>
     
