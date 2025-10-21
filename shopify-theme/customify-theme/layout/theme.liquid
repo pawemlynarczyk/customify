@@ -39,6 +39,7 @@
     <!-- Shopify Customer Info for Customify -->
     <script>
       {% if customer %}
+        // METODA 1: Shopify Liquid (customer object detected)
         window.ShopifyCustomer = {
           loggedIn: true,
           id: {{ customer.id | json }},
@@ -46,10 +47,44 @@
           firstName: {{ customer.first_name | json }},
           lastName: {{ customer.last_name | json }}
         };
-        console.log('✅ [CUSTOMIFY] Zalogowany użytkownik:', window.ShopifyCustomer);
+        console.log('✅ [CUSTOMIFY LIQUID] Zalogowany użytkownik:', window.ShopifyCustomer);
       {% else %}
+        // METODA 2: Fallback - sprawdź czy Shopify załadował dane klienta przez JavaScript
         window.ShopifyCustomer = null;
-        console.log('👤 [CUSTOMIFY] Niezalogowany użytkownik');
+        console.log('👤 [CUSTOMIFY LIQUID] Liquid wykrył: niezalogowany');
+        
+        // FALLBACK: Sprawdź czy Shopify Analytics ma dane klienta
+        setTimeout(() => {
+          if (window.ShopifyAnalytics && window.ShopifyAnalytics.meta && window.ShopifyAnalytics.meta.page) {
+            const analytics = window.ShopifyAnalytics.meta.page;
+            console.log('🔍 [CUSTOMIFY] ShopifyAnalytics:', analytics);
+            
+            // Jeśli customerId istnieje w analytics, użytkownik jest zalogowany
+            if (analytics.customerId) {
+              console.log('✅ [CUSTOMIFY FALLBACK] Zalogowany przez ShopifyAnalytics:', analytics.customerId);
+              window.ShopifyCustomer = {
+                loggedIn: true,
+                id: analytics.customerId,
+                email: 'analytics-user@shopify.com', // Email może być niedostępny
+                firstName: '',
+                lastName: ''
+              };
+            }
+          }
+          
+          // FALLBACK 2: Sprawdź cookies
+          const cookies = document.cookie.split(';').reduce((acc, cookie) => {
+            const [key, value] = cookie.trim().split('=');
+            acc[key] = value;
+            return acc;
+          }, {});
+          
+          console.log('🍪 [CUSTOMIFY] Cookies:', Object.keys(cookies));
+          
+          if (cookies._shopify_y || cookies.customer_id) {
+            console.log('✅ [CUSTOMIFY FALLBACK] Wykryto cookie sesji - użytkownik może być zalogowany');
+          }
+        }, 100);
       {% endif %}
     </script>
     
@@ -1553,7 +1588,7 @@
 
     {% if settings.quick_add or settings.mobile_quick_add %}
       {% render 'quick-add-modal' %}
-          {% endif %}
+    {% endif %}
 
     {% comment %} CUSTOMIFY AI PHOTO CUSTOMIZATION {% endcomment %}
     {% if template contains 'product' %}
