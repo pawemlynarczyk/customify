@@ -374,7 +374,12 @@ class CustomifyEmbed {
         
         // Wyciągnij typ MIME i dane z base64
         const [header, data] = base64String.split(',');
-        const mimeType = header.match(/data:([^;]+)/)[1];
+        const mimeMatch = header.match(/data:([^;]+)/);
+        if (!mimeMatch) {
+          reject(new Error('Invalid base64 data URI format'));
+          return;
+        }
+        const mimeType = mimeMatch[1];
         
         // Konwertuj base64 na binary
         const binaryString = atob(data);
