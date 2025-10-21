@@ -1360,23 +1360,38 @@
       (function() {
         const isLoggedIn = {{ customer.id | json }} !== null;
         const returnUrl = localStorage.getItem('customify_return_url');
+        const timestamp = localStorage.getItem('customify_return_url_timestamp');
+        const currentPath = window.location.pathname;
+        const currentFull = window.location.pathname + window.location.search;
         
-        console.log('🔍 [REDIRECT DEBUG] Zalogowany:', isLoggedIn, 'Return URL:', returnUrl, 'Current:', window.location.href);
+        console.log('═══════════════════════════════════════════');
+        console.log('🔍 [REDIRECT DEBUG] Start');
+        console.log('👤 Zalogowany:', isLoggedIn);
+        console.log('📍 Current pathname:', currentPath);
+        console.log('📍 Current full:', currentFull);
+        console.log('🎯 Return URL from localStorage:', returnUrl);
+        console.log('⏰ Timestamp:', timestamp ? new Date(parseInt(timestamp)).toLocaleString() : 'brak');
+        console.log('═══════════════════════════════════════════');
         
         if (isLoggedIn && returnUrl) {
-          const currentPath = window.location.pathname;
-          
           // Jeśli jesteśmy na /account/* i mamy return URL - przekieruj NATYCHMIAST
           if (currentPath.startsWith('/account')) {
-            console.log('➡️ [REDIRECT] Jestem na /account - przekierowuję do:', returnUrl);
+            console.log('✅ [REDIRECT] WYKRYTO /account - PRZEKIEROWUJĘ DO:', returnUrl);
             localStorage.removeItem('customify_return_url');
+            localStorage.removeItem('customify_return_url_timestamp');
             window.location.replace(returnUrl); // replace() nie dodaje do historii przeglądarki
           } 
           // Jeśli jesteśmy już na stronie produktu - wyczyść localStorage
-          else if (currentPath === returnUrl || window.location.pathname + window.location.search === returnUrl) {
+          else if (currentPath === returnUrl || currentFull === returnUrl) {
             console.log('✅ [REDIRECT] Już na właściwej stronie - czyszczę localStorage');
             localStorage.removeItem('customify_return_url');
+            localStorage.removeItem('customify_return_url_timestamp');
+          } else {
+            console.log('⏸️ [REDIRECT] Nie pasuje żaden warunek - czekam...');
           }
+        } else {
+          if (!isLoggedIn) console.log('❌ [REDIRECT] Nie zalogowany');
+          if (!returnUrl) console.log('❌ [REDIRECT] Brak return URL w localStorage');
         }
       })();
     </script>

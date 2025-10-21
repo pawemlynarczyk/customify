@@ -207,9 +207,17 @@ class CustomifyEmbed {
     // Return URL - wróć na tę samą stronę po rejestracji
     const returnUrl = window.location.pathname + window.location.search;
     
+    // ⚠️ DEBUG: Pokaż dokładnie co zapisujemy
+    console.log('🔍 [DEBUG] window.location.pathname:', window.location.pathname);
+    console.log('🔍 [DEBUG] window.location.search:', window.location.search);
+    console.log('🔍 [DEBUG] returnUrl (złożony):', returnUrl);
+    console.log('🔍 [DEBUG] window.location.href (pełny):', window.location.href);
+    
     // Zapisz return URL w localStorage (Shopify może ignorować return_url parameter)
     localStorage.setItem('customify_return_url', returnUrl);
+    localStorage.setItem('customify_return_url_timestamp', Date.now().toString());
     console.log('💾 [USAGE] Saved return URL to localStorage:', returnUrl);
+    console.log('💾 [USAGE] Timestamp:', Date.now());
     
     const registerUrl = `/account/register?return_url=${encodeURIComponent(returnUrl)}`;
     const loginUrl = `/account/login?return_url=${encodeURIComponent(returnUrl)}`;
