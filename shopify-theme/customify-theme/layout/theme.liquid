@@ -54,6 +54,25 @@
     </script>
     
     <script src="{{ 'customify.js' | asset_url }}" defer></script>
+  
+  <!-- ✅ JAVASCRIPT: Ukryj produkty AI na stronach kolekcji -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Ukryj produkty z "spersonalizowany" w URL
+      const spersonalizowanyProducts = document.querySelectorAll('.custom-collection-card[href*="spersonalizowany"]');
+      spersonalizowanyProducts.forEach(product => {
+        product.style.display = 'none';
+      });
+      
+      // Ukryj produkty z "rozmiar" w URL
+      const rozmiarProducts = document.querySelectorAll('.custom-collection-card[href*="rozmiar"]');
+      rozmiarProducts.forEach(product => {
+        product.style.display = 'none';
+      });
+      
+      console.log('🔒 [PRODUCT HIDING] Ukryto', spersonalizowanyProducts.length + rozmiarProducts.length, 'produktów AI');
+    });
+  </script>
     
     <!-- FIX: CSS dla galerii - TYLKO JEDEN MIEJSCE -->
     <style>
@@ -431,16 +450,16 @@
         display: none !important;
       }
       
-      /* ✅ NOWE: Ukryj produkty z "Spersonalizowany" w tytule (nowe produkty AI) */
-      .product-card:has([data-product-title*="Spersonalizowany"]),
-      .product-card:has([href*="spersonalizowany"]) {
+      /* ✅ NAPRAWIONE: Ukryj produkty z "spersonalizowany" w URL (nowe produkty AI) */
+      .custom-collection-card[href*="spersonalizowany"] {
         display: none !important;
       }
       
-      /* ✅ NOWE: Ukryj produkty z "Rozmiar" (wielkie R) w tytule */
-      .product-card:has([data-product-title*="Rozmiar"]) {
+      /* ✅ NAPRAWIONE: Ukryj produkty z "rozmiar" w URL */
+      .custom-collection-card[href*="rozmiar"] {
         display: none !important;
       }
+      
       
       /* Zachowaj główny produkt Customify widoczny */
       .product-card:has([data-product-title*="Obraz ze zdjęcia w stylu Ghibli"]),
