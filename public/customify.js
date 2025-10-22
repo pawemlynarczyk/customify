@@ -427,8 +427,8 @@ class CustomifyEmbed {
       // Sprawdź format originalImage - bardziej szczegółowo
       if (typeof originalImage === 'string') {
         if (originalImage.startsWith('data:image/')) {
-          // Base64 string
-          console.log('🔄 [GALLERY] Detected base64 string, converting to file...');
+          // Base64 string z prefiksem
+          console.log('🔄 [GALLERY] Detected base64 string with prefix, converting to file...');
           this.base64ToFile(originalImage, 'reused-image.jpg').then(file => {
             this.uploadedFile = file;
             this.showPreview(file);
@@ -446,6 +446,18 @@ class CustomifyEmbed {
             this.hideError();
           }).catch(error => {
             console.error('❌ [GALLERY] Error converting URL to file:', error);
+            this.showError('Błąd podczas ładowania obrazu z galerii.');
+          });
+        } else if (originalImage.startsWith('/9j/') || originalImage.startsWith('iVBORw0KGgo')) {
+          // "Nagi" base64 string (bez prefiksu data:image/)
+          console.log('🔄 [GALLERY] Detected raw base64 string, adding prefix and converting...');
+          const dataUri = `data:image/jpeg;base64,${originalImage}`;
+          this.base64ToFile(dataUri, 'reused-image.jpg').then(file => {
+            this.uploadedFile = file;
+            this.showPreview(file);
+            this.hideError();
+          }).catch(error => {
+            console.error('❌ [GALLERY] Error converting raw base64 to file:', error);
             this.showError('Błąd podczas ładowania obrazu z galerii.');
           });
         } else {
