@@ -399,19 +399,33 @@ class CustomifyEmbed {
    */
   reuseGeneration(generation) {
     console.log('🔄 [GALLERY] Reusing generation:', generation.id);
+    console.log('🔄 [GALLERY] Generation data:', generation);
     
     // Ustaw obraz jako aktualny
     if (generation.originalImage) {
-      // Konwertuj base64 na File object
-      this.base64ToFile(generation.originalImage, 'reused-image.jpg').then(file => {
-        this.uploadedFile = file;
-        this.showPreview(file);
+      // Sprawdź czy to base64 string czy File object
+      if (typeof generation.originalImage === 'string' && generation.originalImage.startsWith('data:image/')) {
+        // Nowy format - base64 string
+        console.log('🔄 [GALLERY] Converting base64 to file...');
+        this.base64ToFile(generation.originalImage, 'reused-image.jpg').then(file => {
+          this.uploadedFile = file;
+          this.showPreview(file);
+          this.hideError();
+        }).catch(error => {
+          console.error('❌ [GALLERY] Error converting base64 to file:', error);
+          this.showError('Błąd podczas ładowania obrazu z galerii.');
+        });
+      } else if (generation.originalImage instanceof File) {
+        // Stary format - File object (bezpośrednio)
+        console.log('🔄 [GALLERY] Using File object directly...');
+        this.uploadedFile = generation.originalImage;
+        this.showPreview(generation.originalImage);
         this.hideError();
-      }).catch(error => {
-        console.error('❌ [GALLERY] Error converting base64 to file:', error);
-        console.log('⚠️ [GALLERY] Stare generacje z nieprawidłowym formatem - wyczyść localStorage lub wygeneruj nową');
-        this.showError('Ta generacja ma stary format. Wygeneruj nowy obraz AI.');
-      });
+      } else {
+        // Nieznany format
+        console.error('❌ [GALLERY] Unknown originalImage format:', typeof generation.originalImage);
+        this.showError('Nieznany format obrazu w galerii.');
+      }
     }
     
     // Ustaw styl
