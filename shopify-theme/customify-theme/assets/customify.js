@@ -446,8 +446,7 @@ class CustomifyEmbed {
       }
     }
 
-    // Pokaż komunikat
-    this.showSuccess('Generacja załadowana! Możesz teraz wykonać transformację.');
+    // Komunikat usunięty - nie potrzebny
   }
 
   /**
