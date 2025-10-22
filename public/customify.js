@@ -357,6 +357,23 @@ class CustomifyEmbed {
   }
 
   /**
+   * Konwertuje URL na File object
+   */
+  urlToFile(url, filename) {
+    return new Promise((resolve, reject) => {
+      fetch(url)
+        .then(response => response.blob())
+        .then(blob => {
+          const file = new File([blob], filename, { type: blob.type });
+          resolve(file);
+        })
+        .catch(error => {
+          reject(error);
+        });
+    });
+  }
+
+  /**
    * Konwertuje base64 na File object
    */
   base64ToFile(base64String, filename) {
@@ -403,7 +420,7 @@ class CustomifyEmbed {
     
     // Ustaw obraz jako aktualny
     if (generation.originalImage) {
-      // Sprawdź czy to base64 string czy File object
+      // Sprawdź format originalImage
       if (typeof generation.originalImage === 'string' && generation.originalImage.startsWith('data:image/')) {
         // Nowy format - base64 string
         console.log('🔄 [GALLERY] Converting base64 to file...');
@@ -421,9 +438,20 @@ class CustomifyEmbed {
         this.uploadedFile = generation.originalImage;
         this.showPreview(generation.originalImage);
         this.hideError();
+      } else if (typeof generation.originalImage === 'string' && generation.originalImage.startsWith('http')) {
+        // Stary format - URL string (konwertuj na File object)
+        console.log('🔄 [GALLERY] Converting URL to file...');
+        this.urlToFile(generation.originalImage, 'reused-image.jpg').then(file => {
+          this.uploadedFile = file;
+          this.showPreview(file);
+          this.hideError();
+        }).catch(error => {
+          console.error('❌ [GALLERY] Error converting URL to file:', error);
+          this.showError('Błąd podczas ładowania obrazu z galerii.');
+        });
       } else {
         // Nieznany format
-        console.error('❌ [GALLERY] Unknown originalImage format:', typeof generation.originalImage);
+        console.error('❌ [GALLERY] Unknown originalImage format:', typeof generation.originalImage, generation.originalImage);
         this.showError('Nieznany format obrazu w galerii.');
       }
     }
