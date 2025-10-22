@@ -231,7 +231,7 @@ class CustomifyEmbed {
 
     // Dodaj nagłówek
     const header = document.createElement('h4');
-    header.textContent = '🎨 Ostatnie generacje';
+    header.textContent = 'Twoje obrazy';
     header.style.cssText = `
       margin: 0 0 15px 0;
       font-size: 1.1rem;
