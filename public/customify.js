@@ -713,38 +713,9 @@ class CustomifyEmbed {
       // Brak komunikatu - użytkownik nie wie ile ma punktów
       // Dopiero po 10 transformacjach pojawi się modal rejestracji
     } else {
-      // Zalogowany - pobierz z API
-      try {
-        const response = await fetch('https://customify-s56o.vercel.app/api/check-usage', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            customerId: customerInfo.customerId,
-            customerAccessToken: customerInfo.customerAccessToken
-          })
-        });
-        
-        const data = await response.json();
-        
-        counterHTML = `
-          <div id="usageCounter" style="
-            background: ${data.remainingCount > 0 ? '#E3F2FD' : '#FFEBEE'};
-            color: ${data.remainingCount > 0 ? '#1565C0' : '#C62828'};
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            text-align: center;
-            font-weight: bold;
-          ">
-            ${data.remainingCount > 0 
-              ? `✅ Zalogowany: ${data.remainingCount}/${data.totalLimit} transformacji` 
-              : `❌ Wykorzystano ${data.totalLimit}/${data.totalLimit} transformacji`
-            }
-          </div>
-        `;
-      } catch (error) {
-        console.error('❌ [USAGE] Błąd pobierania licznika:', error);
-      }
+      // Zalogowany - NIE POKAZUJ komunikatu o kredytach
+      // Użytkownik ma nieograniczone transformacje
+      console.log('🔍 [USAGE] Logged in user - no counter display');
     }
     
     // Wstaw licznik do DOM (przed upload area)
