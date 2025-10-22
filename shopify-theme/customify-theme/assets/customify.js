@@ -417,43 +417,56 @@ class CustomifyEmbed {
   reuseGeneration(generation) {
     console.log('🔄 [GALLERY] Reusing generation:', generation.id);
     console.log('🔄 [GALLERY] Generation data:', generation);
+    console.log('🔄 [GALLERY] originalImage type:', typeof generation.originalImage);
+    console.log('🔄 [GALLERY] originalImage value:', generation.originalImage);
     
     // Ustaw obraz jako aktualny
     if (generation.originalImage) {
-      // Sprawdź format originalImage
-      if (typeof generation.originalImage === 'string' && generation.originalImage.startsWith('data:image/')) {
-        // Nowy format - base64 string
-        console.log('🔄 [GALLERY] Converting base64 to file...');
-        this.base64ToFile(generation.originalImage, 'reused-image.jpg').then(file => {
-          this.uploadedFile = file;
-          this.showPreview(file);
-          this.hideError();
-        }).catch(error => {
-          console.error('❌ [GALLERY] Error converting base64 to file:', error);
-          this.showError('Błąd podczas ładowania obrazu z galerii.');
-        });
-      } else if (generation.originalImage instanceof File) {
-        // Stary format - File object (bezpośrednio)
-        console.log('🔄 [GALLERY] Using File object directly...');
-        this.uploadedFile = generation.originalImage;
-        this.showPreview(generation.originalImage);
+      const originalImage = generation.originalImage;
+      
+      // Sprawdź format originalImage - bardziej szczegółowo
+      if (typeof originalImage === 'string') {
+        if (originalImage.startsWith('data:image/')) {
+          // Base64 string
+          console.log('🔄 [GALLERY] Detected base64 string, converting to file...');
+          this.base64ToFile(originalImage, 'reused-image.jpg').then(file => {
+            this.uploadedFile = file;
+            this.showPreview(file);
+            this.hideError();
+          }).catch(error => {
+            console.error('❌ [GALLERY] Error converting base64 to file:', error);
+            this.showError('Błąd podczas ładowania obrazu z galerii.');
+          });
+        } else if (originalImage.startsWith('http://') || originalImage.startsWith('https://')) {
+          // URL string
+          console.log('🔄 [GALLERY] Detected URL string, converting to file...');
+          this.urlToFile(originalImage, 'reused-image.jpg').then(file => {
+            this.uploadedFile = file;
+            this.showPreview(file);
+            this.hideError();
+          }).catch(error => {
+            console.error('❌ [GALLERY] Error converting URL to file:', error);
+            this.showError('Błąd podczas ładowania obrazu z galerii.');
+          });
+        } else {
+          // Inny string - może być problem z formatem
+          console.error('❌ [GALLERY] String but not base64 or URL:', originalImage.substring(0, 100));
+          this.showError('Nieznany format string w galerii.');
+        }
+      } else if (originalImage instanceof File) {
+        // File object
+        console.log('🔄 [GALLERY] Detected File object, using directly...');
+        this.uploadedFile = originalImage;
+        this.showPreview(originalImage);
         this.hideError();
-      } else if (typeof generation.originalImage === 'string' && generation.originalImage.startsWith('http')) {
-        // Stary format - URL string (konwertuj na File object)
-        console.log('🔄 [GALLERY] Converting URL to file...');
-        this.urlToFile(generation.originalImage, 'reused-image.jpg').then(file => {
-          this.uploadedFile = file;
-          this.showPreview(file);
-          this.hideError();
-        }).catch(error => {
-          console.error('❌ [GALLERY] Error converting URL to file:', error);
-          this.showError('Błąd podczas ładowania obrazu z galerii.');
-        });
       } else {
         // Nieznany format
-        console.error('❌ [GALLERY] Unknown originalImage format:', typeof generation.originalImage, generation.originalImage);
+        console.error('❌ [GALLERY] Unknown originalImage format:', typeof originalImage, originalImage);
         this.showError('Nieznany format obrazu w galerii.');
       }
+    } else {
+      console.error('❌ [GALLERY] No originalImage in generation');
+      this.showError('Brak obrazu w generacji.');
     }
     
     // Ustaw styl
