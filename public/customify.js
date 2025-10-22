@@ -420,50 +420,14 @@ class CustomifyEmbed {
     console.log('🔄 [GALLERY] originalImage type:', typeof generation.originalImage);
     console.log('🔄 [GALLERY] originalImage value:', generation.originalImage);
     
-    // Ustaw obraz jako aktualny
-    if (generation.originalImage) {
-      const originalImage = generation.originalImage;
-      
-      // Sprawdź format originalImage - bardziej szczegółowo
-      if (typeof originalImage === 'string') {
-        if (originalImage.startsWith('data:image/')) {
-          // Base64 string z prefiksem
-          console.log('🔄 [GALLERY] Detected base64 string with prefix, showing in result area...');
-          this.showResult(originalImage);
-          this.hideError();
-        } else if (originalImage.startsWith('http://') || originalImage.startsWith('https://')) {
-          // URL string
-          console.log('🔄 [GALLERY] Detected URL string, showing in result area...');
-          this.showResult(originalImage);
-          this.hideError();
-        } else if (originalImage.startsWith('/9j/') || originalImage.startsWith('iVBORw0KGgo')) {
-          // "Nagi" base64 string (bez prefiksu data:image/)
-          console.log('🔄 [GALLERY] Detected raw base64 string, showing in result area...');
-          const dataUri = `data:image/jpeg;base64,${originalImage}`;
-          this.showResult(dataUri);
-          this.hideError();
-        } else {
-          // Inny string - może być problem z formatem
-          console.error('❌ [GALLERY] String but not base64 or URL:', originalImage.substring(0, 100));
-          this.showError('Nieznany format string w galerii.');
-        }
-      } else if (originalImage instanceof File) {
-        // File object
-        console.log('🔄 [GALLERY] Detected File object, converting to data URL...');
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          this.showResult(e.target.result);
-          this.hideError();
-        };
-        reader.readAsDataURL(originalImage);
-      } else {
-        // Nieznany format
-        console.error('❌ [GALLERY] Unknown originalImage format:', typeof originalImage, originalImage);
-        this.showError('Nieznany format obrazu w galerii.');
-      }
+    // Pokaż wynik AI (transformedImage) w result area
+    if (generation.transformedImage) {
+      console.log('🔄 [GALLERY] Showing AI result in result area:', generation.transformedImage);
+      this.showResult(generation.transformedImage);
+      this.hideError();
     } else {
-      console.error('❌ [GALLERY] No originalImage in generation');
-      this.showError('Brak obrazu w generacji.');
+      console.error('❌ [GALLERY] No transformedImage in generation');
+      this.showError('Brak wyniku AI w generacji.');
     }
     
     // Ustaw styl
