@@ -78,15 +78,28 @@ module.exports = async (req, res) => {
       console.warn('⚠️ [PRODUCTS.JS] No originalProductId provided, using fallback price:', basePrice, 'PLN');
     }
 
-    // Użyj bazowej ceny produktu
-    const totalPrice = basePrice;
-    console.log('💰 [PRODUCTS.JS] Using base price:', totalPrice, 'PLN');
+    // Definicja cen za rozmiary
+    const sizePrices = {
+      'small': 0,
+      'medium': 20,
+      'large': 40,
+      'xlarge': 60
+    };
+
+    // Oblicz cenę całkowitą
+    const sizePrice = sizePrices[size] || 0;
+    const totalPrice = basePrice + sizePrice;
+    
+    console.log('💰 [PRODUCTS.JS] Using base price:', basePrice, 'PLN');
+    console.log('💰 [PRODUCTS.JS] Size price:', sizePrice, 'PLN');
+    console.log('💰 [PRODUCTS.JS] Total price:', totalPrice, 'PLN');
 
     console.log('📦 [PRODUCTS.JS] Creating product with AI image...');
     console.log('💰 [PRODUCTS.JS] Pricing details:', {
       style: style,
       size: size,
       basePrice: basePrice,
+      sizePrice: sizePrice,
       totalPrice: totalPrice,
       shopifyPrice: totalPrice.toFixed(2) + ' PLN' // ✅ Format dla Shopify
     });
@@ -98,7 +111,7 @@ module.exports = async (req, res) => {
         body_html: `
           <p><strong>Spersonalizowany produkt z AI</strong></p>
           <p><strong>Styl:</strong> ${style}</p>
-          <p><strong>Rozmiar:</strong> ${size?.toUpperCase() || 'standardowy'} (+${sizePrices[size] || 0} zł)</p>
+          <p><strong>Rozmiar:</strong> ${size?.toUpperCase() || 'standardowy'} (+${sizePrice} zł)</p>
           <p><strong>Cena bazowa:</strong> ${basePrice} zł</p>
           <p><strong>Cena całkowita:</strong> ${totalPrice} zł</p>
           <p>Twoje zdjęcie zostało przekształcone przez AI w stylu ${style}.</p>
