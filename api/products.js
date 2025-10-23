@@ -33,7 +33,8 @@ module.exports = async (req, res) => {
     style, 
     size, 
     originalProductTitle,
-    originalProductId
+    originalProductId,
+    finalPrice // ✅ Dodano finalPrice z frontendu
   } = req.body;
 
     if (!transformedImage || !style) {
@@ -49,44 +50,51 @@ module.exports = async (req, res) => {
       return res.status(500).json({ error: 'Shopify access token not configured' });
     }
 
-    // ✅ POBIERZ CENĘ BAZOWĄ Z ORYGINALNEGO PRODUKTU SHOPIFY
-    let basePrice = 99.00; // Domyślna cena fallback
+    // ✅ UŻYJ CENY PRZESŁANEJ Z FRONTENDU (już obliczonej z rozmiarem)
+    let totalPrice = 99.00; // Domyślna cena fallback
     
-    if (originalProductId) {
-      try {
-        console.log('💰 [PRODUCTS.JS] Fetching price from original product:', originalProductId);
-        const productResponse = await fetch(`https://${shop}/admin/api/2023-10/products/${originalProductId}.json`, {
-          headers: {
-            'X-Shopify-Access-Token': accessToken,
-            'Content-Type': 'application/json'
-          }
-        });
-        
-        if (productResponse.ok) {
-          const productData = await productResponse.json();
-          const originalPrice = parseFloat(productData.product.variants[0].price);
-          basePrice = originalPrice;
-          console.log('✅ [PRODUCTS.JS] Base price from Shopify:', basePrice, 'PLN');
-        } else {
-          console.warn('⚠️ [PRODUCTS.JS] Could not fetch original product price, using fallback:', basePrice, 'PLN');
-        }
-      } catch (priceError) {
-        console.error('❌ [PRODUCTS.JS] Error fetching price:', priceError.message);
-        console.log('⚠️ [PRODUCTS.JS] Using fallback price:', basePrice, 'PLN');
-      }
+    if (finalPrice && finalPrice > 0) {
+      totalPrice = finalPrice;
+      console.log('✅ [PRODUCTS.JS] Using final price from frontend:', totalPrice, 'PLN');
     } else {
-      console.warn('⚠️ [PRODUCTS.JS] No originalProductId provided, using fallback price:', basePrice, 'PLN');
+      // Fallback: pobierz cenę bazową z oryginalnego produktu
+      let basePrice = 99.00;
+      
+      if (originalProductId) {
+        try {
+          console.log('💰 [PRODUCTS.JS] Fetching base price from original product:', originalProductId);
+          const productResponse = await fetch(`https://${shop}/admin/api/2023-10/products/${originalProductId}.json`, {
+            headers: {
+              'X-Shopify-Access-Token': accessToken,
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          if (productResponse.ok) {
+            const productData = await productResponse.json();
+            const originalPrice = parseFloat(productData.product.variants[0].price);
+            basePrice = originalPrice;
+            console.log('✅ [PRODUCTS.JS] Base price from Shopify:', basePrice, 'PLN');
+          } else {
+            console.warn('⚠️ [PRODUCTS.JS] Could not fetch original product price, using fallback:', basePrice, 'PLN');
+          }
+        } catch (priceError) {
+          console.error('❌ [PRODUCTS.JS] Error fetching price:', priceError.message);
+          console.log('⚠️ [PRODUCTS.JS] Using fallback price:', basePrice, 'PLN');
+        }
+      } else {
+        console.warn('⚠️ [PRODUCTS.JS] No originalProductId provided, using fallback price:', basePrice, 'PLN');
+      }
+      
+      totalPrice = basePrice;
+      console.log('⚠️ [PRODUCTS.JS] Using fallback base price (no size added):', totalPrice, 'PLN');
     }
-
-    // Użyj bazowej ceny produktu
-    const totalPrice = basePrice;
-    console.log('💰 [PRODUCTS.JS] Using base price:', totalPrice, 'PLN');
 
     console.log('📦 [PRODUCTS.JS] Creating product with AI image...');
     console.log('💰 [PRODUCTS.JS] Pricing details:', {
       style: style,
       size: size,
-      basePrice: basePrice,
+      finalPrice: finalPrice,
       totalPrice: totalPrice,
       shopifyPrice: totalPrice.toFixed(2) + ' PLN' // ✅ Format dla Shopify
     });
@@ -99,8 +107,7 @@ module.exports = async (req, res) => {
           <p><strong>Spersonalizowany produkt z AI</strong></p>
           <p><strong>Styl:</strong> ${style}</p>
           <p><strong>Rozmiar:</strong> ${size?.toUpperCase() || 'standardowy'}</p>
-          <p><strong>Cena bazowa:</strong> ${basePrice} zł</p>
-          <p><strong>Cena całkowita:</strong> ${totalPrice} zł</p>
+          <p><strong>Cena całkowita:</strong> ${totalPrice.toFixed(2)} zł</p>
           <p>Twoje zdjęcie zostało przekształcone przez AI w stylu ${style}.</p>
         `,
         vendor: 'Customify',

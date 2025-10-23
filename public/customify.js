@@ -1605,13 +1605,26 @@ class CustomifyEmbed {
       console.log('🆔 [CUSTOMIFY] Original product ID:', productId);
       
 
+      // Oblicz końcową cenę (bazowa + rozmiar)
+      const basePrice = this.originalBasePrice || 99.00;
+      const sizePrice = this.getSizePrice(this.selectedSize);
+      const finalPrice = basePrice + sizePrice;
+      
+      console.log('💰 [CUSTOMIFY] Price calculation:', {
+        basePrice: basePrice,
+        sizePrice: sizePrice,
+        finalPrice: finalPrice,
+        size: this.selectedSize
+      });
+
       const productData = {
         originalImage: await this.fileToBase64(this.uploadedFile),
         transformedImage: this.transformedImage,
         style: this.selectedStyle,
         size: this.selectedSize,
         originalProductTitle: document.querySelector('h1, .product-title, .view-product-title')?.textContent?.trim() || 'Produkt',
-        originalProductId: productId // ✅ Dodano ID produktu do pobrania ceny z Shopify
+        originalProductId: productId, // ✅ Dodano ID produktu do pobrania ceny z Shopify
+        finalPrice: finalPrice // ✅ Przekaż obliczoną cenę do API
       };
 
       console.log('🛒 [CUSTOMIFY] Creating product with data:', productData);
