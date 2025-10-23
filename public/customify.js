@@ -1233,10 +1233,12 @@ class CustomifyEmbed {
         
         if (this.originalBasePrice === null) {
           console.warn('⚠️ [PRICE] Could not extract original base price from:', basePriceText);
-          return;
+          // Fallback - użyj domyślnej ceny
+          this.originalBasePrice = 49.00;
+          console.log(`💰 [PRICE] Using fallback base price: ${this.originalBasePrice} zł`);
+        } else {
+          console.log(`💰 [PRICE] Original base price saved: ${this.originalBasePrice} zł`);
         }
-        
-        console.log(`💰 [PRICE] Original base price saved: ${this.originalBasePrice} zł`);
       }
 
       // Pobierz cenę rozmiaru
@@ -1606,16 +1608,25 @@ class CustomifyEmbed {
       
 
       // Oblicz końcową cenę (bazowa + rozmiar)
-      const basePrice = this.originalBasePrice || 99.00;
+      const basePrice = this.originalBasePrice || 49.00; // Zmieniono fallback na 49 zł
       const sizePrice = this.getSizePrice(this.selectedSize);
       const finalPrice = basePrice + sizePrice;
       
       console.log('💰 [CUSTOMIFY] Price calculation:', {
+        originalBasePrice: this.originalBasePrice,
         basePrice: basePrice,
         sizePrice: sizePrice,
         finalPrice: finalPrice,
-        size: this.selectedSize
+        size: this.selectedSize,
+        selectedSize: this.selectedSize
       });
+      
+      // Sprawdź czy finalPrice jest poprawny
+      if (!finalPrice || finalPrice <= 0) {
+        console.error('❌ [CUSTOMIFY] Invalid finalPrice:', finalPrice);
+        this.showError('Błąd obliczania ceny. Spróbuj ponownie.');
+        return;
+      }
 
       const productData = {
         originalImage: await this.fileToBase64(this.uploadedFile),

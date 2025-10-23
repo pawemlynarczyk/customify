@@ -53,6 +53,13 @@ module.exports = async (req, res) => {
     // ✅ UŻYJ CENY PRZESŁANEJ Z FRONTENDU (już obliczonej z rozmiarem)
     let totalPrice = 99.00; // Domyślna cena fallback
     
+    console.log('🔍 [PRODUCTS.JS] Received data:', {
+      finalPrice: finalPrice,
+      style: style,
+      size: size,
+      originalProductId: originalProductId
+    });
+    
     if (finalPrice && finalPrice > 0) {
       totalPrice = finalPrice;
       console.log('✅ [PRODUCTS.JS] Using final price from frontend:', totalPrice, 'PLN');
