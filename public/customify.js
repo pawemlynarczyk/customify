@@ -1296,6 +1296,28 @@ class CustomifyEmbed {
         finalPrice: finalPrice
       });
       
+      // TEST: Sprawdź czy elementy istnieją w DOM
+      console.log('🔍 [CART PRICE] DOM Test:', {
+        allCustomifyTotalPrice: document.querySelectorAll('#customify-total-price'),
+        allCustomifyPriceAmount: document.querySelectorAll('#customify-price-amount'),
+        bodyContains: document.body.innerHTML.includes('customify-total-price'),
+        actionsArea: document.querySelector('.customify-actions')
+      });
+      
+      // TEST: Sprawdź pozycję elementu
+      if (cartPriceContainer) {
+        console.log('🔍 [CART PRICE] Position Test:', {
+          parentElement: cartPriceContainer.parentElement,
+          nextSibling: cartPriceContainer.nextSibling,
+          previousSibling: cartPriceContainer.previousSibling,
+          offsetTop: cartPriceContainer.offsetTop,
+          offsetLeft: cartPriceContainer.offsetLeft,
+          clientHeight: cartPriceContainer.clientHeight,
+          clientWidth: cartPriceContainer.clientWidth,
+          boundingRect: cartPriceContainer.getBoundingClientRect()
+        });
+      }
+      
       if (cartPriceElement && cartPriceContainer) {
         cartPriceElement.textContent = finalPrice.toFixed(0); // Bez miejsc po przecinku
         
