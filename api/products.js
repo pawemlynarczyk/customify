@@ -98,7 +98,7 @@ module.exports = async (req, res) => {
         body_html: `
           <p><strong>Spersonalizowany produkt z AI</strong></p>
           <p><strong>Styl:</strong> ${style}</p>
-          <p><strong>Rozmiar:</strong> ${size?.toUpperCase() || 'standardowy'} (+${sizePrices[size] || 0} zł)</p>
+          <p><strong>Rozmiar:</strong> ${size?.toUpperCase() || 'standardowy'}</p>
           <p><strong>Cena bazowa:</strong> ${basePrice} zł</p>
           <p><strong>Cena całkowita:</strong> ${totalPrice} zł</p>
           <p>Twoje zdjęcie zostało przekształcone przez AI w stylu ${style}.</p>
