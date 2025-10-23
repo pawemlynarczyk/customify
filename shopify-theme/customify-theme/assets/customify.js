@@ -1052,18 +1052,14 @@ class CustomifyEmbed {
     // Dodaj badge'y do tego samego kontenera
     titleBadgesContainer.appendChild(badgesContainer);
 
-    // PRZENIEŚ CENĘ PO TYTULE Z BADGE'AMI
+    // PRZENIEŚ CENĘ NAD SEKCJĘ "WYBIERZ ROZMIAR"
     setTimeout(() => {
       const priceElement = document.querySelector('product-price');
-      const titleBadgesContainer = document.querySelector('.title-with-badges');
-      if (priceElement && titleBadgesContainer) {
-        // Znajdź kontener flexbox
-        const flexContainer = document.querySelector('.layout-panel-flex');
-        if (flexContainer) {
-          // Przenieś cenę po tytule z badge'ami
-          flexContainer.insertBefore(priceElement, titleBadgesContainer.nextSibling);
-          console.log('🎯 [CUSTOMIFY] Cena przeniesiona po tytule z badge\'ami');
-        }
+      const sizeArea = document.getElementById('sizeArea');
+      if (priceElement && sizeArea) {
+        // Przenieś cenę nad sekcję rozmiarów
+        sizeArea.parentNode.insertBefore(priceElement, sizeArea);
+        console.log('🎯 [CUSTOMIFY] Cena przeniesiona nad sekcję "Wybierz rozmiar"');
       }
     }, 100);
   }
