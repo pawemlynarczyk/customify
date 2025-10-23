@@ -1239,8 +1239,29 @@ class CustomifyEmbed {
       
       console.log(`💰 [PRICE] Updated: ${this.originalBasePrice} + ${sizePrice} = ${finalPrice} zł`);
       
+      // Aktualizuj cenę nad przyciskiem "Dodaj do koszyka"
+      this.updateCartPrice(finalPrice);
+      
     } catch (error) {
       console.error('❌ [PRICE] Error updating product price:', error);
+    }
+  }
+
+  /**
+   * Aktualizuje cenę nad przyciskiem "Dodaj do koszyka"
+   */
+  updateCartPrice(finalPrice) {
+    try {
+      const cartPriceElement = document.getElementById('customify-price-amount');
+      const cartPriceContainer = document.getElementById('customify-total-price');
+      
+      if (cartPriceElement && cartPriceContainer) {
+        cartPriceElement.textContent = finalPrice.toFixed(0); // Bez miejsc po przecinku
+        cartPriceContainer.style.display = 'block';
+        console.log(`💰 [CART PRICE] Updated cart price: ${finalPrice.toFixed(0)} zł`);
+      }
+    } catch (error) {
+      console.error('❌ [CART PRICE] Error updating cart price:', error);
     }
   }
 
