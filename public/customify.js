@@ -1225,25 +1225,29 @@ class CustomifyEmbed {
         return;
       }
 
-      // Pobierz bazową cenę produktu (bez rozmiaru)
-      const basePriceText = priceElement.textContent;
-      const basePrice = this.extractBasePrice(basePriceText);
-      
-      if (basePrice === null) {
-        console.warn('⚠️ [PRICE] Could not extract base price from:', basePriceText);
-        return;
+      // Pobierz oryginalną bazową cenę (zapamiętaj przy pierwszym wywołaniu)
+      if (!this.originalBasePrice) {
+        const basePriceText = priceElement.textContent;
+        this.originalBasePrice = this.extractBasePrice(basePriceText);
+        
+        if (this.originalBasePrice === null) {
+          console.warn('⚠️ [PRICE] Could not extract original base price from:', basePriceText);
+          return;
+        }
+        
+        console.log(`💰 [PRICE] Original base price saved: ${this.originalBasePrice} zł`);
       }
 
       // Pobierz cenę rozmiaru
       const sizePrice = this.getSizePrice(this.selectedSize);
       
-      // Oblicz końcową cenę
-      const finalPrice = basePrice + sizePrice;
+      // Oblicz końcową cenę (oryginalna cena + tylko jeden rozmiar)
+      const finalPrice = this.originalBasePrice + sizePrice;
       
       // Aktualizuj cenę na stronie
       priceElement.textContent = `${finalPrice.toFixed(2)} zł`;
       
-      console.log(`💰 [PRICE] Updated: ${basePrice} + ${sizePrice} = ${finalPrice} zł`);
+      console.log(`💰 [PRICE] Updated: ${this.originalBasePrice} + ${sizePrice} = ${finalPrice} zł`);
       
     } catch (error) {
       console.error('❌ [PRICE] Error updating product price:', error);
