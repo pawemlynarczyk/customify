@@ -1213,8 +1213,8 @@ class CustomifyEmbed {
    */
   updateProductPrice() {
     try {
-      // Znajdź element ceny na stronie produktu
-      const priceElement = document.querySelector('#ProductInformation-template--26707455672645__main > div.group-block.group-block--height-fit.group-block--width-fill.border-style.spacing-style.size-style.customify-title-moved > div.group-block-content.layout-panel-flex.layout-panel-flex--column > product-price > div');
+      // Znajdź element ceny na stronie produktu (przeniesiony nad rozmiary)
+      const priceElement = document.querySelector('product-price div');
       
       if (!priceElement) {
         console.warn('⚠️ [PRICE] Could not find product price element');
