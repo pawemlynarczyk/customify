@@ -45,7 +45,33 @@ module.exports = (req, res) => {
     return;
   }
 
-  // Use multer middleware
+  // Check if request has JSON body (for base64 uploads)
+  if (req.headers['content-type'] === 'application/json') {
+    try {
+      const { image, filename } = req.body;
+      
+      if (!image) {
+        return res.status(400).json({ error: 'No image data provided' });
+      }
+
+      // For base64 uploads, return a temporary URL
+      // In production, you'd save this to a file storage service
+      const imageUrl = `https://customify-s56o.vercel.app/temp/${filename || 'image.png'}`;
+      
+      res.json({ 
+        success: true, 
+        url: imageUrl,
+        imageUrl: imageUrl,
+        filename: filename || 'image.png'
+      });
+    } catch (error) {
+      console.error('JSON upload processing error:', error);
+      res.status(500).json({ error: 'JSON upload processing failed' });
+    }
+    return;
+  }
+
+  // Use multer middleware for multipart uploads
   upload.single('image')(req, res, (err) => {
     if (err) {
       console.error('Upload error:', err);

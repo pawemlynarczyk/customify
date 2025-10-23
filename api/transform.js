@@ -42,6 +42,83 @@ async function urlToBase64(imageUrl) {
   }
 }
 
+// Function to upload base64 image to Vercel and return URL
+async function uploadImageToVercel(imageDataUri) {
+  try {
+    // Convert data URI to base64 string
+    const base64Data = imageDataUri.replace(/^data:image\/[a-z]+;base64,/, '');
+    
+    // Create a simple upload endpoint call to our own API
+    const response = await fetch(`${process.env.VERCEL_URL || 'https://customify-s56o.vercel.app'}/api/upload`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        image: base64Data,
+        filename: `caricature-${Date.now()}.png`
+      })
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Upload failed: ${response.status}`);
+    }
+    
+    const result = await response.json();
+    return result.url || result.imageUrl;
+  } catch (error) {
+    console.error('❌ [UPLOAD] Failed to upload image to Vercel:', error);
+    throw error;
+  }
+}
+
+// Function to handle Segmind Caricature API
+async function segmindCaricature(imageUrl) {
+  const SEGMIND_API_KEY = process.env.SEGMIND_API_KEY;
+  
+  console.log('🔑 [SEGMIND] Checking API key...', SEGMIND_API_KEY ? `Key present (${SEGMIND_API_KEY.substring(0, 10)}...)` : 'KEY MISSING!');
+  
+  if (!SEGMIND_API_KEY) {
+    console.error('❌ [SEGMIND] SEGMIND_API_KEY not found in environment variables!');
+    throw new Error('SEGMIND_API_KEY not configured');
+  }
+
+  console.log('🎭 [SEGMIND] Starting caricature generation...');
+  console.log('🎭 [SEGMIND] Image URL:', imageUrl);
+
+  try {
+    const response = await fetch('https://api.segmind.com/v1/caricature-style', {
+      method: 'POST',
+      headers: {
+        'x-api-key': SEGMIND_API_KEY,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        image: imageUrl,
+        size: "1024x1024",
+        quality: "high",
+        background: "opaque",
+        output_compression: 100,
+        output_format: "png"
+      }),
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      console.log('✅ [SEGMIND] Caricature generated successfully');
+      return result;
+    } else {
+      console.error('❌ [SEGMIND] API Error:', response.status);
+      const errorText = await response.text();
+      console.error('❌ [SEGMIND] Error details:', errorText);
+      throw new Error(`Segmind API error: ${response.status} - ${errorText}`);
+    }
+  } catch (error) {
+    console.error('❌ [SEGMIND] Caricature generation failed:', error);
+    throw error;
+  }
+}
+
 // Function to handle Segmind Faceswap v4
 async function segmindFaceswap(targetImageUrl, swapImageBase64) {
   const SEGMIND_API_KEY = process.env.SEGMIND_API_KEY;
@@ -515,17 +592,19 @@ module.exports = async (req, res) => {
           swap_image: "USER_IMAGE"
         }
       },
-      // Style karykatury - używają nano-banana z 2 obrazkami
+      // Style karykatury - używają Segmind API
       'karykatura': {
-        model: "google/nano-banana",
+        model: "segmind/caricature-style",
         prompt: "Create a caricature portrait based on the uploaded photo. Exaggerate facial features, make it humorous and cartoon-like while maintaining likeness. Use bold lines, vibrant colors, and comedic proportions typical of caricature art.",
-        apiType: "nano-banana",
+        apiType: "segmind-caricature",
         productType: "caricature", // Identyfikator typu produktu
         parameters: {
-          image_input: ["https://customify-s56o.vercel.app/karykat/caricature.png", "USER_IMAGE"],
-          aspect_ratio: "3:4", // Portret pionowy dla druku
-          output_format: "jpg",
-          guidance: 10
+          image: "USER_IMAGE", // URL do obrazu użytkownika
+          size: "1024x1024", // Rozmiar wyjściowy
+          quality: "high", // Jakość wysoką
+          background: "opaque", // Nieprzezroczyste tło
+          output_compression: 100, // Maksymalna kompresja
+          output_format: "png" // Format PNG
         }
       }
     };
@@ -638,8 +717,32 @@ module.exports = async (req, res) => {
     let output;
     let imageUrl;
 
+    // ✅ STYLE KARYKATURY - UŻYWAJ SEGMIND CARICATURE
+    if (config.apiType === 'segmind-caricature') {
+      console.log('🎭 [SEGMIND] Detected caricature style - using Segmind Caricature API');
+      
+      try {
+        // Konwertuj base64 na URL (upload do Vercel)
+        const uploadedImageUrl = await uploadImageToVercel(imageDataUri);
+        console.log('📤 [SEGMIND] Image uploaded to Vercel:', uploadedImageUrl);
+        
+        // Wywołaj Segmind Caricature API
+        const result = await segmindCaricature(uploadedImageUrl);
+        console.log('✅ [SEGMIND] Caricature generation completed successfully');
+        
+        // Zwróć URL do wygenerowanej karykatury
+        imageUrl = result.image || result.output || result.url;
+        if (!imageUrl) {
+          throw new Error('No image URL returned from Segmind API');
+        }
+        
+      } catch (error) {
+        console.error('❌ [SEGMIND] Caricature generation failed:', error);
+        throw error;
+      }
+    }
     // ✅ STYLE KRÓLA - UŻYWAJ SEGMIND FACESWAP
-    if (config.apiType === 'segmind-faceswap') {
+    else if (config.apiType === 'segmind-faceswap') {
       console.log('🎭 [SEGMIND] Detected king style - using Segmind Faceswap v4');
       
       try {
