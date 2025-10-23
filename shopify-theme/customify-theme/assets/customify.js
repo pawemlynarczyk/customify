@@ -155,15 +155,30 @@ class CustomifyEmbed {
   /**
    * Zapisuje generację AI w localStorage
    */
-  saveAIGeneration(originalImage, transformedImage, style, size) {
+  async saveAIGeneration(originalImage, transformedImage, style, size) {
+    console.log('💾 [CACHE] Saving AI generation with base64 cache...');
+    
+    // Konwertuj transformedImage URL na base64 dla cache
+    let thumbnailBase64 = transformedImage; // fallback na URL
+    try {
+      if (transformedImage && (transformedImage.startsWith('http://') || transformedImage.startsWith('https://'))) {
+        console.log('🔄 [CACHE] Converting AI result URL to base64 for cache...');
+        thumbnailBase64 = await this.urlToBase64(transformedImage);
+        console.log('✅ [CACHE] AI result cached as base64');
+      }
+    } catch (error) {
+      console.warn('⚠️ [CACHE] Failed to cache AI result, using URL:', error);
+      // Użyj URL jako fallback
+    }
+
     const generation = {
       id: Date.now(),
       timestamp: new Date().toISOString(),
       originalImage: originalImage, // base64 lub URL
-      transformedImage: transformedImage, // URL do AI obrazu
+      transformedImage: transformedImage, // URL do AI obrazu (zachowaj dla API)
       style: style,
       size: size,
-      thumbnail: transformedImage // dla szybkiego podglądu
+      thumbnail: thumbnailBase64 // base64 cache lub URL fallback
     };
 
     // Pobierz istniejące generacje
@@ -371,6 +386,33 @@ class CustomifyEmbed {
           reject(error);
         });
     });
+  }
+
+  /**
+   * Konwertuje URL na base64 string
+   */
+  async urlToBase64(url) {
+    try {
+      console.log('🔄 [CACHE] Converting URL to base64:', url);
+      const response = await fetch(url);
+      const blob = await response.blob();
+      
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          console.log('✅ [CACHE] URL converted to base64 successfully');
+          resolve(reader.result);
+        };
+        reader.onerror = () => {
+          console.error('❌ [CACHE] Error reading blob to base64');
+          reject(new Error('Failed to convert blob to base64'));
+        };
+        reader.readAsDataURL(blob);
+      });
+    } catch (error) {
+      console.error('❌ [CACHE] Error converting URL to base64:', error);
+      throw error;
+    }
   }
 
   /**
@@ -1204,13 +1246,17 @@ class CustomifyEmbed {
         this.showResult(result.transformedImage);
         this.showSuccess('Teraz wybierz rozmiar obrazu');
         
-        // 🎨 GALERIA: Zapisz generację do localStorage
+        // 🎨 GALERIA: Zapisz generację do localStorage z base64 cache
         this.saveAIGeneration(
           base64,                     // Oryginalne zdjęcie (base64)
           result.transformedImage,    // AI obraz URL
           this.selectedStyle,         // Styl (pixar, boho, etc)
           this.selectedSize           // Rozmiar (a4, a3, etc)
-        );
+        ).then(() => {
+          console.log('✅ [CACHE] AI generation saved with base64 cache');
+        }).catch(error => {
+          console.error('❌ [CACHE] Failed to save AI generation:', error);
+        });
         
         // ✅ USAGE LIMITS: Inkrementuj licznik dla niezalogowanych (zalogowani są inkrementowani w API)
         if (!customerInfo) {
