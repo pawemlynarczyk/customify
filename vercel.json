@@ -97,10 +97,6 @@
     {
       "src": "/api/test-metafield-simple",
       "dest": "/api/test-metafield-simple.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/public/$1"
     }
   ]
 }
