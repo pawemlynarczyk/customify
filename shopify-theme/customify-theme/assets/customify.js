@@ -1328,7 +1328,9 @@ class CustomifyEmbed {
         const addToCartBtn = document.getElementById('addToCartBtn');
         const isAddToCartVisible = addToCartBtn && 
           window.getComputedStyle(addToCartBtn).display !== 'none' &&
-          addToCartBtn.style.display !== 'none';
+          window.getComputedStyle(addToCartBtn).visibility !== 'hidden' &&
+          addToCartBtn.style.display !== 'none' &&
+          addToCartBtn.style.visibility !== 'hidden';
         
         console.log('🔍 [CART PRICE] Add to cart button visibility:', {
           exists: !!addToCartBtn,
