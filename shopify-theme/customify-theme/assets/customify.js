@@ -1255,10 +1255,21 @@ class CustomifyEmbed {
       const cartPriceElement = document.getElementById('customify-price-amount');
       const cartPriceContainer = document.getElementById('customify-total-price');
       
+      console.log('🔍 [CART PRICE] Looking for elements:', {
+        cartPriceElement: cartPriceElement,
+        cartPriceContainer: cartPriceContainer,
+        finalPrice: finalPrice
+      });
+      
       if (cartPriceElement && cartPriceContainer) {
         cartPriceElement.textContent = finalPrice.toFixed(0); // Bez miejsc po przecinku
         cartPriceContainer.style.display = 'block';
         console.log(`💰 [CART PRICE] Updated cart price: ${finalPrice.toFixed(0)} zł`);
+      } else {
+        console.warn('⚠️ [CART PRICE] Elements not found:', {
+          cartPriceElement: !!cartPriceElement,
+          cartPriceContainer: !!cartPriceContainer
+        });
       }
     } catch (error) {
       console.error('❌ [CART PRICE] Error updating cart price:', error);
