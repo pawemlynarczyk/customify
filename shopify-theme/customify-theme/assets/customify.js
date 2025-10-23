@@ -1345,6 +1345,12 @@ class CustomifyEmbed {
           cartPriceContainer.style.visibility = 'visible';
           cartPriceContainer.style.opacity = '1';
           
+          // Dodaj wymiary żeby element był widoczny
+          cartPriceContainer.style.minHeight = '20px';
+          cartPriceContainer.style.padding = '10px';
+          cartPriceContainer.style.backgroundColor = '#f5f5f5';
+          cartPriceContainer.style.borderRadius = '5px';
+          
           // Dodatkowo usuń display: none z atrybutu style
           const currentStyle = cartPriceContainer.getAttribute('style') || '';
           const newStyle = currentStyle.replace(/display\s*:\s*none\s*;?/gi, '').trim();
