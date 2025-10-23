@@ -1570,13 +1570,25 @@ class CustomifyEmbed {
       
       console.log('🆔 [CUSTOMIFY] Original product ID:', productId);
       
+      // Pobierz aktualną cenę z pola ceny na stronie
+      const priceElement = document.querySelector('product-price div');
+      const currentPrice = priceElement ? this.extractBasePrice(priceElement.textContent) : null;
+      
+      if (!currentPrice) {
+        this.showError('Nie można pobrać aktualnej ceny');
+        return;
+      }
+      
+      console.log('💰 [CUSTOMIFY] Current price from UI:', currentPrice);
+
       const productData = {
         originalImage: await this.fileToBase64(this.uploadedFile),
         transformedImage: this.transformedImage,
         style: this.selectedStyle,
         size: this.selectedSize,
         originalProductTitle: document.querySelector('h1, .product-title, .view-product-title')?.textContent?.trim() || 'Produkt',
-        originalProductId: productId // ✅ Dodano ID produktu do pobrania ceny z Shopify
+        originalProductId: productId, // ✅ Dodano ID produktu do pobrania ceny z Shopify
+        currentPrice: currentPrice // ✅ Dodano aktualną cenę z UI
       };
 
       console.log('🛒 [CUSTOMIFY] Creating product with data:', productData);
