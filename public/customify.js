@@ -49,9 +49,6 @@ class CustomifyEmbed {
     this.updateGallery().catch(error => {
       console.error('❌ [GALLERY] Error updating gallery on init:', error);
     });
-    
-    // 💰 CENA: Ustaw domyślny rozmiar i pokaż cenę
-    this.initializeDefaultPrice();
   }
   
   /**
@@ -1217,6 +1214,9 @@ class CustomifyEmbed {
     if (addToCartBtnMain) {
       addToCartBtnMain.style.display = 'inline-block';
     }
+    
+    // 💰 CENA: Ustaw domyślny rozmiar i pokaż cenę
+    this.initializeDefaultPrice();
   }
 
   selectStyle(styleCard) {

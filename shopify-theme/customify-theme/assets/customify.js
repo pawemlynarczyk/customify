@@ -1182,6 +1182,9 @@ class CustomifyEmbed {
     if (addToCartBtnMain) {
       addToCartBtnMain.style.display = 'inline-block';
     }
+    
+    // 💰 CENA: Ustaw domyślny rozmiar i pokaż cenę
+    this.initializeDefaultPrice();
   }
 
   selectStyle(styleCard) {
