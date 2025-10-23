@@ -1325,17 +1325,17 @@ class CustomifyEmbed {
         cartPriceElement.textContent = finalPrice.toFixed(0); // Bez miejsc po przecinku
         
         // Sprawdź czy przycisk "Dodaj do koszyka" jest widoczny
-        const addToCartBtn = document.getElementById('addToCartBtn');
-        const isAddToCartVisible = addToCartBtn && 
-          window.getComputedStyle(addToCartBtn).display !== 'none' &&
-          window.getComputedStyle(addToCartBtn).visibility !== 'hidden' &&
-          addToCartBtn.style.display !== 'none' &&
-          addToCartBtn.style.visibility !== 'hidden';
+        const addToCartBtnMain = document.getElementById('addToCartBtnMain');
+        const isAddToCartVisible = addToCartBtnMain && 
+          window.getComputedStyle(addToCartBtnMain).display !== 'none' &&
+          window.getComputedStyle(addToCartBtnMain).visibility !== 'hidden' &&
+          addToCartBtnMain.style.display !== 'none' &&
+          addToCartBtnMain.style.visibility !== 'hidden';
         
         console.log('🔍 [CART PRICE] Add to cart button visibility:', {
-          exists: !!addToCartBtn,
-          computedDisplay: addToCartBtn ? window.getComputedStyle(addToCartBtn).display : 'N/A',
-          inlineDisplay: addToCartBtn ? addToCartBtn.style.display : 'N/A',
+          exists: !!addToCartBtnMain,
+          computedDisplay: addToCartBtnMain ? window.getComputedStyle(addToCartBtnMain).display : 'N/A',
+          inlineDisplay: addToCartBtnMain ? addToCartBtnMain.style.display : 'N/A',
           isVisible: isAddToCartVisible
         });
         
@@ -1350,14 +1350,14 @@ class CustomifyEmbed {
           const newStyle = currentStyle.replace(/display\s*:\s*none\s*;?/gi, '').trim();
           cartPriceContainer.setAttribute('style', newStyle + '; display: block !important;');
           
-          console.log(`💰 [CART PRICE] Updated cart price: ${finalPrice.toFixed(0)} zł (button visible)`);
+          console.log(`💰 [CART PRICE] Updated cart price: ${finalPrice.toFixed(0)} zł (add to cart button visible)`);
         } else {
           // Ukryj cenę jeśli przycisk "Dodaj do koszyka" nie jest widoczny
           cartPriceContainer.style.display = 'none';
           cartPriceContainer.style.visibility = 'hidden';
           cartPriceContainer.style.opacity = '0';
           
-          console.log('💰 [CART PRICE] Hidden cart price (button not visible)');
+          console.log('💰 [CART PRICE] Hidden cart price (add to cart button not visible)');
         }
         
         console.log('🔍 [CART PRICE] Element styles after update:', {
