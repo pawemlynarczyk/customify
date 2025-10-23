@@ -46,7 +46,9 @@ class CustomifyEmbed {
     
     // 🎨 GALERIA: Załaduj galerię przy starcie (jeśli są zapisane generacje)
     console.log('🎨 [GALLERY] Calling updateGallery from init()');
-    this.updateGallery();
+    this.updateGallery().catch(error => {
+      console.error('❌ [GALLERY] Error updating gallery on init:', error);
+    });
   }
 
   // ===== USAGE LIMITS FUNCTIONS =====
@@ -196,7 +198,9 @@ class CustomifyEmbed {
     console.log('🎨 [GALLERY] Saved AI generation:', generation.id, style, size);
     
     // Odśwież galerię
-    this.updateGallery();
+    this.updateGallery().catch(error => {
+      console.error('❌ [GALLERY] Error updating gallery after save:', error);
+    });
   }
 
   /**
@@ -221,9 +225,12 @@ class CustomifyEmbed {
   /**
    * Aktualizuje galerię ostatnich generacji
    */
-  updateGallery() {
-    const generations = this.getAIGenerations();
-    console.log('🎨 [GALLERY] updateGallery called, generations:', generations.length);
+  async updateGallery() {
+    console.log('🎨 [GALLERY] updateGallery called');
+    
+    // 🧹 CLEANUP: Usuń niedziałające generacje
+    const generations = await this.cleanupBrokenGenerations();
+    console.log('🎨 [GALLERY] After cleanup, generations:', generations.length);
     
     if (generations.length === 0) {
       // Ukryj galerię jeśli brak generacji
@@ -413,6 +420,55 @@ class CustomifyEmbed {
       console.error('❌ [CACHE] Error converting URL to base64:', error);
       throw error;
     }
+  }
+
+  /**
+   * Sprawdza czy URL do obrazu działa
+   */
+  async checkImageUrl(url) {
+    try {
+      const response = await fetch(url, { method: 'HEAD' });
+      return response.ok;
+    } catch (error) {
+      console.log('🔍 [CLEANUP] URL not working:', url);
+      return false;
+    }
+  }
+
+  /**
+   * Usuwa niedziałające generacje z localStorage
+   */
+  async cleanupBrokenGenerations() {
+    console.log('🧹 [CLEANUP] Checking for broken generations...');
+    const generations = this.getAIGenerations();
+    const workingGenerations = [];
+    
+    for (const generation of generations) {
+      // Sprawdź czy thumbnail to URL (nie base64)
+      if (generation.thumbnail && 
+          (generation.thumbnail.startsWith('http://') || generation.thumbnail.startsWith('https://'))) {
+        
+        const isWorking = await this.checkImageUrl(generation.thumbnail);
+        if (isWorking) {
+          workingGenerations.push(generation);
+          console.log('✅ [CLEANUP] Working generation kept:', generation.id);
+        } else {
+          console.log('🗑️ [CLEANUP] Broken generation removed:', generation.id);
+        }
+      } else {
+        // Base64 lub inne formaty - zachowaj
+        workingGenerations.push(generation);
+        console.log('✅ [CLEANUP] Base64 generation kept:', generation.id);
+      }
+    }
+    
+    // Zapisz tylko działające generacje
+    if (workingGenerations.length !== generations.length) {
+      localStorage.setItem('customify_ai_generations', JSON.stringify(workingGenerations));
+      console.log(`🧹 [CLEANUP] Cleaned up: ${generations.length} → ${workingGenerations.length} generations`);
+    }
+    
+    return workingGenerations;
   }
 
   /**
