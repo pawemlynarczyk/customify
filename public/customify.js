@@ -1207,6 +1207,69 @@ class CustomifyEmbed {
     sizeBtn.classList.add('active');
     this.selectedSize = sizeBtn.dataset.size;
     console.log('📏 [SIZE] Selected size:', this.selectedSize);
+    
+    // Aktualizuj cenę na stronie produktu
+    this.updateProductPrice();
+  }
+
+  /**
+   * Aktualizuje cenę na stronie produktu po wyborze rozmiaru
+   */
+  updateProductPrice() {
+    try {
+      // Znajdź element ceny na stronie produktu
+      const priceElement = document.querySelector('#ProductInformation-template--26707455672645__main > div.group-block.group-block--height-fit.group-block--width-fill.border-style.spacing-style.size-style.customify-title-moved > div.group-block-content.layout-panel-flex.layout-panel-flex--column > product-price > div');
+      
+      if (!priceElement) {
+        console.warn('⚠️ [PRICE] Could not find product price element');
+        return;
+      }
+
+      // Pobierz bazową cenę produktu (bez rozmiaru)
+      const basePriceText = priceElement.textContent;
+      const basePrice = this.extractBasePrice(basePriceText);
+      
+      if (basePrice === null) {
+        console.warn('⚠️ [PRICE] Could not extract base price from:', basePriceText);
+        return;
+      }
+
+      // Pobierz cenę rozmiaru
+      const sizePrice = this.getSizePrice(this.selectedSize);
+      
+      // Oblicz końcową cenę
+      const finalPrice = basePrice + sizePrice;
+      
+      // Aktualizuj cenę na stronie
+      priceElement.textContent = `${finalPrice.toFixed(2)} zł`;
+      
+      console.log(`💰 [PRICE] Updated: ${basePrice} + ${sizePrice} = ${finalPrice} zł`);
+      
+    } catch (error) {
+      console.error('❌ [PRICE] Error updating product price:', error);
+    }
+  }
+
+  /**
+   * Wyciąga bazową cenę z tekstu ceny
+   */
+  extractBasePrice(priceText) {
+    // Usuń "zł" i spacje, znajdź liczbę
+    const match = priceText.match(/(\d+(?:\.\d+)?)/);
+    return match ? parseFloat(match[1]) : null;
+  }
+
+  /**
+   * Zwraca cenę dla wybranego rozmiaru
+   */
+  getSizePrice(size) {
+    const prices = {
+      'a4': 49,
+      'a3': 99,
+      'a2': 149,
+      'a1': 199
+    };
+    return prices[size] || 0;
   }
 
   async transformImage(retryCount = 0) {
