@@ -12,91 +12,23 @@
     },
     {
       "src": "/install",
-      "dest": "/api/install.js"
+      "dest": "/api/install"
     },
     {
       "src": "/status",
-      "dest": "/api/status.js"
-    },
-    {
-      "src": "/api/status",
-      "dest": "/api/status.js"
+      "dest": "/api/status"
     },
     {
       "src": "/test",
-      "dest": "/api/test.js"
+      "dest": "/api/test"
     },
     {
       "src": "/auth",
-      "dest": "/api/auth.js"
+      "dest": "/api/auth"
     },
     {
       "src": "/auth/callback",
-      "dest": "/api/auth/callback.js"
-    },
-    {
-      "src": "/api/upload",
-      "dest": "/api/upload.js"
-    },
-    {
-      "src": "/api/transform",
-      "dest": "/api/transform.js"
-    },
-    {
-      "src": "/api/products",
-      "dest": "/api/products.js"
-    },
-    {
-      "src": "/api/hide-product",
-      "dest": "/api/hide-product.js"
-    },
-    {
-      "src": "/api/webhooks/customers/data-request",
-      "dest": "/api/webhooks/customers/data-request.js"
-    },
-    {
-      "src": "/api/webhooks/customers/redact",
-      "dest": "/api/webhooks/customers/redact.js"
-    },
-    {
-      "src": "/api/webhooks/shop/redact",
-      "dest": "/api/webhooks/shop/redact.js"
-    },
-    {
-      "src": "/api/webhooks/orders/paid",
-      "dest": "/api/webhooks/orders/paid.js"
-    },
-    {
-      "src": "/api/update-theme-simple",
-      "dest": "/api/update-theme-simple.js"
-    },
-    {
-      "src": "/api/setup-webhook",
-      "dest": "/api/setup-webhook.js"
-    },
-    {
-      "src": "/api/create-products",
-      "dest": "/api/create-products.js"
-    },
-    {
-      "src": "/api/setup-metafield",
-      "dest": "/api/setup-metafield.js"
-    },
-    {
-      "src": "/api/check-usage",
-      "dest": "/api/check-usage.js"
-    },
-    {
-      "src": "/api/increment-usage",
-      "dest": "/api/increment-usage.js"
-    },
-    {
-      "src": "/api/fix-metafield",
-      "dest": "/api/fix-metafield.js"
-    },
-    {
-      "src": "/api/test-metafield-simple",
-      "dest": "/api/test-metafield-simple.js"
+      "dest": "/api/auth/callback"
     },
     {
       "src": "/(.*)",

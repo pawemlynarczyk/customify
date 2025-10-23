@@ -4,12 +4,13 @@
   "description": "Shopify custom app with AI-powered product customization",
   "main": "api/install.js",
   "scripts": {
-    "start": "vercel dev",
-    "dev": "vercel dev",
+    "start": "node api/status.js",
+    "dev": "node api/status.js",
     "build": "echo 'No build step required'",
     "vercel-build": "echo 'Vercel build completed'",
     "sync-theme": "node sync-theme-files.js",
-    "deploy": "node deploy-optimized-theme.js"
+    "deploy": "node deploy-optimized-theme.js",
+    "vercel-dev": "vercel dev"
   },
   "keywords": [
     "shopify",
