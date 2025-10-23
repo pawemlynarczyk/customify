@@ -27,15 +27,14 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const { 
-      originalImage, 
-      transformedImage, 
-      style, 
-      size, 
-      originalProductTitle,
-      originalProductId,
-      currentPrice // ✅ Dodano aktualną cenę z UI
-    } = req.body;
+  const { 
+    originalImage, 
+    transformedImage, 
+    style, 
+    size, 
+    originalProductTitle,
+    originalProductId
+  } = req.body;
 
     if (!transformedImage || !style) {
       return res.status(400).json({ 
@@ -79,30 +78,14 @@ module.exports = async (req, res) => {
       console.warn('⚠️ [PRODUCTS.JS] No originalProductId provided, using fallback price:', basePrice, 'PLN');
     }
 
-    // Użyj aktualnej ceny z UI zamiast obliczać
-    let totalPrice;
-    if (currentPrice && !isNaN(currentPrice)) {
-      totalPrice = parseFloat(currentPrice);
-      console.log('💰 [PRODUCTS.JS] Using current price from UI:', totalPrice, 'PLN');
-    } else {
-      // Fallback: Dopłaty za rozmiary (style nie wpływają na cenę)
-      const sizePrices = {
-        'a5': 30,
-        'a4': 89,
-        'a3': 139,
-        'a2': 189
-      };
-
-      const sizePrice = sizePrices[size] || 0;
-      totalPrice = parseFloat((basePrice + sizePrice).toFixed(2)); // ✅ Naprawia floating point error (29.99 + 25 = 54.989999999999995)
-      console.log('💰 [PRODUCTS.JS] Using calculated price (fallback):', totalPrice, 'PLN');
-    }
+    // Użyj bazowej ceny produktu
+    const totalPrice = basePrice;
+    console.log('💰 [PRODUCTS.JS] Using base price:', totalPrice, 'PLN');
 
     console.log('📦 [PRODUCTS.JS] Creating product with AI image...');
     console.log('💰 [PRODUCTS.JS] Pricing details:', {
       style: style,
       size: size,
-      currentPrice: currentPrice,
       basePrice: basePrice,
       totalPrice: totalPrice,
       shopifyPrice: totalPrice.toFixed(2) + ' PLN' // ✅ Format dla Shopify

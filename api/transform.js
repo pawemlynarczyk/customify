@@ -514,6 +514,19 @@ module.exports = async (req, res) => {
           target_image: "https://customify-s56o.vercel.app/krol/krol_4.png",
           swap_image: "USER_IMAGE"
         }
+      },
+      // Style karykatury - używają nano-banana z 2 obrazkami
+      'karykatura': {
+        model: "google/nano-banana",
+        prompt: "Create a caricature portrait based on the uploaded photo. Exaggerate facial features, make it humorous and cartoon-like while maintaining likeness. Use bold lines, vibrant colors, and comedic proportions typical of caricature art.",
+        apiType: "nano-banana",
+        productType: "caricature", // Identyfikator typu produktu
+        parameters: {
+          image_input: ["https://customify-s56o.vercel.app/karykat/caricature.png", "USER_IMAGE"],
+          aspect_ratio: "3:4", // Portret pionowy dla druku
+          output_format: "jpg",
+          guidance: 10
+        }
       }
     };
 

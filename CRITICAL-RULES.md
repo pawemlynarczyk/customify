@@ -35,6 +35,36 @@
 - NIE ignoruj błędów 404
 - NIE zostawiaj aplikacji niewidocznej
 
+## 💰 ZASADA SYSTEMU CEN ROZMIARÓW:
+
+### **CENY ROZMIARÓW:**
+- **A4 (20×30 cm):** +49 zł
+- **A3 (30×40 cm):** +99 zł  
+- **A2 (40×60 cm):** +149 zł
+- **A1 (60×85 cm):** +199 zł
+
+### **LOGIKA CENOWA:**
+- **Cena końcowa = Cena bazowa produktu + Cena rozmiaru**
+- **Cena bazowa** pobierana z oryginalnego produktu Shopify:
+  - Boho: 49 zł
+  - Król: 99 zł
+  - Koty: 69 zł
+- **Przy starcie** automatycznie wybiera A4 i aktualizuje cenę
+- **Po kliknięciu rozmiaru** cena natychmiast się aktualizuje
+- **Wyświetlanie** w głównym polu produktu (`product-price div`)
+
+### **FUNKCJE JAVASCRIPT:**
+- `updateProductPrice()` - aktualizuje cenę na stronie
+- `getSizePrice()` - zwraca cenę dla rozmiaru
+- `extractBasePrice()` - wyciąga bazową cenę z tekstu
+- `initializeDefaultPrice()` - ustawia domyślny A4 przy starcie
+
+### **PRZYKŁADY CEN:**
+- Boho A4: 49 + 49 = **98 zł**
+- Boho A3: 49 + 99 = **148 zł**
+- Król A2: 99 + 149 = **248 zł**
+- Koty A1: 69 + 199 = **268 zł**
+
 ## 🎯 ZASADA KONFIGURACJI STYLÓW AI:
 
 ### **RÓŻNICE MIĘDZY TYPAMI STYLÓW:**
@@ -107,11 +137,77 @@ const styleConfig = {
 ```
 
 ### **Zasady dodawania nowych stylów:**
-1. **Dodaj do `styleConfig`** z wszystkimi wymaganymi polami
-2. **Ustaw `apiType`** (nano-banana, replicate, openai, etc.)
-3. **Zdefiniuj `parameters`** specyficzne dla danego API
-4. **Dodaj logikę** w sekcji wykonywania modeli jeśli potrzeba
-5. **Przetestuj** z różnymi obrazkami
+
+#### **🎯 KROK 1: Dodaj konfigurację w `api/transform.js`**
+```javascript
+// W sekcji styleConfig dodaj nowy styl:
+'nazwa-stylu': {
+  model: "google/nano-banana",           // Model AI
+  prompt: "Prompt dla AI...",            // Prompt tekstowy
+  apiType: "nano-banana",                // Typ API
+  productType: "typ-produktu",           // "cats", "boho", "king", "other"
+  parameters: {
+    image_input: ["URL_MINIATURKI", "USER_IMAGE"], // Dla stylów z miniaturką
+    aspect_ratio: "3:4",                 // ZAWSZE pionowy dla druku
+    output_format: "jpg",
+    guidance: 10
+  }
+}
+```
+
+#### **🎯 KROK 2: Dodaj miniaturkę do katalogu `public/`**
+- **Lokalizacja**: `public/nazwa-kategorii/nazwa-stylu.png`
+- **Format**: PNG lub JPG
+- **Rozmiar**: 3:4 (pionowy portret)
+- **Przykład**: `public/koty/nowy-styl.png`
+
+#### **🎯 KROK 3: Dodaj HTML w `theme.liquid`**
+```liquid
+<!-- W sekcji customify-style-grid, dodaj nowy styl: -->
+<div class="customify-style-card" data-style="nazwa-stylu">
+  <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/kategoria/nazwa-stylu.png'); background-size: cover; background-position: center;"></div>
+  <div class="style-info">
+    <div class="style-name">Nazwa Stylu</div>
+  </div>
+</div>
+```
+
+#### **🎯 KROK 4: Filtruj style per produkt (opcjonalnie)**
+```liquid
+{% if product.handle == 'nazwa-produktu' %}
+  <!-- Style tylko dla tego produktu -->
+{% elsif product.handle == 'inny-produkt' %}
+  <!-- Style dla innego produktu -->
+{% else %}
+  <!-- Style domyślne dla wszystkich -->
+{% endif %}
+```
+
+#### **🎯 KROK 5: Typy stylów z miniaturkami**
+
+**🐱 STYLE KOTÓW (productType: "cats"):**
+- **Miniaturka**: Obraz kota w stylu (np. królewski, na tronie)
+- **API**: Nano Banana z 2 obrazkami
+- **Format**: `image_input: ["URL_MINIATURKI", "USER_IMAGE"]`
+- **Prompt**: "Analyze and identify the exact breed characteristics..."
+
+**👑 STYLE KRÓLA (productType: "king"):**
+- **Miniaturka**: Obraz króla w stylu (np. królewski, majestatyczny)
+- **API**: Segmind Faceswap v4
+- **Format**: `target_image: "URL_MINIATURKI", swap_image: "USER_IMAGE"`
+- **Prompt**: Brak (face-swap automatyczny)
+
+**🎨 STYLE BOHO (productType: "boho"):**
+- **Miniaturka**: Brak (tylko zdjęcie użytkownika)
+- **API**: Nano Banana z 1 obrazkiem
+- **Format**: `image_input: ["USER_IMAGE"]`
+- **Prompt**: "Create a very minimalist portrait illustration..."
+
+#### **🎯 KROK 6: Testowanie**
+1. **Przetestuj** z różnymi obrazkami
+2. **Sprawdź** czy miniaturka się ładuje
+3. **Zweryfikuj** czy styl działa w aplikacji
+4. **Deploy** zmiany na Vercel
 
 ---
 

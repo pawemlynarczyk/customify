@@ -49,7 +49,11 @@ class CustomifyEmbed {
     this.updateGallery().catch(error => {
       console.error('❌ [GALLERY] Error updating gallery on init:', error);
     });
+    
+    // 💰 CENA: Ustaw domyślny rozmiar i aktualizuj cenę
+    this.initializeDefaultPrice();
   }
+  
 
   // ===== USAGE LIMITS FUNCTIONS =====
   
@@ -622,11 +626,17 @@ class CustomifyEmbed {
     const fullReturnUrl = window.location.origin + returnUrl;
     console.log('🌐 [DEBUG] Full return URL:', fullReturnUrl);
     
-    const registerUrl = `/account/register?return_url=${encodeURIComponent(fullReturnUrl)}`;
-    const loginUrl = `/account/login?return_url=${encodeURIComponent(fullReturnUrl)}`;
+    // Shopify Customer Account może wymagać specjalnego formatu return_url
+    const encodedReturnUrl = encodeURIComponent(fullReturnUrl);
+    console.log('🔐 [DEBUG] Encoded return URL:', encodedReturnUrl);
+    
+    const registerUrl = `/account/register?return_url=${encodedReturnUrl}`;
+    const loginUrl = `/account/login?return_url=${encodedReturnUrl}`;
     
     console.log('🔗 [DEBUG] Register URL:', registerUrl);
     console.log('🔗 [DEBUG] Login URL:', loginUrl);
+    console.log('🔗 [DEBUG] Register URL (decoded):', decodeURIComponent(registerUrl));
+    console.log('🔗 [DEBUG] Login URL (decoded):', decodeURIComponent(loginUrl));
     
     const modalHTML = `
       <div id="loginModal" style="
@@ -1159,15 +1169,6 @@ class CustomifyEmbed {
         if (resetBtn) {
           resetBtn.style.display = 'inline-block';
         }
-        
-        // Ukryj cenę po wgraniu zdjęcia (gdy przycisk "Dodaj do koszyka" jest ukryty)
-        const cartPriceContainer = document.getElementById('customify-total-price');
-        if (cartPriceContainer) {
-          cartPriceContainer.style.display = 'none';
-          cartPriceContainer.style.visibility = 'hidden';
-          cartPriceContainer.style.opacity = '0';
-          console.log('💰 [CART PRICE] Hidden cart price after image upload');
-        }
       };
       
       img.onerror = () => {
@@ -1192,34 +1193,6 @@ class CustomifyEmbed {
       addToCartBtnMain.style.display = 'inline-block';
     }
     
-    // 💰 CENA: Ustaw domyślny rozmiar i pokaż cenę
-    this.initializeDefaultPrice();
-  }
-
-  /**
-   * Inicjalizuje domyślną cenę przy starcie aplikacji
-   */
-  initializeDefaultPrice() {
-    try {
-      // Znajdź pierwszy dostępny rozmiar (domyślnie A4)
-      const defaultSizeBtn = this.sizeArea?.querySelector('[data-size="a4"]') || 
-                            this.sizeArea?.querySelector('.customify-size-btn');
-      
-      if (defaultSizeBtn) {
-        // Ustaw domyślny rozmiar
-        this.selectedSize = defaultSizeBtn.dataset.size;
-        defaultSizeBtn.classList.add('active');
-        
-        console.log('💰 [INIT] Default size selected:', this.selectedSize);
-        
-        // Aktualizuj cenę
-        this.updateProductPrice();
-      } else {
-        console.warn('⚠️ [INIT] No size buttons found for default price');
-      }
-    } catch (error) {
-      console.error('❌ [INIT] Error initializing default price:', error);
-    }
   }
 
   selectStyle(styleCard) {
@@ -1236,7 +1209,7 @@ class CustomifyEmbed {
     this.selectedSize = sizeBtn.dataset.size;
     console.log('📏 [SIZE] Selected size:', this.selectedSize);
     
-    // Aktualizuj cenę na stronie produktu
+    // Aktualizuj cenę po wyborze rozmiaru
     this.updateProductPrice();
   }
 
@@ -1245,11 +1218,11 @@ class CustomifyEmbed {
    */
   updateProductPrice() {
     try {
-      // Znajdź element ceny na stronie produktu (przeniesiony nad rozmiary)
+      // Znajdź element ceny na stronie produktu
       const priceElement = document.querySelector('product-price div');
       
       if (!priceElement) {
-        console.warn('⚠️ [PRICE] Could not find product price element');
+        console.warn('⚠️ [PRICE] Price element not found');
         return;
       }
 
@@ -1277,110 +1250,8 @@ class CustomifyEmbed {
       
       console.log(`💰 [PRICE] Updated: ${this.originalBasePrice} + ${sizePrice} = ${finalPrice} zł`);
       
-      // Aktualizuj cenę nad przyciskiem "Dodaj do koszyka"
-      this.updateCartPrice(finalPrice);
-      
     } catch (error) {
       console.error('❌ [PRICE] Error updating product price:', error);
-    }
-  }
-
-  /**
-   * Aktualizuje cenę nad przyciskiem "Dodaj do koszyka"
-   */
-  updateCartPrice(finalPrice) {
-    try {
-      const cartPriceElement = document.getElementById('customify-price-amount');
-      const cartPriceContainer = document.getElementById('customify-total-price');
-      
-      console.log('🔍 [CART PRICE] Looking for elements:', {
-        cartPriceElement: cartPriceElement,
-        cartPriceContainer: cartPriceContainer,
-        finalPrice: finalPrice
-      });
-      
-      // TEST: Sprawdź czy elementy istnieją w DOM
-      console.log('🔍 [CART PRICE] DOM Test:', {
-        allCustomifyTotalPrice: document.querySelectorAll('#customify-total-price'),
-        allCustomifyPriceAmount: document.querySelectorAll('#customify-price-amount'),
-        bodyContains: document.body.innerHTML.includes('customify-total-price'),
-        actionsArea: document.querySelector('.customify-actions')
-      });
-      
-      // TEST: Sprawdź pozycję elementu
-      if (cartPriceContainer) {
-        console.log('🔍 [CART PRICE] Position Test:', {
-          parentElement: cartPriceContainer.parentElement,
-          nextSibling: cartPriceContainer.nextSibling,
-          previousSibling: cartPriceContainer.previousSibling,
-          offsetTop: cartPriceContainer.offsetTop,
-          offsetLeft: cartPriceContainer.offsetLeft,
-          clientHeight: cartPriceContainer.clientHeight,
-          clientWidth: cartPriceContainer.clientWidth,
-          boundingRect: cartPriceContainer.getBoundingClientRect()
-        });
-      }
-      
-      if (cartPriceElement && cartPriceContainer) {
-        cartPriceElement.textContent = finalPrice.toFixed(0); // Bez miejsc po przecinku
-        
-        // Sprawdź czy przycisk "Dodaj do koszyka" jest widoczny
-        const addToCartBtnMain = document.getElementById('addToCartBtnMain');
-        const isAddToCartVisible = addToCartBtnMain && 
-          window.getComputedStyle(addToCartBtnMain).display !== 'none' &&
-          window.getComputedStyle(addToCartBtnMain).visibility !== 'hidden' &&
-          addToCartBtnMain.style.display !== 'none' &&
-          addToCartBtnMain.style.visibility !== 'hidden';
-        
-        console.log('🔍 [CART PRICE] Add to cart button visibility:', {
-          exists: !!addToCartBtnMain,
-          computedDisplay: addToCartBtnMain ? window.getComputedStyle(addToCartBtnMain).display : 'N/A',
-          inlineDisplay: addToCartBtnMain ? addToCartBtnMain.style.display : 'N/A',
-          isVisible: isAddToCartVisible
-        });
-        
-        // Pokaż cenę TYLKO jeśli przycisk "Dodaj do koszyka" jest widoczny
-        if (isAddToCartVisible) {
-          cartPriceContainer.style.display = 'block';
-          cartPriceContainer.style.visibility = 'visible';
-          cartPriceContainer.style.opacity = '1';
-          
-          // Dodaj wymiary żeby element był widoczny
-          cartPriceContainer.style.minHeight = '20px';
-          cartPriceContainer.style.padding = '10px';
-          cartPriceContainer.style.backgroundColor = '#f5f5f5';
-          cartPriceContainer.style.borderRadius = '5px';
-          
-          // Dodatkowo usuń display: none z atrybutu style
-          const currentStyle = cartPriceContainer.getAttribute('style') || '';
-          const newStyle = currentStyle.replace(/display\s*:\s*none\s*;?/gi, '').trim();
-          cartPriceContainer.setAttribute('style', newStyle + '; display: block !important;');
-          
-          console.log(`💰 [CART PRICE] Updated cart price: ${finalPrice.toFixed(0)} zł (add to cart button visible)`);
-        } else {
-          // Ukryj cenę jeśli przycisk "Dodaj do koszyka" nie jest widoczny
-          cartPriceContainer.style.display = 'none';
-          cartPriceContainer.style.visibility = 'hidden';
-          cartPriceContainer.style.opacity = '0';
-          
-          console.log('💰 [CART PRICE] Hidden cart price (add to cart button not visible)');
-        }
-        
-        console.log('🔍 [CART PRICE] Element styles after update:', {
-          display: cartPriceContainer.style.display,
-          visibility: cartPriceContainer.style.visibility,
-          opacity: cartPriceContainer.style.opacity,
-          computedDisplay: window.getComputedStyle(cartPriceContainer).display,
-          styleAttribute: cartPriceContainer.getAttribute('style')
-        });
-      } else {
-        console.warn('⚠️ [CART PRICE] Elements not found:', {
-          cartPriceElement: !!cartPriceElement,
-          cartPriceContainer: !!cartPriceContainer
-        });
-      }
-    } catch (error) {
-      console.error('❌ [CART PRICE] Error updating cart price:', error);
     }
   }
 
@@ -1405,6 +1276,35 @@ class CustomifyEmbed {
     };
     return prices[size] || 0;
   }
+
+  /**
+   * Inicjalizuje domyślny rozmiar i cenę przy starcie aplikacji
+   */
+  initializeDefaultPrice() {
+    try {
+      // Znajdź pierwszy dostępny rozmiar (domyślnie A4)
+      const defaultSizeBtn = this.sizeArea?.querySelector('[data-size="a4"]') || 
+                            this.sizeArea?.querySelector('.customify-size-btn');
+      
+      if (defaultSizeBtn) {
+        // Ustaw domyślny rozmiar
+        this.selectedSize = defaultSizeBtn.dataset.size;
+        defaultSizeBtn.classList.add('active');
+        
+        console.log('💰 [INIT] Default size selected:', this.selectedSize);
+        
+        // Aktualizuj cenę
+        this.updateProductPrice();
+      } else {
+        console.warn('⚠️ [INIT] No size buttons found for default price');
+      }
+    } catch (error) {
+      console.error('❌ [INIT] Error initializing default price:', error);
+    }
+  }
+
+
+
 
   async transformImage(retryCount = 0) {
     if (!this.uploadedFile || !this.selectedStyle) {
@@ -1704,16 +1604,6 @@ class CustomifyEmbed {
       
       console.log('🆔 [CUSTOMIFY] Original product ID:', productId);
       
-      // Pobierz aktualną cenę z pola ceny na stronie
-      const priceElement = document.querySelector('product-price div');
-      const currentPrice = priceElement ? this.extractBasePrice(priceElement.textContent) : null;
-      
-      if (!currentPrice) {
-        this.showError('Nie można pobrać aktualnej ceny');
-        return;
-      }
-      
-      console.log('💰 [CUSTOMIFY] Current price from UI:', currentPrice);
 
       const productData = {
         originalImage: await this.fileToBase64(this.uploadedFile),
@@ -1721,8 +1611,7 @@ class CustomifyEmbed {
         style: this.selectedStyle,
         size: this.selectedSize,
         originalProductTitle: document.querySelector('h1, .product-title, .view-product-title')?.textContent?.trim() || 'Produkt',
-        originalProductId: productId, // ✅ Dodano ID produktu do pobrania ceny z Shopify
-        currentPrice: currentPrice // ✅ Dodano aktualną cenę z UI
+        originalProductId: productId // ✅ Dodano ID produktu do pobrania ceny z Shopify
       };
 
       console.log('🛒 [CUSTOMIFY] Creating product with data:', productData);
@@ -1974,15 +1863,6 @@ class CustomifyEmbed {
     }
     if (resetBtn) {
       resetBtn.style.display = 'none';
-    }
-    
-    // Pokaż cenę po resecie (gdy przycisk "Dodaj do koszyka" jest widoczny)
-    const cartPriceContainer = document.getElementById('customify-total-price');
-    if (cartPriceContainer) {
-      cartPriceContainer.style.display = 'block';
-      cartPriceContainer.style.visibility = 'visible';
-      cartPriceContainer.style.opacity = '1';
-      console.log('💰 [CART PRICE] Showed cart price after reset');
     }
     
     // Przywróć kolory przycisków do stanu początkowego

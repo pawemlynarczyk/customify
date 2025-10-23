@@ -49,33 +49,11 @@ class CustomifyEmbed {
     this.updateGallery().catch(error => {
       console.error('❌ [GALLERY] Error updating gallery on init:', error);
     });
+    
+    // 💰 CENA: Ustaw domyślny rozmiar i aktualizuj cenę
+    this.initializeDefaultPrice();
   }
   
-  /**
-   * Inicjalizuje domyślną cenę przy starcie aplikacji
-   */
-  initializeDefaultPrice() {
-    try {
-      // Znajdź pierwszy dostępny rozmiar (domyślnie A4)
-      const defaultSizeBtn = this.sizeArea?.querySelector('[data-size="a4"]') || 
-                            this.sizeArea?.querySelector('.customify-size-btn');
-      
-      if (defaultSizeBtn) {
-        // Ustaw domyślny rozmiar
-        this.selectedSize = defaultSizeBtn.dataset.size;
-        defaultSizeBtn.classList.add('active');
-        
-        console.log('💰 [INIT] Default size selected:', this.selectedSize);
-        
-        // Aktualizuj cenę
-        this.updateProductPrice();
-      } else {
-        console.warn('⚠️ [INIT] No size buttons found for default price');
-      }
-    } catch (error) {
-      console.error('❌ [INIT] Error initializing default price:', error);
-    }
-  }
 
   // ===== USAGE LIMITS FUNCTIONS =====
   
@@ -1215,8 +1193,6 @@ class CustomifyEmbed {
       addToCartBtnMain.style.display = 'inline-block';
     }
     
-    // 💰 CENA: Ustaw domyślny rozmiar i pokaż cenę
-    this.initializeDefaultPrice();
   }
 
   selectStyle(styleCard) {
@@ -1233,7 +1209,7 @@ class CustomifyEmbed {
     this.selectedSize = sizeBtn.dataset.size;
     console.log('📏 [SIZE] Selected size:', this.selectedSize);
     
-    // Aktualizuj cenę na stronie produktu
+    // Aktualizuj cenę po wyborze rozmiaru
     this.updateProductPrice();
   }
 
@@ -1242,11 +1218,11 @@ class CustomifyEmbed {
    */
   updateProductPrice() {
     try {
-      // Znajdź element ceny na stronie produktu (przeniesiony nad rozmiary)
+      // Znajdź element ceny na stronie produktu
       const priceElement = document.querySelector('product-price div');
       
       if (!priceElement) {
-        console.warn('⚠️ [PRICE] Could not find product price element');
+        console.warn('⚠️ [PRICE] Price element not found');
         return;
       }
 
@@ -1274,79 +1250,8 @@ class CustomifyEmbed {
       
       console.log(`💰 [PRICE] Updated: ${this.originalBasePrice} + ${sizePrice} = ${finalPrice} zł`);
       
-      // Aktualizuj cenę nad przyciskiem "Dodaj do koszyka"
-      this.updateCartPrice(finalPrice);
-      
     } catch (error) {
       console.error('❌ [PRICE] Error updating product price:', error);
-    }
-  }
-
-  /**
-   * Aktualizuje cenę nad przyciskiem "Dodaj do koszyka"
-   */
-  updateCartPrice(finalPrice) {
-    try {
-      const cartPriceElement = document.getElementById('customify-price-amount');
-      const cartPriceContainer = document.getElementById('customify-total-price');
-      
-      console.log('🔍 [CART PRICE] Looking for elements:', {
-        cartPriceElement: cartPriceElement,
-        cartPriceContainer: cartPriceContainer,
-        finalPrice: finalPrice
-      });
-      
-      // TEST: Sprawdź czy elementy istnieją w DOM
-      console.log('🔍 [CART PRICE] DOM Test:', {
-        allCustomifyTotalPrice: document.querySelectorAll('#customify-total-price'),
-        allCustomifyPriceAmount: document.querySelectorAll('#customify-price-amount'),
-        bodyContains: document.body.innerHTML.includes('customify-total-price'),
-        actionsArea: document.querySelector('.customify-actions')
-      });
-      
-      // TEST: Sprawdź pozycję elementu
-      if (cartPriceContainer) {
-        console.log('🔍 [CART PRICE] Position Test:', {
-          parentElement: cartPriceContainer.parentElement,
-          nextSibling: cartPriceContainer.nextSibling,
-          previousSibling: cartPriceContainer.previousSibling,
-          offsetTop: cartPriceContainer.offsetTop,
-          offsetLeft: cartPriceContainer.offsetLeft,
-          clientHeight: cartPriceContainer.clientHeight,
-          clientWidth: cartPriceContainer.clientWidth,
-          boundingRect: cartPriceContainer.getBoundingClientRect()
-        });
-      }
-      
-      if (cartPriceElement && cartPriceContainer) {
-        cartPriceElement.textContent = finalPrice.toFixed(0); // Bez miejsc po przecinku
-        
-        // Usuń display: none z inline style i ustaw display: block
-        cartPriceContainer.style.display = 'block';
-        cartPriceContainer.style.visibility = 'visible';
-        cartPriceContainer.style.opacity = '1';
-        
-        // Dodatkowo usuń display: none z atrybutu style
-        const currentStyle = cartPriceContainer.getAttribute('style') || '';
-        const newStyle = currentStyle.replace(/display\s*:\s*none\s*;?/gi, '').trim();
-        cartPriceContainer.setAttribute('style', newStyle + '; display: block !important;');
-        
-        console.log(`💰 [CART PRICE] Updated cart price: ${finalPrice.toFixed(0)} zł`);
-        console.log('🔍 [CART PRICE] Element styles after update:', {
-          display: cartPriceContainer.style.display,
-          visibility: cartPriceContainer.style.visibility,
-          opacity: cartPriceContainer.style.opacity,
-          computedDisplay: window.getComputedStyle(cartPriceContainer).display,
-          styleAttribute: cartPriceContainer.getAttribute('style')
-        });
-      } else {
-        console.warn('⚠️ [CART PRICE] Elements not found:', {
-          cartPriceElement: !!cartPriceElement,
-          cartPriceContainer: !!cartPriceContainer
-        });
-      }
-    } catch (error) {
-      console.error('❌ [CART PRICE] Error updating cart price:', error);
     }
   }
 
@@ -1371,6 +1276,35 @@ class CustomifyEmbed {
     };
     return prices[size] || 0;
   }
+
+  /**
+   * Inicjalizuje domyślny rozmiar i cenę przy starcie aplikacji
+   */
+  initializeDefaultPrice() {
+    try {
+      // Znajdź pierwszy dostępny rozmiar (domyślnie A4)
+      const defaultSizeBtn = this.sizeArea?.querySelector('[data-size="a4"]') || 
+                            this.sizeArea?.querySelector('.customify-size-btn');
+      
+      if (defaultSizeBtn) {
+        // Ustaw domyślny rozmiar
+        this.selectedSize = defaultSizeBtn.dataset.size;
+        defaultSizeBtn.classList.add('active');
+        
+        console.log('💰 [INIT] Default size selected:', this.selectedSize);
+        
+        // Aktualizuj cenę
+        this.updateProductPrice();
+      } else {
+        console.warn('⚠️ [INIT] No size buttons found for default price');
+      }
+    } catch (error) {
+      console.error('❌ [INIT] Error initializing default price:', error);
+    }
+  }
+
+
+
 
   async transformImage(retryCount = 0) {
     if (!this.uploadedFile || !this.selectedStyle) {
@@ -1670,16 +1604,6 @@ class CustomifyEmbed {
       
       console.log('🆔 [CUSTOMIFY] Original product ID:', productId);
       
-      // Pobierz aktualną cenę z pola ceny na stronie
-      const priceElement = document.querySelector('product-price div');
-      const currentPrice = priceElement ? this.extractBasePrice(priceElement.textContent) : null;
-      
-      if (!currentPrice) {
-        this.showError('Nie można pobrać aktualnej ceny');
-        return;
-      }
-      
-      console.log('💰 [CUSTOMIFY] Current price from UI:', currentPrice);
 
       const productData = {
         originalImage: await this.fileToBase64(this.uploadedFile),
@@ -1687,8 +1611,7 @@ class CustomifyEmbed {
         style: this.selectedStyle,
         size: this.selectedSize,
         originalProductTitle: document.querySelector('h1, .product-title, .view-product-title')?.textContent?.trim() || 'Produkt',
-        originalProductId: productId, // ✅ Dodano ID produktu do pobrania ceny z Shopify
-        currentPrice: currentPrice // ✅ Dodano aktualną cenę z UI
+        originalProductId: productId // ✅ Dodano ID produktu do pobrania ceny z Shopify
       };
 
       console.log('🛒 [CUSTOMIFY] Creating product with data:', productData);

@@ -1626,7 +1626,15 @@
               <h4>Wybierz styl</h4>
               <div class="customify-style-grid">
                 {% comment %} LOGIKA SERVER-SIDE: Filtruj style per produkt {% endcomment %}
-                {% if product.handle == 'personalizowany-portret-w-stylu-boho' %}
+                {% if product.handle == 'karykatura-ze-zdjecia' %}
+                  {% comment %} TYLKO STYLE KARYKATURY dla produktu karykatura {% endcomment %}
+                  <div class="customify-style-card" data-style="karykatura">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/karykat/caricature.png'); background-size: cover; background-position: center;"></div>
+                    <div class="style-info">
+                      <div class="style-name">Karykatura</div>
+                    </div>
+                  </div>
+                {% elsif product.handle == 'personalizowany-portret-w-stylu-boho' %}
                   {% comment %} NOWE STYLE BOHO dla produktu boho {% endcomment %}
                   <div class="customify-style-card" data-style="minimalistyczny">
                     <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/boho/minimal.png'); background-size: cover; background-position: center;"></div>
@@ -1777,9 +1785,6 @@
               <div class="customify-success" id="successMessage"></div>
               
               <div class="customify-actions" style="margin-top: 15px;">
-                <div id="customify-total-price" style="text-align: center; margin-bottom: 10px; font-size: 1.1rem; font-weight: 600; color: #d32f2f; display: none; min-height: 20px; padding: 10px; background-color: #f5f5f5; border-radius: 5px;">
-                  Suma <span id="customify-price-amount">0</span> zł
-                </div>
                 <button class="customify-btn customify-btn-primary customify-btn-red" id="addToCartBtn">
                   Dodaj do koszyka
                 </button>
