@@ -1218,13 +1218,32 @@ class CustomifyEmbed {
    */
   updateProductPrice() {
     try {
-      // Znajdź element ceny na stronie produktu
-      const priceElement = document.querySelector('product-price div');
+      // Znajdź element ceny na stronie produktu - spróbuj różnych selektorów
+      let priceElement = document.querySelector('product-price div');
       
       if (!priceElement) {
-        console.warn('⚠️ [PRICE] Price element not found');
+        // Spróbuj innych selektorów
+        priceElement = document.querySelector('.price');
+        console.log('🔍 [PRICE] Trying .price selector:', priceElement);
+      }
+      
+      if (!priceElement) {
+        priceElement = document.querySelector('[class*="price"]');
+        console.log('🔍 [PRICE] Trying [class*="price"] selector:', priceElement);
+      }
+      
+      if (!priceElement) {
+        priceElement = document.querySelector('span:contains("zł")');
+        console.log('🔍 [PRICE] Trying span:contains("zł") selector:', priceElement);
+      }
+      
+      if (!priceElement) {
+        console.warn('⚠️ [PRICE] Price element not found with any selector');
+        console.log('🔍 [PRICE] Available price elements:', document.querySelectorAll('[class*="price"], [id*="price"], span, div').length);
         return;
       }
+
+      console.log('✅ [PRICE] Found price element:', priceElement, 'Text:', priceElement.textContent);
 
       // Pobierz oryginalną bazową cenę (zapamiętaj przy pierwszym wywołaniu)
       if (!this.originalBasePrice) {
