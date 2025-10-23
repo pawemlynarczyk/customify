@@ -1263,8 +1263,16 @@ class CustomifyEmbed {
       
       if (cartPriceElement && cartPriceContainer) {
         cartPriceElement.textContent = finalPrice.toFixed(0); // Bez miejsc po przecinku
-        cartPriceContainer.style.display = 'block';
+        cartPriceContainer.style.display = 'block !important';
+        cartPriceContainer.style.visibility = 'visible';
+        cartPriceContainer.style.opacity = '1';
         console.log(`💰 [CART PRICE] Updated cart price: ${finalPrice.toFixed(0)} zł`);
+        console.log('🔍 [CART PRICE] Element styles after update:', {
+          display: cartPriceContainer.style.display,
+          visibility: cartPriceContainer.style.visibility,
+          opacity: cartPriceContainer.style.opacity,
+          computedDisplay: window.getComputedStyle(cartPriceContainer).display
+        });
       } else {
         console.warn('⚠️ [CART PRICE] Elements not found:', {
           cartPriceElement: !!cartPriceElement,

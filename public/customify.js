@@ -49,6 +49,35 @@ class CustomifyEmbed {
     this.updateGallery().catch(error => {
       console.error('❌ [GALLERY] Error updating gallery on init:', error);
     });
+    
+    // 💰 CENA: Ustaw domyślny rozmiar i pokaż cenę
+    this.initializeDefaultPrice();
+  }
+  
+  /**
+   * Inicjalizuje domyślną cenę przy starcie aplikacji
+   */
+  initializeDefaultPrice() {
+    try {
+      // Znajdź pierwszy dostępny rozmiar (domyślnie A4)
+      const defaultSizeBtn = this.sizeArea?.querySelector('[data-size="a4"]') || 
+                            this.sizeArea?.querySelector('.customify-size-btn');
+      
+      if (defaultSizeBtn) {
+        // Ustaw domyślny rozmiar
+        this.selectedSize = defaultSizeBtn.dataset.size;
+        defaultSizeBtn.classList.add('active');
+        
+        console.log('💰 [INIT] Default size selected:', this.selectedSize);
+        
+        // Aktualizuj cenę
+        this.updateProductPrice();
+      } else {
+        console.warn('⚠️ [INIT] No size buttons found for default price');
+      }
+    } catch (error) {
+      console.error('❌ [INIT] Error initializing default price:', error);
+    }
   }
 
   // ===== USAGE LIMITS FUNCTIONS =====
@@ -1269,8 +1298,16 @@ class CustomifyEmbed {
       
       if (cartPriceElement && cartPriceContainer) {
         cartPriceElement.textContent = finalPrice.toFixed(0); // Bez miejsc po przecinku
-        cartPriceContainer.style.display = 'block';
+        cartPriceContainer.style.display = 'block !important';
+        cartPriceContainer.style.visibility = 'visible';
+        cartPriceContainer.style.opacity = '1';
         console.log(`💰 [CART PRICE] Updated cart price: ${finalPrice.toFixed(0)} zł`);
+        console.log('🔍 [CART PRICE] Element styles after update:', {
+          display: cartPriceContainer.style.display,
+          visibility: cartPriceContainer.style.visibility,
+          opacity: cartPriceContainer.style.opacity,
+          computedDisplay: window.getComputedStyle(cartPriceContainer).display
+        });
       } else {
         console.warn('⚠️ [CART PRICE] Elements not found:', {
           cartPriceElement: !!cartPriceElement,
