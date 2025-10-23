@@ -960,26 +960,26 @@ class CustomifyEmbed {
     // NIE ukrywamy ceny - zostawiamy oryginalną pozycję Shopify
     // (usunięto klonowanie ceny ze względu na potencjalne problemy z cloakingiem Google)
 
-    // DODAJ DIVIDER POD TYTUŁEM
-    this.addDividerAfterTitle();
+    // DODAJ DIVIDER POD ROZMIARAMI
+    this.addDividerAfterSizes();
 
     console.log('✅ [CUSTOMIFY] Title moved to top successfully!');
   }
 
 
 
-  // DODAJ DIVIDER POD TYTUŁEM
-  addDividerAfterTitle() {
+  // DODAJ DIVIDER POD ROZMIARAMI
+  addDividerAfterSizes() {
     // Sprawdź czy już nie ma dividera
     if (document.querySelector('.customify-title-divider')) {
       console.log('🎯 [CUSTOMIFY] Divider already exists');
       return;
     }
 
-    // Znajdź kontener z tytułem
-    const titleContainer = document.querySelector('.group-block[data-testid="group-block"].customify-title-moved');
-    if (!titleContainer) {
-      console.warn('⚠️ [CUSTOMIFY] Could not find title container for divider');
+    // Znajdź kontener z rozmiarami
+    const sizeArea = document.getElementById('sizeArea');
+    if (!sizeArea) {
+      console.warn('⚠️ [CUSTOMIFY] Could not find sizeArea for divider');
       return;
     }
 
@@ -994,10 +994,10 @@ class CustomifyEmbed {
       border-radius: 0.5px;
     `;
 
-    // Dodaj divider po kontenerze z tytułem
-    titleContainer.parentNode.insertBefore(divider, titleContainer.nextSibling);
+    // Dodaj divider po rozmiarach
+    sizeArea.parentNode.insertBefore(divider, sizeArea.nextSibling);
 
-    console.log('✅ [CUSTOMIFY] Divider added after title');
+    console.log('✅ [CUSTOMIFY] Divider added after sizes');
   }
 
   // FUNKCJA USUNIĘTA: showPriceBelowApp()
