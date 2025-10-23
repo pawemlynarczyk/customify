@@ -1187,6 +1187,32 @@ class CustomifyEmbed {
     this.initializeDefaultPrice();
   }
 
+  /**
+   * Inicjalizuje domyślną cenę przy starcie aplikacji
+   */
+  initializeDefaultPrice() {
+    try {
+      // Znajdź pierwszy dostępny rozmiar (domyślnie A4)
+      const defaultSizeBtn = this.sizeArea?.querySelector('[data-size="a4"]') || 
+                            this.sizeArea?.querySelector('.customify-size-btn');
+      
+      if (defaultSizeBtn) {
+        // Ustaw domyślny rozmiar
+        this.selectedSize = defaultSizeBtn.dataset.size;
+        defaultSizeBtn.classList.add('active');
+        
+        console.log('💰 [INIT] Default size selected:', this.selectedSize);
+        
+        // Aktualizuj cenę
+        this.updateProductPrice();
+      } else {
+        console.warn('⚠️ [INIT] No size buttons found for default price');
+      }
+    } catch (error) {
+      console.error('❌ [INIT] Error initializing default price:', error);
+    }
+  }
+
   selectStyle(styleCard) {
     this.stylesArea.querySelectorAll('.customify-style-card').forEach(card => card.classList.remove('active'));
     styleCard.classList.add('active');
