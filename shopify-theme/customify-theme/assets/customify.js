@@ -1159,6 +1159,15 @@ class CustomifyEmbed {
         if (resetBtn) {
           resetBtn.style.display = 'inline-block';
         }
+        
+        // Ukryj cenę po wgraniu zdjęcia (gdy przycisk "Dodaj do koszyka" jest ukryty)
+        const cartPriceContainer = document.getElementById('customify-total-price');
+        if (cartPriceContainer) {
+          cartPriceContainer.style.display = 'none';
+          cartPriceContainer.style.visibility = 'hidden';
+          cartPriceContainer.style.opacity = '0';
+          console.log('💰 [CART PRICE] Hidden cart price after image upload');
+        }
       };
       
       img.onerror = () => {
@@ -1315,17 +1324,40 @@ class CustomifyEmbed {
       if (cartPriceElement && cartPriceContainer) {
         cartPriceElement.textContent = finalPrice.toFixed(0); // Bez miejsc po przecinku
         
-        // Usuń display: none z inline style i ustaw display: block
-        cartPriceContainer.style.display = 'block';
-        cartPriceContainer.style.visibility = 'visible';
-        cartPriceContainer.style.opacity = '1';
+        // Sprawdź czy przycisk "Dodaj do koszyka" jest widoczny
+        const addToCartBtn = document.getElementById('addToCartBtn');
+        const isAddToCartVisible = addToCartBtn && 
+          window.getComputedStyle(addToCartBtn).display !== 'none' &&
+          addToCartBtn.style.display !== 'none';
         
-        // Dodatkowo usuń display: none z atrybutu style
-        const currentStyle = cartPriceContainer.getAttribute('style') || '';
-        const newStyle = currentStyle.replace(/display\s*:\s*none\s*;?/gi, '').trim();
-        cartPriceContainer.setAttribute('style', newStyle + '; display: block !important;');
+        console.log('🔍 [CART PRICE] Add to cart button visibility:', {
+          exists: !!addToCartBtn,
+          computedDisplay: addToCartBtn ? window.getComputedStyle(addToCartBtn).display : 'N/A',
+          inlineDisplay: addToCartBtn ? addToCartBtn.style.display : 'N/A',
+          isVisible: isAddToCartVisible
+        });
         
-        console.log(`💰 [CART PRICE] Updated cart price: ${finalPrice.toFixed(0)} zł`);
+        // Pokaż cenę TYLKO jeśli przycisk "Dodaj do koszyka" jest widoczny
+        if (isAddToCartVisible) {
+          cartPriceContainer.style.display = 'block';
+          cartPriceContainer.style.visibility = 'visible';
+          cartPriceContainer.style.opacity = '1';
+          
+          // Dodatkowo usuń display: none z atrybutu style
+          const currentStyle = cartPriceContainer.getAttribute('style') || '';
+          const newStyle = currentStyle.replace(/display\s*:\s*none\s*;?/gi, '').trim();
+          cartPriceContainer.setAttribute('style', newStyle + '; display: block !important;');
+          
+          console.log(`💰 [CART PRICE] Updated cart price: ${finalPrice.toFixed(0)} zł (button visible)`);
+        } else {
+          // Ukryj cenę jeśli przycisk "Dodaj do koszyka" nie jest widoczny
+          cartPriceContainer.style.display = 'none';
+          cartPriceContainer.style.visibility = 'hidden';
+          cartPriceContainer.style.opacity = '0';
+          
+          console.log('💰 [CART PRICE] Hidden cart price (button not visible)');
+        }
+        
         console.log('🔍 [CART PRICE] Element styles after update:', {
           display: cartPriceContainer.style.display,
           visibility: cartPriceContainer.style.visibility,
@@ -1934,6 +1966,15 @@ class CustomifyEmbed {
     }
     if (resetBtn) {
       resetBtn.style.display = 'none';
+    }
+    
+    // Pokaż cenę po resecie (gdy przycisk "Dodaj do koszyka" jest widoczny)
+    const cartPriceContainer = document.getElementById('customify-total-price');
+    if (cartPriceContainer) {
+      cartPriceContainer.style.display = 'block';
+      cartPriceContainer.style.visibility = 'visible';
+      cartPriceContainer.style.opacity = '1';
+      console.log('💰 [CART PRICE] Showed cart price after reset');
     }
     
     // Przywróć kolory przycisków do stanu początkowego
