@@ -2236,7 +2236,7 @@ main {
 }
 
 .accordion-size-price {
-  color: #d32f2f;
+  color: #000000; /* CZARNY KOLOR */
   font-weight: 700;
   font-size: 1.1rem;
 }
