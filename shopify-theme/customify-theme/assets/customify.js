@@ -1229,6 +1229,76 @@ class CustomifyEmbed {
     
     // Aktualizuj cenę po wyborze rozmiaru
     this.updateProductPrice();
+    this.updateCartPrice(); // ✅ Dodaj aktualizację ceny nad przyciskiem
+  }
+
+  /**
+   * Aktualizuje cenę nad przyciskiem "Dodaj do koszyka"
+   */
+  updateCartPrice() {
+    try {
+      // Sprawdź czy mamy wybrany rozmiar
+      if (!this.selectedSize) {
+        console.log('🔍 [CART-PRICE] No selectedSize, hiding cart price');
+        this.hideCartPrice();
+        return;
+      }
+
+      // Pobierz oryginalną bazową cenę
+      if (!this.originalBasePrice) {
+        this.originalBasePrice = 49.00; // Fallback
+        console.log(`💰 [CART-PRICE] Using fallback base price: ${this.originalBasePrice} zł`);
+      }
+
+      // Pobierz cenę rozmiaru
+      const sizePrice = this.getSizePrice(this.selectedSize);
+      
+      // Oblicz końcową cenę (bazowa + rozmiar)
+      const finalPrice = this.originalBasePrice + sizePrice;
+
+      console.log('💰 [CART-PRICE] Price calculation:', {
+        originalBasePrice: this.originalBasePrice,
+        sizePrice: sizePrice,
+        finalPrice: finalPrice,
+        size: this.selectedSize
+      });
+
+      // Znajdź element ceny w koszyku
+      const cartPriceElement = document.getElementById('cartPriceValue');
+      if (cartPriceElement) {
+        cartPriceElement.textContent = `${finalPrice.toFixed(2)} zł`;
+        console.log('✅ [CART-PRICE] Cart price updated:', finalPrice.toFixed(2), 'zł');
+        
+        // Pokaż element ceny
+        this.showCartPrice();
+      } else {
+        console.warn('⚠️ [CART-PRICE] Cart price element not found');
+      }
+    } catch (error) {
+      console.error('❌ [CART-PRICE] Error updating cart price:', error);
+    }
+  }
+
+  /**
+   * Pokazuje element ceny nad przyciskiem
+   */
+  showCartPrice() {
+    const cartPriceDisplay = document.getElementById('cartPriceDisplay');
+    if (cartPriceDisplay) {
+      cartPriceDisplay.style.display = 'block';
+      console.log('✅ [CART-PRICE] Cart price displayed');
+    }
+  }
+
+  /**
+   * Ukrywa element ceny nad przyciskiem
+   */
+  hideCartPrice() {
+    const cartPriceDisplay = document.getElementById('cartPriceDisplay');
+    if (cartPriceDisplay) {
+      cartPriceDisplay.style.display = 'none';
+      console.log('✅ [CART-PRICE] Cart price hidden');
+    }
   }
 
   /**
@@ -1347,6 +1417,7 @@ class CustomifyEmbed {
         
         // Aktualizuj cenę
         this.updateProductPrice();
+        this.updateCartPrice(); // ✅ Dodaj aktualizację ceny nad przyciskiem
       } else {
         console.warn('⚠️ [INIT] No size buttons found for default price');
       }
@@ -1615,6 +1686,9 @@ class CustomifyEmbed {
     // UKRYJ pole upload po przekształceniu
     this.uploadArea.style.display = 'none';
     console.log('🎯 [CUSTOMIFY] uploadArea hidden:', this.uploadArea.style.display);
+    
+    // ✅ POKAŻ CENĘ NAD PRZYCISKIEM po wygenerowaniu AI
+    this.updateCartPrice();
   }
 
   // NAPRAWIONA FUNKCJA: STWÓRZ NOWY PRODUKT Z OBRAZKIEM AI (UKRYTY W KATALOGU)
