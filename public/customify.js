@@ -1308,6 +1308,19 @@ class CustomifyEmbed {
   }
 
   /**
+   * Zwraca wymiar dla wybranego rozmiaru (np. "20×30 cm")
+   */
+  getSizeDimension(size) {
+    const dimensions = {
+      'a4': '20×30 cm',
+      'a3': '30×40 cm', 
+      'a2': '40×60 cm',
+      'a1': '60×85 cm'
+    };
+    return dimensions[size] || size;
+  }
+
+  /**
    * Inicjalizuje domyślny rozmiar i cenę przy starcie aplikacji
    */
   initializeDefaultPrice() {
@@ -1711,7 +1724,7 @@ class CustomifyEmbed {
           // NAPRAWIONA METODA: Użyj bezpośredniego przekierowania zamiast formularza
           const properties = {
             'Styl AI': this.selectedStyle,
-            'Rozmiar': this.selectedSize,
+            'Rozmiar': this.getSizeDimension(this.selectedSize),  // ✅ Przekaż wymiar (np. "20×30 cm") zamiast kodu (np. "a4")
             '_AI_Image_URL': result.imageUrl || this.transformedImage,  // ✅ URL z Shopify (główny obraz)
             '_AI_Image_Permanent': result.permanentImageUrl || this.transformedImage,  // ✅ TRWAŁY URL na Vercel (nie wygaśnie!)
             '_AI_Image_Direct': this.transformedImage,  // Oryginalny link z Replicate (backup)
