@@ -530,6 +530,10 @@ class CustomifyEmbed {
       this.transformedImage = generation.transformedImage;
       console.log('✅ [GALLERY] Set this.transformedImage for addToCart:', this.transformedImage);
       
+      // ✅ KLUCZOWE: Ustaw this.originalImageFromGallery żeby addToCart() działało
+      this.originalImageFromGallery = generation.originalImage;
+      console.log('✅ [GALLERY] Set this.originalImageFromGallery for addToCart:', this.originalImageFromGallery);
+      
       this.showResult(generation.transformedImage);
       this.hideError();
     } else {
@@ -1655,8 +1659,22 @@ class CustomifyEmbed {
         return;
       }
 
+      // Sprawdź czy mamy uploadedFile (z upload) czy originalImage (z galerii)
+      let originalImage;
+      if (this.uploadedFile) {
+        // Z upload - konwertuj plik na base64
+        originalImage = await this.fileToBase64(this.uploadedFile);
+      } else if (this.originalImageFromGallery) {
+        // Z galerii - użyj zapisany originalImage
+        originalImage = this.originalImageFromGallery;
+      } else {
+        // Fallback - użyj transformedImage jako originalImage
+        originalImage = this.transformedImage;
+        console.warn('⚠️ [CUSTOMIFY] No original image available, using transformed image as fallback');
+      }
+
       const productData = {
-        originalImage: await this.fileToBase64(this.uploadedFile),
+        originalImage: originalImage,
         transformedImage: this.transformedImage,
         style: this.selectedStyle,
         size: this.selectedSize,
