@@ -2361,7 +2361,7 @@
         /* ANIMOWANE STRZAŁKI WSKAZUJĄCE W DÓŁ */
         .arrow-down {
           text-align: center;
-          margin: 0 0 20px 0; /* USUNIĘTO GÓRNY MARGIN */
+          margin: 0; /* USUNIĘTO WSZYSTKIE MARGINESY */
           animation: bounce-arrows 2s infinite;
         }
         
@@ -2415,7 +2415,7 @@
         /* Mobile - mniejsze strzałki */
         @media (max-width: 768px) {
           .arrow-down {
-            margin: 15px 0;
+            margin: 0; /* USUNIĘTO WSZYSTKIE MARGINESY NA MOBILE */
           }
           
           .arrow-down span {
