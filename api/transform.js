@@ -130,7 +130,7 @@ async function segmindCaricature(imageUrl) {
         size: "1024x1024", // Kwadrat jak w dokumentacji
         quality: "high", // Zgodnie z dokumentacją - domyślnie "high"
         background: "opaque", // Zgodnie z dokumentacją
-        output_compression: 85, // Zgodnie z zaleceniem dokumentacji
+        output_compression: 100, // PNG wymaga 100 (bez kompresji)
         output_format: "png" // Zgodnie z dokumentacją
       }),
     });
