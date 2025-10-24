@@ -5,8 +5,9 @@
       "maxDuration": 30
     }
   },
-  "buildCommand": "echo 'Force rebuild v3'",
+  "buildCommand": "echo 'Force rebuild v4'",
   "outputDirectory": "public",
+  "installCommand": "echo 'Force install'",
   "routes": [
     {
       "src": "/",
