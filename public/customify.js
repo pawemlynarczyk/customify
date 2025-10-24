@@ -1694,13 +1694,15 @@ class CustomifyEmbed {
           const properties = {
             'Styl AI': this.selectedStyle,
             'Rozmiar': this.selectedSize,
-            '_AI_Image_URL': result.imageUrl || this.transformedImage,  // ✅ UKRYTY przed klientem (podkreślnik na początku)
+            '_AI_Image_URL': result.imageUrl || this.transformedImage,  // ✅ URL z Shopify (główny obraz)
+            '_AI_Image_Permanent': result.permanentImageUrl || this.transformedImage,  // ✅ TRWAŁY URL na Vercel (nie wygaśnie!)
             '_AI_Image_Direct': this.transformedImage,  // Oryginalny link z Replicate (backup)
             '_Order_ID': result.orderId || Date.now().toString()  // Unikalny ID zamówienia
           };
           
           console.log('🖼️ [CUSTOMIFY] Image URLs:', {
             shopifyImageUrl: result.imageUrl,
+            permanentImageUrl: result.permanentImageUrl,
             replicateImageUrl: this.transformedImage,
             orderId: result.orderId
           });
