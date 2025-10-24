@@ -810,11 +810,11 @@ class CustomifyEmbed {
    * Pokazuje licznik użyć w UI
    */
   async showUsageCounter() {
-    console.log('🔍 [USAGE] showUsageCounter called');
+    // Usage counter initialization
     const customerInfo = this.getCustomerInfo();
     let counterHTML = '';
     
-    console.log('🔍 [USAGE] customerInfo:', customerInfo);
+    // Customer info retrieved
     
     if (!customerInfo) {
       // Niezalogowany - NIE POKAZUJ komunikatu o punktach
@@ -841,9 +841,9 @@ class CustomifyEmbed {
       
       // Wstaw nowy licznik przed upload area
       uploadArea.insertAdjacentHTML('beforebegin', counterHTML);
-      console.log('✅ [USAGE] Counter displayed:', customerInfo ? 'Logged in' : 'Anonymous');
+      // Counter displayed successfully
     } else {
-      console.log('⚠️ [USAGE] Upload area not found - counter not displayed');
+      // Upload area not found - counter not displayed
     }
   }
 
@@ -1243,12 +1243,7 @@ class CustomifyEmbed {
       // Oblicz końcową cenę (bazowa + rozmiar)
       const finalPrice = this.originalBasePrice + sizePrice;
 
-      console.log('💰 [CART-PRICE] Price calculation:', {
-        originalBasePrice: this.originalBasePrice,
-        sizePrice: sizePrice,
-        finalPrice: finalPrice,
-        size: this.selectedSize
-      });
+      // Price calculation completed
 
       // Znajdź element ceny w koszyku
       const cartPriceElement = document.getElementById('cartPriceValue');
