@@ -683,7 +683,7 @@ body * {
 }
 
 #customify-app-container .customify-upload-area {
-  margin-top: 8px !important;
+  margin-top: 2px !important; /* ZMNIEJSZONO: z 8px na 2px */
   margin-bottom: 8px !important;
 }
 
