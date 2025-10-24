@@ -328,7 +328,15 @@ module.exports = async (req, res) => {
       permanentImageUrl: permanentImageUrl,  // ✅ TRWAŁY URL na Vercel (nie wygaśnie!)
       orderId: uniqueId,  // ✅ Unikalny identyfikator zamówienia
       message: 'Produkt został utworzony z obrazkiem AI!',
-      cartUrl: `https://${shop}/cart/add?id=${product.variants[0].id}&quantity=1`
+      cartUrl: `https://${shop}/cart/add?id=${product.variants[0].id}&quantity=1`,
+      // ✅ DEBUG INFO - dodaj informacje o obrazku
+      imageInfo: {
+        imageId: uploadResult.image.id,
+        imageSrc: uploadResult.image.src,
+        imagePosition: uploadResult.image.position,
+        imageAlt: uploadResult.image.alt,
+        productMainImage: product.image?.src || 'No main image set'
+      }
     });
 
   } catch (error) {
