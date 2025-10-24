@@ -111,7 +111,8 @@ async function segmindCaricature(imageDataUri) {
   
   if (!SEGMIND_API_KEY) {
     console.error('❌ [SEGMIND] SEGMIND_API_KEY not found in environment variables!');
-    throw new Error('SEGMIND_API_KEY not configured');
+    console.error('❌ [SEGMIND] Available env vars:', Object.keys(process.env).filter(k => k.includes('SEGMIND')));
+    throw new Error('SEGMIND_API_KEY not configured - please add it to Vercel environment variables');
   }
 
   console.log('🎭 [SEGMIND] Starting caricature generation...');
