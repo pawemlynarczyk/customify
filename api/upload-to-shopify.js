@@ -69,18 +69,26 @@ module.exports = async (req, res) => {
 
     console.log('📤 [UPLOAD-SHOPIFY] Uploading to Shopify...');
 
-    // Upload to Shopify using Files API (better for temporary files)
-    const uploadResponse = await fetch(`https://${shop}/admin/api/2023-10/files.json`, {
+    // Upload to Shopify using Products API (more reliable permissions)
+    console.log('📤 [UPLOAD-SHOPIFY] Uploading via Products API...');
+    
+    const uploadResponse = await fetch(`https://${shop}/admin/api/2023-10/products.json`, {
       method: 'POST',
       headers: {
         'X-Shopify-Access-Token': accessToken,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        file: {
-          attachment: base64Image,
-          filename: uniqueFilename,
-          content_type: 'image/png'
+        product: {
+          title: `Temp Upload ${timestamp}`,
+          body_html: 'Temporary product for image upload',
+          vendor: 'Customify',
+          product_type: 'Temporary',
+          status: 'draft',
+          images: [{
+            attachment: base64Image,
+            filename: uniqueFilename
+          }]
         }
       })
     });
@@ -88,65 +96,23 @@ module.exports = async (req, res) => {
     if (!uploadResponse.ok) {
       const errorText = await uploadResponse.text();
       console.error('❌ [UPLOAD-SHOPIFY] Upload failed:', uploadResponse.status, errorText);
-      
-      // Fallback: try with products API
-      console.log('🔄 [UPLOAD-SHOPIFY] Trying fallback with products API...');
-      
-      const fallbackResponse = await fetch(`https://${shop}/admin/api/2023-10/products.json`, {
-        method: 'POST',
-        headers: {
-          'X-Shopify-Access-Token': accessToken,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          product: {
-            title: `Temp Upload ${timestamp}`,
-            body_html: 'Temporary product for image upload',
-            vendor: 'Customify',
-            product_type: 'Temporary',
-            status: 'draft',
-            images: [{
-              attachment: base64Image,
-              filename: uniqueFilename
-            }]
-          }
-        })
-      });
-
-      if (!fallbackResponse.ok) {
-        const fallbackError = await fallbackResponse.text();
-        console.error('❌ [UPLOAD-SHOPIFY] Fallback also failed:', fallbackError);
-        return res.status(500).json({ 
-          error: 'Failed to upload to Shopify CDN',
-          details: fallbackError
-        });
-      }
-
-      const fallbackResult = await fallbackResponse.json();
-      const imageUrl = fallbackResult.product.images[0].src;
-      
-      console.log('✅ [UPLOAD-SHOPIFY] Upload successful via fallback:', imageUrl);
-      
-      return res.json({
-        success: true,
-        url: imageUrl,
-        imageUrl: imageUrl,
-        filename: uniqueFilename,
-        method: 'fallback'
+      return res.status(500).json({ 
+        error: 'Failed to upload to Shopify CDN',
+        details: errorText
       });
     }
 
     const uploadResult = await uploadResponse.json();
-    const imageUrl = uploadResult.file.url;
-
+    const imageUrl = uploadResult.product.images[0].src;
+    
     console.log('✅ [UPLOAD-SHOPIFY] Upload successful:', imageUrl);
-
+    
     res.json({
       success: true,
       url: imageUrl,
       imageUrl: imageUrl,
       filename: uniqueFilename,
-      method: 'files-api'
+      method: 'products-api'
     });
 
   } catch (error) {
