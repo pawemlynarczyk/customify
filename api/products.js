@@ -164,6 +164,7 @@ module.exports = async (req, res) => {
     const productId = product.id;
 
     console.log('✅ [PRODUCTS.JS] Product created, ID:', productId);
+    console.log('🚀 [PRODUCTS.JS] NEW VERSION DEPLOYED - Direct image download');
 
     // KROK 2: Pobierz obraz AI bezpośrednio z transformedImage
     console.log('📥 [PRODUCTS.JS] Downloading AI image directly...');
