@@ -452,6 +452,15 @@
         .customify-upload-btn {
           width: 100% !important;
           margin: 0 !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          min-height: 50px !important; /* Większy przycisk dla samej ikony */
+        }
+        
+        .upload-icon {
+          font-size: 2rem !important; /* Większa ikona */
+          line-height: 1 !important;
         }
         
         .customify-upload-hint {
@@ -1971,7 +1980,7 @@
           <div class="customify-embed" id="customifyEmbed">
           <div class="customify-upload-area" id="uploadArea">
             <button class="customify-upload-btn" id="uploadBtn">
-              Wgraj zdjęcie
+              <span class="upload-icon">➕</span>
             </button>
             <input type="file" id="fileInput" class="customify-file-input" accept="image/*">
             <!-- Komunikat błędu - od razu pod uploadem -->
