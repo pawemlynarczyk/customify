@@ -3,6 +3,7 @@
  * Clean JavaScript implementation for Shopify theme integration
  */
 
+
 class CustomifyEmbed {
   constructor() {
     this.uploadArea = document.getElementById('uploadArea');
@@ -62,16 +63,11 @@ class CustomifyEmbed {
    * @returns {Object|null} {customerId, email, customerAccessToken} lub null jeśli niezalogowany
    */
   getCustomerInfo() {
-    console.log('🔍 [USAGE] === DEBUGGING CUSTOMER DETECTION ===');
-    console.log('🔍 [USAGE] window.ShopifyCustomer:', window.ShopifyCustomer);
-    console.log('🔍 [USAGE] window.Shopify:', window.Shopify);
-    console.log('🔍 [USAGE] document.cookie:', document.cookie);
+    // Debug info removed for security
     
     // METODA 1: NOWY SYSTEM - window.ShopifyCustomer (z Liquid w theme.liquid)
     if (window.ShopifyCustomer && window.ShopifyCustomer.loggedIn && window.ShopifyCustomer.id) {
-      console.log('✅ [USAGE] METODA 1: Zalogowany użytkownik (NEW OAuth)');
-      console.log('📊 [USAGE] Customer Email:', window.ShopifyCustomer.email);
-      console.log('📊 [USAGE] Customer ID:', window.ShopifyCustomer.id);
+      // Customer detection successful
       
       return {
         customerId: window.ShopifyCustomer.id,
@@ -91,7 +87,7 @@ class CustomifyEmbed {
     );
     
     if (hasCustomerCookie) {
-      console.log('✅ [USAGE] METODA 2: Wykryto cookie Shopify - użytkownik zalogowany');
+      // Cookie-based customer detection
       
       // Spróbuj wyciągnąć ID z cookie
       const customerIdCookie = cookies.find(c => c.startsWith('customer_id='));
@@ -99,13 +95,11 @@ class CustomifyEmbed {
       
       if (customerIdCookie) {
         customerId = customerIdCookie.split('=')[1];
-        console.log('📊 [USAGE] Customer ID z cookie:', customerId);
       }
       
       // Jeśli brak ID, użyj window.ShopifyCustomer.id jako fallback
       if (!customerId && window.ShopifyCustomer && window.ShopifyCustomer.id) {
         customerId = window.ShopifyCustomer.id;
-        console.log('📊 [USAGE] Customer ID z window.ShopifyCustomer:', customerId);
       }
       
       return {
@@ -119,8 +113,7 @@ class CustomifyEmbed {
     
     // METODA 3: STARY SYSTEM - window.Shopify.customerEmail (Classic Customer Accounts)
     if (window.Shopify && window.Shopify.customerEmail) {
-      console.log('✅ [USAGE] METODA 3: Zalogowany użytkownik (OLD system)');
-      console.log('📊 [USAGE] Customer Email:', window.Shopify.customerEmail);
+      // Legacy customer detection
       
       const customerId = window.meta?.customer?.id || window.ShopifyCustomer?.id || null;
       const customerAccessToken = localStorage.getItem('shopify_customer_access_token');
@@ -132,8 +125,7 @@ class CustomifyEmbed {
       };
     }
     
-    console.log('❌ [USAGE] WSZYSTKIE METODY FAILED - Niezalogowany użytkownik');
-    console.log('🔍 [USAGE] === END DEBUGGING ===');
+    // No customer detected
     return null;
   }
 
@@ -143,7 +135,7 @@ class CustomifyEmbed {
    */
   getLocalUsageCount() {
     const count = parseInt(localStorage.getItem('customify_usage_count') || '0', 10);
-    console.log('📊 [USAGE] localStorage usage count:', count);
+    // Local usage count retrieved
     return count;
   }
 
@@ -154,7 +146,7 @@ class CustomifyEmbed {
     const currentCount = this.getLocalUsageCount();
     const newCount = currentCount + 1;
     localStorage.setItem('customify_usage_count', newCount.toString());
-    console.log('➕ [USAGE] localStorage incremented:', currentCount, '→', newCount);
+    // Usage count incremented
     this.showUsageCounter(); // Odśwież licznik w UI
   }
 
@@ -581,7 +573,7 @@ class CustomifyEmbed {
       const localCount = this.getLocalUsageCount();
       const FREE_LIMIT = 10;
       
-      console.log(`📊 [USAGE] Niezalogowany: ${localCount}/${FREE_LIMIT} użyć`);
+      // Usage limit check for anonymous users
       
       if (localCount >= FREE_LIMIT) {
         this.showLoginModal(localCount, FREE_LIMIT);
@@ -591,7 +583,7 @@ class CustomifyEmbed {
       return true;
     } else {
       // Zalogowany - sprawdź Shopify Metafields przez API
-      console.log('📊 [USAGE] Zalogowany - sprawdzam limit przez API');
+      // Checking usage limit via API for logged-in user
       
       try {
         const response = await fetch('https://customify-s56o.vercel.app/api/check-usage', {
@@ -1583,11 +1575,11 @@ class CustomifyEmbed {
         // ✅ USAGE LIMITS: Inkrementuj licznik dla niezalogowanych (zalogowani są inkrementowani w API)
         if (!customerInfo) {
           this.incrementLocalUsage();
-          console.log('➕ [USAGE] localStorage incremented after successful transform');
+          // Usage count incremented after successful transform
         } else {
           // Zalogowani - odśwież licznik z API (został zaktualizowany w backend)
           this.showUsageCounter();
-          console.log('🔄 [USAGE] Counter refreshed for logged-in user');
+          // Counter refreshed for logged-in user
         }
       } else {
         this.showError('Błąd podczas transformacji: ' + (result.error || 'Nieznany błąd'));

@@ -61,23 +61,18 @@ module.exports = async (req, res) => {
     // ✅ UŻYJ CENY PRZESŁANEJ Z FRONTENDU (już obliczonej z rozmiarem)
     let totalPrice = 99.00; // Domyślna cena fallback
     
-    console.log('🔍 [PRODUCTS.JS] Received data:', {
-      finalPrice: finalPrice,
-      style: style,
-      size: size,
-      originalProductId: originalProductId
-    });
+    // Product creation data received
     
     if (finalPrice && finalPrice > 0) {
       totalPrice = finalPrice;
-      console.log('✅ [PRODUCTS.JS] Using final price from frontend:', totalPrice, 'PLN');
+      // Using final price from frontend
     } else {
       // Fallback: pobierz cenę bazową z oryginalnego produktu
       let basePrice = 99.00;
       
       if (originalProductId) {
         try {
-          console.log('💰 [PRODUCTS.JS] Fetching base price from original product:', originalProductId);
+          // Fetching base price from original product
           const productResponse = await fetch(`https://${shop}/admin/api/2023-10/products/${originalProductId}.json`, {
             headers: {
               'X-Shopify-Access-Token': accessToken,
@@ -89,30 +84,22 @@ module.exports = async (req, res) => {
             const productData = await productResponse.json();
             const originalPrice = parseFloat(productData.product.variants[0].price);
             basePrice = originalPrice;
-            console.log('✅ [PRODUCTS.JS] Base price from Shopify:', basePrice, 'PLN');
+            // Base price retrieved from Shopify
           } else {
-            console.warn('⚠️ [PRODUCTS.JS] Could not fetch original product price, using fallback:', basePrice, 'PLN');
+            // Could not fetch original product price, using fallback
           }
         } catch (priceError) {
-          console.error('❌ [PRODUCTS.JS] Error fetching price:', priceError.message);
-          console.log('⚠️ [PRODUCTS.JS] Using fallback price:', basePrice, 'PLN');
+          // Error fetching price, using fallback
         }
       } else {
-        console.warn('⚠️ [PRODUCTS.JS] No originalProductId provided, using fallback price:', basePrice, 'PLN');
+        // No originalProductId provided, using fallback price
       }
       
       totalPrice = basePrice;
-      console.log('⚠️ [PRODUCTS.JS] Using fallback base price (no size added):', totalPrice, 'PLN');
+      // Using fallback base price
     }
 
-    console.log('📦 [PRODUCTS.JS] Creating product with AI image...');
-    console.log('💰 [PRODUCTS.JS] Pricing details:', {
-      style: style,
-      size: size,
-      finalPrice: finalPrice,
-      totalPrice: totalPrice,
-      shopifyPrice: totalPrice.toFixed(2) + ' PLN' // ✅ Format dla Shopify
-    });
+    // Creating product with AI image
 
     // KROK 1: Utwórz produkt BEZ obrazka (najpierw potrzebujemy product ID)
     const productData = {
@@ -163,11 +150,10 @@ module.exports = async (req, res) => {
     const product = createdProduct.product;
     const productId = product.id;
 
-    console.log('✅ [PRODUCTS.JS] Product created, ID:', productId);
-    console.log('🚀 [PRODUCTS.JS] NEW VERSION DEPLOYED - Direct image download');
+    // Product created successfully
 
     // KROK 2: Pobierz obrazek z Replicate (PROSTA WERSJA - TAK JAK DZIAŁAŁO)
-    console.log('📥 [PRODUCTS.JS] Downloading image from Replicate...');
+    // Downloading image from Replicate
     const imageResponse = await fetch(transformedImage);
     
     if (!imageResponse.ok) {

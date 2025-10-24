@@ -48,6 +48,7 @@
       {% endfor %}
     {% endif %}
     
+    
     <!-- Shopify Customer Info for Customify -->
     <script>
       {% if customer %}
@@ -1862,8 +1863,7 @@
     <script>
       // NATYCHMIAST sprawdź i przekieruj - zanim Shopify przekieruje na /account
       (function() {
-        console.log('🚀 [REDIRECT] Skrypt uruchomiony na:', window.location.href);
-        console.log('🚀 [REDIRECT] Domena:', window.location.hostname);
+        // Redirect script initialized
         
         const isLoggedIn = {{ customer.id | json }} !== null;
         const returnUrl = localStorage.getItem('customify_return_url');
@@ -1871,35 +1871,26 @@
         const currentPath = window.location.pathname;
         const currentFull = window.location.pathname + window.location.search;
         
-        console.log('═══════════════════════════════════════════');
-        console.log('🔍 [REDIRECT DEBUG] Start');
-        console.log('👤 Zalogowany:', isLoggedIn);
-        console.log('📍 Current pathname:', currentPath);
-        console.log('📍 Current full:', currentFull);
-        console.log('🎯 Return URL from localStorage:', returnUrl);
-        console.log('⏰ Timestamp:', timestamp ? new Date(parseInt(timestamp)).toLocaleString() : 'brak');
-        console.log('🌐 Hostname:', window.location.hostname);
-        console.log('═══════════════════════════════════════════');
+        // Redirect logic processing
         
         if (isLoggedIn && returnUrl) {
           // Jeśli jesteśmy na /account/* i mamy return URL - przekieruj NATYCHMIAST
           if (currentPath.startsWith('/account')) {
-            console.log('✅ [REDIRECT] WYKRYTO /account - PRZEKIEROWUJĘ DO:', returnUrl);
+            // Redirecting to return URL
             localStorage.removeItem('customify_return_url');
             localStorage.removeItem('customify_return_url_timestamp');
             window.location.replace(returnUrl); // replace() nie dodaje do historii przeglądarki
           } 
           // Jeśli jesteśmy już na stronie produktu - wyczyść localStorage
           else if (currentPath === returnUrl || currentFull === returnUrl) {
-            console.log('✅ [REDIRECT] Już na właściwej stronie - czyszczę localStorage');
+            // Already on correct page - clearing localStorage
             localStorage.removeItem('customify_return_url');
             localStorage.removeItem('customify_return_url_timestamp');
           } else {
-            console.log('⏸️ [REDIRECT] Nie pasuje żaden warunek - czekam...');
+            // No matching condition - waiting
           }
         } else {
-          if (!isLoggedIn) console.log('❌ [REDIRECT] Nie zalogowany');
-          if (!returnUrl) console.log('❌ [REDIRECT] Brak return URL w localStorage');
+          // No redirect conditions met
         }
       })();
     </script>
