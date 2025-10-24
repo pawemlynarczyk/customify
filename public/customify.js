@@ -1449,11 +1449,11 @@ class CustomifyEmbed {
                             this.sizeArea?.querySelector('.customify-size-btn');
       
       if (defaultSizeBtn) {
-        // Ustaw domyślny rozmiar
+        // Ustaw domyślny rozmiar (bez podświetlania)
         this.selectedSize = defaultSizeBtn.dataset.size;
-        defaultSizeBtn.classList.add('active');
+        // defaultSizeBtn.classList.add('active'); // USUNIĘTO - żaden rozmiar nie jest podświetlony domyślnie
         
-        console.log('💰 [INIT] Default size selected:', this.selectedSize);
+        console.log('💰 [INIT] Default size selected (no highlight):', this.selectedSize);
         
         // Ustaw początkową cenę bazową (bez rozmiaru)
         this.setInitialPrice();
