@@ -525,6 +525,11 @@ class CustomifyEmbed {
     // Pokaż wynik AI (transformedImage) w result area
     if (generation.transformedImage) {
       console.log('🔄 [GALLERY] Showing AI result in result area:', generation.transformedImage);
+      
+      // ✅ KLUCZOWE: Ustaw this.transformedImage żeby addToCart() działało
+      this.transformedImage = generation.transformedImage;
+      console.log('✅ [GALLERY] Set this.transformedImage for addToCart:', this.transformedImage);
+      
       this.showResult(generation.transformedImage);
       this.hideError();
     } else {
