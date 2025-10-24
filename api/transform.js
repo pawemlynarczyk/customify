@@ -172,9 +172,9 @@ async function segmindFaceswap(targetImageUrl, swapImageBase64) {
   // Remove data URI prefix if present (keep only base64 string)
   let cleanSwapImage = swapImageBase64.replace(/^data:image\/[a-z]+;base64,/, '');
   
-  // AGGRESSIVE COMPRESSION for Segmind API to fit in 30s Vercel limit
-  console.log('🗜️ [SEGMIND] Compressing image for faster processing...');
-  const compressedImage = await compressImage(cleanSwapImage, 512, 512, 60); // Very aggressive compression
+  // Light compression for Segmind API (max 1024px as per rules)
+  console.log('🗜️ [SEGMIND] Compressing image for Segmind API...');
+  const compressedImage = await compressImage(cleanSwapImage, 1024, 1024, 80); // Max 1024px, 80% quality
   cleanSwapImage = compressedImage.replace(/^data:image\/[a-z]+;base64,/, '');
   console.log('🗜️ [SEGMIND] Image compressed for Segmind API');
   
@@ -280,7 +280,15 @@ async function compressImage(imageData, maxWidth = 1152, maxHeight = 1152, quali
     }
     
     console.log(`SDXL optimal resolution: ${targetWidth}x${targetHeight} (aspect ratio: ${aspectRatio.toFixed(2)})`);
-    console.log(`Frontend already compressed to max 1152px, backend fine-tunes to SDXL dimensions`);
+    
+    // Check if image is already compressed by frontend (avoid double compression)
+    const isAlreadyCompressed = (metadata.width <= 1024 && metadata.height <= 1024);
+    if (isAlreadyCompressed) {
+      console.log('📱 [COMPRESSION] Image already compressed by frontend, using as-is');
+      return imageData; // Return original without further compression
+    }
+    
+    console.log('🔧 [COMPRESSION] Backend fine-tuning to SDXL dimensions');
     
     const compressedBuffer = await sharp(buffer)
       .resize(targetWidth, targetHeight, {
@@ -445,7 +453,7 @@ module.exports = async (req, res) => {
     // Test authentication (simplified - just check if replicate is initialized)
     console.log(`🔐 [REPLICATE] Ready to process with token: ${process.env.REPLICATE_API_TOKEN ? 'configured' : 'missing'}`);
 
-    // Compress image before sending to Replicate to avoid memory issues
+    // Compress image before sending to Replicate (avoid double compression)
     console.log('Compressing image before AI processing...');
     const compressedImageData = await compressImage(imageData, 1024, 1024, 80);
     console.log(`Image compressed: ${imageData.length} -> ${compressedImageData.length} bytes`);
