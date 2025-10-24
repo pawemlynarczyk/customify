@@ -1245,28 +1245,18 @@ class CustomifyEmbed {
 
       // Price calculation completed
 
-      // Znajdź element ceny w koszyku
-      const cartPriceElement = document.getElementById('cartPriceValue');
-      const cartPriceRegularElement = document.getElementById('cartPriceRegular');
-      
-      if (cartPriceElement) {
-        cartPriceElement.textContent = `${finalPrice.toFixed(2)} zł`;
-        console.log('✅ [CART-PRICE] Cart price updated:', finalPrice.toFixed(2), 'zł');
-        
-        // PRÓBA: Aktualizuj przekreśloną cenę regularną (+30%)
-        if (cartPriceRegularElement) {
-          const regularPrice = Math.round(finalPrice * 1.30);
-          cartPriceRegularElement.textContent = `~~${regularPrice.toFixed(2)} zł~~`;
-          console.log('✅ [CART-PRICE] Regular price updated:', regularPrice.toFixed(2), 'zł');
+        // Znajdź element ceny w koszyku
+        const cartPriceElement = document.getElementById('cartPriceValue');
+
+        if (cartPriceElement) {
+          cartPriceElement.textContent = `${finalPrice.toFixed(2)} zł`;
+          console.log('✅ [CART-PRICE] Cart price updated:', finalPrice.toFixed(2), 'zł');
+
+          // Pokaż element ceny
+          this.showCartPrice();
         } else {
-          console.warn('⚠️ [CART-PRICE] Regular price element not found!');
+          console.warn('⚠️ [CART-PRICE] Cart price element not found');
         }
-        
-        // Pokaż element ceny
-        this.showCartPrice();
-      } else {
-        console.warn('⚠️ [CART-PRICE] Cart price element not found');
-      }
     } catch (error) {
       console.error('❌ [CART-PRICE] Error updating cart price:', error);
     }
@@ -1280,14 +1270,6 @@ class CustomifyEmbed {
     if (cartPriceDisplay) {
       cartPriceDisplay.style.display = 'block';
       console.log('✅ [CART-PRICE] Cart price displayed');
-      
-      // PRÓBA: Sprawdź czy element regular price istnieje
-      const cartPriceRegularElement = document.getElementById('cartPriceRegular');
-      if (cartPriceRegularElement) {
-        console.log('✅ [CART-PRICE] Regular price element found');
-      } else {
-        console.warn('⚠️ [CART-PRICE] Regular price element NOT found in DOM');
-      }
     }
   }
 
