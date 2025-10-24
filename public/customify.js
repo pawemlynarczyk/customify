@@ -1297,6 +1297,51 @@ class CustomifyEmbed {
   }
 
   /**
+   * Ustawia początkową cenę bazową (bez rozmiaru) przy starcie aplikacji
+   */
+  setInitialPrice() {
+    try {
+      // Znajdź element ceny na stronie produktu - spróbuj różnych selektorów
+      let priceElement = document.querySelector('product-price div');
+      
+      if (!priceElement) {
+        priceElement = document.querySelector('.price');
+      }
+      
+      if (!priceElement) {
+        priceElement = document.querySelector('[class*="price"]');
+      }
+      
+      if (!priceElement) {
+        console.warn('⚠️ [INIT-PRICE] Price element not found');
+        return;
+      }
+
+      // Pobierz oryginalną bazową cenę (zapamiętaj przy pierwszym wywołaniu)
+      if (!this.originalBasePrice) {
+        const basePriceText = priceElement.textContent;
+        this.originalBasePrice = this.extractBasePrice(basePriceText);
+        
+        if (this.originalBasePrice === null) {
+          console.warn('⚠️ [INIT-PRICE] Could not extract original base price from:', basePriceText);
+          this.originalBasePrice = 49.00;
+          console.log(`💰 [INIT-PRICE] Using fallback base price: ${this.originalBasePrice} zł`);
+        } else {
+          console.log(`💰 [INIT-PRICE] Original base price saved: ${this.originalBasePrice} zł`);
+        }
+      }
+
+      // Ustaw TYLKO cenę bazową (bez rozmiaru)
+      priceElement.textContent = `${this.originalBasePrice.toFixed(2)} zł`;
+      
+      console.log(`💰 [INIT-PRICE] Set initial base price: ${this.originalBasePrice} zł`);
+      
+    } catch (error) {
+      console.error('❌ [INIT-PRICE] Error setting initial price:', error);
+    }
+  }
+
+  /**
    * Aktualizuje cenę na stronie produktu po wyborze rozmiaru
    */
   updateProductPrice() {
@@ -1343,11 +1388,16 @@ class CustomifyEmbed {
         }
       }
 
-      // Domyślnie wyświetlaj TYLKO cenę bazową (bez rozmiaru)
-      // Cena z rozmiarem będzie wyświetlana tylko w koszyku
-      priceElement.textContent = `${this.originalBasePrice.toFixed(2)} zł`;
+      // Pobierz cenę rozmiaru
+      const sizePrice = this.getSizePrice(this.selectedSize);
       
-      console.log(`💰 [PRICE] Showing base price only: ${this.originalBasePrice} zł (size: ${this.selectedSize})`);
+      // Oblicz końcową cenę (oryginalna cena + tylko jeden rozmiar)
+      const finalPrice = this.originalBasePrice + sizePrice;
+      
+      // Aktualizuj cenę na stronie
+      priceElement.textContent = `${finalPrice.toFixed(2)} zł`;
+      
+      console.log(`💰 [PRICE] Updated: ${this.originalBasePrice} + ${sizePrice} = ${finalPrice} zł`);
       
     } catch (error) {
       console.error('❌ [PRICE] Error updating product price:', error);
@@ -1405,8 +1455,8 @@ class CustomifyEmbed {
         
         console.log('💰 [INIT] Default size selected:', this.selectedSize);
         
-        // Aktualizuj cenę
-        this.updateProductPrice();
+        // Ustaw początkową cenę bazową (bez rozmiaru)
+        this.setInitialPrice();
         this.updateCartPrice(); // ✅ Dodaj aktualizację ceny nad przyciskiem
       } else {
         console.warn('⚠️ [INIT] No size buttons found for default price');
