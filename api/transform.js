@@ -104,7 +104,7 @@ async function uploadToCloudinary(imageDataUri) {
 }
 
 // Function to handle Segmind Caricature API
-async function segmindCaricature(imageDataUri) {
+async function segmindCaricature(imageUrl) {
   const SEGMIND_API_KEY = process.env.SEGMIND_API_KEY;
   
   console.log('🔑 [SEGMIND] Checking API key...', SEGMIND_API_KEY ? `Key present (${SEGMIND_API_KEY.substring(0, 10)}...)` : 'KEY MISSING!');
@@ -116,10 +116,7 @@ async function segmindCaricature(imageDataUri) {
   }
 
   console.log('🎭 [SEGMIND] Starting caricature generation...');
-  console.log('🎭 [SEGMIND] Image data URI length:', imageDataUri.length);
-
-  // Convert data URI to base64 string (jak w faceswap)
-  const base64Data = imageDataUri.replace(/^data:image\/[a-z]+;base64,/, '');
+  console.log('🎭 [SEGMIND] Image URL:', imageUrl);
 
   try {
     const response = await fetch('https://api.segmind.com/v1/caricature-style', {
@@ -129,7 +126,7 @@ async function segmindCaricature(imageDataUri) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        image: base64Data, // Używamy base64 jak w faceswap
+        image: imageUrl, // Używamy URL (zgodnie z dokumentacją)
         size: "1024x1024", // Kwadrat jak w dokumentacji
         quality: "high", // Zgodnie z dokumentacją - domyślnie "high"
         background: "opaque", // Zgodnie z dokumentacją
@@ -779,8 +776,28 @@ module.exports = async (req, res) => {
       console.log('🎭 [SEGMIND] Detected caricature style - using Segmind Caricature API');
       
       try {
-        // Spróbuj bezpośrednio z base64 (jak faceswap)
-        const result = await segmindCaricature(imageDataUri);
+        // Upload obrazu do Shopify CDN (caricature wymaga URL, nie base64)
+        const uploadResponse = await fetch(`${process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://customify-s56o.vercel.app'}/api/upload-to-shopify`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            imageData: imageDataUri,
+            filename: `caricature-${Date.now()}.png`
+          })
+        });
+
+        if (!uploadResponse.ok) {
+          throw new Error(`Upload to Shopify failed: ${uploadResponse.status}`);
+        }
+
+        const uploadResult = await uploadResponse.json();
+        const shopifyImageUrl = uploadResult.imageUrl;
+        console.log('📤 [SHOPIFY] Image uploaded to CDN:', shopifyImageUrl);
+
+        // Wywołaj Segmind Caricature API z URL
+        const result = await segmindCaricature(shopifyImageUrl);
         console.log('✅ [SEGMIND] Caricature generation completed successfully');
         
         // Zwróć URL do wygenerowanej karykatury
