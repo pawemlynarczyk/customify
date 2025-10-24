@@ -1080,16 +1080,11 @@ class CustomifyEmbed {
     // Dodaj badge'y do tego samego kontenera
     titleBadgesContainer.appendChild(badgesContainer);
 
-    // PRZENIEŚ CENĘ NAD SEKCJĘ "WYBIERZ ROZMIAR"
-    setTimeout(() => {
-      const priceElement = document.querySelector('product-price');
-      const sizeArea = document.getElementById('sizeArea');
-      if (priceElement && sizeArea) {
-        // Przenieś cenę nad sekcję rozmiarów
-        sizeArea.parentNode.insertBefore(priceElement, sizeArea);
-        console.log('🎯 [CUSTOMIFY] Cena przeniesiona nad sekcję "Wybierz rozmiar"');
-      }
-    }, 100);
+    // PRZENIEŚ CENĘ NAD SEKCJĘ "WYBIERZ ROZMIAR" - OD RAZU (bez setTimeout)
+    const priceElement = document.querySelector('product-price');
+    const sizeArea = document.getElementById('sizeArea');
+    sizeArea.parentNode.insertBefore(priceElement, sizeArea);
+    console.log('🎯 [CUSTOMIFY] Cena przeniesiona nad sekcję "Wybierz rozmiar"');
   }
 
   setupEventListeners() {
