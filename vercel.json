@@ -5,7 +5,7 @@
       "maxDuration": 30
     }
   },
-  "buildCommand": "echo 'Force rebuild'",
+  "buildCommand": "echo 'Force rebuild v2'",
   "routes": [
     {
       "src": "/",
