@@ -95,8 +95,8 @@ async function segmindCaricature(imageUrl) {
       },
       body: JSON.stringify({
         image: imageUrl,
-        size: "1024x1024",
-        quality: "high",
+        size: "1024x1536",
+        quality: "medium",
         background: "opaque",
         output_compression: 100,
         output_format: "png"
@@ -600,8 +600,8 @@ module.exports = async (req, res) => {
         productType: "caricature", // Identyfikator typu produktu
         parameters: {
           image: "USER_IMAGE", // URL do obrazu użytkownika
-          size: "1024x1024", // Rozmiar wyjściowy
-          quality: "high", // Jakość wysoką
+          size: "1024x1536", // Rozmiar wyjściowy - pionowy portret
+          quality: "medium", // Jakość średnia
           background: "opaque", // Nieprzezroczyste tło
           output_compression: 100, // Maksymalna kompresja
           output_format: "png" // Format PNG
