@@ -134,7 +134,8 @@ async function segmindCaricature(imageDataUri) {
         quality: "high", // Zgodnie z dokumentacją - domyślnie "high"
         background: "opaque", // Zgodnie z dokumentacją
         output_compression: 85, // Zgodnie z zaleceniem dokumentacji
-        output_format: "png" // Zgodnie z dokumentacją
+        output_format: "png", // Zgodnie z dokumentacją
+        base64: true // Dodaj base64 jak w faceswap!
       }),
     });
 
