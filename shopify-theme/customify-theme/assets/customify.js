@@ -978,7 +978,7 @@ class CustomifyEmbed {
       width: 100% !important;
       margin: 0 0 20px 0 !important;
       background: white !important;
-      padding: 8px 20px !important;
+      padding: 8px 20px 0px 20px !important; /* USUNIĘTO DOLNY PADDING */
       border-radius: 8px !important;
       box-shadow: none !important;
       position: relative !important;
