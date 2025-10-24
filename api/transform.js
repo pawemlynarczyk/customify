@@ -178,6 +178,7 @@ async function segmindFaceswap(targetImageUrl, swapImageBase64) {
   console.log('🚀 [SEGMIND] Sending request to Segmind API...');
   console.log('🔑 [SEGMIND] Using API key:', SEGMIND_API_KEY.substring(0, 15) + '...');
   console.log('📦 [SEGMIND] Request payload size - source:', cleanSwapImage.length, 'target:', targetImageBase64.length);
+  console.log('⏰ [SEGMIND] Starting request at:', new Date().toISOString());
 
   const requestBody = {
     source_image: cleanSwapImage,      // Twarz użytkownika (źródło twarzy)
@@ -194,14 +195,21 @@ async function segmindFaceswap(targetImageUrl, swapImageBase64) {
 
   console.log('📋 [SEGMIND] Request body keys:', Object.keys(requestBody));
 
+  // Add timeout to prevent 504 errors
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 25000); // 25 second timeout
+  
   const response = await fetch('https://api.segmind.com/v1/faceswap-v4', {
     method: 'POST',
     headers: {
       'x-api-key': SEGMIND_API_KEY,
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify(requestBody)
+    body: JSON.stringify(requestBody),
+    signal: controller.signal
   });
+  
+  clearTimeout(timeoutId);
 
   console.log('📡 [SEGMIND] Response status:', response.status);
   console.log('📡 [SEGMIND] Response headers:', Object.fromEntries(response.headers.entries()));
