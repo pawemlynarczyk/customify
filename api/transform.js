@@ -49,7 +49,14 @@ async function uploadImageToVercel(imageDataUri) {
     const base64Data = imageDataUri.replace(/^data:image\/[a-z]+;base64,/, '');
     
     // Create a simple upload endpoint call to our own API
-    const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://customify-s56o.vercel.app';
+    let baseUrl = process.env.VERCEL_URL || 'https://customify-s56o.vercel.app';
+    
+    // Ensure baseUrl has protocol
+    if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
+      baseUrl = `https://${baseUrl}`;
+    }
+    
+    console.log(`🔗 [UPLOAD] Using baseUrl: ${baseUrl}`);
     const response = await fetch(`${baseUrl}/api/upload`, {
       method: 'POST',
       headers: {
