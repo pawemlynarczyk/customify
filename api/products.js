@@ -219,7 +219,8 @@ module.exports = async (req, res) => {
       image: {
         attachment: base64Image,
         filename: `ai-${uniqueId}.webp`,
-        alt: `AI ${style} for ${customerName} - ${timestamp}`
+        alt: `AI ${style} for ${customerName} - ${timestamp}`,
+        position: 1  // ✅ Ustaw jako główny obraz (pozycja 1)
       }
     };
 
@@ -249,6 +250,30 @@ module.exports = async (req, res) => {
     const shopifyImageUrl = uploadResult.image.src;
 
     console.log('✅ [PRODUCTS.JS] Image uploaded to NEW product:', shopifyImageUrl);
+
+    // ✅ USTAW OBRAZ JAKO GŁÓWNY OBRAZ PRODUKTU (żeby był widoczny w koszyku)
+    const setMainImageResponse = await fetch(`https://${shop}/admin/api/2023-10/products/${productId}.json`, {
+      method: 'PUT',
+      headers: {
+        'X-Shopify-Access-Token': accessToken,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        product: {
+          id: productId,
+          image: {
+            id: uploadResult.image.id,
+            position: 1
+          }
+        }
+      })
+    });
+
+    if (setMainImageResponse.ok) {
+      console.log('✅ [PRODUCTS.JS] Image set as main product image');
+    } else {
+      console.warn('⚠️ [PRODUCTS.JS] Failed to set image as main, but product created');
+    }
 
     res.json({ 
       success: true, 
