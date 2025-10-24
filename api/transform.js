@@ -173,7 +173,13 @@ async function segmindFaceswap(targetImageUrl, swapImageBase64) {
   const targetImageBase64 = await urlToBase64(targetImageUrl);
 
   // Remove data URI prefix if present (keep only base64 string)
-  const cleanSwapImage = swapImageBase64.replace(/^data:image\/[a-z]+;base64,/, '');
+  let cleanSwapImage = swapImageBase64.replace(/^data:image\/[a-z]+;base64,/, '');
+  
+  // AGGRESSIVE COMPRESSION for Segmind API to fit in 30s Vercel limit
+  console.log('🗜️ [SEGMIND] Compressing image for faster processing...');
+  const compressedImage = await compressImage(cleanSwapImage, 512, 512, 60); // Very aggressive compression
+  cleanSwapImage = compressedImage.replace(/^data:image\/[a-z]+;base64,/, '');
+  console.log('🗜️ [SEGMIND] Image compressed for Segmind API');
   
   console.log('🚀 [SEGMIND] Sending request to Segmind API...');
   console.log('🔑 [SEGMIND] Using API key:', SEGMIND_API_KEY.substring(0, 15) + '...');
@@ -199,9 +205,9 @@ async function segmindFaceswap(targetImageUrl, swapImageBase64) {
   // Add timeout to prevent 504 errors
   const controller = new AbortController();
   const timeoutId = setTimeout(() => {
-    console.log('⏰ [SEGMIND] Request timeout after 45 seconds - aborting');
+    console.log('⏰ [SEGMIND] Request timeout after 25 seconds - aborting');
     controller.abort();
-  }, 45000); // 45 second timeout
+  }, 25000); // 25 second timeout (Vercel limit is 30s)
   
   const response = await fetch('https://api.segmind.com/v1/faceswap-v4', {
     method: 'POST',
