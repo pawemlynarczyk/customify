@@ -166,44 +166,37 @@ module.exports = async (req, res) => {
     console.log('✅ [PRODUCTS.JS] Product created, ID:', productId);
     console.log('🚀 [PRODUCTS.JS] NEW VERSION DEPLOYED - Direct image download');
 
-    // KROK 2: Pobierz obraz AI bezpośrednio z transformedImage
-    console.log('📥 [PRODUCTS.JS] Downloading AI image directly...');
-    console.log('🔗 [PRODUCTS.JS] Image URL:', transformedImage);
-    
+    // KROK 2: Pobierz obrazek z Replicate (PROSTA WERSJA - TAK JAK DZIAŁAŁO)
+    console.log('📥 [PRODUCTS.JS] Downloading image from Replicate...');
     const imageResponse = await fetch(transformedImage);
-    console.log('📥 [PRODUCTS.JS] Image response status:', imageResponse.status);
-    console.log('📥 [PRODUCTS.JS] Image response headers:', Object.fromEntries(imageResponse.headers.entries()));
     
     if (!imageResponse.ok) {
-      console.error('❌ [PRODUCTS.JS] Failed to download AI image');
-      console.error('❌ [PRODUCTS.JS] Response status:', imageResponse.status);
-      console.error('❌ [PRODUCTS.JS] Response text:', await imageResponse.text());
+      console.error('❌ [PRODUCTS.JS] Failed to download image from Replicate');
       return res.json({
         success: true,
         product: product,
         variantId: product.variants[0].id,
         productId: productId,
-        warning: 'Product created but image download failed',
+        warning: 'Product created but image upload failed',
         imageUrl: transformedImage
       });
     }
 
     const imageBuffer = await imageResponse.arrayBuffer();
     const base64Image = Buffer.from(imageBuffer).toString('base64');
-    
-    // Generuj unikalny identyfikator
+
+    console.log('📤 [PRODUCTS.JS] Uploading image to NEW product...');
+
+    // Generuj unikalny identyfikator z nazwą klienta, stylem i timestamp
     const customerName = (originalProductTitle || 'Customer').replace(/[^a-zA-Z0-9]/g, '').substring(0, 10);
     const timestamp = Date.now().toString().slice(-8);
     const uniqueId = `${customerName}-${style}-${timestamp}`;
-
-    console.log('📤 [PRODUCTS.JS] Uploading image to NEW product...');
     
     const imageUploadData = {
       image: {
         attachment: base64Image,
         filename: `ai-${uniqueId}.webp`,
         alt: `AI ${style} for ${customerName} - ${timestamp}`
-        // ✅ NIE ustawiamy position tutaj - ustawimy później
       }
     };
 
@@ -233,60 +226,6 @@ module.exports = async (req, res) => {
     const shopifyImageUrl = uploadResult.image.src;
 
     console.log('✅ [PRODUCTS.JS] Image uploaded to NEW product:', shopifyImageUrl);
-    console.log('🖼️ [PRODUCTS.JS] Upload result details:', {
-      imageId: uploadResult.image.id,
-      imageSrc: uploadResult.image.src,
-      imagePosition: uploadResult.image.position,
-      imageAlt: uploadResult.image.alt
-    });
-
-    // ✅ POCZEKAJ CHWILĘ ŻEBY SHOPIFY PRZETWORZYŁ OBRAZEK
-    console.log('⏳ [PRODUCTS.JS] Waiting for Shopify to process image...');
-    await new Promise(resolve => setTimeout(resolve, 2000)); // 2 sekundy
-
-    // ✅ USTAW OBRAZ JAKO GŁÓWNY OBRAZ PRODUKTU (żeby był widoczny w koszyku)
-    // W Shopify, musimy ustawić images array z position: 1
-    const setMainImageResponse = await fetch(`https://${shop}/admin/api/2023-10/products/${productId}.json`, {
-      method: 'PUT',
-      headers: {
-        'X-Shopify-Access-Token': accessToken,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        product: {
-          id: productId,
-          images: [{
-            id: uploadResult.image.id,
-            position: 1
-          }]
-        }
-      })
-    });
-
-    if (setMainImageResponse.ok) {
-      console.log('✅ [PRODUCTS.JS] Image set as main product image');
-      
-      // ✅ SPRAWDŹ CZY OBRAZEK RZECZYWIŚCIE JEST GŁÓWNY
-      const verifyResponse = await fetch(`https://${shop}/admin/api/2023-10/products/${productId}.json`, {
-        headers: {
-          'X-Shopify-Access-Token': accessToken,
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      if (verifyResponse.ok) {
-        const productData = await verifyResponse.json();
-        const mainImage = productData.product.image;
-        console.log('🔍 [PRODUCTS.JS] Product main image after setting:', {
-          imageId: mainImage?.id,
-          imageSrc: mainImage?.src,
-          imagePosition: mainImage?.position
-        });
-      }
-    } else {
-      const errorText = await setMainImageResponse.text();
-      console.warn('⚠️ [PRODUCTS.JS] Failed to set main image:', errorText);
-    }
 
     res.json({ 
       success: true, 
@@ -296,15 +235,7 @@ module.exports = async (req, res) => {
       imageUrl: shopifyImageUrl,  // ✅ URL z Shopify (w nowym produkcie)
       orderId: uniqueId,  // ✅ Unikalny identyfikator zamówienia
       message: 'Produkt został utworzony z obrazkiem AI!',
-      cartUrl: `https://${shop}/cart/add?id=${product.variants[0].id}&quantity=1`,
-      // ✅ DEBUG INFO - dodaj informacje o obrazku
-      imageInfo: {
-        imageId: uploadResult.image.id,
-        imageSrc: uploadResult.image.src,
-        imagePosition: uploadResult.image.position,
-        imageAlt: uploadResult.image.alt,
-        productMainImage: product.image?.src || 'No main image set'
-      }
+      cartUrl: `https://${shop}/cart/add?id=${product.variants[0].id}&quantity=1`
     });
 
   } catch (error) {
