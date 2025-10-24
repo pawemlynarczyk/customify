@@ -470,6 +470,27 @@
           box-shadow: 0 4px 8px rgba(108, 117, 125, 0.3) !important;
         }
         
+        /* DODATKOWY SELEKTOR Z WYŻSZYM PRIORYTETEM */
+        #customify-app-container .customify-upload-btn {
+          background: #6c757d !important; /* SZARY KOLOR */
+          color: white !important;
+        }
+        
+        #customify-app-container .customify-upload-btn:hover {
+          background: #5a6268 !important; /* CIEMNIEJSZY SZARY */
+        }
+        
+        /* NAJWYŻSZY PRIORYTET - SPECYFICZNY SELEKTOR */
+        .customify-shopify-container .customify-upload-area .customify-upload-btn {
+          background: #6c757d !important; /* SZARY KOLOR */
+          color: white !important;
+          border: none !important;
+        }
+        
+        .customify-shopify-container .customify-upload-area .customify-upload-btn:hover {
+          background: #5a6268 !important; /* CIEMNIEJSZY SZARY */
+        }
+        
         .customify-upload-hint {
           text-align: left !important;
           margin: 8px 0 0 0 !important;
