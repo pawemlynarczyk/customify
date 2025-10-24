@@ -1343,16 +1343,11 @@ class CustomifyEmbed {
         }
       }
 
-      // Pobierz cenę rozmiaru
-      const sizePrice = this.getSizePrice(this.selectedSize);
+      // Domyślnie wyświetlaj TYLKO cenę bazową (bez rozmiaru)
+      // Cena z rozmiarem będzie wyświetlana tylko w koszyku
+      priceElement.textContent = `${this.originalBasePrice.toFixed(2)} zł`;
       
-      // Oblicz końcową cenę (oryginalna cena + tylko jeden rozmiar)
-      const finalPrice = this.originalBasePrice + sizePrice;
-      
-      // Aktualizuj cenę na stronie
-      priceElement.textContent = `${finalPrice.toFixed(2)} zł`;
-      
-      console.log(`💰 [PRICE] Updated: ${this.originalBasePrice} + ${sizePrice} = ${finalPrice} zł`);
+      console.log(`💰 [PRICE] Showing base price only: ${this.originalBasePrice} zł (size: ${this.selectedSize})`);
       
     } catch (error) {
       console.error('❌ [PRICE] Error updating product price:', error);
