@@ -205,9 +205,9 @@ async function segmindFaceswap(targetImageUrl, swapImageBase64) {
   // Add timeout to prevent 504 errors
   const controller = new AbortController();
   const timeoutId = setTimeout(() => {
-    console.log('⏰ [SEGMIND] Request timeout after 25 seconds - aborting');
+    console.log('⏰ [SEGMIND] Request timeout after 60 seconds - aborting');
     controller.abort();
-  }, 25000); // 25 second timeout (Vercel limit is 30s)
+  }, 60000); // 60 second timeout (Vercel Pro limit is 60s)
   
   const response = await fetch('https://api.segmind.com/v1/faceswap-v4', {
     method: 'POST',
