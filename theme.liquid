@@ -332,6 +332,14 @@
         margin-top: 4px !important;
       }
       
+      /* FIX: Wewnętrzny kontener ceny - wyrównanie do lewej */
+      #customify-app-container product-price [ref="priceContainer"] {
+        text-align: left !important;
+        width: 100% !important;
+        justify-self: flex-start !important;
+        align-self: flex-start !important;
+      }
+      
       /* FIX: Skeleton loaders - eliminuje skakanie podczas ładowania */
       .product-information__media.loading {
         background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%) !important;
