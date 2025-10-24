@@ -412,6 +412,69 @@
         }
       }
       
+      /* Drag & Drop Zone - działa na wszystkich urządzeniach */
+      .customify-drop-zone {
+        border: 3px dashed #9ca3af !important; /* POWIĘKSZONA RAMKA: z 2px na 3px */
+        border-radius: 8px !important;
+        background: transparent !important; /* USUNIĘTO SZARE TŁO */
+        padding: 20px 30px !important; /* ZMNIEJSZONO PADDING PIONOWY: z 50px na 20px */
+        text-align: center !important;
+        transition: all 0.3s ease !important;
+        cursor: pointer !important;
+        min-height: 100px !important; /* ZMNIEJSZONO WYSOKOŚĆ: z 150px na 100px */
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+      }
+      
+      .customify-drop-zone:hover {
+        border-color: #6c757d !important;
+        background: transparent !important; /* USUNIĘTO SZARE TŁO Z HOVER */
+      }
+      
+      .customify-drop-zone.dragover {
+        border-color: #6c757d !important;
+        background: transparent !important; /* USUNIĘTO SZARE TŁO Z DRAGOVER */
+      }
+      
+      .drop-zone-content {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        gap: 12px !important;
+      }
+      
+      .drop-zone-text {
+        font-size: 1.1rem !important;
+        color: #374151 !important;
+        font-weight: 500 !important;
+        margin: 0 !important;
+      }
+      
+      .drop-zone-separator {
+        font-size: 0.9rem !important;
+        color: #9ca3af !important;
+        margin: 0 !important;
+      }
+      
+      .customify-upload-btn {
+        background: #9ca3af !important; /* JAŚNIEJSZY KOLOR */
+        color: white !important;
+        border: none !important;
+        padding: 10px 20px !important;
+        border-radius: 6px !important;
+        font-size: 0.9rem !important;
+        font-weight: 500 !important;
+        cursor: pointer !important;
+        transition: all 0.3s ease !important;
+        margin: 0 !important;
+      }
+      
+      .customify-upload-btn:hover {
+        background: #6b7280 !important; /* CIEMNIEJSZY HOVER */
+        transform: translateY(-1px) !important;
+      }
+      
       /* FIX: Mobile styles dla aplikacji Customify - wyrównanie do lewej */
       @media (max-width: 768px) {
         /* Aplikacja Customify na mobile */
@@ -447,68 +510,6 @@
         /* Upload area - wyrównanie do lewej */
         .customify-upload-area {
           text-align: left !important;
-        }
-        
-        .customify-drop-zone {
-          border: 3px dashed #9ca3af !important; /* POWIĘKSZONA RAMKA: z 2px na 3px */
-          border-radius: 8px !important;
-          background: transparent !important; /* USUNIĘTO SZARE TŁO */
-          padding: 20px 30px !important; /* ZMNIEJSZONO PADDING PIONOWY: z 50px na 20px */
-          text-align: center !important;
-          transition: all 0.3s ease !important;
-          cursor: pointer !important;
-          min-height: 100px !important; /* ZMNIEJSZONO WYSOKOŚĆ: z 150px na 100px */
-          display: flex !important;
-          align-items: center !important;
-          justify-content: center !important;
-        }
-        
-        .customify-drop-zone:hover {
-          border-color: #6c757d !important;
-          background: transparent !important; /* USUNIĘTO SZARE TŁO Z HOVER */
-        }
-        
-        .customify-drop-zone.dragover {
-          border-color: #6c757d !important;
-          background: transparent !important; /* USUNIĘTO SZARE TŁO Z DRAGOVER */
-        }
-        
-        .drop-zone-content {
-          display: flex !important;
-          flex-direction: column !important;
-          align-items: center !important;
-          gap: 12px !important;
-        }
-        
-        .drop-zone-text {
-          font-size: 1.1rem !important;
-          color: #374151 !important;
-          font-weight: 500 !important;
-          margin: 0 !important;
-        }
-        
-        .drop-zone-separator {
-          font-size: 0.9rem !important;
-          color: #9ca3af !important;
-          margin: 0 !important;
-        }
-        
-        .customify-upload-btn {
-          background: #9ca3af !important; /* JAŚNIEJSZY KOLOR */
-          color: white !important;
-          border: none !important;
-          padding: 10px 20px !important;
-          border-radius: 6px !important;
-          font-size: 0.9rem !important;
-          font-weight: 500 !important;
-          cursor: pointer !important;
-          transition: all 0.3s ease !important;
-          margin: 0 !important;
-        }
-        
-        .customify-upload-btn:hover {
-          background: #6b7280 !important; /* CIEMNIEJSZY HOVER */
-          transform: translateY(-1px) !important;
         }
         
         .customify-upload-hint {
