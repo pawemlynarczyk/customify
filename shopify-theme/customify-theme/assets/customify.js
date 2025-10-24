@@ -1218,13 +1218,32 @@ class CustomifyEmbed {
    */
   updateProductPrice() {
     try {
-      // Znajdź element ceny na stronie produktu
-      const priceElement = document.querySelector('product-price div');
+      // Znajdź element ceny na stronie produktu - spróbuj różnych selektorów
+      let priceElement = document.querySelector('product-price div');
       
       if (!priceElement) {
-        console.warn('⚠️ [PRICE] Price element not found');
+        // Spróbuj innych selektorów
+        priceElement = document.querySelector('.price');
+        console.log('🔍 [PRICE] Trying .price selector:', priceElement);
+      }
+      
+      if (!priceElement) {
+        priceElement = document.querySelector('[class*="price"]');
+        console.log('🔍 [PRICE] Trying [class*="price"] selector:', priceElement);
+      }
+      
+      if (!priceElement) {
+        priceElement = document.querySelector('span:contains("zł")');
+        console.log('🔍 [PRICE] Trying span:contains("zł") selector:', priceElement);
+      }
+      
+      if (!priceElement) {
+        console.warn('⚠️ [PRICE] Price element not found with any selector');
+        console.log('🔍 [PRICE] Available price elements:', document.querySelectorAll('[class*="price"], [id*="price"], span, div').length);
         return;
       }
+
+      console.log('✅ [PRICE] Found price element:', priceElement, 'Text:', priceElement.textContent);
 
       // Pobierz oryginalną bazową cenę (zapamiętaj przy pierwszym wywołaniu)
       if (!this.originalBasePrice) {
@@ -1233,10 +1252,12 @@ class CustomifyEmbed {
         
         if (this.originalBasePrice === null) {
           console.warn('⚠️ [PRICE] Could not extract original base price from:', basePriceText);
-          return;
+          // Fallback - użyj domyślnej ceny
+          this.originalBasePrice = 49.00;
+          console.log(`💰 [PRICE] Using fallback base price: ${this.originalBasePrice} zł`);
+        } else {
+          console.log(`💰 [PRICE] Original base price saved: ${this.originalBasePrice} zł`);
         }
-        
-        console.log(`💰 [PRICE] Original base price saved: ${this.originalBasePrice} zł`);
       }
 
       // Pobierz cenę rozmiaru
@@ -1573,6 +1594,29 @@ class CustomifyEmbed {
       selectedSize: this.selectedSize
     });
     
+    // ✅ SPRAWDŹ ROZMIAR NAJPIERW - to jest wymagane dla ceny
+    console.log('🔍 [CUSTOMIFY] Checking selectedSize:', this.selectedSize);
+    if (!this.selectedSize) {
+      console.log('❌ [CUSTOMIFY] No selectedSize, showing error');
+      this.showError('Nie wybrałeś rozmiaru');
+      return;
+    }
+    console.log('✅ [CUSTOMIFY] selectedSize OK, proceeding with price calculation');
+
+    // ✅ OBLICZ CENĘ NAJPIERW - niezależnie od obrazu AI
+    const basePrice = this.originalBasePrice || 49.00;
+    const sizePrice = this.getSizePrice(this.selectedSize);
+    const finalPrice = basePrice + sizePrice;
+    
+    console.log('💰 [CUSTOMIFY] Price calculation:', {
+      originalBasePrice: this.originalBasePrice,
+      basePrice: basePrice,
+      sizePrice: sizePrice,
+      finalPrice: finalPrice,
+      size: this.selectedSize
+    });
+
+    // ✅ SPRAWDŹ OBRAZ AI DOPIERO POTEM
     if (!this.transformedImage) {
       this.showError('Brak przekształconego obrazu');
       return;
@@ -1580,11 +1624,6 @@ class CustomifyEmbed {
     
     if (!this.selectedStyle) {
       this.showError('Wybierz styl');
-      return;
-    }
-    
-    if (!this.selectedSize) {
-      this.showError('Nie wybrałeś rozmiaru');
       return;
     }
 
@@ -1604,6 +1643,12 @@ class CustomifyEmbed {
       
       console.log('🆔 [CUSTOMIFY] Original product ID:', productId);
       
+      // Sprawdź czy finalPrice jest poprawny
+      if (!finalPrice || finalPrice <= 0) {
+        console.error('❌ [CUSTOMIFY] Invalid finalPrice:', finalPrice);
+        this.showError('Błąd obliczania ceny. Spróbuj ponownie.');
+        return;
+      }
 
       const productData = {
         originalImage: await this.fileToBase64(this.uploadedFile),
@@ -1611,7 +1656,8 @@ class CustomifyEmbed {
         style: this.selectedStyle,
         size: this.selectedSize,
         originalProductTitle: document.querySelector('h1, .product-title, .view-product-title')?.textContent?.trim() || 'Produkt',
-        originalProductId: productId // ✅ Dodano ID produktu do pobrania ceny z Shopify
+        originalProductId: productId, // ✅ Dodano ID produktu do pobrania ceny z Shopify
+        finalPrice: finalPrice // ✅ Przekaż obliczoną cenę do API
       };
 
       console.log('🛒 [CUSTOMIFY] Creating product with data:', productData);
