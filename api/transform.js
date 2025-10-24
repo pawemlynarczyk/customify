@@ -136,9 +136,13 @@ async function segmindCaricature(imageUrl) {
     });
 
     if (response.ok) {
-      const result = await response.json();
+      // Segmind returns PNG image, not JSON
+      const imageBuffer = await response.arrayBuffer();
+      const base64Image = Buffer.from(imageBuffer).toString('base64');
+      const imageUrl = `data:image/png;base64,${base64Image}`;
+      
       console.log('✅ [SEGMIND] Caricature generated successfully');
-      return result;
+      return { image: imageUrl, output: imageUrl, url: imageUrl };
     } else {
       console.error('❌ [SEGMIND] API Error:', response.status);
       const errorText = await response.text();
