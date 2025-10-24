@@ -1085,19 +1085,6 @@ class CustomifyEmbed {
     const sizeArea = document.getElementById('sizeArea');
     sizeArea.parentNode.insertBefore(priceElement, sizeArea);
     console.log('🎯 [CUSTOMIFY] Cena przeniesiona nad sekcję "Wybierz rozmiar"');
-    
-    // DODAJ INFORMACJĘ O NAJNIŻSZEJ CENIE POD CENĄ
-    const lowestPriceInfo = document.createElement('div');
-    lowestPriceInfo.className = 'lowest-price-info';
-    lowestPriceInfo.style.cssText = `
-      color: #666 !important;
-      font-size: 0.85rem !important;
-      margin-top: 4px !important;
-      font-weight: 400 !important;
-    `;
-    lowestPriceInfo.textContent = 'Najniższa cena z ostatnich 30 dni';
-    priceElement.parentNode.insertBefore(lowestPriceInfo, priceElement.nextSibling);
-    console.log('💰 [CUSTOMIFY] Dodano informację o najniższej cenie');
   }
 
   setupEventListeners() {

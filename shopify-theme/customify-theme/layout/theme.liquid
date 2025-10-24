@@ -308,6 +308,16 @@
         }
       }
       
+      /* INFORMACJA O NAJNIŻSZEJ CENIE - DODANA POD CENĄ */
+      #customify-app-container product-price::after {
+        content: 'Najniższa cena z ostatnich 30 dni';
+        display: block;
+        color: #666 !important;
+        font-size: 0.85rem !important;
+        font-weight: 400 !important;
+        margin-top: 4px !important;
+      }
+      
       /* MOBILE: Elastyczne wymiary ceny w aplikacji */
       @media (max-width: 768px) {
         #customify-app-container product-price,
