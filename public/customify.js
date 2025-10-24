@@ -542,11 +542,18 @@ class CustomifyEmbed {
     }
     
     // Ustaw styl
+    console.log('🎨 [GALLERY] Setting style:', generation.style);
     if (generation.style) {
       const styleCard = document.querySelector(`[data-style="${generation.style}"]`);
+      console.log('🎨 [GALLERY] Found style card:', styleCard);
       if (styleCard) {
         this.selectStyle(styleCard);
+        console.log('✅ [GALLERY] Style selected:', this.selectedStyle);
+      } else {
+        console.warn('⚠️ [GALLERY] Style card not found for:', generation.style);
       }
+    } else {
+      console.warn('⚠️ [GALLERY] No style in generation');
     }
     
     // Ustaw rozmiar
@@ -1644,9 +1651,17 @@ class CustomifyEmbed {
       return;
     }
     
+    // ✅ SPRAWDŹ STYL - ale tylko jeśli nie używamy galerii
     if (!this.selectedStyle) {
-      this.showError('Wybierz styl');
-      return;
+      // Sprawdź czy mamy styl z galerii (w transformedImage)
+      if (this.transformedImage && this.originalImageFromGallery) {
+        console.log('🎨 [CUSTOMIFY] Using gallery image - style not required');
+        // Użyj domyślnego stylu dla galerii
+        this.selectedStyle = 'gallery-selection';
+      } else {
+        this.showError('Wybierz styl');
+        return;
+      }
     }
 
     console.log('🛒 [CUSTOMIFY] Starting addToCart process...');
