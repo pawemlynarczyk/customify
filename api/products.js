@@ -157,7 +157,7 @@ module.exports = async (req, res) => {
     const imageResponse = await fetch(transformedImage);
     
     if (!imageResponse.ok) {
-      console.error('❌ [PRODUCTS.JS] Failed to download image from Replicate');
+      // Failed to download image from Replicate
       return res.json({
         success: true,
         product: product,
@@ -171,7 +171,7 @@ module.exports = async (req, res) => {
     const imageBuffer = await imageResponse.arrayBuffer();
     const base64Image = Buffer.from(imageBuffer).toString('base64');
 
-    console.log('📤 [PRODUCTS.JS] Uploading image to NEW product...');
+    // Uploading image to product
 
     // Generuj unikalny identyfikator z nazwą klienta, stylem i timestamp
     const customerName = (originalProductTitle || 'Customer').replace(/[^a-zA-Z0-9]/g, '').substring(0, 10);
@@ -211,7 +211,7 @@ module.exports = async (req, res) => {
     const uploadResult = await uploadResponse.json();
     const shopifyImageUrl = uploadResult.image.src;
 
-    console.log('✅ [PRODUCTS.JS] Image uploaded to NEW product:', shopifyImageUrl);
+    // Image uploaded successfully
 
     res.json({ 
       success: true, 

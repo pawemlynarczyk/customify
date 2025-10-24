@@ -1,15 +1,4 @@
 /* ========================================
-   CZCIONKA LORA - jak na EmmyGift
-   ======================================== */
-@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap');
-
-body, h1, h2, h3, h4, h5, h6, .price, product-price, 
-.customify-title, .customify-upload-btn, .customify-size-btn,
-.accordion-header, .accordion-content, .customify-result h4 {
-  font-family: 'Lora', serif !important;
-}
-
-/* ========================================
    CUSTOMIFY FOOTER STYLES - POKAŻ WSZYSTKIE ELEMENTY
    ======================================== */
 
