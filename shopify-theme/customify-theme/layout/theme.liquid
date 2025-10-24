@@ -452,43 +452,6 @@
         .customify-upload-btn {
           width: 100% !important;
           margin: 0 !important;
-          background: #6c757d !important; /* SZARY KOLOR */
-          color: white !important;
-          border: none !important;
-          padding: 12px 24px !important;
-          font-size: 1rem !important;
-          font-weight: 600 !important;
-          border-radius: 6px !important;
-          cursor: pointer !important;
-          transition: all 0.3s ease !important;
-          text-align: center !important;
-        }
-        
-        .customify-upload-btn:hover {
-          background: #5a6268 !important; /* CIEMNIEJSZY SZARY */
-          transform: translateY(-2px) !important;
-          box-shadow: 0 4px 8px rgba(108, 117, 125, 0.3) !important;
-        }
-        
-        /* DODATKOWY SELEKTOR Z WYŻSZYM PRIORYTETEM */
-        #customify-app-container .customify-upload-btn {
-          background: #6c757d !important; /* SZARY KOLOR */
-          color: white !important;
-        }
-        
-        #customify-app-container .customify-upload-btn:hover {
-          background: #5a6268 !important; /* CIEMNIEJSZY SZARY */
-        }
-        
-        /* NAJWYŻSZY PRIORYTET - SPECYFICZNY SELEKTOR */
-        .customify-shopify-container .customify-upload-area .customify-upload-btn {
-          background: #6c757d !important; /* SZARY KOLOR */
-          color: white !important;
-          border: none !important;
-        }
-        
-        .customify-shopify-container .customify-upload-area .customify-upload-btn:hover {
-          background: #5a6268 !important; /* CIEMNIEJSZY SZARY */
         }
         
         .customify-upload-hint {
@@ -1983,6 +1946,7 @@
           if (app && placeholder) {
             placeholder.appendChild(app);
           }
+          
         });
       </script>
       <div id="customify-app-container" class="customify-shopify-container">
