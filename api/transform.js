@@ -77,7 +77,7 @@ async function uploadImageToVercel(imageDataUri) {
 }
 
 // Function to handle Segmind Caricature API
-async function segmindCaricature(imageUrl) {
+async function segmindCaricature(imageBase64) {
   const SEGMIND_API_KEY = process.env.SEGMIND_API_KEY;
   
   console.log('🔑 [SEGMIND] Checking API key...', SEGMIND_API_KEY ? `Key present (${SEGMIND_API_KEY.substring(0, 10)}...)` : 'KEY MISSING!');
@@ -88,7 +88,10 @@ async function segmindCaricature(imageUrl) {
   }
 
   console.log('🎭 [SEGMIND] Starting caricature generation...');
-  console.log('🎭 [SEGMIND] Image URL:', imageUrl);
+  console.log('🎭 [SEGMIND] Image base64 length:', imageBase64.length);
+
+  // Remove data URI prefix if present (keep only base64 string)
+  const cleanImageBase64 = imageBase64.replace(/^data:image\/[a-z]+;base64,/, '');
 
   try {
     const response = await fetch('https://api.segmind.com/v1/caricature-style', {
@@ -98,7 +101,7 @@ async function segmindCaricature(imageUrl) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        image: imageUrl,
+        image: cleanImageBase64,
         size: "1024x1536",
         quality: "medium",
         background: "opaque",
@@ -726,12 +729,8 @@ module.exports = async (req, res) => {
       console.log('🎭 [SEGMIND] Detected caricature style - using Segmind Caricature API');
       
       try {
-        // Konwertuj base64 na URL (upload do Vercel)
-        const uploadedImageUrl = await uploadImageToVercel(imageDataUri);
-        console.log('📤 [SEGMIND] Image uploaded to Vercel:', uploadedImageUrl);
-        
-        // Wywołaj Segmind Caricature API
-        const result = await segmindCaricature(uploadedImageUrl);
+        // Wywołaj Segmind Caricature API z base64
+        const result = await segmindCaricature(imageDataUri);
         console.log('✅ [SEGMIND] Caricature generation completed successfully');
         
         // Zwróć URL do wygenerowanej karykatury
