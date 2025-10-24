@@ -1958,6 +1958,11 @@
         </div>
         
         <h3 class="customify-title">Wgraj zdjęcie i zobacz efekt!</h3>
+        
+        <!-- Animowane strzałki wskazujące w dół -->
+        <div class="arrow-down">
+          <span>↓ ↓ ↓</span>
+        </div>
         <div class="customify-inline-wrapper">
           <div class="customify-embed" id="customifyEmbed">
           <div class="customify-upload-area" id="uploadArea">
@@ -2348,6 +2353,71 @@
         }
 
         /* Ceny stylów usunięte - style nie wpływają na cenę */
+        
+        /* ANIMOWANE STRZAŁKI WSKAZUJĄCE W DÓŁ */
+        .arrow-down {
+          text-align: center;
+          margin: 20px 0;
+          animation: bounce-arrows 2s infinite;
+        }
+        
+        .arrow-down span {
+          font-size: 2rem;
+          color: #dc3545;
+          font-weight: bold;
+          display: inline-block;
+          animation: bounce-individual 1.5s infinite ease-in-out;
+        }
+        
+        .arrow-down span:nth-child(1) {
+          animation-delay: 0s;
+        }
+        
+        .arrow-down span:nth-child(2) {
+          animation-delay: 0.2s;
+        }
+        
+        .arrow-down span:nth-child(3) {
+          animation-delay: 0.4s;
+        }
+        
+        @keyframes bounce-arrows {
+          0%, 20%, 50%, 80%, 100% {
+            transform: translateY(0);
+          }
+          40% {
+            transform: translateY(-10px);
+          }
+          60% {
+            transform: translateY(-5px);
+          }
+        }
+        
+        @keyframes bounce-individual {
+          0%, 20%, 50%, 80%, 100% {
+            transform: translateY(0);
+            opacity: 1;
+          }
+          40% {
+            transform: translateY(-15px);
+            opacity: 0.8;
+          }
+          60% {
+            transform: translateY(-8px);
+            opacity: 0.9;
+          }
+        }
+        
+        /* Mobile - mniejsze strzałki */
+        @media (max-width: 768px) {
+          .arrow-down {
+            margin: 15px 0;
+          }
+          
+          .arrow-down span {
+            font-size: 1.5rem;
+          }
+        }
 
         @media (max-width: 768px) {
           .customify-style-grid {
