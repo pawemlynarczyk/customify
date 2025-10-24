@@ -541,16 +541,18 @@ class CustomifyEmbed {
       this.showError('Brak wyniku AI w generacji.');
     }
     
-    // Ustaw styl
+    // Ustaw styl - bezpośrednio z generacji
     console.log('🎨 [GALLERY] Setting style:', generation.style);
     if (generation.style) {
+      this.selectedStyle = generation.style;
+      console.log('✅ [GALLERY] Style set directly from generation:', this.selectedStyle);
+      
+      // Opcjonalnie: zaznacz też element w DOM jeśli istnieje
       const styleCard = document.querySelector(`[data-style="${generation.style}"]`);
-      console.log('🎨 [GALLERY] Found style card:', styleCard);
       if (styleCard) {
-        this.selectStyle(styleCard);
-        console.log('✅ [GALLERY] Style selected:', this.selectedStyle);
-      } else {
-        console.warn('⚠️ [GALLERY] Style card not found for:', generation.style);
+        this.stylesArea.querySelectorAll('.customify-style-card').forEach(card => card.classList.remove('active'));
+        styleCard.classList.add('active');
+        console.log('✅ [GALLERY] Style card also highlighted in DOM');
       }
     } else {
       console.warn('⚠️ [GALLERY] No style in generation');
@@ -1651,17 +1653,10 @@ class CustomifyEmbed {
       return;
     }
     
-    // ✅ SPRAWDŹ STYL - ale tylko jeśli nie używamy galerii
+    // ✅ SPRAWDŹ STYL
     if (!this.selectedStyle) {
-      // Sprawdź czy mamy styl z galerii (w transformedImage)
-      if (this.transformedImage && this.originalImageFromGallery) {
-        console.log('🎨 [CUSTOMIFY] Using gallery image - style not required');
-        // Użyj domyślnego stylu dla galerii
-        this.selectedStyle = 'gallery-selection';
-      } else {
-        this.showError('Wybierz styl');
-        return;
-      }
+      this.showError('Wybierz styl');
+      return;
     }
 
     console.log('🛒 [CUSTOMIFY] Starting addToCart process...');
