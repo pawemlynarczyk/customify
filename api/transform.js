@@ -49,7 +49,8 @@ async function uploadImageToVercel(imageDataUri) {
     const base64Data = imageDataUri.replace(/^data:image\/[a-z]+;base64,/, '');
     
     // Create a simple upload endpoint call to our own API
-    const response = await fetch(`${process.env.VERCEL_URL || 'https://customify-s56o.vercel.app'}/api/upload`, {
+    const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://customify-s56o.vercel.app';
+    const response = await fetch(`${baseUrl}/api/upload`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
