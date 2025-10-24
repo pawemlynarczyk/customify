@@ -2236,12 +2236,18 @@
     {% comment %} CUSTOMIFY CUSTOMER REVIEWS {% endcomment %}
     {% if template contains 'product' %}
     <style>
-      /* Style dla gwiazdek w opiniach */
+      /* Style dla gwiazdek w opiniach - BARDZIEJ SPECYFICZNE */
+      .customer-reviews-section .star,
+      .stars-rating .star,
+      .review-stars .star,
       .star {
         color: #ffc107 !important;
-        font-size: 1.2rem;
-        margin-right: 2px;
-        display: inline-block;
+        font-size: 1.2rem !important;
+        margin-right: 2px !important;
+        display: inline-block !important;
+        text-shadow: none !important;
+        background: none !important;
+        border: none !important;
       }
       
       .stars-rating {
