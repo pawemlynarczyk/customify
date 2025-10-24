@@ -1595,10 +1595,13 @@ class CustomifyEmbed {
     });
     
     // ✅ SPRAWDŹ ROZMIAR NAJPIERW - to jest wymagane dla ceny
+    console.log('🔍 [CUSTOMIFY] Checking selectedSize:', this.selectedSize);
     if (!this.selectedSize) {
+      console.log('❌ [CUSTOMIFY] No selectedSize, showing error');
       this.showError('Nie wybrałeś rozmiaru');
       return;
     }
+    console.log('✅ [CUSTOMIFY] selectedSize OK, proceeding with price calculation');
 
     // ✅ OBLICZ CENĘ NAJPIERW - niezależnie od obrazu AI
     const basePrice = this.originalBasePrice || 49.00;
