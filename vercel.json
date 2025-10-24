@@ -5,21 +5,21 @@
       "maxDuration": 30
     }
   },
-  "buildCommand": "echo 'Force rebuild v4'",
+  "buildCommand": "echo 'Force rebuild v5'",
   "outputDirectory": "public",
   "installCommand": "echo 'Force install'",
-  "routes": [
+  "rewrites": [
     {
-      "src": "/",
-      "dest": "/public/index.html"
+      "source": "/",
+      "destination": "/public/index.html"
     },
     {
-      "src": "/api/(.*)",
-      "dest": "/api/$1"
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
     },
     {
-      "src": "/(.*)",
-      "dest": "/public/$1"
+      "source": "/(.*)",
+      "destination": "/public/$1"
     }
   ],
   "headers": [
