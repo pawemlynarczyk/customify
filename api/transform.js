@@ -185,7 +185,11 @@ async function segmindFaceswap(targetImageUrl, swapImageBase64) {
   console.log('🔑 [SEGMIND] Using API key:', SEGMIND_API_KEY.substring(0, 15) + '...');
   console.log('📦 [SEGMIND] Request payload size - source:', cleanSwapImage.length, 'target:', targetImageBase64.length);
   console.log('⏰ [SEGMIND] Starting request at:', new Date().toISOString());
-  console.log('⏰ [SEGMIND] Vercel timeout limit: 10 seconds, our timeout: 45 seconds');
+  console.log('⏰ [SEGMIND] Vercel Pro timeout limit: 60 seconds, our timeout: 60 seconds');
+  console.log('🔍 [VERCEL] Environment:', process.env.VERCEL_ENV);
+  console.log('🔍 [VERCEL] Region:', process.env.VERCEL_REGION);
+  console.log('🔍 [VERCEL] All Vercel env vars:', Object.keys(process.env).filter(k => k.startsWith('VERCEL')));
+  console.log('🔍 [VERCEL] Function timeout check - starting at:', Date.now());
 
   const requestBody = {
     source_image: cleanSwapImage,      // Twarz użytkownika (źródło twarzy)
