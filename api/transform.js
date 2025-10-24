@@ -197,7 +197,10 @@ async function segmindFaceswap(targetImageUrl, swapImageBase64) {
 
   // Add timeout to prevent 504 errors
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 25000); // 25 second timeout
+  const timeoutId = setTimeout(() => {
+    console.log('⏰ [SEGMIND] Request timeout after 30 seconds - aborting');
+    controller.abort();
+  }, 30000); // 30 second timeout
   
   const response = await fetch('https://api.segmind.com/v1/faceswap-v4', {
     method: 'POST',
@@ -794,9 +797,17 @@ module.exports = async (req, res) => {
         
       } catch (error) {
         console.error('❌ [SEGMIND] Face-swap failed:', error);
-        return res.status(500).json({ 
+        
+        if (error.name === 'AbortError') {
+          return res.status(504).json({
+            error: 'Request timeout - Segmind API took too long to respond',
+            details: 'Please try again with a smaller image or different style'
+          });
+        }
+        
+        return res.status(500).json({
           error: 'Face-swap failed',
-          details: error.message 
+          details: error.message
         });
       }
       
