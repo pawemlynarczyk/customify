@@ -165,8 +165,8 @@ module.exports = async (req, res) => {
     const timestamp = Date.now().toString().slice(-8);
     const uniqueId = `${customerName}-${style}-${timestamp}`;
     
-    // Zapisz obraz AI trwale
-    const saveImageResponse = await fetch('https://customify-s56o.vercel.app/api/save-ai-image', {
+    // Zapisz obraz AI trwale w publicznym folderze
+    const saveImageResponse = await fetch('https://customify-s56o.vercel.app/api/save-ai-image-public', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
