@@ -1600,15 +1600,8 @@ class CustomifyEmbed {
       return;
     }
 
-    console.log('🔍 [CUSTOMIFY] Debugging addToCart - before price calculation:', {
-      selectedSize: this.selectedSize,
-      originalBasePrice: this.originalBasePrice,
-      transformedImage: !!this.transformedImage,
-      selectedStyle: this.selectedStyle
-    });
-
     // ✅ OBLICZ CENĘ NAJPIERW - niezależnie od obrazu AI
-    const basePrice = this.originalBasePrice || 49.00; // Zmieniono fallback na 49 zł
+    const basePrice = this.originalBasePrice || 49.00;
     const sizePrice = this.getSizePrice(this.selectedSize);
     const finalPrice = basePrice + sizePrice;
     
@@ -1617,8 +1610,7 @@ class CustomifyEmbed {
       basePrice: basePrice,
       sizePrice: sizePrice,
       finalPrice: finalPrice,
-      size: this.selectedSize,
-      selectedSize: this.selectedSize
+      size: this.selectedSize
     });
 
     // ✅ SPRAWDŹ OBRAZ AI DOPIERO POTEM
