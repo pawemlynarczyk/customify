@@ -1594,6 +1594,27 @@ class CustomifyEmbed {
       selectedSize: this.selectedSize
     });
     
+    // ✅ SPRAWDŹ ROZMIAR NAJPIERW - to jest wymagane dla ceny
+    if (!this.selectedSize) {
+      this.showError('Nie wybrałeś rozmiaru');
+      return;
+    }
+
+    // ✅ OBLICZ CENĘ NAJPIERW - niezależnie od obrazu AI
+    const basePrice = this.originalBasePrice || 49.00; // Zmieniono fallback na 49 zł
+    const sizePrice = this.getSizePrice(this.selectedSize);
+    const finalPrice = basePrice + sizePrice;
+    
+    console.log('💰 [CUSTOMIFY] Price calculation:', {
+      originalBasePrice: this.originalBasePrice,
+      basePrice: basePrice,
+      sizePrice: sizePrice,
+      finalPrice: finalPrice,
+      size: this.selectedSize,
+      selectedSize: this.selectedSize
+    });
+
+    // ✅ SPRAWDŹ OBRAZ AI DOPIERO POTEM
     if (!this.transformedImage) {
       this.showError('Brak przekształconego obrazu');
       return;
@@ -1601,11 +1622,6 @@ class CustomifyEmbed {
     
     if (!this.selectedStyle) {
       this.showError('Wybierz styl');
-      return;
-    }
-    
-    if (!this.selectedSize) {
-      this.showError('Nie wybrałeś rozmiaru');
       return;
     }
 
@@ -1624,21 +1640,6 @@ class CustomifyEmbed {
         null;
       
       console.log('🆔 [CUSTOMIFY] Original product ID:', productId);
-      
-
-      // Oblicz końcową cenę (bazowa + rozmiar)
-      const basePrice = this.originalBasePrice || 49.00; // Zmieniono fallback na 49 zł
-      const sizePrice = this.getSizePrice(this.selectedSize);
-      const finalPrice = basePrice + sizePrice;
-      
-      console.log('💰 [CUSTOMIFY] Price calculation:', {
-        originalBasePrice: this.originalBasePrice,
-        basePrice: basePrice,
-        sizePrice: sizePrice,
-        finalPrice: finalPrice,
-        size: this.selectedSize,
-        selectedSize: this.selectedSize
-      });
       
       // Sprawdź czy finalPrice jest poprawny
       if (!finalPrice || finalPrice <= 0) {
