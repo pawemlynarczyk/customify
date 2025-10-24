@@ -179,6 +179,7 @@ async function segmindFaceswap(targetImageUrl, swapImageBase64) {
   console.log('🔑 [SEGMIND] Using API key:', SEGMIND_API_KEY.substring(0, 15) + '...');
   console.log('📦 [SEGMIND] Request payload size - source:', cleanSwapImage.length, 'target:', targetImageBase64.length);
   console.log('⏰ [SEGMIND] Starting request at:', new Date().toISOString());
+  console.log('⏰ [SEGMIND] Vercel timeout limit: 10 seconds, our timeout: 45 seconds');
 
   const requestBody = {
     source_image: cleanSwapImage,      // Twarz użytkownika (źródło twarzy)
@@ -198,9 +199,9 @@ async function segmindFaceswap(targetImageUrl, swapImageBase64) {
   // Add timeout to prevent 504 errors
   const controller = new AbortController();
   const timeoutId = setTimeout(() => {
-    console.log('⏰ [SEGMIND] Request timeout after 30 seconds - aborting');
+    console.log('⏰ [SEGMIND] Request timeout after 45 seconds - aborting');
     controller.abort();
-  }, 30000); // 30 second timeout
+  }, 45000); // 45 second timeout
   
   const response = await fetch('https://api.segmind.com/v1/faceswap-v4', {
     method: 'POST',
