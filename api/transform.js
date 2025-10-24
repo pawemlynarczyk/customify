@@ -104,7 +104,7 @@ async function uploadToCloudinary(imageDataUri) {
 }
 
 // Function to handle Segmind Caricature API
-async function segmindCaricature(imageDataUri) {
+async function segmindCaricature(imageUrl) {
   const SEGMIND_API_KEY = process.env.SEGMIND_API_KEY;
   
   console.log('🔑 [SEGMIND] Checking API key...', SEGMIND_API_KEY ? `Key present (${SEGMIND_API_KEY.substring(0, 10)}...)` : 'KEY MISSING!');
@@ -116,10 +116,7 @@ async function segmindCaricature(imageDataUri) {
   }
 
   console.log('🎭 [SEGMIND] Starting caricature generation...');
-  console.log('🎭 [SEGMIND] Image data URI length:', imageDataUri.length);
-
-  // Convert data URI to base64 string for Segmind API
-  const base64Data = imageDataUri.replace(/^data:image\/[a-z]+;base64,/, '');
+  console.log('🎭 [SEGMIND] Image URL:', imageUrl);
 
   try {
     const response = await fetch('https://api.segmind.com/v1/caricature-style', {
@@ -129,12 +126,12 @@ async function segmindCaricature(imageDataUri) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        image: base64Data,
-        size: "1024x1536",
-        quality: "medium",
-        background: "opaque",
-        output_compression: 100,
-        output_format: "png"
+        image: imageUrl,
+        size: "1024x1536", // Pionowy portret zgodnie z zasadami projektu
+        quality: "high", // Zgodnie z dokumentacją - domyślnie "high"
+        background: "opaque", // Zgodnie z dokumentacją
+        output_compression: 85, // Zgodnie z zaleceniem dokumentacji
+        output_format: "png" // Zgodnie z dokumentacją
       }),
     });
 
@@ -757,8 +754,12 @@ module.exports = async (req, res) => {
       console.log('🎭 [SEGMIND] Detected caricature style - using Segmind Caricature API');
       
       try {
-        // Wywołaj Segmind Caricature API z base64
-        const result = await segmindCaricature(imageDataUri);
+        // Upload image to Cloudinary first to get URL (Segmind requires URL, not base64)
+        const cloudinaryUrl = await uploadToCloudinary(imageDataUri);
+        console.log('📤 [CLOUDINARY] Image uploaded:', cloudinaryUrl);
+        
+        // Wywołaj Segmind Caricature API z URL
+        const result = await segmindCaricature(cloudinaryUrl);
         console.log('✅ [SEGMIND] Caricature generation completed successfully');
         
         // Zwróć URL do wygenerowanej karykatury
