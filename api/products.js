@@ -233,8 +233,8 @@ module.exports = async (req, res) => {
       image: {
         attachment: base64Image,
         filename: `ai-${uniqueId}.webp`,
-        alt: `AI ${style} for ${customerName} - ${timestamp}`,
-        position: 1  // ✅ Ustaw jako główny obraz (pozycja 1)
+        alt: `AI ${style} for ${customerName} - ${timestamp}`
+        // ✅ NIE ustawiamy position tutaj - ustawimy później
       }
     };
 
@@ -276,7 +276,7 @@ module.exports = async (req, res) => {
     await new Promise(resolve => setTimeout(resolve, 2000)); // 2 sekundy
 
     // ✅ USTAW OBRAZ JAKO GŁÓWNY OBRAZ PRODUKTU (żeby był widoczny w koszyku)
-    // W Shopify, musimy ustawić image ID jako główny obraz produktu
+    // W Shopify, musimy ustawić images array z position: 1
     const setMainImageResponse = await fetch(`https://${shop}/admin/api/2023-10/products/${productId}.json`, {
       method: 'PUT',
       headers: {
@@ -286,10 +286,10 @@ module.exports = async (req, res) => {
       body: JSON.stringify({
         product: {
           id: productId,
-          image: {
+          images: [{
             id: uploadResult.image.id,
             position: 1
-          }
+          }]
         }
       })
     });
