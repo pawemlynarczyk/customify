@@ -449,18 +449,66 @@
           text-align: left !important;
         }
         
-        .customify-upload-btn {
-          width: 100% !important;
-          margin: 0 !important;
+        .customify-drop-zone {
+          border: 2px dashed #d1d5db !important;
+          border-radius: 8px !important;
+          background: white !important;
+          padding: 40px 20px !important;
+          text-align: center !important;
+          transition: all 0.3s ease !important;
+          cursor: pointer !important;
+          min-height: 120px !important;
           display: flex !important;
           align-items: center !important;
           justify-content: center !important;
-          min-height: 50px !important; /* Większy przycisk dla samej ikony */
         }
         
-        .upload-icon {
-          font-size: 2rem !important; /* Większa ikona */
-          line-height: 1 !important;
+        .customify-drop-zone:hover {
+          border-color: #6c757d !important;
+          background: #f8f9fa !important;
+        }
+        
+        .customify-drop-zone.dragover {
+          border-color: #6c757d !important;
+          background: #e9ecef !important;
+        }
+        
+        .drop-zone-content {
+          display: flex !important;
+          flex-direction: column !important;
+          align-items: center !important;
+          gap: 12px !important;
+        }
+        
+        .drop-zone-text {
+          font-size: 1.1rem !important;
+          color: #374151 !important;
+          font-weight: 500 !important;
+          margin: 0 !important;
+        }
+        
+        .drop-zone-separator {
+          font-size: 0.9rem !important;
+          color: #9ca3af !important;
+          margin: 0 !important;
+        }
+        
+        .customify-upload-btn {
+          background: #6c757d !important;
+          color: white !important;
+          border: none !important;
+          padding: 10px 20px !important;
+          border-radius: 6px !important;
+          font-size: 0.9rem !important;
+          font-weight: 500 !important;
+          cursor: pointer !important;
+          transition: all 0.3s ease !important;
+          margin: 0 !important;
+        }
+        
+        .customify-upload-btn:hover {
+          background: #5a6268 !important;
+          transform: translateY(-1px) !important;
         }
         
         .customify-upload-hint {
@@ -1979,9 +2027,15 @@
         <div class="customify-inline-wrapper">
           <div class="customify-embed" id="customifyEmbed">
           <div class="customify-upload-area" id="uploadArea">
-            <button class="customify-upload-btn" id="uploadBtn">
-              <span class="upload-icon">➕</span>
-            </button>
+            <div class="customify-drop-zone" id="dropZone">
+              <div class="drop-zone-content">
+                <div class="drop-zone-text">Drop files here to upload</div>
+                <div class="drop-zone-separator">or</div>
+                <button class="customify-upload-btn" id="uploadBtn">
+                  Select Files
+                </button>
+              </div>
+            </div>
             <input type="file" id="fileInput" class="customify-file-input" accept="image/*">
             <!-- Komunikat błędu - od razu pod uploadem -->
             <div class="customify-error" id="errorMessage" style="display: none; margin-top: 10px;"></div>
