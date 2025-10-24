@@ -271,8 +271,12 @@ module.exports = async (req, res) => {
       imageAlt: uploadResult.image.alt
     });
 
+    // ✅ POCZEKAJ CHWILĘ ŻEBY SHOPIFY PRZETWORZYŁ OBRAZEK
+    console.log('⏳ [PRODUCTS.JS] Waiting for Shopify to process image...');
+    await new Promise(resolve => setTimeout(resolve, 2000)); // 2 sekundy
+
     // ✅ USTAW OBRAZ JAKO GŁÓWNY OBRAZ PRODUKTU (żeby był widoczny w koszyku)
-    // W Shopify, główny obraz to ten z position: 1, ale musimy też ustawić go jako featured image
+    // W Shopify, musimy ustawić image ID jako główny obraz produktu
     const setMainImageResponse = await fetch(`https://${shop}/admin/api/2023-10/products/${productId}.json`, {
       method: 'PUT',
       headers: {
@@ -282,16 +286,37 @@ module.exports = async (req, res) => {
       body: JSON.stringify({
         product: {
           id: productId,
-          featured_image: uploadResult.image.src  // ✅ Ustaw jako featured image
+          image: {
+            id: uploadResult.image.id,
+            position: 1
+          }
         }
       })
     });
 
     if (setMainImageResponse.ok) {
-      console.log('✅ [PRODUCTS.JS] Image set as featured image');
+      console.log('✅ [PRODUCTS.JS] Image set as main product image');
+      
+      // ✅ SPRAWDŹ CZY OBRAZEK RZECZYWIŚCIE JEST GŁÓWNY
+      const verifyResponse = await fetch(`https://${shop}/admin/api/2023-10/products/${productId}.json`, {
+        headers: {
+          'X-Shopify-Access-Token': accessToken,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (verifyResponse.ok) {
+        const productData = await verifyResponse.json();
+        const mainImage = productData.product.image;
+        console.log('🔍 [PRODUCTS.JS] Product main image after setting:', {
+          imageId: mainImage?.id,
+          imageSrc: mainImage?.src,
+          imagePosition: mainImage?.position
+        });
+      }
     } else {
       const errorText = await setMainImageResponse.text();
-      console.warn('⚠️ [PRODUCTS.JS] Failed to set featured image:', errorText);
+      console.warn('⚠️ [PRODUCTS.JS] Failed to set main image:', errorText);
     }
 
     res.json({ 
