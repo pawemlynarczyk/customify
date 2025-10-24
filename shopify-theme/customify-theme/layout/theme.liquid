@@ -2178,11 +2178,37 @@
           box-shadow: none !important;
         }
 
-        /* Style dla ceny produktu */
+        /* Style dla ceny produktu - NAPRAWIONY SELEKTOR */
+        product-price > div,
         product-price div {
           font-size: 1.4rem !important;
           font-weight: 700 !important;
           color: #d32f2f !important;
+        }
+        
+        /* Dodatkowe selektory dla ceny produktu */
+        .price,
+        [class*="price"] {
+          font-size: 1.4rem !important;
+          font-weight: 700 !important;
+          color: #d32f2f !important;
+        }
+        
+        /* OCHRONA: Nowa cena nad przyciskiem NIE wpływa na oryginalną cenę */
+        .customify-cart-price {
+          /* Nowa cena ma własne style - nie wpływa na oryginalną cenę */
+        }
+        
+        /* Upewnij się że oryginalna cena produktu ma priorytet */
+        product-price,
+        product-price > div,
+        product-price div,
+        .price,
+        [class*="price"] {
+          font-size: 1.4rem !important;
+          font-weight: 700 !important;
+          color: #d32f2f !important;
+          text-decoration: none !important;
         }
       </style>
     {% endif %}
@@ -2209,6 +2235,108 @@
 
     {% comment %} CUSTOMIFY CUSTOMER REVIEWS {% endcomment %}
     {% if template contains 'product' %}
+    <style>
+      /* Style dla gwiazdek w opiniach */
+      .star {
+        color: #ffc107 !important;
+        font-size: 1.2rem;
+        margin-right: 2px;
+        display: inline-block;
+      }
+      
+      .stars-rating {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        margin: 10px 0;
+      }
+      
+      /* Style dla sekcji opinii klientów */
+      .customer-reviews-section {
+        margin-top: 40px;
+        padding: 30px 20px;
+        background: #f8f9fa;
+        border-radius: 12px;
+        border: 1px solid #e9ecef;
+      }
+      
+      .reviews-header {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+      
+      .reviews-title {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #333;
+        margin: 0 0 15px 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+      }
+      
+      .reviews-link {
+        color: #007bff;
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 500;
+      }
+      
+      .reviews-link:hover {
+        text-decoration: underline;
+      }
+      
+      .reviews-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+      }
+      
+      .review-card {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        border: 1px solid #e9ecef;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      
+      .review-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+      
+      .review-author {
+        font-weight: 600;
+        color: #333;
+      }
+      
+      .review-date {
+        color: #6c757d;
+        font-size: 0.9rem;
+      }
+      
+      .review-stars {
+        margin-bottom: 15px;
+      }
+      
+      .review-text {
+        color: #555;
+        line-height: 1.5;
+        margin-bottom: 10px;
+        font-style: italic;
+      }
+      
+      .review-style {
+        color: #007bff;
+        font-weight: 600;
+        font-size: 0.9rem;
+      }
+    </style>
+    
     <div class="customer-reviews-section">
       <div class="reviews-header">
         <h2 class="reviews-title">
