@@ -1600,6 +1600,13 @@ class CustomifyEmbed {
       return;
     }
 
+    console.log('🔍 [CUSTOMIFY] Debugging addToCart - before price calculation:', {
+      selectedSize: this.selectedSize,
+      originalBasePrice: this.originalBasePrice,
+      transformedImage: !!this.transformedImage,
+      selectedStyle: this.selectedStyle
+    });
+
     // ✅ OBLICZ CENĘ NAJPIERW - niezależnie od obrazu AI
     const basePrice = this.originalBasePrice || 49.00; // Zmieniono fallback na 49 zł
     const sizePrice = this.getSizePrice(this.selectedSize);
