@@ -165,53 +165,16 @@ module.exports = async (req, res) => {
 
     console.log('✅ [PRODUCTS.JS] Product created, ID:', productId);
 
-    // KROK 2: Zapisz obraz AI trwale na Vercel
-    console.log('💾 [PRODUCTS.JS] Saving AI image permanently...');
+    // KROK 2: Pobierz obraz AI bezpośrednio z transformedImage
+    console.log('📥 [PRODUCTS.JS] Downloading AI image directly...');
+    console.log('🔗 [PRODUCTS.JS] Image URL:', transformedImage);
     
-    // Generuj unikalny identyfikator
-    const customerName = (originalProductTitle || 'Customer').replace(/[^a-zA-Z0-9]/g, '').substring(0, 10);
-    const timestamp = Date.now().toString().slice(-8);
-    const uniqueId = `${customerName}-${style}-${timestamp}`;
-    
-    // Zapisz obraz AI trwale w publicznym folderze
-    const saveImageResponse = await fetch('https://customify-s56o.vercel.app/api/save-ai-image-public', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        imageUrl: transformedImage,
-        style: style,
-        customerName: customerName,
-        orderId: uniqueId
-      })
-    });
-
-    if (!saveImageResponse.ok) {
-      console.error('❌ [PRODUCTS.JS] Failed to save AI image permanently');
-      return res.json({
-        success: true,
-        product: product,
-        variantId: product.variants[0].id,
-        productId: productId,
-        warning: 'Product created but image not saved permanently',
-        imageUrl: transformedImage
-      });
-    }
-
-    const saveResult = await saveImageResponse.json();
-    const permanentImageUrl = saveResult.imageUrl;
-    
-    console.log('✅ [PRODUCTS.JS] AI image saved permanently:', permanentImageUrl);
-
-    // KROK 3: Pobierz obraz z trwałego URL
-    console.log('📥 [PRODUCTS.JS] Downloading image from permanent storage...');
-    console.log('🔗 [PRODUCTS.JS] Permanent URL:', permanentImageUrl);
-    
-    const imageResponse = await fetch(permanentImageUrl);
+    const imageResponse = await fetch(transformedImage);
     console.log('📥 [PRODUCTS.JS] Image response status:', imageResponse.status);
     console.log('📥 [PRODUCTS.JS] Image response headers:', Object.fromEntries(imageResponse.headers.entries()));
     
     if (!imageResponse.ok) {
-      console.error('❌ [PRODUCTS.JS] Failed to download image from permanent storage');
+      console.error('❌ [PRODUCTS.JS] Failed to download AI image');
       console.error('❌ [PRODUCTS.JS] Response status:', imageResponse.status);
       console.error('❌ [PRODUCTS.JS] Response text:', await imageResponse.text());
       return res.json({
@@ -219,13 +182,18 @@ module.exports = async (req, res) => {
         product: product,
         variantId: product.variants[0].id,
         productId: productId,
-        warning: 'Product created but image upload failed',
-        imageUrl: permanentImageUrl
+        warning: 'Product created but image download failed',
+        imageUrl: transformedImage
       });
     }
 
     const imageBuffer = await imageResponse.arrayBuffer();
     const base64Image = Buffer.from(imageBuffer).toString('base64');
+    
+    // Generuj unikalny identyfikator
+    const customerName = (originalProductTitle || 'Customer').replace(/[^a-zA-Z0-9]/g, '').substring(0, 10);
+    const timestamp = Date.now().toString().slice(-8);
+    const uniqueId = `${customerName}-${style}-${timestamp}`;
 
     console.log('📤 [PRODUCTS.JS] Uploading image to NEW product...');
     
@@ -325,7 +293,6 @@ module.exports = async (req, res) => {
       variantId: product.variants[0].id,
       productId: productId,
       imageUrl: shopifyImageUrl,  // ✅ URL z Shopify (w nowym produkcie)
-      permanentImageUrl: permanentImageUrl,  // ✅ TRWAŁY URL na Vercel (nie wygaśnie!)
       orderId: uniqueId,  // ✅ Unikalny identyfikator zamówienia
       message: 'Produkt został utworzony z obrazkiem AI!',
       cartUrl: `https://${shop}/cart/add?id=${product.variants[0].id}&quantity=1`,
