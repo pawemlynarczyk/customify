@@ -850,6 +850,71 @@
           padding: 10px;
         }
       }
+      
+      /* ANIMOWANE STRZAŁKI WSKAZUJĄCE W DÓŁ */
+      .arrow-down {
+        text-align: center;
+        margin: 0; /* USUNIĘTO WSZYSTKIE MARGINESY */
+        animation: bounce-arrows 4s infinite; /* WOLNIEJ: z 2s na 4s */
+      }
+      
+      .arrow-down span {
+        font-size: 2rem;
+        color: #dc3545;
+        font-weight: bold;
+        display: inline-block;
+        animation: bounce-individual 3s infinite ease-in-out; /* WOLNIEJ: z 1.5s na 3s */
+      }
+      
+      .arrow-down span:nth-child(1) {
+        animation-delay: 0s;
+      }
+      
+      .arrow-down span:nth-child(2) {
+        animation-delay: 0.2s;
+      }
+      
+      .arrow-down span:nth-child(3) {
+        animation-delay: 0.4s;
+      }
+      
+      @keyframes bounce-arrows {
+        0%, 20%, 50%, 80%, 100% {
+          transform: translateY(0);
+        }
+        40% {
+          transform: translateY(-5px); /* MNIEJ: z -10px na -5px */
+        }
+        60% {
+          transform: translateY(-2px); /* MNIEJ: z -5px na -2px */
+        }
+      }
+      
+      @keyframes bounce-individual {
+        0%, 20%, 50%, 80%, 100% {
+          transform: translateY(0);
+          opacity: 1;
+        }
+        40% {
+          transform: translateY(-8px); /* MNIEJ: z -15px na -8px */
+          opacity: 0.9; /* MNIEJ: z 0.8 na 0.9 */
+        }
+        60% {
+          transform: translateY(-4px); /* MNIEJ: z -8px na -4px */
+          opacity: 0.95; /* MNIEJ: z 0.9 na 0.95 */
+        }
+      }
+      
+      /* Mobile - mniejsze strzałki */
+      @media (max-width: 768px) {
+        .arrow-down {
+          margin: 0; /* USUNIĘTO WSZYSTKIE MARGINESY NA MOBILE */
+        }
+        
+        .arrow-down span {
+          font-size: 1.5rem;
+        }
+      }
     </style>
     
     
@@ -2022,6 +2087,12 @@
         
         <h3 class="customify-title">Wgraj zdjęcie i zobacz efekt!</h3>
         
+        <!-- Animowane strzałki wskazujące w dół -->
+        <div class="arrow-down">
+          <span>↓</span>
+          <span>↓</span>
+          <span>↓</span>
+        </div>
         <div class="customify-inline-wrapper">
           <div class="customify-embed" id="customifyEmbed">
           <div class="customify-upload-area" id="uploadArea">
@@ -2415,71 +2486,6 @@
         }
 
         /* Ceny stylów usunięte - style nie wpływają na cenę */
-        
-        /* ANIMOWANE STRZAŁKI WSKAZUJĄCE W DÓŁ */
-        .arrow-down {
-          text-align: center;
-          margin: 0; /* USUNIĘTO WSZYSTKIE MARGINESY */
-          animation: bounce-arrows 4s infinite; /* WOLNIEJ: z 2s na 4s */
-        }
-        
-        .arrow-down span {
-          font-size: 2rem;
-          color: #dc3545;
-          font-weight: bold;
-          display: inline-block;
-          animation: bounce-individual 3s infinite ease-in-out; /* WOLNIEJ: z 1.5s na 3s */
-        }
-        
-        .arrow-down span:nth-child(1) {
-          animation-delay: 0s;
-        }
-        
-        .arrow-down span:nth-child(2) {
-          animation-delay: 0.2s;
-        }
-        
-        .arrow-down span:nth-child(3) {
-          animation-delay: 0.4s;
-        }
-        
-        @keyframes bounce-arrows {
-          0%, 20%, 50%, 80%, 100% {
-            transform: translateY(0);
-          }
-          40% {
-            transform: translateY(-5px); /* MNIEJ: z -10px na -5px */
-          }
-          60% {
-            transform: translateY(-2px); /* MNIEJ: z -5px na -2px */
-          }
-        }
-        
-        @keyframes bounce-individual {
-          0%, 20%, 50%, 80%, 100% {
-            transform: translateY(0);
-            opacity: 1;
-          }
-          40% {
-            transform: translateY(-8px); /* MNIEJ: z -15px na -8px */
-            opacity: 0.9; /* MNIEJ: z 0.8 na 0.9 */
-          }
-          60% {
-            transform: translateY(-4px); /* MNIEJ: z -8px na -4px */
-            opacity: 0.95; /* MNIEJ: z 0.9 na 0.95 */
-          }
-        }
-        
-        /* Mobile - mniejsze strzałki */
-        @media (max-width: 768px) {
-          .arrow-down {
-            margin: 0; /* USUNIĘTO WSZYSTKIE MARGINESY NA MOBILE */
-          }
-          
-          .arrow-down span {
-            font-size: 1.5rem;
-          }
-        }
 
         @media (max-width: 768px) {
           .customify-style-grid {
