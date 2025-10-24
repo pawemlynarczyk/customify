@@ -196,10 +196,16 @@ module.exports = async (req, res) => {
 
     // KROK 3: Pobierz obraz z trwałego URL
     console.log('📥 [PRODUCTS.JS] Downloading image from permanent storage...');
+    console.log('🔗 [PRODUCTS.JS] Permanent URL:', permanentImageUrl);
+    
     const imageResponse = await fetch(permanentImageUrl);
+    console.log('📥 [PRODUCTS.JS] Image response status:', imageResponse.status);
+    console.log('📥 [PRODUCTS.JS] Image response headers:', Object.fromEntries(imageResponse.headers.entries()));
     
     if (!imageResponse.ok) {
       console.error('❌ [PRODUCTS.JS] Failed to download image from permanent storage');
+      console.error('❌ [PRODUCTS.JS] Response status:', imageResponse.status);
+      console.error('❌ [PRODUCTS.JS] Response text:', await imageResponse.text());
       return res.json({
         success: true,
         product: product,
@@ -250,8 +256,15 @@ module.exports = async (req, res) => {
     const shopifyImageUrl = uploadResult.image.src;
 
     console.log('✅ [PRODUCTS.JS] Image uploaded to NEW product:', shopifyImageUrl);
+    console.log('🖼️ [PRODUCTS.JS] Upload result details:', {
+      imageId: uploadResult.image.id,
+      imageSrc: uploadResult.image.src,
+      imagePosition: uploadResult.image.position,
+      imageAlt: uploadResult.image.alt
+    });
 
     // ✅ USTAW OBRAZ JAKO GŁÓWNY OBRAZ PRODUKTU (żeby był widoczny w koszyku)
+    // W Shopify, główny obraz to ten z position: 1, ale musimy też ustawić go jako featured image
     const setMainImageResponse = await fetch(`https://${shop}/admin/api/2023-10/products/${productId}.json`, {
       method: 'PUT',
       headers: {
@@ -261,18 +274,16 @@ module.exports = async (req, res) => {
       body: JSON.stringify({
         product: {
           id: productId,
-          image: {
-            id: uploadResult.image.id,
-            position: 1
-          }
+          featured_image: uploadResult.image.src  // ✅ Ustaw jako featured image
         }
       })
     });
 
     if (setMainImageResponse.ok) {
-      console.log('✅ [PRODUCTS.JS] Image set as main product image');
+      console.log('✅ [PRODUCTS.JS] Image set as featured image');
     } else {
-      console.warn('⚠️ [PRODUCTS.JS] Failed to set image as main, but product created');
+      const errorText = await setMainImageResponse.text();
+      console.warn('⚠️ [PRODUCTS.JS] Failed to set featured image:', errorText);
     }
 
     res.json({ 
