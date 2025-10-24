@@ -777,7 +777,7 @@ module.exports = async (req, res) => {
       
       try {
         // Upload obrazu do Shopify CDN (caricature wymaga URL, nie base64)
-        const uploadResponse = await fetch(`${process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://customify-s56o.vercel.app'}/api/upload-to-shopify`, {
+        const uploadResponse = await fetch('https://customify-s56o.vercel.app/api/upload-to-shopify', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
