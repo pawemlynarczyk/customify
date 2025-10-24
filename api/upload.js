@@ -54,9 +54,9 @@ module.exports = (req, res) => {
         return res.status(400).json({ error: 'No image data provided' });
       }
 
-      // For base64 uploads, return a temporary URL
-      // In production, you'd save this to a file storage service
-      const imageUrl = `https://customify-s56o.vercel.app/temp/${filename || 'image.png'}`;
+      // For base64 uploads, return a data URL that can be used directly
+      // This avoids the need to actually save files in serverless environment
+      const imageUrl = image; // Return the original base64 data URI
       
       res.json({ 
         success: true, 
