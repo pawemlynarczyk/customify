@@ -127,7 +127,7 @@ async function segmindCaricature(imageUrl) {
       },
       body: JSON.stringify({
         image: imageUrl, // Używamy URL (zgodnie z dokumentacją)
-        size: "1024x1536", // Pionowy portret zgodnie z zasadami projektu
+        size: "1024x1024", // Zmieniam na kwadrat jak w dokumentacji
         quality: "high", // Zgodnie z dokumentacją - domyślnie "high"
         background: "opaque", // Zgodnie z dokumentacją
         output_compression: 85, // Zgodnie z zaleceniem dokumentacji
