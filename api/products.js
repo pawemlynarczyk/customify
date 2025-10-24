@@ -1,10 +1,16 @@
 const { checkRateLimit, getClientIP } = require('../utils/vercelRateLimiter');
 
 module.exports = async (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  // ✅ POPRAWIONE CORS - nie można używać credentials: true z origin: *
+  const origin = req.headers.origin;
+  if (origin && (origin.includes('lumly.pl') || origin.includes('customify-s56o.vercel.app'))) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Requested-With, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Credentials', 'false'); // ✅ Zmienione na false
 
   // RATE LIMITING - Sprawdź limit dla API
   const ip = getClientIP(req);
@@ -18,6 +24,7 @@ module.exports = async (req, res) => {
   }
 
   if (req.method === 'OPTIONS') {
+    console.log('✅ [PRODUCTS.JS] Handling OPTIONS preflight request');
     res.status(200).end();
     return;
   }
