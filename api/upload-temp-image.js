@@ -51,16 +51,17 @@ module.exports = async (req, res) => {
 
     console.log('📦 [VERCEL-BLOB] Image buffer size:', imageBuffer.length, 'bytes');
 
-    // Generate unique filename
+    // Generate unique filename with custom prefix
     const timestamp = Date.now();
-    const uniqueFilename = `temp/${filename || `image-${timestamp}`}.jpg`;
+    const uniqueFilename = `customify/temp/${filename || `image-${timestamp}`}.jpg`;
 
     console.log('📝 [VERCEL-BLOB] Uploading to:', uniqueFilename);
 
-    // Upload to Vercel Blob Storage
+    // Upload to Vercel Blob Storage with custom token for organized storage
     const blob = await put(uniqueFilename, imageBuffer, {
       access: 'public',
       contentType: 'image/jpeg',
+      token: process.env.BLOB_READ_WRITE_TOKEN,
     });
 
     console.log('✅ [VERCEL-BLOB] Image uploaded successfully:', blob.url);
