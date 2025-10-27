@@ -159,7 +159,11 @@ class CustomifyEmbed {
     // Konwertuj transformedImage URL na base64 dla cache
     let thumbnailBase64 = transformedImage; // fallback na URL
     try {
-      if (transformedImage && (transformedImage.startsWith('http://') || transformedImage.startsWith('https://'))) {
+      // ✅ Dla karykatury (base64) - pomiń konwersję, użyj jako jest
+      if (transformedImage && transformedImage.startsWith('data:image/')) {
+        console.log('🎨 [CACHE] Detected base64 image (karykatura), using as thumbnail');
+        thumbnailBase64 = transformedImage; // Użyj base64 bezpośrednio
+      } else if (transformedImage && (transformedImage.startsWith('http://') || transformedImage.startsWith('https://'))) {
         console.log('🔄 [CACHE] Converting AI result URL to base64 for cache...');
         thumbnailBase64 = await this.urlToBase64(transformedImage);
         console.log('✅ [CACHE] AI result cached as base64');
