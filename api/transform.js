@@ -783,37 +783,20 @@ module.exports = async (req, res) => {
     let output;
     let imageUrl;
 
-    // ✅ STYLE KARYKATURY - UŻYWAJ SEGMIND CARICATURE
+        // ✅ STYLE KARYKATURY - UŻYWAJ SEGMIND CARICATURE
     if (config.apiType === 'segmind-caricature') {
-      console.log('🎭 [SEGMIND] Detected caricature style - using Segmind Caricature API');
+      console.log('🎭 [SEGMIND] Detected caricature style - using Segmind Caricature API');                                                                     
       
       try {
-        // Upload obrazu do Vercel Blob Storage zamiast Shopify (żeby nie tworzyć produktów)
-        console.log('📤 [VERCEL-BLOB] Uploading image to Vercel Blob Storage...');
+        // Używaj bezpośrednio base64 obrazu dla Segmind (Segmind przyjmuje base64 URLs)
+        // Konwertuj base64 data URI na URL dla Segmind
+        const imageUrl = imageDataUri; // Segmind przyjmuje base64 data URIs
         
-        const baseUrl = 'https://customify-s56o.vercel.app';
-        const uploadResponse = await fetch(`${baseUrl}/api/upload-temp-image`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            imageData: imageDataUri,
-            filename: `caricature-${Date.now()}.jpg`
-          })
-        });
+        console.log('📤 [SEGMIND] Using base64 image directly for caricature generation...');                                                                        
 
-        if (!uploadResponse.ok) {
-          throw new Error(`Vercel Blob upload failed: ${uploadResponse.status}`);
-        }
-
-        const uploadResult = await uploadResponse.json();
-        const shopifyImageUrl = uploadResult.imageUrl;
-        console.log('✅ [VERCEL-BLOB] Image uploaded to Vercel Blob:', shopifyImageUrl);
-
-        // Wywołaj Segmind Caricature API z URL
-        const result = await segmindCaricature(shopifyImageUrl);
-        console.log('✅ [SEGMIND] Caricature generation completed successfully');
+        // Wywołaj Segmind Caricature API z base64 URL
+        const result = await segmindCaricature(imageUrl);
+        console.log('✅ [SEGMIND] Caricature generation completed successfully');                                                                               
         
         // Zwróć URL do wygenerowanej karykatury
         imageUrl = result.image || result.output || result.url;
