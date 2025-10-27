@@ -152,24 +152,38 @@ module.exports = async (req, res) => {
 
     // Product created successfully
 
-    // KROK 2: Pobierz obrazek z Replicate (PROSTA WERSJA - TAK JAK DZIAŁAŁO)
-    // Downloading image from Replicate
-    const imageResponse = await fetch(transformedImage);
+    // KROK 2: Pobierz obrazek (Replicate/Segmind)
+    // Check if transformedImage is base64 or URL
+    let imageBuffer;
     
-    if (!imageResponse.ok) {
-      // Failed to download image from Replicate
-      return res.json({
-        success: true,
-        product: product,
-        variantId: product.variants[0].id,
-        productId: productId,
-        warning: 'Product created but image upload failed',
-        imageUrl: transformedImage
-      });
+    if (transformedImage.startsWith('data:image')) {
+      // Base64 format (Segmind Caricature) - convert directly
+      console.log('📦 [PRODUCTS] Detected base64 image, converting...');
+      const base64Data = transformedImage.split(',')[1];
+      imageBuffer = Buffer.from(base64Data, 'base64');
+    } else {
+      // URL format (Replicate) - download first
+      console.log('📥 [PRODUCTS] Detected URL image, downloading...');
+      const imageResponse = await fetch(transformedImage);
+      
+      if (!imageResponse.ok) {
+        // Failed to download image from Replicate
+        return res.json({
+          success: true,
+          product: product,
+          variantId: product.variants[0].id,
+          productId: productId,
+          warning: 'Product created but image upload failed',
+          imageUrl: transformedImage
+        });
+      }
+      
+      const imageArrayBuffer = await imageResponse.arrayBuffer();
+      imageBuffer = Buffer.from(imageArrayBuffer);
     }
-
-    const imageBuffer = await imageResponse.arrayBuffer();
-    const base64Image = Buffer.from(imageBuffer).toString('base64');
+    
+    // Convert imageBuffer to base64 for Shopify API
+    const base64Image = imageBuffer.toString('base64');
 
     // Uploading image to product
 
