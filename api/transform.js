@@ -788,14 +788,14 @@ module.exports = async (req, res) => {
       console.log('🎭 [SEGMIND] Detected caricature style - using Segmind Caricature API');                                                                     
       
       try {
-        // Używaj bezpośrednio base64 obrazu dla Segmind (Segmind przyjmuje base64 URLs)
-        // Konwertuj base64 data URI na URL dla Segmind
-        const imageUrl = imageDataUri; // Segmind przyjmuje base64 data URIs
+        // Upload obrazu do Cloudinary żeby uzyskać stały URL
+        console.log('📤 [CLOUDINARY] Uploading image to Cloudinary...');                                                                              
         
-        console.log('📤 [SEGMIND] Using base64 image directly for caricature generation...');                                                                        
+        const cloudinaryUrl = await uploadToCloudinary(imageDataUri);
+        console.log('✅ [CLOUDINARY] Image uploaded:', cloudinaryUrl);                                                                        
 
-        // Wywołaj Segmind Caricature API z base64 URL
-        const result = await segmindCaricature(imageUrl);
+        // Wywołaj Segmind Caricature API z URL
+        const result = await segmindCaricature(cloudinaryUrl);
         console.log('✅ [SEGMIND] Caricature generation completed successfully');                                                                               
         
         // Zwróć URL do wygenerowanej karykatury
