@@ -337,6 +337,23 @@ class CustomifyEmbed {
       display: block;
     `;
     img.alt = `${generation.style} - ${generation.size}`;
+    
+    // Obsługa błędów ładowania obrazu
+    img.onerror = function() {
+      console.error('❌ [GALLERY] Image failed to load:', generation.thumbnail?.substring(0, 50));
+      console.log('🔄 [GALLERY] Generation data:', generation);
+      // Ukryj uszkodzony obraz, ale zachowaj element
+      img.style.display = 'none';
+      // Pokaż placeholder
+      const placeholder = document.createElement('div');
+      placeholder.textContent = 'Brak obrazu';
+      placeholder.style.cssText = 'width: 100%; height: 120px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; color: #999;';
+      img.parentNode.insertBefore(placeholder, img);
+    };
+    
+    img.onload = function() {
+      console.log('✅ [GALLERY] Image loaded successfully:', generation.thumbnail?.substring(0, 50));
+    };
 
     // Overlay z informacjami
     const overlay = document.createElement('div');
