@@ -1135,6 +1135,20 @@ class CustomifyEmbed {
     this.uploadedFile = file;
     this.showPreview(file);
     this.hideError();
+
+    // ✅ Google Ads Conversion Tracking - Image Upload Event
+    if (typeof gtag !== 'undefined') {
+      gtag('event', 'image_upload', {
+        'event_category': 'Customify',
+        'event_label': 'Image Uploaded',
+        'product_url': window.location.pathname,
+        'file_size': file.size,
+        'file_type': file.type
+      });
+      console.log('📊 [GOOGLE ADS] Conversion event sent: image_upload');
+    } else {
+      console.warn('⚠️ [GOOGLE ADS] gtag not available - conversion not tracked');
+    }
   }
 
   showPreview(file) {
