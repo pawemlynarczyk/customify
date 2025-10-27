@@ -667,7 +667,7 @@ module.exports = async (req, res) => {
         parameters: {
           image: "USER_IMAGE", // URL do obrazu użytkownika
           size: "1024x1536", // Rozmiar wyjściowy - pionowy portret
-          quality: "medium", // Jakość średnia
+          quality: "high", // Jakość wysoka (zgodnie z funkcją segmindCaricature)
           background: "opaque", // Nieprzezroczyste tło
           output_compression: 100, // Maksymalna kompresja
           output_format: "png" // Format PNG
