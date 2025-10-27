@@ -21,11 +21,11 @@ module.exports = async (req, res) => {
   console.log('🛍️ [CREATE-CARICATURE-V2] Tworzenie produktu z karykaturami...');
 
   const timestamp = Date.now();
-  const handle = `karykatura-ze-zdjecia-${timestamp}`;
+  const handle = `karykatura-${timestamp}`;
 
   const productData = {
     product: {
-      title: 'Karykatura ze zdjęcia',
+      title: `Karykatura AI Portret ${timestamp}`,
       handle: handle,
       body_html: `
         <p><strong>Karykatura ze zdjęcia - Zabawne portrety!</strong></p>
@@ -63,28 +63,28 @@ module.exports = async (req, res) => {
       published_scope: 'web',
       variants: [
         {
-          title: 'A4 (21x30 cm)',
+          title: `A4-21x30cm-${timestamp}`,
           price: '49.00',
           inventory_quantity: 1000,
           inventory_management: 'shopify',
           fulfillment_service: 'manual'
         },
         {
-          title: 'A3 (30x42 cm)',
+          title: `A3-30x42cm-${timestamp}`,
           price: '79.00',
           inventory_quantity: 1000,
           inventory_management: 'shopify',
           fulfillment_service: 'manual'
         },
         {
-          title: 'A2 (42x60 cm)',
+          title: `A2-42x60cm-${timestamp}`,
           price: '129.00',
           inventory_quantity: 1000,
           inventory_management: 'shopify',
           fulfillment_service: 'manual'
         },
         {
-          title: 'A1 (60x84 cm)',
+          title: `A1-60x84cm-${timestamp}`,
           price: '249.00',
           inventory_quantity: 1000,
           inventory_management: 'shopify',
