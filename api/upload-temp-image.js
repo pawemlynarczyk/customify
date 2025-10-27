@@ -30,12 +30,12 @@ module.exports = async (req, res) => {
 
     console.log('📤 [VERCEL-BLOB] Starting upload to Vercel Blob Storage...');
     
-    // Check if BLOB_READ_WRITE_TOKEN is configured
-    if (!process.env.BLOB_READ_WRITE_TOKEN) {
-      console.error('❌ [VERCEL-BLOB] BLOB_READ_WRITE_TOKEN not configured!');
+    // Check if customify_READ_WRITE_TOKEN is configured
+    if (!process.env.customify_READ_WRITE_TOKEN) {
+      console.error('❌ [VERCEL-BLOB] customify_READ_WRITE_TOKEN not configured!');
       return res.status(500).json({ 
         error: 'Vercel Blob Storage not configured',
-        details: 'BLOB_READ_WRITE_TOKEN environment variable is missing. Please configure it in Vercel Dashboard.'
+        details: 'customify_READ_WRITE_TOKEN environment variable is missing. Please configure it in Vercel Dashboard.'
       });
     }
     
@@ -61,7 +61,7 @@ module.exports = async (req, res) => {
     const blob = await put(uniqueFilename, imageBuffer, {
       access: 'public',
       contentType: 'image/jpeg',
-      token: process.env.BLOB_READ_WRITE_TOKEN,
+      token: process.env.customify_READ_WRITE_TOKEN,
     });
 
     console.log('✅ [VERCEL-BLOB] Image uploaded successfully:', blob.url);
@@ -80,7 +80,7 @@ module.exports = async (req, res) => {
     res.status(500).json({ 
       error: 'Upload to Vercel Blob Storage failed',
       details: error.message,
-      hint: 'Make sure BLOB_READ_WRITE_TOKEN is configured in Vercel Dashboard'
+      hint: 'Make sure customify_READ_WRITE_TOKEN is configured in Vercel Dashboard'
     });
   }
 };
