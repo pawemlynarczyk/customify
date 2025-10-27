@@ -185,8 +185,8 @@ class CustomifyEmbed {
     // Dodaj nową generację na początku
     existingGenerations.unshift(generation);
     
-    // Zachowaj tylko ostatnie 10 generacji
-    const limitedGenerations = existingGenerations.slice(0, 10);
+    // Zachowaj tylko ostatnie 3 generacje (zmniejszone z 10 żeby nie przekroczyć localStorage quota)
+    const limitedGenerations = existingGenerations.slice(0, 3);
     
     // Zapisz z powrotem do localStorage
     localStorage.setItem('customify_ai_generations', JSON.stringify(limitedGenerations));
