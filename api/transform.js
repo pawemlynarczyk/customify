@@ -788,14 +788,33 @@ module.exports = async (req, res) => {
       console.log('🎭 [SEGMIND] Detected caricature style - using Segmind Caricature API');                                                                     
       
       try {
-        // Upload obrazu do Cloudinary żeby uzyskać stały URL
-        console.log('📤 [CLOUDINARY] Uploading image to Cloudinary...');                                                                              
+        // Upload obrazu do Vercel Blob Storage żeby uzyskać stały URL
+        console.log('📤 [VERCEL-BLOB] Uploading image to Vercel Blob Storage...');                                                                              
         
-        const cloudinaryUrl = await uploadToCloudinary(imageDataUri);
-        console.log('✅ [CLOUDINARY] Image uploaded:', cloudinaryUrl);                                                                        
+        const baseUrl = 'https://customify-s56o.vercel.app';
+        const uploadResponse = await fetch(`${baseUrl}/api/upload-temp-image`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            imageData: imageDataUri,
+            filename: `caricature-${Date.now()}.jpg`
+          })
+        });
+
+        if (!uploadResponse.ok) {
+          const errorData = await uploadResponse.json();
+          console.error('❌ [VERCEL-BLOB] Upload failed:', errorData);
+          throw new Error(`Vercel Blob upload failed: ${uploadResponse.status} - ${errorData.details || errorData.error}`);
+        }
+
+        const uploadResult = await uploadResponse.json();
+        const blobImageUrl = uploadResult.imageUrl;
+        console.log('✅ [VERCEL-BLOB] Image uploaded:', blobImageUrl);                                                                        
 
         // Wywołaj Segmind Caricature API z URL
-        const result = await segmindCaricature(cloudinaryUrl);
+        const result = await segmindCaricature(blobImageUrl);
         console.log('✅ [SEGMIND] Caricature generation completed successfully');                                                                               
         
         // Zwróć URL do wygenerowanej karykatury

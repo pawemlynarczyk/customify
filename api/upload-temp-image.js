@@ -3,7 +3,7 @@ const { put } = require('@vercel/blob');
 module.exports = async (req, res) => {
   // Set CORS headers
   const origin = req.headers.origin;
-  if (origin && (origin.includes('lumly.pl') || origin.includes('customify-s56o.vercel.app'))) {
+  if (origin && (origin.includes('lumly.pl') || origin.includes('customify-s56o.vercel.app'))) {                                                                
     res.setHeader('Access-Control-Allow-Origin', origin);
   } else {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -28,7 +28,16 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: 'No image data provided' });
     }
 
-    console.log('📤 [VERCEL-BLOB] Uploading image to Vercel Blob Storage...');
+    console.log('📤 [VERCEL-BLOB] Starting upload to Vercel Blob Storage...');
+    
+    // Check if BLOB_READ_WRITE_TOKEN is configured
+    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+      console.error('❌ [VERCEL-BLOB] BLOB_READ_WRITE_TOKEN not configured!');
+      return res.status(500).json({ 
+        error: 'Vercel Blob Storage not configured',
+        details: 'BLOB_READ_WRITE_TOKEN environment variable is missing. Please configure it in Vercel Dashboard.'
+      });
+    }
     
     // Convert data URI to buffer if needed
     let imageBuffer;
@@ -40,9 +49,13 @@ module.exports = async (req, res) => {
       imageBuffer = Buffer.from(imageData);
     }
 
+    console.log('📦 [VERCEL-BLOB] Image buffer size:', imageBuffer.length, 'bytes');
+
     // Generate unique filename
     const timestamp = Date.now();
     const uniqueFilename = `temp/${filename || `image-${timestamp}`}.jpg`;
+
+    console.log('📝 [VERCEL-BLOB] Uploading to:', uniqueFilename);
 
     // Upload to Vercel Blob Storage
     const blob = await put(uniqueFilename, imageBuffer, {
@@ -62,9 +75,11 @@ module.exports = async (req, res) => {
 
   } catch (error) {
     console.error('❌ [VERCEL-BLOB] Error:', error);
+    console.error('❌ [VERCEL-BLOB] Error details:', error.stack);
     res.status(500).json({ 
       error: 'Upload to Vercel Blob Storage failed',
-      details: error.message 
+      details: error.message,
+      hint: 'Make sure BLOB_READ_WRITE_TOKEN is configured in Vercel Dashboard'
     });
   }
 };
