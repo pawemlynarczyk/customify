@@ -159,7 +159,12 @@ class CustomifyEmbed {
     // Konwertuj transformedImage URL na base64 dla cache
     let thumbnailBase64 = transformedImage; // fallback na URL
     try {
-      if (transformedImage && (transformedImage.startsWith('http://') || transformedImage.startsWith('https://'))) {
+      // ✅ Dla karykatury (base64) - KOMPRESUJ przed zapisaniem (zamiast używać bezpośrednio)
+      if (transformedImage && transformedImage.startsWith('data:image/')) {
+        console.log('🎨 [CACHE] Detected base64 image (karykatura), compressing thumbnail...');
+        thumbnailBase64 = await this.compressBase64Thumbnail(transformedImage);
+        console.log('✅ [CACHE] Base64 thumbnail compressed for storage');
+      } else if (transformedImage && (transformedImage.startsWith('http://') || transformedImage.startsWith('https://'))) {
         console.log('🔄 [CACHE] Converting AI result URL to base64 for cache...');
         thumbnailBase64 = await this.urlToBase64(transformedImage);
         console.log('✅ [CACHE] AI result cached as base64');
@@ -185,7 +190,7 @@ class CustomifyEmbed {
     // Dodaj nową generację na początku
     existingGenerations.unshift(generation);
     
-    // Zachowaj tylko ostatnie 10 generacji
+    // Zachowaj tylko ostatnie 10 generacji (większy quota dzięki kompresji miniaturek)
     const limitedGenerations = existingGenerations.slice(0, 10);
     
     // Zapisz z powrotem do localStorage
@@ -337,6 +342,23 @@ class CustomifyEmbed {
       display: block;
     `;
     img.alt = `${generation.style} - ${generation.size}`;
+    
+    // Obsługa błędów ładowania obrazu
+    img.onerror = function() {
+      console.error('❌ [GALLERY] Image failed to load:', generation.thumbnail?.substring(0, 50));
+      console.log('🔄 [GALLERY] Generation data:', generation);
+      // Ukryj uszkodzony obraz, ale zachowaj element
+      img.style.display = 'none';
+      // Pokaż placeholder
+      const placeholder = document.createElement('div');
+      placeholder.textContent = 'Brak obrazu';
+      placeholder.style.cssText = 'width: 100%; height: 120px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; color: #999;';
+      img.parentNode.insertBefore(placeholder, img);
+    };
+    
+    img.onload = function() {
+      console.log('✅ [GALLERY] Image loaded successfully:', generation.thumbnail?.substring(0, 50));
+    };
 
     // Overlay z informacjami
     const overlay = document.createElement('div');
@@ -416,6 +438,59 @@ class CustomifyEmbed {
       console.error('❌ [CACHE] Error converting URL to base64:', error);
       throw error;
     }
+  }
+
+  /**
+   * Kompresuje obraz base64 do małego thumbnail (150x150px)
+   * Zwraca kompresowany base64 string (~50-100KB zamiast 2-5MB)
+   */
+  async compressBase64Thumbnail(base64String, maxWidth = 150, maxHeight = 150, quality = 0.6) {
+    return new Promise((resolve, reject) => {
+      try {
+        console.log('🗜️ [COMPRESS] Compressing thumbnail to', maxWidth, 'x', maxHeight, 'px');
+        
+        const img = new Image();
+        img.onload = () => {
+          // Oblicz nowe wymiary zachowując proporcje
+          let width = img.width;
+          let height = img.height;
+          
+          if (width > maxWidth || height > maxHeight) {
+            const ratio = Math.min(maxWidth / width, maxHeight / height);
+            width = Math.round(width * ratio);
+            height = Math.round(height * ratio);
+          }
+          
+          // Stwórz canvas i narysuj skompresowany obraz
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          // Konwertuj do base64 z kompresją
+          const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+          
+          const originalSize = Math.round(base64String.length / 1024); // KB
+          const compressedSize = Math.round(compressedBase64.length / 1024); // KB
+          const compressionRatio = Math.round((1 - compressedSize / originalSize) * 100);
+          
+          console.log(`✅ [COMPRESS] Compressed: ${originalSize}KB → ${compressedSize}KB (${compressionRatio}% reduction)`);
+          
+          resolve(compressedBase64);
+        };
+        
+        img.onerror = () => {
+          console.error('❌ [COMPRESS] Failed to load image for compression');
+          reject(new Error('Failed to compress image'));
+        };
+        
+        img.src = base64String;
+      } catch (error) {
+        console.error('❌ [COMPRESS] Error compressing thumbnail:', error);
+        reject(error);
+      }
+    });
   }
 
   /**
@@ -1135,6 +1210,22 @@ class CustomifyEmbed {
     this.uploadedFile = file;
     this.showPreview(file);
     this.hideError();
+
+    // ✅ Google Ads Conversion Tracking - Image Upload Event
+    if (typeof gtag !== 'undefined') {
+      // Wyślij konwersję Google Ads z właściwym send_to ID
+      gtag('event', 'conversion', {
+        'send_to': 'AW-858040473/1k70CIur7LQbEJnRkpkD',
+        'event_category': 'Customify',
+        'event_label': 'Image Uploaded',
+        'product_url': window.location.pathname,
+        'file_size': file.size,
+        'file_type': file.type
+      });
+      console.log('📊 [GOOGLE ADS] Conversion event sent: image_upload', 'AW-858040473/1k70CIur7LQbEJnRkpkD');
+    } else {
+      console.warn('⚠️ [GOOGLE ADS] gtag not available - conversion not tracked');
+    }
   }
 
   showPreview(file) {
@@ -1839,9 +1930,14 @@ class CustomifyEmbed {
             'Rozmiar': this.getSizeDimension(this.selectedSize),  // ✅ Przekaż wymiar (np. "20×30 cm") zamiast kodu (np. "a4")
             '_AI_Image_URL': result.imageUrl || this.transformedImage,  // ✅ URL z Shopify (główny obraz)
             '_AI_Image_Permanent': result.permanentImageUrl || this.transformedImage,  // ✅ TRWAŁY URL na Vercel (nie wygaśnie!)
-            '_AI_Image_Direct': this.transformedImage,  // Oryginalny link z Replicate (backup)
             '_Order_ID': result.orderId || Date.now().toString()  // Unikalny ID zamówienia
           };
+          
+          // Dodaj _AI_Image_Direct TYLKO jeśli to NIE jest base64 (tylko dla Replicate URLs)
+          if (this.transformedImage && !this.transformedImage.startsWith('data:')) {
+            properties['_AI_Image_Direct'] = this.transformedImage;  // Replicate URL (krótki ~100 znaków)
+          }
+          // Segmind base64 data URI (~256KB) przekracza limit URL - POMIŃ!
           
           console.log('🖼️ [CUSTOMIFY] Image URLs:', {
             shopifyImageUrl: result.imageUrl,

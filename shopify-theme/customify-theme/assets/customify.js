@@ -159,10 +159,11 @@ class CustomifyEmbed {
     // Konwertuj transformedImage URL na base64 dla cache
     let thumbnailBase64 = transformedImage; // fallback na URL
     try {
-      // ✅ Dla karykatury (base64) - pomiń konwersję, użyj jako jest
+      // ✅ Dla karykatury (base64) - KOMPRESUJ przed zapisaniem (zamiast używać bezpośrednio)
       if (transformedImage && transformedImage.startsWith('data:image/')) {
-        console.log('🎨 [CACHE] Detected base64 image (karykatura), using as thumbnail');
-        thumbnailBase64 = transformedImage; // Użyj base64 bezpośrednio
+        console.log('🎨 [CACHE] Detected base64 image (karykatura), compressing thumbnail...');
+        thumbnailBase64 = await this.compressBase64Thumbnail(transformedImage);
+        console.log('✅ [CACHE] Base64 thumbnail compressed for storage');
       } else if (transformedImage && (transformedImage.startsWith('http://') || transformedImage.startsWith('https://'))) {
         console.log('🔄 [CACHE] Converting AI result URL to base64 for cache...');
         thumbnailBase64 = await this.urlToBase64(transformedImage);
@@ -189,8 +190,8 @@ class CustomifyEmbed {
     // Dodaj nową generację na początku
     existingGenerations.unshift(generation);
     
-    // Zachowaj tylko ostatnie 4 generacje (zmniejszone z 10 żeby nie przekroczyć localStorage quota)
-    const limitedGenerations = existingGenerations.slice(0, 4);
+    // Zachowaj tylko ostatnie 10 generacji (większy quota dzięki kompresji miniaturek)
+    const limitedGenerations = existingGenerations.slice(0, 10);
     
     // Zapisz z powrotem do localStorage
     localStorage.setItem('customify_ai_generations', JSON.stringify(limitedGenerations));
@@ -437,6 +438,59 @@ class CustomifyEmbed {
       console.error('❌ [CACHE] Error converting URL to base64:', error);
       throw error;
     }
+  }
+
+  /**
+   * Kompresuje obraz base64 do małego thumbnail (150x150px)
+   * Zwraca kompresowany base64 string (~50-100KB zamiast 2-5MB)
+   */
+  async compressBase64Thumbnail(base64String, maxWidth = 150, maxHeight = 150, quality = 0.6) {
+    return new Promise((resolve, reject) => {
+      try {
+        console.log('🗜️ [COMPRESS] Compressing thumbnail to', maxWidth, 'x', maxHeight, 'px');
+        
+        const img = new Image();
+        img.onload = () => {
+          // Oblicz nowe wymiary zachowując proporcje
+          let width = img.width;
+          let height = img.height;
+          
+          if (width > maxWidth || height > maxHeight) {
+            const ratio = Math.min(maxWidth / width, maxHeight / height);
+            width = Math.round(width * ratio);
+            height = Math.round(height * ratio);
+          }
+          
+          // Stwórz canvas i narysuj skompresowany obraz
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          // Konwertuj do base64 z kompresją
+          const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+          
+          const originalSize = Math.round(base64String.length / 1024); // KB
+          const compressedSize = Math.round(compressedBase64.length / 1024); // KB
+          const compressionRatio = Math.round((1 - compressedSize / originalSize) * 100);
+          
+          console.log(`✅ [COMPRESS] Compressed: ${originalSize}KB → ${compressedSize}KB (${compressionRatio}% reduction)`);
+          
+          resolve(compressedBase64);
+        };
+        
+        img.onerror = () => {
+          console.error('❌ [COMPRESS] Failed to load image for compression');
+          reject(new Error('Failed to compress image'));
+        };
+        
+        img.src = base64String;
+      } catch (error) {
+        console.error('❌ [COMPRESS] Error compressing thumbnail:', error);
+        reject(error);
+      }
+    });
   }
 
   /**
