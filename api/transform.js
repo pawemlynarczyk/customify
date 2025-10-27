@@ -788,25 +788,10 @@ module.exports = async (req, res) => {
       console.log('🎭 [SEGMIND] Detected caricature style - using Segmind Caricature API');
       
       try {
-        // Upload obrazu do Shopify CDN (caricature wymaga URL, nie base64)
-        const uploadResponse = await fetch('https://customify-s56o.vercel.app/api/upload-to-shopify', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            imageData: imageDataUri,
-            filename: `caricature-${Date.now()}.png`
-          })
-        });
-
-        if (!uploadResponse.ok) {
-          throw new Error(`Upload to Shopify failed: ${uploadResponse.status}`);
-        }
-
-        const uploadResult = await uploadResponse.json();
-        const shopifyImageUrl = uploadResult.imageUrl;
-        console.log('📤 [SHOPIFY] Image uploaded to CDN:', shopifyImageUrl);
+        // Upload obrazu do Cloudinary zamiast Shopify (żeby nie tworzyć produktów)
+        console.log('📤 [CLOUDINARY] Uploading image to Cloudinary...');
+        const shopifyImageUrl = await uploadToCloudinary(imageDataUri);
+        console.log('✅ [CLOUDINARY] Image uploaded to Cloudinary:', shopifyImageUrl);
 
         // Wywołaj Segmind Caricature API z URL
         const result = await segmindCaricature(shopifyImageUrl);
