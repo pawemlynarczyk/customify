@@ -1855,9 +1855,14 @@ class CustomifyEmbed {
             'Rozmiar': this.getSizeDimension(this.selectedSize),  // ✅ Przekaż wymiar (np. "20×30 cm") zamiast kodu (np. "a4")
             '_AI_Image_URL': result.imageUrl || this.transformedImage,  // ✅ URL z Shopify (główny obraz)
             '_AI_Image_Permanent': result.permanentImageUrl || this.transformedImage,  // ✅ TRWAŁY URL na Vercel (nie wygaśnie!)
-            '_AI_Image_Direct': this.transformedImage,  // Oryginalny link z Replicate (backup)
             '_Order_ID': result.orderId || Date.now().toString()  // Unikalny ID zamówienia
           };
+          
+          // Dodaj _AI_Image_Direct TYLKO jeśli to NIE jest base64 (tylko dla Replicate URLs)
+          if (this.transformedImage && !this.transformedImage.startsWith('data:')) {
+            properties['_AI_Image_Direct'] = this.transformedImage;  // Replicate URL (krótki ~100 znaków)
+          }
+          // Segmind base64 data URI (~256KB) przekracza limit URL - POMIŃ!
           
           console.log('🖼️ [CUSTOMIFY] Image URLs:', {
             shopifyImageUrl: result.imageUrl,
