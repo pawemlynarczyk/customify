@@ -1138,14 +1138,16 @@ class CustomifyEmbed {
 
     // ✅ Google Ads Conversion Tracking - Image Upload Event
     if (typeof gtag !== 'undefined') {
-      gtag('event', 'image_upload', {
+      // Wyślij konwersję Google Ads z właściwym send_to ID
+      gtag('event', 'conversion', {
+        'send_to': 'AW-858040473/1k70CIur7LQbEJnRkpkD',
         'event_category': 'Customify',
         'event_label': 'Image Uploaded',
         'product_url': window.location.pathname,
         'file_size': file.size,
         'file_type': file.type
       });
-      console.log('📊 [GOOGLE ADS] Conversion event sent: image_upload');
+      console.log('📊 [GOOGLE ADS] Conversion event sent: image_upload', 'AW-858040473/1k70CIur7LQbEJnRkpkD');
     } else {
       console.warn('⚠️ [GOOGLE ADS] gtag not available - conversion not tracked');
     }
