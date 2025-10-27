@@ -140,6 +140,21 @@ const shopifyRequest = async (endpoint, options = {}) => {
 - Do NOT ask about token values or setup
 - SHOPIFY_ACCESS_TOKEN is available in environment variables - use it directly
 
+## 🚨 CRITICAL: Vercel Blob Storage - DOMYŚLNY STORAGE DLA PLIKÓW
+- **HOSTING**: Mamy hosting na Vercel - ZAWSZE używamy Vercel Blob Storage dla plików tymczasowych
+- **WYMAGANE**: `BLOB_READ_WRITE_TOKEN` - token z Vercel Dashboard → Storage → Blob
+- **KIEDY UŻYWAĆ**: 
+  - Tymczasowe uploady zdjęć (np. przed wysłaniem do Segmind Caricature API)
+  - Pliki tymczasowe potrzebne w processingu
+  - Wszystkie materiały wymagające stałego URL
+- **KIEDY NIE UŻYWAĆ**:
+  - Style używające Replicate (przyjmuje base64)
+  - Style używające nano-banana (przyjmuje base64)
+  - Style używające Segmind Faceswap (przyjmuje base64)
+  - **TYLKO Segmind Caricature wymaga URL** - użyj Vercel Blob dla tego stylu
+- **ENDPOINT**: `/api/upload-temp-image` - endpoint do uploadu plików do Vercel Blob
+- **ZASADA**: Vercel Blob to NASZ hosting - ZAWSZE używamy go zamiast Cloudinary/S3 dla plików tymczasowych
+
 ## CRITICAL: Product Page Layout Proportions
 - **NEVER CHANGE** the product page layout proportions (35% image / 65% app) without explicit user command
 - These proportions are CRITICAL for the product page layout
