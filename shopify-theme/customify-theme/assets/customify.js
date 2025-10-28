@@ -1965,9 +1965,14 @@ class CustomifyEmbed {
             'Styl AI': this.selectedStyle,
             'Rozmiar': this.getSizeDimension(this.selectedSize),  // ✅ Przekaż wymiar (np. "20×30 cm") zamiast kodu (np. "a4")
             '_AI_Image_URL': result.imageUrl || this.transformedImage,  // ✅ URL z Shopify (główny obraz)
-            '_AI_Image_Permanent': result.permanentImageUrl || this.transformedImage,  // ✅ TRWAŁY URL na Vercel (nie wygaśnie!)
             '_Order_ID': result.orderId || Date.now().toString()  // Unikalny ID zamówienia
           };
+          
+          // Dodaj _AI_Image_Permanent TYLKO jeśli to krótki URL (Vercel Blob URLs są za długie)
+          const permanentUrl = result.permanentImageUrl || this.transformedImage;
+          if (permanentUrl && permanentUrl.length < 150 && permanentUrl.includes('replicate.delivery')) {
+            properties['_AI_Image_Permanent'] = permanentUrl;
+          }
           
           // Dodaj _AI_Image_Direct TYLKO jeśli to krótki URL (Replicate ~100 znaków)
           // Vercel Blob URLs są za długie (~200+ znaków) - NIE dodawaj ich tutaj
@@ -1998,7 +2003,18 @@ class CustomifyEmbed {
           });
           
           const cartUrl = `/cart/add?${params.toString()}`;
-          console.log('🛒 [CUSTOMIFY] Cart URL:', cartUrl);
+          const fullUrl = window.location.origin + cartUrl;
+          console.log('🛒 [CUSTOMIFY] Cart URL length:', cartUrl.length, 'chars');
+          console.log('🛒 [CUSTOMIFY] Cart URL:', cartUrl.substring(0, 200), '...');
+          console.log('🛒 [CUSTOMIFY] Full URL length:', fullUrl.length, 'chars');
+          
+          // ❌ PROBLEM: URL > 2048 znaków może być zablokowany przez przeglądarkę
+          if (fullUrl.length > 2048) {
+            console.error('❌ [CUSTOMIFY] URL TOO LONG:', fullUrl.length, 'chars (max 2048)');
+            console.error('❌ [CUSTOMIFY] Properties:', properties);
+            this.showError('URL zbyt długi - usuń niektóre właściwości lub skontaktuj się z supportem');
+            return;
+          }
           
           // ✅ DODAJ DO KOSZYKA PRZEZ DIRECT NAVIGATION (jak w rules)
           console.log('✅ [CUSTOMIFY] Adding to cart via direct navigation');
