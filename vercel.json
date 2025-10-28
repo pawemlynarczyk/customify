@@ -8,20 +8,6 @@
   "buildCommand": "echo 'Force rebuild v5'",
   "outputDirectory": "public",
   "installCommand": "echo 'Force install'",
-  "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/$1"
-    },
-    {
-      "source": "/",
-      "destination": "/public/index.html"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/public/$1"
-    }
-  ],
   "headers": [
     {
       "source": "/api/(.*)",
