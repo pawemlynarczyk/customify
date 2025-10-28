@@ -160,14 +160,23 @@ class CustomifyEmbed {
     let transformedImageUrl = transformedImage; // fallback
     
     try {
-      // ✅ Dla base64 (karykatura, król) - ZAPISZ NA VERCEL BLOB i dostać URL
+      // ✅ ZAWSZE zapisuj na Vercel Blob dla spójności (wszystkie style: boho, koty, król, karykatura)
       if (transformedImage && transformedImage.startsWith('data:image/')) {
-        console.log('🎨 [CACHE] Detected base64 image (Segmind API), uploading to Vercel Blob...');
+        console.log('🎨 [CACHE] Detected base64 image, uploading to Vercel Blob...');
         transformedImageUrl = await this.saveToVercelBlob(transformedImage, `ai-${Date.now()}.jpg`);
         console.log('✅ [CACHE] Uploaded to Vercel Blob:', transformedImageUrl?.substring(0, 50));
       } else if (transformedImage && (transformedImage.startsWith('http://') || transformedImage.startsWith('https://'))) {
-        console.log('✅ [CACHE] AI result already has URL, using directly:', transformedImage);
-        transformedImageUrl = transformedImage;
+        console.log('🌐 [CACHE] Detected URL image (Replicate), downloading and uploading to Vercel Blob...');
+        // Pobierz obraz z URL i upload na Vercel Blob dla spójności
+        const blob = await fetch(transformedImage).then(r => r.blob());
+        const reader = new FileReader();
+        const base64 = await new Promise((resolve, reject) => {
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+        transformedImageUrl = await this.saveToVercelBlob(base64, `ai-${Date.now()}.jpg`);
+        console.log('✅ [CACHE] Replicate URL uploaded to Vercel Blob:', transformedImageUrl?.substring(0, 50));
       }
     } catch (error) {
       console.warn('⚠️ [CACHE] Failed to save to Vercel Blob, using original:', error);
