@@ -24,7 +24,7 @@ class CustomifyEmbed {
     this.uploadedFile = null;
     this.selectedStyle = null;
     this.selectedSize = null;
-    this.selectedProductType = 'canvas'; // Domyślny wybór: Obraz na płótnie
+    this.selectedProductType = 'plakat'; // Domyślny wybór: Plakat
     this.transformedImage = null;
     
     this.init();
@@ -55,12 +55,6 @@ class CustomifyEmbed {
     
     // 💰 CENA: Ustaw domyślny rozmiar i aktualizuj cenę
     this.initializeDefaultPrice();
-    
-    // ✅ Oznacz rozmiar 15×20 jako nieaktywny dla "Obraz na płótnie" (domyślnie aktywny)
-    const canvasBtn = this.productTypeArea?.querySelector('[data-product-type="canvas"]');
-    if (canvasBtn && canvasBtn.classList.contains('active')) {
-      this.selectProductType(canvasBtn);
-    }
   }
   
 
@@ -1644,8 +1638,9 @@ class CustomifyEmbed {
    */
   initializeDefaultPrice() {
     try {
-      // Znajdź pierwszy dostępny rozmiar (domyślnie A4)
-      const defaultSizeBtn = this.sizeArea?.querySelector('[data-size="a4"]') || 
+      // Znajdź pierwszy dostępny rozmiar (domyślnie A5 - 15×20)
+      const defaultSizeBtn = this.sizeArea?.querySelector('[data-size="a5"]') ||
+                            this.sizeArea?.querySelector('[data-size="a4"]') || 
                             this.sizeArea?.querySelector('.customify-size-btn');
       
       if (defaultSizeBtn) {
