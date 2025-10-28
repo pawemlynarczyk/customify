@@ -5,9 +5,15 @@
       "maxDuration": 300
     }
   },
-  "buildCommand": "echo 'Force rebuild v5'",
+  "buildCommand": "echo 'Force rebuild v6'",
   "outputDirectory": "public",
   "installCommand": "echo 'Force install'",
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
+    }
+  ],
   "headers": [
     {
       "source": "/api/(.*)",
