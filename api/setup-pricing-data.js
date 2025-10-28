@@ -118,6 +118,8 @@ module.exports = async (req, res) => {
 
     const shopId = shopResult.data.shop.id;
     console.log(`📍 Shop ID: ${shopId}`);
+    console.log(`📍 Shop Name: ${shopResult.data.shop.name}`);
+    console.log(`📍 Full shop result:`, JSON.stringify(shopResult.data, null, 2));
 
     // GraphQL Mutation do ustawienia Metafield
     const mutation = `
