@@ -1,14 +1,19 @@
 /**
  * Analytics & Error Logger
  * Centralized logging system for tracking errors, usage, and statistics
+ * Uses in-memory storage (temporary solution until database is added)
  */
 
 const fs = require('fs');
 const path = require('path');
 
-// Path to logs file (in /tmp for Vercel serverless)
-const LOGS_FILE = '/tmp/customify-logs.json';
+// TEMPORARY: Use in-memory storage (will be lost on cold start)
+// TODO: Replace with Vercel KV or database for persistence
+let logsCache = [];
 const MAX_LOGS = 1000; // Keep last 1000 entries
+
+// Fallback to file system for same-instance persistence
+const LOGS_FILE = '/tmp/customify-logs.json';
 
 /**
  * Log types
@@ -21,32 +26,47 @@ const LOG_TYPES = {
 };
 
 /**
- * Read logs from file
+ * Read logs from memory cache (with file fallback)
  */
 function readLogs() {
+  // Return from memory cache if available
+  if (logsCache && logsCache.length > 0) {
+    return logsCache;
+  }
+  
+  // Fallback to file system
   try {
     if (fs.existsSync(LOGS_FILE)) {
       const data = fs.readFileSync(LOGS_FILE, 'utf8');
-      return JSON.parse(data);
+      logsCache = JSON.parse(data);
+      return logsCache;
     }
   } catch (error) {
     console.error('[ANALYTICS-LOGGER] Error reading logs:', error);
   }
+  
   return [];
 }
 
 /**
- * Write logs to file
+ * Write logs to memory cache and file
  */
 function writeLogs(logs) {
   try {
     // Keep only last MAX_LOGS entries
     const trimmedLogs = logs.slice(-MAX_LOGS);
+    
+    // Update memory cache
+    logsCache = trimmedLogs;
+    
+    // Also write to file (for same-instance persistence)
     fs.writeFileSync(LOGS_FILE, JSON.stringify(trimmedLogs, null, 2), 'utf8');
     return true;
   } catch (error) {
     console.error('[ANALYTICS-LOGGER] Error writing logs:', error);
-    return false;
+    // Even if file write fails, we have memory cache
+    logsCache = trimmedLogs;
+    return true;
   }
 }
 
