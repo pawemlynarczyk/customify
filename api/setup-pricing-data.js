@@ -92,6 +92,33 @@ module.exports = async (req, res) => {
       }
     };
 
+    // Najpierw pobierz Shop ID
+    const shopQuery = `
+      query {
+        shop {
+          id
+          name
+        }
+      }
+    `;
+
+    const shopResponse = await fetch(`https://${shop}/admin/api/2024-01/graphql.json`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Shopify-Access-Token': accessToken
+      },
+      body: JSON.stringify({ query: shopQuery })
+    });
+
+    const shopResult = await shopResponse.json();
+    if (shopResult.errors) {
+      throw new Error(`Shop query error: ${JSON.stringify(shopResult.errors)}`);
+    }
+
+    const shopId = shopResult.data.shop.id;
+    console.log(`📍 Shop ID: ${shopId}`);
+
     // GraphQL Mutation do ustawienia Metafield
     const mutation = `
       mutation shopMetafieldsSet($metafields: [MetafieldsSetInput!]!) {
@@ -119,7 +146,7 @@ module.exports = async (req, res) => {
           key: "global_pricing",
           value: JSON.stringify(defaultPricing),
           type: "json",
-          ownerId: `gid://shopify/Shop/1` // Shop ID = 1 dla metafieldów sklepu
+          ownerId: shopId // Użyj rzeczywistego Shop ID
         }
       ]
     };
