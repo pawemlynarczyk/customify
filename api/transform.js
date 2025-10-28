@@ -127,7 +127,7 @@ async function segmindCaricature(imageUrl) {
       },
       body: JSON.stringify({
         image: imageUrl, // Używamy URL (zgodnie z dokumentacją)
-        size: "1024x1024", // Kwadrat jak w dokumentacji
+        size: "1024x1536", // PIONOWY PORTRET (2:3 format) - NIE ZMIENIAJ!
         quality: "medium", // Jakość średnia dla szybszego renderowania
         background: "opaque", // Zgodnie z dokumentacją
         output_compression: 100, // PNG wymaga 100 (bez kompresji)
@@ -666,7 +666,7 @@ module.exports = async (req, res) => {
         productType: "caricature", // Identyfikator typu produktu
         parameters: {
           image: "USER_IMAGE", // URL do obrazu użytkownika
-          size: "1024x1536", // Rozmiar wyjściowy - pionowy portret
+          size: "1024x1536", // PIONOWY PORTRET - NIE ZMIENIAJ! (2:3 format)
           quality: "medium", // Jakość średnia (nieużywane - wartość z funkcji segmindCaricature ma priorytet)
           background: "opaque", // Nieprzezroczyste tło
           output_compression: 100, // Maksymalna kompresja
