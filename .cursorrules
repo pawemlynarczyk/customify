@@ -539,6 +539,15 @@ Customify is a Shopify app that allows customers to:
   - **NIE DOSTOSOWUJ** do orientacji obrazu użytkownika
   - Wynik ZAWSZE pionowy, nawet jeśli user wgra poziomy obraz
 
+## 🚨 CRITICAL: PROPORCJE OBRAZÓW - NIE ZMIENIAJ!
+- **Koty (wszystkie style)**: 3:4 portret, rozdzielczość 896x1152px
+- **Boho (minimalistyczny, realistyczny)**: 3:4 portret, rozdzielczość 896x1152px
+- **Król (wszystkie style)**: 3:4 portret, pasuje do miniaturki 3:4
+- **Karykatura Segmind**: **PIONOWY 1024x1536** (2:3 format) - **NIE ZMIENIAJ NA KWADRAT!**
+  - Size parameter: `"1024x1536"` w config i funkcji segmindCaricature
+  - **NIE UŻYWAJ** `"1024x1024"` - to był błąd!
+  - Format 2:3 jest lepszy dla portretu karykatury niż kwadrat
+
 ### **Segmind Faceswap v4 (Król) - Konfiguracja:**
 ```javascript
 // Style króla w theme.liquid (linie 1533-1552):
