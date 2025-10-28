@@ -12,6 +12,7 @@ class CustomifyEmbed {
     this.previewImage = document.getElementById('previewImage');
     this.stylesArea = document.getElementById('stylesArea');
     this.sizeArea = document.getElementById('sizeArea');
+    this.productTypeArea = document.getElementById('productTypeArea');
     this.actionsArea = document.getElementById('actionsArea');
     this.loadingArea = document.getElementById('loadingArea');
     this.resultArea = document.getElementById('resultArea');
@@ -23,6 +24,7 @@ class CustomifyEmbed {
     this.uploadedFile = null;
     this.selectedStyle = null;
     this.selectedSize = null;
+    this.selectedProductType = 'canvas'; // Domyślny wybór: Obraz na płótnie
     this.transformedImage = null;
     
     this.init();
@@ -1239,6 +1241,13 @@ class CustomifyEmbed {
       }
     });
 
+    // Event listener dla wyboru typu produktu (Plakat vs Canvas)
+    document.addEventListener('click', (e) => {
+      if (e.target.classList.contains('customify-product-type-btn')) {
+        this.selectProductType(e.target);
+      }
+    });
+
     document.getElementById('transformBtn').addEventListener('click', () => this.transformImage());
     document.getElementById('resetBtn').addEventListener('click', () => this.reset());
     document.getElementById('addToCartBtn').addEventListener('click', () => this.addToCart());
@@ -1358,6 +1367,13 @@ class CustomifyEmbed {
     // Aktualizuj cenę po wyborze rozmiaru
     this.updateProductPrice();
     this.updateCartPrice(); // ✅ Dodaj aktualizację ceny nad przyciskiem
+  }
+
+  selectProductType(typeBtn) {
+    this.productTypeArea.querySelectorAll('.customify-product-type-btn').forEach(btn => btn.classList.remove('active'));
+    typeBtn.classList.add('active');
+    this.selectedProductType = typeBtn.dataset.productType;
+    console.log('🎨 [PRODUCT-TYPE] Selected product type:', this.selectedProductType);
   }
 
   /**
@@ -1876,7 +1892,8 @@ class CustomifyEmbed {
     console.log('🛒 [CUSTOMIFY] addToCart called with:', {
       transformedImage: !!this.transformedImage,
       selectedStyle: this.selectedStyle,
-      selectedSize: this.selectedSize
+      selectedSize: this.selectedSize,
+      selectedProductType: this.selectedProductType
     });
     
     // ✅ SPRAWDŹ ROZMIAR NAJPIERW - to jest wymagane dla ceny
@@ -1955,6 +1972,7 @@ class CustomifyEmbed {
         transformedImage: this.transformedImage,
         style: this.selectedStyle,
         size: this.selectedSize,
+        productType: this.selectedProductType || 'canvas', // Rodzaj wydruku: plakat lub canvas
         originalProductTitle: document.querySelector('h1, .product-title, .view-product-title')?.textContent?.trim() || 'Produkt',
         originalProductId: productId, // ✅ Dodano ID produktu do pobrania ceny z Shopify
         finalPrice: finalPrice // ✅ Przekaż obliczoną cenę do API
@@ -1991,9 +2009,11 @@ class CustomifyEmbed {
           console.log('🛒 [CUSTOMIFY] Variant ID length:', result.variantId.toString().length);
           
           // NAPRAWIONA METODA: Użyj bezpośredniego przekierowania zamiast formularza
+          const productTypeName = this.selectedProductType === 'plakat' ? 'Plakat' : 'Obraz na płótnie';
           const properties = {
             'Styl AI': this.selectedStyle,
             'Rozmiar': this.getSizeDimension(this.selectedSize),  // ✅ Przekaż wymiar (np. "20×30 cm") zamiast kodu (np. "a4")
+            'Rodzaj wydruku': productTypeName,  // ✅ Dodano rodzaj wydruku
             '_AI_Image_URL': result.imageUrl || this.transformedImage,  // ✅ URL z Shopify (główny obraz)
             '_Order_ID': result.orderId || Date.now().toString()  // Unikalny ID zamówienia
           };

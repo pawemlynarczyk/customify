@@ -2085,7 +2085,20 @@
         });
       </script>
       <div id="customify-app-container" class="customify-shopify-container">
-        <!-- Rozmiary - na górze nad tytułem -->
+        <!-- Wybór rodzaju wydruku - na górze nad rozmiarami -->
+        <div class="customify-product-type-selector" id="productTypeArea" style="display: block; margin-bottom: 15px;">
+          <h4 style="text-align: left;">🎨 Rodzaj wydruku:</h4>
+          <div class="customify-product-type-buttons">
+            <div class="customify-product-type-btn" data-product-type="plakat">
+              📄 Plakat
+            </div>
+            <div class="customify-product-type-btn active" data-product-type="canvas">
+              🖼️ Obraz na płótnie
+            </div>
+          </div>
+        </div>
+        
+        <!-- Rozmiary - pod wyborem rodzaju wydruku -->
         <div class="customify-size-selector" id="sizeArea" style="display: block; margin-bottom: 10px;">
           <h4 style="text-align: left;">Rozmiar:</h4>
               <div class="customify-size-buttons">
@@ -2685,6 +2698,58 @@
           font-weight: 600 !important;
           transform: none !important;
           box-shadow: none !important;
+        }
+
+        /* ===== PRZYCISKI WYBORU TYPU PRODUKTU (Plakat vs Canvas) ===== */
+        .customify-product-type-buttons {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 12px;
+          margin-top: 8px;
+        }
+
+        .customify-product-type-btn {
+          padding: 14px 20px;
+          border: 2px solid #666666 !important;
+          border-radius: 8px;
+          background: white;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          text-align: center;
+          font-size: 1rem;
+          font-weight: 600;
+          color: #333;
+          box-shadow: none;
+          line-height: 1.4;
+          min-height: 60px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .customify-product-type-btn:hover {
+          border-color: #c82333;
+          background-color: #fff5f0;
+          transform: translateY(-2px);
+          box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .customify-product-type-btn.active {
+          border: 3px solid #dc3545 !important;
+          background: #dc3545 !important;
+          color: white !important;
+          font-weight: 700 !important;
+          transform: none !important;
+          box-shadow: 0 2px 6px rgba(220, 53, 69, 0.3) !important;
+        }
+
+        /* Responsive dla typu produktu */
+        @media (max-width: 768px) {
+          .customify-product-type-btn {
+            font-size: 0.9rem !important;
+            padding: 12px 16px !important;
+            min-height: 50px !important;
+          }
         }
 
         /* Style dla ceny produktu - NAPRAWIONY SELEKTOR */

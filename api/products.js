@@ -40,6 +40,7 @@ module.exports = async (req, res) => {
     transformedImage, 
     style, 
     size, 
+    productType, // Rodzaj wydruku: plakat lub canvas
     originalProductTitle,
     originalProductId,
     finalPrice // ✅ Dodano finalPrice z frontendu
@@ -101,14 +102,19 @@ module.exports = async (req, res) => {
 
     // Creating product with AI image
 
+    // Zmapuj productType i size na polskie nazwy
+    const productTypeName = productType === 'plakat' ? 'Plakat' : 'Obraz na płótnie';
+    const sizeName = size === 'a1' ? '60×85 cm' : size === 'a2' ? '40×60 cm' : size === 'a3' ? '30×40 cm' : size === 'a4' ? '20×30 cm' : size?.toUpperCase() || 'standard';
+
     // KROK 1: Utwórz produkt BEZ obrazka (najpierw potrzebujemy product ID)
     const productData = {
       product: {
-        title: `Spersonalizowany ${originalProductTitle || 'Produkt'} - Styl ${style} - Rozmiar ${size?.toUpperCase() || 'standard'}`,
+        title: `${productTypeName} - Rozmiar ${sizeName}`,
         body_html: `
           <p><strong>Spersonalizowany produkt z AI</strong></p>
+          <p><strong>Rodzaj wydruku:</strong> ${productTypeName}</p>
           <p><strong>Styl:</strong> ${style}</p>
-          <p><strong>Rozmiar:</strong> ${size?.toUpperCase() || 'standardowy'}</p>
+          <p><strong>Rozmiar:</strong> ${sizeName}</p>
           <p><strong>Cena całkowita:</strong> ${totalPrice.toFixed(2)} zł</p>
           <p>Twoje zdjęcie zostało przekształcone przez AI w stylu ${style}.</p>
         `,
@@ -119,7 +125,7 @@ module.exports = async (req, res) => {
         published: true, // ✅ MUSI być published=true żeby variant działał w koszyku
         published_scope: 'web',
         variants: [{
-          title: `${style} - ${size?.toUpperCase() || 'standard'} (${totalPrice} zł)`,
+          title: `${productTypeName} - ${sizeName}`,
           price: totalPrice.toFixed(2), // ✅ NAPRAWIONE: Shopify przyjmuje PLN jako string (np. "79.99")
           inventory_quantity: 100,
           inventory_management: 'shopify',
