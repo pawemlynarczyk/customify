@@ -1572,6 +1572,7 @@ class CustomifyEmbed {
     
     // Plakat (poster) - niższe ceny
     const plakatPrices = {
+      'a5': 0,    // 15×20 cm - base price (nieaktywne dla Plakatu)
       'a4': 0,    // 20×30 cm - base price
       'a3': 29,   // 30×40 cm
       'a2': 59,   // 40×60 cm
@@ -1580,6 +1581,7 @@ class CustomifyEmbed {
     
     // Obraz na płótnie (canvas) - wyższe ceny
     const obrazPrices = {
+      'a5': 0,    // 15×20 cm - nieaktywne
       'a4': 49,   // 20×30 cm
       'a3': 99,   // 30×40 cm
       'a2': 149,  // 40×60 cm
@@ -1599,6 +1601,7 @@ class CustomifyEmbed {
    */
   getSizeDimension(size) {
     const dimensions = {
+      'a5': '15×20 cm',
       'a4': '20×30 cm',
       'a3': '30×40 cm', 
       'a2': '40×60 cm',
