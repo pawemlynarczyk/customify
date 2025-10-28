@@ -1572,11 +1572,11 @@ class CustomifyEmbed {
     
     // Plakat (poster) - niższe ceny (zgodnie z tabelą)
     const plakatPrices = {
-      'a5': null, // 15×20 cm - nieaktywne (puste w tabeli)
-      'a4': 0,    // 20×30 cm - base price
-      'a3': 29,   // 30×40 cm
-      'a2': 59,   // 40×60 cm
-      'a1': 69    // 60×85 cm
+      'a5': 0,    // 15×20 cm - base price
+      'a4': 29,   // 20×30 cm
+      'a3': 59,   // 30×40 cm
+      'a2': 69,   // 40×60 cm
+      'a1': 99    // 60×85 cm
     };
     
     // Obraz na płótnie (canvas) - wyższe ceny (zgodnie z tabelą)
