@@ -55,6 +55,12 @@ class CustomifyEmbed {
     
     // 💰 CENA: Ustaw domyślny rozmiar i aktualizuj cenę
     this.initializeDefaultPrice();
+    
+    // ✅ Oznacz rozmiar 15×20 jako nieaktywny dla "Obraz na płótnie" (domyślnie aktywny)
+    const canvasBtn = this.productTypeArea?.querySelector('[data-product-type="canvas"]');
+    if (canvasBtn && canvasBtn.classList.contains('active')) {
+      this.selectProductType(canvasBtn);
+    }
   }
   
 
@@ -1359,6 +1365,12 @@ class CustomifyEmbed {
   }
 
   selectSize(sizeBtn) {
+    // ✅ Sprawdź czy rozmiar jest nieaktywny
+    if (sizeBtn.classList.contains('disabled')) {
+      console.log('⚠️ [SIZE] Rozmiar jest nieaktywny dla tego typu produktu');
+      return; // Nie pozwól na wybór nieaktywnego rozmiaru
+    }
+    
     this.sizeArea.querySelectorAll('.customify-size-btn').forEach(btn => btn.classList.remove('active'));
     sizeBtn.classList.add('active');
     this.selectedSize = sizeBtn.dataset.size;
@@ -1374,6 +1386,23 @@ class CustomifyEmbed {
     typeBtn.classList.add('active');
     this.selectedProductType = typeBtn.dataset.productType;
     console.log('🎨 [PRODUCT-TYPE] Selected product type:', this.selectedProductType);
+    
+    // ✅ Oznacz rozmiar 15×20 jako nieaktywny dla "Obraz na płótnie"
+    const sizeBtns = this.sizeArea.querySelectorAll('.customify-size-btn');
+    sizeBtns.forEach(btn => {
+      if (btn.dataset.size === 'a5') {
+        // 15×20 cm
+        if (this.selectedProductType === 'canvas') {
+          btn.classList.add('disabled');
+          btn.style.opacity = '0.4';
+          btn.style.cursor = 'not-allowed';
+        } else {
+          btn.classList.remove('disabled');
+          btn.style.opacity = '1';
+          btn.style.cursor = 'pointer';
+        }
+      }
+    });
     
     // ✅ Aktualizuj cenę po wyborze typu produktu
     if (this.selectedSize) {
