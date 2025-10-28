@@ -1,5 +1,4 @@
 const { checkRateLimit, getClientIP } = require('../utils/vercelRateLimiter');
-const { logError, logSuccess, logWarning } = require('../utils/analytics-logger-kv');
 
 module.exports = async (req, res) => {
   // ✅ POPRAWIONE CORS - nie można używać credentials: true z origin: *

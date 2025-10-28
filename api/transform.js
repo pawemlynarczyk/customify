@@ -1,6 +1,5 @@
 const Replicate = require('replicate');
 const { checkRateLimit, getClientIP } = require('../utils/vercelRateLimiter');
-const { logError, logSuccess, logWarning } = require('../utils/analytics-logger-kv');
 
 // Try to load sharp, but don't fail if it's not available
 let sharp = null;
@@ -355,7 +354,6 @@ module.exports = async (req, res) => {
   
   if (!checkRateLimit(ip, 20, 15 * 60 * 1000)) { // 20 requestów na 15 minut
     console.log(`❌ [TRANSFORM] Rate limit exceeded for IP: ${ip}`);
-    logWarning('/api/transform', 'Rate limit exceeded', { ip, statusCode: 429 });
     return res.status(429).json({
       error: 'Rate limit exceeded',
       message: 'Too many AI requests. Please try again in 15 minutes.',
@@ -383,12 +381,6 @@ module.exports = async (req, res) => {
     const { imageData, prompt, productType, customerId, customerAccessToken } = req.body;
 
     if (!imageData || !prompt) {
-      logError('/api/transform', new Error('Missing required fields'), { 
-        statusCode: 400, 
-        ip,
-        hasImageData: !!imageData,
-        hasPrompt: !!prompt
-      });
       return res.status(400).json({ error: 'Image data and prompt are required' });
     }
     
@@ -440,14 +432,6 @@ module.exports = async (req, res) => {
 
         if (usedCount >= totalLimit) {
           console.log(`❌ [TRANSFORM] Limit przekroczony dla użytkownika ${customer?.email}`);
-          logWarning('/api/transform', 'Usage limit exceeded', {
-            statusCode: 403,
-            ip,
-            customerId,
-            customerEmail: customer?.email,
-            usedCount,
-            totalLimit
-          });
           return res.status(403).json({
             error: 'Usage limit exceeded',
             message: 'Wykorzystałeś wszystkie dostępne transformacje (13). Skontaktuj się z nami dla więcej.',
@@ -1011,16 +995,6 @@ module.exports = async (req, res) => {
       }
     }
 
-    // Log success
-    logSuccess('/api/transform', {
-      statusCode: 200,
-      ip: getClientIP(req),
-      prompt: req.body?.prompt,
-      productType: req.body?.productType,
-      imageSize: req.body?.imageData?.length || 0,
-      outputImageUrl: imageUrl?.substring(0, 100) + '...'
-    });
-    
     res.json({ 
       success: true, 
       transformedImage: imageUrl 
@@ -1045,15 +1019,6 @@ module.exports = async (req, res) => {
       errorMessage = 'AI service temporarily unavailable due to billing limits. Please try again later or contact support.';
       statusCode = 402;
     }
-    
-    // Log error with details
-    logError('/api/transform', error, {
-      statusCode,
-      ip: getClientIP(req),
-      prompt: req.body?.prompt,
-      productType: req.body?.productType,
-      imageDataSize: req.body?.imageData?.length || 0
-    });
     
     res.status(statusCode).json({ error: errorMessage });
   }

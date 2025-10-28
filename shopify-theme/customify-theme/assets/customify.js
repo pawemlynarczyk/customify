@@ -31,31 +31,6 @@ class CustomifyEmbed {
     this.init();
   }
 
-  // 🔍 LOG ERROR TO ANALYTICS - wysyła błędy do backendu
-  async logErrorToAnalytics(action, errorMessage, additionalData = {}) {
-    // Użyj globalnej funkcji z theme.liquid (inline script)
-    if (typeof window.customifyLogError === 'function') {
-      return window.customifyLogError(action, errorMessage, additionalData);
-    }
-    
-    // Fallback - jeśli globalna funkcja nie istnieje
-    try {
-      await fetch('https://customify-s56o.vercel.app/api/log-frontend-error', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          error: errorMessage,
-          action: action,
-          userAgent: navigator.userAgent,
-          url: window.location.href,
-          additionalData: additionalData
-        })
-      });
-    } catch (e) {
-      // Silent fail - nie blokuj UI błędem logowania
-      console.warn('Failed to log error to analytics:', e);
-    }
-  }
 
   init() {
     if (!document.getElementById('uploadArea')) {
@@ -1316,7 +1291,6 @@ class CustomifyEmbed {
     if (!file.type.startsWith('image/')) {
       this.showError('Proszę wybrać plik obrazu (JPG, PNG, GIF)');
       // 🔍 LOG ERROR TO ANALYTICS
-      this.logErrorToAnalytics('file_upload', 'Invalid file type', {
         fileType: file.type,
         fileName: file.name
       });
@@ -1325,7 +1299,6 @@ class CustomifyEmbed {
     if (file.size > 10 * 1024 * 1024) {
       this.showError('Plik jest za duży. Maksymalny rozmiar to 10MB');
       // 🔍 LOG ERROR TO ANALYTICS
-      this.logErrorToAnalytics('file_upload', 'File too large', {
         fileSize: file.size,
         fileName: file.name
       });
@@ -1867,7 +1840,6 @@ class CustomifyEmbed {
       console.error('📱 [MOBILE] Transform error:', error);
       
       // 🔍 LOG ERROR TO ANALYTICS
-      this.logErrorToAnalytics('transform_image', error.message, {
         style: this.selectedStyle,
         retryCount: retryCount,
         errorName: error.name
@@ -2207,7 +2179,6 @@ class CustomifyEmbed {
       this.hideCartLoading();
       
       // 🔍 LOG ERROR TO ANALYTICS
-      this.logErrorToAnalytics('add_to_cart', error.message, {
         style: this.selectedStyle,
         size: this.selectedSize,
         productType: this.selectedProductType,
