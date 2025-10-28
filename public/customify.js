@@ -154,34 +154,34 @@ class CustomifyEmbed {
    * Zapisuje generację AI w localStorage
    */
   async saveAIGeneration(originalImage, transformedImage, style, size) {
-    console.log('💾 [CACHE] Saving AI generation with base64 cache...');
+    console.log('💾 [CACHE] Saving AI generation to Vercel Blob...');
     
-    // Konwertuj transformedImage URL na base64 dla cache
-    let thumbnailBase64 = transformedImage; // fallback na URL
+    // ZAWSZE używamy URL (zamiast base64) dla localStorage
+    let transformedImageUrl = transformedImage; // fallback
+    
     try {
-      // ✅ Dla karykatury (base64) - KOMPRESUJ przed zapisaniem (zamiast używać bezpośrednio)
+      // ✅ Dla karykatury (base64) - ZAPISZ NA VERCEL BLOB i dostać URL
       if (transformedImage && transformedImage.startsWith('data:image/')) {
-        console.log('🎨 [CACHE] Detected base64 image (karykatura), compressing thumbnail...');
-        thumbnailBase64 = await this.compressBase64Thumbnail(transformedImage);
-        console.log('✅ [CACHE] Base64 thumbnail compressed for storage');
+        console.log('🎨 [CACHE] Detected base64 image (karykatura), uploading to Vercel Blob...');
+        transformedImageUrl = await this.saveToVercelBlob(transformedImage, `ai-${Date.now()}.jpg`);
+        console.log('✅ [CACHE] Uploaded to Vercel Blob:', transformedImageUrl?.substring(0, 50));
       } else if (transformedImage && (transformedImage.startsWith('http://') || transformedImage.startsWith('https://'))) {
-        console.log('🔄 [CACHE] Converting AI result URL to base64 for cache...');
-        thumbnailBase64 = await this.urlToBase64(transformedImage);
-        console.log('✅ [CACHE] AI result cached as base64');
+        console.log('✅ [CACHE] AI result already has URL, using directly:', transformedImage);
+        transformedImageUrl = transformedImage;
       }
     } catch (error) {
-      console.warn('⚠️ [CACHE] Failed to cache AI result, using URL:', error);
-      // Użyj URL jako fallback
+      console.warn('⚠️ [CACHE] Failed to save to Vercel Blob, using original:', error);
+      // Użyj oryginału jako fallback
     }
 
     const generation = {
       id: Date.now(),
       timestamp: new Date().toISOString(),
-      originalImage: originalImage, // base64 lub URL
-      transformedImage: transformedImage, // URL do AI obrazu (zachowaj dla API)
+      originalImage: originalImage, // base64 lub URL (zachowaj)
+      transformedImage: transformedImageUrl, // ZAWSZE URL (nie base64)
       style: style,
       size: size,
-      thumbnail: thumbnailBase64 // base64 cache lub URL fallback
+      thumbnail: transformedImageUrl // Użyj tego samego URL dla thumbnail
     };
 
     // Pobierz istniejące generacje
@@ -190,8 +190,8 @@ class CustomifyEmbed {
     // Dodaj nową generację na początku
     existingGenerations.unshift(generation);
     
-    // Zachowaj tylko ostatnie 10 generacji (większy quota dzięki kompresji miniaturek)
-    const limitedGenerations = existingGenerations.slice(0, 10);
+    // Zachowaj ostatnie 50 generacji (URL są małe, ~100 znaków zamiast 2-5MB base64)
+    const limitedGenerations = existingGenerations.slice(0, 50);
     
     // Zapisz z powrotem do localStorage
     localStorage.setItem('customify_ai_generations', JSON.stringify(limitedGenerations));
@@ -491,6 +491,42 @@ class CustomifyEmbed {
         reject(error);
       }
     });
+  }
+
+  /**
+   * Zapisuje obraz base64 do Vercel Blob Storage i zwraca URL
+   */
+  async saveToVercelBlob(base64String, filename) {
+    try {
+      console.log('📤 [VERCEL-BLOB] Uploading to Vercel Blob Storage...');
+      
+      const response = await fetch('https://customify-s56o.vercel.app/api/upload-temp-image', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          imageData: base64String,
+          filename: filename,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to upload: ${response.status} ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      
+      if (result.success && result.url) {
+        console.log('✅ [VERCEL-BLOB] Uploaded successfully:', result.url);
+        return result.url;
+      } else {
+        throw new Error('No URL in response');
+      }
+    } catch (error) {
+      console.error('❌ [VERCEL-BLOB] Error uploading:', error);
+      throw error;
+    }
   }
 
   /**
