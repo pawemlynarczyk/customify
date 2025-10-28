@@ -2084,9 +2084,25 @@
           
         });
       </script>
+      
+      <script>
+        // Przekaż dane produktu do JavaScript
+        {% if product %}
+        window.ShopifyProduct = {
+          id: {{ product.id }},
+          title: {{ product.title | json }},
+          handle: {{ product.handle | json }},
+          variants: {{ product.variants | json }},
+          options: {{ product.options | json }},
+          price: {{ product.price | money | json }}
+        };
+        console.log('📦 [SHOPIFY PRODUCT] Product data loaded:', window.ShopifyProduct);
+        {% endif %}
+      </script>
+      
       <div id="customify-app-container" class="customify-shopify-container">
         <!-- Wybór rodzaju wydruku - na górze nad rozmiarami -->
-        <div class="customify-product-type-selector" id="productTypeArea" style="display: none; margin-bottom: 15px;">
+        <div class="customify-product-type-selector" id="productTypeArea" style="display: block; margin-bottom: 15px;">
           <h4 style="text-align: left;">🎨 Rodzaj wydruku:</h4>
           <div class="customify-product-type-buttons">
             <div class="customify-product-type-btn" data-product-type="plakat">

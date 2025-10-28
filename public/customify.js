@@ -1562,6 +1562,23 @@ class CustomifyEmbed {
    * Zwraca cenę dla wybranego rozmiaru
    */
   getSizePrice(size) {
+    // ✅ NOWE: Użyj wariantów Shopify zamiast hardkodowanych cen
+    if (window.ShopifyProduct && window.ShopifyProduct.variants) {
+      const variants = window.ShopifyProduct.variants;
+      // Znajdź wariant pasujący do rozmiaru
+      const variant = variants.find(v => {
+        // Sprawdź czy title wariantu zawiera rozmiar (np. "A4", "A3")
+        const sizeUpper = size.toUpperCase();
+        return v.title && v.title.includes(sizeUpper);
+      });
+      
+      if (variant) {
+        console.log(`💰 [VARIANT-PRICE] Found variant for ${size}: ${variant.price / 100} zł`);
+        return variant.price / 100; // Cena w groszach → złotówki
+      }
+    }
+    
+    // Fallback: stare hardkodowane ceny
     const prices = {
       'a4': 49,
       'a3': 99,
