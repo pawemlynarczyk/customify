@@ -1969,11 +1969,16 @@ class CustomifyEmbed {
             '_Order_ID': result.orderId || Date.now().toString()  // Unikalny ID zamówienia
           };
           
-          // Dodaj _AI_Image_Direct TYLKO jeśli to NIE jest base64 (tylko dla Replicate URLs)
-          if (this.transformedImage && !this.transformedImage.startsWith('data:')) {
-            properties['_AI_Image_Direct'] = this.transformedImage;  // Replicate URL (krótki ~100 znaków)
+          // Dodaj _AI_Image_Direct TYLKO jeśli to krótki URL (Replicate ~100 znaków)
+          // Vercel Blob URLs są za długie (~200+ znaków) - NIE dodawaj ich tutaj
+          if (this.transformedImage && 
+              !this.transformedImage.startsWith('data:') && 
+              this.transformedImage.length < 150 &&
+              this.transformedImage.includes('replicate.delivery')) {
+            properties['_AI_Image_Direct'] = this.transformedImage;  // Tylko Replicate URLs (krótkie)
           }
           // Segmind base64 data URI (~256KB) przekracza limit URL - POMIŃ!
+          // Vercel Blob URLs są za długie dla properties - POMIŃ!
           
           console.log('🖼️ [CUSTOMIFY] Image URLs:', {
             shopifyImageUrl: result.imageUrl,
