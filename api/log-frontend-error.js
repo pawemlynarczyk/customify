@@ -3,7 +3,7 @@
  * Allows frontend to log errors to backend analytics
  */
 
-const { logError } = require('../utils/analytics-logger-kv');
+const { logError } = require('../utils/analytics-logger');
 const { getClientIP } = require('../utils/vercelRateLimiter');
 
 module.exports = async (req, res) => {
@@ -35,8 +35,8 @@ module.exports = async (req, res) => {
     
     const ip = getClientIP(req);
     
-    // Log frontend error (await for KV)
-    await logError('/frontend/' + action, new Error(error), {
+    // Log frontend error
+    logError('/frontend/' + action, new Error(error), {
       statusCode: 'frontend',
       ip,
       userAgent: userAgent || req.headers['user-agent'],
