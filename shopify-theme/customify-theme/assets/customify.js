@@ -160,9 +160,9 @@ class CustomifyEmbed {
     let transformedImageUrl = transformedImage; // fallback
     
     try {
-      // ✅ Dla karykatury (base64) - ZAPISZ NA VERCEL BLOB i dostać URL
+      // ✅ Dla base64 (karykatura, król) - ZAPISZ NA VERCEL BLOB i dostać URL
       if (transformedImage && transformedImage.startsWith('data:image/')) {
-        console.log('🎨 [CACHE] Detected base64 image (karykatura), uploading to Vercel Blob...');
+        console.log('🎨 [CACHE] Detected base64 image (Segmind API), uploading to Vercel Blob...');
         transformedImageUrl = await this.saveToVercelBlob(transformedImage, `ai-${Date.now()}.jpg`);
         console.log('✅ [CACHE] Uploaded to Vercel Blob:', transformedImageUrl?.substring(0, 50));
       } else if (transformedImage && (transformedImage.startsWith('http://') || transformedImage.startsWith('https://'))) {
