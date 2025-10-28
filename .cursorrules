@@ -143,15 +143,14 @@ const shopifyRequest = async (endpoint, options = {}) => {
 ## 🚨 CRITICAL: Vercel Blob Storage - DOMYŚLNY STORAGE DLA PLIKÓW
 - **HOSTING**: Mamy hosting na Vercel - ZAWSZE używamy Vercel Blob Storage dla plików tymczasowych
 - **WYMAGANE**: `BLOB_READ_WRITE_TOKEN` - token z Vercel Dashboard → Storage → Blob
-- **KIEDY UŻYWAĆ**: 
-  - Tymczasowe uploady zdjęć (np. przed wysłaniem do Segmind Caricature API)
-  - Pliki tymczasowe potrzebne w processingu
-  - Wszystkie materiały wymagające stałego URL
-- **KIEDY NIE UŻYWAĆ**:
-  - Style używające Replicate (przyjmuje base64)
-  - Style używające nano-banana (przyjmuje base64)
-  - Style używające Segmind Faceswap (przyjmuje base64)
-  - **TYLKO Segmind Caricature wymaga URL** - użyj Vercel Blob dla tego stylu
+- **ZAWSZE ZAPISUJ**: Wszystkie wyniki transformacji (Boho, Koty, Król, Karykatura) na Vercel Blob
+  - **Replicate URLs** (Boho, Koty) → Download → Base64 → Upload na Vercel Blob
+  - **Segmind base64** (Król, Karykatura) → Upload na Vercel Blob
+- **DLACZEGO**: 
+  - Spójność danych - wszystkie wyniki w jednym miejscu
+  - Trwałe URLs - obrazy nie wygasają  
+  - Rozwiązuje about:blank#blocked - użycie zapisanego URL zamiast base64
+- **HISTORIA GENERACJI**: Przechowuje ostatnie 8 generacji, wszystkie z URL z Vercel Blob (~100 znaków zamiast 2-5MB base64)
 - **ENDPOINT**: `/api/upload-temp-image` - endpoint do uploadu plików do Vercel Blob
 - **ZASADA**: Vercel Blob to NASZ hosting - ZAWSZE używamy go zamiast Cloudinary/S3 dla plików tymczasowych
 
@@ -371,6 +370,30 @@ Customify is a Shopify app that allows customers to:
   - Segmind zwraca base64: `data:image/jpeg;base64,/9j/4AAQ...` (~256,000 znaków) → ZA DŁUGI dla URL (limit 2000-8000 znaków)
 - **TESTUJ**: Każdy styl (boho, pixar, koty, król) osobno przed wdrożeniem
 - **PAMIĘTAJ**: Co działa dla jednego stylu, NIE MOŻE zepsuć innych!
+
+### 🚨 CRITICAL: Dodawanie do koszyka - ZAWSZE używaj zapisanego URL z Vercel Blob
+- **ZASADA**: Przy dodawaniu do koszyka używać ZAWSZE zapisanego URL z Vercel Blob, NIE `this.transformedImage` z API
+- **PROBLEM**: Bezpośrednie użycie `this.transformedImage` (base64 lub URL z Replicate) powodowało about:blank#blocked
+- **ROZWIĄZANIE**: Po zapisaniu generacji do galerii, pobierz zapisany generation i użyj jego `transformedImage` (URL z Vercel Blob)
+- **KOD**: 
+  ```javascript
+  // Po transformacji i zapisaniu do galerii:
+  saveAIGeneration(...).then(() => {
+    // Pobierz zapisany generation z historii
+    const generations = this.getAIGenerations();
+    if (generations.length > 0) {
+      this.transformedImage = generations[0].transformedImage; // URL z Vercel Blob
+    }
+  });
+  
+  // Teraz addToCart() używa URL z Vercel Blob, nie base64!
+  ```
+- **DLACZEGO**: 
+  - Wszystkie style zapisują wyniki na Vercel Blob (Replicate URLs są pobierane i uploadowane)
+  - Zapisany URL z Vercel Blob jest zawsze w tym samym formacie
+  - Eliminuje problemy z base64 przekraczającym limit URL (~2-5MB)
+  - Zapobiega about:blank#blocked dla wszystkich stylów
+- **EFEKT**: Jedna spójna ścieżka dla wszystkich stylów (galeria i bezpośrednie dodanie)
 
 ### Debugging Tips
 - Check browser console for detailed logs with `[PRODUCTS.JS]` and `[SHOPIFY-EMBED.HTML]` prefixes
