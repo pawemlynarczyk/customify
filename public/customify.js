@@ -1374,6 +1374,12 @@ class CustomifyEmbed {
     typeBtn.classList.add('active');
     this.selectedProductType = typeBtn.dataset.productType;
     console.log('🎨 [PRODUCT-TYPE] Selected product type:', this.selectedProductType);
+    
+    // ✅ Aktualizuj cenę po wyborze typu produktu
+    if (this.selectedSize) {
+      this.updateProductPrice();
+      this.updateCartPrice();
+    }
   }
 
   /**
@@ -1562,14 +1568,30 @@ class CustomifyEmbed {
    * Zwraca cenę dla wybranego rozmiaru
    */
   getSizePrice(size) {
-    // ✅ Hardkodowane ceny (za Obraz na płótnie)
-    const prices = {
-      'a4': 49,
-      'a3': 99,
-      'a2': 149,
-      'a1': 199
+    // ✅ Logika cen na podstawie typu produktu (Plakat vs Obraz na płótnie)
+    
+    // Plakat (poster) - niższe ceny
+    const plakatPrices = {
+      'a4': 0,    // 20×30 cm - base price
+      'a3': 29,   // 30×40 cm
+      'a2': 59,   // 40×60 cm
+      'a1': 69    // 60×85 cm
     };
-    return prices[size] || 0;
+    
+    // Obraz na płótnie (canvas) - wyższe ceny
+    const obrazPrices = {
+      'a4': 49,   // 20×30 cm
+      'a3': 99,   // 30×40 cm
+      'a2': 149,  // 40×60 cm
+      'a1': 199   // 60×85 cm
+    };
+    
+    // Użyj cen zależnie od wybranego typu produktu
+    if (this.selectedProductType === 'plakat') {
+      return plakatPrices[size] || 0;
+    } else {
+      return obrazPrices[size] || 0;
+    }
   }
 
   /**
