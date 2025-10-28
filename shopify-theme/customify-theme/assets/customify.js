@@ -1199,11 +1199,20 @@ class CustomifyEmbed {
     // Dodaj badge'y do tego samego kontenera
     titleBadgesContainer.appendChild(badgesContainer);
 
-    // PRZENIEŚ CENĘ NAD SEKCJĘ "WYBIERZ ROZMIAR" - OD RAZU (bez setTimeout)
+    // PRZENIEŚ SEKCJĘ "RODZAJ WYD Pel" NAD SEKCJĘ "ROZMIAR" (PONIŻEJ CENY) - OD RAZU
     const priceElement = document.querySelector('product-price');
+    const productTypeArea = document.getElementById('productTypeArea');
     const sizeArea = document.getElementById('sizeArea');
-    sizeArea.parentNode.insertBefore(priceElement, sizeArea);
-    console.log('🎯 [CUSTOMIFY] Cena przeniesiona nad sekcję "Wybierz rozmiar"');
+    
+    if (priceElement && productTypeArea && sizeArea) {
+      // Wstaw productTypeArea PONIŻEJ product-price (bezpośrednio po cenie, przed rozmiarami)
+      if (priceElement.nextSibling) {
+        priceElement.parentNode.insertBefore(productTypeArea, priceElement.nextSibling);
+      } else {
+        sizeArea.parentNode.insertBefore(productTypeArea, sizeArea);
+      }
+      console.log('🎯 [CUSTOMIFY] Sekcja "Rodzaj wydruku" przeniesiona poniżej ceny, nad rozmiarami');
+    }
   }
 
   setupEventListeners() {
