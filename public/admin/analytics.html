@@ -760,8 +760,19 @@
 
     // Refresh all
     function refreshAll() {
+      console.log('🔄 Refresh button clicked!');
       currentPage = 1;
-      loadAll();
+      
+      // Force reload with loading indicator
+      const statsCards = document.querySelectorAll('.stat-value');
+      statsCards.forEach(card => card.textContent = '...');
+      
+      loadAll().then(() => {
+        console.log('✅ Data refreshed!');
+      }).catch(error => {
+        console.error('❌ Refresh error:', error);
+        alert('Błąd odświeżania: ' + error.message);
+      });
     }
 
     // Export to CSV
