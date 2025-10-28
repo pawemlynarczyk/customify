@@ -190,8 +190,8 @@ class CustomifyEmbed {
     // Dodaj nową generację na początku
     existingGenerations.unshift(generation);
     
-    // Zachowaj ostatnie 50 generacji (URL są małe, ~100 znaków zamiast 2-5MB base64)
-    const limitedGenerations = existingGenerations.slice(0, 50);
+    // Zachowaj ostatnie 8 generacji (URL są małe, ~100 znaków zamiast 2-5MB base64)
+    const limitedGenerations = existingGenerations.slice(0, 8);
     
     // Zapisz z powrotem do localStorage
     localStorage.setItem('customify_ai_generations', JSON.stringify(limitedGenerations));
