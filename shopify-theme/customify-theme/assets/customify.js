@@ -1570,18 +1570,18 @@ class CustomifyEmbed {
   getSizePrice(size) {
     // ✅ Logika cen na podstawie typu produktu (Plakat vs Obraz na płótnie)
     
-    // Plakat (poster) - niższe ceny
+    // Plakat (poster) - niższe ceny (zgodnie z tabelą)
     const plakatPrices = {
-      'a5': 0,    // 15×20 cm - base price (nieaktywne dla Plakatu)
+      'a5': null, // 15×20 cm - nieaktywne (puste w tabeli)
       'a4': 0,    // 20×30 cm - base price
       'a3': 29,   // 30×40 cm
       'a2': 59,   // 40×60 cm
       'a1': 69    // 60×85 cm
     };
     
-    // Obraz na płótnie (canvas) - wyższe ceny
+    // Obraz na płótnie (canvas) - wyższe ceny (zgodnie z tabelą)
     const obrazPrices = {
-      'a5': 0,    // 15×20 cm - nieaktywne
+      'a5': null, // 15×20 cm - nieaktywne
       'a4': 49,   // 20×30 cm
       'a3': 99,   // 30×40 cm
       'a2': 149,  // 40×60 cm
