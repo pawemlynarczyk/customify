@@ -624,6 +624,9 @@ class CustomifyEmbed {
     console.log('🔄 [GALLERY] Generation data:', generation);
     console.log('🔄 [GALLERY] originalImage type:', typeof generation.originalImage);
     console.log('🔄 [GALLERY] originalImage value:', generation.originalImage);
+    console.log('🔄 [GALLERY] transformedImage type:', typeof generation.transformedImage);
+    console.log('🔄 [GALLERY] transformedImage length:', generation.transformedImage?.length);
+    console.log('🔄 [GALLERY] transformedImage preview:', generation.transformedImage?.substring(0, 100));
     
     // Pokaż wynik AI (transformedImage) w result area
     if (generation.transformedImage) {
@@ -631,7 +634,9 @@ class CustomifyEmbed {
       
       // ✅ KLUCZOWE: Ustaw this.transformedImage żeby addToCart() działało
       this.transformedImage = generation.transformedImage;
-      console.log('✅ [GALLERY] Set this.transformedImage for addToCart:', this.transformedImage);
+      console.log('✅ [GALLERY] Set this.transformedImage for addToCart:', this.transformedImage?.substring(0, 100));
+      console.log('✅ [GALLERY] this.transformedImage is base64?', this.transformedImage?.startsWith('data:'));
+      console.log('✅ [GALLERY] this.transformedImage is URL?', this.transformedImage?.startsWith('http'));
       
       // ✅ KLUCZOWE: Ustaw this.originalImageFromGallery żeby addToCart() działało
       this.originalImageFromGallery = generation.originalImage;
@@ -1936,6 +1941,11 @@ class CustomifyEmbed {
       };
 
       console.log('🛒 [CUSTOMIFY] Creating product with data:', productData);
+      console.log('🛒 [CUSTOMIFY] transformedImage type:', typeof this.transformedImage);
+      console.log('🛒 [CUSTOMIFY] transformedImage length:', this.transformedImage?.length);
+      console.log('🛒 [CUSTOMIFY] transformedImage is base64?', this.transformedImage?.startsWith('data:'));
+      console.log('🛒 [CUSTOMIFY] transformedImage is URL?', this.transformedImage?.startsWith('http'));
+      console.log('🛒 [CUSTOMIFY] transformedImage preview:', this.transformedImage?.substring(0, 200));
       
       // Stwórz nowy produkt z obrazkiem AI jako głównym obrazem
       const response = await fetch('https://customify-s56o.vercel.app/api/products', {
