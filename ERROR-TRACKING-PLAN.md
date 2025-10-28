@@ -411,3 +411,4 @@ async addToCart() {
 **Ostatnia aktualizacja**: 2025-01-XX  
 **Status**: ✅ Plan gotowy do wdrożenia
 
+

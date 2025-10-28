@@ -30,6 +30,26 @@ class CustomifyEmbed {
     this.init();
   }
 
+  // 🔍 LOG ERROR TO ANALYTICS - wysyła błędy do backendu
+  async logErrorToAnalytics(action, errorMessage, additionalData = {}) {
+    try {
+      await fetch('https://customify-s56o.vercel.app/api/log-frontend-error', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          error: errorMessage,
+          action: action,
+          userAgent: navigator.userAgent,
+          url: window.location.href,
+          additionalData: additionalData
+        })
+      });
+    } catch (e) {
+      // Silent fail - nie blokuj UI błędem logowania
+      console.warn('Failed to log error to analytics:', e);
+    }
+  }
+
   init() {
     if (!document.getElementById('uploadArea')) {
       return; // Jeśli nie ma elementów, nie rób nic
@@ -1049,60 +1069,86 @@ class CustomifyEmbed {
       // Wstaw na górę kolumny 2
       productDetails.insertBefore(appContainer, productDetails.firstChild);
       
-      // PRZENIEŚ TYTUŁ NA GÓRĘ KOLUMNY PRODUKT INFO
-      this.moveTitleToTop();
+      // USTAW FINALNY UKŁAD ELEMENTÓW
+      this.setFinalLayout();
     } else {
       console.warn('⚠️ [CUSTOMIFY] Could not find product details column');
     }
   }
 
 
-  // PRZENIEŚ TYTUŁ NA GÓRĘ KOLUMNY PRODUKT INFO
-  moveTitleToTop() {
-    // Znajdź kontener z tytułem (bezpieczny element)
-    const titleContainer = document.querySelector('.group-block[data-testid="group-block"]');
+  // USTAW FINALNY UKŁAD ELEMENTÓW - JEDNA FUNKCJA, BEZ HISTORII PRZENIESIEŃ
+  setFinalLayout() {
+    console.log('🎯 [LAYOUT] Ustawiam finalny układ elementów...');
     
-    if (!titleContainer) {
-      console.warn('⚠️ [CUSTOMIFY] Could not find title container');
-      return;
-    }
-
-    // Znajdź kolumnę produkt info (gdzie ma być przeniesiony)
-    const productInfoColumn = document.querySelector('#ProductInformation-template--26351135293765__main') || 
-                              document.querySelector('.product-details') ||
-                              document.querySelector('.product__info');
-
+    // 1. ZNAJDŹ GŁÓWNY KONTENER
+    const productInfoColumn = document.querySelector('[id^="ProductInformation-"]');
     if (!productInfoColumn) {
-      console.warn('⚠️ [CUSTOMIFY] Could not find product info column');
+      console.warn('⚠️ [LAYOUT] Nie znaleziono ProductInformation');
       return;
     }
 
-    // Sprawdź czy już nie jest przeniesiony
-    if (titleContainer.classList.contains('customify-title-moved')) {
-      console.log('🎯 [CUSTOMIFY] Title already moved to top');
-      return;
+    // 2. ZNAJDŹ WSZYSTKIE ELEMENTY
+    const titleElement = document.querySelector('.group-block[data-testid="group-block"] [class*="product_title"]')?.parentElement?.parentElement;
+    const descriptionElement = document.querySelector('rte-formatter');
+    const priceElement = document.querySelector('product-price');
+    const productTypeArea = document.getElementById('productTypeArea');
+    const sizeArea = document.getElementById('sizeArea');
+
+    console.log('📦 [LAYOUT] Znalezione elementy:', {
+      title: !!titleElement,
+      description: !!descriptionElement,
+      price: !!priceElement,
+      productType: !!productTypeArea,
+      sizes: !!sizeArea
+    });
+
+    // 3. UTWÓRZ KONTENER DLA UPORZĄDKOWANYCH ELEMENTÓW
+    let orderedContainer = productInfoColumn.querySelector('.customify-ordered-layout');
+    if (!orderedContainer) {
+      orderedContainer = document.createElement('div');
+      orderedContainer.className = 'customify-ordered-layout';
+      orderedContainer.style.cssText = `
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        width: 100%;
+      `;
+      productInfoColumn.appendChild(orderedContainer);
     }
 
-    console.log('🎯 [CUSTOMIFY] Moving title to top of product info column');
+    // 4. USTAW KOLEJNOŚĆ: TYTUŁ > OPIS > CENA > TYPY > ROZMIARY
+    if (titleElement && !titleElement.classList.contains('layout-set')) {
+      orderedContainer.appendChild(titleElement);
+      titleElement.classList.add('layout-set');
+      console.log('✅ [LAYOUT] Tytuł ustawiony');
+    }
 
-    // Oznacz jako przeniesiony
-    titleContainer.classList.add('customify-title-moved');
+    if (descriptionElement && !descriptionElement.classList.contains('layout-set')) {
+      orderedContainer.appendChild(descriptionElement);
+      descriptionElement.classList.add('layout-set');
+      console.log('✅ [LAYOUT] Opis ustawiony');
+    }
 
-    // Przenieś tytuł na górę kolumny produkt info
-    productInfoColumn.insertBefore(titleContainer, productInfoColumn.firstChild);
+    if (priceElement && !priceElement.classList.contains('layout-set')) {
+      orderedContainer.appendChild(priceElement);
+      priceElement.classList.add('layout-set');
+      console.log('✅ [LAYOUT] Cena ustawiona');
+    }
 
-    // Ustaw style dla przeniesionego tytułu
-    titleContainer.style.cssText = `
-      order: -1 !important;
-      width: 100% !important;
-      margin: 0 0 20px 0 !important;
-      background: white !important;
-      padding: 8px 20px !important;
-      border-radius: 8px !important;
-      box-shadow: none !important;
-      position: relative !important;
-      z-index: 10 !important;
-    `;
+    if (productTypeArea && !productTypeArea.classList.contains('layout-set')) {
+      orderedContainer.appendChild(productTypeArea);
+      productTypeArea.classList.add('layout-set');
+      console.log('✅ [LAYOUT] Typy materiału ustawione');
+    }
+
+    if (sizeArea && !sizeArea.classList.contains('layout-set')) {
+      orderedContainer.appendChild(sizeArea);
+      sizeArea.classList.add('layout-set');
+      console.log('✅ [LAYOUT] Rozmiary ustawione');
+    }
+
+    console.log('🎉 [LAYOUT] Finalny układ ustawiony!');
 
     // NIE ukrywamy ceny - zostawiamy oryginalną pozycję Shopify
     // (usunięto klonowanie ceny ze względu na potencjalne problemy z cloakingiem Google)
@@ -1151,20 +1197,29 @@ class CustomifyEmbed {
   // Powód: Potencjalne problemy z cloakingiem Google (klonowanie elementów DOM)
   // Cena pozostaje w oryginalnej pozycji Shopify
 
-  // DODAJ GWIAZDKI I OKAZJĘ POD TYTUŁEM
+  // DODAJ GWIAZDKI DO OPISU PRODUKTU (rte-formatter)
   addProductBadges() {
-    // Znajdź tytuł produktu
-    const titleElement = document.querySelector('h1, .product-title, .view-product-title');
-    if (!titleElement) return;
+    console.log('🎯 [CUSTOMIFY] Dodaję gwiazdki do opisu produktu...');
+    
+    // Znajdź opis produktu (rte-formatter)
+    const descriptionElement = document.querySelector('rte-formatter');
+    if (!descriptionElement) {
+      console.log('⚠️ [CUSTOMIFY] Nie znaleziono rte-formatter');
+      return;
+    }
 
     // Sprawdź czy już nie ma badge'ów
-    if (document.querySelector('.product-badges')) return;
+    if (document.querySelector('.product-badges')) {
+      console.log('⚠️ [CUSTOMIFY] Badge\'y już istnieją');
+      return;
+    }
 
     // Stwórz kontener dla badge'ów
     const badgesContainer = document.createElement('div');
     badgesContainer.className = 'product-badges';
+    badgesContainer.style.cssText = 'margin-bottom: 16px; display: block;';
 
-    // Dodaj sekcję z gwiazdkami (discount badge USUNIĘTY)
+    // Dodaj sekcję z gwiazdkami
     const ratingSection = document.createElement('div');
     ratingSection.className = 'rating-section';
 
@@ -1184,35 +1239,20 @@ class CustomifyEmbed {
     ratingSection.appendChild(stars);
     ratingSection.appendChild(reviewCount);
 
-    // Dodaj do kontenera (discount badge USUNIĘTY)
+    // Dodaj do kontenera
     badgesContainer.appendChild(ratingSection);
 
-    // POŁĄCZ TYTUŁ Z BADGE'AMI W JEDEN ELEMENT
-    const titleBadgesContainer = document.createElement('div');
-    titleBadgesContainer.className = 'title-with-badges';
-    titleBadgesContainer.style.cssText = 'order: 1; margin-bottom: 4px;';
-
-    // Przenieś tytuł do nowego kontenera
-    titleElement.parentNode.insertBefore(titleBadgesContainer, titleElement);
-    titleBadgesContainer.appendChild(titleElement);
+    // DODAJ GWIAZDKI NA POCZĄTEK OPISU (przed tekstem w rte-formatter)
+    descriptionElement.insertBefore(badgesContainer, descriptionElement.firstChild);
     
-    // Dodaj badge'y do tego samego kontenera
-    titleBadgesContainer.appendChild(badgesContainer);
-
-    // PRZENIEŚ SEKCJĘ "RODZAJ WYD Pel" NAD SEKCJĘ "ROZMIAR" (PONIŻEJ CENY) - OD RAZU
-    const priceElement = document.querySelector('product-price');
-    const productTypeArea = document.getElementById('productTypeArea');
-    const sizeArea = document.getElementById('sizeArea');
-    
-    if (priceElement && productTypeArea && sizeArea) {
-      // Wstaw productTypeArea PONIŻEJ product-price (bezpośrednio po cenie, przed rozmiarami)
-      if (priceElement.nextSibling) {
-        priceElement.parentNode.insertBefore(productTypeArea, priceElement.nextSibling);
-      } else {
-        sizeArea.parentNode.insertBefore(productTypeArea, sizeArea);
-      }
-      console.log('🎯 [CUSTOMIFY] Sekcja "Rodzaj wydruku" przeniesiona poniżej ceny, nad rozmiarami');
+    // DODAJ MARGINES DO TEKSTU OPISU (aby gwiazdki nie zasłaniały)
+    const descriptionText = descriptionElement.querySelector('p, .p1');
+    if (descriptionText) {
+      descriptionText.style.setProperty('margin-top', '24px', 'important');
+      console.log('✅ [CUSTOMIFY] Margines dodany do tekstu opisu: 24px');
     }
+    
+    console.log('✅ [CUSTOMIFY] Gwiazdki dodane do opisu produktu');
   }
 
   setupEventListeners() {
@@ -1268,10 +1308,20 @@ class CustomifyEmbed {
     if (!file) return;
     if (!file.type.startsWith('image/')) {
       this.showError('Proszę wybrać plik obrazu (JPG, PNG, GIF)');
+      // 🔍 LOG ERROR TO ANALYTICS
+      this.logErrorToAnalytics('file_upload', 'Invalid file type', {
+        fileType: file.type,
+        fileName: file.name
+      });
       return;
     }
     if (file.size > 10 * 1024 * 1024) {
       this.showError('Plik jest za duży. Maksymalny rozmiar to 10MB');
+      // 🔍 LOG ERROR TO ANALYTICS
+      this.logErrorToAnalytics('file_upload', 'File too large', {
+        fileSize: file.size,
+        fileName: file.name
+      });
       return;
     }
 
@@ -1809,6 +1859,13 @@ class CustomifyEmbed {
     } catch (error) {
       console.error('📱 [MOBILE] Transform error:', error);
       
+      // 🔍 LOG ERROR TO ANALYTICS
+      this.logErrorToAnalytics('transform_image', error.message, {
+        style: this.selectedStyle,
+        retryCount: retryCount,
+        errorName: error.name
+      });
+      
       // Retry logic for network errors
       if (retryCount < 3 && (
         error.name === 'AbortError' || 
@@ -2141,6 +2198,14 @@ class CustomifyEmbed {
     } catch (error) {
       console.error('❌ [CUSTOMIFY] Add to cart error:', error);
       this.hideCartLoading();
+      
+      // 🔍 LOG ERROR TO ANALYTICS
+      this.logErrorToAnalytics('add_to_cart', error.message, {
+        style: this.selectedStyle,
+        size: this.selectedSize,
+        productType: this.selectedProductType,
+        errorName: error.name
+      });
       
       let errorMessage = '❌ Błąd połączenia z serwerem';
       
@@ -2691,11 +2756,11 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       
       if (badgesElement) {
-        badgesElement.style.setProperty('margin-top', '0px', 'important');
-        badgesElement.style.setProperty('padding-top', '0px', 'important');
-        badgesElement.style.setProperty('margin', '0 0 4px 0', 'important');
-        badgesElement.style.setProperty('gap', '2px', 'important');
-        console.log('🎯 [CUSTOMIFY] Odstępy badge\'ów zminimalizowane (inline)');
+        badgesElement.style.setProperty('margin', '0 0 24px 0', 'important');
+        badgesElement.style.setProperty('padding', '0', 'important');
+        badgesElement.style.setProperty('gap', '8px', 'important');
+        badgesElement.style.setProperty('display', 'block', 'important');
+        console.log('🎯 [CUSTOMIFY] Odstęp badge\'ów ustawiony: 16px');
       }
 
       // DODATKOWE FORCE HIDE DIVIDERS - INLINE STYLES

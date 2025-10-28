@@ -1,0 +1,37 @@
+{
+  "timestamp": "2025-10-28T17:25:48.251Z",
+  "description": "Backup obecnego systemu cen przed implementacją metafield",
+  "getSizePrice": {
+    "code": "\n  getSizePrice(size) {\n    const prices = {\n      'a4': 49,\n      'a3': 99,\n      'a2': 149,\n      'a1': 199\n    };\n    return prices[size] || 0;\n  }",
+    "note": "Obecna funkcja - ceny dla 'canvas' (Obraz na płótnie)"
+  },
+  "getSizeDimension": {
+    "code": "\n  getSizeDimension(size) {\n    const dimensions = {\n      'a4': '20×30 cm',\n      'a3': '30×40 cm', \n      'a2': '40×60 cm',\n      'a1': '60×85 cm'\n    };\n    return dimensions[size] || size;\n  }",
+    "note": "Obecna funkcja - wymiary rozmiarów"
+  },
+  "apiMapping": {
+    "code": "\nconst sizeName = size === 'a1' ? '60×85 cm' : size === 'a2' ? '40×60 cm' : size === 'a3' ? '30×40 cm' : size === 'a4' ? '20×30 cm' : size?.toUpperCase() || 'standard';",
+    "note": "Obecne mapowanie w api/products.js"
+  },
+  "newPricing": {
+    "plakat": {
+      "a4": 29,
+      "a3": 49,
+      "a2": 79,
+      "a1": 129
+    },
+    "canvas": {
+      "a4": 49,
+      "a3": 99,
+      "a2": 149,
+      "a1": 199
+    }
+  },
+  "rollbackInstructions": {
+    "step1": "Przywróć funkcje getSizePrice() i getSizeDimension() w customify.js",
+    "step2": "Przywróć mapowanie sizeName w api/products.js",
+    "step3": "Usuń wywołania loadPricingConfig() z customify.js",
+    "step4": "Usuń endpoint api/get-pricing-config.js",
+    "step5": "Usuń metafield z Shopify Admin"
+  }
+}

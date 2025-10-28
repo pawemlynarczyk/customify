@@ -517,7 +517,7 @@
         
         .customify-size-buttons {
           justify-content: flex-start !important;
-          grid-template-columns: repeat(2, 1fr) !important;
+          grid-template-columns: repeat(3, 1fr) !important;
           gap: 8px !important;
         }
         
@@ -2084,28 +2084,45 @@
           
         });
       </script>
+      
+      <script>
+        // Przekaż dane produktu do JavaScript
+        {% if product %}
+        window.ShopifyProduct = {
+          id: {{ product.id }},
+          title: {{ product.title | json }},
+          handle: {{ product.handle | json }},
+          variants: {{ product.variants | json }},
+          options: {{ product.options | json }},
+          price: {{ product.price | money | json }}
+        };
+        console.log('📦 [SHOPIFY PRODUCT] Product data loaded:', window.ShopifyProduct);
+        {% endif %}
+      </script>
+      
       <div id="customify-app-container" class="customify-shopify-container">
-        <!-- Wybór rodzaju wydruku - na górze nad rozmiarami -->
-        <div class="customify-product-type-selector" id="productTypeArea" style="display: block; margin-bottom: 15px;">
-          <h4 style="text-align: left;">🎨 Rodzaj wydruku:</h4>
+        <!-- Wybór rodzaju wydruku - NAD sekcją rozmiarów -->
+        <div class="customify-product-type-selector" id="productTypeArea" style="display: block; margin-bottom: 10px;">
+          <h4 style="text-align: left; font-size: 0.95rem; font-weight: 600;">Rodzaj wydruku:</h4>
           <div class="customify-product-type-buttons">
-            <div class="customify-product-type-btn" data-product-type="plakat">
-              📄 Plakat
+            <div class="customify-product-type-btn active" data-product-type="plakat">
+              Plakat (dodaj ramkę)
             </div>
-            <div class="customify-product-type-btn active" data-product-type="canvas">
-              🖼️ Obraz na płótnie
+            <div class="customify-product-type-btn" data-product-type="canvas">
+              Obraz na płótnie
             </div>
           </div>
         </div>
         
-        <!-- Rozmiary - pod wyborem rodzaju wydruku -->
+        <!-- Rozmiary - POD sekcją rodzaju wydruku -->
         <div class="customify-size-selector" id="sizeArea" style="display: block; margin-bottom: 10px;">
-          <h4 style="text-align: left;">Rozmiar:</h4>
+          <h4 style="text-align: left;">Rozmiar (cm):</h4>
               <div class="customify-size-buttons">
-                <div class="customify-size-btn" data-size="a4">20×30 cm</div>
-                <div class="customify-size-btn" data-size="a3">30×40 cm</div>
-                <div class="customify-size-btn" data-size="a2">40×60 cm</div>
-                <div class="customify-size-btn" data-size="a1">60×85 cm</div>
+                <div class="customify-size-btn active" data-size="a5">15×20</div>
+                <div class="customify-size-btn" data-size="a4">20×30</div>
+                <div class="customify-size-btn" data-size="a3">30×40</div>
+                <div class="customify-size-btn" data-size="a2">40×60</div>
+                <div class="customify-size-btn" data-size="a1">60×85</div>
               </div>
         </div>
         
@@ -2660,7 +2677,7 @@
 
         .customify-size-buttons {
           display: grid;
-          grid-template-columns: repeat(4, 70px);
+          grid-template-columns: repeat(5, 70px);
           gap: 8px;
           justify-content: start;
         }
@@ -2700,28 +2717,37 @@
           box-shadow: none !important;
         }
 
+        /* ===== UKRYJ NATYWNE WARIANTY SHOPIFY ===== */
+        .variant-picker__form,
+        fieldset.variant-option,
+        .variant-option--buttons {
+          display: none !important;
+        }
+        
         /* ===== PRZYCISKI WYBORU TYPU PRODUKTU (Plakat vs Canvas) ===== */
         .customify-product-type-buttons {
           display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 12px;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 8px;
+          justify-content: start;
           margin-top: 8px;
+          max-width: 450px;
         }
 
         .customify-product-type-btn {
-          padding: 14px 20px;
-          border: 2px solid #666666 !important;
-          border-radius: 8px;
+          padding: 8px 6px;
+          border: 1px solid #666666 !important;
+          border-radius: 0;
           background: white;
           cursor: pointer;
           transition: all 0.3s ease;
           text-align: center;
-          font-size: 1rem;
-          font-weight: 600;
+          font-size: 0.85rem;
+          font-weight: 500;
           color: #333;
           box-shadow: none;
-          line-height: 1.4;
-          min-height: 60px;
+          line-height: 1.3;
+          min-height: 50px;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -2730,25 +2756,29 @@
         .customify-product-type-btn:hover {
           border-color: #c82333;
           background-color: #fff5f0;
-          transform: translateY(-2px);
-          box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+          transform: none;
+          box-shadow: none;
         }
 
         .customify-product-type-btn.active {
-          border: 3px solid #dc3545 !important;
-          background: #dc3545 !important;
-          color: white !important;
-          font-weight: 700 !important;
+          border: 2px solid #dc3545 !important;
+          background: #fff5f5 !important;
+          color: #dc3545 !important;
+          font-weight: 600 !important;
           transform: none !important;
-          box-shadow: 0 2px 6px rgba(220, 53, 69, 0.3) !important;
+          box-shadow: none !important;
         }
 
         /* Responsive dla typu produktu */
         @media (max-width: 768px) {
           .customify-product-type-btn {
-            font-size: 0.9rem !important;
-            padding: 12px 16px !important;
-            min-height: 50px !important;
+            font-size: 0.8rem !important;
+            padding: 6px 4px !important;
+            min-height: 40px !important;
+          }
+          .customify-product-type-buttons {
+            grid-template-columns: 1fr 1fr !important;
+            gap: 6px !important;
           }
         }
 
