@@ -1,6 +1,7 @@
 /**
  * CUSTOMIFY AI PHOTO CUSTOMIZATION
  * Clean JavaScript implementation for Shopify theme integration
+ * v2.0 - Added analytics & error tracking system
  */
 
 
@@ -32,6 +33,12 @@ class CustomifyEmbed {
 
   // 🔍 LOG ERROR TO ANALYTICS - wysyła błędy do backendu
   async logErrorToAnalytics(action, errorMessage, additionalData = {}) {
+    // Użyj globalnej funkcji z theme.liquid (inline script)
+    if (typeof window.customifyLogError === 'function') {
+      return window.customifyLogError(action, errorMessage, additionalData);
+    }
+    
+    // Fallback - jeśli globalna funkcja nie istnieje
     try {
       await fetch('https://customify-s56o.vercel.app/api/log-frontend-error', {
         method: 'POST',

@@ -1,5 +1,5 @@
 const { put } = require('@vercel/blob');
-const { logError, logSuccess } = require('../utils/analytics-logger');
+const { logError, logSuccess } = require('../utils/analytics-logger-kv');
 const { getClientIP } = require('../utils/vercelRateLimiter');
 
 module.exports = async (req, res) => {

@@ -1,6 +1,6 @@
 const Replicate = require('replicate');
 const { checkRateLimit, getClientIP } = require('../utils/vercelRateLimiter');
-const { logError, logSuccess, logWarning } = require('../utils/analytics-logger');
+const { logError, logSuccess, logWarning } = require('../utils/analytics-logger-kv');
 
 // Try to load sharp, but don't fail if it's not available
 let sharp = null;

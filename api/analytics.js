@@ -3,7 +3,7 @@
  * Returns statistics and logs for admin dashboard
  */
 
-const { getAllLogs, getFilteredLogs, getStatistics, clearOldLogs } = require('../utils/analytics-logger');
+const { getAllLogs, getFilteredLogs, getStatistics, clearOldLogs } = require('../utils/analytics-logger-kv');
 
 module.exports = async (req, res) => {
   // CORS headers
@@ -33,14 +33,14 @@ module.exports = async (req, res) => {
       case 'stats':
         // Get statistics
         const days = parseInt(filters.days) || 7;
-        const stats = getStatistics(days);
+        const stats = await getStatistics(days);
         return res.status(200).json({ success: true, stats });
       
       case 'logs':
         // Get filtered logs
         const logs = filters.endpoint || filters.type || filters.startDate || filters.endDate 
-          ? getFilteredLogs(filters)
-          : getAllLogs();
+          ? await getFilteredLogs(filters)
+          : await getAllLogs();
         
         // Pagination
         const page = parseInt(filters.page) || 1;
@@ -64,7 +64,7 @@ module.exports = async (req, res) => {
       case 'clear':
         // Clear old logs
         const clearDays = parseInt(filters.days) || 30;
-        const result = clearOldLogs(clearDays);
+        const result = await clearOldLogs(clearDays);
         return res.status(200).json({ 
           success: true, 
           message: `Cleared ${result.removed} old logs`,
@@ -73,8 +73,9 @@ module.exports = async (req, res) => {
       
       default:
         // Return both stats and recent logs
-        const defaultStats = getStatistics(7);
-        const recentLogs = getAllLogs().slice(-50).reverse(); // Last 50 logs
+        const defaultStats = await getStatistics(7);
+        const allRecentLogs = await getAllLogs();
+        const recentLogs = allRecentLogs.slice(-50).reverse(); // Last 50 logs
         
         return res.status(200).json({
           success: true,

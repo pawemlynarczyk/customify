@@ -36,6 +36,27 @@
     <!-- CUSTOMIFY INTEGRATION -->
     <link rel="stylesheet" href="{{ 'customify.css' | asset_url }}">
     
+    <!-- CUSTOMIFY ANALYTICS - Inline error logging helper -->
+    <script>
+      window.customifyLogError = async function(action, errorMessage, additionalData = {}) {
+        try {
+          await fetch('https://customify-s56o.vercel.app/api/log-frontend-error', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              error: errorMessage,
+              action: action,
+              userAgent: navigator.userAgent,
+              url: window.location.href,
+              additionalData: additionalData
+            })
+          });
+        } catch (e) {
+          console.warn('Failed to log error:', e);
+        }
+      };
+    </script>
+    
     <!-- FIX: Preload obrazków produktu - eliminuje skakanie -->
     {% if template contains 'product' %}
       {% if product.featured_image %}
@@ -3095,4 +3116,4 @@
 
     {% sections 'footer-group' %}
   </body>
-</html>
+</html>{% comment %} Cache bust: 1761686705 {% endcomment %}
