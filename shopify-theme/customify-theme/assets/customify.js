@@ -1696,6 +1696,17 @@ class CustomifyEmbed {
           this.selectedSize           // Rozmiar (a4, a3, etc)
         ).then(() => {
           console.log('✅ [CACHE] AI generation saved with base64 cache');
+          
+          // ✅ KLUCZOWE: Pobierz zapisany generation z historii i użyj jego URL (z Vercel Blob)
+          const generations = this.getAIGenerations();
+          if (generations.length > 0) {
+            const lastGeneration = generations[0];
+            if (lastGeneration.transformedImage) {
+              console.log('✅ [CACHE] Using saved URL from history:', lastGeneration.transformedImage.substring(0, 100));
+              this.transformedImage = lastGeneration.transformedImage; // Użyj URL z Vercel Blob zamiast oryginału
+              console.log('✅ [CACHE] Updated this.transformedImage to saved URL');
+            }
+          }
         }).catch(error => {
           console.error('❌ [CACHE] Failed to save AI generation:', error);
         });
