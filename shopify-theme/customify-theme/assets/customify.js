@@ -34,6 +34,7 @@ class CustomifyEmbed {
 
   init() {
     // Walidacja wszystkich wymaganych elementów
+    // Pobierz elementy ponownie (mogły być przeniesione przez JavaScript w theme.liquid)
     const uploadArea = document.getElementById('uploadArea');
     const fileInput = document.getElementById('fileInput');
     
@@ -46,6 +47,10 @@ class CustomifyEmbed {
       console.error('❌ [CUSTOMIFY] fileInput element not found in DOM! Check if theme.liquid has: <input type="file" id="fileInput">');
       return;
     }
+    
+    // ⚠️ WAŻNE: Zaktualizuj referencje w obiekcie (elementy mogły być przeniesione przez JS)
+    this.uploadArea = uploadArea;
+    this.fileInput = fileInput;
     
     console.log('✅ [CUSTOMIFY] All required elements found, setting up event listeners');
     this.setupEventListeners();
