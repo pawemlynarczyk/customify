@@ -33,21 +33,9 @@ class CustomifyEmbed {
 
 
   init() {
-    // Walidacja wszystkich wymaganych elementów
-    const uploadArea = document.getElementById('uploadArea');
-    const fileInput = document.getElementById('fileInput');
-    
-    if (!uploadArea) {
-      console.error('❌ [CUSTOMIFY] uploadArea element not found in DOM!');
+    if (!document.getElementById('uploadArea')) {
       return; // Jeśli nie ma elementów, nie rób nic
     }
-    
-    if (!fileInput) {
-      console.error('❌ [CUSTOMIFY] fileInput element not found in DOM! Check if theme.liquid has: <input type="file" id="fileInput">');
-      return;
-    }
-    
-    console.log('✅ [CUSTOMIFY] All required elements found, setting up event listeners');
     this.setupEventListeners();
     this.positionApp();
     this.showStyles(); // Pokaż style od razu
@@ -1250,39 +1238,7 @@ class CustomifyEmbed {
   }
 
   setupEventListeners() {
-    // Sprawdź czy fileInput istnieje przed użyciem
-    if (!this.fileInput) {
-      console.error('❌ [CUSTOMIFY] fileInput element not found!');
-      return;
-    }
-    
-    if (!this.uploadArea) {
-      console.error('❌ [CUSTOMIFY] uploadArea element not found!');
-      return;
-    }
-    
-    // Event listener na obszar uploadu - użyj delegation żeby działało nawet gdy elementy się zmieniają
-    this.uploadArea.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      if (this.fileInput) {
-        this.fileInput.click();
-      } else {
-        console.error('❌ [CUSTOMIFY] fileInput is null when trying to click');
-      }
-    });
-    
-    // Event listener też na przycisk bezpośrednio
-    const uploadBtn = document.getElementById('uploadBtn');
-    if (uploadBtn) {
-      uploadBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        if (this.fileInput) {
-          this.fileInput.click();
-        }
-      });
-    }
+    this.uploadArea.addEventListener('click', () => this.fileInput.click());
     this.fileInput.addEventListener('change', (e) => this.handleFileSelect(e.target.files[0]));
     
     this.uploadArea.addEventListener('dragover', (e) => {
@@ -1334,10 +1290,18 @@ class CustomifyEmbed {
     if (!file) return;
     if (!file.type.startsWith('image/')) {
       this.showError('Proszę wybrać plik obrazu (JPG, PNG, GIF)');
+      // 🔍 LOG ERROR TO ANALYTICS
+        fileType: file.type,
+        fileName: file.name
+      });
       return;
     }
     if (file.size > 10 * 1024 * 1024) {
       this.showError('Plik jest za duży. Maksymalny rozmiar to 10MB');
+      // 🔍 LOG ERROR TO ANALYTICS
+        fileSize: file.size,
+        fileName: file.name
+      });
       return;
     }
 
@@ -1875,6 +1839,12 @@ class CustomifyEmbed {
     } catch (error) {
       console.error('📱 [MOBILE] Transform error:', error);
       
+      // 🔍 LOG ERROR TO ANALYTICS
+        style: this.selectedStyle,
+        retryCount: retryCount,
+        errorName: error.name
+      });
+      
       // Retry logic for network errors
       if (retryCount < 3 && (
         error.name === 'AbortError' || 
@@ -2169,10 +2139,6 @@ class CustomifyEmbed {
           // ✅ DODAJ DO KOSZYKA PRZEZ AJAX CART API (Shopify śledzi abandoned carts)
           console.log('✅ [CUSTOMIFY] Adding to cart via Ajax Cart API for abandoned cart tracking');
           
-          // Pobierz dane użytkownika (dla lepszego śledzenia abandoned checkouts)
-          const customerInfo = this.getCustomerInfo();
-          console.log('👤 [CUSTOMIFY] Customer info:', customerInfo ? 'Logged in' : 'Guest');
-          
           // Użyj Shopify Ajax Cart API (/cart/add.js) - Shopify śledzi koszyki
           const cartData = {
             items: [{
@@ -2181,15 +2147,6 @@ class CustomifyEmbed {
               properties: properties
             }]
           };
-          
-          // Dodaj customer email jako attribute (jeśli zalogowany) dla lepszego śledzenia
-          if (customerInfo?.email) {
-            cartData.attributes = {
-              'customer_email': customerInfo.email,
-              'customer_id': customerInfo.customerId?.toString() || ''
-            };
-            console.log('📧 [CUSTOMIFY] Added customer email to cart attributes for abandoned checkout tracking');
-          }
           
           console.log('🛒 [CUSTOMIFY] Cart data:', cartData);
           
@@ -2202,27 +2159,14 @@ class CustomifyEmbed {
               body: JSON.stringify(cartData)
             });
             
-            if (!cartResponse.ok) {
-              throw new Error(`Cart API error: ${cartResponse.status}`);
-            }
-            
             const cartResult = await cartResponse.json();
             console.log('✅ [CUSTOMIFY] Cart response:', cartResult);
-            
-            // ⚠️ WAŻNE: NIE PRZEKIEROWUJ OD RAZU - pozwól Shopify śledzić abandoned checkout
-            // Shopify tworzy abandoned checkout dopiero gdy użytkownik OPUŚCI stronę bez finalizacji
-            // Przekierowanie od razu do /cart może nie dać czasu na śledzenie
             
             // Ukryj pasek postępu
             this.hideCartLoading();
             
-            // Pokaż sukces i pozwól użytkownikowi zdecydować (lepsze śledzenie)
-            this.showSuccess('✅ Produkt dodany do koszyka! Kliknij aby przejść do koszyka.');
-            
-            // Opcjonalnie: automatyczne przekierowanie po 2 sekundach (daje czas na śledzenie)
-            setTimeout(() => {
-              window.location.href = '/cart';
-            }, 2000);
+            // Przekieruj do koszyka
+            window.location.href = '/cart';
           } catch (cartError) {
             console.error('❌ [CUSTOMIFY] Cart add error:', cartError);
             // Fallback do bezpośredniego URL jeśli Ajax API nie działa
@@ -2243,6 +2187,13 @@ class CustomifyEmbed {
     } catch (error) {
       console.error('❌ [CUSTOMIFY] Add to cart error:', error);
       this.hideCartLoading();
+      
+      // 🔍 LOG ERROR TO ANALYTICS
+        style: this.selectedStyle,
+        size: this.selectedSize,
+        productType: this.selectedProductType,
+        errorName: error.name
+      });
       
       let errorMessage = '❌ Błąd połączenia z serwerem';
       
@@ -2863,17 +2814,4 @@ document.addEventListener('click', function(e) {
 
 // Regularnie sprawdzaj czy dialog jest otwarty i naprawiaj
 setInterval(fixDialogImages, 300);
-
-// ✅ INICJALIZACJA APLIKACJI CUSTOMIFY
-// Czekaj aż DOM się załaduje, potem inicjalizuj aplikację
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
-    console.log('🚀 [CUSTOMIFY] Initializing CustomifyEmbed...');
-    window.customifyApp = new CustomifyEmbed();
-  });
-} else {
-  // DOM już załadowany - inicjalizuj od razu
-  console.log('🚀 [CUSTOMIFY] DOM already loaded, initializing CustomifyEmbed immediately...');
-  window.customifyApp = new CustomifyEmbed();
-}
 
