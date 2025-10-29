@@ -16,7 +16,6 @@ module.exports = async (req, res) => {
   const ip = getClientIP(req);
   if (!checkRateLimit(ip, 100, 15 * 60 * 1000)) { // 100 requestów na 15 minut
     console.log(`API rate limit exceeded for IP: ${ip}`);
-    logWarning('/api/products', 'Rate limit exceeded', { ip, statusCode: 429 });
     return res.status(429).json({
       error: 'API rate limit exceeded',
       message: 'Too many API requests. Please try again later.',
@@ -48,12 +47,6 @@ module.exports = async (req, res) => {
   } = req.body;
 
     if (!transformedImage || !style) {
-      logError('/api/products', new Error('Missing required fields'), {
-        statusCode: 400,
-        ip,
-        hasTransformedImage: !!transformedImage,
-        hasStyle: !!style
-      });
       return res.status(400).json({ 
         error: 'Missing required fields: transformedImage, style' 
       });
@@ -239,18 +232,6 @@ module.exports = async (req, res) => {
     const shopifyImageUrl = uploadResult.image.src;
 
     // Image uploaded successfully
-    
-    // Log success
-    logSuccess('/api/products', {
-      statusCode: 200,
-      ip,
-      productId,
-      variantId: product.variants[0].id,
-      style,
-      size,
-      productType,
-      finalPrice: totalPrice
-    });
 
     res.json({ 
       success: true, 
@@ -265,14 +246,6 @@ module.exports = async (req, res) => {
 
   } catch (error) {
     console.error('❌ [PRODUCTS.JS] Product creation error:', error);
-    logError('/api/products', error, {
-      statusCode: 500,
-      ip,
-      style: req.body?.style,
-      size: req.body?.size,
-      productType: req.body?.productType,
-      hasTransformedImage: !!req.body?.transformedImage
-    });
     res.status(500).json({ 
       error: 'Product creation failed',
       details: error.message 
