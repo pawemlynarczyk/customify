@@ -2136,38 +2136,48 @@ class CustomifyEmbed {
             orderId: result.orderId
           });
           
-          // Buduj URL z parametrami
-          const params = new URLSearchParams();
-          params.append('id', result.variantId);
-          params.append('quantity', '1');
+          // ✅ DODAJ DO KOSZYKA PRZEZ AJAX CART API (Shopify śledzi abandoned carts)
+          console.log('✅ [CUSTOMIFY] Adding to cart via Ajax Cart API for abandoned cart tracking');
           
-          // Dodaj właściwości
-          Object.entries(properties).forEach(([key, value]) => {
-            params.append(`properties[${key}]`, value);
-          });
+          // Użyj Shopify Ajax Cart API (/cart/add.js) - Shopify śledzi koszyki
+          const cartData = {
+            items: [{
+              id: result.variantId,
+              quantity: 1,
+              properties: properties
+            }]
+          };
           
-          const cartUrl = `/cart/add?${params.toString()}`;
-          const fullUrl = window.location.origin + cartUrl;
-          console.log('🛒 [CUSTOMIFY] Cart URL length:', cartUrl.length, 'chars');
-          console.log('🛒 [CUSTOMIFY] Cart URL:', cartUrl.substring(0, 200), '...');
-          console.log('🛒 [CUSTOMIFY] Full URL length:', fullUrl.length, 'chars');
+          console.log('🛒 [CUSTOMIFY] Cart data:', cartData);
           
-          // ❌ PROBLEM: URL > 2048 znaków może być zablokowany przez przeglądarkę
-          if (fullUrl.length > 2048) {
-            console.error('❌ [CUSTOMIFY] URL TOO LONG:', fullUrl.length, 'chars (max 2048)');
-            console.error('❌ [CUSTOMIFY] Properties:', properties);
-            this.showError('URL zbyt długi - usuń niektóre właściwości lub skontaktuj się z supportem');
-            return;
+          try {
+            const cartResponse = await fetch('/cart/add.js', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(cartData)
+            });
+            
+            const cartResult = await cartResponse.json();
+            console.log('✅ [CUSTOMIFY] Cart response:', cartResult);
+            
+            // Ukryj pasek postępu
+            this.hideCartLoading();
+            
+            // Przekieruj do koszyka
+            window.location.href = '/cart';
+          } catch (cartError) {
+            console.error('❌ [CUSTOMIFY] Cart add error:', cartError);
+            // Fallback do bezpośredniego URL jeśli Ajax API nie działa
+            const params = new URLSearchParams();
+            params.append('id', result.variantId);
+            params.append('quantity', '1');
+            Object.entries(properties).forEach(([key, value]) => {
+              params.append(`properties[${key}]`, value);
+            });
+            window.location.href = `/cart/add?${params.toString()}`;
           }
-          
-          // ✅ DODAJ DO KOSZYKA PRZEZ DIRECT NAVIGATION (jak w rules)
-          console.log('✅ [CUSTOMIFY] Adding to cart via direct navigation');
-          
-          // Ukryj pasek postępu
-          this.hideCartLoading();
-          
-          // Przekieruj bezpośrednio do koszyka (zamiast fetch)
-          window.location.href = cartUrl;
         }
       } else {
         console.error('❌ [CUSTOMIFY] Product creation failed:', result);
