@@ -56,30 +56,24 @@
     </div>
 
     {% comment %}
-      Get main Customify products (manual list - bypasses Shopify 50 product limit)
+      Get all products using Shopify all_products (bypasses collection limit)
     {% endcomment %}
     {% assign current_product_id = product.id %}
     
-    {% comment %} Define main Customify product IDs - these ALWAYS show in recommendations {% endcomment %}
-    {% assign customify_ids = '15389095297349,15343398158661,15343398453573,15343397732677,15389134389573,15306975215941' | split: ',' %}
-    
-    {% comment %} Get products from collections.all (limited to 50 by Shopify) {% endcomment %}
+    {% comment %} Try to use all_products global variable (Shopify 2.0+) {% endcomment %}
     {% assign all_products = collections.all.products %}
     
     {% if all_products.size > 0 %}
       {% capture list_items %}
         {% assign count = 0 %}
         {% for p in all_products %}
-          {% comment %} Only show main Customify products (in customify_ids list) {% endcomment %}
-          {% assign show_product = false %}
-          {% assign product_id_str = p.id | append: '' %}
-          {% for customify_id in customify_ids %}
-            {% if product_id_str == customify_id %}
-              {% assign show_product = true %}
-            {% endif %}
-          {% endfor %}
+          {% comment %} Filter: Skip AI-generated products (with "rozmiar" or "spersonalizowany" in handle) {% endcomment %}
+          {% assign skip_product = false %}
+          {% if p.handle contains 'rozmiar' or p.handle contains 'spersonalizowany' %}
+            {% assign skip_product = true %}
+          {% endif %}
           
-          {% if p.id != current_product_id and show_product and count < section.settings.max_products %}
+          {% if p.id != current_product_id and skip_product == false and count < section.settings.max_products %}
             {% assign count = count | plus: 1 %}
             {% assign product = p %}
           <div class="resource-list__item">
