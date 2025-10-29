@@ -2139,6 +2139,10 @@ class CustomifyEmbed {
           // ✅ DODAJ DO KOSZYKA PRZEZ AJAX CART API (Shopify śledzi abandoned carts)
           console.log('✅ [CUSTOMIFY] Adding to cart via Ajax Cart API for abandoned cart tracking');
           
+          // Pobierz dane użytkownika (dla lepszego śledzenia abandoned checkouts)
+          const customerInfo = this.getCustomerInfo();
+          console.log('👤 [CUSTOMIFY] Customer info:', customerInfo ? 'Logged in' : 'Guest');
+          
           // Użyj Shopify Ajax Cart API (/cart/add.js) - Shopify śledzi koszyki
           const cartData = {
             items: [{
@@ -2147,6 +2151,15 @@ class CustomifyEmbed {
               properties: properties
             }]
           };
+          
+          // Dodaj customer email jako attribute (jeśli zalogowany) dla lepszego śledzenia
+          if (customerInfo?.email) {
+            cartData.attributes = {
+              'customer_email': customerInfo.email,
+              'customer_id': customerInfo.customerId?.toString() || ''
+            };
+            console.log('📧 [CUSTOMIFY] Added customer email to cart attributes for abandoned checkout tracking');
+          }
           
           console.log('🛒 [CUSTOMIFY] Cart data:', cartData);
           
@@ -2159,14 +2172,27 @@ class CustomifyEmbed {
               body: JSON.stringify(cartData)
             });
             
+            if (!cartResponse.ok) {
+              throw new Error(`Cart API error: ${cartResponse.status}`);
+            }
+            
             const cartResult = await cartResponse.json();
             console.log('✅ [CUSTOMIFY] Cart response:', cartResult);
+            
+            // ⚠️ WAŻNE: NIE PRZEKIEROWUJ OD RAZU - pozwól Shopify śledzić abandoned checkout
+            // Shopify tworzy abandoned checkout dopiero gdy użytkownik OPUŚCI stronę bez finalizacji
+            // Przekierowanie od razu do /cart może nie dać czasu na śledzenie
             
             // Ukryj pasek postępu
             this.hideCartLoading();
             
-            // Przekieruj do koszyka
-            window.location.href = '/cart';
+            // Pokaż sukces i pozwól użytkownikowi zdecydować (lepsze śledzenie)
+            this.showSuccess('✅ Produkt dodany do koszyka! Kliknij aby przejść do koszyka.');
+            
+            // Opcjonalnie: automatyczne przekierowanie po 2 sekundach (daje czas na śledzenie)
+            setTimeout(() => {
+              window.location.href = '/cart';
+            }, 2000);
           } catch (cartError) {
             console.error('❌ [CUSTOMIFY] Cart add error:', cartError);
             // Fallback do bezpośredniego URL jeśli Ajax API nie działa
