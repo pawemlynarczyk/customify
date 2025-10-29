@@ -39,14 +39,11 @@ class CustomifyEmbed {
     
     if (!uploadArea || !fileInput) {
       // Elementy mogą być jeszcze przenoszone przez JavaScript - spróbuj ponownie po krótkim czasie
-      console.log('⏳ [CUSTOMIFY] Elements not found yet, retrying in 100ms...');
       setTimeout(() => {
         uploadArea = document.getElementById('uploadArea');
         fileInput = document.getElementById('fileInput');
         
         if (!uploadArea || !fileInput) {
-          console.error('❌ [CUSTOMIFY] Elements still not found after retry!');
-          console.error('❌ [CUSTOMIFY] uploadArea:', !!uploadArea, 'fileInput:', !!fileInput);
           return;
         }
         
@@ -54,7 +51,6 @@ class CustomifyEmbed {
         this.uploadArea = uploadArea;
         this.fileInput = fileInput;
         
-        console.log('✅ [CUSTOMIFY] Elements found after retry, setting up event listeners');
         this.setupEventListeners();
         this.positionApp();
         this.showStyles();
@@ -72,7 +68,6 @@ class CustomifyEmbed {
     this.uploadArea = uploadArea;
     this.fileInput = fileInput;
     
-    console.log('✅ [CUSTOMIFY] All required elements found, setting up event listeners');
     this.setupEventListeners();
     this.positionApp();
     this.showStyles(); // Pokaż style od razu
