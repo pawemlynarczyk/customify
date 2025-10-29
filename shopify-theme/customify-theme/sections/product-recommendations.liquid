@@ -61,13 +61,19 @@
     {% assign current_product_id = product.id %}
     {% assign all_products = collections.all.products %}
     
-    {% comment %} DEBUG: Log all products {% endcomment %}
-    <script>
-      console.log('🔍 [RECOMMENDATIONS] Total products in collection:', {{ all_products.size }});
-      console.log('🔍 [RECOMMENDATIONS] Product IDs:', [{% for p in all_products %}'{{ p.id }}'{% unless forloop.last %},{% endunless %}{% endfor %}]);
-      console.log('🔍 [RECOMMENDATIONS] Product titles:', [{% for p in all_products %}'{{ p.title | escape }}'{% unless forloop.last %},{% endunless %}{% endfor %}]);
-      console.log('🔍 [RECOMMENDATIONS] Looking for królowa ID: 15389095297349');
-    </script>
+    {% comment %} DEBUG: Log all products + CHECK FOR KRÓLOWA {% endcomment %}
+    {% assign has_królowa = false %}
+    {% for p in all_products %}
+      {% if p.id == 15389095297349 %}
+        {% assign has_królowa = true %}
+      {% endif %}
+    {% endfor %}
+    
+    <!-- 🔍 DEBUG KRÓLOWA: 
+      Total products: {{ all_products.size }}
+      Has królowa (15389095297349): {{ has_królowa }}
+      Product IDs: {% for p in all_products %}{{ p.id }}{% unless forloop.last %}, {% endunless %}{% endfor %}
+    -->
     
     {% if all_products.size > 0 %}
       {% capture list_items %}
