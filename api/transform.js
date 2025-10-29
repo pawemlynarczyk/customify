@@ -804,9 +804,9 @@ module.exports = async (req, res) => {
         });
 
         if (!uploadResponse.ok) {
-          const errorData = await uploadResponse.json();
-          console.error('❌ [VERCEL-BLOB] Upload failed:', errorData);
-          throw new Error(`Vercel Blob upload failed: ${uploadResponse.status} - ${errorData.details || errorData.error}`);
+          const errorText = await uploadResponse.text();
+          console.error('❌ [VERCEL-BLOB] Upload failed:', errorText);
+          throw new Error(`Vercel Blob upload failed: ${uploadResponse.status} - ${errorText}`);
         }
 
         const uploadResult = await uploadResponse.json();
