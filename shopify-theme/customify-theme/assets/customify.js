@@ -33,9 +33,21 @@ class CustomifyEmbed {
 
 
   init() {
-    if (!document.getElementById('uploadArea')) {
+    // Walidacja wszystkich wymaganych elementów
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = document.getElementById('fileInput');
+    
+    if (!uploadArea) {
+      console.error('❌ [CUSTOMIFY] uploadArea element not found in DOM!');
       return; // Jeśli nie ma elementów, nie rób nic
     }
+    
+    if (!fileInput) {
+      console.error('❌ [CUSTOMIFY] fileInput element not found in DOM! Check if theme.liquid has: <input type="file" id="fileInput">');
+      return;
+    }
+    
+    console.log('✅ [CUSTOMIFY] All required elements found, setting up event listeners');
     this.setupEventListeners();
     this.positionApp();
     this.showStyles(); // Pokaż style od razu
@@ -1238,7 +1250,24 @@ class CustomifyEmbed {
   }
 
   setupEventListeners() {
-    this.uploadArea.addEventListener('click', () => this.fileInput.click());
+    // Sprawdź czy fileInput istnieje przed użyciem
+    if (!this.fileInput) {
+      console.error('❌ [CUSTOMIFY] fileInput element not found!');
+      return;
+    }
+    
+    if (!this.uploadArea) {
+      console.error('❌ [CUSTOMIFY] uploadArea element not found!');
+      return;
+    }
+    
+    this.uploadArea.addEventListener('click', () => {
+      if (this.fileInput) {
+        this.fileInput.click();
+      } else {
+        console.error('❌ [CUSTOMIFY] fileInput is null when trying to click');
+      }
+    });
     this.fileInput.addEventListener('change', (e) => this.handleFileSelect(e.target.files[0]));
     
     this.uploadArea.addEventListener('dragover', (e) => {
