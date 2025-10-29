@@ -56,23 +56,23 @@
     </div>
 
     {% comment %}
-      Get all products using Shopify all_products (bypasses collection limit)
+      Get products from specific collection (ID: 664065507653)
     {% endcomment %}
     {% assign current_product_id = product.id %}
     
-    {% comment %} DEBUG: Show all product IDs and handles in console {% endcomment %}
-    <script>
-      console.log('🔍 [RECOMMENDATIONS] collections.all.products count:', {{ collections.all.products.size }});
-      console.log('🔍 [RECOMMENDATIONS] Product list:', [
-        {% for p in collections.all.products %}
-          { id: '{{ p.id }}', handle: '{{ p.handle }}', title: '{{ p.title | escape }}' }{% unless forloop.last %},{% endunless %}
-        {% endfor %}
-      ]);
-      console.log('🔍 [RECOMMENDATIONS] Looking for: custom (15306975215941), krolowa (15389095297349)');
-    </script>
+    {% comment %} Get collection by ID {% endcomment %}
+    {% for collection in collections %}
+      {% if collection.id == 664065507653 %}
+        {% assign target_collection = collection %}
+      {% endif %}
+    {% endfor %}
     
-    {% comment %} Try to use all_products global variable (Shopify 2.0+) {% endcomment %}
-    {% assign all_products = collections.all.products %}
+    {% comment %} Use target collection or fallback to collections.all {% endcomment %}
+    {% if target_collection %}
+      {% assign all_products = target_collection.products %}
+    {% else %}
+      {% assign all_products = collections.all.products %}
+    {% endif %}
     
     {% if all_products.size > 0 %}
       {% capture list_items %}
