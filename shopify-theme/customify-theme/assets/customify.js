@@ -2738,9 +2738,6 @@ function addMobileThumbnails() {
  * INITIALIZATION
  */
 document.addEventListener('DOMContentLoaded', () => {
-  // Initialize Customify app
-  new CustomifyEmbed();
-  
   // Initialize cart integration
   initCartIntegration();
   
