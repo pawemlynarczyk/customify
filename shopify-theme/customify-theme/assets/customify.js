@@ -1319,18 +1319,10 @@ class CustomifyEmbed {
     if (!file) return;
     if (!file.type.startsWith('image/')) {
       this.showError('Proszę wybrać plik obrazu (JPG, PNG, GIF)');
-      // 🔍 LOG ERROR TO ANALYTICS
-        fileType: file.type,
-        fileName: file.name
-      });
       return;
     }
     if (file.size > 10 * 1024 * 1024) {
       this.showError('Plik jest za duży. Maksymalny rozmiar to 10MB');
-      // 🔍 LOG ERROR TO ANALYTICS
-        fileSize: file.size,
-        fileName: file.name
-      });
       return;
     }
 
@@ -1868,12 +1860,6 @@ class CustomifyEmbed {
     } catch (error) {
       console.error('📱 [MOBILE] Transform error:', error);
       
-      // 🔍 LOG ERROR TO ANALYTICS
-        style: this.selectedStyle,
-        retryCount: retryCount,
-        errorName: error.name
-      });
-      
       // Retry logic for network errors
       if (retryCount < 3 && (
         error.name === 'AbortError' || 
@@ -2242,13 +2228,6 @@ class CustomifyEmbed {
     } catch (error) {
       console.error('❌ [CUSTOMIFY] Add to cart error:', error);
       this.hideCartLoading();
-      
-      // 🔍 LOG ERROR TO ANALYTICS
-        style: this.selectedStyle,
-        size: this.selectedSize,
-        productType: this.selectedProductType,
-        errorName: error.name
-      });
       
       let errorMessage = '❌ Błąd połączenia z serwerem';
       
@@ -2869,4 +2848,17 @@ document.addEventListener('click', function(e) {
 
 // Regularnie sprawdzaj czy dialog jest otwarty i naprawiaj
 setInterval(fixDialogImages, 300);
+
+// ✅ INICJALIZACJA APLIKACJI CUSTOMIFY
+// Czekaj aż DOM się załaduje, potem inicjalizuj aplikację
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    console.log('🚀 [CUSTOMIFY] Initializing CustomifyEmbed...');
+    window.customifyApp = new CustomifyEmbed();
+  });
+} else {
+  // DOM już załadowany - inicjalizuj od razu
+  console.log('🚀 [CUSTOMIFY] DOM already loaded, initializing CustomifyEmbed immediately...');
+  window.customifyApp = new CustomifyEmbed();
+}
 
