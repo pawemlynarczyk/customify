@@ -1261,13 +1261,28 @@ class CustomifyEmbed {
       return;
     }
     
-    this.uploadArea.addEventListener('click', () => {
+    // Event listener na obszar uploadu - użyj delegation żeby działało nawet gdy elementy się zmieniają
+    this.uploadArea.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
       if (this.fileInput) {
         this.fileInput.click();
       } else {
         console.error('❌ [CUSTOMIFY] fileInput is null when trying to click');
       }
     });
+    
+    // Event listener też na przycisk bezpośrednio
+    const uploadBtn = document.getElementById('uploadBtn');
+    if (uploadBtn) {
+      uploadBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (this.fileInput) {
+          this.fileInput.click();
+        }
+      });
+    }
     this.fileInput.addEventListener('change', (e) => this.handleFileSelect(e.target.files[0]));
     
     this.uploadArea.addEventListener('dragover', (e) => {
