@@ -23,13 +23,8 @@ module.exports = async (req, res) => {
 
   try {
     const { imageData, filename } = req.body;
-    const ip = getClientIP(req);
     
     if (!imageData) {
-      logError('/api/upload-temp-image', new Error('No image data provided'), {
-        statusCode: 400,
-        ip
-      });
       return res.status(400).json({ error: 'No image data provided' });
     }
 
@@ -70,15 +65,6 @@ module.exports = async (req, res) => {
     });
 
     console.log('✅ [VERCEL-BLOB] Image uploaded successfully:', blob.url);
-    
-    // Log success
-    logSuccess('/api/upload-temp-image', {
-      statusCode: 200,
-      ip,
-      filename: uniqueFilename,
-      size: imageBuffer.length,
-      url: blob.url
-    });
 
     res.json({
       success: true,
@@ -91,14 +77,6 @@ module.exports = async (req, res) => {
   } catch (error) {
     console.error('❌ [VERCEL-BLOB] Error:', error);
     console.error('❌ [VERCEL-BLOB] Error details:', error.stack);
-    
-    const ip = getClientIP(req);
-    logError('/api/upload-temp-image', error, {
-      statusCode: 500,
-      ip,
-      filename: req.body?.filename,
-      imageDataSize: req.body?.imageData?.length || 0
-    });
     
     res.status(500).json({ 
       error: 'Upload to Vercel Blob Storage failed',
