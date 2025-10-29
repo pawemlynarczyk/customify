@@ -658,6 +658,34 @@ module.exports = async (req, res) => {
           swap_image: "USER_IMAGE"
         }
       },
+      // Style królowej - używają Segmind Faceswap v4
+      'krolowa-styl-1': {
+        model: "segmind/faceswap-v4",
+        apiType: "segmind-faceswap",
+        productType: "queen",
+        parameters: {
+          target_image: "https://customify-s56o.vercel.app/krolowa/krolowa-styl-1.jpg",
+          swap_image: "USER_IMAGE"
+        }
+      },
+      'krolowa-styl-2': {
+        model: "segmind/faceswap-v4",
+        apiType: "segmind-faceswap",
+        productType: "queen",
+        parameters: {
+          target_image: "https://customify-s56o.vercel.app/krolowa/krolowa-styl-2.jpg",
+          swap_image: "USER_IMAGE"
+        }
+      },
+      'krolowa-styl-3': {
+        model: "segmind/faceswap-v4",
+        apiType: "segmind-faceswap",
+        productType: "queen",
+        parameters: {
+          target_image: "https://customify-s56o.vercel.app/krolowa/krolowa-styl-3.jpg",
+          swap_image: "USER_IMAGE"
+        }
+      },
       // Style karykatury - używają Segmind API
       'karykatura': {
         model: "segmind/caricature-style",

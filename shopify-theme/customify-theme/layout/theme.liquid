@@ -36,27 +36,6 @@
     <!-- CUSTOMIFY INTEGRATION -->
     <link rel="stylesheet" href="{{ 'customify.css' | asset_url }}">
     
-    <!-- CUSTOMIFY ANALYTICS - Inline error logging helper -->
-    <script>
-      window.customifyLogError = async function(action, errorMessage, additionalData = {}) {
-        try {
-          await fetch('https://customify-s56o.vercel.app/api/log-frontend-error', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              error: errorMessage,
-              action: action,
-              userAgent: navigator.userAgent,
-              url: window.location.href,
-              additionalData: additionalData
-            })
-          });
-        } catch (e) {
-          console.warn('Failed to log error:', e);
-        }
-      };
-    </script>
-    
     <!-- FIX: Preload obrazków produktu - eliminuje skakanie -->
     {% if template contains 'product' %}
       {% if product.featured_image %}
@@ -2230,6 +2209,26 @@
                     <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/krol/krol_4.png'); background-size: cover; background-position: center;"></div>
                     <div class="style-info">
                       <div class="style-name">Król Imponujący</div>
+                    </div>
+                  </div>
+                {% elsif product.id == 15389095297349 or product.handle == 'krolowa' or product.handle contains 'krolowa' %}
+                  {% comment %} TYLKO STYLE KRÓLOWEJ dla produktu królowa {% endcomment %}
+                  <div class="customify-style-card" data-style="krolowa-styl-1">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/krolowa/krolowa-styl-1.jpg'); background-size: cover; background-position: center;"></div>
+                    <div class="style-info">
+                      <div class="style-name">Królowa - Styl 1</div>
+                    </div>
+                  </div>
+                  <div class="customify-style-card" data-style="krolowa-styl-2">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/krolowa/krolowa-styl-2.jpg'); background-size: cover; background-position: center;"></div>
+                    <div class="style-info">
+                      <div class="style-name">Królowa - Styl 2</div>
+                    </div>
+                  </div>
+                  <div class="customify-style-card" data-style="krolowa-styl-3">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/krolowa/krolowa-styl-3.jpg'); background-size: cover; background-position: center;"></div>
+                    <div class="style-info">
+                      <div class="style-name">Królowa - Styl 3</div>
                     </div>
                   </div>
                 {% elsif product.handle == 'koty-krolewskie-zwierzeta-w-koronach' %}
