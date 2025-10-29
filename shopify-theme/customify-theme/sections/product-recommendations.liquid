@@ -61,17 +61,17 @@
     {% assign current_product_id = product.id %}
     {% assign all_products = collections.all.products %}
     
-    {% comment %} DEBUG: Log all products + CHECK FOR KRÓLOWA {% endcomment %}
-    {% assign has_królowa = false %}
+    {% comment %} DEBUG: Log all products + CHECK FOR QUEEN 15389095297349 {% endcomment %}
+    {% assign has_queen = false %}
     {% for p in all_products %}
       {% if p.id == 15389095297349 %}
-        {% assign has_królowa = true %}
+        {% assign has_queen = true %}
       {% endif %}
     {% endfor %}
     
-    <!-- 🔍 DEBUG KRÓLOWA: 
+    <!-- DEBUG QUEEN: 
       Total products: {{ all_products.size }}
-      Has królowa (15389095297349): {{ has_królowa }}
+      Has queen (15389095297349): {{ has_queen }}
       Product IDs: {% for p in all_products %}{{ p.id }}{% unless forloop.last %}, {% endunless %}{% endfor %}
     -->
     
