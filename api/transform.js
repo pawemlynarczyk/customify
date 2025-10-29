@@ -524,7 +524,7 @@ module.exports = async (req, res) => {
         prompt_strength: 0.6,
         num_inference_steps: 25,
         width: 1024,
-        height: 1365,
+        height: 1536,
         refine: "no_refiner",
         high_noise_frac: 0.7,
         output_format: "png"
