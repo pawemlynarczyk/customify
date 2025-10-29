@@ -1380,6 +1380,9 @@ class CustomifyEmbed {
         this.previewArea.style.display = 'block';
         console.log(`✅ [IMAGE] Rozdzielczość OK (min ${minWidth}×${minHeight}px)`);
         
+        // Ukryj obszar uploadu po wgraniu zdjęcia (zapobiega ponownemu otwieraniu eksploratora)
+        this.uploadArea.style.display = 'none';
+        
         // Ukryj "Dodaj do koszyka" i pokaż "Wgraj inne zdjęcie" po wgraniu zdjęcia
         const addToCartBtnMain = document.getElementById('addToCartBtnMain');
         const resetBtn = document.getElementById('resetBtn');
