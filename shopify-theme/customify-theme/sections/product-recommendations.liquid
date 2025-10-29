@@ -61,6 +61,14 @@
     {% assign current_product_id = product.id %}
     {% assign all_products = collections.all.products %}
     
+    {% comment %} DEBUG: Log all products {% endcomment %}
+    <script>
+      console.log('🔍 [RECOMMENDATIONS] Total products in collection:', {{ all_products.size }});
+      console.log('🔍 [RECOMMENDATIONS] Product IDs:', [{% for p in all_products %}'{{ p.id }}'{% unless forloop.last %},{% endunless %}{% endfor %}]);
+      console.log('🔍 [RECOMMENDATIONS] Product titles:', [{% for p in all_products %}'{{ p.title | escape }}'{% unless forloop.last %},{% endunless %}{% endfor %}]);
+      console.log('🔍 [RECOMMENDATIONS] Looking for królowa ID: 15389095297349');
+    </script>
+    
     {% if all_products.size > 0 %}
       {% capture list_items %}
         {% assign count = 0 %}
