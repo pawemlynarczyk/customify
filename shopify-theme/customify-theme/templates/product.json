@@ -264,7 +264,7 @@
         "heading": {
           "type": "text",
           "settings": {
-            "text": "<h3>You may also like</h3>",
+            "text": "<h3>Zobacz inne wzory</h3>",
             "width": "fit-content",
             "alignment": "left",
             "type_preset": "h4"
