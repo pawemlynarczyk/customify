@@ -523,8 +523,8 @@ module.exports = async (req, res) => {
         guidance_scale: 7.5,
         prompt_strength: 0.6,
         num_inference_steps: 25,
-        width: 768,
-        height: 768,
+        width: 896,
+        height: 1152,
         refine: "no_refiner",
         high_noise_frac: 0.7,
         output_format: "png"
