@@ -1266,7 +1266,14 @@ class CustomifyEmbed {
       return;
     }
     
-    this.uploadArea.addEventListener('click', () => {
+    this.uploadArea.addEventListener('click', (e) => {
+      // ❌ BLOKUJ kliknięcie jeśli zdjęcie jest już wgrane
+      if (this.uploadedFile) {
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
+      
       if (this.fileInput) {
         this.fileInput.click();
       } else {
@@ -1379,9 +1386,6 @@ class CustomifyEmbed {
         this.previewImage.src = e.target.result;
         this.previewArea.style.display = 'block';
         console.log(`✅ [IMAGE] Rozdzielczość OK (min ${minWidth}×${minHeight}px)`);
-        
-        // Ukryj obszar uploadu po wgraniu zdjęcia (zapobiega ponownemu otwieraniu eksploratora)
-        this.uploadArea.style.display = 'none';
         
         // Ukryj "Dodaj do koszyka" i pokaż "Wgraj inne zdjęcie" po wgraniu zdjęcia
         const addToCartBtnMain = document.getElementById('addToCartBtnMain');
