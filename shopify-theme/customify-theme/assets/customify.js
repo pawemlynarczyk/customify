@@ -33,19 +33,44 @@ class CustomifyEmbed {
 
 
   init() {
-    // Walidacja wszystkich wymaganych elementów
-    const uploadArea = document.getElementById('uploadArea');
-    const fileInput = document.getElementById('fileInput');
+    // Walidacja wszystkich wymaganych elementów - RETRY jeśli nie są dostępne
+    let uploadArea = document.getElementById('uploadArea');
+    let fileInput = document.getElementById('fileInput');
     
-    if (!uploadArea) {
-      console.error('❌ [CUSTOMIFY] uploadArea element not found in DOM!');
-      return; // Jeśli nie ma elementów, nie rób nic
-    }
-    
-    if (!fileInput) {
-      console.error('❌ [CUSTOMIFY] fileInput element not found in DOM! Check if theme.liquid has: <input type="file" id="fileInput">');
+    if (!uploadArea || !fileInput) {
+      // Elementy mogą być jeszcze przenoszone przez JavaScript - spróbuj ponownie po krótkim czasie
+      console.log('⏳ [CUSTOMIFY] Elements not found yet, retrying in 100ms...');
+      setTimeout(() => {
+        uploadArea = document.getElementById('uploadArea');
+        fileInput = document.getElementById('fileInput');
+        
+        if (!uploadArea || !fileInput) {
+          console.error('❌ [CUSTOMIFY] Elements still not found after retry!');
+          console.error('❌ [CUSTOMIFY] uploadArea:', !!uploadArea, 'fileInput:', !!fileInput);
+          return;
+        }
+        
+        // Aktualizuj referencje w obiekcie
+        this.uploadArea = uploadArea;
+        this.fileInput = fileInput;
+        
+        console.log('✅ [CUSTOMIFY] Elements found after retry, setting up event listeners');
+        this.setupEventListeners();
+        this.positionApp();
+        this.showStyles();
+        this.setupAccordion();
+        this.showUsageCounter();
+        this.updateGallery().catch(error => {
+          console.error('❌ [GALLERY] Error updating gallery on init:', error);
+        });
+        this.initializeDefaultPrice();
+      }, 100);
       return;
     }
+    
+    // Aktualizuj referencje w obiekcie (na wypadek że były null w konstruktorze)
+    this.uploadArea = uploadArea;
+    this.fileInput = fileInput;
     
     console.log('✅ [CUSTOMIFY] All required elements found, setting up event listeners');
     this.setupEventListeners();
