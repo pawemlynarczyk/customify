@@ -58,6 +58,26 @@ class CustomifyEmbed {
     
     // 💰 CENA: Ustaw domyślny rozmiar i aktualizuj cenę
     this.initializeDefaultPrice();
+
+    // 🎯 SYNC: Zsynchronizuj początkowy typ produktu i rozmiar z aktywnymi przyciskami w DOM
+    try {
+      const activeTypeBtn = document.querySelector('.customify-product-type-btn.active');
+      if (activeTypeBtn && activeTypeBtn.dataset.productType) {
+        this.selectedProductType = activeTypeBtn.dataset.productType;
+        console.log('🔄 [INIT] Synced selectedProductType from DOM:', this.selectedProductType);
+      }
+      const activeSizeBtn = document.querySelector('.customify-size-btn.active');
+      if (activeSizeBtn && activeSizeBtn.dataset.size) {
+        this.selectedSize = activeSizeBtn.dataset.size;
+        console.log('🔄 [INIT] Synced selectedSize from DOM:', this.selectedSize);
+      }
+    } catch(e) {
+      console.warn('⚠️ [INIT] Failed to sync initial selections from DOM:', e);
+    }
+
+    // Po synchronizacji wymuś przeliczenie cen (uwzględnia ramkę, jeśli plakat)
+    this.updateProductPrice();
+    this.updateCartPrice();
   }
   
 
