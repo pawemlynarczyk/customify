@@ -1410,6 +1410,10 @@ class CustomifyEmbed {
     // Aktualizuj ceny po zmianie typu (ramka dostępna tylko dla plakatu)
     this.updateProductPrice();
     this.updateCartPrice();
+    console.log('🖼️ [FRAME] Type changed -> recalculated price with frame:', {
+      selectedProductType: this.selectedProductType,
+      frame: window.CustomifyFrame?.color || 'none'
+    });
   }
 
   /**
@@ -1448,6 +1452,13 @@ class CustomifyEmbed {
         if (cartPriceElement) {
           cartPriceElement.textContent = `${finalPrice.toFixed(2)} zł`;
           console.log('✅ [CART-PRICE] Cart price updated:', finalPrice.toFixed(2), 'zł');
+          console.log('🖼️ [FRAME] Cart price components:', {
+            base: this.originalBasePrice,
+            sizePrice,
+            frameSelected,
+            frame: window.CustomifyFrame?.color || 'none',
+            frameSurcharge
+          });
 
           // Pokaż element ceny
           this.showCartPrice();
@@ -1586,7 +1597,15 @@ class CustomifyEmbed {
       // Aktualizuj cenę na stronie
       priceElement.textContent = `${finalPrice.toFixed(2)} zł`;
       
-      console.log(`💰 [PRICE] Updated: ${this.originalBasePrice} + ${sizePrice} = ${finalPrice} zł`);
+      console.log(`💰 [PRICE] Updated: base ${this.originalBasePrice} + size ${sizePrice} + frame ${frameSurcharge} = ${finalPrice} zł`);
+      console.log('🖼️ [FRAME] Product price components:', {
+        base: this.originalBasePrice,
+        sizePrice,
+        frameSelected,
+        frame: window.CustomifyFrame?.color || 'none',
+        frameSurcharge,
+        finalPrice
+      });
       
     } catch (error) {
       console.error('❌ [PRICE] Error updating product price:', error);
