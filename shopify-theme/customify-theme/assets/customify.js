@@ -29,6 +29,8 @@ class CustomifyEmbed {
     this.transformedImage = null;
     
     this.init();
+    // Udostępnij instancję globalnie do przeliczeń z UI ramki
+    window.__customify = this;
   }
 
 
@@ -1485,8 +1487,12 @@ class CustomifyEmbed {
       // Pobierz cenę rozmiaru
       const sizePrice = this.getSizePrice(this.selectedSize);
       
-      // Oblicz końcową cenę (bazowa + rozmiar)
-      const finalPrice = this.originalBasePrice + sizePrice;
+      // Dopłata za ramkę (tylko plakat i wybrany kolor != none)
+      const frameSelected = (this.selectedProductType === 'plakat') && (window.CustomifyFrame && window.CustomifyFrame.color && window.CustomifyFrame.color !== 'none');
+      const frameSurcharge = frameSelected ? 29 : 0;
+      
+      // Oblicz końcową cenę (bazowa + rozmiar + ramka)
+      const finalPrice = this.originalBasePrice + sizePrice + frameSurcharge;
 
       // Price calculation completed
 
@@ -1624,8 +1630,12 @@ class CustomifyEmbed {
       // Pobierz cenę rozmiaru
       const sizePrice = this.getSizePrice(this.selectedSize);
       
-      // Oblicz końcową cenę (oryginalna cena + tylko jeden rozmiar)
-      const finalPrice = this.originalBasePrice + sizePrice;
+      // Dopłata za ramkę (tylko plakat i wybrany kolor != none)
+      const frameSelected = (this.selectedProductType === 'plakat') && (window.CustomifyFrame && window.CustomifyFrame.color && window.CustomifyFrame.color !== 'none');
+      const frameSurcharge = frameSelected ? 29 : 0;
+      
+      // Oblicz końcową cenę (oryginalna cena + rozmiar + ramka)
+      const finalPrice = this.originalBasePrice + sizePrice + frameSurcharge;
       
       // Aktualizuj cenę na stronie
       priceElement.textContent = `${finalPrice.toFixed(2)} zł`;
@@ -2016,7 +2026,9 @@ class CustomifyEmbed {
     // ✅ OBLICZ CENĘ NAJPIERW - niezależnie od obrazu AI
     const basePrice = this.originalBasePrice || 49.00;
     const sizePrice = this.getSizePrice(this.selectedSize);
-    const finalPrice = basePrice + sizePrice;
+    const frameSelected = (this.selectedProductType === 'plakat') && (window.CustomifyFrame && window.CustomifyFrame.color && window.CustomifyFrame.color !== 'none');
+    const frameSurcharge = frameSelected ? 29 : 0;
+    const finalPrice = basePrice + sizePrice + frameSurcharge;
     
     console.log('💰 [CUSTOMIFY] Price calculation:', {
       originalBasePrice: this.originalBasePrice,
