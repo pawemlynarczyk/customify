@@ -2130,10 +2130,18 @@ class CustomifyEmbed {
           
           // NAPRAWIONA METODA: Użyj bezpośredniego przekierowania zamiast formularza
           const productTypeName = this.selectedProductType === 'plakat' ? 'Plakat' : 'Obraz na płótnie';
+          // Wylicz opis ramki do właściwości koszyka
+          const selectedFrame = (this.selectedProductType === 'plakat' && window.CustomifyFrame && window.CustomifyFrame.color)
+            ? window.CustomifyFrame.color
+            : 'none';
+          const frameLabelMap = { none: 'brak', black: 'czarna', white: 'biała', wood: 'drewno' };
+          const frameLabel = frameLabelMap[selectedFrame] || 'brak';
+
           const properties = {
             'Styl AI': this.selectedStyle,
             'Rozmiar': this.getSizeDimension(this.selectedSize),  // ✅ Przekaż wymiar (np. "20×30 cm") zamiast kodu (np. "a4")
             'Rodzaj wydruku': productTypeName,  // ✅ Dodano rodzaj wydruku
+            'Ramka': `ramka - ${frameLabel}`,
             '_AI_Image_URL': result.imageUrl || this.transformedImage,  // ✅ URL z Shopify (główny obraz)
             '_Order_ID': result.orderId || Date.now().toString()  // Unikalny ID zamówienia
           };
