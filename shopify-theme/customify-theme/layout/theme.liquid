@@ -33,6 +33,20 @@
       {%- render 'theme-editor' -%}
     {% endif %}
 
+    <!-- Hotjar Tracking Code (Site ID: 6546658) -->
+    <script>
+      (function(h,o,t,j,a,r){
+        if (h.hj) return;
+        h.hj=h.hj||function(){(h.hj.q=h.hj.q||[]).push(arguments)};
+        h._hjSettings={hjid:6546658,hjsv:6};
+        a=o.getElementsByTagName('head')[0];
+        r=o.createElement('script');r.async=1;
+        r.src=t+h._hjSettings.hjid+j+h._hjSettings.hjsv;
+        a.appendChild(r);
+      })(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');
+    </script>
+    <!-- End Hotjar -->
+
     <!-- CUSTOMIFY INTEGRATION -->
     <link rel="stylesheet" href="{{ 'customify.css' | asset_url }}">
     
@@ -2395,13 +2409,13 @@
                   <span class="accordion-icon">▼</span>
                 </div>
                 <div class="accordion-content">
-                  <ul>
-                    <li><strong>Piękne płótno artystyczne:</strong> Twoje zdjęcie wydrukowane na grubym, premium płótnie canvas z naturalną teksturą</li>
-                    <li><strong>Z ramą lub bez:</strong> Wybierz co Ci odpowiada</li>
-                    <li><strong>Matowe wykończenie:</strong> Żadnych nieestetycznych odblasków światła - obraz wygląda profesjonalnie z każdej strony</li>
-                    <li><strong>Gotowe do powieszenia:</strong> Wieszak w zestawie - wystarczy powiesić na ścianie, nic więcej do montażu!</li>
-                    <li><strong>Twoje zdjęcie + magia AI:</strong> Przekształcamy Twoje zdjęcie w wybranym stylu artystycznym - od klasyki po nowoczesność</li>
-                  </ul>
+                  <p><strong>Obraz na płótnie</strong> - wydrukowane na grubym, premium płótnie canvas z naturalną teksturą. Naciągnięte na drewnianą antyramę</p>
+                  <br>
+                  <p><strong>Plakat</strong> - wydruk na papierze fotograficznym. Możesz wybrać ramkę. Wówczas wydruk będzie w ramce za szkłem.</p>
+                  <br>
+                  <p><strong>Gotowe do powieszenia:</strong> Wieszak w zestawie - wystarczy powiesić na ścianie, nic więcej do montażu!</p>
+                  <br>
+                  <p><strong>Twoje zdjęcie + magia AI:</strong> Przekształcamy Twoje zdjęcie w wybranym stylu artystycznym - od klasyki po nowoczesność</p>
                 </div>
               </div>
 
@@ -2511,6 +2525,10 @@
       </div>
       
       <style>
+        /* Kolor nagłówka nad uploaderem */
+        .customify-title {
+          color: #dc3545 !important;
+        }
         /* GRID STYLÓW AI - TYLKO STYLE, NIE DOTYKAM PROPORCJI */
         .customify-style-grid {
           display: grid;
@@ -2711,7 +2729,7 @@
         }
 
         .customify-size-btn {
-          padding: 8px 6px;
+          padding: 1px 6px;
           border: 1px solid #666666 !important;
           border-radius: 0;
           background: white;
@@ -2723,23 +2741,23 @@
           color: #333;
           box-shadow: none;
           line-height: 1.3;
-          min-height: 50px;
+          min-height: 36px;
           display: flex;
           align-items: center;
           justify-content: center;
         }
 
         .customify-size-btn:hover {
-          border-color: #c82333;
-          background-color: #fff5f0;
+          border-color: #f0ad00;
+          background-color: #fff9db;
           transform: none;
           box-shadow: none;
         }
 
         .customify-size-btn.active {
-          border: 2px solid #dc3545 !important;
-          background: #fff5f5 !important;
-          color: #dc3545 !important;
+          border: 2px solid #f0ad00 !important;
+          background: #fff7cc !important;
+          color: #b7791f !important;
           font-weight: 600 !important;
           transform: none !important;
           box-shadow: none !important;
@@ -2763,7 +2781,7 @@
         }
 
         .customify-product-type-btn {
-          padding: 8px 6px;
+          padding: 1px 6px;
           border: 1px solid #666666 !important;
           border-radius: 0;
           background: white;
@@ -2775,23 +2793,23 @@
           color: #333;
           box-shadow: none;
           line-height: 1.3;
-          min-height: 50px;
+          min-height: 36px;
           display: flex;
           align-items: center;
           justify-content: center;
         }
 
         .customify-product-type-btn:hover {
-          border-color: #c82333;
-          background-color: #fff5f0;
+          border-color: #f0ad00;
+          background-color: #fff9db;
           transform: none;
           box-shadow: none;
         }
 
         .customify-product-type-btn.active {
-          border: 2px solid #dc3545 !important;
-          background: #fff5f5 !important;
-          color: #dc3545 !important;
+          border: 2px solid #f0ad00 !important;
+          background: #fff7cc !important;
+          color: #b7791f !important;
           font-weight: 600 !important;
           transform: none !important;
           box-shadow: none !important;
@@ -2801,8 +2819,8 @@
         @media (max-width: 768px) {
           .customify-product-type-btn {
             font-size: 0.8rem !important;
-            padding: 6px 4px !important;
-            min-height: 40px !important;
+            padding: 1px 4px !important;
+            min-height: 32px !important;
           }
           .customify-product-type-buttons {
             grid-template-columns: 1fr 1fr !important;
