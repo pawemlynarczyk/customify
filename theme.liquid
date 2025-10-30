@@ -3053,6 +3053,12 @@
               var color = target.getAttribute('data-frame');
               setFrame(color);
               closeOptions();
+              if (window.__customify && typeof window.__customify.updateCartPrice === 'function') {
+                window.__customify.updateCartPrice();
+                if (typeof window.__customify.updateProductPrice === 'function') {
+                  window.__customify.updateProductPrice();
+                }
+              }
             });
           }
           document.addEventListener('click', function(e){
