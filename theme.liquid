@@ -2126,6 +2126,19 @@
               Obraz na płótnie
             </div>
           </div>
+          <!-- Wysuwane menu wyboru koloru ramki (tylko dla opcji plakat) -->
+          <div class="frame-color-selector" id="frameSelector" aria-expanded="false">
+            <button type="button" class="frame-toggle" id="frameToggle">
+              Ramka: <span id="frameCurrentLabel">Brak ramki</span>
+              <span class="frame-caret">▼</span>
+            </button>
+            <div class="frame-options" id="frameOptions" style="display: none;">
+              <div class="frame-option" data-frame="none" aria-selected="true">Brak ramki</div>
+              <div class="frame-option" data-frame="black">Czarna</div>
+              <div class="frame-option" data-frame="white">Biała</div>
+              <div class="frame-option" data-frame="wood">Drewno</div>
+            </div>
+          </div>
         </div>
         
         <!-- Rozmiary - POD sekcją rodzaju wydruku -->
@@ -2533,6 +2546,45 @@
         .customify-title {
           color: #dc3545 !important;
         }
+        /* Wysuwane menu ramki */
+        .frame-color-selector {
+          margin-top: 8px;
+          max-width: 450px;
+        }
+        .frame-toggle {
+          width: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 8px;
+          padding: 6px 10px;
+          border: 1px solid #666666 !important;
+          background: #ffffff;
+          color: #333;
+          font-size: 0.85rem;
+          cursor: pointer;
+        }
+        .frame-caret { font-size: 0.8rem; color: #666; }
+        .frame-options {
+          border: 1px solid #e0e0e0;
+          border-top: none;
+          background: #fff;
+        }
+        .frame-option {
+          padding: 6px 10px;
+          cursor: pointer;
+          font-size: 0.85rem;
+          border-top: 1px solid #f2f2f2;
+        }
+        .frame-option:hover { background: #fff9db; }
+        .frame-option[aria-selected="true"] {
+          background: #fff7cc;
+          color: #b7791f;
+        }
+        .frame-color-selector.disabled {
+          opacity: 0.5;
+          pointer-events: none;
+        }
         /* Marginesy po przeniesieniu sekcji typu i rozmiaru nad cenę */
         #type-size-inline-slot > .customify-product-type-selector,
         #type-size-inline-slot > .customify-size-selector {
@@ -2878,6 +2930,11 @@
           var originalPlaceholder = document.getElementById('type-size-original-placeholder');
           var productTypeArea = document.getElementById('productTypeArea');
           var sizeArea = document.getElementById('sizeArea');
+          // Elemente ramki
+          var frameSelector = document.getElementById('frameSelector');
+          var frameToggle = document.getElementById('frameToggle');
+          var frameOptions = document.getElementById('frameOptions');
+          var frameCurrentLabel = document.getElementById('frameCurrentLabel');
 
           if (!resultArea || !inlineSlot || !originalPlaceholder || !productTypeArea || !sizeArea) {
             return;
@@ -2924,6 +2981,93 @@
 
           // Pierwsza synchronizacja
           syncPosition();
+
+          // ============ LOGIKA RAMKI ============
+          // Stan globalny (współdzielony między lokalizacjami)
+          window.CustomifyFrame = window.CustomifyFrame || { color: 'none' };
+
+          function setFrame(color) {
+            window.CustomifyFrame.color = color;
+            // Aktualizuj UI
+            if (frameCurrentLabel) {
+              frameCurrentLabel.textContent =
+                color === 'black' ? 'Czarna' :
+                color === 'white' ? 'Biała' :
+                color === 'wood'  ? 'Drewno' : 'Brak ramki';
+            }
+            if (frameOptions) {
+              var opts = frameOptions.querySelectorAll('.frame-option');
+              opts.forEach(function(opt){
+                opt.setAttribute('aria-selected', opt.getAttribute('data-frame') === color ? 'true' : 'false');
+              });
+            }
+          }
+
+          function toggleOptions() {
+            if (!frameOptions) return;
+            var isOpen = frameOptions.style.display !== 'none';
+            frameOptions.style.display = isOpen ? 'none' : 'block';
+            if (frameSelector) frameSelector.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
+          }
+
+          function closeOptions() {
+            if (frameOptions) {
+              frameOptions.style.display = 'none';
+              if (frameSelector) frameSelector.setAttribute('aria-expanded', 'false');
+            }
+          }
+
+          function isPlakatSelected() {
+            var active = productTypeArea && productTypeArea.querySelector('.customify-product-type-btn.active');
+            return active && active.getAttribute('data-product-type') === 'plakat';
+          }
+
+          function updateFrameAvailability() {
+            var enabled = isPlakatSelected();
+            if (frameSelector) {
+              if (enabled) {
+                frameSelector.classList.remove('disabled');
+              } else {
+                frameSelector.classList.add('disabled');
+                closeOptions();
+              }
+            }
+          }
+
+          // Inicjalizacja UI ramki
+          setFrame(window.CustomifyFrame.color || 'none');
+          updateFrameAvailability();
+
+          // Zdarzenia UI
+          if (frameToggle) {
+            frameToggle.addEventListener('click', function(e){
+              if (frameSelector && frameSelector.classList.contains('disabled')) return;
+              toggleOptions();
+            });
+          }
+          if (frameOptions) {
+            frameOptions.addEventListener('click', function(e){
+              var target = e.target.closest('.frame-option');
+              if (!target) return;
+              if (frameSelector && frameSelector.classList.contains('disabled')) return;
+              var color = target.getAttribute('data-frame');
+              setFrame(color);
+              closeOptions();
+            });
+          }
+          document.addEventListener('click', function(e){
+            if (!frameSelector) return;
+            if (!frameSelector.contains(e.target)) closeOptions();
+          });
+
+          // Nasłuchiwanie na zmianę typu produktu (Plakat/Canvas)
+          var typeBtns = productTypeArea ? productTypeArea.querySelectorAll('.customify-product-type-btn') : [];
+          typeBtns.forEach(function(btn){
+            btn.addEventListener('click', function(){
+              // Daj czas istniejącym handlerom na ustawienie .active
+              setTimeout(updateFrameAvailability, 0);
+            });
+          });
         });
       </script>
     {% endif %}

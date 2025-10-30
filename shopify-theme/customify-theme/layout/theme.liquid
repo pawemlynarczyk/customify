@@ -2139,6 +2139,7 @@
                 <div class="customify-size-btn" data-size="a1">60×85</div>
               </div>
         </div>
+        <div id="type-size-original-placeholder" style="display: contents;"></div>
         
         <h3 class="customify-title">Wgraj zdjęcie i zobacz efekt od razu</h3>
         
@@ -2370,6 +2371,9 @@
               <!-- Komunikat sukcesu -->
               <div class="customify-success" id="successMessage"></div>
               
+              <!-- Slot do przeniesienia sekcji typu i rozmiaru nad cenę -->
+              <div id="type-size-inline-slot"></div>
+              
               <!-- Cena nad przyciskiem -->
               <div class="customify-cart-price" id="cartPriceDisplay" style="display: none; margin: 15px 0; text-align: center; padding: 10px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e9ecef;">
                 <span class="cart-price-label" style="font-weight: 600; color: #333; margin-right: 12px;">Cena:</span>
@@ -2528,6 +2532,11 @@
         /* Kolor nagłówka nad uploaderem */
         .customify-title {
           color: #dc3545 !important;
+        }
+        /* Marginesy po przeniesieniu sekcji typu i rozmiaru nad cenę */
+        #type-size-inline-slot > .customify-product-type-selector,
+        #type-size-inline-slot > .customify-size-selector {
+          margin: 10px 0 10px 0;
         }
         /* GRID STYLÓW AI - TYLKO STYLE, NIE DOTYKAM PROPORCJI */
         .customify-style-grid {
@@ -2861,6 +2870,62 @@
           text-decoration: none !important;
         }
       </style>
+      <script>
+        // Dynamiczne przenoszenie sekcji rodzaju i rozmiaru nad cenę, gdy widoczny jest wynik AI
+        document.addEventListener('DOMContentLoaded', function() {
+          var resultArea = document.getElementById('resultArea');
+          var inlineSlot = document.getElementById('type-size-inline-slot');
+          var originalPlaceholder = document.getElementById('type-size-original-placeholder');
+          var productTypeArea = document.getElementById('productTypeArea');
+          var sizeArea = document.getElementById('sizeArea');
+
+          if (!resultArea || !inlineSlot || !originalPlaceholder || !productTypeArea || !sizeArea) {
+            return;
+          }
+
+          function isVisible(el) {
+            if (!el) return false;
+            var style = window.getComputedStyle(el);
+            return style.display !== 'none' && style.visibility !== 'hidden' && el.offsetParent !== null;
+          }
+
+          function moveToResult() {
+            if (!inlineSlot.contains(productTypeArea)) {
+              inlineSlot.appendChild(productTypeArea);
+            }
+            if (!inlineSlot.contains(sizeArea)) {
+              inlineSlot.appendChild(sizeArea);
+            }
+          }
+
+          function moveBack() {
+            if (productTypeArea && productTypeArea.parentElement !== originalPlaceholder.parentElement) {
+              originalPlaceholder.parentNode.insertBefore(productTypeArea, originalPlaceholder);
+            }
+            if (sizeArea && sizeArea.parentElement !== originalPlaceholder.parentElement) {
+              originalPlaceholder.parentNode.insertBefore(sizeArea, originalPlaceholder);
+            }
+          }
+
+          function syncPosition() {
+            if (isVisible(resultArea)) {
+              moveToResult();
+            } else {
+              moveBack();
+            }
+          }
+
+          // Obserwuj zmiany widoczności
+          var observer = new MutationObserver(syncPosition);
+          observer.observe(resultArea, { attributes: true, attributeFilter: ['style', 'class'], subtree: false });
+
+          // Polling jako fallback (np. zmiany przez skrypty zewnętrzne)
+          setInterval(syncPosition, 500);
+
+          // Pierwsza synchronizacja
+          syncPosition();
+        });
+      </script>
     {% endif %}
 
     {% comment %} CUSTOMIFY CART INTEGRATION {% endcomment %}
