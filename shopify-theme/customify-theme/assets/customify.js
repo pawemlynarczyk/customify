@@ -2137,18 +2137,35 @@ class CustomifyEmbed {
           const frameLabelMap = { none: 'brak', black: 'czarna', white: 'biała', wood: 'drewno' };
           const frameLabel = frameLabelMap[selectedFrame] || 'brak';
 
-          // ✅ Użyj permanentny URL z Vercel Blob (jeśli dostępny) - trwały, nie wygasa
-          const permanentUrl = result.permanentImageUrl || result.imageUrl || this.transformedImage;
+          // ✅ BACKUP KRYTYCZNY: Użyj Vercel Blob URL jako głównego (permanentny backup)
+          // Vercel Blob nie wygasa nawet jeśli produkt zostanie usunięty
+          // Shopify CDN może zniknąć po usunięciu produktu
+          const permanentUrl = result.vercelBlobUrl || result.permanentImageUrl || result.imageUrl || this.transformedImage;
+          const hasVercelBlobBackup = !!(result.vercelBlobUrl || (result.permanentImageUrl && result.permanentImageUrl.includes('vercel-storage')));
+          
+          // ⚠️ WARNING jeśli brak backupu Vercel Blob
+          if (!hasVercelBlobBackup) {
+            console.warn('⚠️ [CUSTOMIFY] WARNING: No Vercel Blob backup URL! Image may be lost if product is deleted.');
+            if (result.warnings && result.warnings.length > 0) {
+              console.warn('   API warnings:', result.warnings);
+            }
+          }
           
           const properties = {
             'Styl AI': this.selectedStyle,
             'Rozmiar': this.getSizeDimension(this.selectedSize),  // ✅ Przekaż wymiar (np. "20×30 cm") zamiast kodu (np. "a4")
             'Rodzaj wydruku': productTypeName,  // ✅ Dodano rodzaj wydruku
             'Ramka': `ramka - ${frameLabel}`,
-            '_AI_Image_URL': permanentUrl,  // ✅ Permanentny URL (Vercel Blob lub fallback do Shopify CDN)
-            '_AI_Image_Shopify': result.imageUrl || this.transformedImage,  // ✅ Backup: URL z Shopify CDN
+            '_AI_Image_URL': permanentUrl,  // ✅ PERMANENTNY URL - Vercel Blob (backup) lub fallback Shopify CDN
+            '_AI_Image_Shopify': result.imageUrl || this.transformedImage,  // ✅ Backup: URL z Shopify CDN (może zniknąć)
             '_Order_ID': result.orderId || Date.now().toString()  // Unikalny ID zamówienia
           };
+          
+          // Dodaj Vercel Blob URL jako osobne property jeśli jest dostępny (backup)
+          if (result.vercelBlobUrl) {
+            properties['_AI_Image_VercelBlob'] = result.vercelBlobUrl;  // ✅ Permanentny backup - nie wygasa
+            console.log('✅ [CUSTOMIFY] Vercel Blob backup URL added to properties:', result.vercelBlobUrl.substring(0, 80) + '...');
+          }
           
           // Dodaj _AI_Image_Direct TYLKO jeśli to krótki URL (Replicate ~100 znaków)
           // Vercel Blob URLs są za długie (~200+ znaków) - NIE dodawaj ich tutaj
@@ -2163,10 +2180,19 @@ class CustomifyEmbed {
           
           console.log('🖼️ [CUSTOMIFY] Image URLs:', {
             shopifyImageUrl: result.imageUrl,
+            vercelBlobUrl: result.vercelBlobUrl || 'N/A (no backup!)',
             permanentImageUrl: result.permanentImageUrl,
+            hasBackup: hasVercelBlobBackup,
             replicateImageUrl: this.transformedImage,
-            orderId: result.orderId
+            orderId: result.orderId,
+            warnings: result.warnings || []
           });
+          
+          if (hasVercelBlobBackup) {
+            console.log('✅ [CUSTOMIFY] Image has Vercel Blob backup - safe from product deletion');
+          } else {
+            console.warn('⚠️ [CUSTOMIFY] Image has NO Vercel Blob backup - will be lost if product is deleted!');
+          }
           
           // ✅ DODAJ DO KOSZYKA PRZEZ AJAX CART API (Shopify śledzi abandoned carts)
           console.log('✅ [CUSTOMIFY] Adding to cart via Ajax Cart API for abandoned cart tracking');

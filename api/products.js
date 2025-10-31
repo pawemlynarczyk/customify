@@ -234,10 +234,17 @@ module.exports = async (req, res) => {
 
     // Image uploaded successfully
 
-    // 🗄️ VERCEL BLOB BACKUP: Zapisz również na Vercel Blob Storage (permanentny URL)
+    // 🗄️ VERCEL BLOB BACKUP (OBOWIĄZKOWY): Zapisz na Vercel Blob Storage jako permanentny backup
+    // Backup jest KRYTYCZNY - jeśli produkt zostanie usunięty, obraz z Shopify CDN zniknie
     let vercelBlobUrl = null;
-    try {
-      if (process.env.customify_READ_WRITE_TOKEN) {
+    let blobUploadFailed = false;
+    
+    if (!process.env.customify_READ_WRITE_TOKEN) {
+      console.error('❌ [PRODUCTS.JS] CRITICAL: customify_READ_WRITE_TOKEN not configured!');
+      console.error('   Image will be lost if product is deleted!');
+      blobUploadFailed = true;
+    } else {
+      try {
         const blobFilename = `customify/orders/${uniqueId}.jpg`;
         const blob = await put(blobFilename, imageBuffer, {
           access: 'public',
@@ -245,24 +252,35 @@ module.exports = async (req, res) => {
           token: process.env.customify_READ_WRITE_TOKEN,
         });
         vercelBlobUrl = blob.url;
-        console.log('✅ [PRODUCTS.JS] Image backup uploaded to Vercel Blob:', vercelBlobUrl);
-      } else {
-        console.warn('⚠️ [PRODUCTS.JS] customify_READ_WRITE_TOKEN not configured, skipping Vercel Blob backup');
+        console.log('✅ [PRODUCTS.JS] Image backup uploaded to Vercel Blob (REQUIRED):', vercelBlobUrl);
+      } catch (blobError) {
+        console.error('❌ [PRODUCTS.JS] CRITICAL: Vercel Blob upload failed:', blobError.message);
+        console.error('   Image will be lost if product is deleted!');
+        blobUploadFailed = true;
       }
-    } catch (blobError) {
-      console.error('❌ [PRODUCTS.JS] Vercel Blob upload failed (non-critical):', blobError.message);
-      // Nie blokujemy - Shopify CDN URL nadal działa
     }
+
+    // ⚠️ WARNING jeśli Vercel Blob nie działa - obraz nie będzie miał backupu
+    const warnings = [];
+    if (blobUploadFailed || !vercelBlobUrl) {
+      warnings.push('Vercel Blob backup failed - image may be lost if product is deleted');
+    }
+
+    // ✅ permanentImageUrl ZAWSZE używa Vercel Blob jako głównego źródła (backup)
+    // Shopify CDN jest tylko dla produktu w Shopify, ale może zniknąć
+    const permanentImageUrl = vercelBlobUrl || shopifyImageUrl;
 
     res.json({ 
       success: true, 
       product: product,
       variantId: product.variants[0].id,
       productId: productId,
-      imageUrl: shopifyImageUrl,  // ✅ URL z Shopify (dla produktu)
-      permanentImageUrl: vercelBlobUrl || shopifyImageUrl,  // ✅ Permanentny URL (Vercel Blob lub fallback do Shopify)
+      imageUrl: shopifyImageUrl,  // ✅ URL z Shopify (dla produktu w Shopify)
+      permanentImageUrl: permanentImageUrl,  // ✅ PERMANENTNY URL - Vercel Blob (backup) lub fallback Shopify
+      vercelBlobUrl: vercelBlobUrl,  // ✅ URL z Vercel Blob (backup - zawsze powinien być dostępny)
       orderId: uniqueId,  // ✅ Unikalny identyfikator zamówienia
       message: 'Produkt został utworzony z obrazkiem AI!',
+      warnings: warnings.length > 0 ? warnings : undefined,  // ⚠️ Ostrzeżenie jeśli backup nie działa
       cartUrl: `https://${shop}/cart/add?id=${product.variants[0].id}&quantity=1`
     });
 
