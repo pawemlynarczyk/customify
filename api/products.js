@@ -1,4 +1,5 @@
 const { checkRateLimit, getClientIP } = require('../utils/vercelRateLimiter');
+const { put } = require('@vercel/blob');
 
 module.exports = async (req, res) => {
   // ✅ POPRAWIONE CORS - nie można używać credentials: true z origin: *
@@ -233,12 +234,33 @@ module.exports = async (req, res) => {
 
     // Image uploaded successfully
 
+    // 🗄️ VERCEL BLOB BACKUP: Zapisz również na Vercel Blob Storage (permanentny URL)
+    let vercelBlobUrl = null;
+    try {
+      if (process.env.customify_READ_WRITE_TOKEN) {
+        const blobFilename = `customify/orders/${uniqueId}.jpg`;
+        const blob = await put(blobFilename, imageBuffer, {
+          access: 'public',
+          contentType: 'image/jpeg',
+          token: process.env.customify_READ_WRITE_TOKEN,
+        });
+        vercelBlobUrl = blob.url;
+        console.log('✅ [PRODUCTS.JS] Image backup uploaded to Vercel Blob:', vercelBlobUrl);
+      } else {
+        console.warn('⚠️ [PRODUCTS.JS] customify_READ_WRITE_TOKEN not configured, skipping Vercel Blob backup');
+      }
+    } catch (blobError) {
+      console.error('❌ [PRODUCTS.JS] Vercel Blob upload failed (non-critical):', blobError.message);
+      // Nie blokujemy - Shopify CDN URL nadal działa
+    }
+
     res.json({ 
       success: true, 
       product: product,
       variantId: product.variants[0].id,
       productId: productId,
-      imageUrl: shopifyImageUrl,  // ✅ URL z Shopify (w nowym produkcie)
+      imageUrl: shopifyImageUrl,  // ✅ URL z Shopify (dla produktu)
+      permanentImageUrl: vercelBlobUrl || shopifyImageUrl,  // ✅ Permanentny URL (Vercel Blob lub fallback do Shopify)
       orderId: uniqueId,  // ✅ Unikalny identyfikator zamówienia
       message: 'Produkt został utworzony z obrazkiem AI!',
       cartUrl: `https://${shop}/cart/add?id=${product.variants[0].id}&quantity=1`

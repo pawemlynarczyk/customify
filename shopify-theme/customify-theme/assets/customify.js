@@ -2137,20 +2137,18 @@ class CustomifyEmbed {
           const frameLabelMap = { none: 'brak', black: 'czarna', white: 'biała', wood: 'drewno' };
           const frameLabel = frameLabelMap[selectedFrame] || 'brak';
 
+          // ✅ Użyj permanentny URL z Vercel Blob (jeśli dostępny) - trwały, nie wygasa
+          const permanentUrl = result.permanentImageUrl || result.imageUrl || this.transformedImage;
+          
           const properties = {
             'Styl AI': this.selectedStyle,
             'Rozmiar': this.getSizeDimension(this.selectedSize),  // ✅ Przekaż wymiar (np. "20×30 cm") zamiast kodu (np. "a4")
             'Rodzaj wydruku': productTypeName,  // ✅ Dodano rodzaj wydruku
             'Ramka': `ramka - ${frameLabel}`,
-            '_AI_Image_URL': result.imageUrl || this.transformedImage,  // ✅ URL z Shopify (główny obraz)
+            '_AI_Image_URL': permanentUrl,  // ✅ Permanentny URL (Vercel Blob lub fallback do Shopify CDN)
+            '_AI_Image_Shopify': result.imageUrl || this.transformedImage,  // ✅ Backup: URL z Shopify CDN
             '_Order_ID': result.orderId || Date.now().toString()  // Unikalny ID zamówienia
           };
-          
-          // Dodaj _AI_Image_Permanent TYLKO jeśli to krótki URL (Vercel Blob URLs są za długie)
-          const permanentUrl = result.permanentImageUrl || this.transformedImage;
-          if (permanentUrl && permanentUrl.length < 150 && permanentUrl.includes('replicate.delivery')) {
-            properties['_AI_Image_Permanent'] = permanentUrl;
-          }
           
           // Dodaj _AI_Image_Direct TYLKO jeśli to krótki URL (Replicate ~100 znaków)
           // Vercel Blob URLs są za długie (~200+ znaków) - NIE dodawaj ich tutaj
