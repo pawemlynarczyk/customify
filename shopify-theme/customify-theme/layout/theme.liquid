@@ -2895,6 +2895,9 @@
           font-size: 1.4rem !important;
           font-weight: 700 !important;
           color: #000000 !important; /* CZARNY KOLOR */
+          margin: 0 !important;
+          padding: 0 !important;
+          line-height: 1.1 !important;
         }
         
         /* Dodatkowe selektory dla ceny produktu */
@@ -2903,6 +2906,16 @@
           font-size: 1.4rem !important;
           font-weight: 700 !important;
           color: #000000 !important; /* CZARNY KOLOR */
+        }
+        
+        /* Minimalne odstępy w komponencie ceny */
+        product-price {
+          display: inline-block !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          line-height: 1.1 !important;
+          --padding-block-start: 0px !important;
+          --padding-block-end: 0px !important;
         }
         
         /* OCHRONA: Nowa cena nad przyciskiem NIE wpływa na oryginalną cenę */
@@ -3053,6 +3066,12 @@
               var color = target.getAttribute('data-frame');
               setFrame(color);
               closeOptions();
+              if (window.__customify && typeof window.__customify.updateCartPrice === 'function') {
+                window.__customify.updateCartPrice();
+                if (typeof window.__customify.updateProductPrice === 'function') {
+                  window.__customify.updateProductPrice();
+                }
+              }
             });
           }
           document.addEventListener('click', function(e){

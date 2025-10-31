@@ -412,3 +412,4 @@ async addToCart() {
 **Status**: ✅ Plan gotowy do wdrożenia
 
 
+
