@@ -1463,56 +1463,66 @@ class CustomifyEmbed {
       console.log('✅ [PRODUCT-TYPE] sizeArea found:', this.sizeArea);
     }
     
-    // ✅ Oznacz rozmiar 15×20 jako nieaktywny dla "Obraz na płótnie"
+    // ✅ Pobierz wszystkie przyciski rozmiaru
     const sizeBtns = this.sizeArea.querySelectorAll('.customify-size-btn');
     console.log('✅ [PRODUCT-TYPE] Found size buttons:', sizeBtns.length);
-    let needToChangeSize = false;
     
-    sizeBtns.forEach(btn => {
-      if (btn.dataset.size === 'a5') {
-        // 15×20 cm - dostępny tylko dla Plakatu
-        if (this.selectedProductType === 'canvas') {
-          btn.classList.add('disabled');
-          btn.style.opacity = '0.4';
-          btn.style.cursor = 'not-allowed';
-          btn.style.pointerEvents = 'none'; // ✅ Zablokuj kliknięcie
-          // Usuń aktywność jeśli był wybrany
-          if (btn.classList.contains('active')) {
-            btn.classList.remove('active');
-            needToChangeSize = true; // ✅ Oznacz że trzeba zmienić rozmiar na A4
-            console.log('⚠️ [PRODUCT-TYPE] A5 size deselected for canvas - switching to A4');
-          }
-        } else {
-          btn.classList.remove('disabled');
-          btn.style.opacity = '1';
-          btn.style.cursor = 'pointer';
-          btn.style.pointerEvents = 'auto'; // ✅ Odblokuj kliknięcie
-        }
-      }
-    });
+    // ✅ NAJPIERW: Usuń active ze WSZYSTKICH rozmiarów (czysty start)
+    sizeBtns.forEach(btn => btn.classList.remove('active'));
     
     // ✅ AUTOMATYCZNA ZMIANA NA A4 gdy wybrano "Obraz na płótnie"
     // ZAWSZE ustaw A4 jako aktywny dla canvas - BEZ WARUNKÓW!
     if (this.selectedProductType === 'canvas') {
       const a4Btn = this.sizeArea.querySelector('[data-size="a4"]');
+      const a5Btn = this.sizeArea.querySelector('[data-size="a5"]');
       
+      // ✅ Oznacz A5 jako nieaktywny (disabled)
+      if (a5Btn) {
+        a5Btn.classList.add('disabled');
+        a5Btn.style.opacity = '0.4';
+        a5Btn.style.cursor = 'not-allowed';
+        a5Btn.style.pointerEvents = 'none';
+        a5Btn.classList.remove('active'); // ✅ Upewnij się że A5 nie jest aktywny
+        console.log('🚫 [PRODUCT-TYPE] A5 disabled for canvas');
+      }
+      
+      // ✅ ZAWSZE: Ustaw A4 jako aktywny i widoczny
       if (a4Btn) {
-        // ✅ ZAWSZE: Usuń active ze WSZYSTKICH rozmiarów
-        sizeBtns.forEach(btn => btn.classList.remove('active'));
-        // ✅ ZAWSZE: Ustaw A4 jako aktywny
-        a4Btn.classList.add('active');
-        this.selectedSize = 'a4';
+        a4Btn.classList.remove('disabled'); // ✅ Upewnij się że A4 nie jest disabled
+        a4Btn.style.opacity = '1';
+        a4Btn.style.cursor = 'pointer';
+        a4Btn.style.pointerEvents = 'auto';
+        a4Btn.classList.add('active'); // ✅ Aktywny = widoczny dla użytkownika
+        this.selectedSize = 'a4'; // ✅ ZAWSZE ustaw selectedSize na A4
         
-        console.log('✅ [PRODUCT-TYPE] Canvas selected - A4 set as active');
+        console.log('✅ [PRODUCT-TYPE] Canvas selected - A4 set as active and visible');
         console.log('✅ [PRODUCT-TYPE] A4 button classes:', a4Btn.className);
+        console.log('✅ [PRODUCT-TYPE] this.selectedSize:', this.selectedSize);
         
-        // ✅ Wymuś odświeżenie UI
+        // ✅ Wymuś odświeżenie UI (żeby użytkownik widział zmianę)
         requestAnimationFrame(() => {
           a4Btn.style.transform = 'scale(1)';
-          console.log('✅ [PRODUCT-TYPE] UI refreshed for A4');
+          a4Btn.style.display = ''; // ✅ Upewnij się że A4 jest widoczny
+          console.log('✅ [PRODUCT-TYPE] UI refreshed - A4 should be visible now');
         });
       } else {
         console.error('❌ [PRODUCT-TYPE] A4 button not found!');
+      }
+    } else {
+      // ✅ Dla "Plakat" - przywróć A5 jako dostępny
+      const a5Btn = this.sizeArea.querySelector('[data-size="a5"]');
+      if (a5Btn) {
+        a5Btn.classList.remove('disabled');
+        a5Btn.style.opacity = '1';
+        a5Btn.style.cursor = 'pointer';
+        a5Btn.style.pointerEvents = 'auto';
+        
+        // ✅ Jeśli nie ma wybranego rozmiaru, ustaw A5 jako domyślny dla plakatu
+        if (!this.selectedSize || this.selectedSize === 'a5') {
+          a5Btn.classList.add('active');
+          this.selectedSize = 'a5';
+          console.log('✅ [PRODUCT-TYPE] Plakat selected - A5 set as active');
+        }
       }
     }
     
