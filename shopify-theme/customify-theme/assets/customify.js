@@ -1423,7 +1423,15 @@ class CustomifyEmbed {
     // ✅ Sprawdź czy rozmiar jest nieaktywny
     if (sizeBtn.classList.contains('disabled')) {
       console.log('⚠️ [SIZE] Rozmiar jest nieaktywny dla tego typu produktu');
+      this.showError('Ten rozmiar nie jest dostępny dla wybranego rodzaju wydruku.');
       return; // Nie pozwól na wybór nieaktywnego rozmiaru
+    }
+    
+    // ✅ WALIDACJA: A5 (15×20 cm) nie jest dostępny dla "Obraz na płótnie"
+    if (sizeBtn.dataset.size === 'a5' && this.selectedProductType === 'canvas') {
+      console.log('❌ [SIZE] A5 size selected for canvas - blocking');
+      this.showError('Rozmiar 15×20 cm jest dostępny tylko dla Plakatu. Wybierz inny rozmiar lub zmień rodzaj wydruku na Plakat.');
+      return;
     }
     
     this.sizeArea.querySelectorAll('.customify-size-btn').forEach(btn => btn.classList.remove('active'));
@@ -1446,15 +1454,23 @@ class CustomifyEmbed {
     const sizeBtns = this.sizeArea.querySelectorAll('.customify-size-btn');
     sizeBtns.forEach(btn => {
       if (btn.dataset.size === 'a5') {
-        // 15×20 cm
+        // 15×20 cm - dostępny tylko dla Plakatu
         if (this.selectedProductType === 'canvas') {
           btn.classList.add('disabled');
           btn.style.opacity = '0.4';
           btn.style.cursor = 'not-allowed';
+          btn.style.pointerEvents = 'none'; // ✅ Zablokuj kliknięcie
+          // Usuń aktywność jeśli był wybrany
+          if (btn.classList.contains('active')) {
+            btn.classList.remove('active');
+            this.selectedSize = null; // ✅ Wyczyść wybór rozmiaru
+            console.log('⚠️ [PRODUCT-TYPE] A5 size deselected for canvas');
+          }
         } else {
           btn.classList.remove('disabled');
           btn.style.opacity = '1';
           btn.style.cursor = 'pointer';
+          btn.style.pointerEvents = 'auto'; // ✅ Odblokuj kliknięcie
         }
       }
     });
@@ -2021,11 +2037,27 @@ class CustomifyEmbed {
       this.showError('Nie wybrałeś rozmiaru');
       return;
     }
+    
+    // ✅ WALIDACJA: A5 (15×20 cm) nie jest dostępny dla "Obraz na płótnie"
+    if (this.selectedSize === 'a5' && this.selectedProductType === 'canvas') {
+      console.log('❌ [CUSTOMIFY] A5 size selected for canvas - blocking');
+      this.showError('Rozmiar 15×20 cm jest dostępny tylko dla Plakatu. Wybierz inny rozmiar lub zmień rodzaj wydruku na Plakat.');
+      return;
+    }
+    
     console.log('✅ [CUSTOMIFY] selectedSize OK, proceeding with price calculation');
 
     // ✅ OBLICZ CENĘ NAJPIERW - niezależnie od obrazu AI
     const basePrice = this.originalBasePrice || 49.00;
     const sizePrice = this.getSizePrice(this.selectedSize);
+    
+    // ✅ WALIDACJA: Sprawdź czy sizePrice jest prawidłowy (nie null dla nieaktywnych rozmiarów)
+    if (sizePrice === null || sizePrice === undefined || isNaN(sizePrice)) {
+      console.log('❌ [CUSTOMIFY] Invalid sizePrice for size:', this.selectedSize, 'productType:', this.selectedProductType);
+      this.showError('Wybrany rozmiar nie jest dostępny dla tego rodzaju wydruku. Wybierz inny rozmiar.');
+      return;
+    }
+    
     const frameSelected = (this.selectedProductType === 'plakat') && (window.CustomifyFrame && window.CustomifyFrame.color && window.CustomifyFrame.color !== 'none');
     const frameSurcharge = frameSelected ? 29 : 0;
     const finalPrice = basePrice + sizePrice + frameSurcharge;
