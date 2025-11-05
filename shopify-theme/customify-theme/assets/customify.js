@@ -1487,50 +1487,27 @@ class CustomifyEmbed {
     });
     
     // ✅ AUTOMATYCZNA ZMIANA NA A4 gdy wybrano "Obraz na płótnie"
-    // ZAWSZE ustaw A4 jako aktywny dla canvas (niezależnie od wcześniejszego wyboru)
+    // ZAWSZE ustaw A4 jako aktywny dla canvas - BEZ WARUNKÓW!
     if (this.selectedProductType === 'canvas') {
       const a4Btn = this.sizeArea.querySelector('[data-size="a4"]');
-      const currentActiveSize = this.sizeArea.querySelector('.customify-size-btn.active');
-      const currentActiveSizeValue = currentActiveSize ? currentActiveSize.dataset.size : null;
-      
-      console.log('🔍 [PRODUCT-TYPE] Canvas selected - checking size:', {
-        currentActiveSize: currentActiveSizeValue,
-        selectedSize: this.selectedSize,
-        a4BtnFound: !!a4Btn,
-        needToChangeSize: needToChangeSize
-      });
       
       if (a4Btn) {
-        // ✅ ZAWSZE ustaw A4 jako aktywny dla canvas (chyba że już jest aktywny)
-        if (!a4Btn.classList.contains('active')) {
-          // Usuń active z wszystkich rozmiarów
-          sizeBtns.forEach(btn => btn.classList.remove('active'));
-          // Ustaw A4 jako aktywny
-          a4Btn.classList.add('active');
-          this.selectedSize = 'a4';
-          console.log('✅ [PRODUCT-TYPE] Automatically switched to A4 for canvas');
-          console.log('✅ [PRODUCT-TYPE] A4 button classes:', a4Btn.className);
-          console.log('✅ [PRODUCT-TYPE] A4 button has active?', a4Btn.classList.contains('active'));
-          
-          // ✅ Wymuś odświeżenie UI (na wypadek problemów z CSS)
-          setTimeout(() => {
-            a4Btn.style.display = 'none';
-            a4Btn.offsetHeight; // Force reflow
-            a4Btn.style.display = '';
-            console.log('🔄 [PRODUCT-TYPE] Forced UI refresh for A4 button');
-          }, 10);
-        } else {
-          // Upewnij się że selectedSize jest ustawione na a4
-          if (this.selectedSize !== 'a4') {
-            this.selectedSize = 'a4';
-            console.log('✅ [PRODUCT-TYPE] Updated selectedSize to A4');
-          }
-          console.log('✅ [PRODUCT-TYPE] A4 already active, no change needed');
-        }
+        // ✅ ZAWSZE: Usuń active ze WSZYSTKICH rozmiarów
+        sizeBtns.forEach(btn => btn.classList.remove('active'));
+        // ✅ ZAWSZE: Ustaw A4 jako aktywny
+        a4Btn.classList.add('active');
+        this.selectedSize = 'a4';
+        
+        console.log('✅ [PRODUCT-TYPE] Canvas selected - A4 set as active');
+        console.log('✅ [PRODUCT-TYPE] A4 button classes:', a4Btn.className);
+        
+        // ✅ Wymuś odświeżenie UI
+        requestAnimationFrame(() => {
+          a4Btn.style.transform = 'scale(1)';
+          console.log('✅ [PRODUCT-TYPE] UI refreshed for A4');
+        });
       } else {
-        console.error('❌ [PRODUCT-TYPE] A4 button not found in sizeArea!');
-        console.error('❌ [PRODUCT-TYPE] sizeArea:', this.sizeArea);
-        console.error('❌ [PRODUCT-TYPE] All size buttons:', sizeBtns);
+        console.error('❌ [PRODUCT-TYPE] A4 button not found!');
       }
     }
     
