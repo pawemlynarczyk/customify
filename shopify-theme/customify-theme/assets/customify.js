@@ -1450,13 +1450,18 @@ class CustomifyEmbed {
     this.selectedProductType = typeBtn.dataset.productType;
     console.log('🎨 [PRODUCT-TYPE] Selected product type:', this.selectedProductType);
     
-    // ✅ WALIDACJA: Sprawdź czy sizeArea istnieje
+    // ✅ WALIDACJA: Sprawdź czy sizeArea istnieje, jeśli nie - znajdź ponownie
     if (!this.sizeArea) {
-      console.error('❌ [PRODUCT-TYPE] sizeArea is null/undefined!');
-      return;
+      console.warn('⚠️ [PRODUCT-TYPE] sizeArea is null, trying to find it again...');
+      this.sizeArea = document.getElementById('sizeArea');
+      if (!this.sizeArea) {
+        console.error('❌ [PRODUCT-TYPE] sizeArea not found in DOM!');
+        return;
+      }
+      console.log('✅ [PRODUCT-TYPE] sizeArea found after retry:', this.sizeArea);
+    } else {
+      console.log('✅ [PRODUCT-TYPE] sizeArea found:', this.sizeArea);
     }
-    
-    console.log('✅ [PRODUCT-TYPE] sizeArea found:', this.sizeArea);
     
     // ✅ Oznacz rozmiar 15×20 jako nieaktywny dla "Obraz na płótnie"
     const sizeBtns = this.sizeArea.querySelectorAll('.customify-size-btn');
