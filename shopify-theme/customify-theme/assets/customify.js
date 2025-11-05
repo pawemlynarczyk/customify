@@ -1509,20 +1509,35 @@ class CustomifyEmbed {
         console.error('❌ [PRODUCT-TYPE] A4 button not found!');
       }
     } else {
-      // ✅ Dla "Plakat" - przywróć A5 jako dostępny
+      // ✅ Dla "Plakat" - przywróć A5 jako dostępny i ZAWSZE ustaw A5 jako aktywny
       const a5Btn = this.sizeArea.querySelector('[data-size="a5"]');
+      const a4Btn = this.sizeArea.querySelector('[data-size="a4"]');
+      
+      // ✅ Przywróć A5 jako dostępny
       if (a5Btn) {
         a5Btn.classList.remove('disabled');
         a5Btn.style.opacity = '1';
         a5Btn.style.cursor = 'pointer';
         a5Btn.style.pointerEvents = 'auto';
+      }
+      
+      // ✅ ZAWSZE: Ustaw A5 jako aktywny dla plakatu (bez względu na poprzedni wybór)
+      if (a5Btn) {
+        a5Btn.classList.add('active'); // ✅ Aktywny = widoczny dla użytkownika
+        this.selectedSize = 'a5'; // ✅ ZAWSZE ustaw selectedSize na A5 dla plakatu
         
-        // ✅ Jeśli nie ma wybranego rozmiaru, ustaw A5 jako domyślny dla plakatu
-        if (!this.selectedSize || this.selectedSize === 'a5') {
-          a5Btn.classList.add('active');
-          this.selectedSize = 'a5';
-          console.log('✅ [PRODUCT-TYPE] Plakat selected - A5 set as active');
-        }
+        console.log('✅ [PRODUCT-TYPE] Plakat selected - A5 set as active and visible');
+        console.log('✅ [PRODUCT-TYPE] A5 button classes:', a5Btn.className);
+        console.log('✅ [PRODUCT-TYPE] this.selectedSize:', this.selectedSize);
+        
+        // ✅ Wymuś odświeżenie UI (żeby użytkownik widział zmianę)
+        requestAnimationFrame(() => {
+          a5Btn.style.transform = 'scale(1)';
+          a5Btn.style.display = ''; // ✅ Upewnij się że A5 jest widoczny
+          console.log('✅ [PRODUCT-TYPE] UI refreshed - A5 should be visible now');
+        });
+      } else {
+        console.error('❌ [PRODUCT-TYPE] A5 button not found!');
       }
     }
     
