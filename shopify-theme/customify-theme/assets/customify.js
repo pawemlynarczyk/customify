@@ -1452,6 +1452,8 @@ class CustomifyEmbed {
     
     // ✅ Oznacz rozmiar 15×20 jako nieaktywny dla "Obraz na płótnie"
     const sizeBtns = this.sizeArea.querySelectorAll('.customify-size-btn');
+    let needToChangeSize = false;
+    
     sizeBtns.forEach(btn => {
       if (btn.dataset.size === 'a5') {
         // 15×20 cm - dostępny tylko dla Plakatu
@@ -1463,8 +1465,8 @@ class CustomifyEmbed {
           // Usuń aktywność jeśli był wybrany
           if (btn.classList.contains('active')) {
             btn.classList.remove('active');
-            this.selectedSize = null; // ✅ Wyczyść wybór rozmiaru
-            console.log('⚠️ [PRODUCT-TYPE] A5 size deselected for canvas');
+            needToChangeSize = true; // ✅ Oznacz że trzeba zmienić rozmiar na A4
+            console.log('⚠️ [PRODUCT-TYPE] A5 size deselected for canvas - switching to A4');
           }
         } else {
           btn.classList.remove('disabled');
@@ -1475,7 +1477,20 @@ class CustomifyEmbed {
       }
     });
     
-    // ✅ Aktualizuj cenę po wyborze typu produktu
+    // ✅ AUTOMATYCZNA ZMIANA NA A4 gdy wybrano "Obraz na płótnie" i A5 był wybrany
+    if (this.selectedProductType === 'canvas' && (needToChangeSize || this.selectedSize === 'a5')) {
+      const a4Btn = this.sizeArea.querySelector('[data-size="a4"]');
+      if (a4Btn) {
+        // Usuń active z wszystkich rozmiarów
+        sizeBtns.forEach(btn => btn.classList.remove('active'));
+        // Ustaw A4 jako aktywny
+        a4Btn.classList.add('active');
+        this.selectedSize = 'a4';
+        console.log('✅ [PRODUCT-TYPE] Automatically switched to A4 for canvas');
+      }
+    }
+    
+    // ✅ Aktualizuj cenę po wyborze typu produktu (zawsze, bo rozmiar może się zmienić)
     if (this.selectedSize) {
       this.updateProductPrice();
       this.updateCartPrice();
@@ -1723,16 +1738,47 @@ class CustomifyEmbed {
    */
   initializeDefaultPrice() {
     try {
-      // Znajdź pierwszy dostępny rozmiar (domyślnie A5 - 15×20)
-      const defaultSizeBtn = this.sizeArea?.querySelector('[data-size="a5"]') ||
-                            this.sizeArea?.querySelector('[data-size="a4"]') || 
-                            this.sizeArea?.querySelector('.customify-size-btn');
+      // ✅ Sprawdź początkowy typ produktu z HTML (może być aktywny przycisk canvas)
+      const activeProductTypeBtn = this.productTypeArea?.querySelector('.customify-product-type-btn.active');
+      if (activeProductTypeBtn) {
+        this.selectedProductType = activeProductTypeBtn.dataset.productType;
+        console.log('🎨 [INIT] Detected initial product type from HTML:', this.selectedProductType);
+      }
+      
+      // ✅ Wybierz domyślny rozmiar na podstawie typu produktu
+      let defaultSizeBtn;
+      if (this.selectedProductType === 'canvas') {
+        // Dla "Obraz na płótnie" - A4 (A5 nie jest dostępny)
+        defaultSizeBtn = this.sizeArea?.querySelector('[data-size="a4"]') ||
+                        this.sizeArea?.querySelector('.customify-size-btn:not([data-size="a5"])');
+        console.log('✅ [INIT] Canvas selected - using A4 as default');
+      } else {
+        // Dla "Plakat" - A5 (domyślny)
+        defaultSizeBtn = this.sizeArea?.querySelector('[data-size="a5"]') ||
+                        this.sizeArea?.querySelector('[data-size="a4"]') || 
+                        this.sizeArea?.querySelector('.customify-size-btn');
+        console.log('✅ [INIT] Plakat selected - using A5 as default');
+      }
       
       if (defaultSizeBtn) {
-        // Ustaw domyślny rozmiar (już podświetlony w HTML)
+        // Usuń active z wszystkich rozmiarów
+        this.sizeArea?.querySelectorAll('.customify-size-btn').forEach(btn => btn.classList.remove('active'));
+        // Ustaw domyślny rozmiar jako aktywny
+        defaultSizeBtn.classList.add('active');
         this.selectedSize = defaultSizeBtn.dataset.size;
         
-        console.log('💰 [INIT] Default size selected (highlighted):', this.selectedSize);
+        console.log('💰 [INIT] Default size selected:', this.selectedSize);
+        
+        // ✅ Oznacz A5 jako disabled jeśli canvas jest wybrany
+        if (this.selectedProductType === 'canvas') {
+          const a5Btn = this.sizeArea?.querySelector('[data-size="a5"]');
+          if (a5Btn) {
+            a5Btn.classList.add('disabled');
+            a5Btn.style.opacity = '0.4';
+            a5Btn.style.cursor = 'not-allowed';
+            a5Btn.style.pointerEvents = 'none';
+          }
+        }
         
         // Ustaw początkową cenę bazową (bez rozmiaru)
         this.setInitialPrice();
