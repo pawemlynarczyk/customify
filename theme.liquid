@@ -3035,27 +3035,6 @@
             return active && active.getAttribute('data-product-type') === 'plakat';
           }
 
-          // ============ AKTUALIZACJA LOSOWEJ LICZBY SPRZEDANYCH PRODUKTÓW ============
-          // Funkcja tylko do aktualizacji liczby (element jest już w HTML)
-          function updateSalesCounter() {
-            var salesText = document.getElementById('sales-counter-text');
-            if (!salesText) return;
-            
-            // Funkcja generująca losową liczbę (5-25)
-            function getRandomSales() {
-              return Math.floor(Math.random() * 21) + 5; // 5-25
-            }
-            
-            // Aktualizuj liczbę co 30-60 sekund
-            setInterval(function() {
-              if (salesText) {
-                salesText.textContent = getRandomSales() + ' sprzedane w ostatnich 24 godzinach';
-              }
-            }, 30000 + Math.random() * 30000); // 30-60 sekund
-          }
-
-          // Inicjalizuj aktualizację po załadowaniu DOM
-          setTimeout(updateSalesCounter, 500);
 
           function updateFrameAvailability() {
             var enabled = isPlakatSelected();
@@ -3256,11 +3235,6 @@
           <span class="star">★</span>
           <span class="star">★</span>
           <span style="margin-left: 10px; color: #6c757d; font-weight: 600;">4.9/5 (143 opinii)</span>
-        </div>
-        <!-- Sales Counter - losowa liczba sprzedanych produktów -->
-        <div id="sales-counter" style="margin-top: 8px; font-size: 0.9rem; color: #e55a2b; font-weight: 600; display: flex; align-items: center; gap: 4px;">
-          <span style="font-size: 1rem;">🔥</span>
-          <span id="sales-counter-text">12 sprzedane w ostatnich 24 godzinach</span>
         </div>
       </div>
       

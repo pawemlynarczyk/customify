@@ -1238,6 +1238,36 @@ class CustomifyEmbed {
     // Dodaj do kontenera
     badgesContainer.appendChild(ratingSection);
 
+    // Dodaj Sales Counter - losowa liczba sprzedanych produktów
+    const salesCounter = document.createElement('div');
+    salesCounter.id = 'sales-counter';
+    salesCounter.style.cssText = 'margin-top: 8px; font-size: 0.9rem; color: #e55a2b; font-weight: 600; display: flex; align-items: center; gap: 4px;';
+    
+    const fireEmoji = document.createElement('span');
+    fireEmoji.style.cssText = 'font-size: 1rem;';
+    fireEmoji.textContent = '🔥';
+    
+    const salesText = document.createElement('span');
+    salesText.id = 'sales-counter-text';
+    // Funkcja generująca losową liczbę (5-25)
+    function getRandomSales() {
+      return Math.floor(Math.random() * 21) + 5; // 5-25
+    }
+    salesText.textContent = getRandomSales() + ' sprzedane w ostatnich 24 godzinach';
+    
+    salesCounter.appendChild(fireEmoji);
+    salesCounter.appendChild(salesText);
+    
+    // Dodaj sales counter do kontenera badge'ów
+    badgesContainer.appendChild(salesCounter);
+    
+    // Aktualizuj liczbę co 30-60 sekund
+    setInterval(function() {
+      if (salesText) {
+        salesText.textContent = getRandomSales() + ' sprzedane w ostatnich 24 godzinach';
+      }
+    }, 30000 + Math.random() * 30000); // 30-60 sekund
+
     // DODAJ GWIAZDKI NA POCZĄTEK OPISU (przed tekstem w rte-formatter)
     descriptionElement.insertBefore(badgesContainer, descriptionElement.firstChild);
     
