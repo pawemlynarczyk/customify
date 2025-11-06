@@ -854,9 +854,52 @@
         margin-top: 4px;
       }
 
+      /* Style dla obrazków wizualizacyjnych w akordeon */
+      .accordion-product-visual {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-top: 16px;
+      }
+
+      .accordion-visual-item {
+        background: #fff;
+        border: 2px solid #e5e5e5;
+        border-radius: 12px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+      }
+
+      .accordion-visual-item:hover {
+        border-color: #d32f2f;
+        box-shadow: 0 4px 12px rgba(211, 47, 47, 0.15);
+        transform: translateY(-2px);
+      }
+
+      .accordion-visual-image {
+        width: 100%;
+        height: auto;
+        display: block;
+      }
+
+      .accordion-visual-label {
+        padding: 12px;
+        text-align: center;
+        font-weight: 600;
+        color: #333;
+        font-size: 0.95rem;
+        background: #f8f9fa;
+        border-top: 2px solid #e5e5e5;
+      }
+
       @media (max-width: 768px) {
         .product-details-accordion {
           margin-top: 16px;
+        }
+
+        .accordion-product-visual {
+          grid-template-columns: 1fr;
+          gap: 16px;
         }
 
         .accordion-header {
@@ -2429,6 +2472,19 @@
                   <p><strong>Obraz na płótnie</strong> - wydrukowane na grubym, premium płótnie canvas z naturalną teksturą. Naciągnięte na drewnianą antyramę</p>
                   <br>
                   <p><strong>Plakat</strong> - wydruk na papierze fotograficznym. Możesz wybrać ramkę. Wówczas wydruk będzie w ramce za szkłem.</p>
+                  
+                  <!-- Wizualizacje produktów -->
+                  <div class="accordion-product-visual">
+                    <div class="accordion-visual-item">
+                      <img src="https://customify-s56o.vercel.app/faq/obraz.png" alt="Obraz na płótnie" class="accordion-visual-image">
+                      <div class="accordion-visual-label">🖼️ Obraz na płótnie</div>
+                    </div>
+                    <div class="accordion-visual-item">
+                      <img src="https://customify-s56o.vercel.app/faq/plakat.png" alt="Plakat" class="accordion-visual-image">
+                      <div class="accordion-visual-label">📄 Plakat</div>
+                    </div>
+                  </div>
+                  
                   <br>
                   <p><strong>Gotowe do powieszenia:</strong> Wieszak w zestawie - wystarczy powiesić na ścianie, nic więcej do montażu!</p>
                   <br>
