@@ -3037,24 +3037,35 @@
 
           // ============ LOSOWA LICZBA SPRZEDANYCH PRODUKTÓW ============
           function initSalesCounter() {
-            // Znajdź element ceny
-            var priceElement = document.querySelector('product-price');
-            if (!priceElement) {
-              // Spróbuj innych selektorów
-              priceElement = document.querySelector('.price') || 
-                            document.querySelector('[class*="price"]') ||
-                            document.querySelector('product-price div');
-            }
-            
-            if (!priceElement) {
-              console.log('⚠️ [SALES] Price element not found');
-              return;
-            }
-
             // Sprawdź czy element już istnieje
             var existingCounter = document.getElementById('sales-counter');
             if (existingCounter) {
-              return; // Już istnieje, nie duplikuj
+              // Usuń stary element jeśli istnieje (może być w złym miejscu)
+              existingCounter.remove();
+            }
+
+            // Znajdź element z gwiazdkami (rating) - może być w różnych miejscach
+            var starsElement = document.querySelector('.stars-rating') || 
+                              document.querySelector('.product-badges') ||
+                              document.querySelector('.stars') ||
+                              document.querySelector('.review-count')?.parentElement ||
+                              document.querySelector('[class*="star"]')?.parentElement;
+            
+            // Jeśli nie ma gwiazdek, spróbuj znaleźć element z tekstem "(143)" lub "4.9/5"
+            if (!starsElement) {
+              var allElements = document.querySelectorAll('*');
+              for (var i = 0; i < allElements.length; i++) {
+                var text = allElements[i].textContent || '';
+                if (text.includes('(143)') || text.includes('4.9/5') || text.includes('143 opinii')) {
+                  starsElement = allElements[i];
+                  break;
+                }
+              }
+            }
+
+            if (!starsElement) {
+              console.log('⚠️ [SALES] Stars/rating element not found');
+              return;
             }
 
             // Funkcja generująca losową liczbę (5-25)
@@ -3077,12 +3088,11 @@
             salesCounter.appendChild(fireEmoji);
             salesCounter.appendChild(salesText);
 
-            // Dodaj element po cenie
-            if (priceElement.parentNode) {
-              priceElement.parentNode.insertBefore(salesCounter, priceElement.nextSibling);
+            // Dodaj element po gwiazdkach (lub w kontenerze gwiazdek)
+            if (starsElement.parentNode) {
+              starsElement.parentNode.insertBefore(salesCounter, starsElement.nextSibling);
             } else {
-              // Jeśli nie ma parentNode, dodaj jako sibling
-              priceElement.insertAdjacentElement('afterend', salesCounter);
+              starsElement.insertAdjacentElement('afterend', salesCounter);
             }
 
             // Aktualizuj liczbę co 30-60 sekund
@@ -3092,7 +3102,7 @@
               }
             }, 30000 + Math.random() * 30000); // 30-60 sekund
 
-            console.log('✅ [SALES] Sales counter initialized');
+            console.log('✅ [SALES] Sales counter initialized near stars');
           }
 
           // Inicjalizuj po załadowaniu DOM
