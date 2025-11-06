@@ -3587,6 +3587,52 @@
 
       </div>
     </div>
+    
+    <!-- JavaScript dla accordion na stronie koszyka -->
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        console.log('🛒 [CART] Initializing cart accordion...');
+        
+        // Znajdź wszystkie accordion items na stronie koszyka
+        const accordionItems = document.querySelectorAll('.accordion-item');
+        
+        if (!accordionItems || accordionItems.length === 0) {
+          console.log('⚠️ [CART] No accordion items found');
+          return;
+        }
+        
+        console.log('✅ [CART] Found', accordionItems.length, 'accordion items');
+        
+        // Dodaj event listener do każdego accordion header
+        accordionItems.forEach((item, index) => {
+          const header = item.querySelector('.accordion-header');
+          
+          if (!header) {
+            console.log('⚠️ [CART] No header found for item', index);
+            return;
+          }
+          
+          // Event listener - toggle klasy expanded
+          header.addEventListener('click', () => {
+            const isExpanded = item.classList.contains('expanded');
+            
+            if (isExpanded) {
+              // Zwiń
+              item.classList.remove('expanded');
+              console.log('🔽 [CART] Collapsed:', item.dataset.accordion);
+            } else {
+              // Rozwiń
+              item.classList.add('expanded');
+              console.log('🔼 [CART] Expanded:', item.dataset.accordion);
+            }
+          });
+          
+          console.log('✅ [CART] Accordion item', index, 'setup complete');
+        });
+        
+        console.log('✅ [CART] Cart accordion setup complete!');
+      });
+    </script>
     {% endif %}
     <!-- KONIEC ACCORDION FAQ NA STRONIE KOSZYKA -->
 
