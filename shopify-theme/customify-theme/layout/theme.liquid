@@ -3037,13 +3037,7 @@
 
           // ============ LOSOWA LICZBA SPRZEDANYCH PRODUKTÓW ============
           function initSalesCounter() {
-            // Sprawdź czy element już istnieje
-            var existingCounter = document.getElementById('sales-counter');
-            if (existingCounter) {
-              return; // Już istnieje, nie duplikuj
-            }
-
-            // Znajdź element ceny (może być już przeniesiony)
+            // Znajdź element ceny
             var priceElement = document.querySelector('product-price');
             if (!priceElement) {
               // Spróbuj innych selektorów
@@ -3052,13 +3046,15 @@
                             document.querySelector('product-price div');
             }
             
-            // Jeśli nie ma ceny, spróbuj znaleźć placeholder
-            var pricePlaceholder = document.getElementById('customify-price-placeholder');
-            var targetContainer = pricePlaceholder || priceElement;
-
-            if (!targetContainer) {
-              console.log('⚠️ [SALES] Price element or placeholder not found');
+            if (!priceElement) {
+              console.log('⚠️ [SALES] Price element not found');
               return;
+            }
+
+            // Sprawdź czy element już istnieje
+            var existingCounter = document.getElementById('sales-counter');
+            if (existingCounter) {
+              return; // Już istnieje, nie duplikuj
             }
 
             // Funkcja generująca losową liczbę (5-25)
@@ -3081,14 +3077,10 @@
             salesCounter.appendChild(fireEmoji);
             salesCounter.appendChild(salesText);
 
-            // Dodaj element po cenie (lub w placeholder)
-            if (pricePlaceholder) {
-              // Jeśli jest placeholder, dodaj do niego
-              pricePlaceholder.appendChild(salesCounter);
-            } else if (priceElement && priceElement.parentNode) {
-              // Jeśli jest cena, dodaj po niej
+            // Dodaj element po cenie
+            if (priceElement.parentNode) {
               priceElement.parentNode.insertBefore(salesCounter, priceElement.nextSibling);
-            } else if (priceElement) {
+            } else {
               // Jeśli nie ma parentNode, dodaj jako sibling
               priceElement.insertAdjacentElement('afterend', salesCounter);
             }
@@ -3102,82 +3094,6 @@
 
             console.log('✅ [SALES] Sales counter initialized');
           }
-
-          // ============ PRZENIESIENIE CENY PO ROZMIARACH ============
-          function movePriceAfterSizes() {
-            // Znajdź element ceny
-            var priceElement = document.querySelector('product-price');
-            if (!priceElement) {
-              // Spróbuj innych selektorów
-              priceElement = document.querySelector('.price') || 
-                            document.querySelector('[class*="price"]') ||
-                            document.querySelector('product-price div');
-            }
-            
-            if (!priceElement) {
-              console.log('⚠️ [PRICE-MOVE] Price element not found');
-              return false;
-            }
-
-            // Znajdź element rozmiarów
-            var sizeAreaElement = document.getElementById('sizeArea');
-            if (!sizeAreaElement) {
-              console.log('⚠️ [PRICE-MOVE] Size area not found');
-              return false;
-            }
-
-            // Sprawdź czy cena już nie jest przeniesiona
-            if (priceElement.classList && priceElement.classList.contains('customify-price-moved')) {
-              return true; // Już przeniesiona
-            }
-
-            // Znajdź kontener aplikacji Customify
-            var customifyContainer = document.getElementById('customify-app-container');
-            if (!customifyContainer) {
-              console.log('⚠️ [PRICE-MOVE] Customify container not found');
-              return false;
-            }
-
-            // Utwórz placeholder dla ceny w aplikacji Customify
-            var pricePlaceholder = document.getElementById('customify-price-placeholder');
-            if (!pricePlaceholder) {
-              pricePlaceholder = document.createElement('div');
-              pricePlaceholder.id = 'customify-price-placeholder';
-              pricePlaceholder.style.cssText = 'margin: 15px 0; padding: 10px 0;';
-              
-              // Dodaj placeholder tuż po rozmiarach
-              if (sizeAreaElement.nextSibling) {
-                sizeAreaElement.parentNode.insertBefore(pricePlaceholder, sizeAreaElement.nextSibling);
-              } else {
-                sizeAreaElement.parentNode.appendChild(pricePlaceholder);
-              }
-            }
-
-            // Przenieś cenę do placeholder
-            pricePlaceholder.appendChild(priceElement);
-            
-            // Oznacz jako przeniesioną
-            if (priceElement.classList) {
-              priceElement.classList.add('customify-price-moved');
-            }
-            
-            // Zaktualizuj element z liczbą sprzedanych (jeśli istnieje)
-            var salesCounter = document.getElementById('sales-counter');
-            if (salesCounter && pricePlaceholder) {
-              pricePlaceholder.appendChild(salesCounter);
-            }
-
-            console.log('✅ [PRICE-MOVE] Price moved after sizes');
-            return true;
-          }
-
-          // Inicjalizuj przeniesienie ceny
-          setTimeout(function() {
-            movePriceAfterSizes();
-          }, 500);
-          setTimeout(function() {
-            movePriceAfterSizes();
-          }, 2000);
 
           // Inicjalizuj po załadowaniu DOM
           setTimeout(initSalesCounter, 500);
