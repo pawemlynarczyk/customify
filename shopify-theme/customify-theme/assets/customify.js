@@ -1215,7 +1215,30 @@ class CustomifyEmbed {
     badgesContainer.className = 'product-badges';
     badgesContainer.style.cssText = 'margin-bottom: 16px; display: block;';
 
-    // Dodaj sekcję z gwiazdkami
+    // Dodaj Sales Counter - losowa liczba sprzedanych produktów (NA GÓRZE)
+    const salesCounter = document.createElement('div');
+    salesCounter.id = 'sales-counter';
+    salesCounter.style.cssText = 'margin-bottom: 8px; font-size: 0.9rem; color: #e55a2b; font-weight: 600; display: flex; align-items: center; gap: 4px;';
+    
+    const fireEmoji = document.createElement('span');
+    fireEmoji.style.cssText = 'font-size: 1rem;';
+    fireEmoji.textContent = '🔥';
+    
+    const salesText = document.createElement('span');
+    salesText.id = 'sales-counter-text';
+    // Funkcja generująca losową liczbę (5-25)
+    function getRandomSales() {
+      return Math.floor(Math.random() * 21) + 5; // 5-25
+    }
+    salesText.textContent = getRandomSales() + ' sprzedane w ostatnich 24 godzinach';
+    
+    salesCounter.appendChild(fireEmoji);
+    salesCounter.appendChild(salesText);
+    
+    // Dodaj sales counter NAJPIERW (nad gwiazdkami)
+    badgesContainer.appendChild(salesCounter);
+
+    // Dodaj sekcję z gwiazdkami (PONIŻEJ sales counter)
     const ratingSection = document.createElement('div');
     ratingSection.className = 'rating-section';
 
@@ -1235,31 +1258,8 @@ class CustomifyEmbed {
     ratingSection.appendChild(stars);
     ratingSection.appendChild(reviewCount);
 
-    // Dodaj do kontenera
+    // Dodaj gwiazdki do kontenera (po sales counter)
     badgesContainer.appendChild(ratingSection);
-
-    // Dodaj Sales Counter - losowa liczba sprzedanych produktów
-    const salesCounter = document.createElement('div');
-    salesCounter.id = 'sales-counter';
-    salesCounter.style.cssText = 'margin-top: 8px; font-size: 0.9rem; color: #e55a2b; font-weight: 600; display: flex; align-items: center; gap: 4px;';
-    
-    const fireEmoji = document.createElement('span');
-    fireEmoji.style.cssText = 'font-size: 1rem;';
-    fireEmoji.textContent = '🔥';
-    
-    const salesText = document.createElement('span');
-    salesText.id = 'sales-counter-text';
-    // Funkcja generująca losową liczbę (5-25)
-    function getRandomSales() {
-      return Math.floor(Math.random() * 21) + 5; // 5-25
-    }
-    salesText.textContent = getRandomSales() + ' sprzedane w ostatnich 24 godzinach';
-    
-    salesCounter.appendChild(fireEmoji);
-    salesCounter.appendChild(salesText);
-    
-    // Dodaj sales counter do kontenera badge'ów
-    badgesContainer.appendChild(salesCounter);
     
     // Aktualizuj liczbę co 30-60 sekund
     setInterval(function() {
