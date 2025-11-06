@@ -3035,80 +3035,27 @@
             return active && active.getAttribute('data-product-type') === 'plakat';
           }
 
-          // ============ LOSOWA LICZBA SPRZEDANYCH PRODUKTÓW ============
-          function initSalesCounter() {
-            // Sprawdź czy element już istnieje
-            var existingCounter = document.getElementById('sales-counter');
-            if (existingCounter) {
-              // Usuń stary element jeśli istnieje (może być w złym miejscu)
-              existingCounter.remove();
-            }
-
-            // Znajdź element z gwiazdkami (rating) - może być w różnych miejscach
-            var starsElement = document.querySelector('.stars-rating') || 
-                              document.querySelector('.product-badges') ||
-                              document.querySelector('.stars') ||
-                              document.querySelector('.review-count')?.parentElement ||
-                              document.querySelector('[class*="star"]')?.parentElement;
+          // ============ AKTUALIZACJA LOSOWEJ LICZBY SPRZEDANYCH PRODUKTÓW ============
+          // Funkcja tylko do aktualizacji liczby (element jest już w HTML)
+          function updateSalesCounter() {
+            var salesText = document.getElementById('sales-counter-text');
+            if (!salesText) return;
             
-            // Jeśli nie ma gwiazdek, spróbuj znaleźć element z tekstem "(143)" lub "4.9/5"
-            if (!starsElement) {
-              var allElements = document.querySelectorAll('*');
-              for (var i = 0; i < allElements.length; i++) {
-                var text = allElements[i].textContent || '';
-                if (text.includes('(143)') || text.includes('4.9/5') || text.includes('143 opinii')) {
-                  starsElement = allElements[i];
-                  break;
-                }
-              }
-            }
-
-            if (!starsElement) {
-              console.log('⚠️ [SALES] Stars/rating element not found');
-              return;
-            }
-
             // Funkcja generująca losową liczbę (5-25)
             function getRandomSales() {
               return Math.floor(Math.random() * 21) + 5; // 5-25
             }
-
-            // Utwórz element z liczbą sprzedanych
-            var salesCounter = document.createElement('div');
-            salesCounter.id = 'sales-counter';
-            salesCounter.style.cssText = 'margin-top: 8px; font-size: 0.9rem; color: #e55a2b; font-weight: 600; display: flex; align-items: center; gap: 4px;';
             
-            var fireEmoji = document.createElement('span');
-            fireEmoji.textContent = '🔥';
-            fireEmoji.style.cssText = 'font-size: 1rem;';
-            
-            var salesText = document.createElement('span');
-            salesText.textContent = getRandomSales() + ' sprzedane w ostatnich 24 godzinach';
-            
-            salesCounter.appendChild(fireEmoji);
-            salesCounter.appendChild(salesText);
-
-            // Dodaj element po gwiazdkach (lub w kontenerze gwiazdek)
-            if (starsElement.parentNode) {
-              starsElement.parentNode.insertBefore(salesCounter, starsElement.nextSibling);
-            } else {
-              starsElement.insertAdjacentElement('afterend', salesCounter);
-            }
-
             // Aktualizuj liczbę co 30-60 sekund
             setInterval(function() {
               if (salesText) {
                 salesText.textContent = getRandomSales() + ' sprzedane w ostatnich 24 godzinach';
               }
             }, 30000 + Math.random() * 30000); // 30-60 sekund
-
-            console.log('✅ [SALES] Sales counter initialized near stars');
           }
 
-          // Inicjalizuj po załadowaniu DOM
-          setTimeout(initSalesCounter, 500);
-          // Również spróbuj po dłuższym czasie (na wypadek dynamicznego ładowania)
-          setTimeout(initSalesCounter, 2000);
+          // Inicjalizuj aktualizację po załadowaniu DOM
+          setTimeout(updateSalesCounter, 500);
 
           function updateFrameAvailability() {
             var enabled = isPlakatSelected();
@@ -3309,6 +3256,11 @@
           <span class="star">★</span>
           <span class="star">★</span>
           <span style="margin-left: 10px; color: #6c757d; font-weight: 600;">4.9/5 (143 opinii)</span>
+        </div>
+        <!-- Sales Counter - losowa liczba sprzedanych produktów -->
+        <div id="sales-counter" style="margin-top: 8px; font-size: 0.9rem; color: #e55a2b; font-weight: 600; display: flex; align-items: center; gap: 4px;">
+          <span style="font-size: 1rem;">🔥</span>
+          <span id="sales-counter-text">12 sprzedane w ostatnich 24 godzinach</span>
         </div>
       </div>
       
