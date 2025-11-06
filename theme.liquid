@@ -3035,6 +3035,71 @@
             return active && active.getAttribute('data-product-type') === 'plakat';
           }
 
+          // ============ LOSOWA LICZBA SPRZEDANYCH PRODUKTÓW ============
+          function initSalesCounter() {
+            // Znajdź element ceny
+            var priceElement = document.querySelector('product-price');
+            if (!priceElement) {
+              // Spróbuj innych selektorów
+              priceElement = document.querySelector('.price') || 
+                            document.querySelector('[class*="price"]') ||
+                            document.querySelector('product-price div');
+            }
+            
+            if (!priceElement) {
+              console.log('⚠️ [SALES] Price element not found');
+              return;
+            }
+
+            // Sprawdź czy element już istnieje
+            var existingCounter = document.getElementById('sales-counter');
+            if (existingCounter) {
+              return; // Już istnieje, nie duplikuj
+            }
+
+            // Funkcja generująca losową liczbę (5-25)
+            function getRandomSales() {
+              return Math.floor(Math.random() * 21) + 5; // 5-25
+            }
+
+            // Utwórz element z liczbą sprzedanych
+            var salesCounter = document.createElement('div');
+            salesCounter.id = 'sales-counter';
+            salesCounter.style.cssText = 'margin-top: 8px; font-size: 0.9rem; color: #e55a2b; font-weight: 600; display: flex; align-items: center; gap: 4px;';
+            
+            var fireEmoji = document.createElement('span');
+            fireEmoji.textContent = '🔥';
+            fireEmoji.style.cssText = 'font-size: 1rem;';
+            
+            var salesText = document.createElement('span');
+            salesText.textContent = getRandomSales() + ' sprzedane w ostatnich 24 godzinach';
+            
+            salesCounter.appendChild(fireEmoji);
+            salesCounter.appendChild(salesText);
+
+            // Dodaj element po cenie
+            if (priceElement.parentNode) {
+              priceElement.parentNode.insertBefore(salesCounter, priceElement.nextSibling);
+            } else {
+              // Jeśli nie ma parentNode, dodaj jako sibling
+              priceElement.insertAdjacentElement('afterend', salesCounter);
+            }
+
+            // Aktualizuj liczbę co 30-60 sekund
+            setInterval(function() {
+              if (salesText) {
+                salesText.textContent = getRandomSales() + ' sprzedane w ostatnich 24 godzinach';
+              }
+            }, 30000 + Math.random() * 30000); // 30-60 sekund
+
+            console.log('✅ [SALES] Sales counter initialized');
+          }
+
+          // Inicjalizuj po załadowaniu DOM
+          setTimeout(initSalesCounter, 500);
+          // Również spróbuj po dłuższym czasie (na wypadek dynamicznego ładowania)
+          setTimeout(initSalesCounter, 2000);
+
           function updateFrameAvailability() {
             var enabled = isPlakatSelected();
             if (frameSelector) {
