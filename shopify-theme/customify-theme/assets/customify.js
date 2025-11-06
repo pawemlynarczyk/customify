@@ -1274,8 +1274,8 @@ class CustomifyEmbed {
     // DODAJ MARGINES DO TEKSTU OPISU (aby gwiazdki i sales counter nie zasłaniały)
     const descriptionText = descriptionElement.querySelector('p, .p1');
     if (descriptionText) {
-      descriptionText.style.setProperty('margin-top', '48px', 'important');
-      console.log('✅ [CUSTOMIFY] Margines dodany do tekstu opisu: 48px');
+      descriptionText.style.setProperty('margin-top', '80px', 'important');
+      console.log('✅ [CUSTOMIFY] Margines dodany do tekstu opisu: 80px');
     }
     
     console.log('✅ [CUSTOMIFY] Gwiazdki dodane do opisu produktu');
