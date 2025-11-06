@@ -856,10 +856,10 @@
 
       /* Style dla obrazków wizualizacyjnych w akordeon */
       .accordion-product-visual {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 20px;
-        margin-top: 16px;
+        display: flex;
+        justify-content: center;
+        margin: 16px auto;
+        max-width: 400px;
       }
 
       .accordion-visual-item {
@@ -868,6 +868,7 @@
         border-radius: 12px;
         overflow: hidden;
         transition: all 0.3s ease;
+        width: 100%;
       }
 
       .accordion-visual-item:hover {
@@ -898,8 +899,7 @@
         }
 
         .accordion-product-visual {
-          grid-template-columns: 1fr;
-          gap: 16px;
+          max-width: 100%;
         }
 
         .accordion-header {
@@ -2470,15 +2470,20 @@
                 </div>
                 <div class="accordion-content">
                   <p><strong>Obraz na płótnie</strong> - wydrukowane na grubym, premium płótnie canvas z naturalną teksturą. Naciągnięte na drewnianą antyramę</p>
-                  <br>
-                  <p><strong>Plakat</strong> - wydruk na papierze fotograficznym. Możesz wybrać ramkę. Wówczas wydruk będzie w ramce za szkłem.</p>
                   
-                  <!-- Wizualizacje produktów -->
+                  <!-- Wizualizacja: Obraz na płótnie -->
                   <div class="accordion-product-visual">
                     <div class="accordion-visual-item">
                       <img src="https://customify-s56o.vercel.app/faq/obraz.png" alt="Obraz na płótnie" class="accordion-visual-image">
                       <div class="accordion-visual-label">🖼️ Obraz na płótnie</div>
                     </div>
+                  </div>
+                  
+                  <br>
+                  <p><strong>Plakat</strong> - wydruk na papierze fotograficznym. Możesz wybrać ramkę. Wówczas wydruk będzie w ramce za szkłem.</p>
+                  
+                  <!-- Wizualizacja: Plakat -->
+                  <div class="accordion-product-visual">
                     <div class="accordion-visual-item">
                       <img src="https://customify-s56o.vercel.app/faq/plakat.png" alt="Plakat" class="accordion-visual-image">
                       <div class="accordion-visual-label">📄 Plakat</div>
