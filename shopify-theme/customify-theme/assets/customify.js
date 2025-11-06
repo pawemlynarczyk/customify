@@ -1271,11 +1271,11 @@ class CustomifyEmbed {
     // DODAJ GWIAZDKI NA POCZĄTEK OPISU (przed tekstem w rte-formatter)
     descriptionElement.insertBefore(badgesContainer, descriptionElement.firstChild);
     
-    // DODAJ MARGINES DO TEKSTU OPISU (aby gwiazdki nie zasłaniały)
+    // DODAJ MARGINES DO TEKSTU OPISU (aby gwiazdki i sales counter nie zasłaniały)
     const descriptionText = descriptionElement.querySelector('p, .p1');
     if (descriptionText) {
-      descriptionText.style.setProperty('margin-top', '24px', 'important');
-      console.log('✅ [CUSTOMIFY] Margines dodany do tekstu opisu: 24px');
+      descriptionText.style.setProperty('margin-top', '48px', 'important');
+      console.log('✅ [CUSTOMIFY] Margines dodany do tekstu opisu: 48px');
     }
     
     console.log('✅ [CUSTOMIFY] Gwiazdki dodane do opisu produktu');
