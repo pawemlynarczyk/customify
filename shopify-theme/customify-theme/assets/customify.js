@@ -1,7 +1,6 @@
 /**
  * CUSTOMIFY AI PHOTO CUSTOMIZATION
  * Clean JavaScript implementation for Shopify theme integration
- * v2.0 - Added analytics & error tracking system
  */
 
 
@@ -25,31 +24,19 @@ class CustomifyEmbed {
     this.uploadedFile = null;
     this.selectedStyle = null;
     this.selectedSize = null;
-    this.selectedProductType = 'plakat'; // Domyślny wybór: Plakat
+    this.selectedProductType = 'canvas'; // Domyślny wybór: Obraz na płótnie
     this.transformedImage = null;
     
     this.init();
-    // Udostępnij instancję globalnie do przeliczeń z UI ramki
+
+    // Udostępnij instancję globalnie do aktualizacji ceny z zewnątrz (np. wybór ramki)
     window.__customify = this;
   }
 
-
   init() {
-    // Walidacja wszystkich wymaganych elementów
-    const uploadArea = document.getElementById('uploadArea');
-    const fileInput = document.getElementById('fileInput');
-    
-    if (!uploadArea) {
-      console.error('❌ [CUSTOMIFY] uploadArea element not found in DOM!');
+    if (!document.getElementById('uploadArea')) {
       return; // Jeśli nie ma elementów, nie rób nic
     }
-    
-    if (!fileInput) {
-      console.error('❌ [CUSTOMIFY] fileInput element not found in DOM! Check if theme.liquid has: <input type="file" id="fileInput">');
-      return;
-    }
-    
-    console.log('✅ [CUSTOMIFY] All required elements found, setting up event listeners');
     this.setupEventListeners();
     this.positionApp();
     this.showStyles(); // Pokaż style od razu
@@ -71,6 +58,26 @@ class CustomifyEmbed {
     
     // 💰 CENA: Ustaw domyślny rozmiar i aktualizuj cenę
     this.initializeDefaultPrice();
+
+    // 🎯 SYNC: Zsynchronizuj początkowy typ produktu i rozmiar z aktywnymi przyciskami w DOM
+    try {
+      const activeTypeBtn = document.querySelector('.customify-product-type-btn.active');
+      if (activeTypeBtn && activeTypeBtn.dataset.productType) {
+        this.selectedProductType = activeTypeBtn.dataset.productType;
+        console.log('🔄 [INIT] Synced selectedProductType from DOM:', this.selectedProductType);
+      }
+      const activeSizeBtn = document.querySelector('.customify-size-btn.active');
+      if (activeSizeBtn && activeSizeBtn.dataset.size) {
+        this.selectedSize = activeSizeBtn.dataset.size;
+        console.log('🔄 [INIT] Synced selectedSize from DOM:', this.selectedSize);
+      }
+    } catch(e) {
+      console.warn('⚠️ [INIT] Failed to sync initial selections from DOM:', e);
+    }
+
+    // Po synchronizacji wymuś przeliczenie cen (uwzględnia ramkę, jeśli plakat)
+    this.updateProductPrice();
+    this.updateCartPrice();
   }
   
 
@@ -1215,30 +1222,7 @@ class CustomifyEmbed {
     badgesContainer.className = 'product-badges';
     badgesContainer.style.cssText = 'margin-bottom: 16px; display: block;';
 
-    // Dodaj Sales Counter - losowa liczba sprzedanych produktów (NA GÓRZE)
-    const salesCounter = document.createElement('div');
-    salesCounter.id = 'sales-counter';
-    salesCounter.style.cssText = 'margin-bottom: 8px; font-size: 0.9rem; color: #e55a2b; font-weight: 600; display: flex; align-items: center; gap: 4px;';
-    
-    const fireEmoji = document.createElement('span');
-    fireEmoji.style.cssText = 'font-size: 1rem;';
-    fireEmoji.textContent = '🔥';
-    
-    const salesText = document.createElement('span');
-    salesText.id = 'sales-counter-text';
-    // Funkcja generująca losową liczbę (5-25)
-    function getRandomSales() {
-      return Math.floor(Math.random() * 21) + 5; // 5-25
-    }
-    salesText.textContent = getRandomSales() + ' sprzedane w ostatnich 24 godzinach';
-    
-    salesCounter.appendChild(fireEmoji);
-    salesCounter.appendChild(salesText);
-    
-    // Dodaj sales counter NAJPIERW (nad gwiazdkami)
-    badgesContainer.appendChild(salesCounter);
-
-    // Dodaj sekcję z gwiazdkami (PONIŻEJ sales counter)
+    // Dodaj sekcję z gwiazdkami
     const ratingSection = document.createElement('div');
     ratingSection.className = 'rating-section';
 
@@ -1258,48 +1242,24 @@ class CustomifyEmbed {
     ratingSection.appendChild(stars);
     ratingSection.appendChild(reviewCount);
 
-    // Dodaj gwiazdki do kontenera (po sales counter)
+    // Dodaj do kontenera
     badgesContainer.appendChild(ratingSection);
-    
-    // Aktualizuj liczbę co 30-60 sekund
-    setInterval(function() {
-      if (salesText) {
-        salesText.textContent = getRandomSales() + ' sprzedane w ostatnich 24 godzinach';
-      }
-    }, 30000 + Math.random() * 30000); // 30-60 sekund
 
     // DODAJ GWIAZDKI NA POCZĄTEK OPISU (przed tekstem w rte-formatter)
     descriptionElement.insertBefore(badgesContainer, descriptionElement.firstChild);
     
-    // DODAJ MARGINES DO TEKSTU OPISU (aby gwiazdki i sales counter nie zasłaniały)
+    // DODAJ MARGINES DO TEKSTU OPISU (aby gwiazdki nie zasłaniały)
     const descriptionText = descriptionElement.querySelector('p, .p1');
     if (descriptionText) {
-      descriptionText.style.setProperty('margin-top', '80px', 'important');
-      console.log('✅ [CUSTOMIFY] Margines dodany do tekstu opisu: 80px');
+      descriptionText.style.setProperty('margin-top', '24px', 'important');
+      console.log('✅ [CUSTOMIFY] Margines dodany do tekstu opisu: 24px');
     }
     
     console.log('✅ [CUSTOMIFY] Gwiazdki dodane do opisu produktu');
   }
 
   setupEventListeners() {
-    // Sprawdź czy fileInput istnieje przed użyciem
-    if (!this.fileInput) {
-      console.error('❌ [CUSTOMIFY] fileInput element not found!');
-      return;
-    }
-    
-    if (!this.uploadArea) {
-      console.error('❌ [CUSTOMIFY] uploadArea element not found!');
-      return;
-    }
-    
-    this.uploadArea.addEventListener('click', () => {
-      if (this.fileInput) {
-        this.fileInput.click();
-      } else {
-        console.error('❌ [CUSTOMIFY] fileInput is null when trying to click');
-      }
-    });
+    this.uploadArea.addEventListener('click', () => this.fileInput.click());
     this.fileInput.addEventListener('change', (e) => this.handleFileSelect(e.target.files[0]));
     
     this.uploadArea.addEventListener('dragover', (e) => {
@@ -1385,12 +1345,13 @@ class CustomifyEmbed {
       // Walidacja rozdzielczości obrazu
       const img = new Image();
       img.onload = () => {
-        // Minimalna rozdzielczość: 600x600px dla wszystkich produktów
-        const minWidth = 600;
-        const minHeight = 600;
+        // Wykryj typ produktu - koty mają niższy limit
+        const isCatProduct = window.location.pathname.includes('koty-krolewskie');
+        const minWidth = isCatProduct ? 600 : 768;
+        const minHeight = isCatProduct ? 600 : 768;
         
         console.log(`🖼️ [IMAGE] Rozdzielczość: ${img.width}×${img.height}`);
-        console.log(`🖼️ [IMAGE] Minimalna rozdzielczość: ${minWidth}×${minHeight}px`);
+        console.log(`🖼️ [IMAGE] Produkt: ${isCatProduct ? 'Koty (600px min)' : 'Inne (768px min)'}`);
         
         // Sprawdź minimalną rozdzielczość
         if (img.width < minWidth || img.height < minHeight) {
@@ -1450,20 +1411,6 @@ class CustomifyEmbed {
   }
 
   selectSize(sizeBtn) {
-    // ✅ Sprawdź czy rozmiar jest nieaktywny
-    if (sizeBtn.classList.contains('disabled')) {
-      console.log('⚠️ [SIZE] Rozmiar jest nieaktywny dla tego typu produktu');
-      this.showError('Ten rozmiar nie jest dostępny dla wybranego rodzaju wydruku.');
-      return; // Nie pozwól na wybór nieaktywnego rozmiaru
-    }
-    
-    // ✅ WALIDACJA: A5 (15×20 cm) nie jest dostępny dla "Obraz na płótnie"
-    if (sizeBtn.dataset.size === 'a5' && this.selectedProductType === 'canvas') {
-      console.log('❌ [SIZE] A5 size selected for canvas - blocking');
-      this.showError('Rozmiar 15×20 cm jest dostępny tylko dla Plakatu. Wybierz inny rozmiar lub zmień rodzaj wydruku na Plakat.');
-      return;
-    }
-    
     this.sizeArea.querySelectorAll('.customify-size-btn').forEach(btn => btn.classList.remove('active'));
     sizeBtn.classList.add('active');
     this.selectedSize = sizeBtn.dataset.size;
@@ -1479,103 +1426,14 @@ class CustomifyEmbed {
     typeBtn.classList.add('active');
     this.selectedProductType = typeBtn.dataset.productType;
     console.log('🎨 [PRODUCT-TYPE] Selected product type:', this.selectedProductType);
-    
-    // ✅ WALIDACJA: Sprawdź czy sizeArea istnieje, jeśli nie - znajdź ponownie
-    if (!this.sizeArea) {
-      console.warn('⚠️ [PRODUCT-TYPE] sizeArea is null, trying to find it again...');
-      this.sizeArea = document.getElementById('sizeArea');
-      if (!this.sizeArea) {
-        console.error('❌ [PRODUCT-TYPE] sizeArea not found in DOM!');
-        return;
-      }
-      console.log('✅ [PRODUCT-TYPE] sizeArea found after retry:', this.sizeArea);
-    } else {
-      console.log('✅ [PRODUCT-TYPE] sizeArea found:', this.sizeArea);
-    }
-    
-    // ✅ Pobierz wszystkie przyciski rozmiaru
-    const sizeBtns = this.sizeArea.querySelectorAll('.customify-size-btn');
-    console.log('✅ [PRODUCT-TYPE] Found size buttons:', sizeBtns.length);
-    
-    // ✅ NAJPIERW: Usuń active ze WSZYSTKICH rozmiarów (czysty start)
-    sizeBtns.forEach(btn => btn.classList.remove('active'));
-    
-    // ✅ AUTOMATYCZNA ZMIANA NA A4 gdy wybrano "Obraz na płótnie"
-    // ZAWSZE ustaw A4 jako aktywny dla canvas - BEZ WARUNKÓW!
-    if (this.selectedProductType === 'canvas') {
-      const a4Btn = this.sizeArea.querySelector('[data-size="a4"]');
-      const a5Btn = this.sizeArea.querySelector('[data-size="a5"]');
-      
-      // ✅ Oznacz A5 jako nieaktywny (disabled)
-      if (a5Btn) {
-        a5Btn.classList.add('disabled');
-        a5Btn.style.opacity = '0.4';
-        a5Btn.style.cursor = 'not-allowed';
-        a5Btn.style.pointerEvents = 'none';
-        a5Btn.classList.remove('active'); // ✅ Upewnij się że A5 nie jest aktywny
-        console.log('🚫 [PRODUCT-TYPE] A5 disabled for canvas');
-      }
-      
-      // ✅ ZAWSZE: Ustaw A4 jako aktywny i widoczny
-      if (a4Btn) {
-        a4Btn.classList.remove('disabled'); // ✅ Upewnij się że A4 nie jest disabled
-        a4Btn.style.opacity = '1';
-        a4Btn.style.cursor = 'pointer';
-        a4Btn.style.pointerEvents = 'auto';
-        a4Btn.classList.add('active'); // ✅ Aktywny = widoczny dla użytkownika
-        this.selectedSize = 'a4'; // ✅ ZAWSZE ustaw selectedSize na A4
-        
-        console.log('✅ [PRODUCT-TYPE] Canvas selected - A4 set as active and visible');
-        console.log('✅ [PRODUCT-TYPE] A4 button classes:', a4Btn.className);
-        console.log('✅ [PRODUCT-TYPE] this.selectedSize:', this.selectedSize);
-        
-        // ✅ Wymuś odświeżenie UI (żeby użytkownik widział zmianę)
-        requestAnimationFrame(() => {
-          a4Btn.style.transform = 'scale(1)';
-          a4Btn.style.display = ''; // ✅ Upewnij się że A4 jest widoczny
-          console.log('✅ [PRODUCT-TYPE] UI refreshed - A4 should be visible now');
-        });
-      } else {
-        console.error('❌ [PRODUCT-TYPE] A4 button not found!');
-      }
-    } else {
-      // ✅ Dla "Plakat" - przywróć A5 jako dostępny i ZAWSZE ustaw A5 jako aktywny
-      const a5Btn = this.sizeArea.querySelector('[data-size="a5"]');
-      const a4Btn = this.sizeArea.querySelector('[data-size="a4"]');
-      
-      // ✅ Przywróć A5 jako dostępny
-      if (a5Btn) {
-        a5Btn.classList.remove('disabled');
-        a5Btn.style.opacity = '1';
-        a5Btn.style.cursor = 'pointer';
-        a5Btn.style.pointerEvents = 'auto';
-      }
-      
-      // ✅ ZAWSZE: Ustaw A5 jako aktywny dla plakatu (bez względu na poprzedni wybór)
-      if (a5Btn) {
-        a5Btn.classList.add('active'); // ✅ Aktywny = widoczny dla użytkownika
-        this.selectedSize = 'a5'; // ✅ ZAWSZE ustaw selectedSize na A5 dla plakatu
-        
-        console.log('✅ [PRODUCT-TYPE] Plakat selected - A5 set as active and visible');
-        console.log('✅ [PRODUCT-TYPE] A5 button classes:', a5Btn.className);
-        console.log('✅ [PRODUCT-TYPE] this.selectedSize:', this.selectedSize);
-        
-        // ✅ Wymuś odświeżenie UI (żeby użytkownik widział zmianę)
-        requestAnimationFrame(() => {
-          a5Btn.style.transform = 'scale(1)';
-          a5Btn.style.display = ''; // ✅ Upewnij się że A5 jest widoczny
-          console.log('✅ [PRODUCT-TYPE] UI refreshed - A5 should be visible now');
-        });
-      } else {
-        console.error('❌ [PRODUCT-TYPE] A5 button not found!');
-      }
-    }
-    
-    // ✅ Aktualizuj cenę po wyborze typu produktu (zawsze, bo rozmiar może się zmienić)
-    if (this.selectedSize) {
-      this.updateProductPrice();
-      this.updateCartPrice();
-    }
+
+    // Aktualizuj ceny po zmianie typu (ramka dostępna tylko dla plakatu)
+    this.updateProductPrice();
+    this.updateCartPrice();
+    console.log('🖼️ [FRAME] Type changed -> recalculated price with frame:', {
+      selectedProductType: this.selectedProductType,
+      frame: window.CustomifyFrame?.color || 'none'
+    });
   }
 
   /**
@@ -1614,6 +1472,13 @@ class CustomifyEmbed {
         if (cartPriceElement) {
           cartPriceElement.textContent = `${finalPrice.toFixed(2)} zł`;
           console.log('✅ [CART-PRICE] Cart price updated:', finalPrice.toFixed(2), 'zł');
+          console.log('🖼️ [FRAME] Cart price components:', {
+            base: this.originalBasePrice,
+            sizePrice,
+            frameSelected,
+            frame: window.CustomifyFrame?.color || 'none',
+            frameSurcharge
+          });
 
           // Pokaż element ceny
           this.showCartPrice();
@@ -1752,7 +1617,15 @@ class CustomifyEmbed {
       // Aktualizuj cenę na stronie
       priceElement.textContent = `${finalPrice.toFixed(2)} zł`;
       
-      console.log(`💰 [PRICE] Updated: ${this.originalBasePrice} + ${sizePrice} = ${finalPrice} zł`);
+      console.log(`💰 [PRICE] Updated: base ${this.originalBasePrice} + size ${sizePrice} + frame ${frameSurcharge} = ${finalPrice} zł`);
+      console.log('🖼️ [FRAME] Product price components:', {
+        base: this.originalBasePrice,
+        sizePrice,
+        frameSelected,
+        frame: window.CustomifyFrame?.color || 'none',
+        frameSurcharge,
+        finalPrice
+      });
       
     } catch (error) {
       console.error('❌ [PRICE] Error updating product price:', error);
@@ -1772,32 +1645,13 @@ class CustomifyEmbed {
    * Zwraca cenę dla wybranego rozmiaru
    */
   getSizePrice(size) {
-    // ✅ Logika cen na podstawie typu produktu (Plakat vs Obraz na płótnie)
-    
-    // Plakat (poster) - niższe ceny (zgodnie z tabelą)
-    const plakatPrices = {
-      'a5': 0,    // 15×20 cm - base price
-      'a4': 29,   // 20×30 cm
-      'a3': 59,   // 30×40 cm
-      'a2': 69,   // 40×60 cm
-      'a1': 99    // 60×85 cm
+    const prices = {
+      'a4': 49,
+      'a3': 99,
+      'a2': 149,
+      'a1': 199
     };
-    
-    // Obraz na płótnie (canvas) - wyższe ceny (zgodnie z tabelą)
-    const obrazPrices = {
-      'a5': null, // 15×20 cm - nieaktywne
-      'a4': 49,   // 20×30 cm
-      'a3': 99,   // 30×40 cm
-      'a2': 149,  // 40×60 cm
-      'a1': 199   // 60×85 cm
-    };
-    
-    // Użyj cen zależnie od wybranego typu produktu
-    if (this.selectedProductType === 'plakat') {
-      return plakatPrices[size] || 0;
-    } else {
-      return obrazPrices[size] || 0;
-    }
+    return prices[size] || 0;
   }
 
   /**
@@ -1805,7 +1659,6 @@ class CustomifyEmbed {
    */
   getSizeDimension(size) {
     const dimensions = {
-      'a5': '15×20 cm',
       'a4': '20×30 cm',
       'a3': '30×40 cm', 
       'a2': '40×60 cm',
@@ -1819,47 +1672,16 @@ class CustomifyEmbed {
    */
   initializeDefaultPrice() {
     try {
-      // ✅ Sprawdź początkowy typ produktu z HTML (może być aktywny przycisk canvas)
-      const activeProductTypeBtn = this.productTypeArea?.querySelector('.customify-product-type-btn.active');
-      if (activeProductTypeBtn) {
-        this.selectedProductType = activeProductTypeBtn.dataset.productType;
-        console.log('🎨 [INIT] Detected initial product type from HTML:', this.selectedProductType);
-      }
-      
-      // ✅ Wybierz domyślny rozmiar na podstawie typu produktu
-      let defaultSizeBtn;
-      if (this.selectedProductType === 'canvas') {
-        // Dla "Obraz na płótnie" - A4 (A5 nie jest dostępny)
-        defaultSizeBtn = this.sizeArea?.querySelector('[data-size="a4"]') ||
-                        this.sizeArea?.querySelector('.customify-size-btn:not([data-size="a5"])');
-        console.log('✅ [INIT] Canvas selected - using A4 as default');
-      } else {
-        // Dla "Plakat" - A5 (domyślny)
-        defaultSizeBtn = this.sizeArea?.querySelector('[data-size="a5"]') ||
-                        this.sizeArea?.querySelector('[data-size="a4"]') || 
-                        this.sizeArea?.querySelector('.customify-size-btn');
-        console.log('✅ [INIT] Plakat selected - using A5 as default');
-      }
+      // Znajdź pierwszy dostępny rozmiar (domyślnie A4)
+      const defaultSizeBtn = this.sizeArea?.querySelector('[data-size="a4"]') || 
+                            this.sizeArea?.querySelector('.customify-size-btn');
       
       if (defaultSizeBtn) {
-        // Usuń active z wszystkich rozmiarów
-        this.sizeArea?.querySelectorAll('.customify-size-btn').forEach(btn => btn.classList.remove('active'));
-        // Ustaw domyślny rozmiar jako aktywny
-        defaultSizeBtn.classList.add('active');
+        // Ustaw domyślny rozmiar (bez podświetlania)
         this.selectedSize = defaultSizeBtn.dataset.size;
+        // defaultSizeBtn.classList.add('active'); // USUNIĘTO - żaden rozmiar nie jest podświetlony domyślnie
         
-        console.log('💰 [INIT] Default size selected:', this.selectedSize);
-        
-        // ✅ Oznacz A5 jako disabled jeśli canvas jest wybrany
-        if (this.selectedProductType === 'canvas') {
-          const a5Btn = this.sizeArea?.querySelector('[data-size="a5"]');
-          if (a5Btn) {
-            a5Btn.classList.add('disabled');
-            a5Btn.style.opacity = '0.4';
-            a5Btn.style.cursor = 'not-allowed';
-            a5Btn.style.pointerEvents = 'none';
-          }
-        }
+        console.log('💰 [INIT] Default size selected (no highlight):', this.selectedSize);
         
         // Ustaw początkową cenę bazową (bez rozmiaru)
         this.setInitialPrice();
@@ -2117,10 +1939,14 @@ class CustomifyEmbed {
     try {
       const watermarkedImage = await this.addWatermark(imageUrl);
       this.resultImage.src = watermarkedImage;
-      console.log('🎨 [CUSTOMIFY] Watermark dodany do podglądu');
+      
+      // ✅ ZAPISZ OBRAZEK Z WATERMARKIEM (do użycia w koszyku)
+      this.watermarkedImage = watermarkedImage;
+      console.log('🎨 [CUSTOMIFY] Watermark dodany do podglądu i zapisany');
     } catch (error) {
       console.error('❌ [CUSTOMIFY] Watermark error:', error);
       this.resultImage.src = imageUrl;
+      this.watermarkedImage = null;
     }
     
     this.resultArea.style.display = 'block';
@@ -2164,27 +1990,11 @@ class CustomifyEmbed {
       this.showError('Nie wybrałeś rozmiaru');
       return;
     }
-    
-    // ✅ WALIDACJA: A5 (15×20 cm) nie jest dostępny dla "Obraz na płótnie"
-    if (this.selectedSize === 'a5' && this.selectedProductType === 'canvas') {
-      console.log('❌ [CUSTOMIFY] A5 size selected for canvas - blocking');
-      this.showError('Rozmiar 15×20 cm jest dostępny tylko dla Plakatu. Wybierz inny rozmiar lub zmień rodzaj wydruku na Plakat.');
-      return;
-    }
-    
     console.log('✅ [CUSTOMIFY] selectedSize OK, proceeding with price calculation');
 
     // ✅ OBLICZ CENĘ NAJPIERW - niezależnie od obrazu AI
     const basePrice = this.originalBasePrice || 49.00;
     const sizePrice = this.getSizePrice(this.selectedSize);
-    
-    // ✅ WALIDACJA: Sprawdź czy sizePrice jest prawidłowy (nie null dla nieaktywnych rozmiarów)
-    if (sizePrice === null || sizePrice === undefined || isNaN(sizePrice)) {
-      console.log('❌ [CUSTOMIFY] Invalid sizePrice for size:', this.selectedSize, 'productType:', this.selectedProductType);
-      this.showError('Wybrany rozmiar nie jest dostępny dla tego rodzaju wydruku. Wybierz inny rozmiar.');
-      return;
-    }
-    
     const frameSelected = (this.selectedProductType === 'plakat') && (window.CustomifyFrame && window.CustomifyFrame.color && window.CustomifyFrame.color !== 'none');
     const frameSurcharge = frameSelected ? 29 : 0;
     const finalPrice = basePrice + sizePrice + frameSurcharge;
@@ -2246,9 +2056,36 @@ class CustomifyEmbed {
         console.warn('⚠️ [CUSTOMIFY] No original image available, using transformed image as fallback');
       }
 
+      // ✅ UPLOAD OBRAZKA Z WATERMARKIEM NA VERCEL BLOB
+      let watermarkedImageUrl = null;
+      if (this.watermarkedImage) {
+        console.log('📤 [CUSTOMIFY] Uploading watermarked image to Vercel Blob...');
+        try {
+          const watermarkUploadResponse = await fetch('https://customify-s56o.vercel.app/api/upload-temp-image', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              imageData: this.watermarkedImage,
+              filename: `watermarked-${Date.now()}.jpg`
+            })
+          });
+          
+          const watermarkUploadResult = await watermarkUploadResponse.json();
+          if (watermarkUploadResult.success) {
+            watermarkedImageUrl = watermarkUploadResult.url;
+            console.log('✅ [CUSTOMIFY] Watermarked image uploaded:', watermarkedImageUrl);
+          } else {
+            console.error('❌ [CUSTOMIFY] Failed to upload watermarked image:', watermarkUploadResult.error);
+          }
+        } catch (error) {
+          console.error('❌ [CUSTOMIFY] Error uploading watermarked image:', error);
+        }
+      }
+
       const productData = {
         originalImage: originalImage,
         transformedImage: this.transformedImage,
+        watermarkedImage: watermarkedImageUrl, // ✅ URL obrazka z watermarkiem
         style: this.selectedStyle,
         size: this.selectedSize,
         productType: this.selectedProductType || 'canvas', // Rodzaj wydruku: plakat lub canvas
@@ -2289,41 +2126,24 @@ class CustomifyEmbed {
           
           // NAPRAWIONA METODA: Użyj bezpośredniego przekierowania zamiast formularza
           const productTypeName = this.selectedProductType === 'plakat' ? 'Plakat' : 'Obraz na płótnie';
-          // Wylicz opis ramki do właściwości koszyka
-          const selectedFrame = (this.selectedProductType === 'plakat' && window.CustomifyFrame && window.CustomifyFrame.color)
-            ? window.CustomifyFrame.color
-            : 'none';
-          const frameLabelMap = { none: 'brak', black: 'czarna', white: 'biała', wood: 'drewno' };
-          const frameLabel = frameLabelMap[selectedFrame] || 'brak';
-
-          // ✅ BACKUP KRYTYCZNY: Użyj Vercel Blob URL jako głównego (permanentny backup)
-          // Vercel Blob nie wygasa nawet jeśli produkt zostanie usunięty
-          // Shopify CDN może zniknąć po usunięciu produktu
-          const permanentUrl = result.vercelBlobUrl || result.permanentImageUrl || result.imageUrl || this.transformedImage;
-          const hasVercelBlobBackup = !!(result.vercelBlobUrl || (result.permanentImageUrl && result.permanentImageUrl.includes('vercel-storage')));
-          
-          // ⚠️ WARNING jeśli brak backupu Vercel Blob
-          if (!hasVercelBlobBackup) {
-            console.warn('⚠️ [CUSTOMIFY] WARNING: No Vercel Blob backup URL! Image may be lost if product is deleted.');
-            if (result.warnings && result.warnings.length > 0) {
-              console.warn('   API warnings:', result.warnings);
-            }
-          }
-          
           const properties = {
             'Styl AI': this.selectedStyle,
             'Rozmiar': this.getSizeDimension(this.selectedSize),  // ✅ Przekaż wymiar (np. "20×30 cm") zamiast kodu (np. "a4")
             'Rodzaj wydruku': productTypeName,  // ✅ Dodano rodzaj wydruku
-            'Ramka': `ramka - ${frameLabel}`,
-            '_AI_Image_URL': permanentUrl,  // ✅ PERMANENTNY URL - Vercel Blob (backup) lub fallback Shopify CDN
-            '_AI_Image_Shopify': result.imageUrl || this.transformedImage,  // ✅ Backup: URL z Shopify CDN (może zniknąć)
+            '_AI_Image_URL': result.imageUrl || this.transformedImage,  // ✅ URL z Shopify (główny obraz BEZ watermarku - do realizacji)
             '_Order_ID': result.orderId || Date.now().toString()  // Unikalny ID zamówienia
           };
           
-          // Dodaj Vercel Blob URL jako osobne property jeśli jest dostępny (backup)
-          if (result.vercelBlobUrl) {
-            properties['_AI_Image_VercelBlob'] = result.vercelBlobUrl;  // ✅ Permanentny backup - nie wygasa
-            console.log('✅ [CUSTOMIFY] Vercel Blob backup URL added to properties:', result.vercelBlobUrl.substring(0, 80) + '...');
+          // ✅ DODAJ URL OBRAZKA Z WATERMARKIEM (dla użytkownika w koszyku)
+          if (watermarkedImageUrl) {
+            properties['_AI_Image_Watermarked'] = watermarkedImageUrl;
+            console.log('🎨 [CUSTOMIFY] Added watermarked image URL to cart properties:', watermarkedImageUrl);
+          }
+          
+          // Dodaj _AI_Image_Permanent TYLKO jeśli to krótki URL (Vercel Blob URLs są za długie)
+          const permanentUrl = result.permanentImageUrl || this.transformedImage;
+          if (permanentUrl && permanentUrl.length < 150 && permanentUrl.includes('replicate.delivery')) {
+            properties['_AI_Image_Permanent'] = permanentUrl;
           }
           
           // Dodaj _AI_Image_Direct TYLKO jeśli to krótki URL (Replicate ~100 znaków)
@@ -2339,88 +2159,43 @@ class CustomifyEmbed {
           
           console.log('🖼️ [CUSTOMIFY] Image URLs:', {
             shopifyImageUrl: result.imageUrl,
-            vercelBlobUrl: result.vercelBlobUrl || 'N/A (no backup!)',
             permanentImageUrl: result.permanentImageUrl,
-            hasBackup: hasVercelBlobBackup,
             replicateImageUrl: this.transformedImage,
-            orderId: result.orderId,
-            warnings: result.warnings || []
+            orderId: result.orderId
           });
           
-          if (hasVercelBlobBackup) {
-            console.log('✅ [CUSTOMIFY] Image has Vercel Blob backup - safe from product deletion');
-          } else {
-            console.warn('⚠️ [CUSTOMIFY] Image has NO Vercel Blob backup - will be lost if product is deleted!');
+          // Buduj URL z parametrami
+          const params = new URLSearchParams();
+          params.append('id', result.variantId);
+          params.append('quantity', '1');
+          
+          // Dodaj właściwości
+          Object.entries(properties).forEach(([key, value]) => {
+            params.append(`properties[${key}]`, value);
+          });
+          
+          const cartUrl = `/cart/add?${params.toString()}`;
+          const fullUrl = window.location.origin + cartUrl;
+          console.log('🛒 [CUSTOMIFY] Cart URL length:', cartUrl.length, 'chars');
+          console.log('🛒 [CUSTOMIFY] Cart URL:', cartUrl.substring(0, 200), '...');
+          console.log('🛒 [CUSTOMIFY] Full URL length:', fullUrl.length, 'chars');
+          
+          // ❌ PROBLEM: URL > 2048 znaków może być zablokowany przez przeglądarkę
+          if (fullUrl.length > 2048) {
+            console.error('❌ [CUSTOMIFY] URL TOO LONG:', fullUrl.length, 'chars (max 2048)');
+            console.error('❌ [CUSTOMIFY] Properties:', properties);
+            this.showError('URL zbyt długi - usuń niektóre właściwości lub skontaktuj się z supportem');
+            return;
           }
           
-          // ✅ DODAJ DO KOSZYKA PRZEZ AJAX CART API (Shopify śledzi abandoned carts)
-          console.log('✅ [CUSTOMIFY] Adding to cart via Ajax Cart API for abandoned cart tracking');
+          // ✅ DODAJ DO KOSZYKA PRZEZ DIRECT NAVIGATION (jak w rules)
+          console.log('✅ [CUSTOMIFY] Adding to cart via direct navigation');
           
-          // Pobierz dane użytkownika (dla lepszego śledzenia abandoned checkouts)
-          const customerInfo = this.getCustomerInfo();
-          console.log('👤 [CUSTOMIFY] Customer info:', customerInfo ? 'Logged in' : 'Guest');
+          // Ukryj pasek postępu
+          this.hideCartLoading();
           
-          // Użyj Shopify Ajax Cart API (/cart/add.js) - Shopify śledzi koszyki
-          const cartData = {
-            items: [{
-              id: result.variantId,
-              quantity: 1,
-              properties: properties
-            }]
-          };
-          
-          // Dodaj customer email jako attribute (jeśli zalogowany) dla lepszego śledzenia
-          if (customerInfo?.email) {
-            cartData.attributes = {
-              'customer_email': customerInfo.email,
-              'customer_id': customerInfo.customerId?.toString() || ''
-            };
-            console.log('📧 [CUSTOMIFY] Added customer email to cart attributes for abandoned checkout tracking');
-          }
-          
-          console.log('🛒 [CUSTOMIFY] Cart data:', cartData);
-          
-          try {
-            const cartResponse = await fetch('/cart/add.js', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify(cartData)
-            });
-            
-            if (!cartResponse.ok) {
-              throw new Error(`Cart API error: ${cartResponse.status}`);
-            }
-            
-            const cartResult = await cartResponse.json();
-            console.log('✅ [CUSTOMIFY] Cart response:', cartResult);
-            
-            // ⚠️ WAŻNE: NIE PRZEKIEROWUJ OD RAZU - pozwól Shopify śledzić abandoned checkout
-            // Shopify tworzy abandoned checkout dopiero gdy użytkownik OPUŚCI stronę bez finalizacji
-            // Przekierowanie od razu do /cart może nie dać czasu na śledzenie
-            
-            // Ukryj pasek postępu
-            this.hideCartLoading();
-            
-            // Pokaż sukces i pozwól użytkownikowi zdecydować (lepsze śledzenie)
-            this.showSuccess('✅ Produkt dodany do koszyka! Kliknij aby przejść do koszyka.');
-            
-            // Opcjonalnie: automatyczne przekierowanie po 2 sekundach (daje czas na śledzenie)
-            setTimeout(() => {
-              window.location.href = '/cart';
-            }, 2000);
-          } catch (cartError) {
-            console.error('❌ [CUSTOMIFY] Cart add error:', cartError);
-            // Fallback do bezpośredniego URL jeśli Ajax API nie działa
-            const params = new URLSearchParams();
-            params.append('id', result.variantId);
-            params.append('quantity', '1');
-            Object.entries(properties).forEach(([key, value]) => {
-              params.append(`properties[${key}]`, value);
-            });
-            window.location.href = `/cart/add?${params.toString()}`;
-          }
+          // Przekieruj bezpośrednio do koszyka (zamiast fetch)
+          window.location.href = cartUrl;
         }
       } else {
         console.error('❌ [CUSTOMIFY] Product creation failed:', result);
@@ -2940,6 +2715,9 @@ function addMobileThumbnails() {
  * INITIALIZATION
  */
 document.addEventListener('DOMContentLoaded', () => {
+  // Initialize Customify app
+  new CustomifyEmbed();
+  
   // Initialize cart integration
   initCartIntegration();
   
@@ -3047,17 +2825,4 @@ document.addEventListener('click', function(e) {
 
 // Regularnie sprawdzaj czy dialog jest otwarty i naprawiaj
 setInterval(fixDialogImages, 300);
-
-// ✅ INICJALIZACJA APLIKACJI CUSTOMIFY
-// Czekaj aż DOM się załaduje, potem inicjalizuj aplikację
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
-    console.log('🚀 [CUSTOMIFY] Initializing CustomifyEmbed...');
-    window.customifyApp = new CustomifyEmbed();
-  });
-} else {
-  // DOM już załadowany - inicjalizuj od razu
-  console.log('🚀 [CUSTOMIFY] DOM already loaded, initializing CustomifyEmbed immediately...');
-  window.customifyApp = new CustomifyEmbed();
-}
 

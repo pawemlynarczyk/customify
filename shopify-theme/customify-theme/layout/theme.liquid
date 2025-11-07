@@ -3387,28 +3387,56 @@
                 const img = link.querySelector('img');
                 
                 if (img) {
-                  // To jest link z miniaturką - dodaj watermark i lightbox
-                  console.log(`🖼️ [CUSTOMIFY CART] Link ${linkIndex} ma obrazek - dodaję watermark`);
+                  // To jest link z miniaturką - sprawdź czy mamy URL z watermarkiem w cart properties
+                  console.log(`🖼️ [CUSTOMIFY CART] Link ${linkIndex} ma obrazek`);
                   console.log(`   Obrazek src: ${img.src}`);
                   
-                  // Dodaj watermark do miniaturki
-                  try {
-                    const watermarkedSrc = await addWatermarkToImage(img.src);
-                    img.src = watermarkedSrc;
-                    console.log('✅ [CUSTOMIFY CART] Watermark dodany do miniaturki w koszyku');
-                    
-                    // Zapisz oryginalny URL dla lightbox (z watermarkiem)
-                    img.dataset.watermarkedSrc = watermarkedSrc;
-                  } catch (error) {
-                    console.error('❌ [CUSTOMIFY CART] Nie udało się dodać watermarku:', error);
-                    // Kontynuuj bez watermarku
+                  // Znajdź cart properties dla tego produktu
+                  const cartItem = link.closest('.cart-item, .cart-items__table-row, tr[role="row"]');
+                  let watermarkedUrl = null;
+                  
+                  if (cartItem) {
+                    // Szukaj property _AI_Image_Watermarked
+                    const properties = cartItem.querySelectorAll('.cart-items__properties dd, dd[data-property]');
+                    properties.forEach(prop => {
+                      const dt = prop.previousElementSibling;
+                      if (dt && dt.textContent.includes('_AI_Image_Watermarked')) {
+                        watermarkedUrl = prop.textContent.trim();
+                        console.log('✅ [CUSTOMIFY CART] Znaleziono URL z watermarkiem:', watermarkedUrl);
+                        
+                        // Ukryj property _AI_Image_Watermarked (nie pokazuj URL użytkownikowi)
+                        const propertyDiv = prop.closest('.cart-items__properties');
+                        if (propertyDiv) {
+                          propertyDiv.style.display = 'none';
+                        }
+                      }
+                    });
+                  }
+                  
+                  // Użyj obrazka z watermarkiem jeśli dostępny, w przeciwnym razie dodaj watermark
+                  if (watermarkedUrl && watermarkedUrl.startsWith('http')) {
+                    // Mamy URL z Vercel Blob - użyj go
+                    img.src = watermarkedUrl;
+                    img.dataset.watermarkedSrc = watermarkedUrl;
+                    console.log('✅ [CUSTOMIFY CART] Użyto obrazka z watermarkiem z Vercel Blob');
+                  } else {
+                    // Brak URL z watermarkiem - dodaj watermark dynamicznie (fallback)
+                    console.log('⚠️ [CUSTOMIFY CART] Brak URL z watermarkiem - dodaję dynamicznie');
+                    try {
+                      const watermarkedSrc = await addWatermarkToImage(img.src);
+                      img.src = watermarkedSrc;
+                      img.dataset.watermarkedSrc = watermarkedSrc;
+                      console.log('✅ [CUSTOMIFY CART] Watermark dodany dynamicznie');
+                    } catch (error) {
+                      console.error('❌ [CUSTOMIFY CART] Nie udało się dodać watermarku:', error);
+                    }
                   }
                   
                   link.addEventListener('click', (e) => {
                     e.preventDefault();
                     e.stopPropagation();
                     console.log('🖼️ [CUSTOMIFY CART] Kliknięto miniaturkę - pokazuję lightbox');
-                    // Użyj obrazka z watermarkiem w lightbox
+                    // Użyj obrazka z watermarkiem w lightbox (pełna wielkość)
                     const imageToShow = img.dataset.watermarkedSrc || img.src;
                     showImageLightbox(imageToShow);
                   });

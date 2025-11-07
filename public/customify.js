@@ -1939,10 +1939,14 @@ class CustomifyEmbed {
     try {
       const watermarkedImage = await this.addWatermark(imageUrl);
       this.resultImage.src = watermarkedImage;
-      console.log('🎨 [CUSTOMIFY] Watermark dodany do podglądu');
+      
+      // ✅ ZAPISZ OBRAZEK Z WATERMARKIEM (do użycia w koszyku)
+      this.watermarkedImage = watermarkedImage;
+      console.log('🎨 [CUSTOMIFY] Watermark dodany do podglądu i zapisany');
     } catch (error) {
       console.error('❌ [CUSTOMIFY] Watermark error:', error);
       this.resultImage.src = imageUrl;
+      this.watermarkedImage = null;
     }
     
     this.resultArea.style.display = 'block';
@@ -2052,9 +2056,36 @@ class CustomifyEmbed {
         console.warn('⚠️ [CUSTOMIFY] No original image available, using transformed image as fallback');
       }
 
+      // ✅ UPLOAD OBRAZKA Z WATERMARKIEM NA VERCEL BLOB
+      let watermarkedImageUrl = null;
+      if (this.watermarkedImage) {
+        console.log('📤 [CUSTOMIFY] Uploading watermarked image to Vercel Blob...');
+        try {
+          const watermarkUploadResponse = await fetch('https://customify-s56o.vercel.app/api/upload-temp-image', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              imageData: this.watermarkedImage,
+              filename: `watermarked-${Date.now()}.jpg`
+            })
+          });
+          
+          const watermarkUploadResult = await watermarkUploadResponse.json();
+          if (watermarkUploadResult.success) {
+            watermarkedImageUrl = watermarkUploadResult.url;
+            console.log('✅ [CUSTOMIFY] Watermarked image uploaded:', watermarkedImageUrl);
+          } else {
+            console.error('❌ [CUSTOMIFY] Failed to upload watermarked image:', watermarkUploadResult.error);
+          }
+        } catch (error) {
+          console.error('❌ [CUSTOMIFY] Error uploading watermarked image:', error);
+        }
+      }
+
       const productData = {
         originalImage: originalImage,
         transformedImage: this.transformedImage,
+        watermarkedImage: watermarkedImageUrl, // ✅ URL obrazka z watermarkiem
         style: this.selectedStyle,
         size: this.selectedSize,
         productType: this.selectedProductType || 'canvas', // Rodzaj wydruku: plakat lub canvas
@@ -2099,9 +2130,15 @@ class CustomifyEmbed {
             'Styl AI': this.selectedStyle,
             'Rozmiar': this.getSizeDimension(this.selectedSize),  // ✅ Przekaż wymiar (np. "20×30 cm") zamiast kodu (np. "a4")
             'Rodzaj wydruku': productTypeName,  // ✅ Dodano rodzaj wydruku
-            '_AI_Image_URL': result.imageUrl || this.transformedImage,  // ✅ URL z Shopify (główny obraz)
+            '_AI_Image_URL': result.imageUrl || this.transformedImage,  // ✅ URL z Shopify (główny obraz BEZ watermarku - do realizacji)
             '_Order_ID': result.orderId || Date.now().toString()  // Unikalny ID zamówienia
           };
+          
+          // ✅ DODAJ URL OBRAZKA Z WATERMARKIEM (dla użytkownika w koszyku)
+          if (watermarkedImageUrl) {
+            properties['_AI_Image_Watermarked'] = watermarkedImageUrl;
+            console.log('🎨 [CUSTOMIFY] Added watermarked image URL to cart properties:', watermarkedImageUrl);
+          }
           
           // Dodaj _AI_Image_Permanent TYLKO jeśli to krótki URL (Vercel Blob URLs są za długie)
           const permanentUrl = result.permanentImageUrl || this.transformedImage;
