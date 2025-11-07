@@ -3307,6 +3307,15 @@
               console.log(`🔗 [CUSTOMIFY CART] Element ${index} - znaleziono linków: ${links.length}`);
               
               links.forEach((link, linkIndex) => {
+                // Sprawdź czy już przetworzono ten link (unikaj wielokrotnego dodawania event listenerów)
+                if (link.dataset.customifyProcessed === 'true') {
+                  console.log(`⏭️ [CUSTOMIFY CART] Link ${linkIndex} już przetworzony - pomijam`);
+                  return;
+                }
+                
+                // Oznacz jako przetworzony
+                link.dataset.customifyProcessed = 'true';
+                
                 // Znajdź obrazek w linku
                 const img = link.querySelector('img');
                 
@@ -3361,13 +3370,28 @@
           });
           
           // Obserwuj zmiany w DOM (dla dynamicznych aktualizacji koszyka)
-          const observer = new MutationObserver(() => {
+          const observer = new MutationObserver((mutations) => {
+            // Sprawdź czy zmiana nie jest w lightbox (ignoruj zmiany w lightbox)
+            const isLightboxChange = mutations.some(mutation => {
+              return Array.from(mutation.addedNodes).some(node => {
+                return node.classList && node.classList.contains('customify-lightbox');
+              }) || Array.from(mutation.removedNodes).some(node => {
+                return node.classList && node.classList.contains('customify-lightbox');
+              });
+            });
+            
+            if (isLightboxChange) {
+              console.log('🛒 [CUSTOMIFY CART] Zmiana w lightbox - ignoruję');
+              return;
+            }
+            
             console.log('🛒 [CUSTOMIFY CART] Wykryto zmiany w DOM - ponowne skanowanie');
             disableAIProductLinks();
           });
           
-          // Obserwuj zmiany w body (koszyk może być ładowany dynamicznie)
-          observer.observe(document.body, {
+          // Obserwuj zmiany tylko w kontenerze koszyka (nie w całym body)
+          const cartContainer = document.querySelector('.cart-items, .cart, [data-cart-items]') || document.body;
+          observer.observe(cartContainer, {
             childList: true,
             subtree: true
           });
