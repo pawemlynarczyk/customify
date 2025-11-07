@@ -3242,8 +3242,9 @@
       
       <script>
         /**
-         * CUSTOMIFY: Wyłącz linki do produktów AI w koszyku/checkout
+         * CUSTOMIFY: Wyłącz linki do wszystkich produktów w koszyku
          * Kliknięcie miniaturki pokazuje powiększony obraz zamiast prowadzić do produktu
+         * Wszystkie produkty w sklepie są AI - nie ma potrzeby filtrowania
          */
         (function() {
           console.log('🛒 [CUSTOMIFY CART] Inicjalizacja wyłączania linków produktów AI');
@@ -3291,7 +3292,7 @@
           }
           
           function disableAIProductLinks() {
-            console.log('🛒 [CUSTOMIFY CART] Szukam produktów AI w koszyku...');
+            console.log('🛒 [CUSTOMIFY CART] Wyłączam linki dla wszystkich produktów w koszyku...');
             
             // Znajdź wszystkie elementy koszyka (różne selektory dla różnych motywów)
             const cartItems = document.querySelectorAll(
@@ -3300,62 +3301,45 @@
             
             console.log('🛒 [CUSTOMIFY CART] Znaleziono elementów koszyka:', cartItems.length);
             
-            let aiProductsFound = 0;
-            
             cartItems.forEach((item, index) => {
-              // Sprawdź czy to produkt AI (zawiera "rozmiar" w tytule)
-              const titleElement = item.querySelector(
-                '.cart-item__name, .product-title, [data-product-title], .cart-item__details a, .line-item__title'
-              );
+              // Znajdź wszystkie linki w tym elemencie (miniaturka + tytuł)
+              const links = item.querySelectorAll('a[href*="/products/"]');
+              console.log(`🔗 [CUSTOMIFY CART] Element ${index} - znaleziono linków: ${links.length}`);
               
-              if (titleElement) {
-                const title = titleElement.textContent.trim();
-                console.log(`🛒 [CUSTOMIFY CART] Element ${index}: "${title}"`);
+              links.forEach((link, linkIndex) => {
+                // Znajdź obrazek w linku
+                const img = link.querySelector('img');
                 
-                if (title.toLowerCase().includes('rozmiar')) {
-                  aiProductsFound++;
-                  console.log(`✅ [CUSTOMIFY CART] Znaleziono produkt AI: "${title}"`);
+                if (img) {
+                  // To jest link z miniaturką - wyłącz i dodaj lightbox
+                  console.log(`🖼️ [CUSTOMIFY CART] Link ${linkIndex} ma obrazek - dodaję lightbox`);
                   
-                  // Znajdź wszystkie linki w tym elemencie (miniaturka + tytuł)
-                  const links = item.querySelectorAll('a[href*="/products/"]');
-                  console.log(`🔗 [CUSTOMIFY CART] Znaleziono linków: ${links.length}`);
-                  
-                  links.forEach((link, linkIndex) => {
-                    // Znajdź obrazek w linku
-                    const img = link.querySelector('img');
-                    
-                    if (img) {
-                      // To jest link z miniaturką - wyłącz i dodaj lightbox
-                      console.log(`🖼️ [CUSTOMIFY CART] Link ${linkIndex} ma obrazek - dodaję lightbox`);
-                      
-                      link.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        showImageLightbox(img.src);
-                      });
-                      
-                      // Zmień cursor na zoom-in
-                      link.style.cursor = 'zoom-in';
-                      link.title = 'Kliknij aby powiększyć';
-                    } else {
-                      // To jest link z tytułem - wyłącz całkowicie
-                      console.log(`📝 [CUSTOMIFY CART] Link ${linkIndex} to tytuł - wyłączam`);
-                      
-                      link.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                      });
-                      
-                      link.style.cursor = 'default';
-                      link.style.pointerEvents = 'none';
-                      link.style.textDecoration = 'none';
-                    }
+                  link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showImageLightbox(img.src);
                   });
+                  
+                  // Zmień cursor na zoom-in
+                  link.style.cursor = 'zoom-in';
+                  link.title = 'Kliknij aby powiększyć';
+                } else {
+                  // To jest link z tytułem - wyłącz całkowicie
+                  console.log(`📝 [CUSTOMIFY CART] Link ${linkIndex} to tytuł - wyłączam`);
+                  
+                  link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  });
+                  
+                  link.style.cursor = 'default';
+                  link.style.pointerEvents = 'none';
+                  link.style.textDecoration = 'none';
                 }
-              }
+              });
             });
             
-            console.log(`🛒 [CUSTOMIFY CART] Znaleziono produktów AI: ${aiProductsFound}`);
+            console.log(`✅ [CUSTOMIFY CART] Wyłączono linki dla ${cartItems.length} produktów`);
           }
           
           // Uruchom po załadowaniu DOM
@@ -3388,11 +3372,12 @@
       </script>
     {% endif %}
 
-    {% comment %} CUSTOMIFY CHECKOUT INTEGRATION - Wyłącz linki produktów AI {% endcomment %}
+    {% comment %} CUSTOMIFY CHECKOUT INTEGRATION - Wyłącz linki produktów {% endcomment %}
     <script>
       /**
-       * CUSTOMIFY: Wyłącz linki do produktów AI w checkout
+       * CUSTOMIFY: Wyłącz linki do wszystkich produktów w checkout
        * Działa również w checkout (Shopify Plus) i thank you page
+       * Wszystkie produkty w sklepie są AI - nie ma potrzeby filtrowania
        */
       (function() {
         // Sprawdź czy jesteśmy na checkout lub thank you page
@@ -3488,7 +3473,7 @@
         }
         
         function disableAIProductLinks() {
-          console.log('🛒 [CUSTOMIFY CHECKOUT] Szukam produktów AI w checkout...');
+          console.log('🛒 [CUSTOMIFY CHECKOUT] Wyłączam linki dla wszystkich produktów w checkout...');
           
           // Znajdź wszystkie elementy checkout (różne selektory dla Shopify checkout)
           const checkoutItems = document.querySelectorAll(
@@ -3497,62 +3482,45 @@
           
           console.log('🛒 [CUSTOMIFY CHECKOUT] Znaleziono elementów checkout:', checkoutItems.length);
           
-          let aiProductsFound = 0;
-          
           checkoutItems.forEach((item, index) => {
-            // Sprawdź czy to produkt AI (zawiera "rozmiar" w tytule)
-            const titleElement = item.querySelector(
-              '.product__description__name, .product-thumbnail__title, [data-product-title], .product__title'
-            );
+            // Znajdź wszystkie linki w tym elemencie
+            const links = item.querySelectorAll('a[href*="/products/"]');
+            console.log(`🔗 [CUSTOMIFY CHECKOUT] Element ${index} - znaleziono linków: ${links.length}`);
             
-            if (titleElement) {
-              const title = titleElement.textContent.trim();
-              console.log(`🛒 [CUSTOMIFY CHECKOUT] Element ${index}: "${title}"`);
+            links.forEach((link, linkIndex) => {
+              // Znajdź obrazek w linku
+              const img = link.querySelector('img');
               
-              if (title.toLowerCase().includes('rozmiar')) {
-                aiProductsFound++;
-                console.log(`✅ [CUSTOMIFY CHECKOUT] Znaleziono produkt AI: "${title}"`);
+              if (img) {
+                // To jest link z miniaturką - wyłącz i dodaj lightbox
+                console.log(`🖼️ [CUSTOMIFY CHECKOUT] Link ${linkIndex} ma obrazek - dodaję lightbox`);
                 
-                // Znajdź wszystkie linki w tym elemencie
-                const links = item.querySelectorAll('a[href*="/products/"]');
-                console.log(`🔗 [CUSTOMIFY CHECKOUT] Znaleziono linków: ${links.length}`);
-                
-                links.forEach((link, linkIndex) => {
-                  // Znajdź obrazek w linku
-                  const img = link.querySelector('img');
-                  
-                  if (img) {
-                    // To jest link z miniaturką - wyłącz i dodaj lightbox
-                    console.log(`🖼️ [CUSTOMIFY CHECKOUT] Link ${linkIndex} ma obrazek - dodaję lightbox`);
-                    
-                    link.addEventListener('click', (e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      showImageLightbox(img.src);
-                    });
-                    
-                    // Zmień cursor na zoom-in
-                    link.style.cursor = 'zoom-in';
-                    link.title = 'Kliknij aby powiększyć';
-                  } else {
-                    // To jest link z tytułem - wyłącz całkowicie
-                    console.log(`📝 [CUSTOMIFY CHECKOUT] Link ${linkIndex} to tytuł - wyłączam`);
-                    
-                    link.addEventListener('click', (e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                    });
-                    
-                    link.style.cursor = 'default';
-                    link.style.pointerEvents = 'none';
-                    link.style.textDecoration = 'none';
-                  }
+                link.addEventListener('click', (e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  showImageLightbox(img.src);
                 });
+                
+                // Zmień cursor na zoom-in
+                link.style.cursor = 'zoom-in';
+                link.title = 'Kliknij aby powiększyć';
+              } else {
+                // To jest link z tytułem - wyłącz całkowicie
+                console.log(`📝 [CUSTOMIFY CHECKOUT] Link ${linkIndex} to tytuł - wyłączam`);
+                
+                link.addEventListener('click', (e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                });
+                
+                link.style.cursor = 'default';
+                link.style.pointerEvents = 'none';
+                link.style.textDecoration = 'none';
               }
-            }
+            });
           });
           
-          console.log(`🛒 [CUSTOMIFY CHECKOUT] Znaleziono produktów AI: ${aiProductsFound}`);
+          console.log(`✅ [CUSTOMIFY CHECKOUT] Wyłączono linki dla ${checkoutItems.length} produktów`);
         }
         
         // Uruchom po załadowaniu DOM
