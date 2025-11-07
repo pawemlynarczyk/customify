@@ -2135,27 +2135,39 @@ class CustomifyEmbed {
           
           // NAPRAWIONA METODA: Użyj bezpośredniego przekierowania zamiast formularza
           const productTypeName = this.selectedProductType === 'plakat' ? 'Plakat' : 'Obraz na płótnie';
+          
+          // ✅ Wylicz opis ramki do właściwości koszyka
+          const selectedFrame = (this.selectedProductType === 'plakat' && window.CustomifyFrame && window.CustomifyFrame.color)
+            ? window.CustomifyFrame.color
+            : 'none';
+          const frameLabelMap = { none: 'brak', black: 'czarna', white: 'biała', wood: 'drewno' };
+          const frameLabel = frameLabelMap[selectedFrame] || 'brak';
+          
+          console.log('🖼️ [CUSTOMIFY FRAME DEBUG]:', {
+            selectedProductType: this.selectedProductType,
+            'window.CustomifyFrame': window.CustomifyFrame,
+            selectedFrame: selectedFrame,
+            frameLabel: frameLabel
+          });
+          
           const properties = {
             'Styl AI': this.selectedStyle,
             'Rozmiar': this.getSizeDimension(this.selectedSize),  // ✅ Przekaż wymiar (np. "20×30 cm") zamiast kodu (np. "a4")
             'Rodzaj wydruku': productTypeName,  // ✅ Dodano rodzaj wydruku
-            'AI Image URL': result.imageUrl || this.transformedImage,  // ✅ URL BEZ watermarku - DO REALIZACJI (bez _ żeby było widoczne!)
-            'Order ID': result.orderId || Date.now().toString()  // Unikalny ID zamówienia (bez _ żeby było widoczne!)
+            'Ramka': `ramka - ${frameLabel}`,  // ✅ Informacja o wybranej ramce (tylko dla plakatu)
+            'Order ID': result.orderId || Date.now().toString()  // Unikalny ID zamówienia (widoczny dla użytkownika)
           };
           
-          // ✅ DODAJ URL OBRAZKA Z WATERMARKIEM (dla użytkownika w koszyku)
-          // WAŻNE: Nie używaj _ na początku - Shopify ukrywa takie properties!
-          if (watermarkedImageUrl) {
-            properties['AI Image Watermarked'] = watermarkedImageUrl;
-            console.log('🎨 [CUSTOMIFY] Added watermarked image URL to cart properties:', watermarkedImageUrl);
-          }
+          // ❌ NIE DODAJEMY "AI Image URL" i "AI Image Backup" do cart properties!
+          // ❌ Te URLe (bez watermarku) są TYLKO dla admina - nie mogą być widoczne na checkout!
+          // ✅ Zamiast tego są zapisane jako metafields w produkcie Shopify (tylko admin je widzi)
           
-          // ✅ DODAJ BACKUP URL (Vercel Blob - permanentny, nie zniknie jak Shopify)
-          // To jest NAJWAŻNIEJSZY URL - z Vercel Blob folder orders/ - BEZ watermarku!
-          if (result.permanentImageUrl) {
-            properties['AI Image Backup'] = result.permanentImageUrl;
-            console.log('🔒 [CUSTOMIFY] Added permanent backup URL (Vercel Blob):', result.permanentImageUrl);
-          }
+          console.log('🛒 [CUSTOMIFY CART PROPERTIES]:', properties);
+          console.log('🔒 [CUSTOMIFY ADMIN ONLY URLs - NOT in cart properties]:', {
+            imageUrl: result.imageUrl,
+            permanentImageUrl: result.permanentImageUrl,
+            vercelBlobUrl: result.vercelBlobUrl
+          });
           
           console.log('🖼️ [CUSTOMIFY] Image URLs:', {
             shopifyImageUrl: result.imageUrl,
