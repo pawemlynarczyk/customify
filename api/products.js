@@ -39,6 +39,7 @@ module.exports = async (req, res) => {
   const { 
     originalImage, 
     transformedImage, 
+    watermarkedImage, // ✅ Obrazek Z watermarkiem - do uploadu na Shopify (miniaturka)
     style, 
     size, 
     productType, // Rodzaj wydruku: plakat lub canvas
@@ -159,29 +160,32 @@ module.exports = async (req, res) => {
 
     // Product created successfully
 
-    // KROK 2: Pobierz obrazek (Replicate/Segmind)
-    // Check if transformedImage is base64 or URL
+    // KROK 2: Pobierz obrazek Z WATERMARKIEM (dla miniaturki w Shopify)
+    // ✅ Używamy watermarkedImage (Z watermarkiem) zamiast transformedImage (BEZ watermarku)
+    // ✅ Użytkownik widzi miniaturkę Z watermarkiem w koszyku i checkout
     let imageBuffer;
+    const imageToUpload = watermarkedImage || transformedImage; // Fallback jeśli brak watermarked
     
-    if (transformedImage.startsWith('data:image')) {
-      // Base64 format (Segmind Caricature) - convert directly
-      console.log('📦 [PRODUCTS] Detected base64 image, converting...');
-      const base64Data = transformedImage.split(',')[1];
+    if (imageToUpload.startsWith('data:image')) {
+      // Base64 format - convert directly
+      console.log('📦 [PRODUCTS] Detected base64 watermarked image, converting...');
+      const base64Data = imageToUpload.split(',')[1];
       imageBuffer = Buffer.from(base64Data, 'base64');
     } else {
-      // URL format (Replicate) - download first
-      console.log('📥 [PRODUCTS] Detected URL image, downloading...');
-      const imageResponse = await fetch(transformedImage);
+      // URL format - download first
+      console.log('📥 [PRODUCTS] Downloading watermarked image from:', imageToUpload);
+      const imageResponse = await fetch(imageToUpload);
       
       if (!imageResponse.ok) {
-        // Failed to download image from Replicate
+        // Failed to download watermarked image
+        console.error('❌ [PRODUCTS] Failed to download watermarked image');
         return res.json({
           success: true,
           product: product,
           variantId: product.variants[0].id,
           productId: productId,
-          warning: 'Product created but image upload failed',
-          imageUrl: transformedImage
+          warning: 'Product created but watermarked image upload failed',
+          imageUrl: imageToUpload
         });
       }
       
@@ -191,6 +195,7 @@ module.exports = async (req, res) => {
     
     // Convert imageBuffer to base64 for Shopify API
     const base64Image = imageBuffer.toString('base64');
+    console.log('✅ [PRODUCTS] Watermarked image ready for Shopify upload');
 
     // Uploading image to product
 
@@ -234,8 +239,9 @@ module.exports = async (req, res) => {
 
     // Image uploaded successfully
 
-    // 🗄️ VERCEL BLOB BACKUP (OBOWIĄZKOWY): Zapisz na Vercel Blob Storage jako permanentny backup
-    // Backup jest KRYTYCZNY - jeśli produkt zostanie usunięty, obraz z Shopify CDN zniknie
+    // 🗄️ VERCEL BLOB BACKUP (OBOWIĄZKOWY): Zapisz obrazek BEZ watermarku jako permanentny backup
+    // ✅ Backup BEZ watermarku - do realizacji zamówienia (tylko dla admina w metafields)
+    // ✅ Shopify ma obrazek Z watermarkiem (miniaturka dla użytkownika)
     let vercelBlobUrl = null;
     let blobUploadFailed = false;
     
@@ -245,17 +251,35 @@ module.exports = async (req, res) => {
       blobUploadFailed = true;
     } else {
       try {
+        // Pobierz obrazek BEZ watermarku (transformedImage) do backupu
+        let nonWatermarkedBuffer;
+        
+        if (transformedImage.startsWith('data:image')) {
+          console.log('📦 [PRODUCTS] Converting non-watermarked image for backup...');
+          const base64Data = transformedImage.split(',')[1];
+          nonWatermarkedBuffer = Buffer.from(base64Data, 'base64');
+        } else {
+          console.log('📥 [PRODUCTS] Downloading non-watermarked image for backup...');
+          const imageResponse = await fetch(transformedImage);
+          if (imageResponse.ok) {
+            const imageArrayBuffer = await imageResponse.arrayBuffer();
+            nonWatermarkedBuffer = Buffer.from(imageArrayBuffer);
+          } else {
+            throw new Error('Failed to download non-watermarked image');
+          }
+        }
+        
         const blobFilename = `customify/orders/${uniqueId}.jpg`;
-        const blob = await put(blobFilename, imageBuffer, {
+        const blob = await put(blobFilename, nonWatermarkedBuffer, {
           access: 'public',
           contentType: 'image/jpeg',
           token: process.env.customify_READ_WRITE_TOKEN,
         });
         vercelBlobUrl = blob.url;
-        console.log('✅ [PRODUCTS.JS] Image backup uploaded to Vercel Blob (REQUIRED):', vercelBlobUrl);
+        console.log('✅ [PRODUCTS.JS] Non-watermarked backup uploaded to Vercel Blob:', vercelBlobUrl);
       } catch (blobError) {
-        console.error('❌ [PRODUCTS.JS] CRITICAL: Vercel Blob upload failed:', blobError.message);
-        console.error('   Image will be lost if product is deleted!');
+        console.error('❌ [PRODUCTS.JS] CRITICAL: Vercel Blob backup failed:', blobError.message);
+        console.error('   Non-watermarked image will be lost if product is deleted!');
         blobUploadFailed = true;
       }
     }
