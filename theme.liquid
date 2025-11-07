@@ -3426,22 +3426,31 @@
                     });
                   }
                   
-                  // Główny obrazek produktu w Shopify jest już Z watermarkiem
-                  // Nie trzeba nic zmieniać - Shopify automatycznie pokazuje miniaturkę
-                  // Zapisz oryginalny src dla lightbox (z większym rozmiarem)
-                  let originalSrc = img.src;
+                  // ✅ Główny obrazek produktu w Shopify jest już Z watermarkiem (uploadowany z watermarkedImage)
+                  // ✅ Miniaturka: mała (250px) - Shopify automatycznie
+                  // ✅ Lightbox: DUŻA (1200px) - zmieniamy parametr width w URL
                   
-                  // ✅ Zmień URL na większy rozmiar dla lightbox (1200px zamiast 250px)
-                  if (originalSrc.includes('cdn.shopify.com') && originalSrc.includes('width=')) {
-                    const largeImageSrc = originalSrc.replace(/width=\d+/, 'width=1200');
+                  let originalSrc = img.src;
+                  console.log('🖼️ [CUSTOMIFY CART] Oryginalny src:', originalSrc);
+                  
+                  // Zmień URL Shopify na większy rozmiar dla lightbox (1200px zamiast 250px)
+                  if (originalSrc.includes('cdn.shopify.com') || originalSrc.includes('lumly.pl/cdn/')) {
+                    let largeImageSrc = originalSrc;
+                    
+                    if (largeImageSrc.includes('width=')) {
+                      // Zmień istniejący parametr width
+                      largeImageSrc = largeImageSrc.replace(/width=\d+/, 'width=1200');
+                    } else {
+                      // Dodaj parametr width
+                      largeImageSrc = largeImageSrc + (largeImageSrc.includes('?') ? '&' : '?') + 'width=1200';
+                    }
+                    
                     img.dataset.watermarkedSrc = largeImageSrc;
-                    console.log('✅ [CUSTOMIFY CART] Przygotowano większy obrazek (1200px) dla lightbox');
-                  } else if (originalSrc.includes('cdn.shopify.com')) {
-                    const largeImageSrc = originalSrc + (originalSrc.includes('?') ? '&' : '?') + 'width=1200';
-                    img.dataset.watermarkedSrc = largeImageSrc;
-                    console.log('✅ [CUSTOMIFY CART] Przygotowano większy obrazek (1200px) dla lightbox');
+                    console.log('✅ [CUSTOMIFY CART] Przygotowano większy obrazek (1200px):', largeImageSrc);
                   } else {
+                    // Nie ma cdn.shopify.com - zostaw oryginalny
                     img.dataset.watermarkedSrc = originalSrc;
+                    console.log('⚠️ [CUSTOMIFY CART] To nie jest Shopify CDN URL - używam oryginalnego');
                   }
                   
                   link.addEventListener('click', (e) => {
