@@ -3201,9 +3201,13 @@
         }
         
         .customify-lightbox img {
-          max-width: 90vw;
-          max-height: 90vh;
+          max-width: 95vw;
+          max-height: 95vh;
+          width: auto;
+          height: auto;
           object-fit: contain;
+          image-rendering: -webkit-optimize-contrast;
+          image-rendering: crisp-edges;
           border-radius: 8px;
           box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
           animation: zoomIn 0.2s ease;
