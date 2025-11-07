@@ -2158,16 +2158,10 @@ class CustomifyEmbed {
             'Order ID': result.orderId || Date.now().toString()  // Unikalny ID zamówienia (widoczny dla użytkownika)
           };
           
-          // ✅ DODAJ "AI Image Watermarked" (Z watermarkiem - bezpieczne dla użytkownika)
-          // To jest URL do obrazka Z watermarkiem - użytkownik może go zobaczyć
-          // JavaScript w theme.liquid użyje tego URL do wyświetlenia miniaturki w koszyku
-          if (watermarkedImageUrl) {
-            properties['AI Image Watermarked'] = watermarkedImageUrl;
-          }
-          
-          // ❌ NIE DODAJEMY "AI Image URL" i "AI Image Backup" do cart properties!
-          // ❌ Te URLe (BEZ watermarku) są TYLKO dla admina - nie mogą być widoczne na checkout!
-          // ✅ Zamiast tego są zapisane jako metafields w produkcie Shopify (tylko admin je widzi)
+          // ❌ NIE DODAJEMY ŻADNYCH URLi do cart properties!
+          // ❌ Wszystkie URLe (Z i BEZ watermarku) są zapisane w metafields produktu (tylko admin)
+          // ✅ Miniaturka w koszyku = automatyczna miniaturka Shopify (główny obrazek produktu Z watermarkiem)
+          // ✅ Checkout nie pokazuje żadnych URLi - tylko podstawowe info (styl, rozmiar, ramka)
           
           console.log('🛒 [CUSTOMIFY CART PROPERTIES]:', properties);
           console.log('🔒 [CUSTOMIFY ADMIN ONLY URLs - NOT in cart properties]:', {

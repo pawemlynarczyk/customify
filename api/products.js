@@ -271,8 +271,12 @@ module.exports = async (req, res) => {
     const permanentImageUrl = vercelBlobUrl || shopifyImageUrl;
 
     // KROK 4: Dodaj metafields do produktu (TYLKO dla admina - nie widoczne dla użytkownika)
-    // Te URLe (bez watermarku) są TYLKO dla realizacji zamówienia w adminie
+    // Te URLe są TYLKO dla realizacji zamówienia w adminie
     console.log('📝 [PRODUCTS.JS] Adding metafields to product...');
+    
+    // Pobierz watermarked URL z requestu
+    const { watermarkedImage } = req.body;
+    
     try {
       const metafieldsData = {
         metafield: {
@@ -280,9 +284,10 @@ module.exports = async (req, res) => {
           key: 'order_details',
           value: JSON.stringify({
             orderId: uniqueId,
-            shopifyImageUrl: shopifyImageUrl,
-            vercelBlobUrl: vercelBlobUrl,
-            permanentImageUrl: permanentImageUrl,
+            shopifyImageUrl: shopifyImageUrl,  // BEZ watermarku - do realizacji
+            vercelBlobUrl: vercelBlobUrl,  // BEZ watermarku - backup
+            permanentImageUrl: permanentImageUrl,  // BEZ watermarku - główny URL do realizacji
+            watermarkedImageUrl: watermarkedImage || null,  // Z watermarkiem - dla referencji
             style: style,
             size: size,
             productType: productType,
