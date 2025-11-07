@@ -298,8 +298,7 @@ module.exports = async (req, res) => {
     // Te URLe są TYLKO dla realizacji zamówienia w adminie
     console.log('📝 [PRODUCTS.JS] Adding metafields to product...');
     
-    // Pobierz watermarked URL z requestu
-    const { watermarkedImage } = req.body;
+    // watermarkedImage już jest zadeklarowane na górze (linia 42)
     
     try {
       const metafieldsData = {
