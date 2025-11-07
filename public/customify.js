@@ -2143,6 +2143,13 @@ class CustomifyEmbed {
           const frameLabelMap = { none: 'brak', black: 'czarna', white: 'biała', wood: 'drewno' };
           const frameLabel = frameLabelMap[selectedFrame] || 'brak';
           
+          console.log('🖼️ [CUSTOMIFY FRAME DEBUG]:', {
+            selectedProductType: this.selectedProductType,
+            'window.CustomifyFrame': window.CustomifyFrame,
+            selectedFrame: selectedFrame,
+            frameLabel: frameLabel
+          });
+          
           const properties = {
             'Styl AI': this.selectedStyle,
             'Rozmiar': this.getSizeDimension(this.selectedSize),  // ✅ Przekaż wymiar (np. "20×30 cm") zamiast kodu (np. "a4")
@@ -2151,6 +2158,8 @@ class CustomifyEmbed {
             'AI Image URL': result.imageUrl || this.transformedImage,  // ✅ URL BEZ watermarku - DO REALIZACJI (bez _ żeby było widoczne!)
             'Order ID': result.orderId || Date.now().toString()  // Unikalny ID zamówienia (bez _ żeby było widoczne!)
           };
+          
+          console.log('🛒 [CUSTOMIFY CART PROPERTIES]:', properties);
           
           // ✅ DODAJ URL OBRAZKA Z WATERMARKIEM (dla użytkownika w koszyku)
           // WAŻNE: Nie używaj _ na początku - Shopify ukrywa takie properties!
