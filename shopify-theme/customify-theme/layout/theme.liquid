@@ -3426,31 +3426,33 @@
                     });
                   }
                   
-                  // Użyj obrazka z watermarkiem jeśli dostępny, w przeciwnym razie dodaj watermark
-                  if (watermarkedUrl && watermarkedUrl.startsWith('http')) {
-                    // Mamy URL z Vercel Blob - użyj go
-                    img.src = watermarkedUrl;
-                    img.dataset.watermarkedSrc = watermarkedUrl;
-                    console.log('✅ [CUSTOMIFY CART] Użyto obrazka z watermarkiem z Vercel Blob');
+                  // Główny obrazek produktu w Shopify jest już Z watermarkiem
+                  // Nie trzeba nic zmieniać - Shopify automatycznie pokazuje miniaturkę
+                  // Zapisz oryginalny src dla lightbox (z większym rozmiarem)
+                  let originalSrc = img.src;
+                  
+                  // ✅ Zmień URL na większy rozmiar dla lightbox (1200px zamiast 250px)
+                  if (originalSrc.includes('cdn.shopify.com') && originalSrc.includes('width=')) {
+                    const largeImageSrc = originalSrc.replace(/width=\d+/, 'width=1200');
+                    img.dataset.watermarkedSrc = largeImageSrc;
+                    console.log('✅ [CUSTOMIFY CART] Przygotowano większy obrazek (1200px) dla lightbox');
+                  } else if (originalSrc.includes('cdn.shopify.com')) {
+                    const largeImageSrc = originalSrc + (originalSrc.includes('?') ? '&' : '?') + 'width=1200';
+                    img.dataset.watermarkedSrc = largeImageSrc;
+                    console.log('✅ [CUSTOMIFY CART] Przygotowano większy obrazek (1200px) dla lightbox');
                   } else {
-                    // Brak URL z watermarkiem - dodaj watermark dynamicznie (fallback)
-                    console.log('⚠️ [CUSTOMIFY CART] Brak URL z watermarkiem - dodaję dynamicznie');
-                    try {
-                      const watermarkedSrc = await addWatermarkToImage(img.src);
-                      img.src = watermarkedSrc;
-                      img.dataset.watermarkedSrc = watermarkedSrc;
-                      console.log('✅ [CUSTOMIFY CART] Watermark dodany dynamicznie');
-                    } catch (error) {
-                      console.error('❌ [CUSTOMIFY CART] Nie udało się dodać watermarku:', error);
-                    }
+                    img.dataset.watermarkedSrc = originalSrc;
                   }
                   
                   link.addEventListener('click', (e) => {
                     e.preventDefault();
                     e.stopPropagation();
                     console.log('🖼️ [CUSTOMIFY CART] Kliknięto miniaturkę - pokazuję lightbox');
-                    // Użyj obrazka z watermarkiem w lightbox (pełna wielkość)
+                    
+                    // Użyj większego obrazka (1200px) przygotowanego wcześniej
                     const imageToShow = img.dataset.watermarkedSrc || img.src;
+                    console.log('📏 [CUSTOMIFY CART] Pokazuję obrazek:', imageToShow);
+                    
                     showImageLightbox(imageToShow);
                   });
                   
