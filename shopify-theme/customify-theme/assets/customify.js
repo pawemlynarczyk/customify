@@ -2059,6 +2059,10 @@ class CustomifyEmbed {
       let watermarkedImageUrl = null;
       if (this.watermarkedImage) {
         console.log('📤 [CUSTOMIFY] Uploading watermarked image to Vercel Blob...');
+        console.log('📤 [CUSTOMIFY] Watermarked image type:', typeof this.watermarkedImage);
+        console.log('📤 [CUSTOMIFY] Watermarked image length:', this.watermarkedImage?.length);
+        console.log('📤 [CUSTOMIFY] Watermarked image preview:', this.watermarkedImage?.substring(0, 100));
+        
         try {
           const watermarkUploadResponse = await fetch('https://customify-s56o.vercel.app/api/upload-temp-image', {
             method: 'POST',
@@ -2069,16 +2073,22 @@ class CustomifyEmbed {
             })
           });
           
+          console.log('📤 [CUSTOMIFY] Upload response status:', watermarkUploadResponse.status);
           const watermarkUploadResult = await watermarkUploadResponse.json();
+          console.log('📤 [CUSTOMIFY] Upload result:', watermarkUploadResult);
+          
           if (watermarkUploadResult.success) {
             watermarkedImageUrl = watermarkUploadResult.url;
             console.log('✅ [CUSTOMIFY] Watermarked image uploaded:', watermarkedImageUrl);
+            console.log('✅ [CUSTOMIFY] URL length:', watermarkedImageUrl.length);
           } else {
             console.error('❌ [CUSTOMIFY] Failed to upload watermarked image:', watermarkUploadResult.error);
           }
         } catch (error) {
           console.error('❌ [CUSTOMIFY] Error uploading watermarked image:', error);
         }
+      } else {
+        console.warn('⚠️ [CUSTOMIFY] No watermarked image available - this.watermarkedImage is null/undefined');
       }
 
       const productData = {
@@ -2134,8 +2144,9 @@ class CustomifyEmbed {
           };
           
           // ✅ DODAJ URL OBRAZKA Z WATERMARKIEM (dla użytkownika w koszyku)
+          // WAŻNE: Nie używaj _ na początku - Shopify ukrywa takie properties!
           if (watermarkedImageUrl) {
-            properties['_AI_Image_Watermarked'] = watermarkedImageUrl;
+            properties['AI Image Watermarked'] = watermarkedImageUrl;
             console.log('🎨 [CUSTOMIFY] Added watermarked image URL to cart properties:', watermarkedImageUrl);
           }
           

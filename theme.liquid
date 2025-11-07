@@ -3396,15 +3396,15 @@
                   let watermarkedUrl = null;
                   
                   if (cartItem) {
-                    // Szukaj property _AI_Image_Watermarked
+                    // Szukaj property AI Image Watermarked
                     const properties = cartItem.querySelectorAll('.cart-items__properties dd, dd[data-property]');
                     properties.forEach(prop => {
                       const dt = prop.previousElementSibling;
-                      if (dt && dt.textContent.includes('_AI_Image_Watermarked')) {
+                      if (dt && (dt.textContent.includes('AI Image Watermarked') || dt.textContent.includes('AI_Image_Watermarked'))) {
                         watermarkedUrl = prop.textContent.trim();
                         console.log('✅ [CUSTOMIFY CART] Znaleziono URL z watermarkiem:', watermarkedUrl);
                         
-                        // Ukryj property _AI_Image_Watermarked (nie pokazuj URL użytkownikowi)
+                        // Ukryj property AI Image Watermarked (nie pokazuj URL użytkownikowi)
                         const propertyDiv = prop.closest('.cart-items__properties');
                         if (propertyDiv) {
                           propertyDiv.style.display = 'none';
