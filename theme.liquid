@@ -3400,14 +3400,22 @@
                     const properties = cartItem.querySelectorAll('.cart-items__properties dd, dd[data-property]');
                     properties.forEach(prop => {
                       const dt = prop.previousElementSibling;
-                      if (dt && (dt.textContent.includes('AI Image Watermarked') || dt.textContent.includes('AI_Image_Watermarked'))) {
-                        watermarkedUrl = prop.textContent.trim();
-                        console.log('✅ [CUSTOMIFY CART] Znaleziono URL z watermarkiem:', watermarkedUrl);
+                      if (dt) {
+                        const propertyName = dt.textContent.trim();
                         
-                        // Ukryj property AI Image Watermarked (nie pokazuj URL użytkownikowi)
-                        const propertyDiv = prop.closest('.cart-items__properties');
-                        if (propertyDiv) {
-                          propertyDiv.style.display = 'none';
+                        // Pobierz URL z watermarkiem
+                        if (propertyName.includes('AI Image Watermarked') || propertyName.includes('AI_Image_Watermarked')) {
+                          watermarkedUrl = prop.textContent.trim();
+                          console.log('✅ [CUSTOMIFY CART] Znaleziono URL z watermarkiem:', watermarkedUrl);
+                        }
+                        
+                        // Ukryj TYLKO properties z URLami (nie pokazuj długich URLi użytkownikowi)
+                        // ZOSTAW WIDOCZNE: Styl AI, Rozmiar, Rodzaj wydruku, Ramka
+                        if (propertyName.includes('AI Image') || propertyName.includes('Order ID')) {
+                          // Ukryj tylko tę konkretną property (dt + dd)
+                          dt.style.display = 'none';
+                          prop.style.display = 'none';
+                          console.log('🙈 [CUSTOMIFY CART] Ukryto property:', propertyName);
                         }
                       }
                     });
