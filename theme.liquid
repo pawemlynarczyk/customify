@@ -3409,9 +3409,10 @@
                           console.log('✅ [CUSTOMIFY CART] Znaleziono URL z watermarkiem:', watermarkedUrl);
                         }
                         
-                        // Ukryj TYLKO properties z URLami (nie pokazuj długich URLi użytkownikowi)
-                        // ZOSTAW WIDOCZNE: Styl AI, Rozmiar, Rodzaj wydruku, Ramka
-                        if (propertyName.includes('AI Image') || propertyName.includes('Order ID')) {
+                        // Ukryj TYLKO "AI Image Watermarked" (długi URL z watermarkiem)
+                        // ZOSTAW WIDOCZNE: Styl AI, Rozmiar, Rodzaj wydruku, Ramka, Order ID
+                        // ❌ "AI Image URL" i "AI Image Backup" już NIE SĄ w cart properties - są w metafields produktu (tylko admin)
+                        if (propertyName.includes('AI Image Watermarked')) {
                           // Ukryj tylko tę konkretną property (dt + dd)
                           dt.style.display = 'none';
                           prop.style.display = 'none';

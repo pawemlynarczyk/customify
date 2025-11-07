@@ -270,6 +270,49 @@ module.exports = async (req, res) => {
     // Shopify CDN jest tylko dla produktu w Shopify, ale może zniknąć
     const permanentImageUrl = vercelBlobUrl || shopifyImageUrl;
 
+    // KROK 4: Dodaj metafields do produktu (TYLKO dla admina - nie widoczne dla użytkownika)
+    // Te URLe (bez watermarku) są TYLKO dla realizacji zamówienia w adminie
+    console.log('📝 [PRODUCTS.JS] Adding metafields to product...');
+    try {
+      const metafieldsData = {
+        metafield: {
+          namespace: 'customify',
+          key: 'order_details',
+          value: JSON.stringify({
+            orderId: uniqueId,
+            shopifyImageUrl: shopifyImageUrl,
+            vercelBlobUrl: vercelBlobUrl,
+            permanentImageUrl: permanentImageUrl,
+            style: style,
+            size: size,
+            productType: productType,
+            createdAt: new Date().toISOString()
+          }),
+          type: 'json'
+        }
+      };
+
+      const metafieldsResponse = await fetch(`https://${shop}/admin/api/2023-10/products/${productId}/metafields.json`, {
+        method: 'POST',
+        headers: {
+          'X-Shopify-Access-Token': accessToken,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(metafieldsData)
+      });
+
+      if (metafieldsResponse.ok) {
+        console.log('✅ [PRODUCTS.JS] Metafields added successfully');
+      } else {
+        const metafieldsError = await metafieldsResponse.text();
+        console.error('⚠️ [PRODUCTS.JS] Failed to add metafields:', metafieldsError);
+        warnings.push('Metafields not saved - admin may not see order details');
+      }
+    } catch (metafieldsError) {
+      console.error('⚠️ [PRODUCTS.JS] Metafields error:', metafieldsError.message);
+      warnings.push('Metafields not saved - admin may not see order details');
+    }
+
     res.json({ 
       success: true, 
       product: product,

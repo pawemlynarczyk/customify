@@ -2155,25 +2155,19 @@ class CustomifyEmbed {
             'Rozmiar': this.getSizeDimension(this.selectedSize),  // ✅ Przekaż wymiar (np. "20×30 cm") zamiast kodu (np. "a4")
             'Rodzaj wydruku': productTypeName,  // ✅ Dodano rodzaj wydruku
             'Ramka': `ramka - ${frameLabel}`,  // ✅ Informacja o wybranej ramce (tylko dla plakatu)
-            'AI Image URL': result.imageUrl || this.transformedImage,  // ✅ URL BEZ watermarku - DO REALIZACJI (bez _ żeby było widoczne!)
-            'Order ID': result.orderId || Date.now().toString()  // Unikalny ID zamówienia (bez _ żeby było widoczne!)
+            'Order ID': result.orderId || Date.now().toString()  // Unikalny ID zamówienia (widoczny dla użytkownika)
           };
           
+          // ❌ NIE DODAJEMY "AI Image URL" i "AI Image Backup" do cart properties!
+          // ❌ Te URLe (bez watermarku) są TYLKO dla admina - nie mogą być widoczne na checkout!
+          // ✅ Zamiast tego są zapisane jako metafields w produkcie Shopify (tylko admin je widzi)
+          
           console.log('🛒 [CUSTOMIFY CART PROPERTIES]:', properties);
-          
-          // ✅ DODAJ URL OBRAZKA Z WATERMARKIEM (dla użytkownika w koszyku)
-          // WAŻNE: Nie używaj _ na początku - Shopify ukrywa takie properties!
-          if (watermarkedImageUrl) {
-            properties['AI Image Watermarked'] = watermarkedImageUrl;
-            console.log('🎨 [CUSTOMIFY] Added watermarked image URL to cart properties:', watermarkedImageUrl);
-          }
-          
-          // ✅ DODAJ BACKUP URL (Vercel Blob - permanentny, nie zniknie jak Shopify)
-          // To jest NAJWAŻNIEJSZY URL - z Vercel Blob folder orders/ - BEZ watermarku!
-          if (result.permanentImageUrl) {
-            properties['AI Image Backup'] = result.permanentImageUrl;
-            console.log('🔒 [CUSTOMIFY] Added permanent backup URL (Vercel Blob):', result.permanentImageUrl);
-          }
+          console.log('🔒 [CUSTOMIFY ADMIN ONLY URLs - NOT in cart properties]:', {
+            imageUrl: result.imageUrl,
+            permanentImageUrl: result.permanentImageUrl,
+            vercelBlobUrl: result.vercelBlobUrl
+          });
           
           console.log('🖼️ [CUSTOMIFY] Image URLs:', {
             shopifyImageUrl: result.imageUrl,
