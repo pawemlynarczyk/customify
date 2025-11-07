@@ -3296,7 +3296,7 @@
             
             // Znajdź wszystkie elementy koszyka (różne selektory dla różnych motywów)
             const cartItems = document.querySelectorAll(
-              '.cart-item, .cart-items__row, [data-line-item], .line-item, .cart__line-item'
+              '.cart-item, .cart-items__table-row, .cart-items__row, [data-line-item], .line-item, .cart__line-item, tr[role="row"]'
             );
             
             console.log('🛒 [CUSTOMIFY CART] Znaleziono elementów koszyka:', cartItems.length);
@@ -3313,10 +3313,12 @@
                 if (img) {
                   // To jest link z miniaturką - wyłącz i dodaj lightbox
                   console.log(`🖼️ [CUSTOMIFY CART] Link ${linkIndex} ma obrazek - dodaję lightbox`);
+                  console.log(`   Obrazek src: ${img.src}`);
                   
                   link.addEventListener('click', (e) => {
                     e.preventDefault();
                     e.stopPropagation();
+                    console.log('🖼️ [CUSTOMIFY CART] Kliknięto miniaturkę - pokazuję lightbox');
                     showImageLightbox(img.src);
                   });
                   
@@ -3326,10 +3328,13 @@
                 } else {
                   // To jest link z tytułem - wyłącz całkowicie
                   console.log(`📝 [CUSTOMIFY CART] Link ${linkIndex} to tytuł - wyłączam`);
+                  console.log(`   Link href: ${link.href}`);
+                  console.log(`   Link text: ${link.textContent.trim()}`);
                   
                   link.addEventListener('click', (e) => {
                     e.preventDefault();
                     e.stopPropagation();
+                    console.log('📝 [CUSTOMIFY CART] Kliknięto tytuł - blokuję');
                   });
                   
                   link.style.cursor = 'default';
