@@ -2139,8 +2139,8 @@ class CustomifyEmbed {
             'Styl AI': this.selectedStyle,
             'Rozmiar': this.getSizeDimension(this.selectedSize),  // ✅ Przekaż wymiar (np. "20×30 cm") zamiast kodu (np. "a4")
             'Rodzaj wydruku': productTypeName,  // ✅ Dodano rodzaj wydruku
-            '_AI_Image_URL': result.imageUrl || this.transformedImage,  // ✅ URL z Shopify (główny obraz BEZ watermarku - do realizacji)
-            '_Order_ID': result.orderId || Date.now().toString()  // Unikalny ID zamówienia
+            'AI Image URL': result.imageUrl || this.transformedImage,  // ✅ URL BEZ watermarku - DO REALIZACJI (bez _ żeby było widoczne!)
+            'Order ID': result.orderId || Date.now().toString()  // Unikalny ID zamówienia (bez _ żeby było widoczne!)
           };
           
           // ✅ DODAJ URL OBRAZKA Z WATERMARKIEM (dla użytkownika w koszyku)
@@ -2150,22 +2150,12 @@ class CustomifyEmbed {
             console.log('🎨 [CUSTOMIFY] Added watermarked image URL to cart properties:', watermarkedImageUrl);
           }
           
-          // Dodaj _AI_Image_Permanent TYLKO jeśli to krótki URL (Vercel Blob URLs są za długie)
-          const permanentUrl = result.permanentImageUrl || this.transformedImage;
-          if (permanentUrl && permanentUrl.length < 150 && permanentUrl.includes('replicate.delivery')) {
-            properties['_AI_Image_Permanent'] = permanentUrl;
+          // ✅ DODAJ BACKUP URL (Vercel Blob - permanentny, nie zniknie jak Shopify)
+          // To jest NAJWAŻNIEJSZY URL - z Vercel Blob folder orders/ - BEZ watermarku!
+          if (result.permanentImageUrl) {
+            properties['AI Image Backup'] = result.permanentImageUrl;
+            console.log('🔒 [CUSTOMIFY] Added permanent backup URL (Vercel Blob):', result.permanentImageUrl);
           }
-          
-          // Dodaj _AI_Image_Direct TYLKO jeśli to krótki URL (Replicate ~100 znaków)
-          // Vercel Blob URLs są za długie (~200+ znaków) - NIE dodawaj ich tutaj
-          if (this.transformedImage && 
-              !this.transformedImage.startsWith('data:') && 
-              this.transformedImage.length < 150 &&
-              this.transformedImage.includes('replicate.delivery')) {
-            properties['_AI_Image_Direct'] = this.transformedImage;  // Tylko Replicate URLs (krótkie)
-          }
-          // Segmind base64 data URI (~256KB) przekracza limit URL - POMIŃ!
-          // Vercel Blob URLs są za długie dla properties - POMIŃ!
           
           console.log('🖼️ [CUSTOMIFY] Image URLs:', {
             shopifyImageUrl: result.imageUrl,
