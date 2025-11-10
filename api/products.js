@@ -157,6 +157,9 @@ module.exports = async (req, res) => {
     const createdProduct = await createResponse.json();
     const product = createdProduct.product;
     const productId = product.id;
+
+    // Generuj unikalny identyfikator i skrócony numer zamówienia
+    const timestamp = Date.now().toString().slice(-8);
     const shortOrderId = timestamp;
 
     // Product created successfully
@@ -202,7 +205,6 @@ module.exports = async (req, res) => {
 
     // Generuj unikalny identyfikator z nazwą klienta, stylem i timestamp
     const customerName = (originalProductTitle || 'Customer').replace(/[^a-zA-Z0-9]/g, '').substring(0, 10);
-    const timestamp = Date.now().toString().slice(-8);
     const uniqueId = `${customerName}-${style}-${timestamp}`;
     
     const imageUploadData = {
