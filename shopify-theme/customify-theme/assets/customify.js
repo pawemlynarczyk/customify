@@ -1426,69 +1426,11 @@ class CustomifyEmbed {
     this.selectedProductType = typeBtn.dataset.productType;
     console.log('🎨 [PRODUCT-TYPE] Selected product type:', this.selectedProductType);
 
-    // Znajdź przyciski rozmiaru
-    const sizeBtns = this.sizeArea?.querySelectorAll('.customify-size-btn');
-    if (!sizeBtns) {
-      console.error('❌ [PRODUCT-TYPE] Size buttons not found');
-      return;
-    }
-
-    // Usuń active ze wszystkich rozmiarów
-    sizeBtns.forEach(btn => btn.classList.remove('active'));
-
-    // AUTOMATYCZNA ZMIANA ROZMIARU w zależności od typu produktu
-    if (this.selectedProductType === 'canvas') {
-      // OBRAZ NA PŁÓTNIE: A5 niedostępny, automatycznie wybierz A4
-      const a4Btn = this.sizeArea.querySelector('[data-size="a4"]');
-      const a5Btn = this.sizeArea.querySelector('[data-size="a5"]');
-      
-      // Dezaktywuj A5
-      if (a5Btn) {
-        a5Btn.classList.add('disabled');
-        a5Btn.style.opacity = '0.4';
-        a5Btn.style.cursor = 'not-allowed';
-        a5Btn.style.pointerEvents = 'none';
-        a5Btn.classList.remove('active');
-        console.log('🚫 [PRODUCT-TYPE] A5 disabled for canvas');
-      }
-      
-      // Aktywuj A4 automatycznie
-      if (a4Btn) {
-        a4Btn.classList.remove('disabled');
-        a4Btn.style.opacity = '1';
-        a4Btn.style.cursor = 'pointer';
-        a4Btn.style.pointerEvents = 'auto';
-        a4Btn.classList.add('active');
-        this.selectedSize = 'a4';
-        console.log('✅ [PRODUCT-TYPE] Canvas -> A4 auto-selected');
-      }
-    } else {
-      // PLAKAT: A5 dostępny, automatycznie wybierz A5
-      const a5Btn = this.sizeArea.querySelector('[data-size="a5"]');
-      const a4Btn = this.sizeArea.querySelector('[data-size="a4"]');
-      
-      // Przywróć A5 jako dostępny
-      if (a5Btn) {
-        a5Btn.classList.remove('disabled');
-        a5Btn.style.opacity = '1';
-        a5Btn.style.cursor = 'pointer';
-        a5Btn.style.pointerEvents = 'auto';
-      }
-      
-      // Aktywuj A5 automatycznie dla plakatu
-      if (a5Btn) {
-        a5Btn.classList.add('active');
-        this.selectedSize = 'a5';
-        console.log('✅ [PRODUCT-TYPE] Plakat -> A5 auto-selected');
-      }
-    }
-
     // Aktualizuj ceny po zmianie typu (ramka dostępna tylko dla plakatu)
     this.updateProductPrice();
     this.updateCartPrice();
     console.log('🖼️ [FRAME] Type changed -> recalculated price with frame:', {
       selectedProductType: this.selectedProductType,
-      selectedSize: this.selectedSize,
       frame: window.CustomifyFrame?.color || 'none'
     });
   }
@@ -1703,11 +1645,10 @@ class CustomifyEmbed {
    */
   getSizePrice(size) {
     const prices = {
-      'a5': 0,   // 15×20 cm - base price (tylko plakat)
-      'a4': 49,  // 20×30 cm
-      'a3': 99,  // 30×40 cm
-      'a2': 149, // 40×60 cm
-      'a1': 199  // 60×85 cm
+      'a4': 49,
+      'a3': 99,
+      'a2': 149,
+      'a1': 199
     };
     return prices[size] || 0;
   }
@@ -1717,7 +1658,6 @@ class CustomifyEmbed {
    */
   getSizeDimension(size) {
     const dimensions = {
-      'a5': '15×20 cm', // Tylko plakat
       'a4': '20×30 cm',
       'a3': '30×40 cm', 
       'a2': '40×60 cm',
@@ -2210,25 +2150,33 @@ class CustomifyEmbed {
             frameLabel: frameLabel
           });
           
+          const shortOrderId = result.shortOrderId || (result.orderId ? result.orderId.split('-').pop() : Date.now().toString());
+          
           const properties = {
             'Styl AI': this.selectedStyle,
             'Rozmiar': this.getSizeDimension(this.selectedSize),  // ✅ Przekaż wymiar (np. "20×30 cm") zamiast kodu (np. "a4")
             'Rodzaj wydruku': productTypeName,  // ✅ Dodano rodzaj wydruku
             'Ramka': `ramka - ${frameLabel}`,  // ✅ Informacja o wybranej ramce (tylko dla plakatu)
-            'Order ID': result.orderId || Date.now().toString()  // Unikalny ID zamówienia (widoczny dla użytkownika)
+            'Order ID': shortOrderId  // ✅ Skrócony ID zamówienia widoczny dla klienta
           };
           
-          // ❌ NIE DODAJEMY ŻADNYCH URLi do cart properties!
-          // ❌ Wszystkie URLe (Z i BEZ watermarku) są zapisane w metafields produktu (tylko admin)
-          // ✅ Miniaturka w koszyku = automatyczna miniaturka Shopify (główny obrazek produktu Z watermarkiem)
-          // ✅ Checkout nie pokazuje żadnych URLi - tylko podstawowe info (styl, rozmiar, ramka)
+          const noteAttributes = {};
           
-          console.log('🛒 [CUSTOMIFY CART PROPERTIES]:', properties);
-          console.log('🔒 [CUSTOMIFY ADMIN ONLY URLs - NOT in cart properties]:', {
-            imageUrl: result.imageUrl,
-            permanentImageUrl: result.permanentImageUrl,
-            vercelBlobUrl: result.vercelBlobUrl
-          });
+          if (result.orderId) {
+            noteAttributes['Order ID Full'] = result.orderId;
+          }
+          if (result.imageUrl) {
+            noteAttributes['AI Image URL'] = result.imageUrl;
+          }
+          if (result.permanentImageUrl) {
+            noteAttributes['AI Image Backup'] = result.permanentImageUrl;
+          }
+          if (result.vercelBlobUrl) {
+            noteAttributes['AI Image Vercel'] = result.vercelBlobUrl;
+          }
+          
+          console.log('🛒 [CUSTOMIFY CART PROPERTIES VISIBLE]:', properties);
+          console.log('📝 [CUSTOMIFY NOTE ATTRIBUTES]:', noteAttributes);
           
           console.log('🖼️ [CUSTOMIFY] Image URLs:', {
             shopifyImageUrl: result.imageUrl,
@@ -2242,7 +2190,7 @@ class CustomifyEmbed {
           params.append('id', result.variantId);
           params.append('quantity', '1');
           
-          // Dodaj właściwości
+          // Dodaj właściwości (tylko widoczne dla klienta)
           Object.entries(properties).forEach(([key, value]) => {
             params.append(`properties[${key}]`, value);
           });
@@ -2259,6 +2207,15 @@ class CustomifyEmbed {
             console.error('❌ [CUSTOMIFY] Properties:', properties);
             this.showError('URL zbyt długi - usuń niektóre właściwości lub skontaktuj się z supportem');
             return;
+          }
+          
+          // ✅ ZAPISZ NOTE ATTRIBUTES (linki dla admina)
+          if (Object.keys(noteAttributes).length > 0) {
+            try {
+              await this.updateCartNoteAttributes(noteAttributes);
+            } catch (error) {
+              console.error('⚠️ [CUSTOMIFY] Failed to update cart note attributes:', error);
+            }
           }
           
           // ✅ DODAJ DO KOSZYKA PRZEZ DIRECT NAVIGATION (jak w rules)
@@ -2293,6 +2250,36 @@ class CustomifyEmbed {
       
       this.showError(errorMessage);
     }
+  }
+
+  async updateCartNoteAttributes(noteAttributes) {
+    if (!noteAttributes || Object.keys(noteAttributes).length === 0) {
+      return;
+    }
+
+    console.log('📝 [CUSTOMIFY] Updating cart note attributes:', noteAttributes);
+
+    const payload = {
+      attributes: noteAttributes
+    };
+
+    const response = await fetch('/cart/update.js', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Cart note update failed: ${response.status} ${errorText}`);
+    }
+
+    const data = await response.json();
+    console.log('✅ [CUSTOMIFY] Cart attributes saved:', data.attributes || data);
+    return data;
   }
 
   // UKRYJ PRODUKT PO DODANIU DO KOSZYKA
