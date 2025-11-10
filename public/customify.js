@@ -2260,7 +2260,7 @@ class CustomifyEmbed {
     console.log('📝 [CUSTOMIFY] Updating cart note attributes:', noteAttributes);
 
     const payload = {
-      note_attributes: noteAttributes
+      attributes: noteAttributes
     };
 
     const response = await fetch('/cart/update.js', {
@@ -2278,7 +2278,7 @@ class CustomifyEmbed {
     }
 
     const data = await response.json();
-    console.log('✅ [CUSTOMIFY] Note attributes saved:', data.note_attributes || data);
+    console.log('✅ [CUSTOMIFY] Cart attributes saved:', data.attributes || data);
     return data;
   }
 
