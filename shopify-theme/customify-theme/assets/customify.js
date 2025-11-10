@@ -1426,11 +1426,69 @@ class CustomifyEmbed {
     this.selectedProductType = typeBtn.dataset.productType;
     console.log('🎨 [PRODUCT-TYPE] Selected product type:', this.selectedProductType);
 
+    // Znajdź przyciski rozmiaru
+    const sizeBtns = this.sizeArea?.querySelectorAll('.customify-size-btn');
+    if (!sizeBtns) {
+      console.error('❌ [PRODUCT-TYPE] Size buttons not found');
+      return;
+    }
+
+    // Usuń active ze wszystkich rozmiarów
+    sizeBtns.forEach(btn => btn.classList.remove('active'));
+
+    // AUTOMATYCZNA ZMIANA ROZMIARU w zależności od typu produktu
+    if (this.selectedProductType === 'canvas') {
+      // OBRAZ NA PŁÓTNIE: A5 niedostępny, automatycznie wybierz A4
+      const a4Btn = this.sizeArea.querySelector('[data-size="a4"]');
+      const a5Btn = this.sizeArea.querySelector('[data-size="a5"]');
+      
+      // Dezaktywuj A5
+      if (a5Btn) {
+        a5Btn.classList.add('disabled');
+        a5Btn.style.opacity = '0.4';
+        a5Btn.style.cursor = 'not-allowed';
+        a5Btn.style.pointerEvents = 'none';
+        a5Btn.classList.remove('active');
+        console.log('🚫 [PRODUCT-TYPE] A5 disabled for canvas');
+      }
+      
+      // Aktywuj A4 automatycznie
+      if (a4Btn) {
+        a4Btn.classList.remove('disabled');
+        a4Btn.style.opacity = '1';
+        a4Btn.style.cursor = 'pointer';
+        a4Btn.style.pointerEvents = 'auto';
+        a4Btn.classList.add('active');
+        this.selectedSize = 'a4';
+        console.log('✅ [PRODUCT-TYPE] Canvas -> A4 auto-selected');
+      }
+    } else {
+      // PLAKAT: A5 dostępny, automatycznie wybierz A5
+      const a5Btn = this.sizeArea.querySelector('[data-size="a5"]');
+      const a4Btn = this.sizeArea.querySelector('[data-size="a4"]');
+      
+      // Przywróć A5 jako dostępny
+      if (a5Btn) {
+        a5Btn.classList.remove('disabled');
+        a5Btn.style.opacity = '1';
+        a5Btn.style.cursor = 'pointer';
+        a5Btn.style.pointerEvents = 'auto';
+      }
+      
+      // Aktywuj A5 automatycznie dla plakatu
+      if (a5Btn) {
+        a5Btn.classList.add('active');
+        this.selectedSize = 'a5';
+        console.log('✅ [PRODUCT-TYPE] Plakat -> A5 auto-selected');
+      }
+    }
+
     // Aktualizuj ceny po zmianie typu (ramka dostępna tylko dla plakatu)
     this.updateProductPrice();
     this.updateCartPrice();
     console.log('🖼️ [FRAME] Type changed -> recalculated price with frame:', {
       selectedProductType: this.selectedProductType,
+      selectedSize: this.selectedSize,
       frame: window.CustomifyFrame?.color || 'none'
     });
   }
@@ -1645,10 +1703,11 @@ class CustomifyEmbed {
    */
   getSizePrice(size) {
     const prices = {
-      'a4': 49,
-      'a3': 99,
-      'a2': 149,
-      'a1': 199
+      'a5': 0,   // 15×20 cm - base price (tylko plakat)
+      'a4': 49,  // 20×30 cm
+      'a3': 99,  // 30×40 cm
+      'a2': 149, // 40×60 cm
+      'a1': 199  // 60×85 cm
     };
     return prices[size] || 0;
   }
@@ -1658,6 +1717,7 @@ class CustomifyEmbed {
    */
   getSizeDimension(size) {
     const dimensions = {
+      'a5': '15×20 cm', // Tylko plakat
       'a4': '20×30 cm',
       'a3': '30×40 cm', 
       'a2': '40×60 cm',
