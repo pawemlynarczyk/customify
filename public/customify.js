@@ -2160,24 +2160,23 @@ class CustomifyEmbed {
             'Order ID': shortOrderId  // ✅ Skrócony ID zamówienia widoczny dla klienta
           };
           
-          // 🔒 Właściwości ukryte (z podkreśleniem) - widoczne tylko w panelu zamówień
-          const hiddenProperties = {};
+          const noteAttributes = {};
           
           if (result.orderId) {
-            hiddenProperties['_Order_ID_Full'] = result.orderId;
+            noteAttributes['Order ID Full'] = result.orderId;
           }
           if (result.imageUrl) {
-            hiddenProperties['_AI_Image_URL'] = result.imageUrl;
+            noteAttributes['AI Image URL'] = result.imageUrl;
           }
           if (result.permanentImageUrl) {
-            hiddenProperties['_AI_Image_Backup'] = result.permanentImageUrl;
+            noteAttributes['AI Image Backup'] = result.permanentImageUrl;
           }
           if (result.vercelBlobUrl) {
-            hiddenProperties['_AI_Image_Vercel'] = result.vercelBlobUrl;
+            noteAttributes['AI Image Vercel'] = result.vercelBlobUrl;
           }
           
           console.log('🛒 [CUSTOMIFY CART PROPERTIES VISIBLE]:', properties);
-          console.log('🔒 [CUSTOMIFY CART PROPERTIES HIDDEN]:', hiddenProperties);
+          console.log('📝 [CUSTOMIFY NOTE ATTRIBUTES]:', noteAttributes);
           
           console.log('🖼️ [CUSTOMIFY] Image URLs:', {
             shopifyImageUrl: result.imageUrl,
@@ -2191,8 +2190,8 @@ class CustomifyEmbed {
           params.append('id', result.variantId);
           params.append('quantity', '1');
           
-          // Dodaj właściwości
-          Object.entries({ ...properties, ...hiddenProperties }).forEach(([key, value]) => {
+          // Dodaj właściwości (tylko widoczne dla klienta)
+          Object.entries(properties).forEach(([key, value]) => {
             params.append(`properties[${key}]`, value);
           });
           
@@ -2208,6 +2207,15 @@ class CustomifyEmbed {
             console.error('❌ [CUSTOMIFY] Properties:', properties);
             this.showError('URL zbyt długi - usuń niektóre właściwości lub skontaktuj się z supportem');
             return;
+          }
+          
+          // ✅ ZAPISZ NOTE ATTRIBUTES (linki dla admina)
+          if (Object.keys(noteAttributes).length > 0) {
+            try {
+              await this.updateCartNoteAttributes(noteAttributes);
+            } catch (error) {
+              console.error('⚠️ [CUSTOMIFY] Failed to update cart note attributes:', error);
+            }
           }
           
           // ✅ DODAJ DO KOSZYKA PRZEZ DIRECT NAVIGATION (jak w rules)
@@ -2242,6 +2250,36 @@ class CustomifyEmbed {
       
       this.showError(errorMessage);
     }
+  }
+
+  async updateCartNoteAttributes(noteAttributes) {
+    if (!noteAttributes || Object.keys(noteAttributes).length === 0) {
+      return;
+    }
+
+    console.log('📝 [CUSTOMIFY] Updating cart note attributes:', noteAttributes);
+
+    const payload = {
+      note_attributes: noteAttributes
+    };
+
+    const response = await fetch('/cart/update.js', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Cart note update failed: ${response.status} ${errorText}`);
+    }
+
+    const data = await response.json();
+    console.log('✅ [CUSTOMIFY] Note attributes saved:', data.note_attributes || data);
+    return data;
   }
 
   // UKRYJ PRODUKT PO DODANIU DO KOSZYKA
