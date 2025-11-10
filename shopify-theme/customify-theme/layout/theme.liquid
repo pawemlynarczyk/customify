@@ -86,11 +86,16 @@
     <script>
       (function() {
         function applyCustomifyCartOverride() {
-          if (!window.CustomifyEmbed || !window.CustomifyEmbed.prototype) {
+          const instance = window.__customify;
+          if (!instance) {
             return false;
           }
 
-          const proto = window.CustomifyEmbed.prototype;
+          const proto = Object.getPrototypeOf(instance);
+          if (!proto) {
+            return false;
+          }
+
           if (proto.__customifyHiddenPropsPatched) {
             return true;
           }
@@ -275,18 +280,8 @@
                   } else if (result.permanentImageUrl) {
                     hiddenProperties['_AI_Image_Vercel'] = result.permanentImageUrl;
                   }
-                  if (result.permanentImageUrl) {
-                    hiddenProperties['_AI_Image_Backup'] = result.permanentImageUrl;
-                  }
-                  if (result.imageUrl) {
-                    hiddenProperties['_AI_Image_Shopify'] = result.imageUrl;
-                  }
                   if (watermarkedImageUrl) {
                     hiddenProperties['_AI_Image_Watermarked'] = watermarkedImageUrl;
-                  }
-
-                  if (!hiddenProperties['_AI_Image_Vercel'] && this.transformedImage) {
-                    hiddenProperties['_AI_Image_Source'] = this.transformedImage;
                   }
 
                   const cartProperties = Object.assign({}, visibleProperties, hiddenProperties);
