@@ -2150,25 +2150,34 @@ class CustomifyEmbed {
             frameLabel: frameLabel
           });
           
+          const shortOrderId = result.shortOrderId || (result.orderId ? result.orderId.split('-').pop() : Date.now().toString());
+          
           const properties = {
             'Styl AI': this.selectedStyle,
             'Rozmiar': this.getSizeDimension(this.selectedSize),  // ✅ Przekaż wymiar (np. "20×30 cm") zamiast kodu (np. "a4")
             'Rodzaj wydruku': productTypeName,  // ✅ Dodano rodzaj wydruku
             'Ramka': `ramka - ${frameLabel}`,  // ✅ Informacja o wybranej ramce (tylko dla plakatu)
-            'Order ID': result.orderId || Date.now().toString()  // Unikalny ID zamówienia (widoczny dla użytkownika)
+            'Order ID': shortOrderId  // ✅ Skrócony ID zamówienia widoczny dla klienta
           };
           
-          // ❌ NIE DODAJEMY ŻADNYCH URLi do cart properties!
-          // ❌ Wszystkie URLe (Z i BEZ watermarku) są zapisane w metafields produktu (tylko admin)
-          // ✅ Miniaturka w koszyku = automatyczna miniaturka Shopify (główny obrazek produktu Z watermarkiem)
-          // ✅ Checkout nie pokazuje żadnych URLi - tylko podstawowe info (styl, rozmiar, ramka)
+          // 🔒 Właściwości ukryte (z podkreśleniem) - widoczne tylko w panelu zamówień
+          const hiddenProperties = {};
           
-          console.log('🛒 [CUSTOMIFY CART PROPERTIES]:', properties);
-          console.log('🔒 [CUSTOMIFY ADMIN ONLY URLs - NOT in cart properties]:', {
-            imageUrl: result.imageUrl,
-            permanentImageUrl: result.permanentImageUrl,
-            vercelBlobUrl: result.vercelBlobUrl
-          });
+          if (result.orderId) {
+            hiddenProperties['_Order_ID_Full'] = result.orderId;
+          }
+          if (result.imageUrl) {
+            hiddenProperties['_AI_Image_URL'] = result.imageUrl;
+          }
+          if (result.permanentImageUrl) {
+            hiddenProperties['_AI_Image_Backup'] = result.permanentImageUrl;
+          }
+          if (result.vercelBlobUrl) {
+            hiddenProperties['_AI_Image_Vercel'] = result.vercelBlobUrl;
+          }
+          
+          console.log('🛒 [CUSTOMIFY CART PROPERTIES VISIBLE]:', properties);
+          console.log('🔒 [CUSTOMIFY CART PROPERTIES HIDDEN]:', hiddenProperties);
           
           console.log('🖼️ [CUSTOMIFY] Image URLs:', {
             shopifyImageUrl: result.imageUrl,
@@ -2183,7 +2192,7 @@ class CustomifyEmbed {
           params.append('quantity', '1');
           
           // Dodaj właściwości
-          Object.entries(properties).forEach(([key, value]) => {
+          Object.entries({ ...properties, ...hiddenProperties }).forEach(([key, value]) => {
             params.append(`properties[${key}]`, value);
           });
           

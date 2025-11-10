@@ -157,6 +157,7 @@ module.exports = async (req, res) => {
     const createdProduct = await createResponse.json();
     const product = createdProduct.product;
     const productId = product.id;
+    const shortOrderId = timestamp;
 
     // Product created successfully
 
@@ -307,6 +308,7 @@ module.exports = async (req, res) => {
           key: 'order_details',
           value: JSON.stringify({
             orderId: uniqueId,
+            shortOrderId: shortOrderId,
             shopifyImageUrl: shopifyImageUrl,  // BEZ watermarku - do realizacji
             vercelBlobUrl: vercelBlobUrl,  // BEZ watermarku - backup
             permanentImageUrl: permanentImageUrl,  // BEZ watermarku - główny URL do realizacji
@@ -350,6 +352,7 @@ module.exports = async (req, res) => {
       permanentImageUrl: permanentImageUrl,  // ✅ PERMANENTNY URL - Vercel Blob (backup) lub fallback Shopify
       vercelBlobUrl: vercelBlobUrl,  // ✅ URL z Vercel Blob (backup - zawsze powinien być dostępny)
       orderId: uniqueId,  // ✅ Unikalny identyfikator zamówienia
+      shortOrderId: shortOrderId,  // ✅ Skrócony numer (tylko timestamp) - dla klienta
       message: 'Produkt został utworzony z obrazkiem AI!',
       warnings: warnings.length > 0 ? warnings : undefined,  // ⚠️ Ostrzeżenie jeśli backup nie działa
       cartUrl: `https://${shop}/cart/add?id=${product.variants[0].id}&quantity=1`
