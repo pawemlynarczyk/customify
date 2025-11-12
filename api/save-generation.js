@@ -111,21 +111,23 @@ module.exports = async (req, res) => {
     // Pobierz istniejące generacje z Vercel Blob Storage
     let existingData = null;
     try {
-      // Sprawdź czy plik istnieje
+      // Spróbuj sprawdzić czy plik istnieje używając head()
       const existingBlob = await head(blobPath, {
         token: process.env.customify_READ_WRITE_TOKEN
       }).catch(() => null);
       
-      if (existingBlob) {
-        // Pobierz istniejący plik JSON
+      if (existingBlob && existingBlob.url) {
+        // Plik istnieje - pobierz go
         const existingResponse = await fetch(existingBlob.url);
         if (existingResponse.ok) {
           existingData = await existingResponse.json();
-          console.log(`📊 [SAVE-GENERATION] Existing data found:`, existingData ? 'yes' : 'no');
+          console.log(`📊 [SAVE-GENERATION] Existing data found: ${existingData.generations?.length || 0} generations`);
         }
+      } else {
+        console.log(`📊 [SAVE-GENERATION] No existing file found - creating new`);
       }
     } catch (blobError) {
-      console.error('❌ [SAVE-GENERATION] Error reading from Blob:', blobError);
+      console.error('❌ [SAVE-GENERATION] Error reading existing file:', blobError);
       // Kontynuuj - utworzymy nowy rekord
     }
 
