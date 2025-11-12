@@ -515,7 +515,7 @@ module.exports = async (req, res) => {
       },
       'pixar': {
         model: "swartype/sdxl-pixar:81f8bbd3463056c8521eb528feb10509cc1385e2fabef590747f159848589048",
-        prompt: `Pixar style 3D animation portrait, smooth plastic-like skin, big expressive eyes, rounded soft facial features, vibrant colors, warm cinematic lighting, stylized like Pixar movies (Toy Story, Soul, The Incredibles, Inside Out), exaggerated expressions, cartoon look, wholesome family atmosphere, ultra clean render, cinematic contrast, high quality, looks like a Pixar movie frame`,
+        prompt: `Pixar-style 3D character, cinematic animation look, smooth glossy plastic-like skin, rounded soft facial features, expressive eyes, stylized proportions, vibrant color palette, warm cinematic lighting, subsurface scattering, cartoon realism, wholesome family atmosphere, detailed hair, ultra clean render, rendered in 3D, dynamic camera angle, looks like a frame from a Pixar movie, perfect anatomy, depth of field, bokeh background, high quality render. realistic Pixar cinematic render, detailed textures, global illumination`,
         negative_prompt: "NSFW, nudity, explicit content, inappropriate, adult content, realistic, photo, muted colors, dull, gritty, textured skin, pores, wrinkles, grainy, lowres, blurry, deformed, bad anatomy, bad proportions, creepy, asymmetrical, extra fingers, extra limbs, duplicate face, duplicate body, watermark, logo, text",
         productType: "other", // Identyfikator typu produktu
         task: "img2img",
