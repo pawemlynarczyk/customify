@@ -937,10 +937,10 @@ module.exports = async (req, res) => {
     // ✅ WATERMARK DLA REPLICATE URL-I - USUNIĘTY (problemy z Sharp w Vercel)
     // TODO: Przywrócić po rozwiązaniu problemów z Sharp
 
-    // ✅ ZAPIS GENERACJI W VERCEL KV (przed inkrementacją licznika)
+    // ✅ ZAPIS GENERACJI W VERCEL BLOB STORAGE (przed inkrementacją licznika)
     // Zapisz generację z powiązaniem do klienta (nawet jeśli nie doda do koszyka)
     if (imageUrl && (customerId || email)) {
-      console.log(`💾 [TRANSFORM] Zapisuję generację w Vercel KV dla klienta...`);
+      console.log(`💾 [TRANSFORM] Zapisuję generację w Vercel Blob Storage dla klienta...`);
       
       try {
         // Sprawdź czy obraz jest już w Vercel Blob
@@ -996,7 +996,7 @@ module.exports = async (req, res) => {
         
         if (saveResponse.ok) {
           const saveResult = await saveResponse.json();
-          console.log(`✅ [TRANSFORM] Generacja zapisana w Vercel KV: ${saveResult.generationId}`);
+          console.log(`✅ [TRANSFORM] Generacja zapisana w Vercel Blob Storage: ${saveResult.generationId}`);
         } else {
           const errorText = await saveResponse.text();
           console.error('⚠️ [TRANSFORM] Błąd zapisu generacji:', errorText);
