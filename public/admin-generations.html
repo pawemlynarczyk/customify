@@ -348,17 +348,29 @@
                 // Flatten all generations from all customers
                 allGenerations = [];
                 if (data.generations && Array.isArray(data.generations)) {
-                    data.generations.forEach(customerData => {
-                        if (customerData.generations && Array.isArray(customerData.generations)) {
-                            customerData.generations.forEach(gen => {
-                                allGenerations.push({
-                                    ...gen,
-                                    customerId: customerData.customerId || 'unknown',
-                                    email: customerData.email || 'unknown'
-                                });
-                            });
+                    // API zwraca listę plików - każdy plik to jeden klient
+                    for (const customerFile of data.generations) {
+                        try {
+                            // Pobierz pełne dane z każdego pliku
+                            if (customerFile.blobUrl) {
+                                const fileResponse = await fetch(customerFile.blobUrl);
+                                if (fileResponse.ok) {
+                                    const fileData = await fileResponse.json();
+                                    if (fileData.generations && Array.isArray(fileData.generations)) {
+                                        fileData.generations.forEach(gen => {
+                                            allGenerations.push({
+                                                ...gen,
+                                                customerId: fileData.customerId || customerFile.customerId || 'unknown',
+                                                email: fileData.email || customerFile.email || 'unknown'
+                                            });
+                                        });
+                                    }
+                                }
+                            }
+                        } catch (error) {
+                            console.error('Error loading customer file:', error);
                         }
-                    });
+                    }
                 }
 
                 // Sort by date (newest first)
@@ -407,19 +419,15 @@
                     throw new Error(data.error || 'Failed to load generations');
                 }
 
-                // Flatten generations
+                // Flatten generations - dla konkretnego klienta API zwraca bezpośrednio generacje
                 allGenerations = [];
                 if (data.generations && Array.isArray(data.generations)) {
-                    data.generations.forEach(customerData => {
-                        if (customerData.generations && Array.isArray(customerData.generations)) {
-                            customerData.generations.forEach(gen => {
-                                allGenerations.push({
-                                    ...gen,
-                                    customerId: customerData.customerId || 'unknown',
-                                    email: customerData.email || 'unknown'
-                                });
-                            });
-                        }
+                    data.generations.forEach(gen => {
+                        allGenerations.push({
+                            ...gen,
+                            customerId: data.customerId || customerId || 'unknown',
+                            email: data.email || email || 'unknown'
+                        });
                     });
                 }
 
