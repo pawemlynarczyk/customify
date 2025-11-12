@@ -520,9 +520,9 @@ module.exports = async (req, res) => {
         productType: "other", // Identyfikator typu produktu
         task: "img2img",
         scheduler: "KarrasDPM",
-        guidance_scale: 7.5,
-        prompt_strength: 0.6,
-        num_inference_steps: 25,
+        guidance_scale: 9.01,
+        prompt_strength: 0.5,
+        num_inference_steps: 50,
         width: 1024,
         height: 1536,
         refine: "no_refiner",
