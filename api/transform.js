@@ -378,7 +378,7 @@ module.exports = async (req, res) => {
   console.log(`📝 [TRANSFORM] POST request processing for IP: ${ip}`);
 
   try {
-    const { imageData, prompt, productType, customerId, customerAccessToken } = req.body;
+    const { imageData, prompt, productType, customerId, customerAccessToken, email } = req.body;
 
     if (!imageData || !prompt) {
       return res.status(400).json({ error: 'Image data and prompt are required' });
@@ -936,6 +936,76 @@ module.exports = async (req, res) => {
 
     // ✅ WATERMARK DLA REPLICATE URL-I - USUNIĘTY (problemy z Sharp w Vercel)
     // TODO: Przywrócić po rozwiązaniu problemów z Sharp
+
+    // ✅ ZAPIS GENERACJI W VERCEL KV (przed inkrementacją licznika)
+    // Zapisz generację z powiązaniem do klienta (nawet jeśli nie doda do koszyka)
+    if (imageUrl && (customerId || email)) {
+      console.log(`💾 [TRANSFORM] Zapisuję generację w Vercel KV dla klienta...`);
+      
+      try {
+        // Sprawdź czy obraz jest już w Vercel Blob
+        let finalImageUrl = imageUrl;
+        
+        // Jeśli to URL z Replicate (nie Vercel Blob), uploaduj do Vercel Blob
+        if (imageUrl.includes('replicate.delivery') || imageUrl.includes('pbxt')) {
+          console.log(`📤 [TRANSFORM] Uploaduję obraz z Replicate do Vercel Blob...`);
+          
+          try {
+            // Pobierz obraz z Replicate
+            const imageResponse = await fetch(imageUrl);
+            if (imageResponse.ok) {
+              const imageBuffer = await imageResponse.arrayBuffer();
+              const base64 = Buffer.from(imageBuffer).toString('base64');
+              const dataUri = `data:image/jpeg;base64,${base64}`;
+              
+              // Upload do Vercel Blob
+              const uploadResponse = await fetch('https://customify-s56o.vercel.app/api/upload-temp-image', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  imageData: dataUri,
+                  filename: `generation-${Date.now()}.jpg`
+                })
+              });
+              
+              if (uploadResponse.ok) {
+                const uploadResult = await uploadResponse.json();
+                finalImageUrl = uploadResult.imageUrl;
+                console.log(`✅ [TRANSFORM] Obraz zapisany w Vercel Blob: ${finalImageUrl.substring(0, 50)}...`);
+              }
+            }
+          } catch (uploadError) {
+            console.error('⚠️ [TRANSFORM] Błąd uploadu do Vercel Blob:', uploadError);
+            // Użyj oryginalnego URL
+          }
+        }
+        
+        // Wywołaj endpoint zapisu generacji
+        const saveResponse = await fetch('https://customify-s56o.vercel.app/api/save-generation', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            customerId: customerId || null,
+            email: email || null,
+            imageUrl: finalImageUrl,
+            style: prompt || 'unknown',
+            productType: productType || 'other',
+            originalImageUrl: null // Opcjonalnie - można dodać później
+          })
+        });
+        
+        if (saveResponse.ok) {
+          const saveResult = await saveResponse.json();
+          console.log(`✅ [TRANSFORM] Generacja zapisana w Vercel KV: ${saveResult.generationId}`);
+        } else {
+          const errorText = await saveResponse.text();
+          console.error('⚠️ [TRANSFORM] Błąd zapisu generacji:', errorText);
+        }
+      } catch (saveError) {
+        console.error('⚠️ [TRANSFORM] Błąd zapisu generacji (nie blokuję odpowiedzi):', saveError);
+        // Nie blokuj odpowiedzi - transformacja się udała
+      }
+    }
 
     // ✅ INKREMENTACJA LICZNIKA PO UDANEJ TRANSFORMACJI
     if (customerId && customerAccessToken && accessToken) {

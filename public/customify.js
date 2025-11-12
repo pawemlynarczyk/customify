@@ -1876,12 +1876,16 @@ class CustomifyEmbed {
       // ✅ USAGE LIMITS: Pobierz dane użytkownika do przekazania do API
       const customerInfo = this.getCustomerInfo();
       
+      // ✅ Pobierz email z localStorage (jeśli był w formularzu) lub z customerInfo
+      const email = customerInfo?.email || localStorage.getItem('customify_email_provided') || null;
+      
       const requestBody = {
         imageData: base64,
         prompt: `Transform this image in ${this.selectedStyle} style`,
         productType: productType, // Przekaż typ produktu do API
         customerId: customerInfo?.customerId || null,
-        customerAccessToken: customerInfo?.customerAccessToken || null
+        customerAccessToken: customerInfo?.customerAccessToken || null,
+        email: email // ✅ Dodaj email dla niezalogowanych lub jako backup
       };
       
       console.log('📱 [MOBILE] Request body size:', JSON.stringify(requestBody).length, 'bytes');
