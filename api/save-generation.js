@@ -183,6 +183,35 @@ module.exports = async (req, res) => {
       });
     }
 
+    // ✅ AKTUALIZUJ CUSTOMER METAFIELD W SHOPIFY (jeśli customerId)
+    // To pozwoli wyświetlić generacje w Shopify Admin na koncie klienta
+    if (customerId) {
+      try {
+        console.log(`📝 [SAVE-GENERATION] Aktualizuję Customer Metafield w Shopify dla ${customerId}...`);
+        
+        const updateResponse = await fetch('https://customify-s56o.vercel.app/api/update-customer-generations', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            customerId: customerId,
+            generations: dataToSave.generations
+          })
+        });
+        
+        if (updateResponse.ok) {
+          const updateResult = await updateResponse.json();
+          console.log(`✅ [SAVE-GENERATION] Customer Metafield zaktualizowany: ${updateResult.totalGenerations} generacji`);
+        } else {
+          const errorText = await updateResponse.text();
+          console.warn('⚠️ [SAVE-GENERATION] Błąd aktualizacji Customer Metafield:', errorText);
+          // Nie blokuj - zapis w Blob Storage się udał
+        }
+      } catch (updateError) {
+        console.warn('⚠️ [SAVE-GENERATION] Błąd aktualizacji Customer Metafield (nie blokuję):', updateError);
+        // Nie blokuj - zapis w Blob Storage się udał
+      }
+    }
+
     return res.json({
       success: true,
       generationId: generationId,
