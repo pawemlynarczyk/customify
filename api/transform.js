@@ -516,12 +516,12 @@ module.exports = async (req, res) => {
       'pixar': {
         model: "swartype/sdxl-pixar:81f8bbd3463056c8521eb528feb10509cc1385e2fabef590747f159848589048",
         prompt: `Pixar-style 3D character, cinematic animation look, smooth glossy plastic-like skin, rounded soft facial features, expressive eyes, stylized proportions, vibrant color palette, warm cinematic lighting, subsurface scattering, cartoon realism, wholesome family atmosphere, detailed hair, ultra clean render, rendered in 3D, dynamic camera angle, looks like a frame from a Pixar movie, perfect anatomy, depth of field, bokeh background, high quality render. realistic Pixar cinematic render, detailed textures, global illumination`,
-        negative_prompt: "NSFW, nudity, explicit content, inappropriate, adult content, realistic, photo, muted colors, dull, gritty, textured skin, pores, wrinkles, grainy, lowres, blurry, deformed, bad anatomy, bad proportions, creepy, asymmetrical, extra fingers, extra limbs, duplicate face, duplicate body, watermark, logo, text",
+        negative_prompt: "logo, brand, noisy, sloppy, messy, grainy, extra arms, extra legs, extra hands, extra fingers, mutated hands, malformed limbs, deformed body, disfigured, missing fingers, too many fingers, long fingers, extra limb, extra body parts, bad anatomy, fused fingers, disconnected limbs, broken limbs, distorted limbs, cloned body, duplicate body, extra head, ugly hands, bad hands, incorrect limb proportions, unnatural pose, low quality, lowres, blurry",
         productType: "other", // Identyfikator typu produktu
         task: "img2img",
         scheduler: "KarrasDPM",
         guidance_scale: 9.01,
-        prompt_strength: 0.5,
+        prompt_strength: 0.55,
         num_inference_steps: 50,
         width: 1024,
         height: 1536,
