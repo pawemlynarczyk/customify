@@ -1,0 +1,233 @@
+{% comment %}
+  Section: Moje generacje AI
+  Wyświetla wszystkie generacje AI dla zalogowanego klienta
+{% endcomment %}
+
+{% if customer %}
+  <div class="my-generations-section">
+    <div class="section-container">
+      <div class="section-header">
+        <h1 class="section-title">{{ section.settings.title | default: "Moje generacje AI" }}</h1>
+        {% if section.settings.description != blank %}
+          <p class="section-description">{{ section.settings.description }}</p>
+        {% endif %}
+      </div>
+
+      <div id="generations-container" class="generations-container">
+        <div class="generations-loading">
+          <p>Ładowanie generacji...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .my-generations-section {
+      padding: 2rem 1rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .section-header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .section-title {
+      font-size: 2rem;
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+    }
+
+    .section-description {
+      font-size: 1rem;
+      color: #666;
+    }
+
+    .generations-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+
+    .generation-card {
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #fff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .generation-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+
+    .generation-image {
+      width: 100%;
+      aspect-ratio: 3 / 4;
+      object-fit: cover;
+      display: block;
+    }
+
+    .generation-info {
+      padding: 1rem;
+    }
+
+    .generation-style {
+      font-weight: bold;
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .generation-date {
+      font-size: 0.9rem;
+      color: #666;
+      margin-bottom: 0.5rem;
+    }
+
+    .generation-status {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      font-weight: bold;
+    }
+
+    .generation-status.purchased {
+      background: #4CAF50;
+      color: white;
+    }
+
+    .generation-status.not-purchased {
+      background: #FFC107;
+      color: #333;
+    }
+
+    .generations-loading,
+    .generations-error,
+    .generations-empty {
+      text-align: center;
+      padding: 2rem;
+      color: #666;
+    }
+
+    .generations-error {
+      color: #d32f2f;
+    }
+
+    @media (max-width: 768px) {
+      .generations-container {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1rem;
+      }
+    }
+  </style>
+
+  <script>
+    (function() {
+      const customerId = {{ customer.id | json }};
+      const apiUrl = 'https://customify-s56o.vercel.app/api/get-customer-generations';
+      const container = document.getElementById('generations-container');
+
+      if (!customerId) {
+        container.innerHTML = '<div class="generations-error">Musisz być zalogowany, aby zobaczyć swoje generacje.</div>';
+        return;
+      }
+
+      async function loadGenerations() {
+        try {
+          container.innerHTML = '<div class="generations-loading"><p>Ładowanie generacji...</p></div>';
+
+          const response = await fetch(`${apiUrl}?customerId=${customerId}`);
+          const data = await response.json();
+
+          if (!data.success) {
+            throw new Error(data.error || 'Failed to load generations');
+          }
+
+          if (!data.generations || data.generations.length === 0) {
+            container.innerHTML = '<div class="generations-empty"><p>Nie masz jeszcze żadnych generacji. Stwórz pierwszą!</p></div>';
+            return;
+          }
+
+          const html = data.generations.map(generation => {
+            const date = new Date(generation.date);
+            const dateStr = date.toLocaleDateString('pl-PL', { 
+              year: 'numeric', 
+              month: 'long', 
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            });
+
+            const statusClass = generation.purchased ? 'purchased' : 'not-purchased';
+            const statusText = generation.purchased ? 'Kupione' : 'Nie kupione';
+
+            return `
+              <div class="generation-card">
+                <img 
+                  src="${generation.imageUrl}" 
+                  alt="Generacja ${generation.style}" 
+                  class="generation-image"
+                  loading="lazy"
+                />
+                <div class="generation-info">
+                  <div class="generation-style">Styl: ${generation.style}</div>
+                  <div class="generation-date">${dateStr}</div>
+                  <div class="generation-status ${statusClass}">${statusText}</div>
+                </div>
+              </div>
+            `;
+          }).join('');
+
+          container.innerHTML = html;
+
+        } catch (error) {
+          console.error('Error loading generations:', error);
+          container.innerHTML = `<div class="generations-error"><p>Błąd podczas ładowania generacji: ${error.message}</p></div>`;
+        }
+      }
+
+      // Załaduj generacje po załadowaniu strony
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', loadGenerations);
+      } else {
+        loadGenerations();
+      }
+    })();
+  </script>
+{% else %}
+  <div class="my-generations-section">
+    <div class="section-container">
+      <div class="section-header">
+        <h1 class="section-title">Moje generacje AI</h1>
+        <p class="section-description">Musisz być zalogowany, aby zobaczyć swoje generacje.</p>
+        <a href="{{ routes.account_login_url }}" class="button button--primary">Zaloguj się</a>
+      </div>
+    </div>
+  </div>
+{% endif %}
+
+{% schema %}
+{
+  "name": "Moje generacje AI",
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Tytuł",
+      "default": "Moje generacje AI"
+    },
+    {
+      "type": "textarea",
+      "id": "description",
+      "label": "Opis",
+      "default": "Zobacz wszystkie obrazy wygenerowane przez AI"
+    }
+  ]
+}
+{% endschema %}
+
