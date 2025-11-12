@@ -521,7 +521,7 @@ module.exports = async (req, res) => {
         task: "img2img",
         scheduler: "KarrasDPM",
         guidance_scale: 7.5,
-        prompt_strength: 0.7, // Zwiększone z 0.6 do 0.7 - model bardziej trzyma się promptu
+        prompt_strength: 0.6,
         num_inference_steps: 25,
         width: 1024,
         height: 1536,
