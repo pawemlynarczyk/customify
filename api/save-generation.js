@@ -189,7 +189,12 @@ module.exports = async (req, res) => {
       try {
         console.log(`📝 [SAVE-GENERATION] Aktualizuję Customer Metafield w Shopify dla ${customerId}...`);
         
-        const updateResponse = await fetch('https://customify-s56o.vercel.app/api/update-customer-generations', {
+        // Użyj lokalnego URL (relatywny) zamiast pełnego URL Vercel
+        const baseUrl = req.headers.host 
+          ? `https://${req.headers.host}` 
+          : 'https://customify-s56o.vercel.app';
+        
+        const updateResponse = await fetch(`${baseUrl}/api/update-customer-generations`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
