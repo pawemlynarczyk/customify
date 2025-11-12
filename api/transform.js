@@ -515,13 +515,13 @@ module.exports = async (req, res) => {
       },
       'pixar': {
         model: "swartype/sdxl-pixar:81f8bbd3463056c8521eb528feb10509cc1385e2fabef590747f159848589048",
-        prompt: `Pixar style 3D animation portrait, smooth plastic-like skin, big expressive eyes, rounded soft facial features, vibrant colors, warm cinematic lighting, stylized like Pixar movies (Toy Story, Soul, The Incredibles, Inside Out), exaggerated expressions, cartoon look, wholesome family atmosphere, ultra clean render, cinematic contrast, high quality, looks like a Pixar movie frame, ${prompt}`,
-        negative_prompt: "realistic, photo, muted colors, dull, gritty, textured skin, pores, wrinkles, grainy, lowres, blurry, deformed, bad anatomy, bad proportions, creepy, asymmetrical, extra fingers, extra limbs, duplicate face, duplicate body, watermark, logo, text",
+        prompt: `Pixar style 3D animation portrait, family-friendly content, safe for work, wholesome, appropriate, smooth plastic-like skin, big expressive eyes, rounded soft facial features, vibrant colors, warm cinematic lighting, stylized like Pixar movies (Toy Story, Soul, The Incredibles, Inside Out), exaggerated expressions, cartoon look, wholesome family atmosphere, ultra clean render, cinematic contrast, high quality, looks like a Pixar movie frame, ${prompt}`,
+        negative_prompt: "NSFW, nudity, explicit content, inappropriate, adult content, realistic, photo, muted colors, dull, gritty, textured skin, pores, wrinkles, grainy, lowres, blurry, deformed, bad anatomy, bad proportions, creepy, asymmetrical, extra fingers, extra limbs, duplicate face, duplicate body, watermark, logo, text",
         productType: "other", // Identyfikator typu produktu
         task: "img2img",
         scheduler: "KarrasDPM",
         guidance_scale: 7.5,
-        prompt_strength: 0.6,
+        prompt_strength: 0.7, // Zwiększone z 0.6 do 0.7 - model bardziej trzyma się promptu
         num_inference_steps: 25,
         width: 1024,
         height: 1536,
@@ -1034,7 +1034,10 @@ module.exports = async (req, res) => {
     let errorMessage = 'AI transformation failed';
     let statusCode = 500;
     
-    if (error.message.includes('CUDA out of memory')) {
+    if (error.message.includes('NSFW') || error.message.includes('content detected')) {
+      errorMessage = 'Obraz został odrzucony przez filtr bezpieczeństwa. Spróbuj użyć innego zdjęcia lub stylu. Upewnij się, że zdjęcie jest odpowiednie dla wszystkich widzów.';
+      statusCode = 400;
+    } else if (error.message.includes('CUDA out of memory')) {
       errorMessage = 'Model is currently overloaded. Please try again in a few minutes or try a different style.';
       statusCode = 503;
     } else if (error.message.includes('timeout')) {
