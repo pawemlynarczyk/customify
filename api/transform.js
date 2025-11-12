@@ -527,7 +527,8 @@ module.exports = async (req, res) => {
         height: 1536,
         refine: "no_refiner",
         high_noise_frac: 0.7,
-        output_format: "png"
+        output_format: "png",
+        disable_safety_checker: true
       },
       // Style kotów - używają nano-banana z 2 obrazkami
       'krolewski': {
@@ -741,7 +742,8 @@ module.exports = async (req, res) => {
         height: config.height,
         refine: config.refine,
         high_noise_frac: config.high_noise_frac,
-        output_format: config.output_format
+        output_format: config.output_format,
+        disable_safety_checker: config.disable_safety_checker
       };
     } else if (config.apiType === 'nano-banana') {
       // Nano-banana model parameters - obsługuje 1 lub 2 obrazki
