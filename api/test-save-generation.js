@@ -3,7 +3,7 @@
  * Test endpoint do sprawdzenia czy zapis generacji działa
  */
 
-const { kv } = require('@vercel/kv');
+const { put, head } = require('@vercel/blob');
 
 module.exports = async (req, res) => {
   console.log(`🧪 [TEST-SAVE-GENERATION] API called - Method: ${req.method}`);
@@ -18,20 +18,34 @@ module.exports = async (req, res) => {
   }
 
   try {
-    // Test 1: Sprawdź czy Vercel KV jest skonfigurowany
-    const kvConfigured = !!(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN);
+    // Test 1: Sprawdź czy Vercel Blob Storage jest skonfigurowany
+    const blobConfigured = !!process.env.customify_READ_WRITE_TOKEN;
     
     // Test 2: Spróbuj zapisać testową wartość
-    let kvTestResult = null;
-    if (kvConfigured) {
+    let blobTestResult = null;
+    if (blobConfigured) {
       try {
-        const testKey = 'test:save-generation:test';
-        await kv.set(testKey, { test: true, timestamp: new Date().toISOString() });
-        const testValue = await kv.get(testKey);
-        kvTestResult = testValue ? 'OK' : 'FAILED';
-        await kv.del(testKey); // Usuń testowy klucz
-      } catch (kvError) {
-        kvTestResult = `ERROR: ${kvError.message}`;
+        const testPath = 'customify/test/save-generation-test.json';
+        const testData = JSON.stringify({ test: true, timestamp: new Date().toISOString() });
+        const testBuffer = Buffer.from(testData, 'utf-8');
+        
+        // Zapisz testowy plik
+        const blob = await put(testPath, testBuffer, {
+          access: 'public',
+          contentType: 'application/json',
+          token: process.env.customify_READ_WRITE_TOKEN
+        });
+        
+        // Pobierz testowy plik
+        const testResponse = await fetch(blob.url);
+        if (testResponse.ok) {
+          const testValue = await testResponse.json();
+          blobTestResult = testValue ? 'OK' : 'FAILED';
+        } else {
+          blobTestResult = 'FAILED: Could not read test file';
+        }
+      } catch (blobError) {
+        blobTestResult = `ERROR: ${blobError.message}`;
       }
     }
 
@@ -41,14 +55,14 @@ module.exports = async (req, res) => {
     return res.json({
       success: true,
       tests: {
-        kvConfigured: kvConfigured,
-        kvTest: kvTestResult,
+        blobConfigured: blobConfigured,
+        blobTest: blobTestResult,
         saveGenerationEndpoint: saveGenerationExists ? 'OK' : 'NOT FOUND',
         timestamp: new Date().toISOString()
       },
-      message: kvConfigured 
-        ? 'Vercel KV jest skonfigurowany i działa' 
-        : 'Vercel KV NIE jest skonfigurowany - dodaj KV_REST_API_URL i KV_REST_API_TOKEN w Vercel Dashboard'
+      message: blobConfigured 
+        ? 'Vercel Blob Storage jest skonfigurowany i działa' 
+        : 'Vercel Blob Storage NIE jest skonfigurowany - dodaj customify_READ_WRITE_TOKEN w Vercel Dashboard'
     });
 
   } catch (error) {

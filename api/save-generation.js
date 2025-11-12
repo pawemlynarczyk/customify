@@ -1,10 +1,10 @@
 // api/save-generation.js
 /**
  * API endpoint do zapisywania generacji AI z powiązaniem do klienta
- * Zapisuje w Vercel KV: customerId/email → lista generacji
+ * Zapisuje w Vercel Blob Storage: customerId/email → lista generacji (JSON)
  */
 
-const { kv } = require('@vercel/kv');
+const { put, head } = require('@vercel/blob');
 const { checkRateLimit, getClientIP } = require('../utils/vercelRateLimiter');
 
 module.exports = async (req, res) => {
@@ -63,13 +63,13 @@ module.exports = async (req, res) => {
       });
     }
 
-    // Sprawdź czy Vercel KV jest skonfigurowany
-    if (!process.env.KV_REST_API_URL || !process.env.KV_REST_API_TOKEN) {
-      console.error('❌ [SAVE-GENERATION] Vercel KV not configured');
+    // Sprawdź czy Vercel Blob Storage jest skonfigurowany
+    if (!process.env.customify_READ_WRITE_TOKEN) {
+      console.error('❌ [SAVE-GENERATION] Vercel Blob Storage not configured');
       // Nie blokuj - zwróć sukces ale z warningiem
       return res.json({
         success: true,
-        warning: 'Vercel KV not configured - generation not saved',
+        warning: 'Vercel Blob Storage not configured - generation not saved',
         message: 'Generation saved locally only'
       });
     }
@@ -88,8 +88,9 @@ module.exports = async (req, res) => {
       console.warn('⚠️ [SAVE-GENERATION] Using IP as identifier (no customerId or email)');
     }
 
-    const kvKey = `${keyPrefix}:${identifier}:generations`;
-    console.log(`📝 [SAVE-GENERATION] KV Key: ${kvKey}`);
+    // Path w Vercel Blob Storage dla JSON z generacjami
+    const blobPath = `customify/generations/${keyPrefix}-${identifier.replace(/[^a-zA-Z0-9]/g, '-')}.json`;
+    console.log(`📝 [SAVE-GENERATION] Blob Path: ${blobPath}`);
 
     // Generuj unikalny ID dla generacji
     const generationId = `gen-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
@@ -107,13 +108,24 @@ module.exports = async (req, res) => {
       purchaseDate: null
     };
 
-    // Pobierz istniejące generacje z Vercel KV
+    // Pobierz istniejące generacje z Vercel Blob Storage
     let existingData = null;
     try {
-      existingData = await kv.get(kvKey);
-      console.log(`📊 [SAVE-GENERATION] Existing data found:`, existingData ? 'yes' : 'no');
-    } catch (kvError) {
-      console.error('❌ [SAVE-GENERATION] Error reading from KV:', kvError);
+      // Sprawdź czy plik istnieje
+      const existingBlob = await head(blobPath, {
+        token: process.env.customify_READ_WRITE_TOKEN
+      }).catch(() => null);
+      
+      if (existingBlob) {
+        // Pobierz istniejący plik JSON
+        const existingResponse = await fetch(existingBlob.url);
+        if (existingResponse.ok) {
+          existingData = await existingResponse.json();
+          console.log(`📊 [SAVE-GENERATION] Existing data found:`, existingData ? 'yes' : 'no');
+        }
+      }
+    } catch (blobError) {
+      console.error('❌ [SAVE-GENERATION] Error reading from Blob:', blobError);
       // Kontynuuj - utworzymy nowy rekord
     }
 
@@ -146,16 +158,24 @@ module.exports = async (req, res) => {
       };
     }
 
-    // Zapisz w Vercel KV
+    // Zapisz w Vercel Blob Storage jako JSON
     try {
-      await kv.set(kvKey, dataToSave);
-      console.log(`✅ [SAVE-GENERATION] Saved to KV: ${kvKey}`);
-    } catch (kvError) {
-      console.error('❌ [SAVE-GENERATION] Error writing to KV:', kvError);
+      const jsonData = JSON.stringify(dataToSave, null, 2);
+      const jsonBuffer = Buffer.from(jsonData, 'utf-8');
+      
+      const blob = await put(blobPath, jsonBuffer, {
+        access: 'public',
+        contentType: 'application/json',
+        token: process.env.customify_READ_WRITE_TOKEN
+      });
+      
+      console.log(`✅ [SAVE-GENERATION] Saved to Blob: ${blob.url}`);
+    } catch (blobError) {
+      console.error('❌ [SAVE-GENERATION] Error writing to Blob:', blobError);
       // Nie blokuj - zwróć sukces ale z warningiem
       return res.json({
         success: true,
-        warning: 'Failed to save to Vercel KV',
+        warning: 'Failed to save to Vercel Blob Storage',
         message: 'Generation saved locally only',
         generationId: generationId
       });
@@ -164,7 +184,7 @@ module.exports = async (req, res) => {
     return res.json({
       success: true,
       generationId: generationId,
-      key: kvKey,
+      blobPath: blobPath,
       totalGenerations: dataToSave.totalGenerations,
       message: 'Generation saved successfully'
     });
