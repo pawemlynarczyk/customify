@@ -74,8 +74,6 @@ module.exports = async (req, res) => {
             edges {
               node {
                 id
-                email
-                createdAt
                 metafield(namespace: "customify", key: "usage_count") {
                   value
                 }
@@ -117,14 +115,12 @@ module.exports = async (req, res) => {
         break;
       }
 
-      // Dodaj klientów do listy
+      // Dodaj klientów do listy (bez danych osobowych - tylko ID i usage_count)
       customers.edges.forEach(({ node }) => {
         const usageCount = parseInt(node.metafield?.value || '0', 10);
         if (usageCount > 0) { // Tylko klienci z użyciem > 0
           allCustomers.push({
             id: node.id,
-            email: node.email,
-            createdAt: node.createdAt,
             usageCount: usageCount
           });
         }
@@ -182,12 +178,12 @@ module.exports = async (req, res) => {
       distribution[range] = (distribution[range] || 0) + 1;
     });
 
-    // Top 10 użytkowników
+    // Top 10 użytkowników (tylko ID, bez danych osobowych)
     const topUsers = allCustomers
       .sort((a, b) => b.usageCount - a.usageCount)
       .slice(0, 10)
       .map(c => ({
-        email: c.email?.substring(0, 3) + '***@***', // Anonimizacja
+        id: c.id,
         usageCount: c.usageCount
       }));
 
@@ -205,7 +201,7 @@ module.exports = async (req, res) => {
       },
       distribution: distribution,
       topUsers: topUsers,
-      note: 'Dane tylko dla zalogowanych użytkowników. Niezalogowani używają localStorage (brak danych).'
+      note: 'Dane tylko dla zalogowanych użytkowników. Niezalogowani używają localStorage (brak danych). Dane osobowe (email) nie są dostępne na planie Basic Shopify.'
     });
 
   } catch (error) {
