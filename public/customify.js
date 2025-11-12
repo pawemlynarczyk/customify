@@ -26,6 +26,28 @@ class CustomifyEmbed {
     this.selectedSize = null;
     this.selectedProductType = 'canvas'; // Domyślny wybór: Obraz na płótnie
     this.transformedImage = null;
+    this.sizePricing = {
+      plakat: {
+        a4: 0,
+        a3: 10,
+        a2: 30,
+        a1: 50
+      },
+      canvas: {
+        a4: 49,
+        a3: 99,
+        a2: 149,
+        a1: 199
+      }
+    };
+    
+    // Ceny ramek w zależności od rozmiaru (tylko dla plakatu)
+    this.framePricing = {
+      a4: 29,
+      a3: 45,
+      a2: 65,
+      a1: 85
+    };
     
     this.init();
 
@@ -74,6 +96,9 @@ class CustomifyEmbed {
     } catch(e) {
       console.warn('⚠️ [INIT] Failed to sync initial selections from DOM:', e);
     }
+
+    // Zaktualizuj dostępność rozmiarów po początkowej synchronizacji
+    this.updateSizeAvailability();
 
     // Po synchronizacji wymuś przeliczenie cen (uwzględnia ramkę, jeśli plakat)
     this.updateProductPrice();
@@ -820,37 +845,36 @@ class CustomifyEmbed {
           text-align: center;
           box-shadow: 0 20px 60px rgba(0,0,0,0.4);
           animation: slideUp 0.3s ease;
+          position: relative;
         ">
-          <div style="font-size: 60px; margin-bottom: 20px;">🎨</div>
-          
-          <h2 style="
-            margin-bottom: 15px; 
-            color: #333; 
+          <button onclick="window.customifyLoginModal.cancel()" style="
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: transparent;
+            border: none;
             font-size: 24px;
-            font-weight: 600;
-          ">Wykorzystałeś darmowe transformacje!</h2>
-          
-          <p style="
+            color: #999;
+            cursor: pointer;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s;
+            padding: 0;
+            line-height: 1;
+          " onmouseover="this.style.background='#f5f5f5'; this.style.color='#333'" onmouseout="this.style.background='transparent'; this.style.color='#999'">
+            ×
+          </button>
+          <h2 style="
             margin-bottom: 25px; 
-            color: #666; 
-            font-size: 16px;
-            line-height: 1.6;
-          ">
-            Użyłeś <strong style="color: #FF6B6B;">${usedCount}/${limit}</strong> darmowych transformacji.<br>
-            <strong style="color: #4CAF50; font-size: 18px;">Załóż bezpłatne konto (bez hasła!) i otrzymaj +10 dodatkowych!</strong>
-          </p>
-          
-          <div id="countdownText" style="
-            margin-bottom: 25px;
-            padding: 15px;
-            background: #E8F5E9;
-            border-radius: 8px;
-            color: #2E7D32;
+            color: #333; 
+            font-size: 18px;
             font-weight: 600;
-            font-size: 16px;
-          ">
-            ⏰ Przekierowanie za: <span id="countdownSeconds">5</span> sekund...
-          </div>
+            line-height: 1.5;
+          ">Widzę że lubisz nasze narzędzie, zaloguj się by móc korzystać w pełni</h2>
           
           <div style="
             display: flex; 
@@ -927,33 +951,28 @@ class CustomifyEmbed {
     
     document.body.insertAdjacentHTML('beforeend', modalHTML);
     
-    // Countdown timer (5 sekund)
-    let countdown = 5;
-    const countdownEl = document.getElementById('countdownSeconds');
-    
+    // Auto-redirect do REJESTRACJI po 5 sekundach (bez widocznego countdown)
     const countdownInterval = setInterval(() => {
-      countdown--;
-      if (countdownEl) {
-        countdownEl.textContent = countdown;
+      // Sprawdź czy modal nadal istnieje
+      const modal = document.getElementById('loginModal');
+      if (!modal) {
+        clearInterval(countdownInterval);
+        return;
       }
       
-      if (countdown <= 0) {
-        clearInterval(countdownInterval);
-        // Auto-redirect do REJESTRACJI (główny CTA)
-        window.location.href = registerUrl;
-      }
-    }, 1000);
+      // Po 5 sekundach przekieruj
+      clearInterval(countdownInterval);
+      window.location.href = registerUrl;
+    }, 5000);
     
-    // Global function to cancel countdown
+    // Global function to close modal
     window.customifyLoginModal = {
       cancel: () => {
         clearInterval(countdownInterval);
         document.getElementById('loginModal')?.remove();
-        console.log('🚫 [USAGE] Użytkownik anulował przekierowanie');
+        console.log('🚫 [USAGE] Użytkownik zamknął modal');
       }
     };
-    
-    console.log('⏰ [USAGE] Countdown started - auto-redirect to REGISTER in 5 seconds');
   }
 
   /**
@@ -1288,8 +1307,13 @@ class CustomifyEmbed {
 
     // Event listener dla rozmiarów - sprawdź zarówno główny jak i w resultArea
     document.addEventListener('click', (e) => {
-      if (e.target.classList.contains('customify-size-btn')) {
-        this.selectSize(e.target);
+      const sizeBtn = e.target.closest('.customify-size-btn');
+      if (sizeBtn) {
+        if (sizeBtn.classList.contains('disabled')) {
+          e.preventDefault();
+          return;
+        }
+        this.selectSize(sizeBtn);
       }
     });
 
@@ -1410,6 +1434,10 @@ class CustomifyEmbed {
   }
 
   selectSize(sizeBtn) {
+    if (sizeBtn.classList.contains('disabled')) {
+      console.log('⚠️ [SIZE] Attempted to select disabled size:', sizeBtn.dataset.size);
+      return;
+    }
     this.sizeArea.querySelectorAll('.customify-size-btn').forEach(btn => btn.classList.remove('active'));
     sizeBtn.classList.add('active');
     this.selectedSize = sizeBtn.dataset.size;
@@ -1418,6 +1446,7 @@ class CustomifyEmbed {
     // Aktualizuj cenę po wyborze rozmiaru
     this.updateProductPrice();
     this.updateCartPrice(); // ✅ Dodaj aktualizację ceny nad przyciskiem
+    this.syncActiveSizeButton();
   }
 
   selectProductType(typeBtn) {
@@ -1427,11 +1456,64 @@ class CustomifyEmbed {
     console.log('🎨 [PRODUCT-TYPE] Selected product type:', this.selectedProductType);
 
     // Aktualizuj ceny po zmianie typu (ramka dostępna tylko dla plakatu)
+    const sizeAdjusted = this.updateSizeAvailability();
     this.updateProductPrice();
     this.updateCartPrice();
+    if (sizeAdjusted) {
+      console.log('📏 [SIZE] Adjusted selection after product type change:', this.selectedSize || 'none');
+    }
     console.log('🖼️ [FRAME] Type changed -> recalculated price with frame:', {
       selectedProductType: this.selectedProductType,
       frame: window.CustomifyFrame?.color || 'none'
+    });
+  }
+
+  /**
+   * Aktualizuje dostępność poszczególnych rozmiarów w zależności od typu produktu
+   * Zwraca true, jeśli wybrany rozmiar został zmieniony
+   */
+  updateSizeAvailability() {
+    if (!this.sizeArea) {
+      return false;
+    }
+
+    const sizeButtons = Array.from(this.sizeArea.querySelectorAll('.customify-size-btn'));
+    sizeButtons.forEach(btn => {
+      btn.classList.remove('disabled');
+      btn.removeAttribute('aria-disabled');
+    });
+
+    let selectionChanged = false;
+    if (!sizeButtons.some(btn => btn.dataset.size === this.selectedSize)) {
+      const fallback = sizeButtons[0];
+      if (fallback) {
+        this.selectedSize = fallback.dataset.size;
+      } else {
+        this.selectedSize = null;
+      }
+      selectionChanged = true;
+    }
+
+    this.syncActiveSizeButton();
+    return selectionChanged;
+  }
+
+  /**
+   * Synchronizuje klasę .active przycisków rozmiarów z aktualnie wybranym rozmiarem
+   */
+  syncActiveSizeButton() {
+    if (!this.sizeArea) {
+      return;
+    }
+
+    const sizeButtons = this.sizeArea.querySelectorAll('.customify-size-btn');
+    sizeButtons.forEach(btn => {
+      if (btn.classList.contains('disabled')) {
+        btn.classList.remove('active');
+        return;
+      }
+      const shouldBeActive = this.selectedSize && btn.dataset.size === this.selectedSize;
+      btn.classList.toggle('active', !!shouldBeActive);
     });
   }
 
@@ -1458,7 +1540,7 @@ class CustomifyEmbed {
       
       // Dopłata za ramkę (tylko plakat i wybrany kolor != none)
       const frameSelected = (this.selectedProductType === 'plakat') && (window.CustomifyFrame && window.CustomifyFrame.color && window.CustomifyFrame.color !== 'none');
-      const frameSurcharge = frameSelected ? 29 : 0;
+      const frameSurcharge = frameSelected && this.selectedSize ? (this.framePricing[this.selectedSize] || 29) : 0;
       
       // Oblicz końcową cenę (bazowa + rozmiar + ramka)
       const finalPrice = this.originalBasePrice + sizePrice + frameSurcharge;
@@ -1516,17 +1598,7 @@ class CustomifyEmbed {
    */
   setInitialPrice() {
     try {
-      // Znajdź element ceny na stronie produktu - spróbuj różnych selektorów
-      let priceElement = document.querySelector('product-price div');
-      
-      if (!priceElement) {
-        priceElement = document.querySelector('.price');
-      }
-      
-      if (!priceElement) {
-        priceElement = document.querySelector('[class*="price"]');
-      }
-      
+      const priceElement = this.getPriceElement();
       if (!priceElement) {
         console.warn('⚠️ [INIT-PRICE] Price element not found');
         return;
@@ -1547,8 +1619,7 @@ class CustomifyEmbed {
       }
 
       // Ustaw TYLKO cenę bazową (bez rozmiaru)
-      priceElement.textContent = `${this.originalBasePrice.toFixed(2)} zł`;
-      
+      this.applyProductPriceDisplay(this.originalBasePrice);
       console.log(`💰 [INIT-PRICE] Set initial base price: ${this.originalBasePrice} zł`);
       
     } catch (error) {
@@ -1561,28 +1632,9 @@ class CustomifyEmbed {
    */
   updateProductPrice() {
     try {
-      // Znajdź element ceny na stronie produktu - spróbuj różnych selektorów
-      let priceElement = document.querySelector('product-price div');
-      
-      if (!priceElement) {
-        // Spróbuj innych selektorów
-        priceElement = document.querySelector('.price');
-        console.log('🔍 [PRICE] Trying .price selector:', priceElement);
-      }
-      
-      if (!priceElement) {
-        priceElement = document.querySelector('[class*="price"]');
-        console.log('🔍 [PRICE] Trying [class*="price"] selector:', priceElement);
-      }
-      
-      if (!priceElement) {
-        priceElement = document.querySelector('span:contains("zł")');
-        console.log('🔍 [PRICE] Trying span:contains("zł") selector:', priceElement);
-      }
-      
+      const priceElement = this.getPriceElement();
       if (!priceElement) {
         console.warn('⚠️ [PRICE] Price element not found with any selector');
-        console.log('🔍 [PRICE] Available price elements:', document.querySelectorAll('[class*="price"], [id*="price"], span, div').length);
         return;
       }
 
@@ -1608,13 +1660,14 @@ class CustomifyEmbed {
       
       // Dopłata za ramkę (tylko plakat i wybrany kolor != none)
       const frameSelected = (this.selectedProductType === 'plakat') && (window.CustomifyFrame && window.CustomifyFrame.color && window.CustomifyFrame.color !== 'none');
-      const frameSurcharge = frameSelected ? 29 : 0;
+      const frameSurcharge = frameSelected && this.selectedSize ? (this.framePricing[this.selectedSize] || 29) : 0;
       
       // Oblicz końcową cenę (oryginalna cena + rozmiar + ramka)
       const finalPrice = this.originalBasePrice + sizePrice + frameSurcharge;
       
       // Aktualizuj cenę na stronie
-      priceElement.textContent = `${finalPrice.toFixed(2)} zł`;
+      this.applyProductPriceDisplay(finalPrice);
+      this.schedulePriceConsistency(finalPrice);
       
       console.log(`💰 [PRICE] Updated: base ${this.originalBasePrice} + size ${sizePrice} + frame ${frameSurcharge} = ${finalPrice} zł`);
       console.log('🖼️ [FRAME] Product price components:', {
@@ -1643,14 +1696,10 @@ class CustomifyEmbed {
   /**
    * Zwraca cenę dla wybranego rozmiaru
    */
-  getSizePrice(size) {
-    const prices = {
-      'a4': 49,
-      'a3': 99,
-      'a2': 149,
-      'a1': 199
-    };
-    return prices[size] || 0;
+  getSizePrice(size, productType = null) {
+    const type = productType || this.selectedProductType || 'canvas';
+    const table = this.sizePricing[type] || this.sizePricing.canvas;
+    return table[size] ?? 0;
   }
 
   /**
@@ -1664,6 +1713,76 @@ class CustomifyEmbed {
       'a1': '60×85 cm'
     };
     return dimensions[size] || size;
+  }
+
+  /**
+   * Zwraca element ceny produktu
+   */
+  getPriceElement() {
+    let priceElement = document.querySelector('product-price div');
+    if (priceElement) {
+      return priceElement;
+    }
+
+    priceElement = document.querySelector('.price');
+    if (priceElement) {
+      console.log('🔍 [PRICE] Using .price selector');
+      return priceElement;
+    }
+
+    priceElement = document.querySelector('[class*="price"]');
+    if (priceElement) {
+      console.log('🔍 [PRICE] Using [class*="price"] selector');
+      return priceElement;
+    }
+
+    return null;
+  }
+
+  /**
+   * Ustawia cenę produktu w DOM
+   */
+  applyProductPriceDisplay(value) {
+    const priceElement = this.getPriceElement();
+    if (!priceElement) {
+      console.warn('⚠️ [PRICE] Price element not found when applying display');
+      return;
+    }
+    const formatted = `${value.toFixed(2)} zł`;
+    priceElement.textContent = formatted;
+    priceElement.setAttribute('data-customify-price', formatted);
+  }
+
+  /**
+   * Dodatkowe zabezpieczenie przed nadpisaniem ceny przez motyw
+   */
+  schedulePriceConsistency(finalPrice) {
+    if (this.priceConsistencyTimers) {
+      this.priceConsistencyTimers.forEach(timer => clearTimeout(timer));
+    }
+
+    const delays = [50, 250, 500, 1000, 2000];
+    this.priceConsistencyTimers = delays.map(delay => setTimeout(() => {
+      try {
+        const priceElement = this.getPriceElement();
+        if (!priceElement) {
+          return;
+        }
+        const displayed = this.extractBasePrice(priceElement.textContent);
+        if (displayed === null || Math.abs(displayed - finalPrice) > 0.5) {
+          console.log('♻️ [PRICE] Reapplying price after external update:', {
+            displayed,
+            finalPrice,
+            delay
+          });
+          const formatted = `${finalPrice.toFixed(2)} zł`;
+          priceElement.textContent = formatted;
+          priceElement.setAttribute('data-customify-price', formatted);
+        }
+      } catch (error) {
+        console.warn('⚠️ [PRICE] Error in price consistency timer:', error);
+      }
+    }, delay));
   }
 
   /**
@@ -1995,13 +2114,17 @@ class CustomifyEmbed {
     const basePrice = this.originalBasePrice || 49.00;
     const sizePrice = this.getSizePrice(this.selectedSize);
     const frameSelected = (this.selectedProductType === 'plakat') && (window.CustomifyFrame && window.CustomifyFrame.color && window.CustomifyFrame.color !== 'none');
-    const frameSurcharge = frameSelected ? 29 : 0;
+    const frameSurcharge = frameSelected && this.selectedSize ? (this.framePricing[this.selectedSize] || 29) : 0;
     const finalPrice = basePrice + sizePrice + frameSurcharge;
     
     console.log('💰 [CUSTOMIFY] Price calculation:', {
       originalBasePrice: this.originalBasePrice,
       basePrice: basePrice,
       sizePrice: sizePrice,
+      frameSelected: frameSelected,
+      frameSurcharge: frameSurcharge,
+      frameColor: window.CustomifyFrame?.color || 'none',
+      selectedProductType: this.selectedProductType,
       finalPrice: finalPrice,
       size: this.selectedSize
     });
@@ -2100,7 +2223,9 @@ class CustomifyEmbed {
         productType: this.selectedProductType || 'canvas', // Rodzaj wydruku: plakat lub canvas
         originalProductTitle: document.querySelector('h1, .product-title, .view-product-title')?.textContent?.trim() || 'Produkt',
         originalProductId: productId, // ✅ Dodano ID produktu do pobrania ceny z Shopify
-        finalPrice: finalPrice // ✅ Przekaż obliczoną cenę do API
+        finalPrice: finalPrice, // ✅ Przekaż obliczoną cenę do API
+        frameColor: window.CustomifyFrame?.color || 'none', // ✅ Informacja o ramce dla debugowania
+        frameSurcharge: frameSurcharge // ✅ Dopłata za ramkę dla weryfikacji
       };
 
       console.log('🛒 [CUSTOMIFY] Creating product with data:', productData);
@@ -2153,14 +2278,15 @@ class CustomifyEmbed {
           const shortOrderId = result.shortOrderId || (result.orderId ? result.orderId.split('-').pop() : Date.now().toString());
           
           const properties = {
-            'Styl AI': this.selectedStyle,
             'Rozmiar': this.getSizeDimension(this.selectedSize),  // ✅ Przekaż wymiar (np. "20×30 cm") zamiast kodu (np. "a4")
             'Rodzaj wydruku': productTypeName,  // ✅ Dodano rodzaj wydruku
             'Ramka': `ramka - ${frameLabel}`,  // ✅ Informacja o wybranej ramce (tylko dla plakatu)
             'Order ID': shortOrderId  // ✅ Skrócony ID zamówienia widoczny dla klienta
           };
           
-          const noteAttributes = {};
+          const noteAttributes = {
+            'Styl AI': this.selectedStyle  // ✅ Ukryty - tylko dla admina, nie pokazywany w koszyku
+          };
           
           if (result.orderId) {
             noteAttributes['Order ID Full'] = result.orderId;

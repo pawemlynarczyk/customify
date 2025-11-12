@@ -45,8 +45,18 @@ module.exports = async (req, res) => {
     productType, // Rodzaj wydruku: plakat lub canvas
     originalProductTitle,
     originalProductId,
-    finalPrice // ✅ Dodano finalPrice z frontendu
+    finalPrice, // ✅ Dodano finalPrice z frontendu
+    frameColor, // ✅ Informacja o ramce
+    frameSurcharge // ✅ Dopłata za ramkę
   } = req.body;
+
+  console.log('💰 [PRODUCTS.JS] Price data received:', {
+    finalPrice,
+    frameColor,
+    frameSurcharge,
+    productType,
+    size
+  });
 
     if (!transformedImage || !style) {
       return res.status(400).json({ 
@@ -106,7 +116,17 @@ module.exports = async (req, res) => {
 
     // Zmapuj productType i size na polskie nazwy
     const productTypeName = productType === 'plakat' ? 'Plakat' : 'Obraz na płótnie';
-    const sizeName = size === 'a1' ? '60×85 cm' : size === 'a2' ? '40×60 cm' : size === 'a3' ? '30×40 cm' : size === 'a4' ? '20×30 cm' : size?.toUpperCase() || 'standard';
+    const sizeName = size === 'a1'
+      ? '60×85 cm'
+      : size === 'a2'
+        ? '40×60 cm'
+        : size === 'a3'
+          ? '30×40 cm'
+          : size === 'a4'
+            ? '20×30 cm'
+            : size === 'a5'
+              ? '15×20 cm'
+              : size?.toUpperCase() || 'standard';
 
     // KROK 1: Utwórz produkt BEZ obrazka (najpierw potrzebujemy product ID)
     const productData = {
