@@ -1005,20 +1005,38 @@ module.exports = async (req, res) => {
           }
         }
         
+        // ✅ SZCZEGÓŁOWE LOGOWANIE PRZED ZAPISEM
+        console.log(`🔍 [TRANSFORM] Przed zapisem generacji:`);
+        console.log(`🔍 [TRANSFORM] customerId z req.body:`, req.body.customerId, typeof req.body.customerId);
+        console.log(`🔍 [TRANSFORM] customerId po destructuring:`, customerId, typeof customerId);
+        console.log(`🔍 [TRANSFORM] shopifyCustomerId (po normalizacji):`, shopifyCustomerId || customerId, typeof (shopifyCustomerId || customerId));
+        console.log(`🔍 [TRANSFORM] email:`, email);
+        console.log(`🔍 [TRANSFORM] imageUrl exists:`, !!imageUrl);
+        console.log(`🔍 [TRANSFORM] finalImageUrl:`, finalImageUrl?.substring(0, 50) || 'null');
+        
         // Wywołaj endpoint zapisu generacji
-        console.log(`📤 [TRANSFORM] Wywołuję /api/save-generation z customerId: ${shopifyCustomerId || customerId || 'null'}, email: ${email || 'null'}`);
+        const saveData = {
+          customerId: shopifyCustomerId || customerId || null,
+          email: email || null,
+          imageUrl: finalImageUrl,
+          style: prompt || 'unknown',
+          productType: productType || 'other',
+          originalImageUrl: null // Opcjonalnie - można dodać później
+        };
+        
+        console.log(`📤 [TRANSFORM] Wywołuję /api/save-generation z danymi:`, {
+          customerId: saveData.customerId,
+          customerIdType: typeof saveData.customerId,
+          email: saveData.email,
+          hasImageUrl: !!saveData.imageUrl,
+          style: saveData.style,
+          productType: saveData.productType
+        });
         
         const saveResponse = await fetch('https://customify-s56o.vercel.app/api/save-generation', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            customerId: shopifyCustomerId || customerId || null,
-            email: email || null,
-            imageUrl: finalImageUrl,
-            style: prompt || 'unknown',
-            productType: productType || 'other',
-            originalImageUrl: null // Opcjonalnie - można dodać później
-          })
+          body: JSON.stringify(saveData)
         });
         
         console.log(`📥 [TRANSFORM] save-generation response status: ${saveResponse.status}`);
@@ -1027,7 +1045,7 @@ module.exports = async (req, res) => {
           const saveResult = await saveResponse.json();
           console.log(`✅ [TRANSFORM] Generacja zapisana w Vercel Blob Storage: ${saveResult.generationId}`);
           console.log(`📊 [TRANSFORM] Total generations: ${saveResult.totalGenerations || 'unknown'}`);
-          console.log(`🔍 [TRANSFORM] Save-generation debug info:`, saveResult.debug || 'brak');
+          console.log(`🔍 [TRANSFORM] Save-generation debug info (FULL):`, JSON.stringify(saveResult.debug || {}, null, 2));
           
           // ✅ LOGUJ SZCZEGÓŁY DLA DIAGNOSTYKI
           if (saveResult.debug) {
@@ -1035,6 +1053,8 @@ module.exports = async (req, res) => {
             console.log(`🔍 [TRANSFORM] customerIdType: ${saveResult.debug.customerIdType || 'null'}`);
             console.log(`🔍 [TRANSFORM] hasMetafieldUpdate: ${saveResult.debug.hasMetafieldUpdate || false}`);
             console.log(`🔍 [TRANSFORM] email: ${saveResult.debug.email || 'null'}`);
+            console.log(`🔍 [TRANSFORM] metafieldUpdated: ${saveResult.debug.metafieldUpdated || 'unknown'}`);
+            console.log(`🔍 [TRANSFORM] metafieldError: ${saveResult.debug.metafieldError || 'none'}`);
           }
         } else {
           const errorText = await saveResponse.text();

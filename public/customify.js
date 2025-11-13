@@ -1945,6 +1945,10 @@ class CustomifyEmbed {
         error: result.error || 'none'
       });
       
+      // ✅ SPRAWDŹ CZY W RESPONSE SĄ DEBUG INFO Z SAVE-GENERATION
+      // Te informacje będą dostępne w logach backend (Vercel), ale możemy je też zwrócić w response
+      // Jeśli save-generation zwróci debug info, będzie ono w response z transform.js
+      
       if (result.success) {
         this.transformedImage = result.transformedImage;
         this.showResult(result.transformedImage);

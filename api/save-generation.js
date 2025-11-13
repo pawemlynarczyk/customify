@@ -188,7 +188,13 @@ module.exports = async (req, res) => {
     console.log(`🔍 [SAVE-GENERATION] Sprawdzam customerId:`, customerId, typeof customerId);
     console.log(`🔍 [SAVE-GENERATION] Email fallback:`, email);
     
+    // ✅ ZMIENNE DO ŚLEDZENIA STATUSU METAFIELD UPDATE
+    let metafieldUpdateAttempted = false;
+    let metafieldUpdateSuccess = false;
+    let metafieldUpdateError = null;
+    
     if (customerId) {
+      metafieldUpdateAttempted = true;
       try {
         console.log(`📝 [SAVE-GENERATION] Aktualizuję Customer Metafield w Shopify dla ${customerId}...`);
         console.log(`📊 [SAVE-GENERATION] Generacje do zapisania: ${dataToSave.generations.length}`);
@@ -339,17 +345,27 @@ module.exports = async (req, res) => {
               console.error('❌ [SAVE-GENERATION] Sprawdź czy customerId jest poprawny:', shopifyCustomerId);
             }
           } else if (updateData.data?.customerUpdate?.customer) {
+            metafieldUpdateSuccess = true;
             console.log(`✅ [SAVE-GENERATION] Customer Metafield zaktualizowany: ${generationsData.totalGenerations} generacji`);
             console.log(`📊 [SAVE-GENERATION] Kupione: ${generationsData.purchasedCount}, Nie kupione: ${generationsData.totalGenerations - generationsData.purchasedCount}`);
             console.log(`📊 [SAVE-GENERATION] Customer ID: ${updateData.data.customerUpdate.customer.id}`);
             console.log(`📊 [SAVE-GENERATION] Metafield value length: ${updateData.data.customerUpdate.customer.metafield?.value?.length || 0} znaków`);
             console.log(`📊 [SAVE-GENERATION] Metafield value preview: ${updateData.data.customerUpdate.customer.metafield?.value?.substring(0, 200) || 'brak'}...`);
           } else {
+            metafieldUpdateError = 'Nieoczekiwana odpowiedź z GraphQL - brak customer w response';
             console.warn('⚠️ [SAVE-GENERATION] Nieoczekiwana odpowiedź z GraphQL - brak customer w response');
             console.warn('⚠️ [SAVE-GENERATION] Response:', JSON.stringify(updateData, null, 2));
           }
+          
+          // ✅ ZAPISZ BŁĘDY DO METAFIELD UPDATE ERROR
+          if (updateData.errors) {
+            metafieldUpdateError = JSON.stringify(updateData.errors, null, 2);
+          } else if (updateData.data?.customerUpdate?.userErrors?.length > 0) {
+            metafieldUpdateError = JSON.stringify(updateData.data.customerUpdate.userErrors, null, 2);
+          }
         }
       } catch (updateError) {
+        metafieldUpdateError = updateError.message;
         console.error('❌ [SAVE-GENERATION] Błąd aktualizacji Customer Metafield:', updateError.message);
         console.error('❌ [SAVE-GENERATION] Stack:', updateError.stack);
         // Nie blokuj - zapis w Blob Storage się udał
@@ -357,6 +373,26 @@ module.exports = async (req, res) => {
     }
 
     // ✅ ZWRÓĆ SZCZEGÓŁOWE INFO W RESPONSE (dla debugowania w przeglądarce)
+    const debugInfo = {
+      customerId: customerId || null,
+      customerIdType: typeof customerId,
+      email: email || null,
+      hasMetafieldUpdate: !!customerId,
+      blobPath: blobPath,
+      generationsCount: dataToSave.generations.length,
+      firstGeneration: dataToSave.generations[0] ? {
+        id: dataToSave.generations[0].id,
+        style: dataToSave.generations[0].style,
+        imageUrlPreview: dataToSave.generations[0].imageUrl?.substring(0, 50) + '...'
+      } : null,
+      metafieldUpdateAttempted: metafieldUpdateAttempted,
+      metafieldUpdateSuccess: metafieldUpdateSuccess,
+      metafieldUpdateError: metafieldUpdateError
+    };
+    
+    // ✅ LOGUJ DEBUG INFO W BACKEND (dla Vercel Logs)
+    console.log(`🔍 [SAVE-GENERATION] Debug info (backend):`, JSON.stringify(debugInfo, null, 2));
+    
     return res.json({
       success: true,
       generationId: generationId,
@@ -364,20 +400,7 @@ module.exports = async (req, res) => {
       totalGenerations: dataToSave.totalGenerations,
       message: 'Generation saved successfully',
       // ✅ DEBUG INFO - pomoże zdiagnozować problem w przeglądarce
-      debug: {
-        customerId: customerId || null,
-        customerIdType: typeof customerId,
-        email: email || null,
-        hasMetafieldUpdate: !!customerId,
-        blobPath: blobPath,
-        generationsCount: dataToSave.generations.length,
-        firstGeneration: dataToSave.generations[0] ? {
-          id: dataToSave.generations[0].id,
-          style: dataToSave.generations[0].style,
-          imageUrlPreview: dataToSave.generations[0].imageUrl?.substring(0, 50) + '...'
-        } : null,
-        metafieldUpdated: customerId ? 'attempted' : 'skipped (no customerId)'
-      }
+      debug: debugInfo
     });
 
   } catch (error) {
