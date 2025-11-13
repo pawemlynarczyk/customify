@@ -128,6 +128,24 @@ class CustomifyEmbed {
       };
     }
     
+    // METODA 1B: Shopify Analytics (fallback dla niektórych widoków / tłumaczeń)
+    if (window.ShopifyAnalytics && window.ShopifyAnalytics.meta) {
+      const analyticsMeta = window.ShopifyAnalytics.meta;
+      const analyticsCustomerId = analyticsMeta.page?.customerId || analyticsMeta.customerId || null;
+      const analyticsEmail = analyticsMeta.page?.customerEmail || analyticsMeta.customerEmail || null;
+      
+      if (analyticsCustomerId) {
+        console.log('✅ [CUSTOMER FALLBACK] Wykryto klienta przez ShopifyAnalytics:', analyticsCustomerId);
+        return {
+          customerId: String(analyticsCustomerId),
+          email: analyticsEmail || window.ShopifyCustomer?.email || 'analytics-user@shopify.com',
+          firstName: window.ShopifyCustomer?.firstName || '',
+          lastName: window.ShopifyCustomer?.lastName || '',
+          customerAccessToken: 'oauth_session'
+        };
+      }
+    }
+    
     // METODA 2: FALLBACK - Sprawdź cookie Shopify (customer_auth_token)
     const cookies = document.cookie.split(';').map(c => c.trim());
     const hasCustomerCookie = cookies.some(cookie => 
