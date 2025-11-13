@@ -937,6 +937,9 @@ module.exports = async (req, res) => {
     // ✅ WATERMARK DLA REPLICATE URL-I - USUNIĘTY (problemy z Sharp w Vercel)
     // TODO: Przywrócić po rozwiązaniu problemów z Sharp
 
+    // ✅ ZMIENNA DO PRZECHOWYWANIA DEBUG INFO Z SAVE-GENERATION (PRZED BLOKIEM IF)
+    let saveGenerationDebug = null;
+    
     // ✅ ZAPIS GENERACJI W VERCEL BLOB STORAGE (przed inkrementacją licznika)
     // Zapisz generację z powiązaniem do klienta (nawet jeśli nie doda do koszyka)
     console.log(`🔍 [TRANSFORM] Sprawdzam czy zapisać generację - customerId: ${customerId}, email: ${email}, imageUrl: ${!!imageUrl}`);
@@ -990,13 +993,13 @@ module.exports = async (req, res) => {
         
         if (customerId) {
           // Jeśli customerId zawiera "gid://shopify/Customer/", usuń prefix
-          if (customerId.includes('gid://shopify/Customer/')) {
+          if (typeof customerId === 'string' && customerId.includes('gid://shopify/Customer/')) {
             shopifyCustomerId = customerId.replace('gid://shopify/Customer/', '');
             console.log(`🔧 [TRANSFORM] Usunięto prefix GID, customerId: ${shopifyCustomerId}`);
           }
           
           // Jeśli customerId nie jest numeryczny, loguj warning
-          if (!/^\d+$/.test(shopifyCustomerId)) {
+          if (!/^\d+$/.test(String(shopifyCustomerId))) {
             console.warn(`⚠️ [TRANSFORM] customerId nie jest numeryczny: ${shopifyCustomerId}`);
             console.warn(`⚠️ [TRANSFORM] Shopify Customer ID musi być numeryczny (np. "123456789")`);
             // Użyj oryginalnego customerId - może działać
@@ -1013,9 +1016,6 @@ module.exports = async (req, res) => {
         console.log(`🔍 [TRANSFORM] email:`, email);
         console.log(`🔍 [TRANSFORM] imageUrl exists:`, !!imageUrl);
         console.log(`🔍 [TRANSFORM] finalImageUrl:`, finalImageUrl?.substring(0, 50) || 'null');
-        
-        // ✅ ZMIENNA DO PRZECHOWYWANIA DEBUG INFO Z SAVE-GENERATION
-        let saveGenerationDebug = null;
         
         // Wywołaj endpoint zapisu generacji
         const saveData = {
@@ -1072,11 +1072,13 @@ module.exports = async (req, res) => {
       } catch (saveError) {
         console.error('⚠️ [TRANSFORM] Błąd zapisu generacji (nie blokuję odpowiedzi):', saveError);
         console.error('⚠️ [TRANSFORM] Stack:', saveError.stack);
+        saveGenerationDebug = { error: saveError.message, stack: saveError.stack };
         // Nie blokuj odpowiedzi - transformacja się udała
       }
     } else {
       console.warn('⚠️ [TRANSFORM] Pomijam zapis generacji - brak customerId lub email');
       console.warn(`⚠️ [TRANSFORM] customerId: ${customerId}, email: ${email}, imageUrl: ${!!imageUrl}`);
+      saveGenerationDebug = { skipped: true, reason: 'brak customerId lub email', customerId: customerId || null, email: email || null, hasImageUrl: !!imageUrl };
     }
 
     // ✅ INKREMENTACJA LICZNIKA PO UDANEJ TRANSFORMACJI
