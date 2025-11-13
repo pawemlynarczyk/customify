@@ -1175,11 +1175,24 @@ module.exports = async (req, res) => {
       transformedImage: imageUrl 
     };
     
+    // ✅ BARDZO WIDOCZNE LOGOWANIE - SPRAWDŹ CZY saveGenerationDebug JEST USTAWIONE
+    console.log(`🔍🔍🔍 [TRANSFORM] ===== SPRAWDZAM saveGenerationDebug PRZED RESPONSE =====`);
+    console.log(`🔍 [TRANSFORM] saveGenerationDebug value:`, saveGenerationDebug);
+    console.log(`🔍 [TRANSFORM] saveGenerationDebug type:`, typeof saveGenerationDebug);
+    console.log(`🔍 [TRANSFORM] saveGenerationDebug !== null:`, saveGenerationDebug !== null);
+    
     // ✅ DODAJ DEBUG INFO Z SAVE-GENERATION (jeśli jest dostępne)
     if (saveGenerationDebug !== null) {
       responseData.saveGenerationDebug = saveGenerationDebug;
+      console.log(`✅ [TRANSFORM] Dodaję saveGenerationDebug do response`);
       console.log(`🔍 [TRANSFORM] Zwracam debug info do przeglądarki:`, JSON.stringify(saveGenerationDebug, null, 2));
+    } else {
+      console.warn(`⚠️ [TRANSFORM] saveGenerationDebug jest null - NIE DODAJĘ do response`);
+      console.warn(`⚠️ [TRANSFORM] To może oznaczać, że save-generation nie został wywołany lub nie zwrócił debug info`);
     }
+    
+    console.log(`🔍 [TRANSFORM] Final responseData keys:`, Object.keys(responseData));
+    console.log(`🔍🔍🔍 [TRANSFORM] ===== KONIEC SPRAWDZANIA saveGenerationDebug =====`);
     
     res.json(responseData);
   } catch (error) {
