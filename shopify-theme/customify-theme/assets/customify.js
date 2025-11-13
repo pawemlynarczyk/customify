@@ -882,7 +882,7 @@ class CustomifyEmbed {
             justify-content: center;
             flex-wrap: wrap;
           ">
-            <a href="${registerUrl}" style="
+            <a href="${registerUrl}" onclick="window.customifyLoginModal.trackRegisterClick()" style="
               background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
               color: white;
               padding: 14px 32px;
@@ -924,7 +924,7 @@ class CustomifyEmbed {
               margin: 0;
             ">
               Masz już konto? 
-              <a href="${loginUrl}" style="
+              <a href="${loginUrl}" onclick="window.customifyLoginModal.trackLoginClick()" style="
                 color: #1565C0;
                 text-decoration: underline;
                 font-weight: bold;
@@ -951,6 +951,37 @@ class CustomifyEmbed {
     
     document.body.insertAdjacentHTML('beforeend', modalHTML);
     
+    // ✅ ŚLEDZENIE: Wyświetlenie modala logowania
+    // GA4
+    if (typeof gtag !== 'undefined') {
+      gtag('event', 'login_modal_shown', {
+        'event_category': 'Customify',
+        'event_label': 'Usage Limit Reached',
+        'used_count': usedCount,
+        'limit': limit,
+        'product_url': window.location.pathname,
+        'is_logged_in': false
+      });
+      console.log('📊 [GA4] Event sent: login_modal_shown', {
+        usedCount: usedCount,
+        limit: limit,
+        url: window.location.pathname
+      });
+    }
+    
+    // Własny endpoint (widoczne na żywo)
+    fetch('https://customify-s56o.vercel.app/api/admin/login-modal-stats', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        eventType: 'login_modal_shown',
+        usedCount: usedCount,
+        limit: limit,
+        productUrl: window.location.pathname,
+        timestamp: new Date().toISOString()
+      })
+    }).catch(err => console.log('📊 [STATS] Failed to send event:', err));
+    
     // Auto-redirect do REJESTRACJI po 5 sekundach (bez widocznego countdown)
     const countdownInterval = setInterval(() => {
       // Sprawdź czy modal nadal istnieje
@@ -962,15 +993,124 @@ class CustomifyEmbed {
       
       // Po 5 sekundach przekieruj
       clearInterval(countdownInterval);
+      
+      // ✅ ŚLEDZENIE: Auto-redirect do rejestracji (po 5 sekundach)
+      // GA4
+      if (typeof gtag !== 'undefined') {
+        gtag('event', 'login_modal_auto_redirect', {
+          'event_category': 'Customify',
+          'event_label': 'Auto Redirect to Register',
+          'used_count': usedCount,
+          'limit': limit,
+          'product_url': window.location.pathname
+        });
+        console.log('📊 [GA4] Event sent: login_modal_auto_redirect');
+      }
+      
+      // Własny endpoint
+      fetch('https://customify-s56o.vercel.app/api/admin/login-modal-stats', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          eventType: 'login_modal_auto_redirect',
+          usedCount: usedCount,
+          limit: limit,
+          productUrl: window.location.pathname,
+          timestamp: new Date().toISOString()
+        })
+      }).catch(err => console.log('📊 [STATS] Failed to send event:', err));
+      
       window.location.href = registerUrl;
     }, 5000);
     
     // Global function to close modal
     window.customifyLoginModal = {
       cancel: () => {
+        // ✅ ŚLEDZENIE: Kliknięcie w Anuluj
+        // GA4
+        if (typeof gtag !== 'undefined') {
+          gtag('event', 'login_modal_cancel_click', {
+            'event_category': 'Customify',
+            'event_label': 'Modal Cancelled',
+            'used_count': usedCount,
+            'limit': limit,
+            'product_url': window.location.pathname
+          });
+          console.log('📊 [GA4] Event sent: login_modal_cancel_click');
+        }
+        
+        // Własny endpoint
+        fetch('https://customify-s56o.vercel.app/api/admin/login-modal-stats', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            eventType: 'login_modal_cancel_click',
+            usedCount: usedCount,
+            limit: limit,
+            productUrl: window.location.pathname,
+            timestamp: new Date().toISOString()
+          })
+        }).catch(err => console.log('📊 [STATS] Failed to send event:', err));
+        
         clearInterval(countdownInterval);
         document.getElementById('loginModal')?.remove();
         console.log('🚫 [USAGE] Użytkownik zamknął modal');
+      },
+      
+      trackRegisterClick: () => {
+        // ✅ ŚLEDZENIE: Kliknięcie w Kontynuuj (rejestracja)
+        // GA4
+        if (typeof gtag !== 'undefined') {
+          gtag('event', 'login_modal_register_click', {
+            'event_category': 'Customify',
+            'event_label': 'Register Button Clicked',
+            'used_count': usedCount,
+            'limit': limit,
+            'product_url': window.location.pathname
+          });
+          console.log('📊 [GA4] Event sent: login_modal_register_click');
+        }
+        
+        // Własny endpoint
+        fetch('https://customify-s56o.vercel.app/api/admin/login-modal-stats', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            eventType: 'login_modal_register_click',
+            usedCount: usedCount,
+            limit: limit,
+            productUrl: window.location.pathname,
+            timestamp: new Date().toISOString()
+          })
+        }).catch(err => console.log('📊 [STATS] Failed to send event:', err));
+      },
+      
+      trackLoginClick: () => {
+        // ✅ ŚLEDZENIE: Kliknięcie w Zaloguj się
+        // GA4
+        if (typeof gtag !== 'undefined') {
+          gtag('event', 'login_modal_login_click', {
+            'event_category': 'Customify',
+            'event_label': 'Login Link Clicked',
+            'used_count': usedCount,
+            'limit': limit,
+            'product_url': window.location.pathname
+          });
+          console.log('📊 [GA4] Event sent: login_modal_login_click');
+        }
+        
+        // Własny endpoint
+        fetch('https://customify-s56o.vercel.app/api/admin/login-modal-stats', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            eventType: 'login_modal_login_click',
+            usedCount: usedCount,
+            limit: limit,
+            productUrl: window.location.pathname,
+            timestamp: new Date().toISOString()
+          })
+        }).catch(err => console.log('📊 [STATS] Failed to send event:', err));
       }
     };
   }
