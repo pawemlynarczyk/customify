@@ -176,6 +176,10 @@
     
     <div id="errorContainer"></div>
     <div id="authDiagnostics" style="display: none; background: #e3f2fd; padding: 15px; border-radius: 6px; margin-bottom: 20px; font-size: 14px;"></div>
+    <div id="tokenInfo" style="background: #e8f5e9; padding: 10px; border-radius: 6px; margin-bottom: 20px; font-size: 14px; display: none;">
+      <strong>🔑 Token:</strong> <span id="tokenPreview"></span> 
+      <button onclick="localStorage.removeItem('customify_admin_token'); location.reload();" style="margin-left: 10px; padding: 4px 8px; background: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer;">🗑️ Usuń token</button>
+    </div>
     
     <div id="loading" class="loading">Ładowanie statystyk...</div>
     
@@ -254,11 +258,47 @@
   
   <script>
     const API_URL = 'https://customify-s56o.vercel.app/api/admin/login-modal-stats';
-    // Token autoryzacji - ustaw w Vercel Environment Variables jako ADMIN_STATS_TOKEN
-    // Domyślnie używamy fallback, ale w produkcji powinien być ustawiony w Vercel
-    const AUTH_TOKEN = 'customify-admin-2024'; // Fallback - zmień w Vercel Dashboard!
+    
+    // Token autoryzacji - pobierz z localStorage lub poproś użytkownika
+    let AUTH_TOKEN = localStorage.getItem('customify_admin_token');
+    
+    // Jeśli nie ma tokena w localStorage, pokaż formularz
+    if (!AUTH_TOKEN) {
+      const tokenInput = prompt('🔐 Wprowadź token autoryzacji (z Vercel Environment Variables - ADMIN_STATS_TOKEN):');
+      if (tokenInput && tokenInput.trim()) {
+        AUTH_TOKEN = tokenInput.trim();
+        localStorage.setItem('customify_admin_token', AUTH_TOKEN);
+        console.log('✅ Token zapisany w localStorage');
+      } else {
+        alert('❌ Token jest wymagany. Odśwież stronę i wprowadź token.');
+        AUTH_TOKEN = null;
+      }
+    }
+    
+    // Pokaż podgląd tokena (bezpiecznie)
+    if (AUTH_TOKEN) {
+      const tokenInfoEl = document.getElementById('tokenInfo');
+      const tokenPreviewEl = document.getElementById('tokenPreview');
+      if (tokenInfoEl && tokenPreviewEl) {
+        const preview = AUTH_TOKEN.length > 10 
+          ? `${AUTH_TOKEN.substring(0, 4)}...${AUTH_TOKEN.substring(AUTH_TOKEN.length - 4)}`
+          : '***';
+        tokenPreviewEl.textContent = preview;
+        tokenInfoEl.style.display = 'block';
+      }
+    }
     
     async function loadStats() {
+      if (!AUTH_TOKEN) {
+        document.getElementById('errorContainer').innerHTML = `
+          <div class="error">
+            <strong>❌ Brak tokena autoryzacji</strong><br>
+            Odśwież stronę i wprowadź token z Vercel Environment Variables (ADMIN_STATS_TOKEN).
+          </div>
+        `;
+        return;
+      }
+      
       const loadingEl = document.getElementById('loading');
       const contentEl = document.getElementById('content');
       const errorContainer = document.getElementById('errorContainer');
