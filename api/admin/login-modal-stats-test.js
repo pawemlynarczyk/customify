@@ -35,6 +35,10 @@ module.exports = async (req, res) => {
     // Sprawdź czy tokeny pasują (bez ujawniania wartości)
     const tokensMatch = authHeader === expectedAuth;
     
+    // ⚠️ POKAŻ PEŁNY TOKEN (tylko dla diagnostyki - w produkcji usuń to!)
+    // To pozwoli użytkownikowi skopiować token do HTML
+    const fullTokenForCopy = expectedToken;
+    
     return res.json({
       success: true,
       diagnostics: {
@@ -45,7 +49,9 @@ module.exports = async (req, res) => {
           lastChar: tokenLastChar,
           preview: tokenIsSet 
             ? `${tokenFirstChar}${'*'.repeat(Math.max(0, tokenLength - 2))}${tokenLastChar}`
-            : 'NOT SET (using fallback)'
+            : 'NOT SET (using fallback)',
+          // ⚠️ POKAŻ PEŁNY TOKEN - użytkownik może go skopiować
+          fullToken: fullTokenForCopy
         },
         request: {
           hasAuthHeader: hasAuthHeader,
@@ -65,7 +71,7 @@ module.exports = async (req, res) => {
           ? '❌ Missing Authorization header. Check if HTML sends the header.'
           : !tokenIsSet
           ? '⚠️ ADMIN_STATS_TOKEN not set in Vercel. Using fallback. Make sure token in HTML matches fallback.'
-          : '❌ Tokens do not match. Update token in HTML to match Vercel ADMIN_STATS_TOKEN.'
+          : '❌ Tokens do not match. Copy the token below and update it in HTML file (line 258).'
       }
     });
 

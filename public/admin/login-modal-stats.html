@@ -417,13 +417,21 @@
           // Show diagnostics in UI
           if (!diag.comparison.tokensMatch) {
             diagnosticsEl.style.display = 'block';
+            const fullToken = diag.tokenFromVercel.fullToken || 'NOT AVAILABLE';
             diagnosticsEl.innerHTML = `
               <strong>🔍 Diagnostyka autoryzacji:</strong><br>
               <strong>Token w Vercel:</strong> ${diag.tokenFromVercel.isSet ? '✅ Ustawiony' : '❌ Nie ustawiony (używany fallback)'}<br>
-              <strong>Podgląd tokenu z Vercel:</strong> <code>${diag.tokenFromVercel.preview}</code><br>
-              <strong>Token w HTML:</strong> <code>${AUTH_TOKEN}</code><br>
+              <strong>Token oczekiwany przez backend:</strong> <code style="background: #fff; padding: 4px 8px; border-radius: 4px; cursor: pointer; user-select: all;" onclick="navigator.clipboard.writeText('${fullToken}'); alert('Token skopiowany!')" title="Kliknij aby skopiować">${fullToken}</code> <button onclick="navigator.clipboard.writeText('${fullToken}'); alert('Token skopiowany! Teraz zaktualizuj go w pliku public/admin/login-modal-stats.html linia 258')" style="margin-left: 10px; padding: 4px 8px; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;">📋 Kopiuj</button><br>
+              <strong>Token w HTML (obecny):</strong> <code>${AUTH_TOKEN}</code><br>
               <strong>Status:</strong> ${diag.comparison.tokensMatch ? '✅ Pasują' : '❌ Nie pasują'}<br>
-              <strong>Rekomendacja:</strong> ${diag.recommendation}
+              <strong>Rekomendacja:</strong> ${diag.recommendation}<br>
+              <br>
+              <strong>📝 Jak naprawić:</strong><br>
+              1. Kliknij przycisk "📋 Kopiuj" powyżej<br>
+              2. Otwórz plik <code>public/admin/login-modal-stats.html</code><br>
+              3. Znajdź linię 258: <code>const AUTH_TOKEN = 'customify-admin-2024';</code><br>
+              4. Zamień <code>'customify-admin-2024'</code> na skopiowany token<br>
+              5. Wypchnij zmiany: <code>git add public/admin/login-modal-stats.html && git commit -m "Fix: Update AUTH_TOKEN" && git push</code>
             `;
           } else {
             diagnosticsEl.style.display = 'none';
