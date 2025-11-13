@@ -339,6 +339,11 @@
 
             try {
                 const response = await fetch(`${API_BASE}/admin-generations`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
                 const data = await response.json();
 
                 if (!data.success) {
@@ -384,7 +389,13 @@
 
             } catch (error) {
                 console.error('Error loading generations:', error);
-                showError(`Błąd podczas ładowania generacji: ${error.message}`);
+                
+                // Sprawdź czy to błąd 404 (endpoint nie istnieje)
+                if (error.message.includes('404') || error.message.includes('NOT_FOUND')) {
+                    showError(`⚠️ Endpoint nie jest jeszcze wdrożony na Vercel. Poczekaj 1-2 minuty po push na GitHub. Błąd: ${error.message}`);
+                } else {
+                    showError(`Błąd podczas ładowania generacji: ${error.message}`);
+                }
                 hideLoading();
             }
         }
@@ -413,6 +424,11 @@
                 }
 
                 const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
                 const data = await response.json();
 
                 if (!data.success) {
@@ -455,7 +471,13 @@
 
             } catch (error) {
                 console.error('Error loading generations:', error);
-                showError(`Błąd podczas ładowania generacji: ${error.message}`);
+                
+                // Sprawdź czy to błąd 404 (endpoint nie istnieje)
+                if (error.message.includes('404') || error.message.includes('NOT_FOUND')) {
+                    showError(`⚠️ Endpoint nie jest jeszcze wdrożony na Vercel. Poczekaj 1-2 minuty po push na GitHub. Błąd: ${error.message}`);
+                } else {
+                    showError(`Błąd podczas ładowania generacji: ${error.message}`);
+                }
                 hideLoading();
             }
         }
@@ -543,6 +565,12 @@
         }
 
         function renderPagination() {
+            // Usuń istniejącą paginację (jeśli jest)
+            const existingPagination = document.querySelector('.pagination');
+            if (existingPagination) {
+                existingPagination.remove();
+            }
+
             const totalPages = Math.ceil(filteredGenerations.length / itemsPerPage);
             if (totalPages <= 1) return;
 

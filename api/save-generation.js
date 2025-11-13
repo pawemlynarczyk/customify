@@ -188,31 +188,109 @@ module.exports = async (req, res) => {
     if (customerId) {
       try {
         console.log(`📝 [SAVE-GENERATION] Aktualizuję Customer Metafield w Shopify dla ${customerId}...`);
+        console.log(`📊 [SAVE-GENERATION] Generacje do zapisania: ${dataToSave.generations.length}`);
         
-        // Użyj lokalnego URL (relatywny) zamiast pełnego URL Vercel
-        const baseUrl = req.headers.host 
-          ? `https://${req.headers.host}` 
-          : 'https://customify-s56o.vercel.app';
+        const shopDomain = process.env.SHOP_DOMAIN || 'customify-ok.myshopify.com';
+        const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
         
-        const updateResponse = await fetch(`${baseUrl}/api/update-customer-generations`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            customerId: customerId,
-            generations: dataToSave.generations
-          })
-        });
-        
-        if (updateResponse.ok) {
-          const updateResult = await updateResponse.json();
-          console.log(`✅ [SAVE-GENERATION] Customer Metafield zaktualizowany: ${updateResult.totalGenerations} generacji`);
+        if (!accessToken) {
+          console.warn('⚠️ [SAVE-GENERATION] SHOPIFY_ACCESS_TOKEN nie jest skonfigurowany - pomijam aktualizację metafielda');
         } else {
-          const errorText = await updateResponse.text();
-          console.warn('⚠️ [SAVE-GENERATION] Błąd aktualizacji Customer Metafield:', errorText);
-          // Nie blokuj - zapis w Blob Storage się udał
+          // Przygotuj dane do zapisu (tylko podstawowe info - metafield ma limit)
+          const generationsData = {
+            totalGenerations: dataToSave.generations.length,
+            purchasedCount: dataToSave.generations.filter(g => g.purchased).length,
+            lastGenerationDate: dataToSave.generations[0]?.date || null,
+            generations: dataToSave.generations.slice(0, 20).map(gen => ({
+              id: gen.id,
+              imageUrl: gen.imageUrl,
+              style: gen.style,
+              date: gen.date,
+              purchased: gen.purchased || false,
+              orderId: gen.orderId || null
+            }))
+          };
+          
+          // GraphQL mutation do aktualizacji Customer Metafield
+          const mutation = `
+            mutation updateCustomerGenerations($input: CustomerInput!) {
+              customerUpdate(input: $input) {
+                customer {
+                  id
+                  metafield(namespace: "customify", key: "ai_generations") {
+                    id
+                    value
+                  }
+                }
+                userErrors {
+                  field
+                  message
+                }
+              }
+            }
+          `;
+          
+          const variables = {
+            input: {
+              id: `gid://shopify/Customer/${customerId}`,
+              metafields: [
+                {
+                  namespace: 'customify',
+                  key: 'ai_generations',
+                  value: JSON.stringify(generationsData),
+                  type: 'json'
+                }
+              ]
+            }
+          };
+          
+          const updateResponse = await fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Shopify-Access-Token': accessToken
+            },
+            body: JSON.stringify({
+              query: mutation,
+              variables: variables
+            })
+          });
+          
+          const updateData = await updateResponse.json();
+          
+          if (updateData.errors) {
+            console.error('❌ [SAVE-GENERATION] GraphQL errors:', JSON.stringify(updateData.errors, null, 2));
+            // Sprawdź czy to błąd "metafield definition not found"
+            const metafieldNotFound = updateData.errors.some(err => 
+              err.message?.toLowerCase().includes('metafield') || 
+              err.message?.toLowerCase().includes('definition') ||
+              err.message?.toLowerCase().includes('not found') ||
+              err.message?.toLowerCase().includes('does not exist')
+            );
+            if (metafieldNotFound) {
+              console.warn('⚠️ [SAVE-GENERATION] Metafield definition nie istnieje!');
+              console.warn('⚠️ [SAVE-GENERATION] Uruchom: GET https://customify-s56o.vercel.app/api/setup-customer-generations-metafield');
+            }
+          } else if (updateData.data?.customerUpdate?.userErrors?.length > 0) {
+            console.error('❌ [SAVE-GENERATION] User errors:', JSON.stringify(updateData.data.customerUpdate.userErrors, null, 2));
+            // Sprawdź czy to błąd "metafield definition not found"
+            const metafieldNotFound = updateData.data.customerUpdate.userErrors.some(err => 
+              err.message?.toLowerCase().includes('metafield') || 
+              err.message?.toLowerCase().includes('definition') ||
+              err.message?.toLowerCase().includes('not found')
+            );
+            if (metafieldNotFound) {
+              console.warn('⚠️ [SAVE-GENERATION] Metafield definition nie istnieje!');
+              console.warn('⚠️ [SAVE-GENERATION] Uruchom: GET https://customify-s56o.vercel.app/api/setup-customer-generations-metafield');
+            }
+          } else {
+            console.log(`✅ [SAVE-GENERATION] Customer Metafield zaktualizowany: ${generationsData.totalGenerations} generacji`);
+            console.log(`📊 [SAVE-GENERATION] Kupione: ${generationsData.purchasedCount}, Nie kupione: ${generationsData.totalGenerations - generationsData.purchasedCount}`);
+          }
         }
       } catch (updateError) {
-        console.warn('⚠️ [SAVE-GENERATION] Błąd aktualizacji Customer Metafield (nie blokuję):', updateError);
+        console.error('❌ [SAVE-GENERATION] Błąd aktualizacji Customer Metafield:', updateError.message);
+        console.error('❌ [SAVE-GENERATION] Stack:', updateError.stack);
         // Nie blokuj - zapis w Blob Storage się udał
       }
     }
