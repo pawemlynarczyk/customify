@@ -255,7 +255,7 @@ async function segmindFaceswap(targetImageUrl, swapImageBase64) {
 }
 
 // Function to handle Segmind Become-Image (Watercolor style)
-async function segmindBecomeImage(imageUrl, styleImageUrl) {
+async function segmindBecomeImage(imageUrl, styleImageUrl, styleParameters = {}) {
   const SEGMIND_API_KEY = process.env.SEGMIND_API_KEY;
   
   console.log('🔑 [SEGMIND] Checking API key...', SEGMIND_API_KEY ? `Key present (${SEGMIND_API_KEY.substring(0, 10)}...)` : 'KEY MISSING!');
@@ -265,9 +265,32 @@ async function segmindBecomeImage(imageUrl, styleImageUrl) {
     throw new Error('SEGMIND_API_KEY not configured');
   }
 
+  const {
+    prompt = "a person",
+    prompt_strength = 2,
+    number_of_images = 1,
+    denoising_strength = 1,
+    instant_id_strength = 1,
+    control_depth_strength = 0.8,
+    image_to_become_strength = 0.75,
+    image_to_become_noise = 0.3,
+    disable_safety_checker = true
+  } = styleParameters || {};
+
   console.log('🎨 [SEGMIND] Starting become-image (watercolor)...');
   console.log('🎨 [SEGMIND] Person image URL:', imageUrl);
   console.log('🎨 [SEGMIND] Style image URL:', styleImageUrl);
+  console.log('🛠️ [SEGMIND] Parameters:', {
+    prompt,
+    prompt_strength,
+    number_of_images,
+    denoising_strength,
+    instant_id_strength,
+    control_depth_strength,
+    image_to_become_strength,
+    image_to_become_noise,
+    disable_safety_checker
+  });
 
   try {
     const response = await fetch('https://api.segmind.com/v1/become-image', {
@@ -279,15 +302,15 @@ async function segmindBecomeImage(imageUrl, styleImageUrl) {
       body: JSON.stringify({
         image: imageUrl,              // URL zdjęcia użytkownika
         image_to_become: styleImageUrl, // URL miniaturki stylu akwareli
-        prompt: "a person",
-        prompt_strength: 2,
-        number_of_images: 1,          // Tylko 1 obraz (nie 2)
-        denoising_strength: 1,
-        instant_id_strength: 1,
-        image_to_become_strength: 0.75, // Siła stylu akwareli
-        image_to_become_noise: 0.3,
-        control_depth_strength: 0.8,
-        disable_safety_checker: true
+        prompt,
+        prompt_strength,
+        number_of_images,
+        denoising_strength,
+        instant_id_strength,
+        image_to_become_strength,
+        image_to_become_noise,
+        control_depth_strength,
+        disable_safety_checker
       }),
     });
 
@@ -783,13 +806,13 @@ module.exports = async (req, res) => {
         parameters: {
           image: "USER_IMAGE", // URL zdjęcia użytkownika (będzie zamienione na URL z Vercel Blob)
           image_to_become: "https://customify-s56o.vercel.app/akwarela/watercolor-style.png", // URL miniaturki stylu akwareli
-          prompt_strength: 2,
+          prompt_strength: 3,
           number_of_images: 1,
-          denoising_strength: 1,
-          instant_id_strength: 1,
-          image_to_become_strength: 0.75, // Siła stylu akwareli
+          denoising_strength: 0.45,
+          instant_id_strength: 0.1,
+          image_to_become_strength: 0.45,
           image_to_become_noise: 0.3,
-          control_depth_strength: 0.8,
+          control_depth_strength: 0.93,
           disable_safety_checker: true
         }
       }
@@ -1013,7 +1036,7 @@ module.exports = async (req, res) => {
         console.log('🎨 [SEGMIND] Style image URL:', styleImageUrl);
         
         // Wywołaj Segmind Become-Image API
-        const resultImage = await segmindBecomeImage(userImageUrl, styleImageUrl);
+        const resultImage = await segmindBecomeImage(userImageUrl, styleImageUrl, config.parameters || {});
         console.log('✅ [SEGMIND] Watercolor generation completed successfully');                                                                               
         
         // Sprawdź czy to URL czy base64 i obsłuż odpowiednio
