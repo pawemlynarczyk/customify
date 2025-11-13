@@ -26,6 +26,28 @@ class CustomifyEmbed {
     this.selectedSize = null;
     this.selectedProductType = 'canvas'; // Domyślny wybór: Obraz na płótnie
     this.transformedImage = null;
+    this.sizePricing = {
+      plakat: {
+        a4: 0,
+        a3: 10,
+        a2: 30,
+        a1: 50
+      },
+      canvas: {
+        a4: 49,
+        a3: 99,
+        a2: 149,
+        a1: 199
+      }
+    };
+    
+    // Ceny ramek w zależności od rozmiaru (tylko dla plakatu)
+    this.framePricing = {
+      a4: 29,
+      a3: 45,
+      a2: 65,
+      a1: 85
+    };
     
     this.init();
 
@@ -75,6 +97,9 @@ class CustomifyEmbed {
       console.warn('⚠️ [INIT] Failed to sync initial selections from DOM:', e);
     }
 
+    // Zaktualizuj dostępność rozmiarów po początkowej synchronizacji
+    this.updateSizeAvailability();
+
     // Po synchronizacji wymuś przeliczenie cen (uwzględnia ramkę, jeśli plakat)
     this.updateProductPrice();
     this.updateCartPrice();
@@ -88,66 +113,191 @@ class CustomifyEmbed {
    * @returns {Object|null} {customerId, email, customerAccessToken} lub null jeśli niezalogowany
    */
   getCustomerInfo() {
-    // Debug info removed for security
-    
-    // METODA 1: NOWY SYSTEM - window.ShopifyCustomer (z Liquid w theme.liquid)
-    if (window.ShopifyCustomer && window.ShopifyCustomer.loggedIn && window.ShopifyCustomer.id) {
-      // Customer detection successful
-      
-      return {
-        customerId: window.ShopifyCustomer.id,
-        email: window.ShopifyCustomer.email || 'no-email@shopify.com',
-        firstName: window.ShopifyCustomer.firstName,
-        lastName: window.ShopifyCustomer.lastName,
-        customerAccessToken: 'oauth_session' // Placeholder - sesja zarządzana przez Shopify
-      };
+    if (!window.__customifyCustomerDebugLogged) {
+      try {
+        console.log('🔍 [CUSTOMER DETECT] Debug sources:', {
+          ShopifyCustomer: window.ShopifyCustomer || null,
+          ShopifyAnalytics: window.ShopifyAnalytics?.meta || null,
+          meta: window.meta || null,
+          __st: window.__st || null,
+          localStorageId: (() => {
+            try {
+              return localStorage.getItem('customify_last_customer_id');
+            } catch (e) {
+              return 'unavailable';
+            }
+          })(),
+          cookies: document.cookie
+        });
+      } catch (e) {
+        console.warn('⚠️ [CUSTOMER DETECT] Debug logging failed:', e);
+      }
+      window.__customifyCustomerDebugLogged = true;
     }
     
-    // METODA 2: FALLBACK - Sprawdź cookie Shopify (customer_auth_token)
-    const cookies = document.cookie.split(';').map(c => c.trim());
-    const hasCustomerCookie = cookies.some(cookie => 
-      cookie.startsWith('_shopify_customer_') || 
-      cookie.startsWith('customer_auth_token') ||
-      cookie.startsWith('customer_id')
-    );
+    const sanitizeId = (value) => {
+      if (value === null || value === undefined) {
+        return null;
+      }
+      if (typeof value === 'object' && value.id) {
+        return sanitizeId(value.id);
+      }
+      const idStr = String(value).trim();
+      if (!idStr || idStr.toLowerCase() === 'null' || idStr.toLowerCase() === 'undefined') {
+        return null;
+      }
+      return idStr;
+    };
     
-    if (hasCustomerCookie) {
-      // Cookie-based customer detection
-      
-      // Spróbuj wyciągnąć ID z cookie
-      const customerIdCookie = cookies.find(c => c.startsWith('customer_id='));
-      let customerId = null;
-      
-      if (customerIdCookie) {
-        customerId = customerIdCookie.split('=')[1];
+    const sanitizeEmail = (value) => {
+      if (!value) {
+        return null;
       }
-      
-      // Jeśli brak ID, użyj window.ShopifyCustomer.id jako fallback
-      if (!customerId && window.ShopifyCustomer && window.ShopifyCustomer.id) {
-        customerId = window.ShopifyCustomer.id;
+      const emailStr = String(value).trim();
+      if (!emailStr || emailStr.toLowerCase() === 'null' || emailStr.toLowerCase() === 'undefined') {
+        return null;
       }
-      
-      return {
-        customerId: customerId || 'unknown',
-        email: window.ShopifyCustomer?.email || 'cookie-user@shopify.com',
+      return emailStr;
+    };
+    
+    const getStoredValue = (key) => {
+      try {
+        return localStorage.getItem(key);
+      } catch (e) {
+        return null;
+      }
+    };
+    
+    const persistCustomerContext = (info, source) => {
+      if (!info || !info.customerId) {
+        return null;
+      }
+      try {
+        localStorage.setItem('customify_last_customer_id', info.customerId);
+        if (info.email) {
+          localStorage.setItem('customify_last_customer_email', info.email);
+        }
+      } catch (e) {
+        // Ignore storage errors (Safari private mode etc.)
+      }
+      if (source) {
+        console.log(`✅ [CUSTOMER DETECT] Zidentyfikowano klienta (${source}):`, info.customerId);
+      }
+      return info;
+    };
+    const buildCustomerInfo = (idCandidate, emailCandidate, source) => {
+      const customerId = sanitizeId(idCandidate);
+      if (!customerId) {
+        return null;
+      }
+      const fallbackEmail = sanitizeEmail(emailCandidate) ||
+        sanitizeEmail(getStoredValue('customify_last_customer_email')) ||
+        'no-email@shopify.com';
+      return persistCustomerContext({
+        customerId,
+        email: fallbackEmail,
         firstName: window.ShopifyCustomer?.firstName || '',
         lastName: window.ShopifyCustomer?.lastName || '',
         customerAccessToken: 'oauth_session'
-      };
+      }, source);
+    };
+    const getShopifyCustomerField = (field) => {
+      if (!window.ShopifyCustomer) {
+        return null;
+      }
+      if (field in window.ShopifyCustomer) {
+        return window.ShopifyCustomer[field];
+      }
+      const lowerField = field.toLowerCase();
+      for (const key of Object.keys(window.ShopifyCustomer)) {
+        if (key.toLowerCase() === lowerField) {
+          return window.ShopifyCustomer[key];
+        }
+      }
+      return null;
+    };
+    
+    // METODA 1: NOWY SYSTEM - window.ShopifyCustomer (z Liquid w theme.liquid)
+    if (window.ShopifyCustomer && (getShopifyCustomerField('id') || getShopifyCustomerField('customerId'))) {
+      const shopifyId = getShopifyCustomerField('id') || getShopifyCustomerField('customerId');
+      const shopifyEmail = getShopifyCustomerField('email') || null;
+      return buildCustomerInfo(shopifyId, shopifyEmail, 'ShopifyCustomer');
     }
     
-    // METODA 3: STARY SYSTEM - window.Shopify.customerEmail (Classic Customer Accounts)
+    // METODA 1B: Shopify Analytics (fallback)
+    if (window.ShopifyAnalytics && window.ShopifyAnalytics.meta) {
+      const analyticsMeta = window.ShopifyAnalytics.meta;
+      const analyticsId =
+        analyticsMeta.page?.customerId ??
+        analyticsMeta.customerId ??
+        analyticsMeta.page?.customer_id ??
+        analyticsMeta.customer_id ??
+        null;
+      const analyticsEmail =
+        analyticsMeta.page?.customerEmail ??
+        analyticsMeta.customerEmail ??
+        analyticsMeta.page?.customer_email ??
+        analyticsMeta.customer_email ??
+        null;
+      
+      const analyticsInfo = buildCustomerInfo(analyticsId, analyticsEmail, 'ShopifyAnalytics.meta');
+      if (analyticsInfo) {
+        return analyticsInfo;
+      }
+    }
+    
+    // METODA 1C: window.meta (Shopify storefront meta object)
+    if (window.meta) {
+      const metaId = window.meta.page?.customerId ?? window.meta.customerId ?? null;
+      const metaEmail = window.meta.page?.customerEmail ?? window.meta.customerEmail ?? null;
+      
+      const metaInfo = buildCustomerInfo(metaId, metaEmail, 'window.meta');
+      if (metaInfo) {
+        return metaInfo;
+      }
+    }
+    
+    // METODA 1D: Shopify tracking object (__st)
+    const shopifyTrackingId = window.__st ? window.__st.cid : null;
+    if (shopifyTrackingId) {
+      const trackingInfo = buildCustomerInfo(shopifyTrackingId, getStoredValue('customify_last_customer_email'), '__st.cid');
+      if (trackingInfo) {
+        return trackingInfo;
+      }
+    }
+    
+    // METODA 2: FALLBACK - Sprawdź cookie Shopify (customer_id)
+    const cookies = document.cookie.split(';').map(c => c.trim());
+    if (cookies.length > 0) {
+      const customerIdCookie = cookies.find(c => c.startsWith('customer_id='));
+      if (customerIdCookie) {
+        const cookieId = sanitizeId(customerIdCookie.split('=')[1]);
+        const cookieInfo = buildCustomerInfo(cookieId, getStoredValue('customify_last_customer_email') || window.ShopifyCustomer?.email, 'customer_id cookie');
+        if (cookieInfo) {
+          return cookieInfo;
+        }
+      }
+    }
+    
+    // METODA 3: Pamięć lokalna (ostatni znany zalogowany użytkownik)
+    const storedId = sanitizeId(getStoredValue('customify_last_customer_id'));
+    if (storedId) {
+      return buildCustomerInfo(storedId, getStoredValue('customify_last_customer_email'), 'localStorage');
+    }
+    
+    // METODA 4: STARY SYSTEM - window.Shopify.customerEmail (Classic Customer Accounts)
     if (window.Shopify && window.Shopify.customerEmail) {
-      // Legacy customer detection
+      const legacyId = sanitizeId(window.meta?.customer?.id || window.ShopifyCustomer?.id || getStoredValue('customify_last_customer_id'));
+      const legacyEmail = sanitizeEmail(window.Shopify.customerEmail) || getStoredValue('customify_last_customer_email');
+      const legacyToken = getStoredValue('shopify_customer_access_token') || 'oauth_session';
       
-      const customerId = window.meta?.customer?.id || window.ShopifyCustomer?.id || null;
-      const customerAccessToken = localStorage.getItem('shopify_customer_access_token');
-      
-      return {
-        customerId: customerId,
-        email: window.Shopify.customerEmail,
-        customerAccessToken: customerAccessToken || 'oauth_session'
-      };
+      if (legacyId) {
+        return persistCustomerContext({
+          customerId: legacyId,
+          email: legacyEmail || 'legacy-user@shopify.com',
+          customerAccessToken: legacyToken
+        }, 'Shopify.customerEmail');
+      }
     }
     
     // No customer detected
@@ -820,37 +970,36 @@ class CustomifyEmbed {
           text-align: center;
           box-shadow: 0 20px 60px rgba(0,0,0,0.4);
           animation: slideUp 0.3s ease;
+          position: relative;
         ">
-          <div style="font-size: 60px; margin-bottom: 20px;">🎨</div>
-          
-          <h2 style="
-            margin-bottom: 15px; 
-            color: #333; 
+          <button onclick="window.customifyLoginModal.cancel()" style="
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: transparent;
+            border: none;
             font-size: 24px;
-            font-weight: 600;
-          ">Wykorzystałeś darmowe transformacje!</h2>
-          
-          <p style="
+            color: #999;
+            cursor: pointer;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s;
+            padding: 0;
+            line-height: 1;
+          " onmouseover="this.style.background='#f5f5f5'; this.style.color='#333'" onmouseout="this.style.background='transparent'; this.style.color='#999'">
+            ×
+          </button>
+          <h2 style="
             margin-bottom: 25px; 
-            color: #666; 
-            font-size: 16px;
-            line-height: 1.6;
-          ">
-            Użyłeś <strong style="color: #FF6B6B;">${usedCount}/${limit}</strong> darmowych transformacji.<br>
-            <strong style="color: #4CAF50; font-size: 18px;">Załóż bezpłatne konto (bez hasła!) i otrzymaj +10 dodatkowych!</strong>
-          </p>
-          
-          <div id="countdownText" style="
-            margin-bottom: 25px;
-            padding: 15px;
-            background: #E8F5E9;
-            border-radius: 8px;
-            color: #2E7D32;
+            color: #333; 
+            font-size: 18px;
             font-weight: 600;
-            font-size: 16px;
-          ">
-            ⏰ Przekierowanie za: <span id="countdownSeconds">5</span> sekund...
-          </div>
+            line-height: 1.5;
+          ">Widzę że lubisz nasze narzędzie, zaloguj się by móc korzystać w pełni</h2>
           
           <div style="
             display: flex; 
@@ -858,7 +1007,7 @@ class CustomifyEmbed {
             justify-content: center;
             flex-wrap: wrap;
           ">
-            <a href="${registerUrl}" style="
+            <a href="${registerUrl}" onclick="window.customifyLoginModal.trackRegisterClick()" style="
               background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
               color: white;
               padding: 14px 32px;
@@ -900,7 +1049,7 @@ class CustomifyEmbed {
               margin: 0;
             ">
               Masz już konto? 
-              <a href="${loginUrl}" style="
+              <a href="${loginUrl}" onclick="window.customifyLoginModal.trackLoginClick()" style="
                 color: #1565C0;
                 text-decoration: underline;
                 font-weight: bold;
@@ -927,33 +1076,168 @@ class CustomifyEmbed {
     
     document.body.insertAdjacentHTML('beforeend', modalHTML);
     
-    // Countdown timer (5 sekund)
-    let countdown = 5;
-    const countdownEl = document.getElementById('countdownSeconds');
+    // ✅ ŚLEDZENIE: Wyświetlenie modala logowania
+    // GA4
+    if (typeof gtag !== 'undefined') {
+      gtag('event', 'login_modal_shown', {
+        'event_category': 'Customify',
+        'event_label': 'Usage Limit Reached',
+        'used_count': usedCount,
+        'limit': limit,
+        'product_url': window.location.pathname,
+        'is_logged_in': false
+      });
+      console.log('📊 [GA4] Event sent: login_modal_shown', {
+        usedCount: usedCount,
+        limit: limit,
+        url: window.location.pathname
+      });
+    }
     
+    // Własny endpoint (widoczne na żywo)
+    fetch('https://customify-s56o.vercel.app/api/admin/login-modal-stats', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        eventType: 'login_modal_shown',
+        usedCount: usedCount,
+        limit: limit,
+        productUrl: window.location.pathname,
+        timestamp: new Date().toISOString()
+      })
+    }).catch(err => console.log('📊 [STATS] Failed to send event:', err));
+    
+    // Auto-redirect do REJESTRACJI po 5 sekundach (bez widocznego countdown)
     const countdownInterval = setInterval(() => {
-      countdown--;
-      if (countdownEl) {
-        countdownEl.textContent = countdown;
+      // Sprawdź czy modal nadal istnieje
+      const modal = document.getElementById('loginModal');
+      if (!modal) {
+        clearInterval(countdownInterval);
+        return;
       }
       
-      if (countdown <= 0) {
-        clearInterval(countdownInterval);
-        // Auto-redirect do REJESTRACJI (główny CTA)
-        window.location.href = registerUrl;
+      // Po 5 sekundach przekieruj
+      clearInterval(countdownInterval);
+      
+      // ✅ ŚLEDZENIE: Auto-redirect do rejestracji (po 5 sekundach)
+      // GA4
+      if (typeof gtag !== 'undefined') {
+        gtag('event', 'login_modal_auto_redirect', {
+          'event_category': 'Customify',
+          'event_label': 'Auto Redirect to Register',
+          'used_count': usedCount,
+          'limit': limit,
+          'product_url': window.location.pathname
+        });
+        console.log('📊 [GA4] Event sent: login_modal_auto_redirect');
       }
-    }, 1000);
+      
+      // Własny endpoint
+      fetch('https://customify-s56o.vercel.app/api/admin/login-modal-stats', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          eventType: 'login_modal_auto_redirect',
+          usedCount: usedCount,
+          limit: limit,
+          productUrl: window.location.pathname,
+          timestamp: new Date().toISOString()
+        })
+      }).catch(err => console.log('📊 [STATS] Failed to send event:', err));
+      
+      window.location.href = registerUrl;
+    }, 5000);
     
-    // Global function to cancel countdown
+    // Global function to close modal
     window.customifyLoginModal = {
       cancel: () => {
+        // ✅ ŚLEDZENIE: Kliknięcie w Anuluj
+        // GA4
+        if (typeof gtag !== 'undefined') {
+          gtag('event', 'login_modal_cancel_click', {
+            'event_category': 'Customify',
+            'event_label': 'Modal Cancelled',
+            'used_count': usedCount,
+            'limit': limit,
+            'product_url': window.location.pathname
+          });
+          console.log('📊 [GA4] Event sent: login_modal_cancel_click');
+        }
+        
+        // Własny endpoint
+        fetch('https://customify-s56o.vercel.app/api/admin/login-modal-stats', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            eventType: 'login_modal_cancel_click',
+            usedCount: usedCount,
+            limit: limit,
+            productUrl: window.location.pathname,
+            timestamp: new Date().toISOString()
+          })
+        }).catch(err => console.log('📊 [STATS] Failed to send event:', err));
+        
         clearInterval(countdownInterval);
         document.getElementById('loginModal')?.remove();
-        console.log('🚫 [USAGE] Użytkownik anulował przekierowanie');
+        console.log('🚫 [USAGE] Użytkownik zamknął modal');
+      },
+      
+      trackRegisterClick: () => {
+        // ✅ ŚLEDZENIE: Kliknięcie w Kontynuuj (rejestracja)
+        // GA4
+        if (typeof gtag !== 'undefined') {
+          gtag('event', 'login_modal_register_click', {
+            'event_category': 'Customify',
+            'event_label': 'Register Button Clicked',
+            'used_count': usedCount,
+            'limit': limit,
+            'product_url': window.location.pathname
+          });
+          console.log('📊 [GA4] Event sent: login_modal_register_click');
+        }
+        
+        // Własny endpoint
+        fetch('https://customify-s56o.vercel.app/api/admin/login-modal-stats', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            eventType: 'login_modal_register_click',
+            usedCount: usedCount,
+            limit: limit,
+            productUrl: window.location.pathname,
+            timestamp: new Date().toISOString()
+          })
+        }).catch(err => console.log('📊 [STATS] Failed to send event:', err));
+      },
+      
+      trackLoginClick: () => {
+        // ✅ ŚLEDZENIE: Kliknięcie w Zaloguj się
+        // GA4
+        if (typeof gtag !== 'undefined') {
+          gtag('event', 'login_modal_login_click', {
+            'event_category': 'Customify',
+            'event_label': 'Login Link Clicked',
+            'used_count': usedCount,
+            'limit': limit,
+            'product_url': window.location.pathname
+          });
+          console.log('📊 [GA4] Event sent: login_modal_login_click');
+        }
+        
+        // Własny endpoint
+        fetch('https://customify-s56o.vercel.app/api/admin/login-modal-stats', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            eventType: 'login_modal_login_click',
+            usedCount: usedCount,
+            limit: limit,
+            productUrl: window.location.pathname,
+            timestamp: new Date().toISOString()
+          })
+        }).catch(err => console.log('📊 [STATS] Failed to send event:', err));
       }
     };
-    
-    console.log('⏰ [USAGE] Countdown started - auto-redirect to REGISTER in 5 seconds');
   }
 
   /**
@@ -1288,8 +1572,13 @@ class CustomifyEmbed {
 
     // Event listener dla rozmiarów - sprawdź zarówno główny jak i w resultArea
     document.addEventListener('click', (e) => {
-      if (e.target.classList.contains('customify-size-btn')) {
-        this.selectSize(e.target);
+      const sizeBtn = e.target.closest('.customify-size-btn');
+      if (sizeBtn) {
+        if (sizeBtn.classList.contains('disabled')) {
+          e.preventDefault();
+          return;
+        }
+        this.selectSize(sizeBtn);
       }
     });
 
@@ -1410,6 +1699,10 @@ class CustomifyEmbed {
   }
 
   selectSize(sizeBtn) {
+    if (sizeBtn.classList.contains('disabled')) {
+      console.log('⚠️ [SIZE] Attempted to select disabled size:', sizeBtn.dataset.size);
+      return;
+    }
     this.sizeArea.querySelectorAll('.customify-size-btn').forEach(btn => btn.classList.remove('active'));
     sizeBtn.classList.add('active');
     this.selectedSize = sizeBtn.dataset.size;
@@ -1418,6 +1711,7 @@ class CustomifyEmbed {
     // Aktualizuj cenę po wyborze rozmiaru
     this.updateProductPrice();
     this.updateCartPrice(); // ✅ Dodaj aktualizację ceny nad przyciskiem
+    this.syncActiveSizeButton();
   }
 
   selectProductType(typeBtn) {
@@ -1427,11 +1721,64 @@ class CustomifyEmbed {
     console.log('🎨 [PRODUCT-TYPE] Selected product type:', this.selectedProductType);
 
     // Aktualizuj ceny po zmianie typu (ramka dostępna tylko dla plakatu)
+    const sizeAdjusted = this.updateSizeAvailability();
     this.updateProductPrice();
     this.updateCartPrice();
+    if (sizeAdjusted) {
+      console.log('📏 [SIZE] Adjusted selection after product type change:', this.selectedSize || 'none');
+    }
     console.log('🖼️ [FRAME] Type changed -> recalculated price with frame:', {
       selectedProductType: this.selectedProductType,
       frame: window.CustomifyFrame?.color || 'none'
+    });
+  }
+
+  /**
+   * Aktualizuje dostępność poszczególnych rozmiarów w zależności od typu produktu
+   * Zwraca true, jeśli wybrany rozmiar został zmieniony
+   */
+  updateSizeAvailability() {
+    if (!this.sizeArea) {
+      return false;
+    }
+
+    const sizeButtons = Array.from(this.sizeArea.querySelectorAll('.customify-size-btn'));
+    sizeButtons.forEach(btn => {
+      btn.classList.remove('disabled');
+      btn.removeAttribute('aria-disabled');
+    });
+
+    let selectionChanged = false;
+    if (!sizeButtons.some(btn => btn.dataset.size === this.selectedSize)) {
+      const fallback = sizeButtons[0];
+      if (fallback) {
+        this.selectedSize = fallback.dataset.size;
+      } else {
+        this.selectedSize = null;
+      }
+      selectionChanged = true;
+    }
+
+    this.syncActiveSizeButton();
+    return selectionChanged;
+  }
+
+  /**
+   * Synchronizuje klasę .active przycisków rozmiarów z aktualnie wybranym rozmiarem
+   */
+  syncActiveSizeButton() {
+    if (!this.sizeArea) {
+      return;
+    }
+
+    const sizeButtons = this.sizeArea.querySelectorAll('.customify-size-btn');
+    sizeButtons.forEach(btn => {
+      if (btn.classList.contains('disabled')) {
+        btn.classList.remove('active');
+        return;
+      }
+      const shouldBeActive = this.selectedSize && btn.dataset.size === this.selectedSize;
+      btn.classList.toggle('active', !!shouldBeActive);
     });
   }
 
@@ -1458,7 +1805,7 @@ class CustomifyEmbed {
       
       // Dopłata za ramkę (tylko plakat i wybrany kolor != none)
       const frameSelected = (this.selectedProductType === 'plakat') && (window.CustomifyFrame && window.CustomifyFrame.color && window.CustomifyFrame.color !== 'none');
-      const frameSurcharge = frameSelected ? 29 : 0;
+      const frameSurcharge = frameSelected && this.selectedSize ? (this.framePricing[this.selectedSize] || 29) : 0;
       
       // Oblicz końcową cenę (bazowa + rozmiar + ramka)
       const finalPrice = this.originalBasePrice + sizePrice + frameSurcharge;
@@ -1516,17 +1863,7 @@ class CustomifyEmbed {
    */
   setInitialPrice() {
     try {
-      // Znajdź element ceny na stronie produktu - spróbuj różnych selektorów
-      let priceElement = document.querySelector('product-price div');
-      
-      if (!priceElement) {
-        priceElement = document.querySelector('.price');
-      }
-      
-      if (!priceElement) {
-        priceElement = document.querySelector('[class*="price"]');
-      }
-      
+      const priceElement = this.getPriceElement();
       if (!priceElement) {
         console.warn('⚠️ [INIT-PRICE] Price element not found');
         return;
@@ -1547,8 +1884,7 @@ class CustomifyEmbed {
       }
 
       // Ustaw TYLKO cenę bazową (bez rozmiaru)
-      priceElement.textContent = `${this.originalBasePrice.toFixed(2)} zł`;
-      
+      this.applyProductPriceDisplay(this.originalBasePrice);
       console.log(`💰 [INIT-PRICE] Set initial base price: ${this.originalBasePrice} zł`);
       
     } catch (error) {
@@ -1561,28 +1897,9 @@ class CustomifyEmbed {
    */
   updateProductPrice() {
     try {
-      // Znajdź element ceny na stronie produktu - spróbuj różnych selektorów
-      let priceElement = document.querySelector('product-price div');
-      
-      if (!priceElement) {
-        // Spróbuj innych selektorów
-        priceElement = document.querySelector('.price');
-        console.log('🔍 [PRICE] Trying .price selector:', priceElement);
-      }
-      
-      if (!priceElement) {
-        priceElement = document.querySelector('[class*="price"]');
-        console.log('🔍 [PRICE] Trying [class*="price"] selector:', priceElement);
-      }
-      
-      if (!priceElement) {
-        priceElement = document.querySelector('span:contains("zł")');
-        console.log('🔍 [PRICE] Trying span:contains("zł") selector:', priceElement);
-      }
-      
+      const priceElement = this.getPriceElement();
       if (!priceElement) {
         console.warn('⚠️ [PRICE] Price element not found with any selector');
-        console.log('🔍 [PRICE] Available price elements:', document.querySelectorAll('[class*="price"], [id*="price"], span, div').length);
         return;
       }
 
@@ -1608,13 +1925,14 @@ class CustomifyEmbed {
       
       // Dopłata za ramkę (tylko plakat i wybrany kolor != none)
       const frameSelected = (this.selectedProductType === 'plakat') && (window.CustomifyFrame && window.CustomifyFrame.color && window.CustomifyFrame.color !== 'none');
-      const frameSurcharge = frameSelected ? 29 : 0;
+      const frameSurcharge = frameSelected && this.selectedSize ? (this.framePricing[this.selectedSize] || 29) : 0;
       
       // Oblicz końcową cenę (oryginalna cena + rozmiar + ramka)
       const finalPrice = this.originalBasePrice + sizePrice + frameSurcharge;
       
       // Aktualizuj cenę na stronie
-      priceElement.textContent = `${finalPrice.toFixed(2)} zł`;
+      this.applyProductPriceDisplay(finalPrice);
+      this.schedulePriceConsistency(finalPrice);
       
       console.log(`💰 [PRICE] Updated: base ${this.originalBasePrice} + size ${sizePrice} + frame ${frameSurcharge} = ${finalPrice} zł`);
       console.log('🖼️ [FRAME] Product price components:', {
@@ -1643,14 +1961,10 @@ class CustomifyEmbed {
   /**
    * Zwraca cenę dla wybranego rozmiaru
    */
-  getSizePrice(size) {
-    const prices = {
-      'a4': 49,
-      'a3': 99,
-      'a2': 149,
-      'a1': 199
-    };
-    return prices[size] || 0;
+  getSizePrice(size, productType = null) {
+    const type = productType || this.selectedProductType || 'canvas';
+    const table = this.sizePricing[type] || this.sizePricing.canvas;
+    return table[size] ?? 0;
   }
 
   /**
@@ -1664,6 +1978,76 @@ class CustomifyEmbed {
       'a1': '60×85 cm'
     };
     return dimensions[size] || size;
+  }
+
+  /**
+   * Zwraca element ceny produktu
+   */
+  getPriceElement() {
+    let priceElement = document.querySelector('product-price div');
+    if (priceElement) {
+      return priceElement;
+    }
+
+    priceElement = document.querySelector('.price');
+    if (priceElement) {
+      console.log('🔍 [PRICE] Using .price selector');
+      return priceElement;
+    }
+
+    priceElement = document.querySelector('[class*="price"]');
+    if (priceElement) {
+      console.log('🔍 [PRICE] Using [class*="price"] selector');
+      return priceElement;
+    }
+
+    return null;
+  }
+
+  /**
+   * Ustawia cenę produktu w DOM
+   */
+  applyProductPriceDisplay(value) {
+    const priceElement = this.getPriceElement();
+    if (!priceElement) {
+      console.warn('⚠️ [PRICE] Price element not found when applying display');
+      return;
+    }
+    const formatted = `${value.toFixed(2)} zł`;
+    priceElement.textContent = formatted;
+    priceElement.setAttribute('data-customify-price', formatted);
+  }
+
+  /**
+   * Dodatkowe zabezpieczenie przed nadpisaniem ceny przez motyw
+   */
+  schedulePriceConsistency(finalPrice) {
+    if (this.priceConsistencyTimers) {
+      this.priceConsistencyTimers.forEach(timer => clearTimeout(timer));
+    }
+
+    const delays = [50, 250, 500, 1000, 2000];
+    this.priceConsistencyTimers = delays.map(delay => setTimeout(() => {
+      try {
+        const priceElement = this.getPriceElement();
+        if (!priceElement) {
+          return;
+        }
+        const displayed = this.extractBasePrice(priceElement.textContent);
+        if (displayed === null || Math.abs(displayed - finalPrice) > 0.5) {
+          console.log('♻️ [PRICE] Reapplying price after external update:', {
+            displayed,
+            finalPrice,
+            delay
+          });
+          const formatted = `${finalPrice.toFixed(2)} zł`;
+          priceElement.textContent = formatted;
+          priceElement.setAttribute('data-customify-price', formatted);
+        }
+      } catch (error) {
+        console.warn('⚠️ [PRICE] Error in price consistency timer:', error);
+      }
+    }, delay));
   }
 
   /**
@@ -1757,16 +2141,44 @@ class CustomifyEmbed {
       // ✅ USAGE LIMITS: Pobierz dane użytkownika do przekazania do API
       const customerInfo = this.getCustomerInfo();
       
+      // ✅ Pobierz email z localStorage (jeśli był w formularzu) lub z customerInfo
+      const email = customerInfo?.email || localStorage.getItem('customify_email_provided') || null;
+      
       const requestBody = {
         imageData: base64,
         prompt: `Transform this image in ${this.selectedStyle} style`,
         productType: productType, // Przekaż typ produktu do API
         customerId: customerInfo?.customerId || null,
-        customerAccessToken: customerInfo?.customerAccessToken || null
+        customerAccessToken: customerInfo?.customerAccessToken || null,
+        email: email // ✅ Dodaj email dla niezalogowanych lub jako backup
       };
       
       console.log('📱 [MOBILE] Request body size:', JSON.stringify(requestBody).length, 'bytes');
       console.log('👤 [MOBILE] Customer info:', customerInfo ? 'zalogowany' : 'niezalogowany');
+      
+      // ✅ SZCZEGÓŁOWE LOGOWANIE DLA DIAGNOSTYKI
+      console.log('🔍 [FRONTEND] Customer Info Details:', {
+        customerId: customerInfo?.customerId || 'null',
+        customerIdType: typeof customerInfo?.customerId,
+        email: customerInfo?.email || email || 'null',
+        customerAccessToken: customerInfo?.customerAccessToken || 'null',
+        hasCustomerInfo: !!customerInfo,
+        windowShopifyCustomer: window.ShopifyCustomer ? {
+          id: window.ShopifyCustomer.id,
+          loggedIn: window.ShopifyCustomer.loggedIn,
+          email: window.ShopifyCustomer.email
+        } : 'null'
+      });
+      
+      console.log('🔍 [FRONTEND] Request Body (bez imageData):', {
+        prompt: requestBody.prompt,
+        productType: requestBody.productType,
+        customerId: requestBody.customerId,
+        customerIdType: typeof requestBody.customerId,
+        customerAccessToken: requestBody.customerAccessToken ? 'present' : 'null',
+        email: requestBody.email,
+        imageDataLength: requestBody.imageData?.length || 0
+      });
       
       const response = await fetch('https://customify-s56o.vercel.app/api/transform', {
         method: 'POST',
@@ -1790,6 +2202,47 @@ class CustomifyEmbed {
 
       const result = await response.json();
       console.log('📱 [MOBILE] Response JSON parsed successfully');
+      
+      // ✅ BARDZO WIDOCZNE LOGOWANIE - SPRAWDŹ CZY JEST saveGenerationDebug
+      console.log('🔍🔍🔍 [FRONTEND] ===== SPRAWDZAM RESPONSE Z TRANSFORM API =====');
+      console.log('🔍 [FRONTEND] Response keys:', Object.keys(result));
+      console.log('🔍 [FRONTEND] hasSaveGenerationDebug:', !!result.saveGenerationDebug);
+      console.log('🔍 [FRONTEND] saveGenerationDebug value:', result.saveGenerationDebug);
+      console.log('✅ [FRONTEND] Transform API Response:', {
+        success: result.success,
+        hasTransformedImage: !!result.transformedImage,
+        transformedImageType: typeof result.transformedImage,
+        transformedImagePreview: result.transformedImage?.substring(0, 100) || 'null',
+        error: result.error || 'none',
+        hasSaveGenerationDebug: !!result.saveGenerationDebug
+      });
+      
+      // ✅ SPRAWDŹ CZY W RESPONSE SĄ DEBUG INFO Z SAVE-GENERATION
+      if (result.saveGenerationDebug) {
+        console.log('🔍🔍🔍 [FRONTEND] ===== ZNALEZIONO saveGenerationDebug W RESPONSE! =====');
+        console.log('🔍 [FRONTEND] Save-generation debug info (z backend):', JSON.stringify(result.saveGenerationDebug, null, 2));
+        console.log('🔍 [FRONTEND] customerId:', result.saveGenerationDebug.customerId || 'null');
+        console.log('🔍 [FRONTEND] metafieldUpdateAttempted:', result.saveGenerationDebug.metafieldUpdateAttempted || false);
+        console.log('🔍 [FRONTEND] metafieldUpdateSuccess:', result.saveGenerationDebug.metafieldUpdateSuccess || false);
+        console.log('🔍 [FRONTEND] metafieldUpdateError:', result.saveGenerationDebug.metafieldUpdateError || 'none');
+        
+        // ✅ POKAŻ W CONSOLE CZY METAFIELD ZOSTAŁ ZAKTUALIZOWANY
+        if (result.saveGenerationDebug.metafieldUpdateSuccess) {
+          console.log('✅ [FRONTEND] Metafield zaktualizowany pomyślnie w Shopify Admin!');
+        } else if (result.saveGenerationDebug.metafieldUpdateAttempted) {
+          console.warn('⚠️ [FRONTEND] Próba aktualizacji metafielda nie powiodła się:', result.saveGenerationDebug.metafieldUpdateError || 'unknown error');
+        } else if (result.saveGenerationDebug.skipped) {
+          console.warn('⚠️ [FRONTEND] Zapis generacji został pominięty:', result.saveGenerationDebug.reason || 'unknown reason');
+        } else {
+          console.warn('⚠️ [FRONTEND] Metafield nie został zaktualizowany - brak customerId lub inny problem');
+        }
+      } else {
+        console.warn('⚠️⚠️⚠️ [FRONTEND] ===== BRAK saveGenerationDebug W RESPONSE! =====');
+        console.warn('⚠️ [FRONTEND] Response keys:', Object.keys(result));
+        console.warn('⚠️ [FRONTEND] Full response:', JSON.stringify(result, null, 2));
+        console.warn('⚠️⚠️⚠️ [FRONTEND] ===== KONIEC SPRAWDZANIA RESPONSE =====');
+      }
+      
       if (result.success) {
         this.transformedImage = result.transformedImage;
         this.showResult(result.transformedImage);
@@ -1995,13 +2448,17 @@ class CustomifyEmbed {
     const basePrice = this.originalBasePrice || 49.00;
     const sizePrice = this.getSizePrice(this.selectedSize);
     const frameSelected = (this.selectedProductType === 'plakat') && (window.CustomifyFrame && window.CustomifyFrame.color && window.CustomifyFrame.color !== 'none');
-    const frameSurcharge = frameSelected ? 29 : 0;
+    const frameSurcharge = frameSelected && this.selectedSize ? (this.framePricing[this.selectedSize] || 29) : 0;
     const finalPrice = basePrice + sizePrice + frameSurcharge;
     
     console.log('💰 [CUSTOMIFY] Price calculation:', {
       originalBasePrice: this.originalBasePrice,
       basePrice: basePrice,
       sizePrice: sizePrice,
+      frameSelected: frameSelected,
+      frameSurcharge: frameSurcharge,
+      frameColor: window.CustomifyFrame?.color || 'none',
+      selectedProductType: this.selectedProductType,
       finalPrice: finalPrice,
       size: this.selectedSize
     });
@@ -2100,7 +2557,9 @@ class CustomifyEmbed {
         productType: this.selectedProductType || 'canvas', // Rodzaj wydruku: plakat lub canvas
         originalProductTitle: document.querySelector('h1, .product-title, .view-product-title')?.textContent?.trim() || 'Produkt',
         originalProductId: productId, // ✅ Dodano ID produktu do pobrania ceny z Shopify
-        finalPrice: finalPrice // ✅ Przekaż obliczoną cenę do API
+        finalPrice: finalPrice, // ✅ Przekaż obliczoną cenę do API
+        frameColor: window.CustomifyFrame?.color || 'none', // ✅ Informacja o ramce dla debugowania
+        frameSurcharge: frameSurcharge // ✅ Dopłata za ramkę dla weryfikacji
       };
 
       console.log('🛒 [CUSTOMIFY] Creating product with data:', productData);
@@ -2153,14 +2612,15 @@ class CustomifyEmbed {
           const shortOrderId = result.shortOrderId || (result.orderId ? result.orderId.split('-').pop() : Date.now().toString());
           
           const properties = {
-            'Styl AI': this.selectedStyle,
             'Rozmiar': this.getSizeDimension(this.selectedSize),  // ✅ Przekaż wymiar (np. "20×30 cm") zamiast kodu (np. "a4")
             'Rodzaj wydruku': productTypeName,  // ✅ Dodano rodzaj wydruku
             'Ramka': `ramka - ${frameLabel}`,  // ✅ Informacja o wybranej ramce (tylko dla plakatu)
             'Order ID': shortOrderId  // ✅ Skrócony ID zamówienia widoczny dla klienta
           };
           
-          const noteAttributes = {};
+          const noteAttributes = {
+            'Styl AI': this.selectedStyle  // ✅ Ukryty - tylko dla admina, nie pokazywany w koszyku
+          };
           
           if (result.orderId) {
             noteAttributes['Order ID Full'] = result.orderId;

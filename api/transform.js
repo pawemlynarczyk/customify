@@ -1,6 +1,8 @@
 const Replicate = require('replicate');
 const { checkRateLimit, getClientIP } = require('../utils/vercelRateLimiter');
 
+const VERSION_TAG = 'transform@2025-11-13T13:10';
+
 // Try to load sharp, but don't fail if it's not available
 let sharp = null;
 try {
@@ -328,7 +330,7 @@ async function compressImage(imageData, maxWidth = 1152, maxHeight = 1152, quali
 }
 
 module.exports = async (req, res) => {
-  console.log(`🚀 [TRANSFORM] API called - Method: ${req.method}, Headers:`, req.headers);
+  console.log(`🚀 [TRANSFORM] API called - Method: ${req.method}, Version: ${VERSION_TAG}, Headers:`, req.headers);
   
   // Set CORS headers - explicit origins for better security
   const allowedOrigins = [
@@ -378,7 +380,7 @@ module.exports = async (req, res) => {
   console.log(`📝 [TRANSFORM] POST request processing for IP: ${ip}`);
 
   try {
-    const { imageData, prompt, productType, customerId, customerAccessToken } = req.body;
+    const { imageData, prompt, productType, customerId, customerAccessToken, email } = req.body;
 
     if (!imageData || !prompt) {
       return res.status(400).json({ error: 'Image data and prompt are required' });
@@ -937,6 +939,172 @@ module.exports = async (req, res) => {
     // ✅ WATERMARK DLA REPLICATE URL-I - USUNIĘTY (problemy z Sharp w Vercel)
     // TODO: Przywrócić po rozwiązaniu problemów z Sharp
 
+    // ✅ ZMIENNA DO PRZECHOWYWANIA DEBUG INFO Z SAVE-GENERATION (PRZED BLOKIEM IF)
+    let saveGenerationDebug = null;
+    
+    // ✅ ZAPIS GENERACJI W VERCEL BLOB STORAGE (przed inkrementacją licznika)
+    // Zapisz generację z powiązaniem do klienta (nawet jeśli nie doda do koszyka)
+    console.log(`🔍🔍🔍 [TRANSFORM] ===== SPRAWDZAM WARUNEK ZAPISU GENERACJI =====`);
+    console.log(`🔍 [TRANSFORM] imageUrl exists: ${!!imageUrl}`);
+    console.log(`🔍 [TRANSFORM] customerId: ${customerId}, type: ${typeof customerId}`);
+    console.log(`🔍 [TRANSFORM] email: ${email}`);
+    console.log(`🔍 [TRANSFORM] Warunek: imageUrl && (customerId || email) = ${!!imageUrl && !!(customerId || email)}`);
+    
+    if (imageUrl && (customerId || email)) {
+      console.log(`✅ [TRANSFORM] WARUNEK SPEŁNIONY - zapisuję generację`);
+      console.log(`💾 [TRANSFORM] Zapisuję generację w Vercel Blob Storage dla klienta...`);
+      console.log(`🔍 [TRANSFORM] customerId type: ${typeof customerId}, value: ${customerId}`);
+      console.log(`🔍 [TRANSFORM] email: ${email}`);
+      
+      try {
+        // Sprawdź czy obraz jest już w Vercel Blob
+        let finalImageUrl = imageUrl;
+        
+        // Jeśli to URL z Replicate (nie Vercel Blob), uploaduj do Vercel Blob
+        if (imageUrl.includes('replicate.delivery') || imageUrl.includes('pbxt')) {
+          console.log(`📤 [TRANSFORM] Uploaduję obraz z Replicate do Vercel Blob...`);
+          
+          try {
+            // Pobierz obraz z Replicate
+            const imageResponse = await fetch(imageUrl);
+            if (imageResponse.ok) {
+              const imageBuffer = await imageResponse.arrayBuffer();
+              const base64 = Buffer.from(imageBuffer).toString('base64');
+              const dataUri = `data:image/jpeg;base64,${base64}`;
+              
+              // Upload do Vercel Blob
+              const uploadResponse = await fetch('https://customify-s56o.vercel.app/api/upload-temp-image', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  imageData: dataUri,
+                  filename: `generation-${Date.now()}.jpg`
+                })
+              });
+              
+              if (uploadResponse.ok) {
+                const uploadResult = await uploadResponse.json();
+                finalImageUrl = uploadResult.imageUrl;
+                console.log(`✅ [TRANSFORM] Obraz zapisany w Vercel Blob: ${finalImageUrl.substring(0, 50)}...`);
+              }
+            }
+          } catch (uploadError) {
+            console.error('⚠️ [TRANSFORM] Błąd uploadu do Vercel Blob:', uploadError);
+            // Użyj oryginalnego URL
+          }
+        }
+        
+        // ✅ SPRAWDŹ CZY customerId TO NUMERYCZNY ID (Shopify Customer ID)
+        // Shopify Customer ID to numeryczny string (np. "123456789")
+        let shopifyCustomerId = null;
+        
+        if (customerId !== undefined && customerId !== null) {
+          const customerIdStr = String(customerId);
+          shopifyCustomerId = customerIdStr;
+          console.log(`🔍 [TRANSFORM] customerIdStr (po normalizacji): ${shopifyCustomerId}, type: ${typeof shopifyCustomerId}`);
+          
+          // Jeśli customerId zawiera "gid://shopify/Customer/", usuń prefix
+          if (shopifyCustomerId.includes('gid://shopify/Customer/')) {
+            shopifyCustomerId = shopifyCustomerId.replace('gid://shopify/Customer/', '');
+            console.log(`🔧 [TRANSFORM] Usunięto prefix GID, customerId: ${shopifyCustomerId}`);
+          }
+          
+          // Jeśli customerId nie jest numeryczny, loguj warning
+          if (!/^\d+$/.test(shopifyCustomerId)) {
+            console.warn(`⚠️ [TRANSFORM] customerId nie jest numeryczny: ${shopifyCustomerId}`);
+            console.warn(`⚠️ [TRANSFORM] Shopify Customer ID musi być numeryczny (np. "123456789")`);
+            // Użyj oryginalnego customerId - może działać
+          } else {
+            console.log(`✅ [TRANSFORM] customerId jest numeryczny: ${shopifyCustomerId}`);
+          }
+        }
+        
+        // ✅ SZCZEGÓŁOWE LOGOWANIE PRZED ZAPISEM
+        console.log(`🔍 [TRANSFORM] Przed zapisem generacji:`);
+        console.log(`🔍 [TRANSFORM] customerId z req.body:`, req.body.customerId, typeof req.body.customerId);
+        console.log(`🔍 [TRANSFORM] customerId po destructuring:`, customerId, typeof customerId);
+        console.log(`🔍 [TRANSFORM] shopifyCustomerId (po normalizacji):`, shopifyCustomerId || (customerId !== undefined && customerId !== null ? String(customerId) : null), typeof (shopifyCustomerId || (customerId !== undefined && customerId !== null ? String(customerId) : null)));
+        console.log(`🔍 [TRANSFORM] email:`, email);
+        console.log(`🔍 [TRANSFORM] imageUrl exists:`, !!imageUrl);
+        console.log(`🔍 [TRANSFORM] finalImageUrl:`, finalImageUrl?.substring(0, 50) || 'null');
+        
+        // Wywołaj endpoint zapisu generacji
+        const saveData = {
+          customerId: shopifyCustomerId || (customerId !== undefined && customerId !== null ? String(customerId) : null),
+          email: email || null,
+          imageUrl: finalImageUrl,
+          style: prompt || 'unknown',
+          productType: productType || 'other',
+          originalImageUrl: null // Opcjonalnie - można dodać później
+        };
+        
+        console.log(`📤 [TRANSFORM] Wywołuję /api/save-generation-v2 z danymi:`, {
+          customerId: saveData.customerId,
+          customerIdType: typeof saveData.customerId,
+          email: saveData.email,
+          hasImageUrl: !!saveData.imageUrl,
+          style: saveData.style,
+          productType: saveData.productType
+        });
+        
+        const saveResponse = await fetch('https://customify-s56o.vercel.app/api/save-generation-v2', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(saveData)
+        });
+        
+        console.log(`📥 [TRANSFORM] save-generation-v2 response status: ${saveResponse.status}`);
+        
+        if (saveResponse.ok) {
+          const saveResult = await saveResponse.json();
+          console.log(`✅ [TRANSFORM] Generacja zapisana w Vercel Blob Storage: ${saveResult.generationId}`);
+          console.log(`📊 [TRANSFORM] Total generations: ${saveResult.totalGenerations || 'unknown'}`);
+          console.log(`🔍 [TRANSFORM] Save-generation-v2 raw response:`, JSON.stringify(saveResult, null, 2));
+          
+          // ✅ LOGUJ SZCZEGÓŁY DLA DIAGNOSTYKI (dla Vercel Logs)
+          if (saveResult.debug) {
+            console.log(`🔍 [TRANSFORM] customerId w save-generation-v2: ${saveResult.debug.customerId || 'null'}`);
+            console.log(`🔍 [TRANSFORM] customerIdType: ${saveResult.debug.customerIdType || 'null'}`);
+            console.log(`🔍 [TRANSFORM] hasMetafieldUpdate: ${saveResult.debug.hasMetafieldUpdate || false}`);
+            console.log(`🔍 [TRANSFORM] email: ${saveResult.debug.email || 'null'}`);
+            console.log(`🔍 [TRANSFORM] metafieldUpdateAttempted: ${saveResult.debug.metafieldUpdateAttempted || false}`);
+            console.log(`🔍 [TRANSFORM] metafieldUpdateSuccess: ${saveResult.debug.metafieldUpdateSuccess || false}`);
+            console.log(`🔍 [TRANSFORM] metafieldUpdateError: ${saveResult.debug.metafieldUpdateError || 'none'}`);
+            
+            // ✅ ZWRÓĆ DEBUG INFO W RESPONSE (dla przeglądarki)
+            saveGenerationDebug = saveResult.debug;
+          } else {
+            console.warn('⚠️ [TRANSFORM] save-generation-v2 response nie zawiera debug. Dodaję fallback info.');
+            const fallbackDebug = {
+              missingDebug: true,
+              responseKeys: Object.keys(saveResult || {}),
+              warning: saveResult.warning || null,
+              message: saveResult.message || null,
+              generationId: saveResult.generationId || null
+            };
+            console.warn('⚠️ [TRANSFORM] Fallback debug info:', JSON.stringify(fallbackDebug, null, 2));
+            saveGenerationDebug = fallbackDebug;
+          }
+        } else {
+          const errorText = await saveResponse.text();
+          console.error('⚠️ [TRANSFORM] Błąd zapisu generacji:', errorText);
+          console.error('⚠️ [TRANSFORM] Status:', saveResponse.status);
+          saveGenerationDebug = { error: errorText, status: saveResponse.status };
+        }
+      } catch (saveError) {
+        console.error('⚠️ [TRANSFORM] Błąd zapisu generacji (nie blokuję odpowiedzi):', saveError);
+        console.error('⚠️ [TRANSFORM] Stack:', saveError.stack);
+        saveGenerationDebug = { error: saveError.message, stack: saveError.stack };
+        // Nie blokuj odpowiedzi - transformacja się udała
+      }
+    } else {
+      console.warn(`⚠️⚠️⚠️ [TRANSFORM] ===== WARUNEK NIE SPEŁNIONY - POMIJAM ZAPIS =====`);
+      console.warn('⚠️ [TRANSFORM] Pomijam zapis generacji - brak customerId lub email');
+      console.warn(`⚠️ [TRANSFORM] customerId: ${customerId}, email: ${email}, imageUrl: ${!!imageUrl}`);
+      saveGenerationDebug = { skipped: true, reason: 'brak customerId lub email', customerId: customerId || null, email: email || null, hasImageUrl: !!imageUrl };
+      console.warn(`⚠️⚠️⚠️ [TRANSFORM] ===== KONIEC SPRAWDZANIA WARUNKU =====`);
+    }
+
     // ✅ INKREMENTACJA LICZNIKA PO UDANEJ TRANSFORMACJI
     if (customerId && customerAccessToken && accessToken) {
       console.log(`➕ [TRANSFORM] Inkrementuję licznik dla użytkownika ${customerId}`);
@@ -1025,10 +1193,33 @@ module.exports = async (req, res) => {
       }
     }
 
-    res.json({ 
+    // ✅ ZWRÓĆ DEBUG INFO Z SAVE-GENERATION (dla przeglądarki)
+    const responseData = { 
       success: true, 
       transformedImage: imageUrl 
-    });
+    };
+    
+    // ✅ BARDZO WIDOCZNE LOGOWANIE - SPRAWDŹ CZY saveGenerationDebug JEST USTAWIONE
+    console.log(`🔍🔍🔍 [TRANSFORM] ===== SPRAWDZAM saveGenerationDebug PRZED RESPONSE =====`);
+    console.log(`🔍 [TRANSFORM] saveGenerationDebug value:`, saveGenerationDebug);
+    console.log(`🔍 [TRANSFORM] saveGenerationDebug type:`, typeof saveGenerationDebug);
+    console.log(`🔍 [TRANSFORM] saveGenerationDebug !== null:`, saveGenerationDebug !== null);
+    
+    // ✅ ZAWSZE DODAJ DEBUG INFO - NAWET JEŚLI JEST NULL (dla debugowania)
+    responseData.saveGenerationDebug = saveGenerationDebug;
+    if (saveGenerationDebug !== null) {
+      console.log(`✅ [TRANSFORM] Dodaję saveGenerationDebug do response`);
+      console.log(`🔍 [TRANSFORM] Zwracam debug info do przeglądarki:`, JSON.stringify(saveGenerationDebug, null, 2));
+    } else {
+      console.warn(`⚠️ [TRANSFORM] saveGenerationDebug jest null - DODAJĘ null do response dla debugowania`);
+      console.warn(`⚠️ [TRANSFORM] To może oznaczać, że save-generation-v2 nie został wywołany lub nie zwrócił debug info`);
+    }
+    
+    console.log(`🔍 [TRANSFORM] Final responseData keys:`, Object.keys(responseData));
+    console.log(`🔍 [TRANSFORM] Final responseData.saveGenerationDebug:`, responseData.saveGenerationDebug);
+    console.log(`🔍🔍🔍 [TRANSFORM] ===== KONIEC SPRAWDZANIA saveGenerationDebug =====`);
+    
+    res.json(responseData);
   } catch (error) {
     console.error('AI transformation error:', error);
     

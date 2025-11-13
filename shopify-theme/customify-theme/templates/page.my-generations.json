@@ -1,0 +1,13 @@
+{
+  "sections": {
+    "main": {
+      "type": "main-my-generations",
+      "settings": {
+        "title": "Moje generacje AI",
+        "description": "Zobacz wszystkie obrazy wygenerowane przez AI"
+      }
+    }
+  },
+  "order": ["main"]
+}
+

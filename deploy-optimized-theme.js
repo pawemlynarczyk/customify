@@ -123,6 +123,26 @@ async function deployOptimizedTheme() {
       console.log('✅ product-information.liquid wdrożony pomyślnie!');
     }
     
+    // Wdróż product-recommendations.liquid
+    const productRecPath = path.join(__dirname, 'shopify-theme/customify-theme/sections/product-recommendations.liquid');
+    const productRecContent = fs.readFileSync(productRecPath, 'utf8');
+    console.log('📁 Wczytano product-recommendations.liquid:', productRecContent.length, 'znaków');
+    
+    const productRecResponse = await fetch('https://customify-s56o.vercel.app/api/update-theme-simple', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        themeContent: productRecContent,
+        fileName: 'sections/product-recommendations.liquid'
+      })
+    });
+    
+    if (productRecResponse.ok) {
+      console.log('✅ product-recommendations.liquid wdrożony pomyślnie!');
+    }
+    
     console.log('🎉 Wszystkie pliki wdrożone pomyślnie!');
     console.log('🌐 Sprawdź zmiany na: https://lumly.pl/products/custom');
     

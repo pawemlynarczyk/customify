@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Statystyki Modala Logowania - Customify</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
+      color: #333;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    h1 {
+      margin-bottom: 30px;
+      color: #1565C0;
+      font-size: 28px;
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+    
+    .stat-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+    }
+    
+    .stat-card.primary {
+      background: linear-gradient(135deg, #1565C0 0%, #0d47a1 100%);
+    }
+    
+    .stat-card.success {
+      background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+    }
+    
+    .stat-card.warning {
+      background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+    }
+    
+    .stat-value {
+      font-size: 36px;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+    
+    .stat-label {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+    
+    .section {
+      margin-bottom: 40px;
+    }
+    
+    .section-title {
+      font-size: 20px;
+      margin-bottom: 20px;
+      color: #333;
+      border-bottom: 2px solid #1565C0;
+      padding-bottom: 10px;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+    }
+    
+    th {
+      background: #f8f9fa;
+      font-weight: 600;
+      color: #555;
+    }
+    
+    tr:hover {
+      background: #f8f9fa;
+    }
+    
+    .btn {
+      background: #1565C0;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+    
+    .btn:hover {
+      background: #0d47a1;
+    }
+    
+    .btn:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+    }
+    
+    .error {
+      background: #ffebee;
+      color: #c62828;
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+    }
+    
+    .last-updated {
+      text-align: right;
+      color: #666;
+      font-size: 14px;
+      margin-bottom: 20px;
+    }
+    
+    .refresh-btn {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      padding: 15px 25px;
+      border-radius: 50px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+      transition: transform 0.2s;
+    }
+    
+    .refresh-btn:hover {
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📊 Statystyki Modala Logowania</h1>
+    
+    <div class="last-updated" id="lastUpdated">Ładowanie...</div>
+    
+    <div id="errorContainer"></div>
+    
+    <div id="loading" class="loading">Ładowanie statystyk...</div>
+    
+    <div id="content" style="display: none;">
+      <!-- Summary Stats -->
+      <div class="stats-grid">
+        <div class="stat-card primary">
+          <div class="stat-value" id="totalShown">0</div>
+          <div class="stat-label">Wyświetleń modala</div>
+        </div>
+        <div class="stat-card success">
+          <div class="stat-value" id="totalRegisterClicks">0</div>
+          <div class="stat-label">Kliknięć w Rejestrację</div>
+        </div>
+        <div class="stat-card success">
+          <div class="stat-value" id="totalLoginClicks">0</div>
+          <div class="stat-label">Kliknięć w Logowanie</div>
+        </div>
+        <div class="stat-card warning">
+          <div class="stat-value" id="totalCancelClicks">0</div>
+          <div class="stat-label">Anulowań</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="totalAutoRedirects">0</div>
+          <div class="stat-label">Auto-przekierowań</div>
+        </div>
+        <div class="stat-card primary">
+          <div class="stat-value" id="conversionRate">0%</div>
+          <div class="stat-label">Conversion Rate</div>
+        </div>
+      </div>
+      
+      <!-- By Product -->
+      <div class="section">
+        <h2 class="section-title">📦 Statystyki per Produkt</h2>
+        <table id="productTable">
+          <thead>
+            <tr>
+              <th>Produkt</th>
+              <th>Wyświetleń</th>
+              <th>Rejestracje</th>
+              <th>Logowania</th>
+              <th>Anulowania</th>
+              <th>Auto-redirect</th>
+              <th>Conversion</th>
+            </tr>
+          </thead>
+          <tbody id="productTableBody">
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- By Date -->
+      <div class="section">
+        <h2 class="section-title">📅 Statystyki per Data</h2>
+        <table id="dateTable">
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Wyświetleń</th>
+              <th>Rejestracje</th>
+              <th>Logowania</th>
+              <th>Anulowania</th>
+              <th>Auto-redirect</th>
+              <th>Conversion</th>
+            </tr>
+          </thead>
+          <tbody id="dateTableBody">
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  
+  <button class="refresh-btn" onclick="loadStats()">🔄 Odśwież</button>
+  
+  <script>
+    const API_URL = 'https://customify-s56o.vercel.app/api/admin/login-modal-stats';
+    // Token autoryzacji - ustaw w Vercel Environment Variables jako ADMIN_STATS_TOKEN
+    // Domyślnie używamy fallback, ale w produkcji powinien być ustawiony w Vercel
+    const AUTH_TOKEN = 'customify-admin-2024'; // Fallback - zmień w Vercel Dashboard!
+    
+    async function loadStats() {
+      const loadingEl = document.getElementById('loading');
+      const contentEl = document.getElementById('content');
+      const errorContainer = document.getElementById('errorContainer');
+      
+      loadingEl.style.display = 'block';
+      contentEl.style.display = 'none';
+      errorContainer.innerHTML = '';
+      
+      try {
+        const response = await fetch(API_URL, {
+          headers: {
+            'Authorization': `Bearer ${AUTH_TOKEN}`
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        
+        if (!data.success) {
+          throw new Error(data.error || 'Unknown error');
+        }
+        
+        const stats = data.stats;
+        
+        // Update summary
+        document.getElementById('totalShown').textContent = stats.summary.totalShown;
+        document.getElementById('totalRegisterClicks').textContent = stats.summary.totalRegisterClicks;
+        document.getElementById('totalLoginClicks').textContent = stats.summary.totalLoginClicks;
+        document.getElementById('totalCancelClicks').textContent = stats.summary.totalCancelClicks;
+        document.getElementById('totalAutoRedirects').textContent = stats.summary.totalAutoRedirects;
+        document.getElementById('conversionRate').textContent = stats.calculated?.conversionRate || '0%';
+        
+        // Update last updated
+        if (stats.lastUpdated) {
+          const date = new Date(stats.lastUpdated);
+          document.getElementById('lastUpdated').textContent = 
+            `Ostatnia aktualizacja: ${date.toLocaleString('pl-PL')}`;
+        }
+        
+        // Update product table
+        const productTableBody = document.getElementById('productTableBody');
+        productTableBody.innerHTML = '';
+        
+        const products = Object.entries(stats.byProduct || {})
+          .sort((a, b) => b[1].shown - a[1].shown);
+        
+        products.forEach(([product, data]) => {
+          const totalClicks = data.registerClicks + data.loginClicks;
+          const conversion = data.shown > 0 
+            ? ((totalClicks / data.shown) * 100).toFixed(1) + '%'
+            : '0%';
+          
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td><strong>${product}</strong></td>
+            <td>${data.shown}</td>
+            <td>${data.registerClicks}</td>
+            <td>${data.loginClicks}</td>
+            <td>${data.cancelClicks}</td>
+            <td>${data.autoRedirects}</td>
+            <td><strong>${conversion}</strong></td>
+          `;
+          productTableBody.appendChild(row);
+        });
+        
+        // Update date table
+        const dateTableBody = document.getElementById('dateTableBody');
+        dateTableBody.innerHTML = '';
+        
+        const dates = Object.entries(stats.byDate || {})
+          .sort((a, b) => b[0].localeCompare(a[0]));
+        
+        dates.forEach(([date, data]) => {
+          const totalClicks = data.registerClicks + data.loginClicks;
+          const conversion = data.shown > 0 
+            ? ((totalClicks / data.shown) * 100).toFixed(1) + '%'
+            : '0%';
+          
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td><strong>${date}</strong></td>
+            <td>${data.shown}</td>
+            <td>${data.registerClicks}</td>
+            <td>${data.loginClicks}</td>
+            <td>${data.cancelClicks}</td>
+            <td>${data.autoRedirects}</td>
+            <td><strong>${conversion}</strong></td>
+          `;
+          dateTableBody.appendChild(row);
+        });
+        
+        loadingEl.style.display = 'none';
+        contentEl.style.display = 'block';
+        
+      } catch (error) {
+        console.error('Error loading stats:', error);
+        loadingEl.style.display = 'none';
+        
+        let errorMessage = error.message;
+        let errorDetails = '';
+        
+        if (error.message.includes('401')) {
+          errorDetails = `
+            <br><strong>Możliwe przyczyny:</strong>
+            <ul style="margin-top: 10px; padding-left: 20px;">
+              <li>Token w Vercel Environment Variables nie pasuje do tokenu w kodzie</li>
+              <li>Zmienna ADMIN_STATS_TOKEN nie jest ustawiona w Vercel</li>
+              <li>Token zawiera nieprawidłowe znaki (spacje, znaki specjalne)</li>
+            </ul>
+            <br><strong>Rozwiązanie:</strong>
+            <ol style="margin-top: 10px; padding-left: 20px;">
+              <li>Sprawdź wartość ADMIN_STATS_TOKEN w Vercel Dashboard</li>
+              <li>Upewnij się że token w tym pliku (linia 258) pasuje do tokenu w Vercel</li>
+              <li>Lub zaktualizuj token w tym pliku na taki sam jak w Vercel</li>
+            </ol>
+          `;
+        }
+        
+        errorContainer.innerHTML = `
+          <div class="error">
+            <strong>Błąd:</strong> ${errorMessage}
+            ${errorDetails}
+            <br><small>Sprawdź konsolę przeglądarki (F12) i Vercel Logs dla szczegółów.</small>
+          </div>
+        `;
+      }
+    }
+    
+    // Load stats on page load
+    loadStats();
+    
+    // Auto-refresh every 30 seconds
+    setInterval(loadStats, 30000);
+  </script>
+</body>
+</html>
+
