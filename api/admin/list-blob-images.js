@@ -71,29 +71,29 @@ module.exports = async (req, res) => {
       const path = pathname.toLowerCase();
       const name = pathname.toLowerCase();
       
-      // 1. Watermarked - zawiera "watermark" w nazwie
+      // 1. Watermarked - zawiera "watermark" w nazwie (najpierw - ma priorytet)
       if (name.includes('watermark')) {
         return 'watermarked';
       }
       
-      // 2. Temp - prefix customify/temp/
-      if (path.startsWith('customify/temp/')) {
-        return 'temp';
-      }
-      
-      // 3. Orders - prefix customify/orders/
-      if (path.startsWith('customify/orders/')) {
-        return 'orders';
-      }
-      
-      // 4. Original - NIE zawiera "watermark" i NIE zawiera "ai" w nazwie
-      // i nie jest w temp/orders
+      // 2. Original - NIE zawiera "watermark" i NIE zawiera "ai" w nazwie
+      // i nie jest w temp/orders (sprawdź PRZED temp/orders)
       if (!name.includes('watermark') && !name.includes('ai') && 
           !path.startsWith('customify/temp/') && !path.startsWith('customify/orders/')) {
         return 'original';
       }
       
-      // 5. Other - wszystko inne
+      // 3. Temp - prefix customify/temp/ i NIE zawiera "ai" w nazwie
+      if (path.startsWith('customify/temp/') && !name.includes('ai')) {
+        return 'temp';
+      }
+      
+      // 4. Orders - prefix customify/orders/ i NIE zawiera "ai" w nazwie
+      if (path.startsWith('customify/orders/') && !name.includes('ai')) {
+        return 'orders';
+      }
+      
+      // 5. Other - wszystko inne (w tym obrazki z "ai" w nazwie, nawet jeśli są w temp/orders)
       return 'other';
     };
 
