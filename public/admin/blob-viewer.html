@@ -395,7 +395,7 @@
       }
     }
     
-    function checkPassword() {
+    async function checkPassword() {
       const passwordInput = document.getElementById('passwordInput');
       const passwordError = document.getElementById('passwordError');
       const password = passwordInput.value.trim();
@@ -411,10 +411,45 @@
       localStorage.setItem('customify_admin_token', AUTH_TOKEN);
       
       // Sprawdź czy token działa - spróbuj załadować obrazki
-      isLoggedIn = true;
-      localStorage.setItem('blob_viewer_logged_in', 'true');
       passwordError.style.display = 'none';
-      checkLogin();
+      passwordError.textContent = '⏳ Sprawdzanie tokena...';
+      passwordError.style.color = '#1565C0';
+      passwordError.style.display = 'block';
+      
+      try {
+        // Test tokena - spróbuj pobrać listę obrazków
+        const testResponse = await fetch(`${API_BASE}/list-blob-images?limit=1`, {
+          headers: {
+            'Authorization': `Bearer ${AUTH_TOKEN}`
+          }
+        });
+        
+        if (testResponse.ok) {
+          // Token działa!
+          isLoggedIn = true;
+          localStorage.setItem('blob_viewer_logged_in', 'true');
+          passwordError.style.display = 'none';
+          checkLogin();
+        } else if (testResponse.status === 401) {
+          // Nieprawidłowy token
+          passwordError.textContent = '❌ Nieprawidłowy token. Sprawdź czy używasz ADMIN_STATS_TOKEN z Vercel.';
+          passwordError.style.color = '#f44336';
+          passwordError.style.display = 'block';
+          passwordInput.value = '';
+          passwordInput.focus();
+          AUTH_TOKEN = null;
+          localStorage.removeItem('customify_admin_token');
+        } else {
+          throw new Error(`HTTP ${testResponse.status}`);
+        }
+      } catch (error) {
+        console.error('Error checking token:', error);
+        passwordError.textContent = '❌ Błąd połączenia. Sprawdź połączenie internetowe.';
+        passwordError.style.color = '#f44336';
+        passwordError.style.display = 'block';
+        AUTH_TOKEN = null;
+        localStorage.removeItem('customify_admin_token');
+      }
     }
     
     // Enter w polu hasła
