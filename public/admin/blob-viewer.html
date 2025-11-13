@@ -265,6 +265,9 @@
     <div id="error"></div>
     <div id="gallery" class="gallery"></div>
     <div id="loading" class="loading" style="display: none;">Ładowanie...</div>
+    <div id="loadMoreContainer" style="text-align: center; margin-top: 20px; display: none;">
+      <button class="btn btn-primary" onclick="loadMoreImages()">Załaduj więcej</button>
+    </div>
   </div>
 
   <!-- Modal -->
@@ -299,10 +302,14 @@
       
       document.getElementById('loading').style.display = 'block';
       document.getElementById('error').innerHTML = '';
-      document.getElementById('gallery').innerHTML = '';
+      
+      // Resetuj galerię tylko przy pierwszym załadowaniu (bez cursor)
+      if (!cursor) {
+        document.getElementById('gallery').innerHTML = '';
+      }
 
       try {
-        const url = `${API_BASE}/list-blob-images?prefix=${encodeURIComponent(prefix)}&limit=50&sortBy=date&sortOrder=${sortOrder}${cursor ? '&cursor=' + encodeURIComponent(cursor) : ''}`;
+        const url = `${API_BASE}/list-blob-images?prefix=${encodeURIComponent(prefix)}&limit=500&sortBy=date&sortOrder=${sortOrder}${cursor ? '&cursor=' + encodeURIComponent(cursor) : ''}`;
         const response = await fetch(url);
         
         if (!response.ok) {
@@ -315,17 +322,37 @@
           throw new Error(data.error || 'Failed to load images');
         }
 
-        currentImages = data.blobs;
+        // Jeśli to pierwsze ładowanie (bez cursor), resetuj listę
+        if (!cursor) {
+          currentImages = data.blobs;
+        } else {
+          // Dodaj do istniejącej listy
+          currentImages = [...currentImages, ...data.blobs];
+        }
+        
         currentCursor = data.cursor;
         hasMore = data.hasMore;
 
-        // Filtruj po wyszukiwarce
-        const filtered = search 
-          ? currentImages.filter(img => img.filename.toLowerCase().includes(search))
-          : currentImages;
-
-        displayImages(filtered);
-        updateStats(filtered.length, data.blobs.length);
+        // Jeśli ładujemy więcej (cursor istnieje), pokaż tylko nowe obrazy
+        // Jeśli pierwsze ładowanie, pokaż wszystkie przefiltrowane
+        if (cursor) {
+          // Przy ładowaniu więcej: pokaż tylko nowe obrazy (z tej strony)
+          const newImages = search 
+            ? data.blobs.filter(img => img.filename.toLowerCase().includes(search))
+            : data.blobs;
+          displayImages(newImages, true);
+          updateStats(currentImages.filter(img => !search || img.filename.toLowerCase().includes(search)).length, currentImages.length);
+        } else {
+          // Przy pierwszym ładowaniu: pokaż wszystkie przefiltrowane
+          const filtered = search 
+            ? currentImages.filter(img => img.filename.toLowerCase().includes(search))
+            : currentImages;
+          displayImages(filtered, false);
+          updateStats(filtered.length, currentImages.length);
+        }
+        
+        // Pokaż przycisk "Załaduj więcej" jeśli są kolejne strony
+        document.getElementById('loadMoreContainer').style.display = hasMore ? 'block' : 'none';
 
       } catch (error) {
         document.getElementById('error').innerHTML = 
@@ -336,16 +363,41 @@
       }
     }
 
-    function displayImages(images) {
-      const gallery = document.getElementById('gallery');
-      gallery.innerHTML = '';
+    async function loadMoreImages() {
+      if (!currentCursor || !hasMore) return;
+      
+      document.getElementById('loading').style.display = 'block';
+      await loadImages(currentCursor);
+      document.getElementById('loading').style.display = 'none';
+    }
 
-      if (images.length === 0) {
+    function displayImages(images, append = false) {
+      const gallery = document.getElementById('gallery');
+      
+      // Resetuj tylko jeśli nie dodajemy (pierwsze ładowanie)
+      if (!append) {
+        gallery.innerHTML = '';
+      }
+
+      if (images.length === 0 && !append) {
         gallery.innerHTML = '<div class="loading">Brak obrazów</div>';
         return;
       }
 
+      // Jeśli dodajemy, pokaż tylko nowe obrazy (te które nie są jeszcze w galerii)
+      const existingUrls = new Set();
+      if (append) {
+        gallery.querySelectorAll('.image-card').forEach(card => {
+          const img = card.querySelector('img');
+          if (img) existingUrls.add(img.src);
+        });
+      }
+
       images.forEach(img => {
+        // Pomiń jeśli już jest w galerii (przy dodawaniu)
+        if (append && existingUrls.has(img.url)) {
+          return;
+        }
         const card = document.createElement('div');
         card.className = 'image-card';
         

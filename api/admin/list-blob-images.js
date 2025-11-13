@@ -26,7 +26,7 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const { prefix = 'customify', limit = 50, cursor, sortBy = 'date', sortOrder = 'desc' } = req.query;
+    const { prefix = 'customify', limit = 500, cursor, sortBy = 'date', sortOrder = 'desc' } = req.query;
 
     console.log('📋 [ADMIN] Listing blob images with prefix:', prefix);
 
