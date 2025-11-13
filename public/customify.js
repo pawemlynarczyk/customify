@@ -113,84 +113,153 @@ class CustomifyEmbed {
    * @returns {Object|null} {customerId, email, customerAccessToken} lub null jeśli niezalogowany
    */
   getCustomerInfo() {
-    // Debug info removed for security
-    
-    // METODA 1: NOWY SYSTEM - window.ShopifyCustomer (z Liquid w theme.liquid)
-    if (window.ShopifyCustomer && window.ShopifyCustomer.loggedIn && window.ShopifyCustomer.id) {
-      // Customer detection successful
-      
-      return {
-        customerId: window.ShopifyCustomer.id,
-        email: window.ShopifyCustomer.email || 'no-email@shopify.com',
-        firstName: window.ShopifyCustomer.firstName,
-        lastName: window.ShopifyCustomer.lastName,
-        customerAccessToken: 'oauth_session' // Placeholder - sesja zarządzana przez Shopify
-      };
-    }
-    
-    // METODA 1B: Shopify Analytics (fallback dla niektórych widoków / tłumaczeń)
-    if (window.ShopifyAnalytics && window.ShopifyAnalytics.meta) {
-      const analyticsMeta = window.ShopifyAnalytics.meta;
-      const analyticsCustomerId = analyticsMeta.page?.customerId || analyticsMeta.customerId || null;
-      const analyticsEmail = analyticsMeta.page?.customerEmail || analyticsMeta.customerEmail || null;
-      
-      if (analyticsCustomerId) {
-        console.log('✅ [CUSTOMER FALLBACK] Wykryto klienta przez ShopifyAnalytics:', analyticsCustomerId);
-        return {
-          customerId: String(analyticsCustomerId),
-          email: analyticsEmail || window.ShopifyCustomer?.email || 'analytics-user@shopify.com',
-          firstName: window.ShopifyCustomer?.firstName || '',
-          lastName: window.ShopifyCustomer?.lastName || '',
-          customerAccessToken: 'oauth_session'
-        };
+    const sanitizeId = (value) => {
+      if (value === null || value === undefined) {
+        return null;
       }
-    }
-    
-    // METODA 2: FALLBACK - Sprawdź cookie Shopify (customer_auth_token)
-    const cookies = document.cookie.split(';').map(c => c.trim());
-    const hasCustomerCookie = cookies.some(cookie => 
-      cookie.startsWith('_shopify_customer_') || 
-      cookie.startsWith('customer_auth_token') ||
-      cookie.startsWith('customer_id')
-    );
-    
-    if (hasCustomerCookie) {
-      // Cookie-based customer detection
-      
-      // Spróbuj wyciągnąć ID z cookie
-      const customerIdCookie = cookies.find(c => c.startsWith('customer_id='));
-      let customerId = null;
-      
-      if (customerIdCookie) {
-        customerId = customerIdCookie.split('=')[1];
+      if (typeof value === 'object' && value.id) {
+        return sanitizeId(value.id);
       }
-      
-      // Jeśli brak ID, użyj window.ShopifyCustomer.id jako fallback
-      if (!customerId && window.ShopifyCustomer && window.ShopifyCustomer.id) {
-        customerId = window.ShopifyCustomer.id;
+      const idStr = String(value).trim();
+      if (!idStr || idStr.toLowerCase() === 'null' || idStr.toLowerCase() === 'undefined') {
+        return null;
       }
-      
-      return {
-        customerId: customerId || 'unknown',
-        email: window.ShopifyCustomer?.email || 'cookie-user@shopify.com',
+      return idStr;
+    };
+    
+    const sanitizeEmail = (value) => {
+      if (!value) {
+        return null;
+      }
+      const emailStr = String(value).trim();
+      if (!emailStr || emailStr.toLowerCase() === 'null' || emailStr.toLowerCase() === 'undefined') {
+        return null;
+      }
+      return emailStr;
+    };
+    
+    const getStoredValue = (key) => {
+      try {
+        return localStorage.getItem(key);
+      } catch (e) {
+        return null;
+      }
+    };
+    
+    const persistCustomerContext = (info, source) => {
+      if (!info || !info.customerId) {
+        return null;
+      }
+      try {
+        localStorage.setItem('customify_last_customer_id', info.customerId);
+        if (info.email) {
+          localStorage.setItem('customify_last_customer_email', info.email);
+        }
+      } catch (e) {
+        // Ignore storage errors (Safari private mode etc.)
+      }
+      if (source) {
+        console.log(`✅ [CUSTOMER DETECT] Zidentyfikowano klienta (${source}):`, info.customerId);
+      }
+      return info;
+    };
+    
+    const buildCustomerInfo = (idCandidate, emailCandidate, source) => {
+      const customerId = sanitizeId(idCandidate);
+      if (!customerId) {
+        return null;
+      }
+      const fallbackEmail = sanitizeEmail(emailCandidate) ||
+        sanitizeEmail(getStoredValue('customify_last_customer_email')) ||
+        'no-email@shopify.com';
+      return persistCustomerContext({
+        customerId,
+        email: fallbackEmail,
         firstName: window.ShopifyCustomer?.firstName || '',
         lastName: window.ShopifyCustomer?.lastName || '',
         customerAccessToken: 'oauth_session'
-      };
+      }, source);
+    };
+    
+    // METODA 1: NOWY SYSTEM - window.ShopifyCustomer (z Liquid w theme.liquid)
+    if (window.ShopifyCustomer && window.ShopifyCustomer.loggedIn && window.ShopifyCustomer.id) {
+      return buildCustomerInfo(window.ShopifyCustomer.id, window.ShopifyCustomer.email, 'ShopifyCustomer');
     }
     
-    // METODA 3: STARY SYSTEM - window.Shopify.customerEmail (Classic Customer Accounts)
+    // METODA 1B: Shopify Analytics (fallback)
+    if (window.ShopifyAnalytics && window.ShopifyAnalytics.meta) {
+      const analyticsMeta = window.ShopifyAnalytics.meta;
+      const analyticsId =
+        analyticsMeta.page?.customerId ??
+        analyticsMeta.customerId ??
+        analyticsMeta.page?.customer_id ??
+        analyticsMeta.customer_id ??
+        null;
+      const analyticsEmail =
+        analyticsMeta.page?.customerEmail ??
+        analyticsMeta.customerEmail ??
+        analyticsMeta.page?.customer_email ??
+        analyticsMeta.customer_email ??
+        null;
+      
+      const analyticsInfo = buildCustomerInfo(analyticsId, analyticsEmail, 'ShopifyAnalytics.meta');
+      if (analyticsInfo) {
+        return analyticsInfo;
+      }
+    }
+    
+    // METODA 1C: window.meta (Shopify storefront meta object)
+    if (window.meta) {
+      const metaId = window.meta.page?.customerId ?? window.meta.customerId ?? null;
+      const metaEmail = window.meta.page?.customerEmail ?? window.meta.customerEmail ?? null;
+      
+      const metaInfo = buildCustomerInfo(metaId, metaEmail, 'window.meta');
+      if (metaInfo) {
+        return metaInfo;
+      }
+    }
+    
+    // METODA 1D: Shopify tracking object (__st)
+    const shopifyTrackingId = window.__st ? window.__st.cid : null;
+    if (shopifyTrackingId) {
+      const trackingInfo = buildCustomerInfo(shopifyTrackingId, getStoredValue('customify_last_customer_email'), '__st.cid');
+      if (trackingInfo) {
+        return trackingInfo;
+      }
+    }
+    
+    // METODA 2: FALLBACK - Sprawdź cookie Shopify (customer_id)
+    const cookies = document.cookie.split(';').map(c => c.trim());
+    if (cookies.length > 0) {
+      const customerIdCookie = cookies.find(c => c.startsWith('customer_id='));
+      if (customerIdCookie) {
+        const cookieId = sanitizeId(customerIdCookie.split('=')[1]);
+        const cookieInfo = buildCustomerInfo(cookieId, getStoredValue('customify_last_customer_email') || window.ShopifyCustomer?.email, 'customer_id cookie');
+        if (cookieInfo) {
+          return cookieInfo;
+        }
+      }
+    }
+    
+    // METODA 3: Pamięć lokalna (ostatni znany zalogowany użytkownik)
+    const storedId = sanitizeId(getStoredValue('customify_last_customer_id'));
+    if (storedId) {
+      return buildCustomerInfo(storedId, getStoredValue('customify_last_customer_email'), 'localStorage');
+    }
+    
+    // METODA 4: STARY SYSTEM - window.Shopify.customerEmail (Classic Customer Accounts)
     if (window.Shopify && window.Shopify.customerEmail) {
-      // Legacy customer detection
+      const legacyId = sanitizeId(window.meta?.customer?.id || window.ShopifyCustomer?.id || getStoredValue('customify_last_customer_id'));
+      const legacyEmail = sanitizeEmail(window.Shopify.customerEmail) || getStoredValue('customify_last_customer_email');
+      const legacyToken = getStoredValue('shopify_customer_access_token') || 'oauth_session';
       
-      const customerId = window.meta?.customer?.id || window.ShopifyCustomer?.id || null;
-      const customerAccessToken = localStorage.getItem('shopify_customer_access_token');
-      
-      return {
-        customerId: customerId,
-        email: window.Shopify.customerEmail,
-        customerAccessToken: customerAccessToken || 'oauth_session'
-      };
+      if (legacyId) {
+        return persistCustomerContext({
+          customerId: legacyId,
+          email: legacyEmail || 'legacy-user@shopify.com',
+          customerAccessToken: legacyToken
+        }, 'Shopify.customerEmail');
+      }
     }
     
     // No customer detected
