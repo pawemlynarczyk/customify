@@ -259,6 +259,11 @@
         <option value="asc">Najstarsze</option>
       </select>
       <button class="btn btn-primary" onclick="loadImages()">Odśwież</button>
+      <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+        <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+        <span>Zaznacz wszystkie</span>
+      </label>
+      <button class="btn btn-danger" id="deleteSelectedBtn" onclick="deleteSelected()" disabled>Usuń zaznaczone (0)</button>
     </div>
 
     <div class="stats" id="stats"></div>
@@ -377,6 +382,8 @@
       // Resetuj tylko jeśli nie dodajemy (pierwsze ładowanie)
       if (!append) {
         gallery.innerHTML = '';
+        document.getElementById('selectAll').checked = false;
+        updateDeleteButton();
       }
 
       if (images.length === 0 && !append) {
@@ -405,8 +412,11 @@
         const sizeKB = (img.size / 1024).toFixed(1);
 
         card.innerHTML = `
-          <img class="image-thumb" src="${img.url}" alt="${img.filename}" 
-               onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22%3E%3C/svg%3E'">
+          <div style="position: relative;">
+            <input type="checkbox" class="image-checkbox" data-url="${img.url}" onchange="updateDeleteButton()" style="position: absolute; top: 10px; left: 10px; z-index: 10; width: 20px; height: 20px; cursor: pointer;">
+            <img class="image-thumb" src="${img.url}" alt="${img.filename}" 
+                 onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22%3E%3C/svg%3E'">
+          </div>
           <div class="image-info">
             <div class="image-name" title="${img.pathname}">${img.filename}</div>
             <div class="image-meta">${sizeKB} KB</div>
@@ -482,6 +492,69 @@
         alert('Błąd usuwania: ' + error.message);
         console.error('Error deleting image:', error);
       }
+    }
+
+    function toggleSelectAll() {
+      const selectAll = document.getElementById('selectAll');
+      const checkboxes = document.querySelectorAll('.image-checkbox');
+      checkboxes.forEach(cb => cb.checked = selectAll.checked);
+      updateDeleteButton();
+    }
+
+    function updateDeleteButton() {
+      const checkboxes = document.querySelectorAll('.image-checkbox:checked');
+      const count = checkboxes.length;
+      const btn = document.getElementById('deleteSelectedBtn');
+      btn.disabled = count === 0;
+      btn.textContent = `Usuń zaznaczone (${count})`;
+    }
+
+    async function deleteSelected() {
+      const checkboxes = document.querySelectorAll('.image-checkbox:checked');
+      const urls = Array.from(checkboxes).map(cb => cb.dataset.url);
+      
+      if (urls.length === 0) return;
+
+      const confirmed = confirm(`Czy na pewno chcesz usunąć ${urls.length} obrazów? Tej operacji nie można cofnąć.`);
+      if (!confirmed) return;
+
+      const btn = document.getElementById('deleteSelectedBtn');
+      btn.disabled = true;
+      btn.textContent = 'Usuwanie...';
+
+      let successCount = 0;
+      let errorCount = 0;
+
+      for (const url of urls) {
+        try {
+          const response = await fetch(`${API_BASE}/delete-blob-image`, {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ url: url }),
+          });
+
+          if (response.ok) {
+            successCount++;
+          } else {
+            errorCount++;
+            console.error('Failed to delete:', url);
+          }
+        } catch (error) {
+          errorCount++;
+          console.error('Error deleting:', url, error);
+        }
+      }
+
+      alert(`Usunięto ${successCount} obrazów${errorCount > 0 ? `, ${errorCount} błędów` : ''}`);
+      
+      // Reset checkboxes
+      document.getElementById('selectAll').checked = false;
+      updateDeleteButton();
+      
+      // Reload images
+      loadImages();
     }
 
     // Event listeners
