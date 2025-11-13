@@ -118,6 +118,10 @@
       background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
     }
     
+    .stat-card.wygenerowane {
+      background: linear-gradient(135deg, #00BCD4 0%, #0097A7 100%);
+    }
+    
     .stat-value {
       font-size: 28px;
       font-weight: bold;
@@ -175,7 +179,7 @@
       margin-bottom: 5px;
     }
     
-    .category.temp {
+    .category.upload {
       background: #FFE0B2;
       color: #E65100;
     }
@@ -190,14 +194,9 @@
       color: #6A1B9A;
     }
     
-    .category.original {
-      background: #BBDEFB;
-      color: #1565C0;
-    }
-    
-    .category.other {
-      background: #F5F5F5;
-      color: #616161;
+    .category.wygenerowane {
+      background: #B3E5FC;
+      color: #0277BD;
     }
     
     .image-info .filename {
@@ -264,11 +263,10 @@
         <label><strong>Kategoria:</strong></label>
         <select id="categoryFilter">
           <option value="all">Wszystkie</option>
-          <option value="temp">Temp</option>
+          <option value="upload">Upload</option>
           <option value="orders">Orders</option>
           <option value="watermarked">Watermarked</option>
-          <option value="original">Original (klienci)</option>
-          <option value="other">Inne</option>
+          <option value="wygenerowane">Wygenerowane</option>
         </select>
       </div>
       
@@ -317,8 +315,8 @@
         <div class="stat-label">Wszystkie</div>
       </div>
       <div class="stat-card temp">
-        <div class="stat-value" id="statTemp">0</div>
-        <div class="stat-label">Temp</div>
+        <div class="stat-value" id="statUpload">0</div>
+        <div class="stat-label">Upload</div>
       </div>
       <div class="stat-card orders">
         <div class="stat-value" id="statOrders">0</div>
@@ -329,8 +327,12 @@
         <div class="stat-label">Watermarked</div>
       </div>
       <div class="stat-card original">
-        <div class="stat-value" id="statOriginal">0</div>
-        <div class="stat-label">Original</div>
+        <div class="stat-value" id="statWygenerowane">0</div>
+        <div class="stat-label">Wygenerowane</div>
+      </div>
+      <div class="stat-card" style="background: linear-gradient(135deg, #1565C0 0%, #0d47a1 100%);">
+        <div class="stat-value" id="statFiltered">0</div>
+        <div class="stat-label">W filtrze</div>
       </div>
     </div>
     
@@ -496,8 +498,17 @@
       const galleryEl = document.getElementById('gallery');
       galleryEl.innerHTML = '';
       
-      // Filtruj po datach
-      const filteredImages = filterByDate(allImages);
+      // Filtruj po datach i kategorii
+      const category = document.getElementById('categoryFilter').value;
+      let filteredImages = filterByDate(allImages);
+      
+      // Filtruj po kategorii jeśli wybrano
+      if (category !== 'all') {
+        filteredImages = filteredImages.filter(img => img.category === category);
+      }
+      
+      // Aktualizuj licznik w filtrze
+      updateFilteredCount();
       
       filteredImages.forEach((image, index) => {
         const card = document.createElement('div');
@@ -527,10 +538,25 @@
     
     function updateStats(stats) {
       document.getElementById('statTotal').textContent = stats.total || 0;
-      document.getElementById('statTemp').textContent = stats.temp || 0;
+      document.getElementById('statUpload').textContent = stats.upload || 0;
       document.getElementById('statOrders').textContent = stats.orders || 0;
       document.getElementById('statWatermarked').textContent = stats.watermarked || 0;
-      document.getElementById('statOriginal').textContent = stats.original || 0;
+      document.getElementById('statWygenerowane').textContent = stats.wygenerowane || 0;
+      
+      // Aktualizuj licznik w filtrze
+      updateFilteredCount();
+    }
+    
+    function updateFilteredCount() {
+      const category = document.getElementById('categoryFilter').value;
+      const filteredImages = filterByDate(allImages);
+      
+      let count = filteredImages.length;
+      if (category !== 'all') {
+        count = filteredImages.filter(img => img.category === category).length;
+      }
+      
+      document.getElementById('statFiltered').textContent = count;
     }
     
     function toggleSelection(url, index) {
@@ -600,11 +626,20 @@
     }
     
     // Event listeners
-    document.getElementById('categoryFilter').addEventListener('change', () => loadImages(true));
+    document.getElementById('categoryFilter').addEventListener('change', () => {
+      updateFilteredCount();
+      displayImages();
+    });
     document.getElementById('sortBy').addEventListener('change', () => loadImages(true));
     document.getElementById('sortOrder').addEventListener('change', () => loadImages(true));
-    document.getElementById('dateFrom').addEventListener('change', () => loadImages(true));
-    document.getElementById('dateTo').addEventListener('change', () => loadImages(true));
+    document.getElementById('dateFrom').addEventListener('change', () => {
+      updateFilteredCount();
+      displayImages();
+    });
+    document.getElementById('dateTo').addEventListener('change', () => {
+      updateFilteredCount();
+      displayImages();
+    });
     
     // Load on page load
     if (AUTH_TOKEN) {

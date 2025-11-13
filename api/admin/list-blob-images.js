@@ -76,25 +76,18 @@ module.exports = async (req, res) => {
         return 'watermarked';
       }
       
-      // 2. Original - NIE zawiera "watermark" i NIE zawiera "ai" w nazwie
-      // i nie jest w temp/orders (sprawdź PRZED temp/orders)
-      if (!name.includes('watermark') && !name.includes('ai') && 
-          !path.startsWith('customify/temp/') && !path.startsWith('customify/orders/')) {
-        return 'original';
-      }
-      
-      // 3. Temp - prefix customify/temp/ i NIE zawiera "ai" w nazwie
+      // 2. Upload - prefix customify/temp/ i NIE zawiera "ai" w nazwie
       if (path.startsWith('customify/temp/') && !name.includes('ai')) {
-        return 'temp';
+        return 'upload';
       }
       
-      // 4. Orders - prefix customify/orders/ i NIE zawiera "ai" w nazwie
+      // 3. Orders - prefix customify/orders/ i NIE zawiera "ai" w nazwie
       if (path.startsWith('customify/orders/') && !name.includes('ai')) {
         return 'orders';
       }
       
-      // 5. Other - wszystko inne (w tym obrazki z "ai" w nazwie, nawet jeśli są w temp/orders)
-      return 'other';
+      // 4. Wygenerowane - wszystko inne (w tym obrazki z "ai" w nazwie, nawet jeśli są w temp/orders)
+      return 'wygenerowane';
     };
 
     // Kategoryzuj wszystkie obrazki
@@ -128,11 +121,10 @@ module.exports = async (req, res) => {
     // Statystyki per kategoria
     const stats = {
       total: blobs.blobs.length,
-      temp: blobs.blobs.filter(b => categorizeImage(b) === 'temp').length,
+      upload: blobs.blobs.filter(b => categorizeImage(b) === 'upload').length,
       orders: blobs.blobs.filter(b => categorizeImage(b) === 'orders').length,
       watermarked: blobs.blobs.filter(b => categorizeImage(b) === 'watermarked').length,
-      original: blobs.blobs.filter(b => categorizeImage(b) === 'original').length,
-      other: blobs.blobs.filter(b => categorizeImage(b) === 'other').length
+      wygenerowane: blobs.blobs.filter(b => categorizeImage(b) === 'wygenerowane').length
     };
 
     return res.json({
