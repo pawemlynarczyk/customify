@@ -26,7 +26,7 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const { prefix = 'customify', limit = 50, cursor } = req.query;
+    const { prefix = 'customify', limit = 50, cursor, sortBy = 'date', sortOrder = 'desc' } = req.query;
 
     console.log('📋 [ADMIN] Listing blob images with prefix:', prefix);
 
@@ -39,15 +39,27 @@ module.exports = async (req, res) => {
 
     console.log(`✅ [ADMIN] Found ${result.blobs.length} images`);
 
+    // Mapuj bloby do formatu odpowiedzi
+    let blobs = result.blobs.map(blob => ({
+      url: blob.url,
+      pathname: blob.pathname,
+      size: blob.size,
+      uploadedAt: blob.uploadedAt,
+      filename: blob.pathname.split('/').pop(),
+    }));
+
+    // Sortuj po dacie
+    if (sortBy === 'date') {
+      blobs.sort((a, b) => {
+        const dateA = new Date(a.uploadedAt).getTime();
+        const dateB = new Date(b.uploadedAt).getTime();
+        return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
+      });
+    }
+
     res.json({
       success: true,
-      blobs: result.blobs.map(blob => ({
-        url: blob.url,
-        pathname: blob.pathname,
-        size: blob.size,
-        uploadedAt: blob.uploadedAt,
-        filename: blob.pathname.split('/').pop(),
-      })),
+      blobs: blobs,
       cursor: result.cursor,
       hasMore: result.hasMore,
     });

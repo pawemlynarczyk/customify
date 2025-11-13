@@ -254,6 +254,10 @@
         <option value="customify/temp">Temp</option>
         <option value="customify/orders">Orders</option>
       </select>
+      <select class="prefix-select" id="sortOrder">
+        <option value="desc">Najnowsze</option>
+        <option value="asc">Najstarsze</option>
+      </select>
       <button class="btn btn-primary" onclick="loadImages()">Odśwież</button>
     </div>
 
@@ -290,6 +294,7 @@
 
     async function loadImages(cursor = null) {
       const prefix = document.getElementById('prefix').value;
+      const sortOrder = document.getElementById('sortOrder').value;
       const search = document.getElementById('search').value.toLowerCase();
       
       document.getElementById('loading').style.display = 'block';
@@ -297,7 +302,7 @@
       document.getElementById('gallery').innerHTML = '';
 
       try {
-        const url = `${API_BASE}/list-blob-images?prefix=${encodeURIComponent(prefix)}&limit=50${cursor ? '&cursor=' + encodeURIComponent(cursor) : ''}`;
+        const url = `${API_BASE}/list-blob-images?prefix=${encodeURIComponent(prefix)}&limit=50&sortBy=date&sortOrder=${sortOrder}${cursor ? '&cursor=' + encodeURIComponent(cursor) : ''}`;
         const response = await fetch(url);
         
         if (!response.ok) {
@@ -426,6 +431,10 @@
     });
 
     document.getElementById('prefix').addEventListener('change', () => {
+      loadImages();
+    });
+
+    document.getElementById('sortOrder').addEventListener('change', () => {
       loadImages();
     });
 
