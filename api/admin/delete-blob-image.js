@@ -57,18 +57,8 @@ module.exports = async (req, res) => {
 
     console.log('🗑️ [DELETE-BLOB-IMAGE] Deleting:', url);
 
-    // Sprawdź czy token jest dostępny
-    const blobToken = process.env.customify_READ_WRITE_TOKEN || process.env.BLOB_READ_WRITE_TOKEN;
-    if (!blobToken) {
-      console.error('❌ [DELETE-BLOB-IMAGE] No blob token found!');
-      return res.status(500).json({ 
-        error: 'Blob token not configured',
-        message: 'customify_READ_WRITE_TOKEN or BLOB_READ_WRITE_TOKEN environment variable is missing'
-      });
-    }
-
     await del(url, {
-      token: blobToken
+      token: process.env.customify_READ_WRITE_TOKEN
     });
 
     console.log('✅ [DELETE-BLOB-IMAGE] Image deleted successfully');

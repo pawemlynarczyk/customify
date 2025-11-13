@@ -54,24 +54,12 @@ module.exports = async (req, res) => {
 
     console.log('📊 [LIST-BLOB-IMAGES] Request params:', { prefix, limit, cursor, sortBy, sortOrder, category });
 
-    // Sprawdź czy token jest dostępny
-    const blobToken = process.env.customify_READ_WRITE_TOKEN || process.env.BLOB_READ_WRITE_TOKEN;
-    if (!blobToken) {
-      console.error('❌ [LIST-BLOB-IMAGES] No blob token found!');
-      return res.status(500).json({ 
-        error: 'Blob token not configured',
-        message: 'customify_READ_WRITE_TOKEN or BLOB_READ_WRITE_TOKEN environment variable is missing'
-      });
-    }
-
-    console.log('✅ [LIST-BLOB-IMAGES] Token found:', blobToken ? 'YES' : 'NO');
-
     // List all blobs (bez prefixu - pobierz wszystko)
     const blobs = await list({
       prefix: prefix || undefined,
       limit: parseInt(limit),
       cursor: cursor || undefined,
-      token: blobToken
+      token: process.env.customify_READ_WRITE_TOKEN
     });
 
     console.log(`📊 [LIST-BLOB-IMAGES] Found ${blobs.blobs.length} blobs`);
