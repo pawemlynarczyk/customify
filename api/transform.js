@@ -1057,7 +1057,7 @@ module.exports = async (req, res) => {
           const saveResult = await saveResponse.json();
           console.log(`✅ [TRANSFORM] Generacja zapisana w Vercel Blob Storage: ${saveResult.generationId}`);
           console.log(`📊 [TRANSFORM] Total generations: ${saveResult.totalGenerations || 'unknown'}`);
-          console.log(`🔍 [TRANSFORM] Save-generation debug info (FULL):`, JSON.stringify(saveResult.debug || {}, null, 2));
+          console.log(`🔍 [TRANSFORM] Save-generation raw response:`, JSON.stringify(saveResult, null, 2));
           
           // ✅ LOGUJ SZCZEGÓŁY DLA DIAGNOSTYKI (dla Vercel Logs)
           if (saveResult.debug) {
@@ -1071,6 +1071,17 @@ module.exports = async (req, res) => {
             
             // ✅ ZWRÓĆ DEBUG INFO W RESPONSE (dla przeglądarki)
             saveGenerationDebug = saveResult.debug;
+          } else {
+            console.warn('⚠️ [TRANSFORM] save-generation response nie zawiera debug. Dodaję fallback info.');
+            const fallbackDebug = {
+              missingDebug: true,
+              responseKeys: Object.keys(saveResult || {}),
+              warning: saveResult.warning || null,
+              message: saveResult.message || null,
+              generationId: saveResult.generationId || null
+            };
+            console.warn('⚠️ [TRANSFORM] Fallback debug info:', JSON.stringify(fallbackDebug, null, 2));
+            saveGenerationDebug = fallbackDebug;
           }
         } else {
           const errorText = await saveResponse.text();

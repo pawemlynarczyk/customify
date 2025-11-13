@@ -70,7 +70,12 @@ module.exports = async (req, res) => {
       return res.json({
         success: true,
         warning: 'Vercel Blob Storage not configured - generation not saved',
-        message: 'Generation saved locally only'
+        message: 'Generation saved locally only',
+        debug: {
+          reason: 'missing_blob_token',
+          customerId: customerId || null,
+          email: email || null
+        }
       });
     }
 
@@ -231,7 +236,13 @@ module.exports = async (req, res) => {
         success: true,
         warning: 'Failed to save to Vercel Blob Storage',
         message: 'Generation saved locally only',
-        generationId: generationId
+        generationId: generationId,
+        debug: {
+          reason: 'blob_write_error',
+          error: blobError?.message || 'unknown',
+          customerId: customerId || null,
+          email: email || null
+        }
       });
     }
 
