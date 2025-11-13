@@ -366,7 +366,6 @@
   
   <script>
     const API_BASE = 'https://customify-s56o.vercel.app/api/admin';
-    const ADMIN_PASSWORD = 'customify-admin-2024'; // Zmień to hasło!
     let AUTH_TOKEN = localStorage.getItem('customify_admin_token');
     let isLoggedIn = localStorage.getItem('blob_viewer_logged_in') === 'true';
     let currentCursor = null;
@@ -411,33 +410,54 @@
       }
     }
     
-    function checkPassword() {
+    async function checkPassword() {
       const passwordInput = document.getElementById('passwordInput');
       const passwordError = document.getElementById('passwordError');
       const password = passwordInput.value.trim();
       
-      if (password === ADMIN_PASSWORD) {
-        isLoggedIn = true;
-        localStorage.setItem('blob_viewer_logged_in', 'true');
-        
-        // Jeśli nie ma tokena, poproś o niego
-        if (!AUTH_TOKEN) {
-          const tokenInput = prompt('🔐 Wprowadź token autoryzacji (z Vercel Environment Variables - ADMIN_STATS_TOKEN):');
-          if (tokenInput && tokenInput.trim()) {
-            AUTH_TOKEN = tokenInput.trim();
-            localStorage.setItem('customify_admin_token', AUTH_TOKEN);
-          } else {
-            alert('❌ Token jest wymagany do działania panelu.');
-            return;
-          }
-        }
-        
-        passwordError.style.display = 'none';
-        checkLogin();
-      } else {
+      if (!password) {
+        passwordError.textContent = '❌ Wprowadź hasło';
         passwordError.style.display = 'block';
-        passwordInput.value = '';
-        passwordInput.focus();
+        return;
+      }
+      
+      try {
+        const response = await fetch(`${API_BASE}/check-password`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          isLoggedIn = true;
+          localStorage.setItem('blob_viewer_logged_in', 'true');
+          
+          // Jeśli nie ma tokena, poproś o niego
+          if (!AUTH_TOKEN) {
+            const tokenInput = prompt('🔐 Wprowadź token autoryzacji (z Vercel Environment Variables - ADMIN_STATS_TOKEN):');
+            if (tokenInput && tokenInput.trim()) {
+              AUTH_TOKEN = tokenInput.trim();
+              localStorage.setItem('customify_admin_token', AUTH_TOKEN);
+            } else {
+              alert('❌ Token jest wymagany do działania panelu.');
+              return;
+            }
+          }
+          
+          passwordError.style.display = 'none';
+          checkLogin();
+        } else {
+          passwordError.textContent = '❌ Nieprawidłowe hasło';
+          passwordError.style.display = 'block';
+          passwordInput.value = '';
+          passwordInput.focus();
+        }
+      } catch (error) {
+        console.error('Error checking password:', error);
+        passwordError.textContent = '❌ Błąd połączenia. Spróbuj ponownie.';
+        passwordError.style.display = 'block';
       }
     }
     
