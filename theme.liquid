@@ -81,29 +81,6 @@
         console.log('👤 [CUSTOMIFY LIQUID] Użytkownik niezalogowany');
       {% endif %}
     </script>
-    <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        function removeMyGenerationsLink() {
-          var links = document.querySelectorAll('a[href="/pages/my-generations"]');
-          if (!links.length) {
-            return;
-          }
-          links.forEach(function(link) {
-            var container = link.closest('li');
-            if (container) {
-              container.remove();
-            } else {
-              link.remove();
-            }
-          });
-        }
-        removeMyGenerationsLink();
-        var observer = new MutationObserver(function() {
-          removeMyGenerationsLink();
-        });
-        observer.observe(document.body, { childList: true, subtree: true });
-      });
-    </script>
     
     <script src="{{ 'customify.js' | asset_url }}" defer></script>
     <script>
