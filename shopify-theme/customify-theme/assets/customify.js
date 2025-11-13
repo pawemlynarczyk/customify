@@ -719,9 +719,9 @@ class CustomifyEmbed {
     const customerInfo = this.getCustomerInfo();
     
     if (!customerInfo) {
-      // Niezalogowany - sprawdź localStorage (limit 10)
+      // Niezalogowany - sprawdź localStorage (limit 3)
       const localCount = this.getLocalUsageCount();
-      const FREE_LIMIT = 10;
+      const FREE_LIMIT = 3;
       
       // Usage limit check for anonymous users
       
@@ -968,9 +968,9 @@ class CustomifyEmbed {
     
     if (!customerInfo) {
       // Niezalogowany - NIE POKAZUJ komunikatu o punktach
-      // Modal rejestracji pojawi się dopiero po wyczerpaniu wszystkich 10 transformacji
+      // Modal rejestracji pojawi się dopiero po wyczerpaniu wszystkich 3 transformacji
       const localCount = this.getLocalUsageCount();
-      const FREE_LIMIT = 10;
+      const FREE_LIMIT = 3;
       
       // Brak komunikatu - użytkownik nie wie ile ma punktów
       // Dopiero po 10 transformacjach pojawi się modal rejestracji
