@@ -162,11 +162,14 @@ const shopifyRequest = async (endpoint, options = {}) => {
 
 ## CRITICAL SECURITY RULE - NEVER COMMIT SECRETS
 - **NEVER** add passwords, tokens, API keys, or any secrets to files that will be committed to GitHub
+- **NEVER** add fallback values like `|| 'password123'` or `|| 'token-here'` in code - ZAWSZE tylko `process.env.VARIABLE_NAME`
 - **ALWAYS** use environment variables for sensitive data (process.env.VARIABLE_NAME)
 - **ALWAYS** use placeholder text like "your_token_here" or "shpat_..." in code examples
 - **NEVER** hardcode real tokens, passwords, or API keys in any file
+- **NEVER** create new environment variables if existing ones can be reused (use ADMIN_STATS_TOKEN for all admin panels)
 - If a file contains secrets, it must be added to .gitignore or use environment variables
 - This rule is CRITICAL and must be followed in ALL cases
+- **IF YOU ADD A FALLBACK VALUE LIKE `|| 'default'` - YOU ARE VIOLATING THIS RULE!**
 
 ## Current Project Status
 - Shopify app is installed and working in customify-ok.myshopify.com
