@@ -1,7 +1,7 @@
 const Replicate = require('replicate');
 const { checkRateLimit, getClientIP } = require('../utils/vercelRateLimiter');
 
-const VERSION_TAG = 'transform@2025-11-13T01:30';
+const VERSION_TAG = 'transform@2025-11-13T13:10';
 
 // Try to load sharp, but don't fail if it's not available
 let sharp = null;
@@ -1038,7 +1038,7 @@ module.exports = async (req, res) => {
           originalImageUrl: null // Opcjonalnie - można dodać później
         };
         
-        console.log(`📤 [TRANSFORM] Wywołuję /api/save-generation z danymi:`, {
+        console.log(`📤 [TRANSFORM] Wywołuję /api/save-generation-v2 z danymi:`, {
           customerId: saveData.customerId,
           customerIdType: typeof saveData.customerId,
           email: saveData.email,
@@ -1047,23 +1047,23 @@ module.exports = async (req, res) => {
           productType: saveData.productType
         });
         
-        const saveResponse = await fetch('https://customify-s56o.vercel.app/api/save-generation', {
+        const saveResponse = await fetch('https://customify-s56o.vercel.app/api/save-generation-v2', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(saveData)
         });
         
-        console.log(`📥 [TRANSFORM] save-generation response status: ${saveResponse.status}`);
+        console.log(`📥 [TRANSFORM] save-generation-v2 response status: ${saveResponse.status}`);
         
         if (saveResponse.ok) {
           const saveResult = await saveResponse.json();
           console.log(`✅ [TRANSFORM] Generacja zapisana w Vercel Blob Storage: ${saveResult.generationId}`);
           console.log(`📊 [TRANSFORM] Total generations: ${saveResult.totalGenerations || 'unknown'}`);
-          console.log(`🔍 [TRANSFORM] Save-generation raw response:`, JSON.stringify(saveResult, null, 2));
+          console.log(`🔍 [TRANSFORM] Save-generation-v2 raw response:`, JSON.stringify(saveResult, null, 2));
           
           // ✅ LOGUJ SZCZEGÓŁY DLA DIAGNOSTYKI (dla Vercel Logs)
           if (saveResult.debug) {
-            console.log(`🔍 [TRANSFORM] customerId w save-generation: ${saveResult.debug.customerId || 'null'}`);
+            console.log(`🔍 [TRANSFORM] customerId w save-generation-v2: ${saveResult.debug.customerId || 'null'}`);
             console.log(`🔍 [TRANSFORM] customerIdType: ${saveResult.debug.customerIdType || 'null'}`);
             console.log(`🔍 [TRANSFORM] hasMetafieldUpdate: ${saveResult.debug.hasMetafieldUpdate || false}`);
             console.log(`🔍 [TRANSFORM] email: ${saveResult.debug.email || 'null'}`);
@@ -1074,7 +1074,7 @@ module.exports = async (req, res) => {
             // ✅ ZWRÓĆ DEBUG INFO W RESPONSE (dla przeglądarki)
             saveGenerationDebug = saveResult.debug;
           } else {
-            console.warn('⚠️ [TRANSFORM] save-generation response nie zawiera debug. Dodaję fallback info.');
+            console.warn('⚠️ [TRANSFORM] save-generation-v2 response nie zawiera debug. Dodaję fallback info.');
             const fallbackDebug = {
               missingDebug: true,
               responseKeys: Object.keys(saveResult || {}),
@@ -1212,7 +1212,7 @@ module.exports = async (req, res) => {
       console.log(`🔍 [TRANSFORM] Zwracam debug info do przeglądarki:`, JSON.stringify(saveGenerationDebug, null, 2));
     } else {
       console.warn(`⚠️ [TRANSFORM] saveGenerationDebug jest null - DODAJĘ null do response dla debugowania`);
-      console.warn(`⚠️ [TRANSFORM] To może oznaczać, że save-generation nie został wywołany lub nie zwrócił debug info`);
+      console.warn(`⚠️ [TRANSFORM] To może oznaczać, że save-generation-v2 nie został wywołany lub nie zwrócił debug info`);
     }
     
     console.log(`🔍 [TRANSFORM] Final responseData keys:`, Object.keys(responseData));
