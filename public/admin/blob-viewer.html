@@ -273,6 +273,7 @@
         <span>Zaznacz wszystkie</span>
       </label>
       <button class="btn btn-danger" id="deleteSelectedBtn" onclick="deleteSelected()" disabled>Usuń zaznaczone (0)</button>
+      <button class="btn btn-danger" id="deleteOldBtn" onclick="deleteOldTempImages()">Usuń stare z temp (>7 dni)</button>
     </div>
 
     <div class="stats" id="stats"></div>
@@ -653,6 +654,106 @@
       
       // Reload images
       loadImages();
+    }
+
+    async function deleteOldTempImages() {
+      const confirmed = confirm('Czy na pewno chcesz usunąć wszystkie obrazy z temp starsze niż 7 dni? Tej operacji nie można cofnąć.');
+      if (!confirmed) return;
+
+      const btn = document.getElementById('deleteOldBtn');
+      const originalText = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = 'Sprawdzanie...';
+
+      try {
+        // Pobierz wszystkie obrazy z temp (może być wiele stron)
+        let allTempImages = [];
+        let cursor = null;
+        let hasMore = true;
+
+        while (hasMore) {
+          const url = `${API_BASE}/list-blob-images?prefix=customify/temp&limit=500&sortBy=date&sortOrder=asc${cursor ? '&cursor=' + encodeURIComponent(cursor) : ''}`;
+          const response = await fetch(url);
+          
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
+
+          const data = await response.json();
+          if (!data.success) {
+            throw new Error(data.error || 'Failed to load images');
+          }
+
+          allTempImages = [...allTempImages, ...data.blobs];
+          cursor = data.cursor;
+          hasMore = data.hasMore;
+        }
+
+        // Oblicz datę graniczną (7 dni temu)
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        sevenDaysAgo.setHours(0, 0, 0, 0);
+
+        // Znajdź obrazy starsze niż 7 dni
+        const oldImages = allTempImages.filter(img => {
+          const imgDate = new Date(img.uploadedAt);
+          return imgDate < sevenDaysAgo;
+        });
+
+        if (oldImages.length === 0) {
+          alert('Nie znaleziono obrazów starszych niż 7 dni w temp.');
+          btn.disabled = false;
+          btn.textContent = originalText;
+          return;
+        }
+
+        const deleteConfirmed = confirm(`Znaleziono ${oldImages.length} obrazów starszych niż 7 dni. Usunąć je wszystkie?`);
+        if (!deleteConfirmed) {
+          btn.disabled = false;
+          btn.textContent = originalText;
+          return;
+        }
+
+        btn.textContent = `Usuwanie ${oldImages.length} obrazów...`;
+
+        // Usuń wszystkie stare obrazy
+        let successCount = 0;
+        let errorCount = 0;
+
+        for (const img of oldImages) {
+          try {
+            const response = await fetch(`${API_BASE}/delete-blob-image`, {
+              method: 'DELETE',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ url: img.url }),
+            });
+
+            if (response.ok) {
+              successCount++;
+            } else {
+              errorCount++;
+              console.error('Failed to delete:', img.url);
+            }
+          } catch (error) {
+            errorCount++;
+            console.error('Error deleting:', img.url, error);
+          }
+        }
+
+        alert(`Usunięto ${successCount} starych obrazów${errorCount > 0 ? `, ${errorCount} błędów` : ''}.`);
+        
+        // Reload images
+        loadImages();
+
+      } catch (error) {
+        alert('Błąd podczas usuwania starych obrazów: ' + error.message);
+        console.error('Error deleting old images:', error);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = originalText;
+      }
     }
 
     // Event listeners
