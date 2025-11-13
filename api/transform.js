@@ -254,6 +254,76 @@ async function segmindFaceswap(targetImageUrl, swapImageBase64) {
   return `data:image/jpeg;base64,${resultBase64}`;
 }
 
+// Function to handle Segmind Become-Image (Watercolor style)
+async function segmindBecomeImage(imageUrl, styleImageUrl) {
+  const SEGMIND_API_KEY = process.env.SEGMIND_API_KEY;
+  
+  console.log('🔑 [SEGMIND] Checking API key...', SEGMIND_API_KEY ? `Key present (${SEGMIND_API_KEY.substring(0, 10)}...)` : 'KEY MISSING!');
+  
+  if (!SEGMIND_API_KEY) {
+    console.error('❌ [SEGMIND] SEGMIND_API_KEY not found in environment variables!');
+    throw new Error('SEGMIND_API_KEY not configured');
+  }
+
+  console.log('🎨 [SEGMIND] Starting become-image (watercolor)...');
+  console.log('🎨 [SEGMIND] Person image URL:', imageUrl);
+  console.log('🎨 [SEGMIND] Style image URL:', styleImageUrl);
+
+  try {
+    const response = await fetch('https://api.segmind.com/v1/become-image', {
+      method: 'POST',
+      headers: {
+        'x-api-key': SEGMIND_API_KEY,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        image: imageUrl,              // URL zdjęcia użytkownika
+        image_to_become: styleImageUrl, // URL miniaturki stylu akwareli
+        prompt: "a person",
+        prompt_strength: 2,
+        number_of_images: 1,          // Tylko 1 obraz (nie 2)
+        denoising_strength: 1,
+        instant_id_strength: 1,
+        image_to_become_strength: 0.75, // Siła stylu akwareli
+        image_to_become_noise: 0.3,
+        control_depth_strength: 0.8,
+        disable_safety_checker: true
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ [SEGMIND] API Error:', response.status);
+      console.error('❌ [SEGMIND] Error details:', errorText);
+      throw new Error(`Segmind API error: ${response.status} - ${errorText}`);
+    }
+
+    // Segmind zwraca JSON (nie binary jak caricature-style)
+    const result = await response.json();
+    console.log('✅ [SEGMIND] Become-image completed successfully');
+    console.log('📋 [SEGMIND] Response keys:', Object.keys(result));
+    
+    // Sprawdź format odpowiedzi (może być URL lub base64 lub array z obrazami)
+    if (result.image) {
+      // Pojedynczy obraz (URL lub base64)
+      return result.image;
+    } else if (result.images && Array.isArray(result.images) && result.images.length > 0) {
+      // Array z obrazami - weź pierwszy
+      return result.images[0];
+    } else if (result.output) {
+      // Może być w polu output
+      return result.output;
+    } else {
+      console.error('❌ [SEGMIND] No image in response:', result);
+      throw new Error('No image in Segmind response');
+    }
+    
+  } catch (error) {
+    console.error('❌ [SEGMIND] Become-image failed:', error);
+    throw error;
+  }
+}
+
 // Function to compress and resize images for SDXL models
 async function compressImage(imageData, maxWidth = 1152, maxHeight = 1152, quality = 85) {
   if (!sharp) {
@@ -703,6 +773,25 @@ module.exports = async (req, res) => {
           output_compression: 100, // Maksymalna kompresja
           output_format: "png" // Format PNG
         }
+      },
+      // Style akwareli - używa Segmind Become-Image API
+      'akwarela': {
+        model: "segmind/become-image",
+        prompt: "a person",
+        apiType: "segmind-become-image",
+        productType: "watercolor", // Identyfikator typu produktu
+        parameters: {
+          image: "USER_IMAGE", // URL zdjęcia użytkownika (będzie zamienione na URL z Vercel Blob)
+          image_to_become: "https://customify-s56o.vercel.app/akwarela/watercolor-style.png", // URL miniaturki stylu akwareli
+          prompt_strength: 2,
+          number_of_images: 1,
+          denoising_strength: 1,
+          instant_id_strength: 1,
+          image_to_become_strength: 0.75, // Siła stylu akwareli
+          image_to_become_noise: 0.3,
+          control_depth_strength: 0.8,
+          disable_safety_checker: true
+        }
       }
     };
 
@@ -888,6 +977,67 @@ module.exports = async (req, res) => {
         });
       }
       
+    }
+    // ✅ STYLE AKWARELE - UŻYWAJ SEGMIND BECOME-IMAGE
+    else if (config.apiType === 'segmind-become-image') {
+      console.log('🎨 [SEGMIND] Detected watercolor style - using Segmind Become-Image API');                                                                     
+      
+      try {
+        // Upload obrazu użytkownika do Vercel Blob Storage żeby uzyskać stały URL
+        console.log('📤 [VERCEL-BLOB] Uploading user image to Vercel Blob Storage...');                                                                              
+        
+        const baseUrl = 'https://customify-s56o.vercel.app';
+        const uploadResponse = await fetch(`${baseUrl}/api/upload-temp-image`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            imageData: imageDataUri,
+            filename: `watercolor-${Date.now()}.jpg`
+          })
+        });
+
+        if (!uploadResponse.ok) {
+          const errorText = await uploadResponse.text();
+          console.error('❌ [VERCEL-BLOB] Upload failed:', errorText);
+          throw new Error(`Vercel Blob upload failed: ${uploadResponse.status} - ${errorText}`);
+        }
+
+        const uploadResult = await uploadResponse.json();
+        const userImageUrl = uploadResult.imageUrl;
+        console.log('✅ [VERCEL-BLOB] User image uploaded:', userImageUrl);
+
+        // URL miniaturki stylu z konfiguracji
+        const styleImageUrl = config.parameters.image_to_become;
+        console.log('🎨 [SEGMIND] Style image URL:', styleImageUrl);
+        
+        // Wywołaj Segmind Become-Image API
+        const resultImage = await segmindBecomeImage(userImageUrl, styleImageUrl);
+        console.log('✅ [SEGMIND] Watercolor generation completed successfully');                                                                               
+        
+        // Sprawdź czy to URL czy base64 i obsłuż odpowiednio
+        if (typeof resultImage === 'string') {
+          if (resultImage.startsWith('http')) {
+            imageUrl = resultImage; // URL
+          } else if (resultImage.startsWith('data:')) {
+            imageUrl = resultImage; // Data URI
+          } else {
+            // Może być base64 bez prefiksu - dodaj prefix
+            imageUrl = `data:image/png;base64,${resultImage}`;
+          }
+        } else {
+          throw new Error('Unexpected response format from Segmind Become-Image API');
+        }
+        
+        if (!imageUrl) {
+          throw new Error('No image URL returned from Segmind Become-Image API');
+        }
+        
+      } catch (error) {
+        console.error('❌ [SEGMIND] Watercolor generation failed:', error);
+        throw error;
+      }
     } else {
       // ✅ INNE STYLE - UŻYWAJ REPLICATE
       console.log('🎨 [REPLICATE] Using Replicate for non-king styles');

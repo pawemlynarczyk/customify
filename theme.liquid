@@ -388,6 +388,21 @@
             
             const totalHidden = spersonalizowanyProducts.length + rozmiarProducts.length + recommendationsSpersonalizowany.length + recommendationsRozmiar.length;
             console.log('🔒 [PRODUCT HIDING] Ukryto', totalHidden, 'produktów AI (kolekcje + rekomendacje)');
+            
+            // ✅ NOWE: Dla produktu akwarela (ID: 15475649675589) - ukryj wszystkie style oprócz akwareli
+            if (window.ShopifyProduct && (window.ShopifyProduct.id === 15475649675589 || window.ShopifyProduct.id === '15475649675589')) {
+              console.log('🎨 [WATERCOLOR] Produkt akwarela wykryty - ukrywanie wszystkich stylów oprócz akwareli');
+              const allStyleCards = document.querySelectorAll('.customify-style-card');
+              allStyleCards.forEach(card => {
+                const styleName = card.getAttribute('data-style');
+                if (styleName && styleName !== 'akwarela') {
+                  card.style.display = 'none';
+                  console.log('🔒 [WATERCOLOR] Ukryto styl:', styleName);
+                } else if (styleName === 'akwarela') {
+                  console.log('✅ [WATERCOLOR] Pozostawiono styl akwareli widoczny');
+                }
+              });
+            }
           });
         </script>
     
@@ -2629,6 +2644,14 @@
                     <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/pixar/pixar-styl.jpg'); background-size: cover; background-position: center;"></div>
                     <div class="style-info">
                       <div class="style-name">Pixar</div>
+                    </div>
+                  </div>
+                {% elsif product.id == 15475649675589 %}
+                  {% comment %} TYLKO STYL AKWARELE dla produktu akwarela (ID: 15475649675589) - używa Segmind Become-Image API {% endcomment %}
+                  <div class="customify-style-card" data-style="akwarela">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/akwarela/watercolor-style.png'); background-size: cover; background-position: center;"></div>
+                    <div class="style-info">
+                      <div class="style-name">Akwarela</div>
                     </div>
                   </div>
                 {% else %}
