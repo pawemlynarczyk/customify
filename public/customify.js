@@ -113,6 +113,28 @@ class CustomifyEmbed {
    * @returns {Object|null} {customerId, email, customerAccessToken} lub null jeśli niezalogowany
    */
   getCustomerInfo() {
+    if (!window.__customifyCustomerDebugLogged) {
+      try {
+        console.log('🔍 [CUSTOMER DETECT] Debug sources:', {
+          ShopifyCustomer: window.ShopifyCustomer || null,
+          ShopifyAnalytics: window.ShopifyAnalytics?.meta || null,
+          meta: window.meta || null,
+          __st: window.__st || null,
+          localStorageId: (() => {
+            try {
+              return localStorage.getItem('customify_last_customer_id');
+            } catch (e) {
+              return 'unavailable';
+            }
+          })(),
+          cookies: document.cookie
+        });
+      } catch (e) {
+        console.warn('⚠️ [CUSTOMER DETECT] Debug logging failed:', e);
+      }
+      window.__customifyCustomerDebugLogged = true;
+    }
+    
     const sanitizeId = (value) => {
       if (value === null || value === undefined) {
         return null;
@@ -163,7 +185,6 @@ class CustomifyEmbed {
       }
       return info;
     };
-    
     const buildCustomerInfo = (idCandidate, emailCandidate, source) => {
       const customerId = sanitizeId(idCandidate);
       if (!customerId) {
@@ -180,10 +201,27 @@ class CustomifyEmbed {
         customerAccessToken: 'oauth_session'
       }, source);
     };
+    const getShopifyCustomerField = (field) => {
+      if (!window.ShopifyCustomer) {
+        return null;
+      }
+      if (field in window.ShopifyCustomer) {
+        return window.ShopifyCustomer[field];
+      }
+      const lowerField = field.toLowerCase();
+      for (const key of Object.keys(window.ShopifyCustomer)) {
+        if (key.toLowerCase() === lowerField) {
+          return window.ShopifyCustomer[key];
+        }
+      }
+      return null;
+    };
     
     // METODA 1: NOWY SYSTEM - window.ShopifyCustomer (z Liquid w theme.liquid)
-    if (window.ShopifyCustomer && window.ShopifyCustomer.loggedIn && window.ShopifyCustomer.id) {
-      return buildCustomerInfo(window.ShopifyCustomer.id, window.ShopifyCustomer.email, 'ShopifyCustomer');
+    if (window.ShopifyCustomer && (getShopifyCustomerField('id') || getShopifyCustomerField('customerId'))) {
+      const shopifyId = getShopifyCustomerField('id') || getShopifyCustomerField('customerId');
+      const shopifyEmail = getShopifyCustomerField('email') || null;
+      return buildCustomerInfo(shopifyId, shopifyEmail, 'ShopifyCustomer');
     }
     
     // METODA 1B: Shopify Analytics (fallback)
