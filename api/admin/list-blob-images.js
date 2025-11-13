@@ -57,11 +57,38 @@ module.exports = async (req, res) => {
       });
     }
 
+    // Statystyki - policz obrazy w różnych prefiksach
+    const stats = {
+      total: blobs.length,
+      byPrefix: {},
+      byType: {
+        temp: 0,
+        orders: 0,
+        other: 0
+      }
+    };
+
+    blobs.forEach(blob => {
+      // Statystyki po prefiksie
+      const prefix = blob.pathname.split('/').slice(0, 2).join('/');
+      stats.byPrefix[prefix] = (stats.byPrefix[prefix] || 0) + 1;
+      
+      // Statystyki po typie
+      if (blob.pathname.includes('/temp/')) {
+        stats.byType.temp++;
+      } else if (blob.pathname.includes('/orders/')) {
+        stats.byType.orders++;
+      } else {
+        stats.byType.other++;
+      }
+    });
+
     res.json({
       success: true,
       blobs: blobs,
       cursor: result.cursor,
       hasMore: result.hasMore,
+      stats: stats,
     });
 
   } catch (error) {

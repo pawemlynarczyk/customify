@@ -341,14 +341,14 @@
             ? data.blobs.filter(img => img.filename.toLowerCase().includes(search))
             : data.blobs;
           displayImages(newImages, true);
-          updateStats(currentImages.filter(img => !search || img.filename.toLowerCase().includes(search)).length, currentImages.length);
+          updateStats(currentImages.filter(img => !search || img.filename.toLowerCase().includes(search)).length, currentImages.length, data.stats);
         } else {
           // Przy pierwszym ładowaniu: pokaż wszystkie przefiltrowane
           const filtered = search 
             ? currentImages.filter(img => img.filename.toLowerCase().includes(search))
             : currentImages;
           displayImages(filtered, false);
-          updateStats(filtered.length, currentImages.length);
+          updateStats(filtered.length, currentImages.length, data.stats);
         }
         
         // Pokaż przycisk "Załaduj więcej" jeśli są kolejne strony
@@ -422,9 +422,21 @@
       });
     }
 
-    function updateStats(filtered, total) {
+    function updateStats(filtered, total, statsData = null) {
       const stats = document.getElementById('stats');
-      stats.textContent = `Wyświetlono: ${filtered} z ${total} obrazów`;
+      let statsText = `Wyświetlono: ${filtered} z ${total} obrazów`;
+      
+      if (statsData) {
+        statsText += ` | Temp: ${statsData.byType.temp}, Orders: ${statsData.byType.orders}, Other: ${statsData.byType.other}`;
+        if (Object.keys(statsData.byPrefix).length > 0) {
+          const prefixStats = Object.entries(statsData.byPrefix)
+            .map(([prefix, count]) => `${prefix}: ${count}`)
+            .join(', ');
+          statsText += ` | Prefiksy: ${prefixStats}`;
+        }
+      }
+      
+      stats.textContent = statsText;
     }
 
     function viewImage(url) {
