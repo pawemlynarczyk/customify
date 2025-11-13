@@ -7,8 +7,67 @@
 const { put, head } = require('@vercel/blob');
 const { checkRateLimit, getClientIP } = require('../utils/vercelRateLimiter');
 
+const toSafeString = (value) => {
+  if (value === null || value === undefined) {
+    return '';
+  }
+  const valueType = typeof value;
+  if (valueType === 'string') {
+    return value;
+  }
+  if (valueType === 'number' || valueType === 'boolean' || valueType === 'bigint') {
+    return String(value);
+  }
+  if (valueType === 'symbol') {
+    try {
+      return value.toString();
+    } catch {
+      return '';
+    }
+  }
+  try {
+    return JSON.stringify(value);
+  } catch {
+    try {
+      return String(value);
+    } catch {
+      return '';
+    }
+  }
+};
+
+const sanitizeIdentifier = (rawValue) => {
+  const safe = toSafeString(rawValue);
+  if (!safe) {
+    return '';
+  }
+  let result = '';
+  let previousWasDash = false;
+  for (const char of safe) {
+    const isUpper = char >= 'A' && char <= 'Z';
+    const isLower = char >= 'a' && char <= 'z';
+    const isDigit = char >= '0' && char <= '9';
+    if (isUpper || isLower || isDigit) {
+      result += char;
+      previousWasDash = false;
+    } else if (!previousWasDash) {
+      result += '-';
+      previousWasDash = true;
+    }
+  }
+  if (result.startsWith('-')) {
+    result = result.slice(1);
+  }
+  if (result.endsWith('-')) {
+    result = result.slice(0, -1);
+  }
+  return result;
+};
+
+const VERSION_TAG = 'save-generation@2025-11-13T01:30';
+
 module.exports = async (req, res) => {
-  console.log(`💾 [SAVE-GENERATION] API called - Method: ${req.method}`);
+  console.log(`💾 [SAVE-GENERATION] API called - Method: ${req.method} - Version: ${VERSION_TAG}`);
   
   // CORS headers
   const allowedOrigins = [
@@ -37,6 +96,7 @@ module.exports = async (req, res) => {
   }
 
   try {
+    console.log('🆕 [SAVE-GENERATION] Version tag: 2025-11-13T01-20');
     // IP-based rate limiting
     const ip = getClientIP(req);
     if (!checkRateLimit(ip, 50, 15 * 60 * 1000)) {
@@ -132,20 +192,15 @@ module.exports = async (req, res) => {
     console.log(`✅ [SAVE-GENERATION] identifier po finalnej konwersji:`, identifier, typeof identifier);
     console.log(`🔍🔍🔍 [SAVE-GENERATION] ===== KONIEC SPRAWDZANIA IDENTIFIER =====`);
 
-    // Path w Vercel Blob Storage dla JSON z generacjami
-    // ✅ TRY-CATCH WOKÓŁ .replace() - OSTATECZNE ZABEZPIECZENIE
     let blobPath;
-    try {
-      const sanitizedIdentifier = identifier.replace(/[^a-zA-Z0-9]/g, '-');
+    const sanitizedIdentifier = sanitizeIdentifier(identifier);
+    if (sanitizedIdentifier) {
       blobPath = `customify/generations/${keyPrefix}-${sanitizedIdentifier}.json`;
-      console.log(`✅ [SAVE-GENERATION] Blob path utworzony: ${blobPath}`);
-    } catch (replaceError) {
-      console.error('❌ [SAVE-GENERATION] Błąd podczas .replace():', replaceError);
-      console.error('❌ [SAVE-GENERATION] identifier:', identifier, typeof identifier);
-      // Fallback - użyj prostego identyfikatora
+      console.log(`✅ [SAVE-GENERATION] Blob path utworzony (sanitized): ${blobPath}`);
+    } else {
       const fallbackId = String(Date.now());
       blobPath = `customify/generations/${keyPrefix}-${fallbackId}.json`;
-      console.warn(`⚠️ [SAVE-GENERATION] Używam fallback path: ${blobPath}`);
+      console.warn(`⚠️ [SAVE-GENERATION] Identifier pusty po sanetyzacji - używam fallback: ${blobPath}`);
     }
     console.log(`📝 [SAVE-GENERATION] Blob Path: ${blobPath}`);
 

@@ -1,6 +1,8 @@
 const Replicate = require('replicate');
 const { checkRateLimit, getClientIP } = require('../utils/vercelRateLimiter');
 
+const VERSION_TAG = 'transform@2025-11-13T01:30';
+
 // Try to load sharp, but don't fail if it's not available
 let sharp = null;
 try {
@@ -328,7 +330,7 @@ async function compressImage(imageData, maxWidth = 1152, maxHeight = 1152, quali
 }
 
 module.exports = async (req, res) => {
-  console.log(`🚀 [TRANSFORM] API called - Method: ${req.method}, Headers:`, req.headers);
+  console.log(`🚀 [TRANSFORM] API called - Method: ${req.method}, Version: ${VERSION_TAG}, Headers:`, req.headers);
   
   // Set CORS headers - explicit origins for better security
   const allowedOrigins = [
