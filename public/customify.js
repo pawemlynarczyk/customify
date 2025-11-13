@@ -1891,6 +1891,30 @@ class CustomifyEmbed {
       console.log('📱 [MOBILE] Request body size:', JSON.stringify(requestBody).length, 'bytes');
       console.log('👤 [MOBILE] Customer info:', customerInfo ? 'zalogowany' : 'niezalogowany');
       
+      // ✅ SZCZEGÓŁOWE LOGOWANIE DLA DIAGNOSTYKI
+      console.log('🔍 [FRONTEND] Customer Info Details:', {
+        customerId: customerInfo?.customerId || 'null',
+        customerIdType: typeof customerInfo?.customerId,
+        email: customerInfo?.email || email || 'null',
+        customerAccessToken: customerInfo?.customerAccessToken || 'null',
+        hasCustomerInfo: !!customerInfo,
+        windowShopifyCustomer: window.ShopifyCustomer ? {
+          id: window.ShopifyCustomer.id,
+          loggedIn: window.ShopifyCustomer.loggedIn,
+          email: window.ShopifyCustomer.email
+        } : 'null'
+      });
+      
+      console.log('🔍 [FRONTEND] Request Body (bez imageData):', {
+        prompt: requestBody.prompt,
+        productType: requestBody.productType,
+        customerId: requestBody.customerId,
+        customerIdType: typeof requestBody.customerId,
+        customerAccessToken: requestBody.customerAccessToken ? 'present' : 'null',
+        email: requestBody.email,
+        imageDataLength: requestBody.imageData?.length || 0
+      });
+      
       const response = await fetch('https://customify-s56o.vercel.app/api/transform', {
         method: 'POST',
         headers: { 
@@ -1913,6 +1937,14 @@ class CustomifyEmbed {
 
       const result = await response.json();
       console.log('📱 [MOBILE] Response JSON parsed successfully');
+      console.log('✅ [FRONTEND] Transform API Response:', {
+        success: result.success,
+        hasTransformedImage: !!result.transformedImage,
+        transformedImageType: typeof result.transformedImage,
+        transformedImagePreview: result.transformedImage?.substring(0, 100) || 'null',
+        error: result.error || 'none'
+      });
+      
       if (result.success) {
         this.transformedImage = result.transformedImage;
         this.showResult(result.transformedImage);

@@ -356,12 +356,28 @@ module.exports = async (req, res) => {
       }
     }
 
+    // ✅ ZWRÓĆ SZCZEGÓŁOWE INFO W RESPONSE (dla debugowania w przeglądarce)
     return res.json({
       success: true,
       generationId: generationId,
       blobPath: blobPath,
       totalGenerations: dataToSave.totalGenerations,
-      message: 'Generation saved successfully'
+      message: 'Generation saved successfully',
+      // ✅ DEBUG INFO - pomoże zdiagnozować problem w przeglądarce
+      debug: {
+        customerId: customerId || null,
+        customerIdType: typeof customerId,
+        email: email || null,
+        hasMetafieldUpdate: !!customerId,
+        blobPath: blobPath,
+        generationsCount: dataToSave.generations.length,
+        firstGeneration: dataToSave.generations[0] ? {
+          id: dataToSave.generations[0].id,
+          style: dataToSave.generations[0].style,
+          imageUrlPreview: dataToSave.generations[0].imageUrl?.substring(0, 50) + '...'
+        } : null,
+        metafieldUpdated: customerId ? 'attempted' : 'skipped (no customerId)'
+      }
     });
 
   } catch (error) {

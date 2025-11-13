@@ -1027,6 +1027,15 @@ module.exports = async (req, res) => {
           const saveResult = await saveResponse.json();
           console.log(`✅ [TRANSFORM] Generacja zapisana w Vercel Blob Storage: ${saveResult.generationId}`);
           console.log(`📊 [TRANSFORM] Total generations: ${saveResult.totalGenerations || 'unknown'}`);
+          console.log(`🔍 [TRANSFORM] Save-generation debug info:`, saveResult.debug || 'brak');
+          
+          // ✅ LOGUJ SZCZEGÓŁY DLA DIAGNOSTYKI
+          if (saveResult.debug) {
+            console.log(`🔍 [TRANSFORM] customerId w save-generation: ${saveResult.debug.customerId || 'null'}`);
+            console.log(`🔍 [TRANSFORM] customerIdType: ${saveResult.debug.customerIdType || 'null'}`);
+            console.log(`🔍 [TRANSFORM] hasMetafieldUpdate: ${saveResult.debug.hasMetafieldUpdate || false}`);
+            console.log(`🔍 [TRANSFORM] email: ${saveResult.debug.email || 'null'}`);
+          }
         } else {
           const errorText = await saveResponse.text();
           console.error('⚠️ [TRANSFORM] Błąd zapisu generacji:', errorText);
