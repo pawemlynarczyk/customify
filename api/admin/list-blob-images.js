@@ -1,102 +1,158 @@
+// api/admin/list-blob-images.js
+/**
+ * API endpoint do listowania obrazków z Vercel Blob Storage
+ * Kategoryzacja: temp, orders, watermarked, original
+ */
+
 const { list } = require('@vercel/blob');
+const { checkRateLimit, getClientIP } = require('../../utils/vercelRateLimiter');
 
 module.exports = async (req, res) => {
-  // Prosta autoryzacja - sprawdzenie nagłówków Vercel
-  const isVercelRequest = req.headers['x-vercel-proxy-signature'] || 
-                          req.headers['x-vercel-id'] ||
-                          req.headers['x-vercel-deployment-url'];
+  console.log(`📊 [LIST-BLOB-IMAGES] API called - Method: ${req.method}`);
   
-  if (!isVercelRequest) {
-    return res.status(403).json({ error: 'Access denied' });
+  // CORS headers
+  const allowedOrigins = [
+    'https://lumly.pl',
+    'https://customify-s56o.vercel.app',
+    'http://localhost:3000'
+  ];
+  
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', '*');
   }
-
-  // Set CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Max-Age', '86400');
 
   if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
+    return res.status(200).end();
   }
 
   if (req.method !== 'GET') {
-    res.status(405).json({ error: 'Method not allowed' });
-    return;
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    const { prefix = 'customify', limit = 500, cursor, sortBy = 'date', sortOrder = 'desc' } = req.query;
+    // Prosta autoryzacja
+    const authHeader = req.headers.authorization;
+    const expectedToken = process.env.ADMIN_STATS_TOKEN || 'customify-admin-2024';
+    if (authHeader !== `Bearer ${expectedToken}`) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
 
-    console.log('📋 [ADMIN] Listing blob images with prefix:', prefix);
+    // IP-based rate limiting
+    const ip = getClientIP(req);
+    if (!checkRateLimit(ip, 100, 15 * 60 * 1000)) {
+      return res.status(429).json({ error: 'Rate limit exceeded' });
+    }
 
-    const result = await list({
-      prefix: prefix,
+    const { prefix, limit = 500, cursor, sortBy = 'date', sortOrder = 'desc', category } = req.query;
+
+    console.log('📊 [LIST-BLOB-IMAGES] Request params:', { prefix, limit, cursor, sortBy, sortOrder, category });
+
+    // List all blobs (bez prefixu - pobierz wszystko)
+    const blobs = await list({
+      prefix: prefix || undefined,
       limit: parseInt(limit),
       cursor: cursor || undefined,
-      token: process.env.customify_READ_WRITE_TOKEN || process.env.BLOB_READ_WRITE_TOKEN,
+      token: process.env.BLOB_READ_WRITE_TOKEN
     });
 
-    console.log(`✅ [ADMIN] Found ${result.blobs.length} images`);
+    console.log(`📊 [LIST-BLOB-IMAGES] Found ${blobs.blobs.length} blobs`);
 
-    // Mapuj bloby do formatu odpowiedzi
-    let blobs = result.blobs.map(blob => ({
-      url: blob.url,
-      pathname: blob.pathname,
-      size: blob.size,
-      uploadedAt: blob.uploadedAt,
-      filename: blob.pathname.split('/').pop(),
+    // Kategoryzacja obrazków
+    const categorizeImage = (blob) => {
+      const path = blob.pathname.toLowerCase();
+      const name = blob.pathname.toLowerCase();
+      
+      // 1. Watermarked - zawiera "watermark" w nazwie
+      if (name.includes('watermark')) {
+        return 'watermarked';
+      }
+      
+      // 2. Temp - prefix customify/temp/
+      if (path.startsWith('customify/temp/')) {
+        return 'temp';
+      }
+      
+      // 3. Orders - prefix customify/orders/
+      if (path.startsWith('customify/orders/')) {
+        return 'orders';
+      }
+      
+      // 4. Original - NIE zawiera "watermark" i NIE zawiera "ai" w nazwie
+      // i nie jest w temp/orders
+      if (!name.includes('watermark') && !name.includes('ai') && 
+          !path.startsWith('customify/temp/') && !path.startsWith('customify/orders/')) {
+        return 'original';
+      }
+      
+      // 5. Other - wszystko inne
+      return 'other';
+    };
+
+    // Kategoryzuj wszystkie obrazki
+    let categorizedBlobs = blobs.blobs.map(blob => ({
+      ...blob,
+      category: categorizeImage(blob)
     }));
 
-    // Sortuj po dacie
+    // Filtruj po kategorii jeśli podano
+    if (category && category !== 'all') {
+      categorizedBlobs = categorizedBlobs.filter(blob => blob.category === category);
+    }
+
+    // Sortowanie
     if (sortBy === 'date') {
-      blobs.sort((a, b) => {
+      categorizedBlobs.sort((a, b) => {
         const dateA = new Date(a.uploadedAt).getTime();
         const dateB = new Date(b.uploadedAt).getTime();
-        return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
+        return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+      });
+    } else if (sortBy === 'name') {
+      categorizedBlobs.sort((a, b) => {
+        const nameA = a.pathname.toLowerCase();
+        const nameB = b.pathname.toLowerCase();
+        return sortOrder === 'asc' 
+          ? nameA.localeCompare(nameB)
+          : nameB.localeCompare(nameA);
       });
     }
 
-    // Statystyki - policz obrazy w różnych prefiksach
+    // Statystyki per kategoria
     const stats = {
-      total: blobs.length,
-      byPrefix: {},
-      byType: {
-        temp: 0,
-        orders: 0,
-        other: 0
-      }
+      total: blobs.blobs.length,
+      temp: blobs.blobs.filter(b => categorizeImage(b) === 'temp').length,
+      orders: blobs.blobs.filter(b => categorizeImage(b) === 'orders').length,
+      watermarked: blobs.blobs.filter(b => categorizeImage(b) === 'watermarked').length,
+      original: blobs.blobs.filter(b => categorizeImage(b) === 'original').length,
+      other: blobs.blobs.filter(b => categorizeImage(b) === 'other').length
     };
 
-    blobs.forEach(blob => {
-      // Statystyki po prefiksie
-      const prefix = blob.pathname.split('/').slice(0, 2).join('/');
-      stats.byPrefix[prefix] = (stats.byPrefix[prefix] || 0) + 1;
-      
-      // Statystyki po typie
-      if (blob.pathname.includes('/temp/')) {
-        stats.byType.temp++;
-      } else if (blob.pathname.includes('/orders/')) {
-        stats.byType.orders++;
-      } else {
-        stats.byType.other++;
-      }
-    });
-
-    res.json({
+    return res.json({
       success: true,
-      blobs: blobs,
-      cursor: result.cursor,
-      hasMore: result.hasMore,
+      images: categorizedBlobs.map(blob => ({
+        url: blob.url,
+        pathname: blob.pathname,
+        size: blob.size,
+        uploadedAt: blob.uploadedAt,
+        category: blob.category
+      })),
+      cursor: blobs.cursor,
+      hasMore: !!blobs.cursor,
       stats: stats,
+      filteredCount: categorizedBlobs.length
     });
 
   } catch (error) {
-    console.error('❌ [ADMIN] Error listing blob images:', error);
-    res.status(500).json({ 
-      error: 'Failed to list images',
-      details: error.message 
+    console.error('❌ [LIST-BLOB-IMAGES] Error:', error);
+    return res.status(500).json({ 
+      error: 'Internal server error',
+      message: error.message 
     });
   }
 };
-

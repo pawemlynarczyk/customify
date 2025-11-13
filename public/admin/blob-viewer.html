@@ -3,34 +3,36 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Vercel Blob Viewer - Admin</title>
+  <title>Panel Admin - Vercel Blob Images - Customify</title>
   <style>
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
-
+    
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
       background: #f5f5f5;
       padding: 20px;
+      color: #333;
     }
-
+    
     .container {
       max-width: 1400px;
       margin: 0 auto;
       background: white;
-      border-radius: 8px;
+      border-radius: 12px;
       padding: 30px;
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
-
+    
     h1 {
-      margin-bottom: 20px;
-      color: #333;
+      margin-bottom: 30px;
+      color: #1565C0;
+      font-size: 28px;
     }
-
+    
     .controls {
       display: flex;
       gap: 15px;
@@ -38,779 +40,481 @@
       flex-wrap: wrap;
       align-items: center;
     }
-
-    .search-box {
-      flex: 1;
-      min-width: 200px;
-      padding: 10px;
+    
+    .control-group {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    
+    select, input, button {
+      padding: 10px 15px;
       border: 1px solid #ddd;
-      border-radius: 4px;
+      border-radius: 6px;
       font-size: 14px;
     }
-
-    .prefix-select {
-      padding: 10px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      font-size: 14px;
-    }
-
-    .btn {
-      padding: 10px 20px;
-      border: none;
-      border-radius: 4px;
+    
+    select {
       cursor: pointer;
-      font-size: 14px;
+    }
+    
+    button {
+      background: #1565C0;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
       transition: background 0.2s;
     }
-
-    .btn-primary {
-      background: #0070f3;
-      color: white;
+    
+    button:hover {
+      background: #0d47a1;
     }
-
-    .btn-primary:hover {
-      background: #0051cc;
+    
+    button.danger {
+      background: #f44336;
     }
-
-    .btn-danger {
-      background: #e00;
-      color: white;
+    
+    button.danger:hover {
+      background: #d32f2f;
     }
-
-    .btn-danger:hover {
-      background: #c00;
+    
+    button.success {
+      background: #4CAF50;
     }
-
-    .btn:disabled {
-      background: #ccc;
-      cursor: not-allowed;
+    
+    button.success:hover {
+      background: #45a049;
     }
-
+    
     .stats {
-      margin-bottom: 20px;
-      color: #666;
-      font-size: 14px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+      margin-bottom: 30px;
     }
-
+    
+    .stat-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 15px;
+      border-radius: 8px;
+      text-align: center;
+    }
+    
+    .stat-card.temp {
+      background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+    }
+    
+    .stat-card.orders {
+      background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+    }
+    
+    .stat-card.watermarked {
+      background: linear-gradient(135deg, #9C27B0 0%, #7B1FA2 100%);
+    }
+    
+    .stat-card.original {
+      background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+    }
+    
+    .stat-value {
+      font-size: 28px;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    
+    .stat-label {
+      font-size: 12px;
+      opacity: 0.9;
+    }
+    
     .gallery {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
       gap: 20px;
       margin-top: 20px;
     }
-
+    
     .image-card {
-      background: #f9f9f9;
+      border: 2px solid #e0e0e0;
       border-radius: 8px;
       overflow: hidden;
-      border: 1px solid #ddd;
       transition: transform 0.2s, box-shadow 0.2s;
-      cursor: pointer;
+      background: white;
     }
-
+    
     .image-card:hover {
-      transform: translateY(-2px);
+      transform: translateY(-4px);
       box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
-
-    .image-thumb {
+    
+    .image-card.selected {
+      border-color: #1565C0;
+      box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.2);
+    }
+    
+    .image-card img {
       width: 100%;
       height: 200px;
       object-fit: cover;
-      background: #eee;
+      display: block;
     }
-
+    
     .image-info {
-      padding: 12px;
-    }
-
-    .image-name {
+      padding: 10px;
       font-size: 12px;
-      color: #666;
-      margin-bottom: 8px;
+    }
+    
+    .image-info .category {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+    
+    .category.temp {
+      background: #FFE0B2;
+      color: #E65100;
+    }
+    
+    .category.orders {
+      background: #C8E6C9;
+      color: #2E7D32;
+    }
+    
+    .category.watermarked {
+      background: #E1BEE7;
+      color: #6A1B9A;
+    }
+    
+    .category.original {
+      background: #BBDEFB;
+      color: #1565C0;
+    }
+    
+    .category.other {
+      background: #F5F5F5;
+      color: #616161;
+    }
+    
+    .image-info .filename {
       word-break: break-all;
+      color: #666;
+      margin-bottom: 5px;
     }
-
-    .image-meta {
-      font-size: 11px;
+    
+    .image-info .date {
       color: #999;
-      margin-bottom: 4px;
+      font-size: 10px;
     }
-
-    .image-actions {
-      margin-top: 10px;
-      display: flex;
-      gap: 8px;
-    }
-
-    .btn-small {
-      padding: 6px 12px;
-      font-size: 12px;
-    }
-
-    .modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.9);
-      z-index: 1000;
+    
+    .checkbox {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 20px;
+      height: 20px;
       cursor: pointer;
     }
-
-    .modal.active {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .modal-content {
-      max-width: 90%;
-      max-height: 90%;
+    
+    .image-card {
       position: relative;
     }
-
-    .modal-image {
-      max-width: 100%;
-      max-height: 90vh;
-      object-fit: contain;
-    }
-
-    .modal-close {
-      position: absolute;
-      top: -40px;
-      right: 0;
-      color: white;
-      font-size: 30px;
-      cursor: pointer;
-      background: rgba(0,0,0,0.5);
-      width: 40px;
-      height: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 50%;
-    }
-
+    
     .loading {
       text-align: center;
       padding: 40px;
       color: #666;
     }
-
+    
     .error {
-      background: #fee;
-      color: #c00;
+      background: #ffebee;
+      color: #c62828;
       padding: 15px;
-      border-radius: 4px;
+      border-radius: 6px;
       margin-bottom: 20px;
     }
-
-    .confirm-dialog {
-      display: none;
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: white;
-      padding: 30px;
-      border-radius: 8px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-      z-index: 2000;
-      max-width: 400px;
-    }
-
-    .confirm-dialog.active {
-      display: block;
-    }
-
-    .confirm-dialog h3 {
-      margin-bottom: 15px;
-    }
-
-    .confirm-dialog p {
+    
+    .mass-actions {
+      background: #f5f5f5;
+      padding: 15px;
+      border-radius: 6px;
       margin-bottom: 20px;
-      color: #666;
-    }
-
-    .confirm-actions {
       display: flex;
       gap: 10px;
-      justify-content: flex-end;
+      align-items: center;
+    }
+    
+    .mass-actions.hidden {
+      display: none;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Vercel Blob Viewer - Admin</h1>
-
+    <h1>🖼️ Panel Admin - Vercel Blob Images</h1>
+    
+    <div id="errorContainer"></div>
+    
     <div class="controls">
-      <input type="text" class="search-box" id="search" placeholder="Szukaj po nazwie...">
-      <select class="prefix-select" id="prefix">
-        <option value="customify">Wszystkie (customify)</option>
-        <option value="customify/temp">Temp</option>
-        <option value="customify/orders">Orders</option>
-      </select>
-      <select class="prefix-select" id="sortOrder">
-        <option value="desc">Najnowsze</option>
-        <option value="asc">Najstarsze</option>
-      </select>
-      <input type="date" class="prefix-select" id="dateFrom" placeholder="Od" style="min-width: 150px;">
-      <input type="date" class="prefix-select" id="dateTo" placeholder="Do" style="min-width: 150px;">
-      <select class="prefix-select" id="dateQuickFilter" style="min-width: 150px;">
-        <option value="">Wszystkie daty</option>
-        <option value="today">Dzisiaj</option>
-        <option value="week">Ostatni tydzień</option>
-        <option value="month">Ostatni miesiąc</option>
-        <option value="3months">Ostatnie 3 miesiące</option>
-      </select>
-      <button class="btn btn-primary" onclick="loadImages()">Odśwież</button>
-      <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
-        <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
-        <span>Zaznacz wszystkie</span>
-      </label>
-      <button class="btn btn-danger" id="deleteSelectedBtn" onclick="deleteSelected()" disabled>Usuń zaznaczone (0)</button>
-      <button class="btn btn-danger" id="deleteOldBtn" onclick="deleteOldTempImages()">Usuń stare z temp (>7 dni)</button>
+      <div class="control-group">
+        <label><strong>Kategoria:</strong></label>
+        <select id="categoryFilter">
+          <option value="all">Wszystkie</option>
+          <option value="temp">Temp</option>
+          <option value="orders">Orders</option>
+          <option value="watermarked">Watermarked</option>
+          <option value="original">Original (klienci)</option>
+          <option value="other">Inne</option>
+        </select>
+      </div>
+      
+      <div class="control-group">
+        <label><strong>Sortowanie:</strong></label>
+        <select id="sortBy">
+          <option value="date">Data</option>
+          <option value="name">Nazwa</option>
+        </select>
+        <select id="sortOrder">
+          <option value="desc">Najnowsze</option>
+          <option value="asc">Najstarsze</option>
+        </select>
+      </div>
+      
+      <button onclick="loadImages()">🔄 Odśwież</button>
+      <button class="success" onclick="selectAll()">✓ Zaznacz wszystkie</button>
+      <button class="danger" onclick="deleteSelected()" id="deleteBtn" disabled>🗑️ Usuń zaznaczone (<span id="selectedCount">0</span>)</button>
     </div>
-
-    <div class="stats" id="stats"></div>
-    <div id="error"></div>
+    
+    <div class="mass-actions hidden" id="massActions">
+      <span id="selectedCountText">0 obrazków zaznaczonych</span>
+    </div>
+    
+    <div class="stats" id="stats">
+      <div class="stat-card">
+        <div class="stat-value" id="statTotal">0</div>
+        <div class="stat-label">Wszystkie</div>
+      </div>
+      <div class="stat-card temp">
+        <div class="stat-value" id="statTemp">0</div>
+        <div class="stat-label">Temp</div>
+      </div>
+      <div class="stat-card orders">
+        <div class="stat-value" id="statOrders">0</div>
+        <div class="stat-label">Orders</div>
+      </div>
+      <div class="stat-card watermarked">
+        <div class="stat-value" id="statWatermarked">0</div>
+        <div class="stat-label">Watermarked</div>
+      </div>
+      <div class="stat-card original">
+        <div class="stat-value" id="statOriginal">0</div>
+        <div class="stat-label">Original</div>
+      </div>
+    </div>
+    
+    <div id="loading" class="loading">Ładowanie obrazków...</div>
     <div id="gallery" class="gallery"></div>
-    <div id="loading" class="loading" style="display: none;">Ładowanie...</div>
-    <div id="loadMoreContainer" style="text-align: center; margin-top: 20px; display: none;">
-      <button class="btn btn-primary" onclick="loadMoreImages()">Załaduj więcej</button>
-    </div>
+    <button onclick="loadMore()" id="loadMoreBtn" style="display: none; width: 100%; margin-top: 20px; padding: 15px;">Załaduj więcej</button>
   </div>
-
-  <!-- Modal -->
-  <div class="modal" id="modal" onclick="closeModal()">
-    <div class="modal-content">
-      <span class="modal-close" onclick="closeModal()">&times;</span>
-      <img class="modal-image" id="modalImage" src="" alt="">
-    </div>
-  </div>
-
-  <!-- Confirm Dialog -->
-  <div class="confirm-dialog" id="confirmDialog">
-    <h3>Potwierdź usunięcie</h3>
-    <p>Czy na pewno chcesz usunąć ten obraz? Tej operacji nie można cofnąć.</p>
-    <div class="confirm-actions">
-      <button class="btn" onclick="closeConfirm()">Anuluj</button>
-      <button class="btn btn-danger" onclick="confirmDelete()">Usuń</button>
-    </div>
-  </div>
-
+  
   <script>
     const API_BASE = 'https://customify-s56o.vercel.app/api/admin';
-    let currentImages = [];
-    let deleteTarget = null;
+    let AUTH_TOKEN = localStorage.getItem('customify_admin_token');
     let currentCursor = null;
-    let hasMore = false;
-
-    function getDateRange() {
-      const quickFilter = document.getElementById('dateQuickFilter').value;
-      const dateFrom = document.getElementById('dateFrom').value;
-      const dateTo = document.getElementById('dateTo').value;
-
-      // Jeśli wybrano szybki filtr, ustaw daty automatycznie
-      if (quickFilter && !dateFrom && !dateTo) {
-        const today = new Date();
-        today.setHours(23, 59, 59, 999); // Koniec dzisiaj
-        
-        let fromDate = new Date();
-        
-        switch (quickFilter) {
-          case 'today':
-            fromDate.setHours(0, 0, 0, 0);
-            break;
-          case 'week':
-            fromDate.setDate(fromDate.getDate() - 7);
-            fromDate.setHours(0, 0, 0, 0);
-            break;
-          case 'month':
-            fromDate.setMonth(fromDate.getMonth() - 1);
-            fromDate.setHours(0, 0, 0, 0);
-            break;
-          case '3months':
-            fromDate.setMonth(fromDate.getMonth() - 3);
-            fromDate.setHours(0, 0, 0, 0);
-            break;
-        }
-        
-        return {
-          from: fromDate,
-          to: today
-        };
+    let allImages = [];
+    let selectedImages = new Set();
+    
+    // Jeśli nie ma tokena, poproś użytkownika
+    if (!AUTH_TOKEN) {
+      const tokenInput = prompt('🔐 Wprowadź token autoryzacji (z Vercel Environment Variables - ADMIN_STATS_TOKEN):');
+      if (tokenInput && tokenInput.trim()) {
+        AUTH_TOKEN = tokenInput.trim();
+        localStorage.setItem('customify_admin_token', AUTH_TOKEN);
+      } else {
+        alert('❌ Token jest wymagany. Odśwież stronę i wprowadź token.');
       }
-
-      // Jeśli wybrano ręczne daty
-      if (dateFrom || dateTo) {
-        return {
-          from: dateFrom ? new Date(dateFrom + 'T00:00:00') : null,
-          to: dateTo ? new Date(dateTo + 'T23:59:59') : null
-        };
-      }
-
-      return { from: null, to: null };
     }
-
-    function filterByDate(images, dateRange) {
-      if (!dateRange.from && !dateRange.to) {
-        return images;
+    
+    async function loadImages(reset = true) {
+      if (!AUTH_TOKEN) {
+        document.getElementById('errorContainer').innerHTML = '<div class="error">❌ Brak tokena autoryzacji</div>';
+        return;
       }
-
-      return images.filter(img => {
-        const imgDate = new Date(img.uploadedAt);
-        
-        if (dateRange.from && imgDate < dateRange.from) {
-          return false;
-        }
-        
-        if (dateRange.to && imgDate > dateRange.to) {
-          return false;
-        }
-        
-        return true;
-      });
-    }
-
-    async function loadImages(cursor = null) {
-      const prefix = document.getElementById('prefix').value;
+      
+      if (reset) {
+        allImages = [];
+        currentCursor = null;
+        selectedImages.clear();
+        updateDeleteButton();
+      }
+      
+      const loadingEl = document.getElementById('loading');
+      const galleryEl = document.getElementById('gallery');
+      const errorContainer = document.getElementById('errorContainer');
+      
+      loadingEl.style.display = 'block';
+      errorContainer.innerHTML = '';
+      
+      const category = document.getElementById('categoryFilter').value;
+      const sortBy = document.getElementById('sortBy').value;
       const sortOrder = document.getElementById('sortOrder').value;
-      const search = document.getElementById('search').value.toLowerCase();
-      const dateRange = getDateRange();
       
-      document.getElementById('loading').style.display = 'block';
-      document.getElementById('error').innerHTML = '';
-      
-      // Resetuj galerię tylko przy pierwszym załadowaniu (bez cursor)
-      if (!cursor) {
-        document.getElementById('gallery').innerHTML = '';
-      }
-
       try {
-        const url = `${API_BASE}/list-blob-images?prefix=${encodeURIComponent(prefix)}&limit=500&sortBy=date&sortOrder=${sortOrder}${cursor ? '&cursor=' + encodeURIComponent(cursor) : ''}`;
-        const response = await fetch(url);
+        const url = `${API_BASE}/list-blob-images?limit=500&sortBy=${sortBy}&sortOrder=${sortOrder}${category !== 'all' ? '&category=' + category : ''}${currentCursor ? '&cursor=' + encodeURIComponent(currentCursor) : ''}`;
+        
+        const response = await fetch(url, {
+          headers: {
+            'Authorization': `Bearer ${AUTH_TOKEN}`
+          }
+        });
         
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
-
+        
         const data = await response.json();
         
         if (!data.success) {
-          throw new Error(data.error || 'Failed to load images');
-        }
-
-        // Jeśli to pierwsze ładowanie (bez cursor), resetuj listę
-        if (!cursor) {
-          currentImages = data.blobs;
-        } else {
-          // Dodaj do istniejącej listy
-          currentImages = [...currentImages, ...data.blobs];
+          throw new Error(data.error || 'Unknown error');
         }
         
+        // Dodaj nowe obrazki do listy
+        allImages = reset ? data.images : [...allImages, ...data.images];
         currentCursor = data.cursor;
-        hasMore = data.hasMore;
-
-        // Jeśli ładujemy więcej (cursor istnieje), pokaż tylko nowe obrazy
-        // Jeśli pierwsze ładowanie, pokaż wszystkie przefiltrowane
-        if (cursor) {
-          // Przy ładowaniu więcej: pokaż tylko nowe obrazy (z tej strony)
-          let newImages = data.blobs;
-          
-          // Filtruj po wyszukiwarce
-          if (search) {
-            newImages = newImages.filter(img => img.filename.toLowerCase().includes(search));
-          }
-          
-          // Filtruj po dacie
-          newImages = filterByDate(newImages, dateRange);
-          
-          displayImages(newImages, true);
-          
-          // Statystyki dla wszystkich załadowanych obrazów
-          let allFiltered = currentImages;
-          if (search) {
-            allFiltered = allFiltered.filter(img => img.filename.toLowerCase().includes(search));
-          }
-          allFiltered = filterByDate(allFiltered, dateRange);
-          updateStats(allFiltered.length, currentImages.length, data.stats);
-        } else {
-          // Przy pierwszym ładowaniu: pokaż wszystkie przefiltrowane
-          let filtered = currentImages;
-          
-          // Filtruj po wyszukiwarce
-          if (search) {
-            filtered = filtered.filter(img => img.filename.toLowerCase().includes(search));
-          }
-          
-          // Filtruj po dacie
-          filtered = filterByDate(filtered, dateRange);
-          
-          displayImages(filtered, false);
-          updateStats(filtered.length, currentImages.length, data.stats);
-        }
         
-        // Pokaż przycisk "Załaduj więcej" jeśli są kolejne strony
-        document.getElementById('loadMoreContainer').style.display = hasMore ? 'block' : 'none';
-
+        // Aktualizuj statystyki
+        updateStats(data.stats);
+        
+        // Wyświetl obrazki
+        displayImages();
+        
+        // Pokaż/ukryj przycisk "Załaduj więcej"
+        document.getElementById('loadMoreBtn').style.display = data.hasMore ? 'block' : 'none';
+        
+        loadingEl.style.display = 'none';
+        
       } catch (error) {
-        document.getElementById('error').innerHTML = 
-          `<div class="error">Błąd: ${error.message}</div>`;
         console.error('Error loading images:', error);
-      } finally {
-        document.getElementById('loading').style.display = 'none';
+        loadingEl.style.display = 'none';
+        errorContainer.innerHTML = `<div class="error"><strong>Błąd:</strong> ${error.message}</div>`;
       }
     }
-
-    async function loadMoreImages() {
-      if (!currentCursor || !hasMore) return;
+    
+    function displayImages() {
+      const galleryEl = document.getElementById('gallery');
+      galleryEl.innerHTML = '';
       
-      document.getElementById('loading').style.display = 'block';
-      await loadImages(currentCursor);
-      document.getElementById('loading').style.display = 'none';
-    }
-
-    function displayImages(images, append = false) {
-      const gallery = document.getElementById('gallery');
-      
-      // Resetuj tylko jeśli nie dodajemy (pierwsze ładowanie)
-      if (!append) {
-        gallery.innerHTML = '';
-        document.getElementById('selectAll').checked = false;
-        updateDeleteButton();
-      }
-
-      if (images.length === 0 && !append) {
-        gallery.innerHTML = '<div class="loading">Brak obrazów</div>';
-        return;
-      }
-
-      // Jeśli dodajemy, pokaż tylko nowe obrazy (te które nie są jeszcze w galerii)
-      const existingUrls = new Set();
-      if (append) {
-        gallery.querySelectorAll('.image-card').forEach(card => {
-          const img = card.querySelector('img');
-          if (img) existingUrls.add(img.src);
-        });
-      }
-
-      images.forEach(img => {
-        // Pomiń jeśli już jest w galerii (przy dodawaniu)
-        if (append && existingUrls.has(img.url)) {
-          return;
-        }
+      allImages.forEach((image, index) => {
         const card = document.createElement('div');
         card.className = 'image-card';
+        card.dataset.index = index;
         
-        const date = new Date(img.uploadedAt);
-        const sizeKB = (img.size / 1024).toFixed(1);
-
+        const isSelected = selectedImages.has(image.url);
+        if (isSelected) {
+          card.classList.add('selected');
+        }
+        
         card.innerHTML = `
-          <div style="position: relative;">
-            <input type="checkbox" class="image-checkbox" data-url="${img.url}" onchange="updateDeleteButton()" style="position: absolute; top: 10px; left: 10px; z-index: 10; width: 20px; height: 20px; cursor: pointer;">
-            <img class="image-thumb" src="${img.url}" alt="${img.filename}" 
-                 onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22%3E%3C/svg%3E'">
-          </div>
+          <input type="checkbox" class="checkbox" ${isSelected ? 'checked' : ''} 
+                 onchange="toggleSelection('${image.url}', ${index})">
+          <img src="${image.url}" alt="${image.pathname}" loading="lazy" 
+               onclick="window.open('${image.url}', '_blank')">
           <div class="image-info">
-            <div class="image-name" title="${img.pathname}">${img.filename}</div>
-            <div class="image-meta">${sizeKB} KB</div>
-            <div class="image-meta">${date.toLocaleDateString('pl-PL')} ${date.toLocaleTimeString('pl-PL')}</div>
-            <div class="image-actions">
-              <button class="btn btn-primary btn-small" onclick="viewImage('${img.url}')">Zobacz</button>
-              <button class="btn btn-danger btn-small" onclick="deleteImage('${img.url}', '${img.filename}')">Usuń</button>
-            </div>
+            <span class="category ${image.category}">${image.category}</span>
+            <div class="filename">${image.pathname.split('/').pop()}</div>
+            <div class="date">${new Date(image.uploadedAt).toLocaleString('pl-PL')}</div>
           </div>
         `;
-
-        gallery.appendChild(card);
+        
+        galleryEl.appendChild(card);
       });
     }
-
-    function updateStats(filtered, total, statsData = null) {
-      const stats = document.getElementById('stats');
-      let statsText = `Wyświetlono: ${filtered} z ${total} obrazów`;
-      
-      if (statsData) {
-        statsText += ` | Temp: ${statsData.byType.temp}, Orders: ${statsData.byType.orders}, Other: ${statsData.byType.other}`;
-        if (Object.keys(statsData.byPrefix).length > 0) {
-          const prefixStats = Object.entries(statsData.byPrefix)
-            .map(([prefix, count]) => `${prefix}: ${count}`)
-            .join(', ');
-          statsText += ` | Prefiksy: ${prefixStats}`;
-        }
+    
+    function updateStats(stats) {
+      document.getElementById('statTotal').textContent = stats.total || 0;
+      document.getElementById('statTemp').textContent = stats.temp || 0;
+      document.getElementById('statOrders').textContent = stats.orders || 0;
+      document.getElementById('statWatermarked').textContent = stats.watermarked || 0;
+      document.getElementById('statOriginal').textContent = stats.original || 0;
+    }
+    
+    function toggleSelection(url, index) {
+      if (selectedImages.has(url)) {
+        selectedImages.delete(url);
+      } else {
+        selectedImages.add(url);
       }
-      
-      stats.textContent = statsText;
-    }
-
-    function viewImage(url) {
-      document.getElementById('modalImage').src = url;
-      document.getElementById('modal').classList.add('active');
-    }
-
-    function closeModal() {
-      document.getElementById('modal').classList.remove('active');
-    }
-
-    function deleteImage(url, filename) {
-      deleteTarget = url;
-      document.getElementById('confirmDialog').classList.add('active');
-    }
-
-    function closeConfirm() {
-      document.getElementById('confirmDialog').classList.remove('active');
-      deleteTarget = null;
-    }
-
-    async function confirmDelete() {
-      if (!deleteTarget) return;
-
-      try {
-        const response = await fetch(`${API_BASE}/delete-blob-image`, {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ url: deleteTarget }),
-        });
-
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.error || 'Failed to delete');
-        }
-
-        closeConfirm();
-        loadImages(); // Odśwież listę
-
-      } catch (error) {
-        alert('Błąd usuwania: ' + error.message);
-        console.error('Error deleting image:', error);
-      }
-    }
-
-    function toggleSelectAll() {
-      const selectAll = document.getElementById('selectAll');
-      const checkboxes = document.querySelectorAll('.image-checkbox');
-      checkboxes.forEach(cb => cb.checked = selectAll.checked);
       updateDeleteButton();
+      displayImages();
     }
-
+    
+    function selectAll() {
+      allImages.forEach(img => selectedImages.add(img.url));
+      updateDeleteButton();
+      displayImages();
+    }
+    
     function updateDeleteButton() {
-      const checkboxes = document.querySelectorAll('.image-checkbox:checked');
-      const count = checkboxes.length;
-      const btn = document.getElementById('deleteSelectedBtn');
-      btn.disabled = count === 0;
-      btn.textContent = `Usuń zaznaczone (${count})`;
+      const count = selectedImages.size;
+      document.getElementById('selectedCount').textContent = count;
+      document.getElementById('deleteBtn').disabled = count === 0;
     }
-
+    
     async function deleteSelected() {
-      const checkboxes = document.querySelectorAll('.image-checkbox:checked');
-      const urls = Array.from(checkboxes).map(cb => cb.dataset.url);
+      if (selectedImages.size === 0) return;
       
-      if (urls.length === 0) return;
-
-      const confirmed = confirm(`Czy na pewno chcesz usunąć ${urls.length} obrazów? Tej operacji nie można cofnąć.`);
-      if (!confirmed) return;
-
-      const btn = document.getElementById('deleteSelectedBtn');
-      btn.disabled = true;
-      btn.textContent = 'Usuwanie...';
-
+      if (!confirm(`Czy na pewno chcesz usunąć ${selectedImages.size} obrazków?`)) {
+        return;
+      }
+      
+      const urls = Array.from(selectedImages);
       let successCount = 0;
       let errorCount = 0;
-
+      
       for (const url of urls) {
         try {
           const response = await fetch(`${API_BASE}/delete-blob-image`, {
-            method: 'DELETE',
+            method: 'POST',
             headers: {
               'Content-Type': 'application/json',
+              'Authorization': `Bearer ${AUTH_TOKEN}`
             },
-            body: JSON.stringify({ url: url }),
+            body: JSON.stringify({ url })
           });
-
+          
           if (response.ok) {
             successCount++;
           } else {
             errorCount++;
-            console.error('Failed to delete:', url);
           }
         } catch (error) {
           errorCount++;
-          console.error('Error deleting:', url, error);
         }
       }
-
-      alert(`Usunięto ${successCount} obrazów${errorCount > 0 ? `, ${errorCount} błędów` : ''}`);
       
-      // Reset checkboxes
-      document.getElementById('selectAll').checked = false;
+      alert(`Usunięto: ${successCount}, Błędy: ${errorCount}`);
+      selectedImages.clear();
       updateDeleteButton();
-      
-      // Reload images
-      loadImages();
+      loadImages(true);
     }
-
-    async function deleteOldTempImages() {
-      const confirmed = confirm('Czy na pewno chcesz usunąć wszystkie obrazy z temp starsze niż 7 dni? Tej operacji nie można cofnąć.');
-      if (!confirmed) return;
-
-      const btn = document.getElementById('deleteOldBtn');
-      const originalText = btn.textContent;
-      btn.disabled = true;
-      btn.textContent = 'Sprawdzanie...';
-
-      try {
-        // Pobierz wszystkie obrazy z temp (może być wiele stron)
-        let allTempImages = [];
-        let cursor = null;
-        let hasMore = true;
-
-        while (hasMore) {
-          const url = `${API_BASE}/list-blob-images?prefix=customify/temp&limit=500&sortBy=date&sortOrder=asc${cursor ? '&cursor=' + encodeURIComponent(cursor) : ''}`;
-          const response = await fetch(url);
-          
-          if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-          }
-
-          const data = await response.json();
-          if (!data.success) {
-            throw new Error(data.error || 'Failed to load images');
-          }
-
-          allTempImages = [...allTempImages, ...data.blobs];
-          cursor = data.cursor;
-          hasMore = data.hasMore;
-        }
-
-        // Oblicz datę graniczną (7 dni temu)
-        const sevenDaysAgo = new Date();
-        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-        sevenDaysAgo.setHours(0, 0, 0, 0);
-
-        // Znajdź obrazy starsze niż 7 dni
-        const oldImages = allTempImages.filter(img => {
-          const imgDate = new Date(img.uploadedAt);
-          return imgDate < sevenDaysAgo;
-        });
-
-        if (oldImages.length === 0) {
-          alert('Nie znaleziono obrazów starszych niż 7 dni w temp.');
-          btn.disabled = false;
-          btn.textContent = originalText;
-          return;
-        }
-
-        const deleteConfirmed = confirm(`Znaleziono ${oldImages.length} obrazów starszych niż 7 dni. Usunąć je wszystkie?`);
-        if (!deleteConfirmed) {
-          btn.disabled = false;
-          btn.textContent = originalText;
-          return;
-        }
-
-        btn.textContent = `Usuwanie ${oldImages.length} obrazów...`;
-
-        // Usuń wszystkie stare obrazy
-        let successCount = 0;
-        let errorCount = 0;
-
-        for (const img of oldImages) {
-          try {
-            const response = await fetch(`${API_BASE}/delete-blob-image`, {
-              method: 'DELETE',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({ url: img.url }),
-            });
-
-            if (response.ok) {
-              successCount++;
-            } else {
-              errorCount++;
-              console.error('Failed to delete:', img.url);
-            }
-          } catch (error) {
-            errorCount++;
-            console.error('Error deleting:', img.url, error);
-          }
-        }
-
-        alert(`Usunięto ${successCount} starych obrazów${errorCount > 0 ? `, ${errorCount} błędów` : ''}.`);
-        
-        // Reload images
-        loadImages();
-
-      } catch (error) {
-        alert('Błąd podczas usuwania starych obrazów: ' + error.message);
-        console.error('Error deleting old images:', error);
-      } finally {
-        btn.disabled = false;
-        btn.textContent = originalText;
-      }
+    
+    function loadMore() {
+      loadImages(false);
     }
-
+    
     // Event listeners
-    document.getElementById('search').addEventListener('input', (e) => {
-      const search = e.target.value.toLowerCase();
-      const dateRange = getDateRange();
-      
-      let filtered = currentImages;
-      
-      // Filtruj po wyszukiwarce
-      if (search) {
-        filtered = filtered.filter(img => img.filename.toLowerCase().includes(search));
-      }
-      
-      // Filtruj po dacie
-      filtered = filterByDate(filtered, dateRange);
-      
-      displayImages(filtered, false);
-      updateStats(filtered.length, currentImages.length);
-    });
-
-    document.getElementById('prefix').addEventListener('change', () => {
-      loadImages();
-    });
-
-    document.getElementById('sortOrder').addEventListener('change', () => {
-      loadImages();
-    });
-
-    document.getElementById('dateFrom').addEventListener('change', () => {
-      // Wyczyść szybki filtr jeśli ustawiono ręczną datę
-      if (document.getElementById('dateFrom').value) {
-        document.getElementById('dateQuickFilter').value = '';
-      }
-      loadImages();
-    });
-
-    document.getElementById('dateTo').addEventListener('change', () => {
-      // Wyczyść szybki filtr jeśli ustawiono ręczną datę
-      if (document.getElementById('dateTo').value) {
-        document.getElementById('dateQuickFilter').value = '';
-      }
-      loadImages();
-    });
-
-    document.getElementById('dateQuickFilter').addEventListener('change', () => {
-      // Wyczyść ręczne daty jeśli wybrano szybki filtr
-      if (document.getElementById('dateQuickFilter').value) {
-        document.getElementById('dateFrom').value = '';
-        document.getElementById('dateTo').value = '';
-      }
-      loadImages();
-    });
-
+    document.getElementById('categoryFilter').addEventListener('change', () => loadImages(true));
+    document.getElementById('sortBy').addEventListener('change', () => loadImages(true));
+    document.getElementById('sortOrder').addEventListener('change', () => loadImages(true));
+    
     // Load on page load
-    loadImages();
+    if (AUTH_TOKEN) {
+      loadImages(true);
+    }
   </script>
 </body>
 </html>
-

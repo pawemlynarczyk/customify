@@ -1,56 +1,78 @@
+// api/admin/delete-blob-image.js
+/**
+ * API endpoint do usuwania obrazków z Vercel Blob Storage
+ */
+
 const { del } = require('@vercel/blob');
+const { checkRateLimit, getClientIP } = require('../../utils/vercelRateLimiter');
 
 module.exports = async (req, res) => {
-  // Prosta autoryzacja - sprawdzenie nagłówków Vercel
-  const isVercelRequest = req.headers['x-vercel-proxy-signature'] || 
-                          req.headers['x-vercel-id'] ||
-                          req.headers['x-vercel-deployment-url'];
+  console.log(`🗑️ [DELETE-BLOB-IMAGE] API called - Method: ${req.method}`);
   
-  if (!isVercelRequest) {
-    return res.status(403).json({ error: 'Access denied' });
+  // CORS headers
+  const allowedOrigins = [
+    'https://lumly.pl',
+    'https://customify-s56o.vercel.app',
+    'http://localhost:3000'
+  ];
+  
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', '*');
   }
-
-  // Set CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'DELETE, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  
+  res.setHeader('Access-Control-Allow-Methods', 'POST, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Max-Age', '86400');
 
   if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
+    return res.status(200).end();
   }
 
-  if (req.method !== 'DELETE' && req.method !== 'POST') {
-    res.status(405).json({ error: 'Method not allowed' });
-    return;
+  if (req.method !== 'POST' && req.method !== 'DELETE') {
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
+    // Prosta autoryzacja
+    const authHeader = req.headers.authorization;
+    const expectedToken = process.env.ADMIN_STATS_TOKEN || 'customify-admin-2024';
+    if (authHeader !== `Bearer ${expectedToken}`) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    // IP-based rate limiting
+    const ip = getClientIP(req);
+    if (!checkRateLimit(ip, 50, 15 * 60 * 1000)) {
+      return res.status(429).json({ error: 'Rate limit exceeded' });
+    }
+
     const { url } = req.body;
 
     if (!url) {
-      return res.status(400).json({ error: 'Image URL is required' });
+      return res.status(400).json({ error: 'Missing url parameter' });
     }
 
-    console.log('🗑️ [ADMIN] Deleting blob image:', url);
+    console.log('🗑️ [DELETE-BLOB-IMAGE] Deleting:', url);
 
     await del(url, {
-      token: process.env.customify_READ_WRITE_TOKEN || process.env.BLOB_READ_WRITE_TOKEN,
+      token: process.env.BLOB_READ_WRITE_TOKEN
     });
 
-    console.log('✅ [ADMIN] Image deleted successfully');
+    console.log('✅ [DELETE-BLOB-IMAGE] Image deleted successfully');
 
-    res.json({
+    return res.json({
       success: true,
-      message: 'Image deleted successfully',
+      message: 'Image deleted successfully'
     });
 
   } catch (error) {
-    console.error('❌ [ADMIN] Error deleting blob image:', error);
-    res.status(500).json({ 
-      error: 'Failed to delete image',
-      details: error.message 
+    console.error('❌ [DELETE-BLOB-IMAGE] Error:', error);
+    return res.status(500).json({ 
+      error: 'Internal server error',
+      message: error.message 
     });
   }
 };
-
