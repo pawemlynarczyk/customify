@@ -74,28 +74,58 @@ module.exports = async (req, res) => {
       });
     }
 
+    // ✅ BARDZO WIDOCZNE LOGOWANIE - SPRAWDŹ WARTOŚCI PRZED KONWERSJĄ
+    console.log(`🔍🔍🔍 [SAVE-GENERATION] ===== SPRAWDZAM IDENTIFIER PRZED KONWERSJĄ =====`);
+    console.log(`🔍 [SAVE-GENERATION] customerId:`, customerId, typeof customerId);
+    console.log(`🔍 [SAVE-GENERATION] email:`, email, typeof email);
+    console.log(`🔍 [SAVE-GENERATION] ip:`, ip, typeof ip);
+    
     // Określ identyfikator klienta (priorytet: customerId > email > IP)
     let keyPrefix = 'customer';
-    let identifier = customerId ? String(customerId) : null; // ✅ KONWERSJA NA STRING
+    let identifier = null;
     
-    if (!customerId && email) {
+    // ✅ KONWERSJA NA STRING - BARDZO DEFENSYWNA
+    if (customerId) {
+      identifier = String(customerId);
+      console.log(`✅ [SAVE-GENERATION] Używam customerId jako identifier:`, identifier, typeof identifier);
+    } else if (email) {
       keyPrefix = 'email';
-      identifier = email.toLowerCase().trim();
-    } else if (!customerId && !email) {
+      identifier = String(email).toLowerCase().trim();
+      console.log(`✅ [SAVE-GENERATION] Używam email jako identifier:`, identifier, typeof identifier);
+    } else {
       // Fallback do IP (nie zalecane, ale lepsze niż nic)
       keyPrefix = 'ip';
-      identifier = String(ip || 'unknown'); // ✅ KONWERSJA NA STRING
-      console.warn('⚠️ [SAVE-GENERATION] Using IP as identifier (no customerId or email)');
+      identifier = String(ip || 'unknown');
+      console.warn('⚠️ [SAVE-GENERATION] Using IP as identifier (no customerId or email):', identifier, typeof identifier);
     }
 
     // ✅ WALIDACJA - upewnij się, że identifier jest stringiem
+    console.log(`🔍 [SAVE-GENERATION] identifier przed walidacją:`, identifier, typeof identifier);
     if (!identifier || typeof identifier !== 'string') {
       console.error('❌ [SAVE-GENERATION] Invalid identifier:', identifier, typeof identifier);
+      console.error('❌ [SAVE-GENERATION] customerId:', customerId, typeof customerId);
+      console.error('❌ [SAVE-GENERATION] email:', email, typeof email);
+      console.error('❌ [SAVE-GENERATION] ip:', ip, typeof ip);
       return res.status(400).json({ 
         error: 'Invalid identifier',
-        message: 'customerId, email, or IP must be provided'
+        message: 'customerId, email, or IP must be provided',
+        debug: {
+          customerId: customerId,
+          customerIdType: typeof customerId,
+          email: email,
+          emailType: typeof email,
+          ip: ip,
+          ipType: typeof ip,
+          identifier: identifier,
+          identifierType: typeof identifier
+        }
       });
     }
+
+    // ✅ DODATKOWA KONWERSJA NA STRING (na wszelki wypadek)
+    identifier = String(identifier);
+    console.log(`✅ [SAVE-GENERATION] identifier po finalnej konwersji:`, identifier, typeof identifier);
+    console.log(`🔍🔍🔍 [SAVE-GENERATION] ===== KONIEC SPRAWDZANIA IDENTIFIER =====`);
 
     // Path w Vercel Blob Storage dla JSON z generacjami
     const blobPath = `customify/generations/${keyPrefix}-${identifier.replace(/[^a-zA-Z0-9]/g, '-')}.json`;
