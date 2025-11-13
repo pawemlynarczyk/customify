@@ -1942,7 +1942,8 @@ class CustomifyEmbed {
         hasTransformedImage: !!result.transformedImage,
         transformedImageType: typeof result.transformedImage,
         transformedImagePreview: result.transformedImage?.substring(0, 100) || 'null',
-        error: result.error || 'none'
+        error: result.error || 'none',
+        hasSaveGenerationDebug: !!result.saveGenerationDebug
       });
       
       // ✅ SPRAWDŹ CZY W RESPONSE SĄ DEBUG INFO Z SAVE-GENERATION
@@ -1958,11 +1959,15 @@ class CustomifyEmbed {
           console.log('✅ [FRONTEND] Metafield zaktualizowany pomyślnie w Shopify Admin!');
         } else if (result.saveGenerationDebug.metafieldUpdateAttempted) {
           console.warn('⚠️ [FRONTEND] Próba aktualizacji metafielda nie powiodła się:', result.saveGenerationDebug.metafieldUpdateError || 'unknown error');
+        } else if (result.saveGenerationDebug.skipped) {
+          console.warn('⚠️ [FRONTEND] Zapis generacji został pominięty:', result.saveGenerationDebug.reason || 'unknown reason');
         } else {
           console.warn('⚠️ [FRONTEND] Metafield nie został zaktualizowany - brak customerId lub inny problem');
         }
       } else {
         console.warn('⚠️ [FRONTEND] Brak debug info z save-generation w response');
+        console.warn('⚠️ [FRONTEND] Response keys:', Object.keys(result));
+        console.warn('⚠️ [FRONTEND] Full response:', result);
       }
       
       if (result.success) {
