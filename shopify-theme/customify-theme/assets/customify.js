@@ -1876,16 +1876,44 @@ class CustomifyEmbed {
       // ✅ USAGE LIMITS: Pobierz dane użytkownika do przekazania do API
       const customerInfo = this.getCustomerInfo();
       
+      // ✅ Pobierz email z localStorage (jeśli był w formularzu) lub z customerInfo
+      const email = customerInfo?.email || localStorage.getItem('customify_email_provided') || null;
+      
       const requestBody = {
         imageData: base64,
         prompt: `Transform this image in ${this.selectedStyle} style`,
         productType: productType, // Przekaż typ produktu do API
         customerId: customerInfo?.customerId || null,
-        customerAccessToken: customerInfo?.customerAccessToken || null
+        customerAccessToken: customerInfo?.customerAccessToken || null,
+        email: email // ✅ Dodaj email dla niezalogowanych lub jako backup
       };
       
       console.log('📱 [MOBILE] Request body size:', JSON.stringify(requestBody).length, 'bytes');
       console.log('👤 [MOBILE] Customer info:', customerInfo ? 'zalogowany' : 'niezalogowany');
+      
+      // ✅ SZCZEGÓŁOWE LOGOWANIE DLA DIAGNOSTYKI
+      console.log('🔍 [FRONTEND] Customer Info Details:', {
+        customerId: customerInfo?.customerId || 'null',
+        customerIdType: typeof customerInfo?.customerId,
+        email: customerInfo?.email || email || 'null',
+        customerAccessToken: customerInfo?.customerAccessToken || 'null',
+        hasCustomerInfo: !!customerInfo,
+        windowShopifyCustomer: window.ShopifyCustomer ? {
+          id: window.ShopifyCustomer.id,
+          loggedIn: window.ShopifyCustomer.loggedIn,
+          email: window.ShopifyCustomer.email
+        } : 'null'
+      });
+      
+      console.log('🔍 [FRONTEND] Request Body (bez imageData):', {
+        prompt: requestBody.prompt,
+        productType: requestBody.productType,
+        customerId: requestBody.customerId,
+        customerIdType: typeof requestBody.customerId,
+        customerAccessToken: requestBody.customerAccessToken ? 'present' : 'null',
+        email: requestBody.email,
+        imageDataLength: requestBody.imageData?.length || 0
+      });
       
       const response = await fetch('https://customify-s56o.vercel.app/api/transform', {
         method: 'POST',
@@ -1909,6 +1937,47 @@ class CustomifyEmbed {
 
       const result = await response.json();
       console.log('📱 [MOBILE] Response JSON parsed successfully');
+      
+      // ✅ BARDZO WIDOCZNE LOGOWANIE - SPRAWDŹ CZY JEST saveGenerationDebug
+      console.log('🔍🔍🔍 [FRONTEND] ===== SPRAWDZAM RESPONSE Z TRANSFORM API =====');
+      console.log('🔍 [FRONTEND] Response keys:', Object.keys(result));
+      console.log('🔍 [FRONTEND] hasSaveGenerationDebug:', !!result.saveGenerationDebug);
+      console.log('🔍 [FRONTEND] saveGenerationDebug value:', result.saveGenerationDebug);
+      console.log('✅ [FRONTEND] Transform API Response:', {
+        success: result.success,
+        hasTransformedImage: !!result.transformedImage,
+        transformedImageType: typeof result.transformedImage,
+        transformedImagePreview: result.transformedImage?.substring(0, 100) || 'null',
+        error: result.error || 'none',
+        hasSaveGenerationDebug: !!result.saveGenerationDebug
+      });
+      
+      // ✅ SPRAWDŹ CZY W RESPONSE SĄ DEBUG INFO Z SAVE-GENERATION
+      if (result.saveGenerationDebug) {
+        console.log('🔍🔍🔍 [FRONTEND] ===== ZNALEZIONO saveGenerationDebug W RESPONSE! =====');
+        console.log('🔍 [FRONTEND] Save-generation debug info (z backend):', JSON.stringify(result.saveGenerationDebug, null, 2));
+        console.log('🔍 [FRONTEND] customerId:', result.saveGenerationDebug.customerId || 'null');
+        console.log('🔍 [FRONTEND] metafieldUpdateAttempted:', result.saveGenerationDebug.metafieldUpdateAttempted || false);
+        console.log('🔍 [FRONTEND] metafieldUpdateSuccess:', result.saveGenerationDebug.metafieldUpdateSuccess || false);
+        console.log('🔍 [FRONTEND] metafieldUpdateError:', result.saveGenerationDebug.metafieldUpdateError || 'none');
+        
+        // ✅ POKAŻ W CONSOLE CZY METAFIELD ZOSTAŁ ZAKTUALIZOWANY
+        if (result.saveGenerationDebug.metafieldUpdateSuccess) {
+          console.log('✅ [FRONTEND] Metafield zaktualizowany pomyślnie w Shopify Admin!');
+        } else if (result.saveGenerationDebug.metafieldUpdateAttempted) {
+          console.warn('⚠️ [FRONTEND] Próba aktualizacji metafielda nie powiodła się:', result.saveGenerationDebug.metafieldUpdateError || 'unknown error');
+        } else if (result.saveGenerationDebug.skipped) {
+          console.warn('⚠️ [FRONTEND] Zapis generacji został pominięty:', result.saveGenerationDebug.reason || 'unknown reason');
+        } else {
+          console.warn('⚠️ [FRONTEND] Metafield nie został zaktualizowany - brak customerId lub inny problem');
+        }
+      } else {
+        console.warn('⚠️⚠️⚠️ [FRONTEND] ===== BRAK saveGenerationDebug W RESPONSE! =====');
+        console.warn('⚠️ [FRONTEND] Response keys:', Object.keys(result));
+        console.warn('⚠️ [FRONTEND] Full response:', JSON.stringify(result, null, 2));
+        console.warn('⚠️⚠️⚠️ [FRONTEND] ===== KONIEC SPRAWDZANIA RESPONSE =====');
+      }
+      
       if (result.success) {
         this.transformedImage = result.transformedImage;
         this.showResult(result.transformedImage);
