@@ -273,6 +273,24 @@
       </div>
       
       <div class="control-group">
+        <label><strong>Data od:</strong></label>
+        <input type="date" id="dateFrom" style="padding: 8px;">
+      </div>
+      
+      <div class="control-group">
+        <label><strong>Data do:</strong></label>
+        <input type="date" id="dateTo" style="padding: 8px;">
+      </div>
+      
+      <div class="control-group">
+        <button onclick="setDateRange('today')" style="padding: 8px 12px; font-size: 12px;">Dzisiaj</button>
+        <button onclick="setDateRange('week')" style="padding: 8px 12px; font-size: 12px;">Ostatni tydzień</button>
+        <button onclick="setDateRange('month')" style="padding: 8px 12px; font-size: 12px;">Ostatni miesiąc</button>
+        <button onclick="setDateRange('3months')" style="padding: 8px 12px; font-size: 12px;">Ostatnie 3 miesiące</button>
+        <button onclick="clearDateRange()" style="padding: 8px 12px; font-size: 12px;">Wyczyść</button>
+      </div>
+      
+      <div class="control-group">
         <label><strong>Sortowanie:</strong></label>
         <select id="sortBy">
           <option value="date">Data</option>
@@ -404,11 +422,84 @@
       }
     }
     
+    function filterByDate(images) {
+      const dateFrom = document.getElementById('dateFrom').value;
+      const dateTo = document.getElementById('dateTo').value;
+      
+      if (!dateFrom && !dateTo) {
+        return images; // Brak filtrowania
+      }
+      
+      return images.filter(image => {
+        const imageDate = new Date(image.uploadedAt);
+        imageDate.setHours(0, 0, 0, 0);
+        
+        if (dateFrom) {
+          const fromDate = new Date(dateFrom);
+          fromDate.setHours(0, 0, 0, 0);
+          if (imageDate < fromDate) return false;
+        }
+        
+        if (dateTo) {
+          const toDate = new Date(dateTo);
+          toDate.setHours(23, 59, 59, 999);
+          if (imageDate > toDate) return false;
+        }
+        
+        return true;
+      });
+    }
+    
+    function setDateRange(range) {
+      const today = new Date();
+      const dateFrom = document.getElementById('dateFrom');
+      const dateTo = document.getElementById('dateTo');
+      
+      let from, to;
+      
+      switch(range) {
+        case 'today':
+          from = new Date(today);
+          to = new Date(today);
+          break;
+        case 'week':
+          from = new Date(today);
+          from.setDate(today.getDate() - 7);
+          to = new Date(today);
+          break;
+        case 'month':
+          from = new Date(today);
+          from.setMonth(today.getMonth() - 1);
+          to = new Date(today);
+          break;
+        case '3months':
+          from = new Date(today);
+          from.setMonth(today.getMonth() - 3);
+          to = new Date(today);
+          break;
+      }
+      
+      if (from && to) {
+        dateFrom.value = from.toISOString().split('T')[0];
+        dateTo.value = to.toISOString().split('T')[0];
+        loadImages(true);
+      }
+    }
+    
+    function clearDateRange() {
+      document.getElementById('dateFrom').value = '';
+      document.getElementById('dateTo').value = '';
+      loadImages(true);
+    }
+    
     function displayImages() {
       const galleryEl = document.getElementById('gallery');
       galleryEl.innerHTML = '';
       
-      allImages.forEach((image, index) => {
+      // Filtruj po datach
+      const filteredImages = filterByDate(allImages);
+      
+      filteredImages.forEach((image, index) => {
         const card = document.createElement('div');
         card.className = 'image-card';
         card.dataset.index = index;
@@ -453,7 +544,9 @@
     }
     
     function selectAll() {
-      allImages.forEach(img => selectedImages.add(img.url));
+      // Zaznacz tylko widoczne (przefiltrowane) obrazki
+      const filteredImages = filterByDate(allImages);
+      filteredImages.forEach(img => selectedImages.add(img.url));
       updateDeleteButton();
       displayImages();
     }
@@ -510,6 +603,8 @@
     document.getElementById('categoryFilter').addEventListener('change', () => loadImages(true));
     document.getElementById('sortBy').addEventListener('change', () => loadImages(true));
     document.getElementById('sortOrder').addEventListener('change', () => loadImages(true));
+    document.getElementById('dateFrom').addEventListener('change', () => loadImages(true));
+    document.getElementById('dateTo').addEventListener('change', () => loadImages(true));
     
     // Load on page load
     if (AUTH_TOKEN) {
