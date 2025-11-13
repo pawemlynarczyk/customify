@@ -430,12 +430,21 @@
       }
     }
     
-    // Test endpoint first
+    // Test endpoint first - sprawdź czy tokeny pasują
     async function testAuth() {
+      if (!AUTH_TOKEN) {
+        return; // Nie ma tokena, nie testuj
+      }
+      
       const diagnosticsEl = document.getElementById('authDiagnostics');
       
       try {
-        const testResponse = await fetch('https://customify-s56o.vercel.app/api/admin/login-modal-stats-test');
+        // Wyślij request z tokenem żeby sprawdzić czy pasuje
+        const testResponse = await fetch('https://customify-s56o.vercel.app/api/admin/login-modal-stats-test', {
+          headers: {
+            'Authorization': `Bearer ${AUTH_TOKEN}`
+          }
+        });
         const testData = await testResponse.json();
         
         if (testData.success) {
@@ -451,27 +460,27 @@
           // Show token preview (safe)
           if (diag.tokenFromVercel) {
             console.log('🔑 [AUTH TEST] Token from Vercel:', diag.tokenFromVercel.preview);
-            console.log('🔑 [AUTH TEST] Token in HTML:', AUTH_TOKEN);
+            console.log('🔑 [AUTH TEST] Token in localStorage:', AUTH_TOKEN ? AUTH_TOKEN.substring(0, 4) + '...' : 'BRAK');
           }
           
-          // Show diagnostics in UI
+          // Show diagnostics in UI tylko jeśli tokeny nie pasują
           if (!diag.comparison.tokensMatch) {
             diagnosticsEl.style.display = 'block';
             const fullToken = diag.tokenFromVercel.fullToken || 'NOT AVAILABLE';
+            const currentTokenPreview = AUTH_TOKEN ? (AUTH_TOKEN.length > 10 ? `${AUTH_TOKEN.substring(0, 4)}...${AUTH_TOKEN.substring(AUTH_TOKEN.length - 4)}` : '***') : 'BRAK';
+            
             diagnosticsEl.innerHTML = `
               <strong>🔍 Diagnostyka autoryzacji:</strong><br>
               <strong>Token w Vercel:</strong> ${diag.tokenFromVercel.isSet ? '✅ Ustawiony' : '❌ Nie ustawiony (używany fallback)'}<br>
-              <strong>Token oczekiwany przez backend:</strong> <code style="background: #fff; padding: 4px 8px; border-radius: 4px; cursor: pointer; user-select: all;" onclick="navigator.clipboard.writeText('${fullToken}'); alert('Token skopiowany!')" title="Kliknij aby skopiować">${fullToken}</code> <button onclick="navigator.clipboard.writeText('${fullToken}'); alert('Token skopiowany! Teraz zaktualizuj go w pliku public/admin/login-modal-stats.html linia 258')" style="margin-left: 10px; padding: 4px 8px; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;">📋 Kopiuj</button><br>
-              <strong>Token w HTML (obecny):</strong> <code>${AUTH_TOKEN}</code><br>
+              <strong>Token oczekiwany przez backend:</strong> <code style="background: #fff; padding: 4px 8px; border-radius: 4px;">${fullToken}</code><br>
+              <strong>Token w localStorage (obecny):</strong> <code>${currentTokenPreview}</code><br>
               <strong>Status:</strong> ${diag.comparison.tokensMatch ? '✅ Pasują' : '❌ Nie pasują'}<br>
               <strong>Rekomendacja:</strong> ${diag.recommendation}<br>
               <br>
               <strong>📝 Jak naprawić:</strong><br>
-              1. Kliknij przycisk "📋 Kopiuj" powyżej<br>
-              2. Otwórz plik <code>public/admin/login-modal-stats.html</code><br>
-              3. Znajdź linię 258: <code>const AUTH_TOKEN = 'customify-admin-2024';</code><br>
-              4. Zamień <code>'customify-admin-2024'</code> na skopiowany token<br>
-              5. Wypchnij zmiany: <code>git add public/admin/login-modal-stats.html && git commit -m "Fix: Update AUTH_TOKEN" && git push</code>
+              1. Skopiuj token z Vercel powyżej<br>
+              2. Kliknij przycisk "🗑️ Usuń token" (powyżej)<br>
+              3. Odśwież stronę i wprowadź poprawny token
             `;
           } else {
             diagnosticsEl.style.display = 'none';
@@ -479,8 +488,7 @@
         }
       } catch (error) {
         console.error('❌ [AUTH TEST] Error:', error);
-        diagnosticsEl.style.display = 'block';
-        diagnosticsEl.innerHTML = `<strong>❌ Błąd diagnostyki:</strong> ${error.message}`;
+        // Nie pokazuj błędu diagnostyki jeśli wszystko działa
       }
     }
     
