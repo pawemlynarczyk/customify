@@ -994,17 +994,21 @@ module.exports = async (req, res) => {
         
         // ✅ SPRAWDŹ CZY customerId TO NUMERYCZNY ID (Shopify Customer ID)
         // Shopify Customer ID to numeryczny string (np. "123456789")
-        let shopifyCustomerId = customerId;
+        let shopifyCustomerId = null;
         
-        if (customerId) {
+        if (customerId !== undefined && customerId !== null) {
+          const customerIdStr = String(customerId);
+          shopifyCustomerId = customerIdStr;
+          console.log(`🔍 [TRANSFORM] customerIdStr (po normalizacji): ${shopifyCustomerId}, type: ${typeof shopifyCustomerId}`);
+          
           // Jeśli customerId zawiera "gid://shopify/Customer/", usuń prefix
-          if (typeof customerId === 'string' && customerId.includes('gid://shopify/Customer/')) {
-            shopifyCustomerId = customerId.replace('gid://shopify/Customer/', '');
+          if (shopifyCustomerId.includes('gid://shopify/Customer/')) {
+            shopifyCustomerId = shopifyCustomerId.replace('gid://shopify/Customer/', '');
             console.log(`🔧 [TRANSFORM] Usunięto prefix GID, customerId: ${shopifyCustomerId}`);
           }
           
           // Jeśli customerId nie jest numeryczny, loguj warning
-          if (!/^\d+$/.test(String(shopifyCustomerId))) {
+          if (!/^\d+$/.test(shopifyCustomerId)) {
             console.warn(`⚠️ [TRANSFORM] customerId nie jest numeryczny: ${shopifyCustomerId}`);
             console.warn(`⚠️ [TRANSFORM] Shopify Customer ID musi być numeryczny (np. "123456789")`);
             // Użyj oryginalnego customerId - może działać
@@ -1017,14 +1021,14 @@ module.exports = async (req, res) => {
         console.log(`🔍 [TRANSFORM] Przed zapisem generacji:`);
         console.log(`🔍 [TRANSFORM] customerId z req.body:`, req.body.customerId, typeof req.body.customerId);
         console.log(`🔍 [TRANSFORM] customerId po destructuring:`, customerId, typeof customerId);
-        console.log(`🔍 [TRANSFORM] shopifyCustomerId (po normalizacji):`, shopifyCustomerId || customerId, typeof (shopifyCustomerId || customerId));
+        console.log(`🔍 [TRANSFORM] shopifyCustomerId (po normalizacji):`, shopifyCustomerId || (customerId !== undefined && customerId !== null ? String(customerId) : null), typeof (shopifyCustomerId || (customerId !== undefined && customerId !== null ? String(customerId) : null)));
         console.log(`🔍 [TRANSFORM] email:`, email);
         console.log(`🔍 [TRANSFORM] imageUrl exists:`, !!imageUrl);
         console.log(`🔍 [TRANSFORM] finalImageUrl:`, finalImageUrl?.substring(0, 50) || 'null');
         
         // Wywołaj endpoint zapisu generacji
         const saveData = {
-          customerId: shopifyCustomerId || customerId || null,
+          customerId: shopifyCustomerId || (customerId !== undefined && customerId !== null ? String(customerId) : null),
           email: email || null,
           imageUrl: finalImageUrl,
           style: prompt || 'unknown',

@@ -298,11 +298,14 @@ module.exports = async (req, res) => {
           
           // ✅ SPRAWDŹ CZY customerId TO NUMERYCZNY ID (Shopify Customer ID)
           // Shopify Customer ID to numeryczny string (np. "123456789")
-          let shopifyCustomerId = customerId;
+          const rawCustomerId = customerId;
+          const customerIdStr = rawCustomerId === null || rawCustomerId === undefined ? '' : String(rawCustomerId);
+          let shopifyCustomerId = customerIdStr;
+          console.log(`🔍 [SAVE-GENERATION] customerIdStr (po normalizacji): ${shopifyCustomerId}, type: ${typeof shopifyCustomerId}`);
           
           // Jeśli customerId zawiera "gid://shopify/Customer/", usuń prefix
-          if (customerId.includes('gid://shopify/Customer/')) {
-            shopifyCustomerId = customerId.replace('gid://shopify/Customer/', '');
+          if (shopifyCustomerId.includes('gid://shopify/Customer/')) {
+            shopifyCustomerId = shopifyCustomerId.replace('gid://shopify/Customer/', '');
             console.log(`🔧 [SAVE-GENERATION] Usunięto prefix GID, customerId: ${shopifyCustomerId}`);
           }
           
