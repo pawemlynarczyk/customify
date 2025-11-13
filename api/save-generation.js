@@ -185,10 +185,18 @@ module.exports = async (req, res) => {
 
     // ✅ AKTUALIZUJ CUSTOMER METAFIELD W SHOPIFY (jeśli customerId)
     // To pozwoli wyświetlić generacje w Shopify Admin na koncie klienta
+    console.log(`🔍 [SAVE-GENERATION] Sprawdzam customerId:`, customerId, typeof customerId);
+    console.log(`🔍 [SAVE-GENERATION] Email fallback:`, email);
+    
     if (customerId) {
       try {
         console.log(`📝 [SAVE-GENERATION] Aktualizuję Customer Metafield w Shopify dla ${customerId}...`);
         console.log(`📊 [SAVE-GENERATION] Generacje do zapisania: ${dataToSave.generations.length}`);
+        console.log(`📊 [SAVE-GENERATION] Przykładowa generacja:`, dataToSave.generations[0] ? {
+          id: dataToSave.generations[0].id,
+          imageUrl: dataToSave.generations[0].imageUrl?.substring(0, 50) + '...',
+          style: dataToSave.generations[0].style
+        } : 'brak');
         
         const shopDomain = process.env.SHOP_DOMAIN || 'customify-ok.myshopify.com';
         const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
@@ -230,9 +238,29 @@ module.exports = async (req, res) => {
             }
           `;
           
+          // ✅ SPRAWDŹ CZY customerId TO NUMERYCZNY ID (Shopify Customer ID)
+          // Shopify Customer ID to numeryczny string (np. "123456789")
+          let shopifyCustomerId = customerId;
+          
+          // Jeśli customerId zawiera "gid://shopify/Customer/", usuń prefix
+          if (customerId.includes('gid://shopify/Customer/')) {
+            shopifyCustomerId = customerId.replace('gid://shopify/Customer/', '');
+            console.log(`🔧 [SAVE-GENERATION] Usunięto prefix GID, customerId: ${shopifyCustomerId}`);
+          }
+          
+          // Jeśli customerId nie jest numeryczny, sprawdź czy to może być email
+          if (!/^\d+$/.test(shopifyCustomerId)) {
+            console.warn(`⚠️ [SAVE-GENERATION] customerId nie jest numeryczny: ${shopifyCustomerId}`);
+            console.warn(`⚠️ [SAVE-GENERATION] Shopify Customer ID musi być numeryczny (np. "123456789")`);
+            // Nie blokuj - spróbuj użyć jako jest (może działać)
+          }
+          
+          console.log(`🔍 [SAVE-GENERATION] Używam shopifyCustomerId: ${shopifyCustomerId}`);
+          console.log(`🔍 [SAVE-GENERATION] GID format: gid://shopify/Customer/${shopifyCustomerId}`);
+          
           const variables = {
             input: {
-              id: `gid://shopify/Customer/${customerId}`,
+              id: `gid://shopify/Customer/${shopifyCustomerId}`,
               metafields: [
                 {
                   namespace: 'customify',
@@ -243,6 +271,8 @@ module.exports = async (req, res) => {
               ]
             }
           };
+          
+          console.log(`🔍 [SAVE-GENERATION] GraphQL variables:`, JSON.stringify(variables, null, 2));
           
           const updateResponse = await fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
             method: 'POST',
@@ -258,6 +288,9 @@ module.exports = async (req, res) => {
           
           const updateData = await updateResponse.json();
           
+          console.log(`🔍 [SAVE-GENERATION] GraphQL response status: ${updateResponse.status}`);
+          console.log(`🔍 [SAVE-GENERATION] GraphQL response:`, JSON.stringify(updateData, null, 2));
+          
           if (updateData.errors) {
             console.error('❌ [SAVE-GENERATION] GraphQL errors:', JSON.stringify(updateData.errors, null, 2));
             // Sprawdź czy to błąd "metafield definition not found"
@@ -271,6 +304,18 @@ module.exports = async (req, res) => {
               console.warn('⚠️ [SAVE-GENERATION] Metafield definition nie istnieje!');
               console.warn('⚠️ [SAVE-GENERATION] Uruchom: GET https://customify-s56o.vercel.app/api/setup-customer-generations-metafield');
             }
+            
+            // Sprawdź czy to błąd "Customer not found"
+            const customerNotFound = updateData.errors.some(err => 
+              err.message?.toLowerCase().includes('customer') && 
+              (err.message?.toLowerCase().includes('not found') || err.message?.toLowerCase().includes('does not exist') || err.message?.toLowerCase().includes('invalid'))
+            );
+            if (customerNotFound) {
+              console.error('❌ [SAVE-GENERATION] Customer nie został znaleziony w Shopify!');
+              console.error('❌ [SAVE-GENERATION] Sprawdź czy customerId jest poprawny:', shopifyCustomerId);
+              console.error('❌ [SAVE-GENERATION] customerId type:', typeof shopifyCustomerId);
+              console.error('❌ [SAVE-GENERATION] customerId value:', shopifyCustomerId);
+            }
           } else if (updateData.data?.customerUpdate?.userErrors?.length > 0) {
             console.error('❌ [SAVE-GENERATION] User errors:', JSON.stringify(updateData.data.customerUpdate.userErrors, null, 2));
             // Sprawdź czy to błąd "metafield definition not found"
@@ -283,9 +328,25 @@ module.exports = async (req, res) => {
               console.warn('⚠️ [SAVE-GENERATION] Metafield definition nie istnieje!');
               console.warn('⚠️ [SAVE-GENERATION] Uruchom: GET https://customify-s56o.vercel.app/api/setup-customer-generations-metafield');
             }
-          } else {
+            
+            // Sprawdź czy to błąd "Customer not found"
+            const customerNotFound = updateData.data.customerUpdate.userErrors.some(err => 
+              err.message?.toLowerCase().includes('customer') && 
+              (err.message?.toLowerCase().includes('not found') || err.message?.toLowerCase().includes('does not exist') || err.message?.toLowerCase().includes('invalid'))
+            );
+            if (customerNotFound) {
+              console.error('❌ [SAVE-GENERATION] Customer nie został znaleziony w Shopify!');
+              console.error('❌ [SAVE-GENERATION] Sprawdź czy customerId jest poprawny:', shopifyCustomerId);
+            }
+          } else if (updateData.data?.customerUpdate?.customer) {
             console.log(`✅ [SAVE-GENERATION] Customer Metafield zaktualizowany: ${generationsData.totalGenerations} generacji`);
             console.log(`📊 [SAVE-GENERATION] Kupione: ${generationsData.purchasedCount}, Nie kupione: ${generationsData.totalGenerations - generationsData.purchasedCount}`);
+            console.log(`📊 [SAVE-GENERATION] Customer ID: ${updateData.data.customerUpdate.customer.id}`);
+            console.log(`📊 [SAVE-GENERATION] Metafield value length: ${updateData.data.customerUpdate.customer.metafield?.value?.length || 0} znaków`);
+            console.log(`📊 [SAVE-GENERATION] Metafield value preview: ${updateData.data.customerUpdate.customer.metafield?.value?.substring(0, 200) || 'brak'}...`);
+          } else {
+            console.warn('⚠️ [SAVE-GENERATION] Nieoczekiwana odpowiedź z GraphQL - brak customer w response');
+            console.warn('⚠️ [SAVE-GENERATION] Response:', JSON.stringify(updateData, null, 2));
           }
         }
       } catch (updateError) {

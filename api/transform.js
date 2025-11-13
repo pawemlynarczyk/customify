@@ -939,8 +939,12 @@ module.exports = async (req, res) => {
 
     // ✅ ZAPIS GENERACJI W VERCEL BLOB STORAGE (przed inkrementacją licznika)
     // Zapisz generację z powiązaniem do klienta (nawet jeśli nie doda do koszyka)
+    console.log(`🔍 [TRANSFORM] Sprawdzam czy zapisać generację - customerId: ${customerId}, email: ${email}, imageUrl: ${!!imageUrl}`);
+    
     if (imageUrl && (customerId || email)) {
       console.log(`💾 [TRANSFORM] Zapisuję generację w Vercel Blob Storage dla klienta...`);
+      console.log(`🔍 [TRANSFORM] customerId type: ${typeof customerId}, value: ${customerId}`);
+      console.log(`🔍 [TRANSFORM] email: ${email}`);
       
       try {
         // Sprawdź czy obraz jest już w Vercel Blob
@@ -980,12 +984,35 @@ module.exports = async (req, res) => {
           }
         }
         
+        // ✅ SPRAWDŹ CZY customerId TO NUMERYCZNY ID (Shopify Customer ID)
+        // Shopify Customer ID to numeryczny string (np. "123456789")
+        let shopifyCustomerId = customerId;
+        
+        if (customerId) {
+          // Jeśli customerId zawiera "gid://shopify/Customer/", usuń prefix
+          if (customerId.includes('gid://shopify/Customer/')) {
+            shopifyCustomerId = customerId.replace('gid://shopify/Customer/', '');
+            console.log(`🔧 [TRANSFORM] Usunięto prefix GID, customerId: ${shopifyCustomerId}`);
+          }
+          
+          // Jeśli customerId nie jest numeryczny, loguj warning
+          if (!/^\d+$/.test(shopifyCustomerId)) {
+            console.warn(`⚠️ [TRANSFORM] customerId nie jest numeryczny: ${shopifyCustomerId}`);
+            console.warn(`⚠️ [TRANSFORM] Shopify Customer ID musi być numeryczny (np. "123456789")`);
+            // Użyj oryginalnego customerId - może działać
+          } else {
+            console.log(`✅ [TRANSFORM] customerId jest numeryczny: ${shopifyCustomerId}`);
+          }
+        }
+        
         // Wywołaj endpoint zapisu generacji
+        console.log(`📤 [TRANSFORM] Wywołuję /api/save-generation z customerId: ${shopifyCustomerId || customerId || 'null'}, email: ${email || 'null'}`);
+        
         const saveResponse = await fetch('https://customify-s56o.vercel.app/api/save-generation', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            customerId: customerId || null,
+            customerId: shopifyCustomerId || customerId || null,
             email: email || null,
             imageUrl: finalImageUrl,
             style: prompt || 'unknown',
@@ -994,17 +1021,25 @@ module.exports = async (req, res) => {
           })
         });
         
+        console.log(`📥 [TRANSFORM] save-generation response status: ${saveResponse.status}`);
+        
         if (saveResponse.ok) {
           const saveResult = await saveResponse.json();
           console.log(`✅ [TRANSFORM] Generacja zapisana w Vercel Blob Storage: ${saveResult.generationId}`);
+          console.log(`📊 [TRANSFORM] Total generations: ${saveResult.totalGenerations || 'unknown'}`);
         } else {
           const errorText = await saveResponse.text();
           console.error('⚠️ [TRANSFORM] Błąd zapisu generacji:', errorText);
+          console.error('⚠️ [TRANSFORM] Status:', saveResponse.status);
         }
       } catch (saveError) {
         console.error('⚠️ [TRANSFORM] Błąd zapisu generacji (nie blokuję odpowiedzi):', saveError);
+        console.error('⚠️ [TRANSFORM] Stack:', saveError.stack);
         // Nie blokuj odpowiedzi - transformacja się udała
       }
+    } else {
+      console.warn('⚠️ [TRANSFORM] Pomijam zapis generacji - brak customerId lub email');
+      console.warn(`⚠️ [TRANSFORM] customerId: ${customerId}, email: ${email}, imageUrl: ${!!imageUrl}`);
     }
 
     // ✅ INKREMENTACJA LICZNIKA PO UDANEJ TRANSFORMACJI
