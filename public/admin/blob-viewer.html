@@ -254,10 +254,25 @@
 </head>
 <body>
   <div class="container">
-    <h1>🖼️ Panel Admin - Vercel Blob Images</h1>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+      <h1 style="margin: 0;">🖼️ Panel Admin - Vercel Blob Images</h1>
+      <button onclick="logout()" style="padding: 8px 16px; background: #f44336; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; display: none;" id="logoutBtn">Wyloguj</button>
+    </div>
     
     <div id="errorContainer"></div>
     
+    <!-- Formularz logowania -->
+    <div id="loginForm" style="display: none; max-width: 400px; margin: 50px auto; padding: 30px; background: white; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+      <h2 style="margin-bottom: 20px; color: #1565C0;">🔐 Logowanie do panelu</h2>
+      <div style="margin-bottom: 15px;">
+        <label style="display: block; margin-bottom: 5px; font-weight: 600;">Hasło:</label>
+        <input type="password" id="passwordInput" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;" placeholder="Wprowadź hasło">
+      </div>
+      <button onclick="checkPassword()" style="width: 100%; padding: 12px; background: #1565C0; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 16px;">Zaloguj się</button>
+      <div id="passwordError" style="margin-top: 10px; color: #f44336; display: none;">❌ Nieprawidłowe hasło</div>
+    </div>
+    
+    <div id="mainContent" style="display: none;">
     <div class="controls">
       <div class="control-group">
         <label><strong>Kategoria:</strong></label>
@@ -337,25 +352,98 @@
     <div id="loading" class="loading">Ładowanie obrazków...</div>
     <div id="gallery" class="gallery"></div>
     <button onclick="loadMore()" id="loadMoreBtn" style="display: none; width: 100%; margin-top: 20px; padding: 15px;">Załaduj więcej</button>
+    </div>
   </div>
   
   <script>
     const API_BASE = 'https://customify-s56o.vercel.app/api/admin';
+    const ADMIN_PASSWORD = 'customify-admin-2024'; // Zmień to hasło!
     let AUTH_TOKEN = localStorage.getItem('customify_admin_token');
+    let isLoggedIn = localStorage.getItem('blob_viewer_logged_in') === 'true';
     let currentCursor = null;
     let allImages = [];
     let selectedImages = new Set();
     
-    // Jeśli nie ma tokena, poproś użytkownika
-    if (!AUTH_TOKEN) {
-      const tokenInput = prompt('🔐 Wprowadź token autoryzacji (z Vercel Environment Variables - ADMIN_STATS_TOKEN):');
-      if (tokenInput && tokenInput.trim()) {
-        AUTH_TOKEN = tokenInput.trim();
-        localStorage.setItem('customify_admin_token', AUTH_TOKEN);
+    // Sprawdź czy użytkownik jest zalogowany
+    function checkLogin() {
+      if (isLoggedIn) {
+        // Sprawdź czy token istnieje
+        if (!AUTH_TOKEN) {
+          // Jeśli nie ma tokena, pobierz go (dla kompatybilności)
+          const tokenInput = prompt('🔐 Wprowadź token autoryzacji (z Vercel Environment Variables - ADMIN_STATS_TOKEN):');
+          if (tokenInput && tokenInput.trim()) {
+            AUTH_TOKEN = tokenInput.trim();
+            localStorage.setItem('customify_admin_token', AUTH_TOKEN);
+          } else {
+            isLoggedIn = false;
+            localStorage.removeItem('blob_viewer_logged_in');
+          }
+        }
+      }
+      
+      if (isLoggedIn && AUTH_TOKEN) {
+        document.getElementById('loginForm').style.display = 'none';
+        document.getElementById('mainContent').style.display = 'block';
+        document.getElementById('logoutBtn').style.display = 'block';
+        loadImages(true);
       } else {
-        alert('❌ Token jest wymagany. Odśwież stronę i wprowadź token.');
+        document.getElementById('loginForm').style.display = 'block';
+        document.getElementById('mainContent').style.display = 'none';
+        document.getElementById('logoutBtn').style.display = 'none';
       }
     }
+    
+    function logout() {
+      if (confirm('Czy na pewno chcesz się wylogować?')) {
+        isLoggedIn = false;
+        localStorage.removeItem('blob_viewer_logged_in');
+        document.getElementById('passwordInput').value = '';
+        checkLogin();
+      }
+    }
+    
+    function checkPassword() {
+      const passwordInput = document.getElementById('passwordInput');
+      const passwordError = document.getElementById('passwordError');
+      const password = passwordInput.value.trim();
+      
+      if (password === ADMIN_PASSWORD) {
+        isLoggedIn = true;
+        localStorage.setItem('blob_viewer_logged_in', 'true');
+        
+        // Jeśli nie ma tokena, poproś o niego
+        if (!AUTH_TOKEN) {
+          const tokenInput = prompt('🔐 Wprowadź token autoryzacji (z Vercel Environment Variables - ADMIN_STATS_TOKEN):');
+          if (tokenInput && tokenInput.trim()) {
+            AUTH_TOKEN = tokenInput.trim();
+            localStorage.setItem('customify_admin_token', AUTH_TOKEN);
+          } else {
+            alert('❌ Token jest wymagany do działania panelu.');
+            return;
+          }
+        }
+        
+        passwordError.style.display = 'none';
+        checkLogin();
+      } else {
+        passwordError.style.display = 'block';
+        passwordInput.value = '';
+        passwordInput.focus();
+      }
+    }
+    
+    // Enter w polu hasła
+    document.addEventListener('DOMContentLoaded', function() {
+      const passwordInput = document.getElementById('passwordInput');
+      if (passwordInput) {
+        passwordInput.addEventListener('keypress', function(e) {
+          if (e.key === 'Enter') {
+            checkPassword();
+          }
+        });
+      }
+      checkLogin();
+    });
     
     async function loadImages(reset = true) {
       if (!AUTH_TOKEN) {
@@ -629,10 +717,7 @@
       displayImages();
     });
     
-    // Load on page load
-    if (AUTH_TOKEN) {
-      loadImages(true);
-    }
+    // Login jest sprawdzany w checkLogin() przy DOMContentLoaded
   </script>
 </body>
 </html>
