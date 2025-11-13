@@ -1014,6 +1014,9 @@ module.exports = async (req, res) => {
         console.log(`🔍 [TRANSFORM] imageUrl exists:`, !!imageUrl);
         console.log(`🔍 [TRANSFORM] finalImageUrl:`, finalImageUrl?.substring(0, 50) || 'null');
         
+        // ✅ ZMIENNA DO PRZECHOWYWANIA DEBUG INFO Z SAVE-GENERATION
+        let saveGenerationDebug = null;
+        
         // Wywołaj endpoint zapisu generacji
         const saveData = {
           customerId: shopifyCustomerId || customerId || null,
@@ -1047,19 +1050,24 @@ module.exports = async (req, res) => {
           console.log(`📊 [TRANSFORM] Total generations: ${saveResult.totalGenerations || 'unknown'}`);
           console.log(`🔍 [TRANSFORM] Save-generation debug info (FULL):`, JSON.stringify(saveResult.debug || {}, null, 2));
           
-          // ✅ LOGUJ SZCZEGÓŁY DLA DIAGNOSTYKI
+          // ✅ LOGUJ SZCZEGÓŁY DLA DIAGNOSTYKI (dla Vercel Logs)
           if (saveResult.debug) {
             console.log(`🔍 [TRANSFORM] customerId w save-generation: ${saveResult.debug.customerId || 'null'}`);
             console.log(`🔍 [TRANSFORM] customerIdType: ${saveResult.debug.customerIdType || 'null'}`);
             console.log(`🔍 [TRANSFORM] hasMetafieldUpdate: ${saveResult.debug.hasMetafieldUpdate || false}`);
             console.log(`🔍 [TRANSFORM] email: ${saveResult.debug.email || 'null'}`);
-            console.log(`🔍 [TRANSFORM] metafieldUpdated: ${saveResult.debug.metafieldUpdated || 'unknown'}`);
-            console.log(`🔍 [TRANSFORM] metafieldError: ${saveResult.debug.metafieldError || 'none'}`);
+            console.log(`🔍 [TRANSFORM] metafieldUpdateAttempted: ${saveResult.debug.metafieldUpdateAttempted || false}`);
+            console.log(`🔍 [TRANSFORM] metafieldUpdateSuccess: ${saveResult.debug.metafieldUpdateSuccess || false}`);
+            console.log(`🔍 [TRANSFORM] metafieldUpdateError: ${saveResult.debug.metafieldUpdateError || 'none'}`);
+            
+            // ✅ ZWRÓĆ DEBUG INFO W RESPONSE (dla przeglądarki)
+            saveGenerationDebug = saveResult.debug;
           }
         } else {
           const errorText = await saveResponse.text();
           console.error('⚠️ [TRANSFORM] Błąd zapisu generacji:', errorText);
           console.error('⚠️ [TRANSFORM] Status:', saveResponse.status);
+          saveGenerationDebug = { error: errorText, status: saveResponse.status };
         }
       } catch (saveError) {
         console.error('⚠️ [TRANSFORM] Błąd zapisu generacji (nie blokuję odpowiedzi):', saveError);
@@ -1159,10 +1167,19 @@ module.exports = async (req, res) => {
       }
     }
 
-    res.json({ 
+    // ✅ ZWRÓĆ DEBUG INFO Z SAVE-GENERATION (dla przeglądarki)
+    const responseData = { 
       success: true, 
       transformedImage: imageUrl 
-    });
+    };
+    
+    // ✅ DODAJ DEBUG INFO Z SAVE-GENERATION (jeśli jest dostępne)
+    if (saveGenerationDebug !== null) {
+      responseData.saveGenerationDebug = saveGenerationDebug;
+      console.log(`🔍 [TRANSFORM] Zwracam debug info do przeglądarki:`, JSON.stringify(saveGenerationDebug, null, 2));
+    }
+    
+    res.json(responseData);
   } catch (error) {
     console.error('AI transformation error:', error);
     

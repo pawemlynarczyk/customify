@@ -1946,8 +1946,24 @@ class CustomifyEmbed {
       });
       
       // ✅ SPRAWDŹ CZY W RESPONSE SĄ DEBUG INFO Z SAVE-GENERATION
-      // Te informacje będą dostępne w logach backend (Vercel), ale możemy je też zwrócić w response
-      // Jeśli save-generation zwróci debug info, będzie ono w response z transform.js
+      if (result.saveGenerationDebug) {
+        console.log('🔍 [FRONTEND] Save-generation debug info (z backend):', JSON.stringify(result.saveGenerationDebug, null, 2));
+        console.log('🔍 [FRONTEND] customerId:', result.saveGenerationDebug.customerId || 'null');
+        console.log('🔍 [FRONTEND] metafieldUpdateAttempted:', result.saveGenerationDebug.metafieldUpdateAttempted || false);
+        console.log('🔍 [FRONTEND] metafieldUpdateSuccess:', result.saveGenerationDebug.metafieldUpdateSuccess || false);
+        console.log('🔍 [FRONTEND] metafieldUpdateError:', result.saveGenerationDebug.metafieldUpdateError || 'none');
+        
+        // ✅ POKAŻ W CONSOLE CZY METAFIELD ZOSTAŁ ZAKTUALIZOWANY
+        if (result.saveGenerationDebug.metafieldUpdateSuccess) {
+          console.log('✅ [FRONTEND] Metafield zaktualizowany pomyślnie w Shopify Admin!');
+        } else if (result.saveGenerationDebug.metafieldUpdateAttempted) {
+          console.warn('⚠️ [FRONTEND] Próba aktualizacji metafielda nie powiodła się:', result.saveGenerationDebug.metafieldUpdateError || 'unknown error');
+        } else {
+          console.warn('⚠️ [FRONTEND] Metafield nie został zaktualizowany - brak customerId lub inny problem');
+        }
+      } else {
+        console.warn('⚠️ [FRONTEND] Brak debug info z save-generation w response');
+      }
       
       if (result.success) {
         this.transformedImage = result.transformedImage;
