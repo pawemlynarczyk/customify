@@ -1937,6 +1937,12 @@ class CustomifyEmbed {
 
       const result = await response.json();
       console.log('📱 [MOBILE] Response JSON parsed successfully');
+      
+      // ✅ BARDZO WIDOCZNE LOGOWANIE - SPRAWDŹ CZY JEST saveGenerationDebug
+      console.log('🔍🔍🔍 [FRONTEND] ===== SPRAWDZAM RESPONSE Z TRANSFORM API =====');
+      console.log('🔍 [FRONTEND] Response keys:', Object.keys(result));
+      console.log('🔍 [FRONTEND] hasSaveGenerationDebug:', !!result.saveGenerationDebug);
+      console.log('🔍 [FRONTEND] saveGenerationDebug value:', result.saveGenerationDebug);
       console.log('✅ [FRONTEND] Transform API Response:', {
         success: result.success,
         hasTransformedImage: !!result.transformedImage,
@@ -1948,6 +1954,7 @@ class CustomifyEmbed {
       
       // ✅ SPRAWDŹ CZY W RESPONSE SĄ DEBUG INFO Z SAVE-GENERATION
       if (result.saveGenerationDebug) {
+        console.log('🔍🔍🔍 [FRONTEND] ===== ZNALEZIONO saveGenerationDebug W RESPONSE! =====');
         console.log('🔍 [FRONTEND] Save-generation debug info (z backend):', JSON.stringify(result.saveGenerationDebug, null, 2));
         console.log('🔍 [FRONTEND] customerId:', result.saveGenerationDebug.customerId || 'null');
         console.log('🔍 [FRONTEND] metafieldUpdateAttempted:', result.saveGenerationDebug.metafieldUpdateAttempted || false);
@@ -1965,9 +1972,10 @@ class CustomifyEmbed {
           console.warn('⚠️ [FRONTEND] Metafield nie został zaktualizowany - brak customerId lub inny problem');
         }
       } else {
-        console.warn('⚠️ [FRONTEND] Brak debug info z save-generation w response');
+        console.warn('⚠️⚠️⚠️ [FRONTEND] ===== BRAK saveGenerationDebug W RESPONSE! =====');
         console.warn('⚠️ [FRONTEND] Response keys:', Object.keys(result));
-        console.warn('⚠️ [FRONTEND] Full response:', result);
+        console.warn('⚠️ [FRONTEND] Full response:', JSON.stringify(result, null, 2));
+        console.warn('⚠️⚠️⚠️ [FRONTEND] ===== KONIEC SPRAWDZANIA RESPONSE =====');
       }
       
       if (result.success) {
