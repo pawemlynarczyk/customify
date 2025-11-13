@@ -258,6 +258,15 @@
         <option value="desc">Najnowsze</option>
         <option value="asc">Najstarsze</option>
       </select>
+      <input type="date" class="prefix-select" id="dateFrom" placeholder="Od" style="min-width: 150px;">
+      <input type="date" class="prefix-select" id="dateTo" placeholder="Do" style="min-width: 150px;">
+      <select class="prefix-select" id="dateQuickFilter" style="min-width: 150px;">
+        <option value="">Wszystkie daty</option>
+        <option value="today">Dzisiaj</option>
+        <option value="week">Ostatni tydzień</option>
+        <option value="month">Ostatni miesiąc</option>
+        <option value="3months">Ostatnie 3 miesiące</option>
+      </select>
       <button class="btn btn-primary" onclick="loadImages()">Odśwież</button>
       <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
         <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
@@ -300,10 +309,78 @@
     let currentCursor = null;
     let hasMore = false;
 
+    function getDateRange() {
+      const quickFilter = document.getElementById('dateQuickFilter').value;
+      const dateFrom = document.getElementById('dateFrom').value;
+      const dateTo = document.getElementById('dateTo').value;
+
+      // Jeśli wybrano szybki filtr, ustaw daty automatycznie
+      if (quickFilter && !dateFrom && !dateTo) {
+        const today = new Date();
+        today.setHours(23, 59, 59, 999); // Koniec dzisiaj
+        
+        let fromDate = new Date();
+        
+        switch (quickFilter) {
+          case 'today':
+            fromDate.setHours(0, 0, 0, 0);
+            break;
+          case 'week':
+            fromDate.setDate(fromDate.getDate() - 7);
+            fromDate.setHours(0, 0, 0, 0);
+            break;
+          case 'month':
+            fromDate.setMonth(fromDate.getMonth() - 1);
+            fromDate.setHours(0, 0, 0, 0);
+            break;
+          case '3months':
+            fromDate.setMonth(fromDate.getMonth() - 3);
+            fromDate.setHours(0, 0, 0, 0);
+            break;
+        }
+        
+        return {
+          from: fromDate,
+          to: today
+        };
+      }
+
+      // Jeśli wybrano ręczne daty
+      if (dateFrom || dateTo) {
+        return {
+          from: dateFrom ? new Date(dateFrom + 'T00:00:00') : null,
+          to: dateTo ? new Date(dateTo + 'T23:59:59') : null
+        };
+      }
+
+      return { from: null, to: null };
+    }
+
+    function filterByDate(images, dateRange) {
+      if (!dateRange.from && !dateRange.to) {
+        return images;
+      }
+
+      return images.filter(img => {
+        const imgDate = new Date(img.uploadedAt);
+        
+        if (dateRange.from && imgDate < dateRange.from) {
+          return false;
+        }
+        
+        if (dateRange.to && imgDate > dateRange.to) {
+          return false;
+        }
+        
+        return true;
+      });
+    }
+
     async function loadImages(cursor = null) {
       const prefix = document.getElementById('prefix').value;
       const sortOrder = document.getElementById('sortOrder').value;
       const search = document.getElementById('search').value.toLowerCase();
+      const dateRange = getDateRange();
       
       document.getElementById('loading').style.display = 'block';
       document.getElementById('error').innerHTML = '';
@@ -342,16 +419,37 @@
         // Jeśli pierwsze ładowanie, pokaż wszystkie przefiltrowane
         if (cursor) {
           // Przy ładowaniu więcej: pokaż tylko nowe obrazy (z tej strony)
-          const newImages = search 
-            ? data.blobs.filter(img => img.filename.toLowerCase().includes(search))
-            : data.blobs;
+          let newImages = data.blobs;
+          
+          // Filtruj po wyszukiwarce
+          if (search) {
+            newImages = newImages.filter(img => img.filename.toLowerCase().includes(search));
+          }
+          
+          // Filtruj po dacie
+          newImages = filterByDate(newImages, dateRange);
+          
           displayImages(newImages, true);
-          updateStats(currentImages.filter(img => !search || img.filename.toLowerCase().includes(search)).length, currentImages.length, data.stats);
+          
+          // Statystyki dla wszystkich załadowanych obrazów
+          let allFiltered = currentImages;
+          if (search) {
+            allFiltered = allFiltered.filter(img => img.filename.toLowerCase().includes(search));
+          }
+          allFiltered = filterByDate(allFiltered, dateRange);
+          updateStats(allFiltered.length, currentImages.length, data.stats);
         } else {
           // Przy pierwszym ładowaniu: pokaż wszystkie przefiltrowane
-          const filtered = search 
-            ? currentImages.filter(img => img.filename.toLowerCase().includes(search))
-            : currentImages;
+          let filtered = currentImages;
+          
+          // Filtruj po wyszukiwarce
+          if (search) {
+            filtered = filtered.filter(img => img.filename.toLowerCase().includes(search));
+          }
+          
+          // Filtruj po dacie
+          filtered = filterByDate(filtered, dateRange);
+          
           displayImages(filtered, false);
           updateStats(filtered.length, currentImages.length, data.stats);
         }
@@ -560,10 +658,19 @@
     // Event listeners
     document.getElementById('search').addEventListener('input', (e) => {
       const search = e.target.value.toLowerCase();
-      const filtered = currentImages.filter(img => 
-        img.filename.toLowerCase().includes(search)
-      );
-      displayImages(filtered);
+      const dateRange = getDateRange();
+      
+      let filtered = currentImages;
+      
+      // Filtruj po wyszukiwarce
+      if (search) {
+        filtered = filtered.filter(img => img.filename.toLowerCase().includes(search));
+      }
+      
+      // Filtruj po dacie
+      filtered = filterByDate(filtered, dateRange);
+      
+      displayImages(filtered, false);
       updateStats(filtered.length, currentImages.length);
     });
 
@@ -572,6 +679,31 @@
     });
 
     document.getElementById('sortOrder').addEventListener('change', () => {
+      loadImages();
+    });
+
+    document.getElementById('dateFrom').addEventListener('change', () => {
+      // Wyczyść szybki filtr jeśli ustawiono ręczną datę
+      if (document.getElementById('dateFrom').value) {
+        document.getElementById('dateQuickFilter').value = '';
+      }
+      loadImages();
+    });
+
+    document.getElementById('dateTo').addEventListener('change', () => {
+      // Wyczyść szybki filtr jeśli ustawiono ręczną datę
+      if (document.getElementById('dateTo').value) {
+        document.getElementById('dateQuickFilter').value = '';
+      }
+      loadImages();
+    });
+
+    document.getElementById('dateQuickFilter').addEventListener('change', () => {
+      // Wyczyść ręczne daty jeśli wybrano szybki filtr
+      if (document.getElementById('dateQuickFilter').value) {
+        document.getElementById('dateFrom').value = '';
+        document.getElementById('dateTo').value = '';
+      }
       loadImages();
     });
 
