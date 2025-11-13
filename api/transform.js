@@ -942,9 +942,14 @@ module.exports = async (req, res) => {
     
     // ✅ ZAPIS GENERACJI W VERCEL BLOB STORAGE (przed inkrementacją licznika)
     // Zapisz generację z powiązaniem do klienta (nawet jeśli nie doda do koszyka)
-    console.log(`🔍 [TRANSFORM] Sprawdzam czy zapisać generację - customerId: ${customerId}, email: ${email}, imageUrl: ${!!imageUrl}`);
+    console.log(`🔍🔍🔍 [TRANSFORM] ===== SPRAWDZAM WARUNEK ZAPISU GENERACJI =====`);
+    console.log(`🔍 [TRANSFORM] imageUrl exists: ${!!imageUrl}`);
+    console.log(`🔍 [TRANSFORM] customerId: ${customerId}, type: ${typeof customerId}`);
+    console.log(`🔍 [TRANSFORM] email: ${email}`);
+    console.log(`🔍 [TRANSFORM] Warunek: imageUrl && (customerId || email) = ${!!imageUrl && !!(customerId || email)}`);
     
     if (imageUrl && (customerId || email)) {
+      console.log(`✅ [TRANSFORM] WARUNEK SPEŁNIONY - zapisuję generację`);
       console.log(`💾 [TRANSFORM] Zapisuję generację w Vercel Blob Storage dla klienta...`);
       console.log(`🔍 [TRANSFORM] customerId type: ${typeof customerId}, value: ${customerId}`);
       console.log(`🔍 [TRANSFORM] email: ${email}`);
@@ -1076,9 +1081,11 @@ module.exports = async (req, res) => {
         // Nie blokuj odpowiedzi - transformacja się udała
       }
     } else {
+      console.warn(`⚠️⚠️⚠️ [TRANSFORM] ===== WARUNEK NIE SPEŁNIONY - POMIJAM ZAPIS =====`);
       console.warn('⚠️ [TRANSFORM] Pomijam zapis generacji - brak customerId lub email');
       console.warn(`⚠️ [TRANSFORM] customerId: ${customerId}, email: ${email}, imageUrl: ${!!imageUrl}`);
       saveGenerationDebug = { skipped: true, reason: 'brak customerId lub email', customerId: customerId || null, email: email || null, hasImageUrl: !!imageUrl };
+      console.warn(`⚠️⚠️⚠️ [TRANSFORM] ===== KONIEC SPRAWDZANIA WARUNKU =====`);
     }
 
     // ✅ INKREMENTACJA LICZNIKA PO UDANEJ TRANSFORMACJI
