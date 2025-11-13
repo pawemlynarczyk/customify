@@ -54,20 +54,34 @@ module.exports = async (req, res) => {
 
     console.log('📊 [LIST-BLOB-IMAGES] Request params:', { prefix, limit, cursor, sortBy, sortOrder, category });
 
+    // Sprawdź czy token jest dostępny
+    const blobToken = process.env.customify_READ_WRITE_TOKEN || process.env.BLOB_READ_WRITE_TOKEN;
+    if (!blobToken) {
+      console.error('❌ [LIST-BLOB-IMAGES] No blob token found!');
+      return res.status(500).json({ 
+        error: 'Blob token not configured',
+        message: 'customify_READ_WRITE_TOKEN or BLOB_READ_WRITE_TOKEN environment variable is missing'
+      });
+    }
+
+    console.log('✅ [LIST-BLOB-IMAGES] Token found:', blobToken ? 'YES' : 'NO');
+
     // List all blobs (bez prefixu - pobierz wszystko)
     const blobs = await list({
       prefix: prefix || undefined,
       limit: parseInt(limit),
       cursor: cursor || undefined,
-      token: process.env.BLOB_READ_WRITE_TOKEN
+      token: blobToken
     });
 
     console.log(`📊 [LIST-BLOB-IMAGES] Found ${blobs.blobs.length} blobs`);
 
     // Kategoryzacja obrazków
     const categorizeImage = (blob) => {
-      const path = blob.pathname.toLowerCase();
-      const name = blob.pathname.toLowerCase();
+      // Użyj pathname lub path (w zależności od wersji API)
+      const pathname = blob.pathname || blob.path || '';
+      const path = pathname.toLowerCase();
+      const name = pathname.toLowerCase();
       
       // 1. Watermarked - zawiera "watermark" w nazwie
       if (name.includes('watermark')) {
@@ -115,8 +129,8 @@ module.exports = async (req, res) => {
       });
     } else if (sortBy === 'name') {
       categorizedBlobs.sort((a, b) => {
-        const nameA = a.pathname.toLowerCase();
-        const nameB = b.pathname.toLowerCase();
+        const nameA = (a.pathname || a.path || '').toLowerCase();
+        const nameB = (b.pathname || b.path || '').toLowerCase();
         return sortOrder === 'asc' 
           ? nameA.localeCompare(nameB)
           : nameB.localeCompare(nameA);
@@ -137,9 +151,9 @@ module.exports = async (req, res) => {
       success: true,
       images: categorizedBlobs.map(blob => ({
         url: blob.url,
-        pathname: blob.pathname,
-        size: blob.size,
-        uploadedAt: blob.uploadedAt,
+        pathname: blob.pathname || blob.path || 'unknown',
+        size: blob.size || 0,
+        uploadedAt: blob.uploadedAt || blob.uploadedAt || new Date().toISOString(),
         category: blob.category
       })),
       cursor: blobs.cursor,
@@ -150,9 +164,11 @@ module.exports = async (req, res) => {
 
   } catch (error) {
     console.error('❌ [LIST-BLOB-IMAGES] Error:', error);
+    console.error('❌ [LIST-BLOB-IMAGES] Error stack:', error.stack);
     return res.status(500).json({ 
       error: 'Internal server error',
-      message: error.message 
+      message: error.message,
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 };
