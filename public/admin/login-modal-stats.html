@@ -175,6 +175,7 @@
     <div class="last-updated" id="lastUpdated">Ładowanie...</div>
     
     <div id="errorContainer"></div>
+    <div id="authDiagnostics" style="display: none; background: #e3f2fd; padding: 15px; border-radius: 6px; margin-bottom: 20px; font-size: 14px;"></div>
     
     <div id="loading" class="loading">Ładowanie statystyk...</div>
     
@@ -389,8 +390,56 @@
       }
     }
     
-    // Load stats on page load
-    loadStats();
+    // Test endpoint first
+    async function testAuth() {
+      const diagnosticsEl = document.getElementById('authDiagnostics');
+      
+      try {
+        const testResponse = await fetch('https://customify-s56o.vercel.app/api/admin/login-modal-stats-test');
+        const testData = await testResponse.json();
+        
+        if (testData.success) {
+          console.log('📊 [AUTH TEST] Diagnostics:', testData.diagnostics);
+          
+          const diag = testData.diagnostics;
+          
+          // Show recommendation in console
+          if (diag.recommendation) {
+            console.log('💡 [AUTH TEST]', diag.recommendation);
+          }
+          
+          // Show token preview (safe)
+          if (diag.tokenFromVercel) {
+            console.log('🔑 [AUTH TEST] Token from Vercel:', diag.tokenFromVercel.preview);
+            console.log('🔑 [AUTH TEST] Token in HTML:', AUTH_TOKEN);
+          }
+          
+          // Show diagnostics in UI
+          if (!diag.comparison.tokensMatch) {
+            diagnosticsEl.style.display = 'block';
+            diagnosticsEl.innerHTML = `
+              <strong>🔍 Diagnostyka autoryzacji:</strong><br>
+              <strong>Token w Vercel:</strong> ${diag.tokenFromVercel.isSet ? '✅ Ustawiony' : '❌ Nie ustawiony (używany fallback)'}<br>
+              <strong>Podgląd tokenu z Vercel:</strong> <code>${diag.tokenFromVercel.preview}</code><br>
+              <strong>Token w HTML:</strong> <code>${AUTH_TOKEN}</code><br>
+              <strong>Status:</strong> ${diag.comparison.tokensMatch ? '✅ Pasują' : '❌ Nie pasują'}<br>
+              <strong>Rekomendacja:</strong> ${diag.recommendation}
+            `;
+          } else {
+            diagnosticsEl.style.display = 'none';
+          }
+        }
+      } catch (error) {
+        console.error('❌ [AUTH TEST] Error:', error);
+        diagnosticsEl.style.display = 'block';
+        diagnosticsEl.innerHTML = `<strong>❌ Błąd diagnostyki:</strong> ${error.message}`;
+      }
+    }
+    
+    // Run test first, then load stats
+    testAuth().then(() => {
+      loadStats();
+    });
     
     // Auto-refresh every 30 seconds
     setInterval(loadStats, 30000);
