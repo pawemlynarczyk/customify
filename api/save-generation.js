@@ -76,7 +76,7 @@ module.exports = async (req, res) => {
 
     // Określ identyfikator klienta (priorytet: customerId > email > IP)
     let keyPrefix = 'customer';
-    let identifier = customerId;
+    let identifier = customerId ? String(customerId) : null; // ✅ KONWERSJA NA STRING
     
     if (!customerId && email) {
       keyPrefix = 'email';
@@ -84,8 +84,17 @@ module.exports = async (req, res) => {
     } else if (!customerId && !email) {
       // Fallback do IP (nie zalecane, ale lepsze niż nic)
       keyPrefix = 'ip';
-      identifier = ip;
+      identifier = String(ip || 'unknown'); // ✅ KONWERSJA NA STRING
       console.warn('⚠️ [SAVE-GENERATION] Using IP as identifier (no customerId or email)');
+    }
+
+    // ✅ WALIDACJA - upewnij się, że identifier jest stringiem
+    if (!identifier || typeof identifier !== 'string') {
+      console.error('❌ [SAVE-GENERATION] Invalid identifier:', identifier, typeof identifier);
+      return res.status(400).json({ 
+        error: 'Invalid identifier',
+        message: 'customerId, email, or IP must be provided'
+      });
     }
 
     // Path w Vercel Blob Storage dla JSON z generacjami
