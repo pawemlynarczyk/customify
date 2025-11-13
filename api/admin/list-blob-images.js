@@ -71,9 +71,9 @@ module.exports = async (req, res) => {
       const path = pathname.toLowerCase();
       const name = pathname.toLowerCase();
       
-      // 1. Watermarked - zawiera "watermark" w nazwie (najpierw - ma priorytet)
+      // 1. Koszyki - zawiera "watermark" w nazwie (najpierw - ma priorytet)
       if (name.includes('watermark')) {
-        return 'watermarked';
+        return 'koszyki';
       }
       
       // 2. Upload - prefix customify/temp/ i NIE zawiera "ai" w nazwie
@@ -123,7 +123,7 @@ module.exports = async (req, res) => {
       total: blobs.blobs.length,
       upload: blobs.blobs.filter(b => categorizeImage(b) === 'upload').length,
       orders: blobs.blobs.filter(b => categorizeImage(b) === 'orders').length,
-      watermarked: blobs.blobs.filter(b => categorizeImage(b) === 'watermarked').length,
+      koszyki: blobs.blobs.filter(b => categorizeImage(b) === 'koszyki').length,
       wygenerowane: blobs.blobs.filter(b => categorizeImage(b) === 'wygenerowane').length
     };
 

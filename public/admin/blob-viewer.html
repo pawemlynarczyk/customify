@@ -114,6 +114,10 @@
       background: linear-gradient(135deg, #9C27B0 0%, #7B1FA2 100%);
     }
     
+    .stat-card.koszyki {
+      background: linear-gradient(135deg, #9C27B0 0%, #7B1FA2 100%);
+    }
+    
     .stat-card.original {
       background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
     }
@@ -190,6 +194,11 @@
     }
     
     .category.watermarked {
+      background: #E1BEE7;
+      color: #6A1B9A;
+    }
+    
+    .category.koszyki {
       background: #E1BEE7;
       color: #6A1B9A;
     }
@@ -280,7 +289,7 @@
           <option value="all">Wszystkie</option>
           <option value="upload">Upload</option>
           <option value="orders">Orders</option>
-          <option value="watermarked">Watermarked</option>
+          <option value="koszyki">Koszyki</option>
           <option value="wygenerowane">Wygenerowane</option>
         </select>
       </div>
@@ -336,8 +345,8 @@
         <div class="stat-label">Orders</div>
       </div>
       <div class="stat-card watermarked">
-        <div class="stat-value" id="statWatermarked">0</div>
-        <div class="stat-label">Watermarked</div>
+        <div class="stat-value" id="statKoszyki">0</div>
+        <div class="stat-label">Koszyki</div>
       </div>
       <div class="stat-card original">
         <div class="stat-value" id="statWygenerowane">0</div>
@@ -616,7 +625,7 @@
       document.getElementById('statTotal').textContent = stats.total || 0;
       document.getElementById('statUpload').textContent = stats.upload || 0;
       document.getElementById('statOrders').textContent = stats.orders || 0;
-      document.getElementById('statWatermarked').textContent = stats.watermarked || 0;
+      document.getElementById('statKoszyki').textContent = stats.koszyki || 0;
       document.getElementById('statWygenerowane').textContent = stats.wygenerowane || 0;
       
       // Aktualizuj licznik w filtrze
