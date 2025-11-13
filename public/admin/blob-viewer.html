@@ -283,8 +283,6 @@
       <div class="control-group">
         <button onclick="setDateRange('today')" style="padding: 8px 12px; font-size: 12px;">Dzisiaj</button>
         <button onclick="setDateRange('week')" style="padding: 8px 12px; font-size: 12px;">Ostatni tydzień</button>
-        <button onclick="setDateRange('month')" style="padding: 8px 12px; font-size: 12px;">Ostatni miesiąc</button>
-        <button onclick="setDateRange('3months')" style="padding: 8px 12px; font-size: 12px;">Ostatnie 3 miesiące</button>
         <button onclick="clearDateRange()" style="padding: 8px 12px; font-size: 12px;">Wyczyść</button>
       </div>
       
@@ -467,16 +465,6 @@
         case 'week':
           from = new Date(today);
           from.setDate(today.getDate() - 7);
-          to = new Date(today);
-          break;
-        case 'month':
-          from = new Date(today);
-          from.setMonth(today.getMonth() - 1);
-          to = new Date(today);
-          break;
-        case '3months':
-          from = new Date(today);
-          from.setMonth(today.getMonth() - 3);
           to = new Date(today);
           break;
       }
