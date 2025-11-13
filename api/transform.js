@@ -1188,17 +1188,18 @@ module.exports = async (req, res) => {
     console.log(`🔍 [TRANSFORM] saveGenerationDebug type:`, typeof saveGenerationDebug);
     console.log(`🔍 [TRANSFORM] saveGenerationDebug !== null:`, saveGenerationDebug !== null);
     
-    // ✅ DODAJ DEBUG INFO Z SAVE-GENERATION (jeśli jest dostępne)
+    // ✅ ZAWSZE DODAJ DEBUG INFO - NAWET JEŚLI JEST NULL (dla debugowania)
+    responseData.saveGenerationDebug = saveGenerationDebug;
     if (saveGenerationDebug !== null) {
-      responseData.saveGenerationDebug = saveGenerationDebug;
       console.log(`✅ [TRANSFORM] Dodaję saveGenerationDebug do response`);
       console.log(`🔍 [TRANSFORM] Zwracam debug info do przeglądarki:`, JSON.stringify(saveGenerationDebug, null, 2));
     } else {
-      console.warn(`⚠️ [TRANSFORM] saveGenerationDebug jest null - NIE DODAJĘ do response`);
+      console.warn(`⚠️ [TRANSFORM] saveGenerationDebug jest null - DODAJĘ null do response dla debugowania`);
       console.warn(`⚠️ [TRANSFORM] To może oznaczać, że save-generation nie został wywołany lub nie zwrócił debug info`);
     }
     
     console.log(`🔍 [TRANSFORM] Final responseData keys:`, Object.keys(responseData));
+    console.log(`🔍 [TRANSFORM] Final responseData.saveGenerationDebug:`, responseData.saveGenerationDebug);
     console.log(`🔍🔍🔍 [TRANSFORM] ===== KONIEC SPRAWDZANIA saveGenerationDebug =====`);
     
     res.json(responseData);

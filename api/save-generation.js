@@ -128,7 +128,20 @@ module.exports = async (req, res) => {
     console.log(`🔍🔍🔍 [SAVE-GENERATION] ===== KONIEC SPRAWDZANIA IDENTIFIER =====`);
 
     // Path w Vercel Blob Storage dla JSON z generacjami
-    const blobPath = `customify/generations/${keyPrefix}-${identifier.replace(/[^a-zA-Z0-9]/g, '-')}.json`;
+    // ✅ TRY-CATCH WOKÓŁ .replace() - OSTATECZNE ZABEZPIECZENIE
+    let blobPath;
+    try {
+      const sanitizedIdentifier = identifier.replace(/[^a-zA-Z0-9]/g, '-');
+      blobPath = `customify/generations/${keyPrefix}-${sanitizedIdentifier}.json`;
+      console.log(`✅ [SAVE-GENERATION] Blob path utworzony: ${blobPath}`);
+    } catch (replaceError) {
+      console.error('❌ [SAVE-GENERATION] Błąd podczas .replace():', replaceError);
+      console.error('❌ [SAVE-GENERATION] identifier:', identifier, typeof identifier);
+      // Fallback - użyj prostego identyfikatora
+      const fallbackId = String(Date.now());
+      blobPath = `customify/generations/${keyPrefix}-${fallbackId}.json`;
+      console.warn(`⚠️ [SAVE-GENERATION] Używam fallback path: ${blobPath}`);
+    }
     console.log(`📝 [SAVE-GENERATION] Blob Path: ${blobPath}`);
 
     // Generuj unikalny ID dla generacji
