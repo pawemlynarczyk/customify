@@ -266,7 +266,7 @@ async function segmindBecomeImage(imageUrl, styleImageUrl, styleParameters = {})
   }
 
   const {
-    prompt = "a person",
+    prompt = "modern watercolor painting",
     prompt_strength = 2,
     number_of_images = 1,
     denoising_strength = 1,
@@ -848,7 +848,7 @@ module.exports = async (req, res) => {
       // Style akwareli - używa Segmind Become-Image API
       'akwarela': {
         model: "segmind/become-image",
-        prompt: "a person",
+        prompt: "modern watercolor painting",
         apiType: "segmind-become-image",
         productType: "watercolor", // Identyfikator typu produktu
         parameters: {
