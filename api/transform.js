@@ -267,12 +267,12 @@ async function segmindBecomeImage(imageUrl, styleImageUrl, styleParameters = {})
 
   const {
     prompt = "modern watercolor painting",
-    prompt_strength = 2,
+    prompt_strength = 3,
     number_of_images = 1,
-    denoising_strength = 1,
-    instant_id_strength = 1,
-    control_depth_strength = 0.8,
-    image_to_become_strength = 0.75,
+    denoising_strength = 0.45,
+    instant_id_strength = 0.5,
+    control_depth_strength = 0.93,
+    image_to_become_strength = 0.45,
     image_to_become_noise = 0.3,
     disable_safety_checker = true
   } = styleParameters || {};
@@ -874,7 +874,7 @@ module.exports = async (req, res) => {
           prompt_strength: 3,
           number_of_images: 1,
           denoising_strength: 0.45,
-          instant_id_strength: 0.1,
+          instant_id_strength: 0.5,
           image_to_become_strength: 0.45,
           image_to_become_noise: 0.3,
           control_depth_strength: 0.93,
