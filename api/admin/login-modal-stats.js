@@ -4,10 +4,97 @@
  * Zapisuje eventy do Vercel Blob Storage jako JSON
  */
 
-const { put, head } = require('@vercel/blob');
+const { put, head, list, del } = require('@vercel/blob');
 const { checkRateLimit, getClientIP } = require('../../utils/vercelRateLimiter');
 
-const STATS_FILE_PATH = 'customify/stats/login-modal-stats.json';
+const STATS_FILE_PATH = 'customify/stats/login-modal-stats.json'; // legacy - do odczytu
+const STATS_NEW_PREFIX = 'customify/temp/admin-stats/';
+const MAX_STATS_VERSIONS = 5;
+
+const getBlobToken = () => {
+  const token = process.env.customify_READ_WRITE_TOKEN || process.env.BLOB_READ_WRITE_TOKEN;
+  if (!token) {
+    throw new Error('Missing customify_READ_WRITE_TOKEN (Vercel Blob auth)');
+  }
+  return token;
+};
+
+const createEmptyStats = () => ({
+  events: [],
+  summary: {
+    totalShown: 0,
+    totalRegisterClicks: 0,
+    totalLoginClicks: 0,
+    totalCancelClicks: 0,
+    totalAutoRedirects: 0
+  },
+  byProduct: {},
+  byDate: {},
+  createdAt: new Date().toISOString(),
+  lastUpdated: new Date().toISOString()
+});
+
+const loadStatsFile = async (blobToken) => {
+  let stats = createEmptyStats();
+  let sourcePath = null;
+  let versions = [];
+
+  try {
+    const versionList = await list({
+      prefix: STATS_NEW_PREFIX,
+      limit: 100,
+      token: blobToken
+    });
+    versions = versionList?.blobs || [];
+    
+    if (versions.length > 0) {
+      versions.sort((a, b) => new Date(a.uploadedAt).getTime() - new Date(b.uploadedAt).getTime());
+      const latest = versions[versions.length - 1];
+      const response = await fetch(latest.url);
+      if (response.ok) {
+        stats = await response.json();
+        sourcePath = latest.pathname || latest.path || null;
+      }
+    }
+  } catch (error) {
+    console.log('📊 [LOGIN-MODAL-STATS] No versions in new prefix yet');
+  }
+
+  if (!sourcePath) {
+    try {
+      const legacyBlob = await head(STATS_FILE_PATH, { token: blobToken }).catch(() => null);
+      if (legacyBlob?.url) {
+        const response = await fetch(legacyBlob.url);
+        if (response.ok) {
+          stats = await response.json();
+          sourcePath = STATS_FILE_PATH;
+        }
+      }
+    } catch (error) {
+      console.log('📊 [LOGIN-MODAL-STATS] No legacy stats file');
+    }
+  }
+
+  return { stats, sourcePath, versions };
+};
+
+const cleanupOldVersions = async (blobToken, versions) => {
+  if (!versions || versions.length <= MAX_STATS_VERSIONS) {
+    return;
+  }
+  const sorted = [...versions].sort((a, b) => new Date(a.uploadedAt).getTime() - new Date(b.uploadedAt).getTime());
+  const toRemove = sorted.slice(0, Math.max(0, sorted.length - MAX_STATS_VERSIONS));
+  for (const blob of toRemove) {
+    const path = blob.pathname || blob.path;
+    if (!path) continue;
+    try {
+      await del(path, { token: blobToken });
+      console.log(`🧹 [LOGIN-MODAL-STATS] Usuń stary plik statystyk: ${path}`);
+    } catch (error) {
+      console.warn(`⚠️ [LOGIN-MODAL-STATS] Nie udało się usunąć ${path}:`, error?.message || error);
+    }
+  }
+};
 
 module.exports = async (req, res) => {
   console.log(`📊 [LOGIN-MODAL-STATS] API called - Method: ${req.method}`);
@@ -50,41 +137,15 @@ module.exports = async (req, res) => {
         return res.status(400).json({ error: 'Missing eventType' });
       }
 
-      // Pobierz istniejące statystyki
-      let stats = {
-        events: [],
-        summary: {
-          totalShown: 0,
-          totalRegisterClicks: 0,
-          totalLoginClicks: 0,
-          totalCancelClicks: 0,
-          totalAutoRedirects: 0
-        },
-        byProduct: {},
-        byDate: {},
-        createdAt: new Date().toISOString(),
-        lastUpdated: new Date().toISOString()
-      };
-
+      const blobToken = getBlobToken();
+      let statsData;
       try {
-        const blobToken = process.env.customify_READ_WRITE_TOKEN || process.env.BLOB_READ_WRITE_TOKEN;
-        if (!blobToken) {
-          throw new Error('Missing customify_READ_WRITE_TOKEN (Vercel Blob auth)');
-        }
-        
-        const existingBlob = await head(STATS_FILE_PATH, {
-          token: blobToken
-        }).catch(() => null);
-        
-        if (existingBlob && existingBlob.url) {
-          const existingResponse = await fetch(existingBlob.url);
-          if (existingResponse.ok) {
-            stats = await existingResponse.json();
-          }
-        }
+        statsData = await loadStatsFile(blobToken);
       } catch (error) {
         console.log('📊 [LOGIN-MODAL-STATS] Creating new stats file');
+        statsData = { stats: createEmptyStats(), sourcePath: null, versions: [] };
       }
+      let stats = statsData.stats || createEmptyStats();
 
       // Dodaj nowy event
       const newEvent = {
@@ -149,17 +210,26 @@ module.exports = async (req, res) => {
 
       stats.lastUpdated = new Date().toISOString();
 
-      // Zapisz do Vercel Blob
-      const blobToken = process.env.customify_READ_WRITE_TOKEN || process.env.BLOB_READ_WRITE_TOKEN;
-      if (!blobToken) {
-        throw new Error('Missing customify_READ_WRITE_TOKEN (Vercel Blob auth)');
-      }
+      const newStatsPath = `${STATS_NEW_PREFIX}stats-${Date.now()}.json`;
       
-      const blob = await put(STATS_FILE_PATH, JSON.stringify(stats, null, 2), {
+      const blob = await put(newStatsPath, JSON.stringify(stats, null, 2), {
         access: 'public',
         token: blobToken,
-        contentType: 'application/json'
+        contentType: 'application/json',
+        allowOverwrite: true
       });
+      const storedPath = blob.pathname || newStatsPath;
+
+      if (statsData.sourcePath === STATS_FILE_PATH) {
+        try {
+          await del(STATS_FILE_PATH, { token: blobToken });
+          console.log('🧹 [LOGIN-MODAL-STATS] Usunięto legacy plik statystyk');
+        } catch (cleanupError) {
+          console.warn('⚠️ [LOGIN-MODAL-STATS] Nie udało się usunąć legacy pliku:', cleanupError?.message || cleanupError);
+        }
+      }
+
+      await cleanupOldVersions(blobToken, [...(statsData.versions || []), { pathname: storedPath, uploadedAt: new Date().toISOString() }]);
 
       console.log('✅ [LOGIN-MODAL-STATS] Event saved:', eventType);
 
@@ -203,37 +273,11 @@ module.exports = async (req, res) => {
       
       console.log('✅ [LOGIN-MODAL-STATS] Authorization successful');
 
-      let stats = {
-        events: [],
-        summary: {
-          totalShown: 0,
-          totalRegisterClicks: 0,
-          totalLoginClicks: 0,
-          totalCancelClicks: 0,
-          totalAutoRedirects: 0
-        },
-        byProduct: {},
-        byDate: {},
-        createdAt: new Date().toISOString(),
-        lastUpdated: new Date().toISOString()
-      };
-
+      let stats = createEmptyStats();
       try {
-        const blobToken = process.env.customify_READ_WRITE_TOKEN || process.env.BLOB_READ_WRITE_TOKEN;
-        if (!blobToken) {
-          throw new Error('Missing customify_READ_WRITE_TOKEN (Vercel Blob auth)');
-        }
-        
-        const existingBlob = await head(STATS_FILE_PATH, {
-          token: blobToken
-        }).catch(() => null);
-        
-        if (existingBlob && existingBlob.url) {
-          const existingResponse = await fetch(existingBlob.url);
-          if (existingResponse.ok) {
-            stats = await existingResponse.json();
-          }
-        }
+        const blobToken = getBlobToken();
+        const { stats: loadedStats } = await loadStatsFile(blobToken);
+        stats = loadedStats || createEmptyStats();
       } catch (error) {
         console.log('📊 [LOGIN-MODAL-STATS] No existing stats file');
       }

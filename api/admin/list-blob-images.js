@@ -72,7 +72,11 @@ module.exports = async (req, res) => {
       const name = pathname.toLowerCase();
       
       // 0. Pliki wewnętrzne (statystyki, logi) - ukryj je w panelu
-      if (path.startsWith('customify/internal/') || path.startsWith('customify/stats/')) {
+      if (
+        path.startsWith('customify/internal/') ||
+        path.startsWith('customify/stats/') ||
+        path.startsWith('customify/temp/admin-stats/')
+      ) {
         return null;
       }
       
