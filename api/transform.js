@@ -805,7 +805,7 @@ module.exports = async (req, res) => {
         productType: "watercolor", // Identyfikator typu produktu
         parameters: {
           image: "USER_IMAGE", // URL zdjęcia użytkownika (będzie zamienione na URL z Vercel Blob)
-          image_to_become: "https://customify-s56o.vercel.app/akwarela/watercolor-style.png", // URL miniaturki stylu akwareli
+          image_to_become: "https://customify-s56o.vercel.app/akwarela/become.png", // Docelowy obraz stylu akwareli (Vercel Blob)
           prompt_strength: 3,
           number_of_images: 1,
           denoising_strength: 0.45,
