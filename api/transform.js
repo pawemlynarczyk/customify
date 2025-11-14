@@ -296,15 +296,41 @@ async function segmindBecomeImage(imageUrl, styleImageUrl, styleParameters = {})
     let styleImagePayload = styleImageUrl;
 
     if (styleImageUrl && typeof styleImageUrl === 'string' && styleImageUrl.startsWith('http')) {
+      let uploadedUrl = null;
       try {
         console.log('📥 [SEGMIND] Downloading style image for Become-Image...');
         const styleImageBase64 = await urlToBase64(styleImageUrl);
-        styleImagePayload = styleImageBase64;
         console.log('✅ [SEGMIND] Style image converted to base64');
+
+        const baseUrl = 'https://customify-s56o.vercel.app';
+        const uploadResponse = await fetch(`${baseUrl}/api/upload-temp-image`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            imageData: `data:image/png;base64,${styleImageBase64}`,
+            filename: `watercolor-style-${Date.now()}.png`
+          })
+        });
+
+        if (uploadResponse.ok) {
+          const uploadResult = await uploadResponse.json();
+          if (uploadResult && uploadResult.imageUrl) {
+            uploadedUrl = uploadResult.imageUrl;
+            console.log('✅ [SEGMIND] Style image uploaded to Vercel Blob:', uploadedUrl);
+          } else {
+            console.error('⚠️ [SEGMIND] Unexpected upload response, using original URL');
+          }
+        } else {
+          const errorText = await uploadResponse.text();
+          console.error('⚠️ [SEGMIND] Failed to upload style image to Vercel Blob:', errorText);
+        }
       } catch (styleImageError) {
-        console.error('⚠️ [SEGMIND] Failed to convert style image to base64, falling back to URL:', styleImageError.message);
-        styleImagePayload = styleImageUrl;
+        console.error('⚠️ [SEGMIND] Failed to prepare style image for upload:', styleImageError.message);
       }
+
+      styleImagePayload = uploadedUrl || styleImageUrl;
     }
 
     const response = await fetch('https://api.segmind.com/v1/become-image', {
