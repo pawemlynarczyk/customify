@@ -361,25 +361,33 @@ async function segmindBecomeImage(imageUrl, styleImageUrl, styleParameters = {})
       throw new Error(`Segmind API error: ${response.status} - ${errorText}`);
     }
 
-    // Segmind zwraca JSON (nie binary jak caricature-style)
-    const result = await response.json();
-    console.log('✅ [SEGMIND] Become-image completed successfully');
-    console.log('📋 [SEGMIND] Response keys:', Object.keys(result));
-    
-    // Sprawdź format odpowiedzi (może być URL lub base64 lub array z obrazami)
-    if (result.image) {
-      // Pojedynczy obraz (URL lub base64)
-      return result.image;
-    } else if (result.images && Array.isArray(result.images) && result.images.length > 0) {
-      // Array z obrazami - weź pierwszy
-      return result.images[0];
-    } else if (result.output) {
-      // Może być w polu output
-      return result.output;
-    } else {
-      console.error('❌ [SEGMIND] No image in response:', result);
-      throw new Error('No image in Segmind response');
+    const contentType = response.headers.get('content-type') || '';
+    console.log('📦 [SEGMIND] Response content-type:', contentType);
+
+    if (contentType.includes('application/json')) {
+      const result = await response.json();
+      console.log('✅ [SEGMIND] Become-image completed successfully (JSON)');
+      console.log('📋 [SEGMIND] Response keys:', Object.keys(result));
+      
+      if (result.image) {
+        return result.image;
+      } else if (result.images && Array.isArray(result.images) && result.images.length > 0) {
+        return result.images[0];
+      } else if (result.output) {
+        return result.output;
+      } else {
+        console.error('❌ [SEGMIND] No image in JSON response:', result);
+        throw new Error('No image in Segmind JSON response');
+      }
     }
+
+    // Binary response (image/png, image/jpeg, etc.)
+    console.log('🖼️ [SEGMIND] Binary response detected, converting to data URI');
+    const imageBuffer = await response.arrayBuffer();
+    const base64Image = Buffer.from(imageBuffer).toString('base64');
+    const mimeType = contentType || 'image/png';
+    const dataUri = `data:${mimeType};base64,${base64Image}`;
+    return dataUri;
     
   } catch (error) {
     console.error('❌ [SEGMIND] Become-image failed:', error);
