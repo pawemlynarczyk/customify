@@ -71,6 +71,11 @@ module.exports = async (req, res) => {
       const path = pathname.toLowerCase();
       const name = pathname.toLowerCase();
       
+      // 0. Pliki wewnętrzne (statystyki, logi) - ukryj je w panelu
+      if (path.startsWith('customify/internal/') || path.startsWith('customify/stats/')) {
+        return null;
+      }
+      
       // 1. Koszyki - zawiera "watermark" w nazwie (najpierw - ma priorytet)
       if (name.includes('watermark')) {
         return 'koszyki';
@@ -91,10 +96,12 @@ module.exports = async (req, res) => {
     };
 
     // Kategoryzuj wszystkie obrazki
-    let categorizedBlobs = blobs.blobs.map(blob => ({
-      ...blob,
-      category: categorizeImage(blob)
-    }));
+    let categorizedBlobs = blobs.blobs
+      .map(blob => ({
+        ...blob,
+        category: categorizeImage(blob)
+      }))
+      .filter(blob => blob.category !== null);
 
     // Filtruj po kategorii jeśli podano
     if (category && category !== 'all') {
@@ -120,11 +127,11 @@ module.exports = async (req, res) => {
 
     // Statystyki per kategoria
     const stats = {
-      total: blobs.blobs.length,
-      upload: blobs.blobs.filter(b => categorizeImage(b) === 'upload').length,
-      orders: blobs.blobs.filter(b => categorizeImage(b) === 'orders').length,
-      koszyki: blobs.blobs.filter(b => categorizeImage(b) === 'koszyki').length,
-      wygenerowane: blobs.blobs.filter(b => categorizeImage(b) === 'wygenerowane').length
+      total: categorizedBlobs.length,
+      upload: categorizedBlobs.filter(b => b.category === 'upload').length,
+      orders: categorizedBlobs.filter(b => b.category === 'orders').length,
+      koszyki: categorizedBlobs.filter(b => b.category === 'koszyki').length,
+      wygenerowane: categorizedBlobs.filter(b => b.category === 'wygenerowane').length
     };
 
     return res.json({
