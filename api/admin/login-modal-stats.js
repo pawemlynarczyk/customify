@@ -67,8 +67,13 @@ module.exports = async (req, res) => {
       };
 
       try {
+        const blobToken = process.env.customify_READ_WRITE_TOKEN || process.env.BLOB_READ_WRITE_TOKEN;
+        if (!blobToken) {
+          throw new Error('Missing customify_READ_WRITE_TOKEN (Vercel Blob auth)');
+        }
+        
         const existingBlob = await head(STATS_FILE_PATH, {
-          token: process.env.BLOB_READ_WRITE_TOKEN
+          token: blobToken
         }).catch(() => null);
         
         if (existingBlob && existingBlob.url) {
@@ -145,9 +150,14 @@ module.exports = async (req, res) => {
       stats.lastUpdated = new Date().toISOString();
 
       // Zapisz do Vercel Blob
+      const blobToken = process.env.customify_READ_WRITE_TOKEN || process.env.BLOB_READ_WRITE_TOKEN;
+      if (!blobToken) {
+        throw new Error('Missing customify_READ_WRITE_TOKEN (Vercel Blob auth)');
+      }
+      
       const blob = await put(STATS_FILE_PATH, JSON.stringify(stats, null, 2), {
         access: 'public',
-        token: process.env.BLOB_READ_WRITE_TOKEN,
+        token: blobToken,
         contentType: 'application/json'
       });
 
@@ -209,8 +219,13 @@ module.exports = async (req, res) => {
       };
 
       try {
+        const blobToken = process.env.customify_READ_WRITE_TOKEN || process.env.BLOB_READ_WRITE_TOKEN;
+        if (!blobToken) {
+          throw new Error('Missing customify_READ_WRITE_TOKEN (Vercel Blob auth)');
+        }
+        
         const existingBlob = await head(STATS_FILE_PATH, {
-          token: process.env.BLOB_READ_WRITE_TOKEN
+          token: blobToken
         }).catch(() => null);
         
         if (existingBlob && existingBlob.url) {
