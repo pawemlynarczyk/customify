@@ -293,6 +293,20 @@ async function segmindBecomeImage(imageUrl, styleImageUrl, styleParameters = {})
   });
 
   try {
+    let styleImagePayload = styleImageUrl;
+
+    if (styleImageUrl && typeof styleImageUrl === 'string' && styleImageUrl.startsWith('http')) {
+      try {
+        console.log('📥 [SEGMIND] Downloading style image for Become-Image...');
+        const styleImageBase64 = await urlToBase64(styleImageUrl);
+        styleImagePayload = styleImageBase64;
+        console.log('✅ [SEGMIND] Style image converted to base64');
+      } catch (styleImageError) {
+        console.error('⚠️ [SEGMIND] Failed to convert style image to base64, falling back to URL:', styleImageError.message);
+        styleImagePayload = styleImageUrl;
+      }
+    }
+
     const response = await fetch('https://api.segmind.com/v1/become-image', {
       method: 'POST',
       headers: {
@@ -301,7 +315,7 @@ async function segmindBecomeImage(imageUrl, styleImageUrl, styleParameters = {})
       },
       body: JSON.stringify({
         image: imageUrl,              // URL zdjęcia użytkownika
-        image_to_become: styleImageUrl, // URL miniaturki stylu akwareli
+        image_to_become: styleImagePayload, // Obraz stylu (base64 lub URL)
         prompt,
         prompt_strength,
         number_of_images,
