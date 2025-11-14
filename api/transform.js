@@ -299,9 +299,26 @@ async function segmindBecomeImage(imageUrl, styleImageUrl, styleParameters = {})
       let uploadedUrl = null;
       try {
         console.log('📥 [SEGMIND] Downloading style image for Become-Image...');
-        const styleImageBase64 = await urlToBase64(styleImageUrl);
+        let styleImageBase64 = await urlToBase64(styleImageUrl);
         console.log('✅ [SEGMIND] Style image converted to base64');
 
+        if (sharp) {
+          try {
+            console.log('🖼️ [SEGMIND] Resizing style image to 896x1152 before upload...');
+            const resizedBuffer = await sharp(Buffer.from(styleImageBase64, 'base64'))
+              .resize(896, 1152, {
+                fit: 'cover',
+                position: 'centre'
+              })
+              .png({ quality: 100 })
+              .toBuffer();
+            styleImageBase64 = resizedBuffer.toString('base64');
+            console.log('✅ [SEGMIND] Style image resized successfully');
+          } catch (resizeError) {
+            console.error('⚠️ [SEGMIND] Failed to resize style image (using original size):', resizeError.message);
+          }
+        }
+        
         const baseUrl = 'https://customify-s56o.vercel.app';
         const uploadResponse = await fetch(`${baseUrl}/api/upload-temp-image`, {
           method: 'POST',
