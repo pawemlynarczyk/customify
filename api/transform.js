@@ -296,58 +296,10 @@ async function segmindBecomeImage(imageUrl, styleImageUrl, styleParameters = {})
     let styleImagePayload = styleImageUrl;
 
     if (styleImageUrl && typeof styleImageUrl === 'string' && styleImageUrl.startsWith('http')) {
-      let uploadedUrl = null;
-      try {
-        console.log('📥 [SEGMIND] Downloading style image for Become-Image...');
-        let styleImageBase64 = await urlToBase64(styleImageUrl);
-        console.log('✅ [SEGMIND] Style image converted to base64');
-
-        if (sharp) {
-          try {
-            console.log('🖼️ [SEGMIND] Resizing style image to 896x1152 before upload...');
-            const resizedBuffer = await sharp(Buffer.from(styleImageBase64, 'base64'))
-              .resize(896, 1152, {
-                fit: 'cover',
-                position: 'centre'
-              })
-              .png({ quality: 100 })
-              .toBuffer();
-            styleImageBase64 = resizedBuffer.toString('base64');
-            console.log('✅ [SEGMIND] Style image resized successfully');
-          } catch (resizeError) {
-            console.error('⚠️ [SEGMIND] Failed to resize style image (using original size):', resizeError.message);
-          }
-        }
-        
-        const baseUrl = 'https://customify-s56o.vercel.app';
-        const uploadResponse = await fetch(`${baseUrl}/api/upload-temp-image`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            imageData: `data:image/png;base64,${styleImageBase64}`,
-            filename: `watercolor-style-${Date.now()}.png`
-          })
-        });
-
-        if (uploadResponse.ok) {
-          const uploadResult = await uploadResponse.json();
-          if (uploadResult && uploadResult.imageUrl) {
-            uploadedUrl = uploadResult.imageUrl;
-            console.log('✅ [SEGMIND] Style image uploaded to Vercel Blob:', uploadedUrl);
-          } else {
-            console.error('⚠️ [SEGMIND] Unexpected upload response, using original URL');
-          }
-        } else {
-          const errorText = await uploadResponse.text();
-          console.error('⚠️ [SEGMIND] Failed to upload style image to Vercel Blob:', errorText);
-        }
-      } catch (styleImageError) {
-        console.error('⚠️ [SEGMIND] Failed to prepare style image for upload:', styleImageError.message);
-      }
-
-      styleImagePayload = uploadedUrl || styleImageUrl;
+      console.log('🎨 [SEGMIND] Using provided style image URL without modifications');
+      styleImagePayload = styleImageUrl;
+    } else {
+      console.warn('⚠️ [SEGMIND] Style image URL is not an absolute URL - passing as-is');
     }
 
     const response = await fetch('https://api.segmind.com/v1/become-image', {
