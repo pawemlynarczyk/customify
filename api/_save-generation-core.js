@@ -280,7 +280,8 @@ async function saveGenerationHandler(req, res) {
       const blob = await put(blobPath, jsonBuffer, {
         access: 'public',
         contentType: 'application/json',
-        token: process.env.customify_READ_WRITE_TOKEN
+        token: process.env.customify_READ_WRITE_TOKEN,
+        allowOverwrite: true
       });
       
       console.log(`✅ [SAVE-GENERATION] Saved to Blob: ${blob.url}`);
