@@ -192,14 +192,20 @@ async function saveGenerationHandler(req, res) {
     console.log(`✅ [SAVE-GENERATION] identifier po finalnej konwersji:`, identifier, typeof identifier);
     console.log(`🔍🔍🔍 [SAVE-GENERATION] ===== KONIEC SPRAWDZANIA IDENTIFIER =====`);
 
+    const statsPrefix = 'customify/system/stats/generations';
+    const legacyPrefix = 'customify/generations';
+
     let blobPath;
+    let legacyBlobPath;
     const sanitizedIdentifier = sanitizeIdentifier(identifier);
     if (sanitizedIdentifier) {
-      blobPath = `customify/generations/${keyPrefix}-${sanitizedIdentifier}.json`;
+      blobPath = `${statsPrefix}/${keyPrefix}-${sanitizedIdentifier}.json`;
+      legacyBlobPath = `${legacyPrefix}/${keyPrefix}-${sanitizedIdentifier}.json`;
       console.log(`✅ [SAVE-GENERATION] Blob path utworzony (sanitized): ${blobPath}`);
     } else {
       const fallbackId = String(Date.now());
-      blobPath = `customify/generations/${keyPrefix}-${fallbackId}.json`;
+      blobPath = `${statsPrefix}/${keyPrefix}-${fallbackId}.json`;
+      legacyBlobPath = `${legacyPrefix}/${keyPrefix}-${fallbackId}.json`;
       console.warn(`⚠️ [SAVE-GENERATION] Identifier pusty po sanetyzacji - używam fallback: ${blobPath}`);
     }
     console.log(`📝 [SAVE-GENERATION] Blob Path: ${blobPath}`);
@@ -224,7 +230,7 @@ async function saveGenerationHandler(req, res) {
     let existingData = null;
     try {
       // Spróbuj sprawdzić czy plik istnieje używając head()
-      const existingBlob = await head(blobPath, {
+      let existingBlob = await head(blobPath, {
         token: process.env.customify_READ_WRITE_TOKEN
       }).catch(() => null);
       
@@ -234,6 +240,20 @@ async function saveGenerationHandler(req, res) {
         if (existingResponse.ok) {
           existingData = await existingResponse.json();
           console.log(`📊 [SAVE-GENERATION] Existing data found: ${existingData.generations?.length || 0} generations`);
+        }
+      } else if (legacyBlobPath) {
+        // Spróbuj odczytać z legacy ścieżki
+        console.log('📂 [SAVE-GENERATION] Trying legacy blob path:', legacyBlobPath);
+        existingBlob = await head(legacyBlobPath, {
+          token: process.env.customify_READ_WRITE_TOKEN
+        }).catch(() => null);
+
+        if (existingBlob && existingBlob.url) {
+          const legacyResponse = await fetch(existingBlob.url);
+          if (legacyResponse.ok) {
+            existingData = await legacyResponse.json();
+            console.log(`📊 [SAVE-GENERATION] Legacy data found: ${existingData.generations?.length || 0} generations`);
+          }
         }
       } else {
         console.log(`📊 [SAVE-GENERATION] No existing file found - creating new`);
