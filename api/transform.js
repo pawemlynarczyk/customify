@@ -558,21 +558,8 @@ module.exports = async (req, res) => {
         // Kontynuuj mimo błędu (fallback do IP rate limiting)
       }
     } else {
-      // Niezalogowany użytkownik - sprawdź IP-based limit (1 użycie)
-      console.log(`👤 [TRANSFORM] Niezalogowany użytkownik - sprawdzam IP-based limit`);
-      
-      // Restrykcyjny rate limiting dla niezalogowanych: 1 request na 24 godziny
-      if (!checkRateLimit(ip, 1, 24 * 60 * 60 * 1000)) {
-        console.log(`❌ [TRANSFORM] Limit przekroczony dla niezalogowanego IP: ${ip}`);
-        return res.status(403).json({
-          error: 'Usage limit exceeded',
-          message: 'Wykorzystałeś darmową transformację. Zaloguj się aby otrzymać więcej.',
-          totalLimit: 1,
-          usedCount: 1
-        });
-      }
-      
-      console.log(`✅ [TRANSFORM] IP-based limit OK dla niezalogowanego użytkownika`);
+      // Niezalogowany użytkownik - chwilowo brak limitu IP (kontroluje frontend)
+      console.log(`👤 [TRANSFORM] Niezalogowany użytkownik - pomijam limit IP (tymczasowo wyłączony)`);
     }
 
     if (!replicate) {

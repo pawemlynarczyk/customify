@@ -210,6 +210,18 @@
           <div class="stat-value" id="conversionRate">0%</div>
           <div class="stat-label">Conversion Rate</div>
         </div>
+        <div class="stat-card success">
+          <div class="stat-value" id="totalRegisterSuccess">0</div>
+          <div class="stat-label">Rejestracje zakończone</div>
+        </div>
+        <div class="stat-card success">
+          <div class="stat-value" id="totalLoginSuccess">0</div>
+          <div class="stat-label">Logowania zakończone</div>
+        </div>
+        <div class="stat-card primary">
+          <div class="stat-value" id="actualConversionRate">0%</div>
+          <div class="stat-label">Realny conversion</div>
+        </div>
       </div>
       
       <!-- By Product -->
@@ -332,7 +344,10 @@
         document.getElementById('totalLoginClicks').textContent = stats.summary.totalLoginClicks;
         document.getElementById('totalCancelClicks').textContent = stats.summary.totalCancelClicks;
         document.getElementById('totalAutoRedirects').textContent = stats.summary.totalAutoRedirects;
+        document.getElementById('totalRegisterSuccess').textContent = stats.summary.totalRegisterSuccess || 0;
+        document.getElementById('totalLoginSuccess').textContent = stats.summary.totalLoginSuccess || 0;
         document.getElementById('conversionRate').textContent = stats.calculated?.conversionRate || '0%';
+        document.getElementById('actualConversionRate').textContent = stats.calculated?.actualConversionRate || stats.calculated?.conversionRate || '0%';
         
         // Update last updated
         if (stats.lastUpdated) {

@@ -2242,6 +2242,51 @@
         }
       })();
     </script>
+    <!-- TRACK LOGIN/REGISTER SUCCESS -->
+    <script>
+      (function() {
+        const isLoggedIn = {{ customer.id | json }} !== null;
+        if (!isLoggedIn) {
+          return;
+        }
+        try {
+          const authIntent = localStorage.getItem('customify_auth_intent');
+          if (!authIntent) {
+            return;
+          }
+          const timestampRaw = localStorage.getItem('customify_auth_intent_timestamp');
+          const timestamp = timestampRaw ? parseInt(timestampRaw, 10) : null;
+          const authSource = localStorage.getItem('customify_auth_source');
+          const MAX_AGE_MS = 30 * 60 * 1000; // 30 minut na wysłanie zdarzenia
+          if (timestamp && (Date.now() - timestamp) > MAX_AGE_MS) {
+            localStorage.removeItem('customify_auth_intent');
+            localStorage.removeItem('customify_auth_intent_timestamp');
+            localStorage.removeItem('customify_auth_source');
+            return;
+          }
+          const isRegisterIntent = authIntent.startsWith('register');
+          const eventType = isRegisterIntent ? 'login_modal_register_success' : 'login_modal_login_success';
+          fetch('https://customify-s56o.vercel.app/api/admin/login-modal-stats', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              eventType,
+              productUrl: authSource || localStorage.getItem('customify_return_url') || window.location.pathname,
+              timestamp: new Date().toISOString(),
+              sourcePage: window.location.pathname
+            })
+          }).catch(function(err) {
+            console.warn('📊 [AUTH SUCCESS] Failed to send event:', err);
+          }).finally(function() {
+            localStorage.removeItem('customify_auth_intent');
+            localStorage.removeItem('customify_auth_intent_timestamp');
+            localStorage.removeItem('customify_auth_source');
+          });
+        } catch (error) {
+          console.warn('📊 [AUTH SUCCESS] Tracking error:', error);
+        }
+      })();
+    </script>
     
     <!-- KOMPLETNY NAGŁÓWEK CUSTOMIFY -->
     <header class="header-main">

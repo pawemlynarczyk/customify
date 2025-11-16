@@ -8,8 +8,49 @@ const { put, head, list, del } = require('@vercel/blob');
 const { checkRateLimit, getClientIP } = require('../../utils/vercelRateLimiter');
 
 const STATS_FILE_PATH = 'customify/stats/login-modal-stats.json'; // legacy - do odczytu
-const STATS_NEW_PREFIX = 'customify/temp/admin-stats/';
+const STATS_NEW_PREFIX = 'customify/statystyki/';
 const MAX_STATS_VERSIONS = 5;
+
+const defaultSummary = () => ({
+  totalShown: 0,
+  totalRegisterClicks: 0,
+  totalLoginClicks: 0,
+  totalCancelClicks: 0,
+  totalAutoRedirects: 0,
+  totalRegisterSuccess: 0,
+  totalLoginSuccess: 0
+});
+
+const defaultBreakdown = () => ({
+  shown: 0,
+  registerClicks: 0,
+  loginClicks: 0,
+  cancelClicks: 0,
+  autoRedirects: 0,
+  registerSuccess: 0,
+  loginSuccess: 0
+});
+
+const ensureStatsStructure = (stats) => {
+  if (!stats.summary) {
+    stats.summary = defaultSummary();
+  } else {
+    stats.summary = { ...defaultSummary(), ...stats.summary };
+  }
+  if (!stats.byProduct) {
+    stats.byProduct = {};
+  }
+  if (!stats.byDate) {
+    stats.byDate = {};
+  }
+  Object.keys(stats.byProduct).forEach((key) => {
+    stats.byProduct[key] = { ...defaultBreakdown(), ...stats.byProduct[key] };
+  });
+  Object.keys(stats.byDate).forEach((key) => {
+    stats.byDate[key] = { ...defaultBreakdown(), ...stats.byDate[key] };
+  });
+  return stats;
+};
 
 const getBlobToken = () => {
   const token = process.env.customify_READ_WRITE_TOKEN || process.env.BLOB_READ_WRITE_TOKEN;
@@ -19,15 +60,9 @@ const getBlobToken = () => {
   return token;
 };
 
-const createEmptyStats = () => ({
+const createEmptyStats = () => ensureStatsStructure({
   events: [],
-  summary: {
-    totalShown: 0,
-    totalRegisterClicks: 0,
-    totalLoginClicks: 0,
-    totalCancelClicks: 0,
-    totalAutoRedirects: 0
-  },
+  summary: defaultSummary(),
   byProduct: {},
   byDate: {},
   createdAt: new Date().toISOString(),
@@ -75,7 +110,7 @@ const loadStatsFile = async (blobToken) => {
     }
   }
 
-  return { stats, sourcePath, versions };
+  return { stats: ensureStatsStructure(stats), sourcePath, versions };
 };
 
 const cleanupOldVersions = async (blobToken, versions) => {
@@ -145,7 +180,7 @@ module.exports = async (req, res) => {
         console.log('📊 [LOGIN-MODAL-STATS] Creating new stats file');
         statsData = { stats: createEmptyStats(), sourcePath: null, versions: [] };
       }
-      let stats = statsData.stats || createEmptyStats();
+      let stats = ensureStatsStructure(statsData.stats || createEmptyStats());
 
       // Dodaj nowy event
       const newEvent = {
@@ -166,42 +201,40 @@ module.exports = async (req, res) => {
       if (eventType === 'login_modal_login_click') stats.summary.totalLoginClicks++;
       if (eventType === 'login_modal_cancel_click') stats.summary.totalCancelClicks++;
       if (eventType === 'login_modal_auto_redirect') stats.summary.totalAutoRedirects++;
+      if (eventType === 'login_modal_register_success') stats.summary.totalRegisterSuccess++;
+      if (eventType === 'login_modal_login_success') stats.summary.totalLoginSuccess++;
 
       // Aktualizuj statystyki per produkt
       if (productUrl) {
         const productKey = productUrl.split('/products/')[1] || 'unknown';
         if (!stats.byProduct[productKey]) {
-          stats.byProduct[productKey] = {
-            shown: 0,
-            registerClicks: 0,
-            loginClicks: 0,
-            cancelClicks: 0,
-            autoRedirects: 0
-          };
+          stats.byProduct[productKey] = defaultBreakdown();
+        } else {
+          stats.byProduct[productKey] = { ...defaultBreakdown(), ...stats.byProduct[productKey] };
         }
         if (eventType === 'login_modal_shown') stats.byProduct[productKey].shown++;
         if (eventType === 'login_modal_register_click') stats.byProduct[productKey].registerClicks++;
         if (eventType === 'login_modal_login_click') stats.byProduct[productKey].loginClicks++;
         if (eventType === 'login_modal_cancel_click') stats.byProduct[productKey].cancelClicks++;
         if (eventType === 'login_modal_auto_redirect') stats.byProduct[productKey].autoRedirects++;
+        if (eventType === 'login_modal_register_success') stats.byProduct[productKey].registerSuccess++;
+        if (eventType === 'login_modal_login_success') stats.byProduct[productKey].loginSuccess++;
       }
 
       // Aktualizuj statystyki per data
       const dateKey = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
       if (!stats.byDate[dateKey]) {
-        stats.byDate[dateKey] = {
-          shown: 0,
-          registerClicks: 0,
-          loginClicks: 0,
-          cancelClicks: 0,
-          autoRedirects: 0
-        };
+        stats.byDate[dateKey] = defaultBreakdown();
+      } else {
+        stats.byDate[dateKey] = { ...defaultBreakdown(), ...stats.byDate[dateKey] };
       }
       if (eventType === 'login_modal_shown') stats.byDate[dateKey].shown++;
       if (eventType === 'login_modal_register_click') stats.byDate[dateKey].registerClicks++;
       if (eventType === 'login_modal_login_click') stats.byDate[dateKey].loginClicks++;
       if (eventType === 'login_modal_cancel_click') stats.byDate[dateKey].cancelClicks++;
       if (eventType === 'login_modal_auto_redirect') stats.byDate[dateKey].autoRedirects++;
+      if (eventType === 'login_modal_register_success') stats.byDate[dateKey].registerSuccess++;
+      if (eventType === 'login_modal_login_success') stats.byDate[dateKey].loginSuccess++;
 
       // Zachowaj tylko ostatnie 1000 eventów
       if (stats.events.length > 1000) {
@@ -277,7 +310,7 @@ module.exports = async (req, res) => {
       try {
         const blobToken = getBlobToken();
         const { stats: loadedStats } = await loadStatsFile(blobToken);
-        stats = loadedStats || createEmptyStats();
+        stats = ensureStatsStructure(loadedStats || createEmptyStats());
       } catch (error) {
         console.log('📊 [LOGIN-MODAL-STATS] No existing stats file');
       }
@@ -286,6 +319,9 @@ module.exports = async (req, res) => {
       const conversionRate = stats.summary.totalShown > 0 
         ? ((stats.summary.totalRegisterClicks + stats.summary.totalLoginClicks) / stats.summary.totalShown * 100).toFixed(2)
         : 0;
+      const actualConversionRate = stats.summary.totalShown > 0
+        ? ((stats.summary.totalRegisterSuccess + stats.summary.totalLoginSuccess) / stats.summary.totalShown * 100).toFixed(2)
+        : 0;
 
       return res.json({
         success: true,
@@ -293,7 +329,9 @@ module.exports = async (req, res) => {
           ...stats,
           calculated: {
             conversionRate: `${conversionRate}%`,
-            totalInteractions: stats.summary.totalRegisterClicks + stats.summary.totalLoginClicks + stats.summary.totalCancelClicks + stats.summary.totalAutoRedirects
+            actualConversionRate: `${actualConversionRate}%`,
+            totalInteractions: stats.summary.totalRegisterClicks + stats.summary.totalLoginClicks + stats.summary.totalCancelClicks + stats.summary.totalAutoRedirects,
+            totalSuccess: stats.summary.totalRegisterSuccess + stats.summary.totalLoginSuccess
           }
         }
       });

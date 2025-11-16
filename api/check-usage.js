@@ -49,15 +49,15 @@ module.exports = async (req, res) => {
       });
     }
 
-    // Jeśli nie zalogowany - zwróć limit 3 (frontend sprawdza localStorage)
+    // Jeśli nie zalogowany - zwróć limit 1 (frontend sprawdza localStorage)
     if (!customerId || !customerAccessToken) {
-      console.log(`👤 [CHECK-USAGE] Niezalogowany użytkownik - limit 3 użycia`);
+      console.log(`👤 [CHECK-USAGE] Niezalogowany użytkownik - limit 1 użycia`);
       return res.json({
         isLoggedIn: false,
-        totalLimit: 3,
+        totalLimit: 1,
         usedCount: 0, // Frontend sprawdza localStorage
-        remainingCount: 3,
-        message: 'Masz 3 darmowe transformacje. Zaloguj się dla więcej!'
+        remainingCount: 1,
+        message: 'Masz 1 darmową transformację. Zaloguj się dla więcej!'
       });
     }
 
@@ -108,7 +108,7 @@ module.exports = async (req, res) => {
 
     const customer = metafieldData.data?.customer;
     const usedCount = parseInt(customer?.metafield?.value || '0', 10);
-    const totalLimit = 13; // 3 darmowe + 10 po zalogowaniu
+    const totalLimit = 5; // 1 darmowa + 4 po zalogowaniu
     const remainingCount = Math.max(0, totalLimit - usedCount);
 
     console.log(`📊 [CHECK-USAGE] Użytkownik ${customer?.email}: ${usedCount}/${totalLimit} użyć`);

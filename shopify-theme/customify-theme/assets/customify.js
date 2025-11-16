@@ -113,66 +113,191 @@ class CustomifyEmbed {
    * @returns {Object|null} {customerId, email, customerAccessToken} lub null jeśli niezalogowany
    */
   getCustomerInfo() {
-    // Debug info removed for security
-    
-    // METODA 1: NOWY SYSTEM - window.ShopifyCustomer (z Liquid w theme.liquid)
-    if (window.ShopifyCustomer && window.ShopifyCustomer.loggedIn && window.ShopifyCustomer.id) {
-      // Customer detection successful
-      
-      return {
-        customerId: window.ShopifyCustomer.id,
-        email: window.ShopifyCustomer.email || 'no-email@shopify.com',
-        firstName: window.ShopifyCustomer.firstName,
-        lastName: window.ShopifyCustomer.lastName,
-        customerAccessToken: 'oauth_session' // Placeholder - sesja zarządzana przez Shopify
-      };
+    if (!window.__customifyCustomerDebugLogged) {
+      try {
+        console.log('🔍 [CUSTOMER DETECT] Debug sources:', {
+          ShopifyCustomer: window.ShopifyCustomer || null,
+          ShopifyAnalytics: window.ShopifyAnalytics?.meta || null,
+          meta: window.meta || null,
+          __st: window.__st || null,
+          localStorageId: (() => {
+            try {
+              return localStorage.getItem('customify_last_customer_id');
+            } catch (e) {
+              return 'unavailable';
+            }
+          })(),
+          cookies: document.cookie
+        });
+      } catch (e) {
+        console.warn('⚠️ [CUSTOMER DETECT] Debug logging failed:', e);
+      }
+      window.__customifyCustomerDebugLogged = true;
     }
     
-    // METODA 2: FALLBACK - Sprawdź cookie Shopify (customer_auth_token)
-    const cookies = document.cookie.split(';').map(c => c.trim());
-    const hasCustomerCookie = cookies.some(cookie => 
-      cookie.startsWith('_shopify_customer_') || 
-      cookie.startsWith('customer_auth_token') ||
-      cookie.startsWith('customer_id')
-    );
+    const sanitizeId = (value) => {
+      if (value === null || value === undefined) {
+        return null;
+      }
+      if (typeof value === 'object' && value.id) {
+        return sanitizeId(value.id);
+      }
+      const idStr = String(value).trim();
+      if (!idStr || idStr.toLowerCase() === 'null' || idStr.toLowerCase() === 'undefined') {
+        return null;
+      }
+      return idStr;
+    };
     
-    if (hasCustomerCookie) {
-      // Cookie-based customer detection
-      
-      // Spróbuj wyciągnąć ID z cookie
-      const customerIdCookie = cookies.find(c => c.startsWith('customer_id='));
-      let customerId = null;
-      
-      if (customerIdCookie) {
-        customerId = customerIdCookie.split('=')[1];
+    const sanitizeEmail = (value) => {
+      if (!value) {
+        return null;
       }
-      
-      // Jeśli brak ID, użyj window.ShopifyCustomer.id jako fallback
-      if (!customerId && window.ShopifyCustomer && window.ShopifyCustomer.id) {
-        customerId = window.ShopifyCustomer.id;
+      const emailStr = String(value).trim();
+      if (!emailStr || emailStr.toLowerCase() === 'null' || emailStr.toLowerCase() === 'undefined') {
+        return null;
       }
-      
-      return {
-        customerId: customerId || 'unknown',
-        email: window.ShopifyCustomer?.email || 'cookie-user@shopify.com',
+      return emailStr;
+    };
+    
+    const getStoredValue = (key) => {
+      try {
+        return localStorage.getItem(key);
+      } catch (e) {
+        return null;
+      }
+    };
+    
+    const persistCustomerContext = (info, source) => {
+      if (!info || !info.customerId) {
+        return null;
+      }
+      try {
+        localStorage.setItem('customify_last_customer_id', info.customerId);
+        if (info.email) {
+          localStorage.setItem('customify_last_customer_email', info.email);
+        }
+      } catch (e) {
+        // Ignore storage errors (Safari private mode etc.)
+      }
+      if (source) {
+        console.log(`✅ [CUSTOMER DETECT] Zidentyfikowano klienta (${source}):`, info.customerId);
+      }
+      return info;
+    };
+    const buildCustomerInfo = (idCandidate, emailCandidate, source) => {
+      const customerId = sanitizeId(idCandidate);
+      if (!customerId) {
+        return null;
+      }
+      const fallbackEmail = sanitizeEmail(emailCandidate) ||
+        sanitizeEmail(getStoredValue('customify_last_customer_email')) ||
+        'no-email@shopify.com';
+      return persistCustomerContext({
+        customerId,
+        email: fallbackEmail,
         firstName: window.ShopifyCustomer?.firstName || '',
         lastName: window.ShopifyCustomer?.lastName || '',
         customerAccessToken: 'oauth_session'
-      };
+      }, source);
+    };
+    const getShopifyCustomerField = (field) => {
+      if (!window.ShopifyCustomer) {
+        return null;
+      }
+      if (field in window.ShopifyCustomer) {
+        return window.ShopifyCustomer[field];
+      }
+      const lowerField = field.toLowerCase();
+      for (const key of Object.keys(window.ShopifyCustomer)) {
+        if (key.toLowerCase() === lowerField) {
+          return window.ShopifyCustomer[key];
+        }
+      }
+      return null;
+    };
+    
+    // METODA 1: NOWY SYSTEM - window.ShopifyCustomer (z Liquid w theme.liquid)
+    if (window.ShopifyCustomer && (getShopifyCustomerField('id') || getShopifyCustomerField('customerId'))) {
+      const shopifyId = getShopifyCustomerField('id') || getShopifyCustomerField('customerId');
+      const shopifyEmail = getShopifyCustomerField('email') || null;
+      return buildCustomerInfo(shopifyId, shopifyEmail, 'ShopifyCustomer');
     }
     
-    // METODA 3: STARY SYSTEM - window.Shopify.customerEmail (Classic Customer Accounts)
+    // METODA 1B: Shopify Analytics (fallback)
+    if (window.ShopifyAnalytics && window.ShopifyAnalytics.meta) {
+      const analyticsMeta = window.ShopifyAnalytics.meta;
+      const analyticsId =
+        analyticsMeta.page?.customerId ??
+        analyticsMeta.customerId ??
+        analyticsMeta.page?.customer_id ??
+        analyticsMeta.customer_id ??
+        null;
+      const analyticsEmail =
+        analyticsMeta.page?.customerEmail ??
+        analyticsMeta.customerEmail ??
+        analyticsMeta.page?.customer_email ??
+        analyticsMeta.customer_email ??
+        null;
+      
+      const analyticsInfo = buildCustomerInfo(analyticsId, analyticsEmail, 'ShopifyAnalytics.meta');
+      if (analyticsInfo) {
+        return analyticsInfo;
+      }
+    }
+    
+    // METODA 1C: window.meta (Shopify storefront meta object)
+    if (window.meta) {
+      const metaId = window.meta.page?.customerId ?? window.meta.customerId ?? null;
+      const metaEmail = window.meta.page?.customerEmail ?? window.meta.customerEmail ?? null;
+      
+      const metaInfo = buildCustomerInfo(metaId, metaEmail, 'window.meta');
+      if (metaInfo) {
+        return metaInfo;
+      }
+    }
+    
+    // METODA 1D: Shopify tracking object (__st)
+    const shopifyTrackingId = window.__st ? window.__st.cid : null;
+    if (shopifyTrackingId) {
+      const trackingInfo = buildCustomerInfo(shopifyTrackingId, getStoredValue('customify_last_customer_email'), '__st.cid');
+      if (trackingInfo) {
+        return trackingInfo;
+      }
+    }
+    
+    // METODA 2: FALLBACK - Sprawdź cookie Shopify (customer_id)
+    const cookies = document.cookie.split(';').map(c => c.trim());
+    if (cookies.length > 0) {
+      const customerIdCookie = cookies.find(c => c.startsWith('customer_id='));
+      if (customerIdCookie) {
+        const cookieId = sanitizeId(customerIdCookie.split('=')[1]);
+        const cookieInfo = buildCustomerInfo(cookieId, getStoredValue('customify_last_customer_email') || window.ShopifyCustomer?.email, 'customer_id cookie');
+        if (cookieInfo) {
+          return cookieInfo;
+        }
+      }
+    }
+    
+    // METODA 3: Pamięć lokalna (ostatni znany zalogowany użytkownik)
+    const storedId = sanitizeId(getStoredValue('customify_last_customer_id'));
+    if (storedId) {
+      return buildCustomerInfo(storedId, getStoredValue('customify_last_customer_email'), 'localStorage');
+    }
+    
+    // METODA 4: STARY SYSTEM - window.Shopify.customerEmail (Classic Customer Accounts)
     if (window.Shopify && window.Shopify.customerEmail) {
-      // Legacy customer detection
+      const legacyId = sanitizeId(window.meta?.customer?.id || window.ShopifyCustomer?.id || getStoredValue('customify_last_customer_id'));
+      const legacyEmail = sanitizeEmail(window.Shopify.customerEmail) || getStoredValue('customify_last_customer_email');
+      const legacyToken = getStoredValue('shopify_customer_access_token') || 'oauth_session';
       
-      const customerId = window.meta?.customer?.id || window.ShopifyCustomer?.id || null;
-      const customerAccessToken = localStorage.getItem('shopify_customer_access_token');
-      
-      return {
-        customerId: customerId,
-        email: window.Shopify.customerEmail,
-        customerAccessToken: customerAccessToken || 'oauth_session'
-      };
+      if (legacyId) {
+        return persistCustomerContext({
+          customerId: legacyId,
+          email: legacyEmail || 'legacy-user@shopify.com',
+          customerAccessToken: legacyToken
+        }, 'Shopify.customerEmail');
+      }
     }
     
     // No customer detected
@@ -744,9 +869,9 @@ class CustomifyEmbed {
     const customerInfo = this.getCustomerInfo();
     
     if (!customerInfo) {
-      // Niezalogowany - sprawdź localStorage (limit 3)
+      // Niezalogowany - sprawdź localStorage (limit 1)
       const localCount = this.getLocalUsageCount();
-      const FREE_LIMIT = 3;
+      const FREE_LIMIT = 1;
       
       // Usage limit check for anonymous users
       
@@ -823,6 +948,17 @@ class CustomifyEmbed {
     console.log('🔗 [DEBUG] Register URL (decoded):', decodeURIComponent(registerUrl));
     console.log('🔗 [DEBUG] Login URL (decoded):', decodeURIComponent(loginUrl));
     
+    const markAuthIntent = (type) => {
+      try {
+        localStorage.setItem('customify_auth_intent', type);
+        localStorage.setItem('customify_auth_intent_timestamp', Date.now().toString());
+        localStorage.setItem('customify_auth_source', window.location.pathname + window.location.search);
+        console.log('🔐 [AUTH] Marked auth intent:', type);
+      } catch (error) {
+        console.warn('⚠️ [AUTH] Failed to mark auth intent:', error);
+      }
+    };
+
     const modalHTML = `
       <div id="loginModal" style="
         position: fixed;
@@ -993,6 +1129,7 @@ class CustomifyEmbed {
       
       // Po 5 sekundach przekieruj
       clearInterval(countdownInterval);
+      markAuthIntent('register_auto_redirect');
       
       // ✅ ŚLEDZENIE: Auto-redirect do rejestracji (po 5 sekundach)
       // GA4
@@ -1058,6 +1195,7 @@ class CustomifyEmbed {
       },
       
       trackRegisterClick: () => {
+        markAuthIntent('register_click');
         // ✅ ŚLEDZENIE: Kliknięcie w Kontynuuj (rejestracja)
         // GA4
         if (typeof gtag !== 'undefined') {
@@ -1086,6 +1224,7 @@ class CustomifyEmbed {
       },
       
       trackLoginClick: () => {
+        markAuthIntent('login_click');
         // ✅ ŚLEDZENIE: Kliknięcie w Zaloguj się
         // GA4
         if (typeof gtag !== 'undefined') {
@@ -1127,12 +1266,12 @@ class CustomifyEmbed {
     
     if (!customerInfo) {
       // Niezalogowany - NIE POKAZUJ komunikatu o punktach
-      // Modal rejestracji pojawi się dopiero po wyczerpaniu wszystkich 3 transformacji
+      // Modal rejestracji pojawi się dopiero po wyczerpaniu 1 transformacji
       const localCount = this.getLocalUsageCount();
-      const FREE_LIMIT = 3;
+      const FREE_LIMIT = 1;
       
       // Brak komunikatu - użytkownik nie wie ile ma punktów
-      // Dopiero po 10 transformacjach pojawi się modal rejestracji
+      // Dopiero po 1 transformacji pojawi się modal rejestracji
     } else {
       // Zalogowany - NIE POKAZUJ komunikatu o kredytach
       // Użytkownik ma nieograniczone transformacje
@@ -1961,13 +2100,11 @@ class CustomifyEmbed {
       return;
     }
 
-    // ✅ USAGE LIMITS: Sprawdź limit PRZED transformacją
-    if (retryCount === 0) { // Tylko przy pierwszej próbie (nie przy retry)
-      const canTransform = await this.checkUsageLimit();
-      if (!canTransform) {
-        console.log('❌ [USAGE] Limit przekroczony - przerwano transformację');
-        return;
-      }
+    // ✅ USAGE LIMITS: Sprawdź limit PRZED transformacją (ZAWSZE, nawet przy retry)
+    const canTransform = await this.checkUsageLimit();
+    if (!canTransform) {
+      console.log('❌ [USAGE] Limit przekroczony - przerwano transformację');
+      return;
     }
 
     // ✅ Google Analytics Event Tracking - "Zobacz Podgląd" kliknięty
@@ -2072,6 +2209,39 @@ class CustomifyEmbed {
       if (!response.ok) {
         const errorText = await response.text();
         console.error('📱 [MOBILE] Response error:', errorText);
+
+        let errorJson = null;
+        try {
+          errorJson = JSON.parse(errorText);
+        } catch (parseError) {
+          console.warn('⚠️ [MOBILE] Failed to parse error JSON:', parseError);
+        }
+
+        if (response.status === 403 && errorJson?.error === 'Usage limit exceeded') {
+          console.warn('⚠️ [USAGE] Limit exceeded response from API:', errorJson);
+
+          if (!customerInfo) {
+            const usedCount = typeof errorJson.usedCount === 'number' ? errorJson.usedCount : 1;
+            const totalLimit = typeof errorJson.totalLimit === 'number' ? errorJson.totalLimit : 1;
+
+            try {
+              const FREE_LIMIT = 1;
+              const enforcedCount = Math.max(usedCount, FREE_LIMIT);
+              localStorage.setItem('customify_usage_count', enforcedCount.toString());
+              console.log('💾 [USAGE] Synced local usage count to', enforcedCount);
+            } catch (storageError) {
+              console.warn('⚠️ [USAGE] Failed to sync local usage count:', storageError);
+            }
+
+            this.showLoginModal(usedCount, totalLimit);
+          } else {
+            const limitMessage = errorJson.message || 'Wykorzystałeś wszystkie dostępne transformacje.';
+            this.showError(limitMessage);
+          }
+
+          return;
+        }
+
         throw new Error(`HTTP ${response.status}: ${errorText}`);
       }
 

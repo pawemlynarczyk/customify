@@ -869,9 +869,9 @@ class CustomifyEmbed {
     const customerInfo = this.getCustomerInfo();
     
     if (!customerInfo) {
-      // Niezalogowany - sprawdź localStorage (limit 3)
+      // Niezalogowany - sprawdź localStorage (limit 1)
       const localCount = this.getLocalUsageCount();
-      const FREE_LIMIT = 3;
+      const FREE_LIMIT = 1;
       
       // Usage limit check for anonymous users
       
@@ -948,6 +948,17 @@ class CustomifyEmbed {
     console.log('🔗 [DEBUG] Register URL (decoded):', decodeURIComponent(registerUrl));
     console.log('🔗 [DEBUG] Login URL (decoded):', decodeURIComponent(loginUrl));
     
+    const markAuthIntent = (type) => {
+      try {
+        localStorage.setItem('customify_auth_intent', type);
+        localStorage.setItem('customify_auth_intent_timestamp', Date.now().toString());
+        localStorage.setItem('customify_auth_source', window.location.pathname + window.location.search);
+        console.log('🔐 [AUTH] Marked auth intent:', type);
+      } catch (error) {
+        console.warn('⚠️ [AUTH] Failed to mark auth intent:', error);
+      }
+    };
+
     const modalHTML = `
       <div id="loginModal" style="
         position: fixed;
@@ -1118,6 +1129,7 @@ class CustomifyEmbed {
       
       // Po 5 sekundach przekieruj
       clearInterval(countdownInterval);
+      markAuthIntent('register_auto_redirect');
       
       // ✅ ŚLEDZENIE: Auto-redirect do rejestracji (po 5 sekundach)
       // GA4
@@ -1183,6 +1195,7 @@ class CustomifyEmbed {
       },
       
       trackRegisterClick: () => {
+        markAuthIntent('register_click');
         // ✅ ŚLEDZENIE: Kliknięcie w Kontynuuj (rejestracja)
         // GA4
         if (typeof gtag !== 'undefined') {
@@ -1211,6 +1224,7 @@ class CustomifyEmbed {
       },
       
       trackLoginClick: () => {
+        markAuthIntent('login_click');
         // ✅ ŚLEDZENIE: Kliknięcie w Zaloguj się
         // GA4
         if (typeof gtag !== 'undefined') {
@@ -1252,12 +1266,12 @@ class CustomifyEmbed {
     
     if (!customerInfo) {
       // Niezalogowany - NIE POKAZUJ komunikatu o punktach
-      // Modal rejestracji pojawi się dopiero po wyczerpaniu wszystkich 3 transformacji
+      // Modal rejestracji pojawi się dopiero po wyczerpaniu 1 transformacji
       const localCount = this.getLocalUsageCount();
-      const FREE_LIMIT = 3;
+      const FREE_LIMIT = 1;
       
       // Brak komunikatu - użytkownik nie wie ile ma punktów
-      // Dopiero po 10 transformacjach pojawi się modal rejestracji
+      // Dopiero po 1 transformacji pojawi się modal rejestracji
     } else {
       // Zalogowany - NIE POKAZUJ komunikatu o kredytach
       // Użytkownik ma nieograniczone transformacje
@@ -2086,13 +2100,11 @@ class CustomifyEmbed {
       return;
     }
 
-    // ✅ USAGE LIMITS: Sprawdź limit PRZED transformacją
-    if (retryCount === 0) { // Tylko przy pierwszej próbie (nie przy retry)
-      const canTransform = await this.checkUsageLimit();
-      if (!canTransform) {
-        console.log('❌ [USAGE] Limit przekroczony - przerwano transformację');
-        return;
-      }
+    // ✅ USAGE LIMITS: Sprawdź limit PRZED transformacją (ZAWSZE, nawet przy retry)
+    const canTransform = await this.checkUsageLimit();
+    if (!canTransform) {
+      console.log('❌ [USAGE] Limit przekroczony - przerwano transformację');
+      return;
     }
 
     // ✅ Google Analytics Event Tracking - "Zobacz Podgląd" kliknięty
@@ -2197,6 +2209,39 @@ class CustomifyEmbed {
       if (!response.ok) {
         const errorText = await response.text();
         console.error('📱 [MOBILE] Response error:', errorText);
+
+        let errorJson = null;
+        try {
+          errorJson = JSON.parse(errorText);
+        } catch (parseError) {
+          console.warn('⚠️ [MOBILE] Failed to parse error JSON:', parseError);
+        }
+
+        if (response.status === 403 && errorJson?.error === 'Usage limit exceeded') {
+          console.warn('⚠️ [USAGE] Limit exceeded response from API:', errorJson);
+
+          if (!customerInfo) {
+            const usedCount = typeof errorJson.usedCount === 'number' ? errorJson.usedCount : 1;
+            const totalLimit = typeof errorJson.totalLimit === 'number' ? errorJson.totalLimit : 1;
+
+            try {
+              const FREE_LIMIT = 1;
+              const enforcedCount = Math.max(usedCount, FREE_LIMIT);
+              localStorage.setItem('customify_usage_count', enforcedCount.toString());
+              console.log('💾 [USAGE] Synced local usage count to', enforcedCount);
+            } catch (storageError) {
+              console.warn('⚠️ [USAGE] Failed to sync local usage count:', storageError);
+            }
+
+            this.showLoginModal(usedCount, totalLimit);
+          } else {
+            const limitMessage = errorJson.message || 'Wykorzystałeś wszystkie dostępne transformacje.';
+            this.showError(limitMessage);
+          }
+
+          return;
+        }
+
         throw new Error(`HTTP ${response.status}: ${errorText}`);
       }
 
