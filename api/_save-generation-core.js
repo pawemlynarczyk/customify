@@ -37,10 +37,29 @@ const toSafeString = (value) => {
 };
 
 const sanitizeIdentifier = (rawValue) => {
-  const safe = toSafeString(rawValue);
-  if (!safe) {
+  // ✅ DODATKOWA OCHRONA - upewnij się że rawValue jest konwertowane na string
+  if (rawValue === null || rawValue === undefined) {
     return '';
   }
+  
+  // ✅ Konwertuj na string PRZED użyciem toSafeString (podwójna ochrona)
+  const safe = toSafeString(rawValue);
+  
+  // ✅ WALIDACJA - upewnij się że safe jest stringiem
+  if (!safe || typeof safe !== 'string') {
+    console.warn('⚠️ [SANITIZE] toSafeString zwróciło nie-string:', safe, typeof safe);
+    // Fallback - konwertuj bezpośrednio
+    try {
+      const fallback = String(rawValue);
+      if (fallback && typeof fallback === 'string') {
+        return sanitizeIdentifier(fallback); // Rekurencyjnie z stringiem
+      }
+    } catch (e) {
+      console.error('❌ [SANITIZE] Błąd konwersji fallback:', e);
+    }
+    return '';
+  }
+  
   let result = '';
   let previousWasDash = false;
   for (const char of safe) {
@@ -198,6 +217,14 @@ async function saveGenerationHandler(req, res) {
 
     let blobPath;
     let legacyBlobPath;
+    
+    // ✅ DODATKOWA OCHRONA - upewnij się że identifier jest stringiem przed sanitizeIdentifier
+    if (typeof identifier !== 'string') {
+      console.error('❌ [SAVE-GENERATION] identifier nie jest stringiem przed sanitizeIdentifier:', identifier, typeof identifier);
+      identifier = String(identifier);
+      console.log(`✅ [SAVE-GENERATION] Skonwertowano identifier na string:`, identifier, typeof identifier);
+    }
+    
     const sanitizedIdentifier = sanitizeIdentifier(identifier);
     if (sanitizedIdentifier) {
       blobPath = `${statsPrefix}/${keyPrefix}-${sanitizedIdentifier}.json`;
