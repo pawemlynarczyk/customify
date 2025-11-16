@@ -70,19 +70,20 @@ module.exports = async (req, res) => {
       const pathname = blob.pathname || blob.path || '';
       const path = pathname.toLowerCase();
       const name = pathname.toLowerCase();
+      const isJson = pathname.toLowerCase().endsWith('.json');
       
-      // 0. Statystyki - pliki JSON z customify/system/stats/ lub customify/statystyki/
-      if (
+      // 0. Statystyki - TYLKO pliki JSON z customify/system/stats/ lub customify/statystyki/
+      if (isJson && (
         path.startsWith('customify/system/stats/') ||
         path.startsWith('customify/statystyki/')
-      ) {
+      )) {
         return 'statystyki';
       }
       
       // 0.1. Pliki wewnętrzne (inne logi) - ukryj je w panelu
       if (
         path.startsWith('customify/internal/') ||
-        path.startsWith('customify/stats/') ||
+        (path.startsWith('customify/stats/') && !path.startsWith('customify/system/stats/')) ||
         path.startsWith('customify/temp/admin-stats/')
       ) {
         return null;
