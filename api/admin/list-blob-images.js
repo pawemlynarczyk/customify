@@ -71,7 +71,15 @@ module.exports = async (req, res) => {
       const path = pathname.toLowerCase();
       const name = pathname.toLowerCase();
       
-      // 0. Pliki wewnętrzne (statystyki, logi) - ukryj je w panelu
+      // 0. Statystyki - pliki JSON z customify/system/stats/ lub customify/statystyki/
+      if (
+        path.startsWith('customify/system/stats/') ||
+        path.startsWith('customify/statystyki/')
+      ) {
+        return 'statystyki';
+      }
+      
+      // 0.1. Pliki wewnętrzne (inne logi) - ukryj je w panelu
       if (
         path.startsWith('customify/internal/') ||
         path.startsWith('customify/stats/') ||
@@ -135,18 +143,25 @@ module.exports = async (req, res) => {
       upload: categorizedBlobs.filter(b => b.category === 'upload').length,
       orders: categorizedBlobs.filter(b => b.category === 'orders').length,
       koszyki: categorizedBlobs.filter(b => b.category === 'koszyki').length,
-      wygenerowane: categorizedBlobs.filter(b => b.category === 'wygenerowane').length
+      wygenerowane: categorizedBlobs.filter(b => b.category === 'wygenerowane').length,
+      statystyki: categorizedBlobs.filter(b => b.category === 'statystyki').length
     };
 
     return res.json({
       success: true,
-      images: categorizedBlobs.map(blob => ({
-        url: blob.url,
-        pathname: blob.pathname || blob.path || 'unknown',
-        size: blob.size || 0,
-        uploadedAt: blob.uploadedAt || blob.uploadedAt || new Date().toISOString(),
-        category: blob.category
-      })),
+      images: categorizedBlobs.map(blob => {
+        const pathname = blob.pathname || blob.path || 'unknown';
+        const isJson = pathname.toLowerCase().endsWith('.json');
+        return {
+          url: blob.url,
+          pathname: pathname,
+          size: blob.size || 0,
+          uploadedAt: blob.uploadedAt || blob.uploadedAt || new Date().toISOString(),
+          category: blob.category,
+          isJson: isJson,
+          contentType: blob.contentType || (isJson ? 'application/json' : 'image')
+        };
+      }),
       cursor: blobs.cursor,
       hasMore: !!blobs.cursor,
       stats: stats,
