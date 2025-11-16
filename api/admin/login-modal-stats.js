@@ -9,6 +9,7 @@ const { checkRateLimit, getClientIP } = require('../../utils/vercelRateLimiter')
 
 const STATS_FILE_PATH = 'customify/stats/login-modal-stats.json'; // legacy - do odczytu
 const STATS_NEW_PREFIX = 'customify/statystyki/';
+const STATS_LEGACY_PREFIX = 'customify/temp/admin-stats/';
 const MAX_STATS_VERSIONS = 5;
 
 const defaultSummary = () => ({
@@ -52,12 +53,131 @@ const ensureStatsStructure = (stats) => {
   return stats;
 };
 
+const cloneDeep = (obj) => JSON.parse(JSON.stringify(obj));
+
+const mergeStatsData = (baseStats, additionalStats) => {
+  if (!additionalStats) {
+    return ensureStatsStructure(cloneDeep(baseStats));
+  }
+
+  const base = ensureStatsStructure(cloneDeep(baseStats));
+  const extra = ensureStatsStructure(cloneDeep(additionalStats));
+
+  const existingIds = new Set((base.events || []).map(event => event?.id).filter(Boolean));
+  extra.events.forEach(event => {
+    if (event && event.id && !existingIds.has(event.id)) {
+      base.events.push(event);
+      existingIds.add(event.id);
+    }
+  });
+  if (base.events.length > 1000) {
+    base.events = base.events.slice(-1000);
+  }
+
+  Object.keys(extra.summary).forEach(key => {
+    const value = extra.summary[key];
+    if (typeof value === 'number' && !Number.isNaN(value)) {
+      base.summary[key] = (base.summary[key] || 0) + value;
+    }
+  });
+
+  const mergeBreakdown = (target, source) => {
+    Object.keys(source || {}).forEach(key => {
+      if (!target[key]) {
+        target[key] = defaultBreakdown();
+      } else {
+        target[key] = { ...defaultBreakdown(), ...target[key] };
+      }
+      Object.keys(source[key] || {}).forEach(metric => {
+        const val = source[key][metric];
+        if (typeof val === 'number' && !Number.isNaN(val)) {
+          target[key][metric] = (target[key][metric] || 0) + val;
+        }
+      });
+    });
+  };
+
+  mergeBreakdown(base.byProduct, extra.byProduct);
+  mergeBreakdown(base.byDate, extra.byDate);
+
+  const createdDates = [base.createdAt, extra.createdAt].filter(Boolean).map(date => new Date(date));
+  if (createdDates.length > 0) {
+    const earliest = createdDates.reduce((min, date) => (date < min ? date : min), createdDates[0]);
+    base.createdAt = earliest.toISOString();
+  }
+
+  const updatedDates = [base.lastUpdated, extra.lastUpdated].filter(Boolean).map(date => new Date(date));
+  if (updatedDates.length > 0) {
+    const latest = updatedDates.reduce((max, date) => (date > max ? date : max), updatedDates[0]);
+    base.lastUpdated = latest.toISOString();
+  }
+
+  return ensureStatsStructure(base);
+};
+
 const getBlobToken = () => {
   const token = process.env.customify_READ_WRITE_TOKEN || process.env.BLOB_READ_WRITE_TOKEN;
   if (!token) {
     throw new Error('Missing customify_READ_WRITE_TOKEN (Vercel Blob auth)');
   }
   return token;
+};
+
+const loadLatestFromPrefix = async (prefix, blobToken) => {
+  if (!prefix) return null;
+  try {
+    const versionList = await list({
+      prefix,
+      limit: 100,
+      token: blobToken
+    });
+    const blobs = versionList?.blobs || [];
+    if (!blobs.length) {
+      return null;
+    }
+    const sorted = [...blobs].sort((a, b) => new Date(a.uploadedAt).getTime() - new Date(b.uploadedAt).getTime());
+    const latest = sorted[sorted.length - 1];
+    const response = await fetch(latest.url);
+    if (!response.ok) {
+      return null;
+    }
+    const stats = await response.json();
+    return {
+      stats,
+      sourcePath: latest.pathname || latest.path || null,
+      versions: sorted
+    };
+  } catch (error) {
+    console.log(`📊 [LOGIN-MODAL-STATS] No data for prefix ${prefix}:`, error?.message || error);
+    return null;
+  }
+};
+
+const loadLegacyData = async (blobToken) => {
+  const legacyPrefixData = await loadLatestFromPrefix(STATS_LEGACY_PREFIX, blobToken);
+  if (legacyPrefixData?.stats) {
+    return { ...legacyPrefixData, fromLegacyPrefix: true };
+  }
+
+  try {
+    const legacyBlob = await head(STATS_FILE_PATH, { token: blobToken }).catch(() => null);
+    if (legacyBlob?.url) {
+      const response = await fetch(legacyBlob.url);
+      if (response.ok) {
+        const stats = await response.json();
+        return {
+          stats,
+          sourcePath: STATS_FILE_PATH,
+          versions: [],
+          fromLegacyFile: true
+        };
+      }
+    }
+  } catch (error) {
+    console.log('📊 [LOGIN-MODAL-STATS] No legacy stats file');
+  }
+
+  return null;
 };
 
 const createEmptyStats = () => ensureStatsStructure({
@@ -69,48 +189,41 @@ const createEmptyStats = () => ensureStatsStructure({
   lastUpdated: new Date().toISOString()
 });
 
-const loadStatsFile = async (blobToken) => {
+const loadStatsFile = async (blobToken, options = {}) => {
+  const { includeLegacy = true } = options;
+
   let stats = createEmptyStats();
   let sourcePath = null;
   let versions = [];
 
-  try {
-    const versionList = await list({
-      prefix: STATS_NEW_PREFIX,
-      limit: 100,
-      token: blobToken
-    });
-    versions = versionList?.blobs || [];
-    
-    if (versions.length > 0) {
-      versions.sort((a, b) => new Date(a.uploadedAt).getTime() - new Date(b.uploadedAt).getTime());
-      const latest = versions[versions.length - 1];
-      const response = await fetch(latest.url);
-      if (response.ok) {
-        stats = await response.json();
-        sourcePath = latest.pathname || latest.path || null;
-      }
-    }
-  } catch (error) {
-    console.log('📊 [LOGIN-MODAL-STATS] No versions in new prefix yet');
+  const latestNewData = await loadLatestFromPrefix(STATS_NEW_PREFIX, blobToken);
+  if (latestNewData?.stats) {
+    stats = ensureStatsStructure(latestNewData.stats);
+    sourcePath = latestNewData.sourcePath;
+    versions = latestNewData.versions || [];
   }
 
-  if (!sourcePath) {
-    try {
-      const legacyBlob = await head(STATS_FILE_PATH, { token: blobToken }).catch(() => null);
-      if (legacyBlob?.url) {
-        const response = await fetch(legacyBlob.url);
-        if (response.ok) {
-          stats = await response.json();
-          sourcePath = STATS_FILE_PATH;
-        }
-      }
-    } catch (error) {
-      console.log('📊 [LOGIN-MODAL-STATS] No legacy stats file');
-    }
+  let legacyData = null;
+  if (includeLegacy) {
+    legacyData = await loadLegacyData(blobToken);
   }
 
-  return { stats: ensureStatsStructure(stats), sourcePath, versions };
+  if (!latestNewData?.stats && legacyData?.stats) {
+    stats = ensureStatsStructure(legacyData.stats);
+    sourcePath = legacyData.sourcePath || sourcePath;
+    versions = legacyData.versions || versions;
+  } else if (legacyData?.stats && !stats.migratedFromLegacy) {
+    stats = mergeStatsData(stats, legacyData.stats);
+    stats.migratedFromLegacy = true;
+  }
+
+  return {
+    stats: ensureStatsStructure(stats),
+    sourcePath,
+    versions,
+    legacyMerged: Boolean(legacyData?.stats),
+    legacySourcePath: legacyData?.sourcePath || null
+  };
 };
 
 const cleanupOldVersions = async (blobToken, versions) => {
