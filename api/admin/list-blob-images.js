@@ -62,7 +62,12 @@ module.exports = async (req, res) => {
       token: process.env.customify_READ_WRITE_TOKEN
     });
 
-    console.log(`📊 [LIST-BLOB-IMAGES] Found ${blobs.blobs.length} blobs`);
+    console.log(`📊 [LIST-BLOB-IMAGES] Found ${blobs.blobs.length} blobs from Vercel Blob API`);
+    console.log(`📊 [LIST-BLOB-IMAGES] Has cursor (more pages): ${!!blobs.cursor}`);
+    if (blobs.blobs.length > 0) {
+      console.log(`📊 [LIST-BLOB-IMAGES] First blob: ${blobs.blobs[0].pathname || blobs.blobs[0].path}`);
+      console.log(`📊 [LIST-BLOB-IMAGES] Last blob: ${blobs.blobs[blobs.blobs.length - 1].pathname || blobs.blobs[blobs.blobs.length - 1].path}`);
+    }
 
     // Kategoryzacja obrazków
     const categorizeImage = (blob) => {
@@ -109,16 +114,30 @@ module.exports = async (req, res) => {
     };
 
     // Kategoryzuj wszystkie obrazki
-    let categorizedBlobs = blobs.blobs
+    let allCategorizedBlobs = blobs.blobs
       .map(blob => ({
         ...blob,
         category: categorizeImage(blob)
       }))
       .filter(blob => blob.category !== null);
 
-    // Filtruj po kategorii jeśli podano
+    // Statystyki per kategoria - LICZ PRZED FILTROWANIEM!
+    const stats = {
+      total: allCategorizedBlobs.length,
+      upload: allCategorizedBlobs.filter(b => b.category === 'upload').length,
+      orders: allCategorizedBlobs.filter(b => b.category === 'orders').length,
+      koszyki: allCategorizedBlobs.filter(b => b.category === 'koszyki').length,
+      wygenerowane: allCategorizedBlobs.filter(b => b.category === 'wygenerowane').length,
+      statystyki: allCategorizedBlobs.filter(b => b.category === 'statystyki').length
+    };
+    
+    console.log(`📊 [LIST-BLOB-IMAGES] Category stats:`, stats);
+    console.log(`📊 [LIST-BLOB-IMAGES] After filtering by category "${category || 'all'}": ${categorizedBlobs.length} blobs`);
+
+    // Filtruj po kategorii jeśli podano (PO liczeniu statystyk!)
+    let categorizedBlobs = allCategorizedBlobs;
     if (category && category !== 'all') {
-      categorizedBlobs = categorizedBlobs.filter(blob => blob.category === category);
+      categorizedBlobs = allCategorizedBlobs.filter(blob => blob.category === category);
     }
 
     // Sortowanie
@@ -137,16 +156,6 @@ module.exports = async (req, res) => {
           : nameB.localeCompare(nameA);
       });
     }
-
-    // Statystyki per kategoria
-    const stats = {
-      total: categorizedBlobs.length,
-      upload: categorizedBlobs.filter(b => b.category === 'upload').length,
-      orders: categorizedBlobs.filter(b => b.category === 'orders').length,
-      koszyki: categorizedBlobs.filter(b => b.category === 'koszyki').length,
-      wygenerowane: categorizedBlobs.filter(b => b.category === 'wygenerowane').length,
-      statystyki: categorizedBlobs.filter(b => b.category === 'statystyki').length
-    };
 
     return res.json({
       success: true,
