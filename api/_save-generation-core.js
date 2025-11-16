@@ -276,6 +276,8 @@ async function saveGenerationHandler(req, res) {
       }
       dataToSave = {
         ...existingData,
+        // ✅ Aktualizuj IP jeśli nie było wcześniej (dla starych rekordów)
+        ip: existingData.ip || finalIp,
         lastGenerationDate: new Date().toISOString(),
         totalGenerations: existingData.generations.length
       };
@@ -284,7 +286,7 @@ async function saveGenerationHandler(req, res) {
       dataToSave = {
         customerId: customerId || null,
         email: email || null,
-        ip: ip,
+        ip: finalIp || null, // ✅ Użyj finalIp (z body lub request)
         generations: [newGeneration],
         lastGenerationDate: new Date().toISOString(),
         totalGenerations: 1,
