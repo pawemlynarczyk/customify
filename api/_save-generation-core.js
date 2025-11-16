@@ -420,8 +420,14 @@ async function saveGenerationHandler(req, res) {
           let shopifyCustomerId = customerIdStr;
           console.log(`🔍 [SAVE-GENERATION] customerIdStr (po normalizacji): ${shopifyCustomerId}, type: ${typeof shopifyCustomerId}`);
           
+          // ✅ DODATKOWA OCHRONA - upewnij się że shopifyCustomerId jest stringiem przed użyciem .includes()/.replace()
+          if (typeof shopifyCustomerId !== 'string') {
+            console.warn(`⚠️ [SAVE-GENERATION] shopifyCustomerId nie jest stringiem, konwertuję:`, shopifyCustomerId, typeof shopifyCustomerId);
+            shopifyCustomerId = String(shopifyCustomerId);
+          }
+          
           // Jeśli customerId zawiera "gid://shopify/Customer/", usuń prefix
-          if (shopifyCustomerId.includes('gid://shopify/Customer/')) {
+          if (typeof shopifyCustomerId === 'string' && shopifyCustomerId.includes('gid://shopify/Customer/')) {
             shopifyCustomerId = shopifyCustomerId.replace('gid://shopify/Customer/', '');
             console.log(`🔧 [SAVE-GENERATION] Usunięto prefix GID, customerId: ${shopifyCustomerId}`);
           }
