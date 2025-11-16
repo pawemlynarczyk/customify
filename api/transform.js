@@ -538,7 +538,7 @@ module.exports = async (req, res) => {
         const metafieldData = await metafieldResponse.json();
         const customer = metafieldData.data?.customer;
         const usedCount = parseInt(customer?.metafield?.value || '0', 10);
-        const totalLimit = 13; // 3 darmowe + 10 po zalogowaniu
+        const totalLimit = 5; // 1 darmowa + 4 po zalogowaniu
 
         console.log(`📊 [TRANSFORM] Użytkownik ${customer?.email}: ${usedCount}/${totalLimit} użyć`);
 
@@ -546,7 +546,7 @@ module.exports = async (req, res) => {
           console.log(`❌ [TRANSFORM] Limit przekroczony dla użytkownika ${customer?.email}`);
           return res.status(403).json({
             error: 'Usage limit exceeded',
-            message: 'Wykorzystałeś wszystkie dostępne transformacje (13). Skontaktuj się z nami dla więcej.',
+            message: 'Wykorzystałeś wszystkie dostępne transformacje (5). Skontaktuj się z nami dla więcej.',
             usedCount: usedCount,
             totalLimit: totalLimit
           });
@@ -558,8 +558,21 @@ module.exports = async (req, res) => {
         // Kontynuuj mimo błędu (fallback do IP rate limiting)
       }
     } else {
-      // Niezalogowany użytkownik - frontend sprawdza localStorage (3 użycia)
-      console.log(`👤 [TRANSFORM] Niezalogowany użytkownik - frontend sprawdza localStorage`);
+      // Niezalogowany użytkownik - sprawdź IP-based limit (1 użycie)
+      console.log(`👤 [TRANSFORM] Niezalogowany użytkownik - sprawdzam IP-based limit`);
+      
+      // Restrykcyjny rate limiting dla niezalogowanych: 1 request na 24 godziny
+      if (!checkRateLimit(ip, 1, 24 * 60 * 60 * 1000)) {
+        console.log(`❌ [TRANSFORM] Limit przekroczony dla niezalogowanego IP: ${ip}`);
+        return res.status(403).json({
+          error: 'Usage limit exceeded',
+          message: 'Wykorzystałeś darmową transformację. Zaloguj się aby otrzymać więcej.',
+          totalLimit: 1,
+          usedCount: 1
+        });
+      }
+      
+      console.log(`✅ [TRANSFORM] IP-based limit OK dla niezalogowanego użytkownika`);
     }
 
     if (!replicate) {
@@ -1133,14 +1146,15 @@ module.exports = async (req, res) => {
     let saveGenerationDebug = null;
     
     // ✅ ZAPIS GENERACJI W VERCEL BLOB STORAGE (przed inkrementacją licznika)
-    // Zapisz generację z powiązaniem do klienta (nawet jeśli nie doda do koszyka)
+    // ✅ ZAPISUJ DLA WSZYSTKICH - użyj IP jeśli brak customerId/email
     console.log(`🔍🔍🔍 [TRANSFORM] ===== SPRAWDZAM WARUNEK ZAPISU GENERACJI =====`);
     console.log(`🔍 [TRANSFORM] imageUrl exists: ${!!imageUrl}`);
     console.log(`🔍 [TRANSFORM] customerId: ${customerId}, type: ${typeof customerId}`);
     console.log(`🔍 [TRANSFORM] email: ${email}`);
-    console.log(`🔍 [TRANSFORM] Warunek: imageUrl && (customerId || email) = ${!!imageUrl && !!(customerId || email)}`);
+    console.log(`🔍 [TRANSFORM] ip: ${ip}`);
+    console.log(`🔍 [TRANSFORM] Warunek: imageUrl = ${!!imageUrl}`);
     
-    if (imageUrl && (customerId || email)) {
+    if (imageUrl) {
       console.log(`✅ [TRANSFORM] WARUNEK SPEŁNIONY - zapisuję generację`);
       console.log(`💾 [TRANSFORM] Zapisuję generację w Vercel Blob Storage dla klienta...`);
       console.log(`🔍 [TRANSFORM] customerId type: ${typeof customerId}, value: ${customerId}`);
@@ -1219,9 +1233,11 @@ module.exports = async (req, res) => {
         console.log(`🔍 [TRANSFORM] finalImageUrl:`, finalImageUrl?.substring(0, 50) || 'null');
         
         // Wywołaj endpoint zapisu generacji
+        // ✅ Dla niezalogowanych używamy IP jako identyfikatora
         const saveData = {
           customerId: shopifyCustomerId || (customerId !== undefined && customerId !== null ? String(customerId) : null),
           email: email || null,
+          ip: ip || null, // ✅ Przekaż IP dla niezalogowanych
           imageUrl: finalImageUrl,
           style: prompt || 'unknown',
           productType: productType || 'other',
@@ -1232,6 +1248,7 @@ module.exports = async (req, res) => {
           customerId: saveData.customerId,
           customerIdType: typeof saveData.customerId,
           email: saveData.email,
+          ip: saveData.ip,
           hasImageUrl: !!saveData.imageUrl,
           style: saveData.style,
           productType: saveData.productType
@@ -1288,11 +1305,9 @@ module.exports = async (req, res) => {
         // Nie blokuj odpowiedzi - transformacja się udała
       }
     } else {
-      console.warn(`⚠️⚠️⚠️ [TRANSFORM] ===== WARUNEK NIE SPEŁNIONY - POMIJAM ZAPIS =====`);
-      console.warn('⚠️ [TRANSFORM] Pomijam zapis generacji - brak customerId lub email');
-      console.warn(`⚠️ [TRANSFORM] customerId: ${customerId}, email: ${email}, imageUrl: ${!!imageUrl}`);
-      saveGenerationDebug = { skipped: true, reason: 'brak customerId lub email', customerId: customerId || null, email: email || null, hasImageUrl: !!imageUrl };
-      console.warn(`⚠️⚠️⚠️ [TRANSFORM] ===== KONIEC SPRAWDZANIA WARUNKU =====`);
+      // ✅ Brak imageUrl - nie ma co zapisywać
+      console.warn(`⚠️ [TRANSFORM] Brak imageUrl - pomijam zapis generacji`);
+      saveGenerationDebug = { skipped: true, reason: 'brak imageUrl', hasImageUrl: false };
     }
 
     // ✅ INKREMENTACJA LICZNIKA PO UDANEJ TRANSFORMACJI

@@ -107,7 +107,10 @@ async function saveGenerationHandler(req, res) {
       });
     }
 
-    const { customerId, email, imageUrl, style, productType, originalImageUrl } = req.body;
+    const { customerId, email, ip: ipFromBody, imageUrl, style, productType, originalImageUrl } = req.body;
+    
+    // ✅ Użyj IP z body jeśli podane, w przeciwnym razie użyj IP z request
+    const finalIp = ipFromBody || ip;
 
     // Walidacja wymaganych pól
     if (!imageUrl) {
@@ -116,12 +119,8 @@ async function saveGenerationHandler(req, res) {
       });
     }
 
-    // Musi być customerId LUB email
-    if (!customerId && !email) {
-      return res.status(400).json({ 
-        error: 'Missing required field: customerId or email' 
-      });
-    }
+    // ✅ ZAPISUJ DLA WSZYSTKICH - użyj IP jeśli brak customerId/email
+    // (nie wymagamy customerId/email - IP jest zawsze dostępne)
 
     // Sprawdź czy Vercel Blob Storage jest skonfigurowany
     if (!process.env.customify_READ_WRITE_TOKEN) {
@@ -143,7 +142,9 @@ async function saveGenerationHandler(req, res) {
     console.log(`🔍🔍🔍 [SAVE-GENERATION] ===== SPRAWDZAM IDENTIFIER PRZED KONWERSJĄ =====`);
     console.log(`🔍 [SAVE-GENERATION] customerId:`, customerId, typeof customerId);
     console.log(`🔍 [SAVE-GENERATION] email:`, email, typeof email);
-    console.log(`🔍 [SAVE-GENERATION] ip:`, ip, typeof ip);
+    console.log(`🔍 [SAVE-GENERATION] ip (from body):`, ipFromBody, typeof ipFromBody);
+    console.log(`🔍 [SAVE-GENERATION] ip (from request):`, ip, typeof ip);
+    console.log(`🔍 [SAVE-GENERATION] finalIp:`, finalIp, typeof finalIp);
     
     // Określ identyfikator klienta (priorytet: customerId > email > IP)
     let keyPrefix = 'customer';
@@ -158,10 +159,10 @@ async function saveGenerationHandler(req, res) {
       identifier = String(email).toLowerCase().trim();
       console.log(`✅ [SAVE-GENERATION] Używam email jako identifier:`, identifier, typeof identifier);
     } else {
-      // Fallback do IP (nie zalecane, ale lepsze niż nic)
+      // ✅ Dla niezalogowanych używamy IP jako identyfikatora
       keyPrefix = 'ip';
-      identifier = String(ip || 'unknown');
-      console.warn('⚠️ [SAVE-GENERATION] Using IP as identifier (no customerId or email):', identifier, typeof identifier);
+      identifier = String(finalIp || 'unknown');
+      console.log(`✅ [SAVE-GENERATION] Używam IP jako identifier (brak customerId/email):`, identifier, typeof identifier);
     }
 
     // ✅ WALIDACJA - upewnij się, że identifier jest stringiem
