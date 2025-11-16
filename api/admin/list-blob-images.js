@@ -130,15 +130,15 @@ module.exports = async (req, res) => {
       wygenerowane: allCategorizedBlobs.filter(b => b.category === 'wygenerowane').length,
       statystyki: allCategorizedBlobs.filter(b => b.category === 'statystyki').length
     };
-    
-    console.log(`📊 [LIST-BLOB-IMAGES] Category stats:`, stats);
-    console.log(`📊 [LIST-BLOB-IMAGES] After filtering by category "${category || 'all'}": ${categorizedBlobs.length} blobs`);
 
     // Filtruj po kategorii jeśli podano (PO liczeniu statystyk!)
     let categorizedBlobs = allCategorizedBlobs;
     if (category && category !== 'all') {
       categorizedBlobs = allCategorizedBlobs.filter(blob => blob.category === category);
     }
+    
+    console.log(`📊 [LIST-BLOB-IMAGES] Category stats:`, stats);
+    console.log(`📊 [LIST-BLOB-IMAGES] After filtering by category "${category || 'all'}": ${categorizedBlobs.length} blobs`);
 
     // Sortowanie
     if (sortBy === 'date') {
