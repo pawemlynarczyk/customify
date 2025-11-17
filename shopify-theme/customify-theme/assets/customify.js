@@ -113,10 +113,12 @@ class CustomifyEmbed {
    * @returns {Object|null} {customerId, email, customerAccessToken} lub null jeśli niezalogowany
    */
   getCustomerInfo() {
-    // ⚠️ KRYTYCZNE: Jeśli Shopify Liquid mówi że użytkownik NIE jest zalogowany (null),
+    // ⚠️ KRYTYCZNE: Jeśli Shopify Liquid mówi że użytkownik NIE jest zalogowany,
     // to NIE sprawdzaj fallbacków - po prostu zwróć null
-    if (window.ShopifyCustomer === null) {
-      console.log('👤 [CUSTOMER DETECT] Shopify Customer is null - user not logged in');
+    // Sprawdź czy window.ShopifyCustomer istnieje i ma wartość (nie null, nie undefined, nie false)
+    if (!window.ShopifyCustomer || window.ShopifyCustomer === null) {
+      console.log('👤 [CUSTOMER DETECT] Shopify Customer is null/undefined/falsy - user not logged in, returning null');
+      console.log('👤 [CUSTOMER DETECT] window.ShopifyCustomer value:', window.ShopifyCustomer);
       return null;
     }
     
@@ -193,6 +195,12 @@ class CustomifyEmbed {
       return info;
     };
     const buildCustomerInfo = (idCandidate, emailCandidate, source) => {
+      // ⚠️ KRYTYCZNE: Jeśli window.ShopifyCustomer jest null, NIE buduj customerInfo z fallbacków
+      if (window.ShopifyCustomer === null || window.ShopifyCustomer === undefined) {
+        console.warn(`⚠️ [CUSTOMER DETECT] buildCustomerInfo zablokowane - window.ShopifyCustomer jest null/undefined (source: ${source})`);
+        return null;
+      }
+      
       const customerId = sanitizeId(idCandidate);
       if (!customerId) {
         return null;
@@ -225,7 +233,8 @@ class CustomifyEmbed {
     };
     
     // METODA 1: NOWY SYSTEM - window.ShopifyCustomer (z Liquid w theme.liquid)
-    if (window.ShopifyCustomer && (getShopifyCustomerField('id') || getShopifyCustomerField('customerId'))) {
+    // ⚠️ Sprawdź czy window.ShopifyCustomer istnieje i NIE jest null/undefined
+    if (window.ShopifyCustomer && window.ShopifyCustomer !== null && (getShopifyCustomerField('id') || getShopifyCustomerField('customerId'))) {
       const shopifyId = getShopifyCustomerField('id') || getShopifyCustomerField('customerId');
       const shopifyEmail = getShopifyCustomerField('email') || null;
       return buildCustomerInfo(shopifyId, shopifyEmail, 'ShopifyCustomer');
