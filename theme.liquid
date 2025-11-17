@@ -1383,6 +1383,61 @@
         display: block;
       }
 
+      /* 🚨 ROLLBACK: START - Wizualizacja produktu cyfrowego */
+      .accordion-visual-digital {
+        width: 100%;
+        height: 150px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 8px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .accordion-visual-digital .digital-icon {
+        font-size: 3rem;
+        margin-bottom: 8px;
+        animation: float 3s ease-in-out infinite;
+      }
+
+      .accordion-visual-digital .digital-download-icon {
+        font-size: 1.5rem;
+        opacity: 0.8;
+        animation: bounce 2s ease-in-out infinite;
+      }
+
+      .accordion-visual-digital .digital-screen {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 30%;
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(5px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.7rem;
+        color: white;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+      }
+
+      @keyframes bounce {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-5px); }
+      }
+      /* 🚨 ROLLBACK: END - Wizualizacja produktu cyfrowego */
+
       .accordion-visual-label {
         padding: 12px;
         text-align: center;
@@ -3062,6 +3117,27 @@
                   </div>
                   
                   <br>
+                  <p><strong>Produkt cyfrowy</strong> – plik w wysokiej jakości, bez znaków wodnych, do natychmiastowego pobrania (bez wysyłki fizycznego obrazu). Otrzymujesz plik w wysokiej rozdzielczości, bez znaków wodnych.</p>
+                  
+                  <p>Link do pobrania wysyłamy natychmiast po opłaceniu zamówienia – zero czekania na kuriera.</p>
+                  
+                  <p>Idealny do druku w domu lub fotolabie, jako tapeta na telefon/komputer albo do udostępniania w social mediach.</p>
+                  
+                  <p><strong>To jest produkt cyfrowy – nie wysyłamy fizycznego obrazu.</strong></p>
+                  
+                  <!-- Wizualizacja: Produkt cyfrowy -->
+                  <div class="accordion-product-visual">
+                    <div class="accordion-visual-item">
+                      <div class="accordion-visual-digital">
+                        <div class="digital-icon">📦</div>
+                        <div class="digital-download-icon">⬇️</div>
+                        <div class="digital-screen">Pobierz plik</div>
+                      </div>
+                      <div class="accordion-visual-label">📦 Produkt cyfrowy</div>
+                    </div>
+                  </div>
+                  
+                  <br>
                   <p><strong>Gotowe do powieszenia:</strong> Wieszak w zestawie - wystarczy powiesić na ścianie, nic więcej do montażu!</p>
                   <br>
                   <p><strong>Twoje zdjęcie + magia AI:</strong> Przekształcamy Twoje zdjęcie w wybranym stylu artystycznym - od klasyki po nowoczesność</p>
@@ -4638,6 +4714,27 @@
               <div class="accordion-visual-item">
                 <img src="https://customify-s56o.vercel.app/faq/plakat.png" alt="Plakat" class="accordion-visual-image">
                 <div class="accordion-visual-label">📄 Plakat</div>
+              </div>
+            </div>
+            
+            <br>
+            <p><strong>Produkt cyfrowy</strong> – plik w wysokiej jakości, bez znaków wodnych, do natychmiastowego pobrania (bez wysyłki fizycznego obrazu). Otrzymujesz plik w wysokiej rozdzielczości, bez znaków wodnych.</p>
+            
+            <p>Link do pobrania wysyłamy natychmiast po opłaceniu zamówienia – zero czekania na kuriera.</p>
+            
+            <p>Idealny do druku w domu lub fotolabie, jako tapeta na telefon/komputer albo do udostępniania w social mediach.</p>
+            
+            <p><strong>To jest produkt cyfrowy – nie wysyłamy fizycznego obrazu.</strong></p>
+            
+            <!-- Wizualizacja: Produkt cyfrowy -->
+            <div class="accordion-product-visual">
+              <div class="accordion-visual-item">
+                <div class="accordion-visual-digital">
+                  <div class="digital-icon">📦</div>
+                  <div class="digital-download-icon">⬇️</div>
+                  <div class="digital-screen"></div>
+                </div>
+                <div class="accordion-visual-label">📦 Produkt cyfrowy</div>
               </div>
             </div>
             
