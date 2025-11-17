@@ -1259,13 +1259,14 @@
       }
 
       .accordion-item.expanded .accordion-content {
-        max-height: 800px; /* Enough for longest content */
+        max-height: 2000px; /* 🚨 ROLLBACK: Zwiększono dla produktu cyfrowego */
         padding: 16px 20px;
         background: #f8f9fa;
         border-radius: 0 0 8px 8px;
         border: 1px solid #e5e5e5;
         border-top: none;
         margin-bottom: 8px;
+        overflow: visible; /* 🚨 ROLLBACK: Pozwól na pełne wyświetlenie treści */
       }
 
       .accordion-content ul {
@@ -1468,7 +1469,9 @@
         }
 
         .accordion-item.expanded .accordion-content {
+          max-height: 2000px; /* 🚨 ROLLBACK: Zwiększono dla produktu cyfrowego (mobile) */
           padding: 14px 16px;
+          overflow: visible; /* 🚨 ROLLBACK: Pozwól na pełne wyświetlenie treści */
         }
 
         .accordion-title {
@@ -3086,7 +3089,7 @@
             <div class="product-details-accordion">
               
               <!-- 1. Szczegóły produktu -->
-              <div class="accordion-item" data-accordion="details">
+              <div class="accordion-item expanded" data-accordion="details">
                 <div class="accordion-header">
                   <div class="accordion-title">
                     <span>📋</span>
@@ -4687,7 +4690,7 @@
         </div>
 
         <!-- 2. Szczegóły produktu -->
-        <div class="accordion-item" data-accordion="details">
+        <div class="accordion-item expanded" data-accordion="details">
           <div class="accordion-header">
             <div class="accordion-title">
               <span>📋</span>
