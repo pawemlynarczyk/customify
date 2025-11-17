@@ -480,27 +480,17 @@ module.exports = async (req, res) => {
     });
   }
   
-  // ✅ Miękki limit 15-minutowy (chroni przed burstami)
-  if (!checkRateLimit(ip, 20, 15 * 60 * 1000)) { // 20 requestów / 15 minut
-    console.log(`❌ [TRANSFORM] Rate limit exceeded for IP: ${ip}`);
-    return res.status(429).json({
-      error: 'Rate limit exceeded',
-      message: 'Too many AI requests. Please try again in 15 minutes.',
-      retryAfter: 900 // 15 minut w sekundach
+  // ✅ TWARDY LIMIT DZIENNY: 5 prób na IP w ciągu 24h
+  if (!checkRateLimit(ip, 5, 24 * 60 * 60 * 1000)) { // 5 requestów / 24 godziny
+    console.log(`❌ [TRANSFORM] Daily limit exceeded for IP: ${ip}`);
+    return res.status(403).json({
+      error: 'Usage limit exceeded',
+      message: 'Wykorzystałeś limit generacji - zaloguj się po więcej',
+      showLoginModal: true
     });
   }
   
-  console.log(`✅ [TRANSFORM] Rate limit OK for IP: ${ip}`);
-
-  // ✅ Dzienny limit miękki (maks 5 prób na IP w 24h)
-  if (!checkRateLimit(ip, 5, 24 * 60 * 60 * 1000)) { // 5 requestów / 24 godziny
-    console.log(`❌ [TRANSFORM] Daily limit exceeded for IP: ${ip}`);
-    return res.status(429).json({
-      error: 'Daily limit exceeded',
-      message: 'Wykorzystałeś dzienny limit darmowych transformacji. Spróbuj jutro lub zaloguj się.',
-      retryAfter: 24 * 60 * 60 // 24h w sekundach
-    });
-  }
+  console.log(`✅ [TRANSFORM] Daily rate limit OK for IP: ${ip}`);
 
   const parseCookies = (cookieHeader = '') => {
     return cookieHeader.split(';').reduce((acc, chunk) => {
