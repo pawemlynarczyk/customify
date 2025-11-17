@@ -106,22 +106,91 @@ if (hash !== req.headers['x-shopify-hmac-sha256']) {
 }
 ```
 
-#### **Rate Limiting:**
+#### **Rate Limiting & Anti-Abuse System:**
+
+**🛡️ SYSTEM LIMITÓW GENERACJI AI (api/transform.js):**
+
+### **1. IP Limit: 10 generacji / 24h (dla WSZYSTKICH - zalogowanych i niezalogowanych)**
 ```javascript
-// ZAIMPLEMENTOWANE: utils/vercelRateLimiter.js
-const { checkRateLimit, getClientIP } = require('../utils/vercelRateLimiter');
-
-// W każdym endpoincie:
-const ip = getClientIP(req);
-if (!checkRateLimit(ip, limit, windowMs)) {
-  return res.status(429).json({ error: 'Rate limit exceeded' });
+// Chroni przed tworzeniem wielu kont z tego samego IP
+if (!checkRateLimit(ip, 10, 24 * 60 * 60 * 1000)) {
+  return res.status(403).json({
+    error: 'Usage limit exceeded',
+    message: 'Wykorzystałeś limit generacji z tego IP - spróbuj jutro lub skontaktuj się z nami'
+  });
 }
-
-// Limity:
-// - API: 100 requestów/15min (api/products.js)
-// - AI: 20 requestów/15min (api/transform.js) 
-// - Upload: 50 requestów/godzina (api/upload.js)
 ```
+- **Cel**: Zablokować oszustów tworzących wiele kont
+- **Dlaczego 10?**: Uczciwy user: 1 niezalogowana + 5 zalogowanych + bufor = max 6-8 generacji
+- **Reset**: Automatycznie po 24h (nie blokuje niewinnych użytkowników na zawsze)
+
+### **2. Device Token: 1 generacja TOTAL (na zawsze, tylko dla niezalogowanych)**
+```javascript
+// Sprawdź TYLKO jeśli niezalogowany
+if (!customerId && deviceToken) {
+  const deviceData = await get(`customify/system/stats/generations/device-${deviceToken}.json`);
+  if (deviceData && deviceData.totalGenerations > 0) {
+    return res.status(403).json({
+      error: 'Usage limit exceeded',
+      message: 'Wykorzystałeś limit generacji - zaloguj się po więcej',
+      showLoginModal: true
+    });
+  }
+}
+```
+- **Cel**: Zablokować konkretnego użytkownika (przez cookie HttpOnly, 1 rok ważności)
+- **Dlaczego TOTAL?**: Bo token identyfikuje konkretnego użytkownika (nie resetuje się)
+- **Po zalogowaniu**: Device token NIE blokuje (kontrola przez Shopify metafields)
+
+### **3. Shopify Metafields: 5 generacji (tylko dla zalogowanych)**
+```javascript
+// Sprawdzane przez api/check-usage.js i inkrementowane po transformacji
+const usedCount = parseInt(customer?.metafield?.value || '0', 10);
+const totalLimit = 5;
+if (usedCount >= totalLimit) {
+  return res.status(403).json({ error: 'Limit exceeded' });
+}
+```
+- **Cel**: Kontrola użycia dla zalogowanych (zapisane w Shopify, nie do obejścia)
+- **Namespace**: `customify.usage_count`
+
+### **4. Czarna lista IP (permanentna blokada)**
+```javascript
+const BLOCKED_IPS = new Set(['46.112.202.146']);
+if (ip && BLOCKED_IPS.has(ip)) {
+  return res.status(403).json({ error: 'Access denied' });
+}
+```
+- **Cel**: Ręczne banowanie poważnych nadużyć (boty, spam)
+
+---
+
+**📊 PODSUMOWANIE FLOW:**
+
+**Niezalogowany:**
+1. IP check (10/24h) → OK
+2. Device token check (1 TOTAL) → OK
+3. Robi 1 generację → Zapisane w `device-{token}.json`
+4. Próbuje 2. generację → BLOKADA (device token) + modal logowania
+
+**Niezalogowany → Zalogowany:**
+1. Robi 1 generację niezalogowany (device token: 1 użyta)
+2. Loguje się (device token check: WYŁĄCZONY dla zalogowanych)
+3. Może zrobić 5 generacji (Shopify metafields)
+4. IP: 6 total (limit 10/24h) - OK
+
+**Oszust z wieloma kontami:**
+1. Tworzy konto 1 → 5 generacji (IP: 5)
+2. Tworzy konto 2 → 5 generacji (IP: 10)
+3. Próbuje konto 3 → BLOKADA IP (10/24h)
+
+---
+
+**🔧 PLIKI:**
+- `api/transform.js` - główna logika limitów (IP + Device Token)
+- `api/_save-generation-core.js` - zapisuje do `device-{token}.json` dla niezalogowanych
+- `api/check-usage.js` - sprawdza Shopify metafields dla zalogowanych
+- `utils/vercelRateLimiter.js` - rate limiter (pamięć ulotna, Map)
 
 #### **Shopify API Module:**
 ```javascript
