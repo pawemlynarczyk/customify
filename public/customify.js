@@ -991,6 +991,13 @@ class CustomifyEmbed {
           })
         });
         
+        if (!response.ok) {
+          console.error(`❌ [USAGE] API error: ${response.status} ${response.statusText}`);
+          // ⚠️ KRYTYCZNE: Jeśli błąd API, BLOKUJ (bezpieczniejsze niż pozwalanie)
+          this.showError(`Błąd sprawdzania limitu użycia. Spróbuj ponownie za chwilę.`);
+          return false;
+        }
+        
         const data = await response.json();
         console.log('📊 [USAGE] API response:', data);
         
@@ -1003,8 +1010,10 @@ class CustomifyEmbed {
         return true;
       } catch (error) {
         console.error('❌ [USAGE] Błąd sprawdzania limitu:', error);
-        // W razie błędu - pozwól (fallback)
-        return true;
+        // ⚠️ KRYTYCZNE: Jeśli błąd, BLOKUJ (bezpieczniejsze niż pozwalanie)
+        // Użytkownik może spróbować ponownie, ale nie może obejść limitu przez błąd
+        this.showError(`Błąd sprawdzania limitu użycia. Spróbuj ponownie za chwilę.`);
+        return false;
       }
     }
   }

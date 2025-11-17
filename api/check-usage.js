@@ -20,8 +20,11 @@ module.exports = async (req, res) => {
   const origin = req.headers.origin;
   if (allowedOrigins.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true'); // ✅ Wymagane dla credentials: 'include'
   } else {
     res.setHeader('Access-Control-Allow-Origin', '*');
+    // ⚠️ UWAGA: Nie można użyć '*' z Access-Control-Allow-Credentials: true
+    // Więc dla innych origin nie ustawiamy credentials
   }
   
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
