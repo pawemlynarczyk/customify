@@ -931,9 +931,15 @@ module.exports = async (req, res) => {
             
             console.log(`✅ [DEVICE-TOKEN] Limit OK - pozwalam na generację`);
           } else if (response.status === 404) {
-            console.log(`✅ [DEVICE-TOKEN] Blob not found (404) - pierwsza generacja dla ${finalProductType}`);
+            console.log(`✅ [DEVICE-TOKEN] Blob not found (404) - pierwsza generacja dla ${finalProductType} - pozwalam`);
           } else {
-            console.warn(`⚠️ [DEVICE-TOKEN] Unexpected response status: ${response.status} ${response.statusText}`);
+            console.warn(`⚠️ [DEVICE-TOKEN] Unexpected response status: ${response.status} ${response.statusText} - BLOKUJĘ dla bezpieczeństwa`);
+            // ⚠️ KRYTYCZNE: Jeśli nie 200 i nie 404, BLOKUJ (może być problem z Blob Storage)
+            return res.status(500).json({
+              error: 'Internal server error',
+              message: 'Błąd sprawdzania limitu użycia. Spróbuj ponownie za chwilę.',
+              productType: finalProductType
+            });
           }
         } catch (blobError) {
           console.error(`❌ [DEVICE-TOKEN] Błąd fetch blob:`, {
