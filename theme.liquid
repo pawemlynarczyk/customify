@@ -234,6 +234,58 @@
           };
           // 🚨 ROLLBACK: END - Nadpisanie updateCartPrice()
 
+          // 🚨 ROLLBACK: START - Nadpisanie showResult() dla produktu cyfrowego (ukryj rozmiary)
+          proto.showResult = async function(imageUrl) {
+            console.log('🎯 [CUSTOMIFY] showResult called, hiding actionsArea and stylesArea');
+            
+            const isDigitalProduct = this.selectedProductType === 'digital';
+            
+            // WATERMARK WŁĄCZONY
+            try {
+              const watermarkedImage = await this.addWatermark(imageUrl);
+              this.resultImage.src = watermarkedImage;
+              
+              // ✅ ZAPISZ OBRAZEK Z WATERMARKIEM (do użycia w koszyku)
+              this.watermarkedImage = watermarkedImage;
+              console.log('🎨 [CUSTOMIFY] Watermark dodany do podglądu i zapisany');
+            } catch (error) {
+              console.error('❌ [CUSTOMIFY] Watermark error:', error);
+              this.resultImage.src = imageUrl;
+              this.watermarkedImage = null;
+            }
+            
+            this.resultArea.style.display = 'block';
+            
+            // 🚨 ROLLBACK: START - Ukryj rozmiary dla produktu cyfrowego
+            if (isDigitalProduct) {
+              this.sizeArea.style.display = 'none';
+              console.log('📦 [DIGITAL] Size area hidden in showResult() for digital product');
+            } else {
+              this.sizeArea.style.display = 'block';
+              console.log('🎯 [CUSTOMIFY] Size area visible on top (outside resultArea)');
+            }
+            // 🚨 ROLLBACK: END - Ukryj rozmiary dla produktu cyfrowego
+            
+            // UKRYJ przyciski "Przekształć z AI" i "Resetuj" (główne actionsArea)
+            this.actionsArea.style.display = 'none';
+            console.log('🎯 [CUSTOMIFY] actionsArea hidden:', this.actionsArea.style.display);
+            
+            // UKRYJ style po przekształceniu
+            this.stylesArea.style.display = 'none';
+            console.log('🎯 [CUSTOMIFY] stylesArea hidden:', this.stylesArea.style.display);
+            
+            // Zmień kolory przycisków po wygenerowaniu AI
+            this.swapButtonColors();
+            
+            // UKRYJ pole upload po przekształceniu
+            this.uploadArea.style.display = 'none';
+            console.log('🎯 [CUSTOMIFY] uploadArea hidden:', this.uploadArea.style.display);
+            
+            // ✅ POKAŻ CENĘ NAD PRZYCISKIEM po wygenerowaniu AI
+            this.updateCartPrice();
+          };
+          // 🚨 ROLLBACK: END - Nadpisanie showResult()
+
           proto.addToCart = async function() {
             console.log('🛒 [CUSTOMIFY] addToCart called with:', {
               transformedImage: !!this.transformedImage,
