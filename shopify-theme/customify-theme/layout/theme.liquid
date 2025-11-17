@@ -107,6 +107,64 @@
             return noteAttributes || {};
           };
 
+          // 🚨 ROLLBACK: START - Nadpisanie updateProductPrice() dla produktu cyfrowego
+          proto.updateProductPrice = function() {
+            try {
+              const isDigitalProduct = this.selectedProductType === 'digital';
+              
+              // Dla produktu cyfrowego: ZAWSZE 29 zł, NIE sumuj z ceną bazową
+              if (isDigitalProduct) {
+                const digitalProductPrice = 29.00; // 🚨 ROLLBACK: Stała cena produktu cyfrowego
+                this.applyProductPriceDisplay(digitalProductPrice);
+                this.schedulePriceConsistency(digitalProductPrice);
+                console.log('💰 [PRICE] Digital product - fixed price: 29.00 zł (ignoring base price)');
+                return;
+              }
+              
+              // Dla produktów fizycznych: użyj oryginalnej logiki
+              const priceElement = this.getPriceElement();
+              if (!priceElement) {
+                console.warn('⚠️ [PRICE] Price element not found with any selector');
+                return;
+              }
+
+              console.log('✅ [PRICE] Found price element:', priceElement, 'Text:', priceElement.textContent);
+
+              // Pobierz oryginalną bazową cenę (zapamiętaj przy pierwszym wywołaniu)
+              if (!this.originalBasePrice) {
+                const basePriceText = priceElement.textContent;
+                this.originalBasePrice = this.extractBasePrice(basePriceText);
+                
+                if (this.originalBasePrice === null) {
+                  console.warn('⚠️ [PRICE] Could not extract original base price from:', basePriceText);
+                  this.originalBasePrice = 49.00;
+                  console.log(`💰 [PRICE] Using fallback base price: ${this.originalBasePrice} zł`);
+                } else {
+                  console.log(`💰 [PRICE] Original base price saved: ${this.originalBasePrice} zł`);
+                }
+              }
+
+              // Pobierz cenę rozmiaru
+              const sizePrice = this.getSizePrice(this.selectedSize);
+              
+              // Dopłata za ramkę (tylko plakat i wybrany kolor != none)
+              const frameSelected = (this.selectedProductType === 'plakat') && (window.CustomifyFrame && window.CustomifyFrame.color && window.CustomifyFrame.color !== 'none');
+              const frameSurcharge = frameSelected && this.selectedSize ? (this.framePricing[this.selectedSize] || 29) : 0;
+              
+              // Oblicz końcową cenę (oryginalna cena + rozmiar + ramka)
+              const finalPrice = this.originalBasePrice + sizePrice + frameSurcharge;
+              
+              // Aktualizuj cenę na stronie
+              this.applyProductPriceDisplay(finalPrice);
+              this.schedulePriceConsistency(finalPrice);
+              
+              console.log(`💰 [PRICE] Updated: base ${this.originalBasePrice} + size ${sizePrice} + frame ${frameSurcharge} = ${finalPrice} zł`);
+            } catch (error) {
+              console.error('❌ [PRICE] Error updating product price:', error);
+            }
+          };
+          // 🚨 ROLLBACK: END - Nadpisanie updateProductPrice()
+
           proto.addToCart = async function() {
             console.log('🛒 [CUSTOMIFY] addToCart called with:', {
               transformedImage: !!this.transformedImage,
@@ -115,26 +173,48 @@
               selectedProductType: this.selectedProductType
             });
 
-            console.log('🔍 [CUSTOMIFY] Checking selectedSize:', this.selectedSize);
-            if (!this.selectedSize) {
-              console.log('❌ [CUSTOMIFY] No selectedSize, showing error');
-              this.showError('Nie wybrałeś rozmiaru');
-              return;
+            // 🚨 ROLLBACK: START - Pomijaj rozmiar dla produktu cyfrowego
+            const isDigitalProduct = this.selectedProductType === 'digital';
+            
+            if (!isDigitalProduct) {
+              console.log('🔍 [CUSTOMIFY] Checking selectedSize:', this.selectedSize);
+              if (!this.selectedSize) {
+                console.log('❌ [CUSTOMIFY] No selectedSize, showing error');
+                this.showError('Nie wybrałeś rozmiaru');
+                return;
+              }
+              console.log('✅ [CUSTOMIFY] selectedSize OK, proceeding with price calculation');
+            } else {
+              console.log('✅ [CUSTOMIFY] Digital product - skipping size requirement');
             }
-            console.log('✅ [CUSTOMIFY] selectedSize OK, proceeding with price calculation');
+            // 🚨 ROLLBACK: END - Pomijaj rozmiar dla produktu cyfrowego
 
-            const basePrice = this.originalBasePrice || 49.00;
-            const sizePrice = this.getSizePrice(this.selectedSize);
-            const frameSelected = (this.selectedProductType === 'plakat') && (window.CustomifyFrame && window.CustomifyFrame.color && window.CustomifyFrame.color !== 'none');
-            const frameSurcharge = frameSelected ? 29 : 0;
-            const finalPrice = basePrice + sizePrice + frameSurcharge;
+            // 🚨 ROLLBACK: START - Cena dla produktu cyfrowego (STAŁA 29 zł, NIE sumuje się z ceną bazową)
+            const isDigitalProductForPrice = this.selectedProductType === 'digital';
+            const digitalProductPrice = 29.00; // 🚨 ROLLBACK: Stała cena produktu cyfrowego
+            
+            let finalPrice;
+            if (isDigitalProductForPrice) {
+              // Produkt cyfrowy: ZAWSZE 29 zł, NIE zależy od ceny bazowej produktu
+              finalPrice = digitalProductPrice;
+              console.log('💰 [CUSTOMIFY] Digital product - using fixed price: 29.00 zł (ignoring base price)');
+            } else {
+              // Produkt fizyczny: cena bazowa + rozmiar + ramka
+              const basePrice = this.originalBasePrice || 49.00;
+              const sizePrice = this.getSizePrice(this.selectedSize);
+              const frameSelected = (this.selectedProductType === 'plakat') && (window.CustomifyFrame && window.CustomifyFrame.color && window.CustomifyFrame.color !== 'none');
+              const frameSurcharge = frameSelected ? 29 : 0;
+              finalPrice = basePrice + sizePrice + frameSurcharge;
+              console.log('💰 [CUSTOMIFY] Physical product - price calculation:', { basePrice, sizePrice, frameSurcharge, finalPrice });
+            }
+            // 🚨 ROLLBACK: END - Cena dla produktu cyfrowego
 
             console.log('💰 [CUSTOMIFY] Price calculation:', {
+              isDigitalProduct: isDigitalProductForPrice,
               originalBasePrice: this.originalBasePrice,
-              basePrice: basePrice,
-              sizePrice: sizePrice,
               finalPrice: finalPrice,
-              size: this.selectedSize
+              size: this.selectedSize,
+              productType: this.selectedProductType
             });
 
             if (!this.transformedImage) {
@@ -212,7 +292,7 @@
                 transformedImage: this.transformedImage,
                 watermarkedImage: watermarkedImageUrl,
                 style: this.selectedStyle,
-                size: this.selectedSize,
+                size: isDigitalProduct ? 'digital' : this.selectedSize, // 🚨 ROLLBACK: Dla produktu cyfrowego użyj 'digital'
                 productType: this.selectedProductType || 'canvas',
                 originalProductTitle: document.querySelector('h1, .product-title, .view-product-title')?.textContent?.trim() || 'Produkt',
                 originalProductId: productId,
@@ -246,7 +326,13 @@
                   console.log('🛒 [CUSTOMIFY] Variant ID type:', typeof result.variantId);
                   console.log('🛒 [CUSTOMIFY] Variant ID length:', result.variantId.toString().length);
 
-                  const productTypeName = this.selectedProductType === 'plakat' ? 'Plakat' : 'Obraz na płótnie';
+                  // 🚨 ROLLBACK: START - Nazwa typu produktu z obsługą cyfrowego
+                  const productTypeName = this.selectedProductType === 'plakat' 
+                    ? 'Plakat' 
+                    : this.selectedProductType === 'digital'
+                      ? 'Produkt cyfrowy'
+                      : 'Obraz na płótnie';
+                  // 🚨 ROLLBACK: END - Nazwa typu produktu
                   const selectedFrame = (this.selectedProductType === 'plakat' && window.CustomifyFrame && window.CustomifyFrame.color)
                     ? window.CustomifyFrame.color
                     : 'none';
@@ -262,12 +348,14 @@
 
                   const shortOrderId = result.shortOrderId || (result.orderId ? result.orderId.split('-').pop() : Date.now().toString());
 
+                  // 🚨 ROLLBACK: START - Properties dla produktu cyfrowego
                   const visibleProperties = {
-                    'Rozmiar': this.getSizeDimension(this.selectedSize),
+                    'Rozmiar': isDigitalProduct ? 'Plik do pobrania' : this.getSizeDimension(this.selectedSize),
                     'Rodzaj wydruku': productTypeName,
-                    'Ramka': `ramka - ${frameLabel}`,
+                    'Ramka': isDigitalProduct ? 'brak' : `ramka - ${frameLabel}`,
                     'Order ID': shortOrderId
                   };
+                  // 🚨 ROLLBACK: END - Properties dla produktu cyfrowego
 
                   const hiddenProperties = {
                     'Styl AI': this.selectedStyle  // ✅ Ukryty - tylko dla admina, nie pokazywany w koszyku
@@ -2518,6 +2606,11 @@
             <div class="customify-product-type-btn" data-product-type="canvas">
               Obraz na płótnie
             </div>
+            <!-- 🚨 ROLLBACK: START - Opcja produktu cyfrowego -->
+            <div class="customify-product-type-btn" data-product-type="digital">
+              Produkt cyfrowy
+            </div>
+            <!-- 🚨 ROLLBACK: END - Opcja produktu cyfrowego -->
           </div>
           <!-- Wysuwane menu wyboru koloru ramki (tylko dla opcji plakat) -->
           <div class="frame-color-selector" id="frameSelector" aria-expanded="false">
@@ -3273,15 +3366,17 @@
           display: none !important;
         }
         
-        /* ===== PRZYCISKI WYBORU TYPU PRODUKTU (Plakat vs Canvas) ===== */
+        /* ===== PRZYCISKI WYBORU TYPU PRODUKTU (Plakat vs Canvas vs Digital) ===== */
+        /* 🚨 ROLLBACK: START - CSS dla 3 przycisków (dodano produkt cyfrowy) */
         .customify-product-type-buttons {
           display: grid;
-          grid-template-columns: repeat(2, 1fr);
+          grid-template-columns: repeat(3, 1fr); /* 🚨 ROLLBACK: Zmieniono z 2 na 3 */
           gap: 8px;
           justify-content: start;
           margin-top: 8px;
-          max-width: 450px;
+          max-width: 600px; /* 🚨 ROLLBACK: Zwiększono szerokość dla 3 przycisków */
         }
+        /* 🚨 ROLLBACK: END - CSS dla 3 przycisków */
 
         .customify-product-type-btn {
           padding: 1px 6px;
@@ -3319,6 +3414,7 @@
         }
 
         /* Responsive dla typu produktu */
+        /* 🚨 ROLLBACK: START - Responsive dla 3 przycisków */
         @media (max-width: 768px) {
           .customify-product-type-btn {
             font-size: 0.8rem !important;
@@ -3326,10 +3422,11 @@
             min-height: 32px !important;
           }
           .customify-product-type-buttons {
-            grid-template-columns: 1fr 1fr !important;
+            grid-template-columns: repeat(3, 1fr) !important; /* 🚨 ROLLBACK: 3 kolumny na mobile */
             gap: 6px !important;
           }
         }
+        /* 🚨 ROLLBACK: END - Responsive dla 3 przycisków */
 
         /* Style dla ceny produktu - NAPRAWIONY SELEKTOR */
         product-price > div,
@@ -3477,9 +3574,38 @@
             return active && active.getAttribute('data-product-type') === 'plakat';
           }
 
+          // 🚨 ROLLBACK: START - Funkcje dla produktu cyfrowego
+          function isDigitalProductSelected() {
+            var active = productTypeArea && productTypeArea.querySelector('.customify-product-type-btn.active');
+            return active && active.getAttribute('data-product-type') === 'digital';
+          }
+
+          function updateDigitalProductUI() {
+            var isDigital = isDigitalProductSelected();
+            var sizeArea = document.getElementById('sizeArea');
+            
+            // Ukryj/pokaż rozmiary
+            if (sizeArea) {
+              if (isDigital) {
+                sizeArea.style.display = 'none';
+                console.log('📦 [DIGITAL] Size area hidden for digital product');
+              } else {
+                sizeArea.style.display = 'block';
+                console.log('📦 [DIGITAL] Size area shown for physical product');
+              }
+            }
+          }
+          // 🚨 ROLLBACK: END - Funkcje dla produktu cyfrowego
 
           function updateFrameAvailability() {
             var enabled = isPlakatSelected();
+            // 🚨 ROLLBACK: START - Ukryj ramkę dla produktu cyfrowego
+            var isDigital = isDigitalProductSelected();
+            if (isDigital) {
+              enabled = false; // Produkt cyfrowy nie ma ramki
+            }
+            // 🚨 ROLLBACK: END - Ukryj ramkę dla produktu cyfrowego
+            
             if (frameSelector) {
               if (enabled) {
                 frameSelector.classList.remove('disabled');
@@ -3493,6 +3619,9 @@
           // Inicjalizacja UI ramki
           setFrame(window.CustomifyFrame.color || 'none');
           updateFrameAvailability();
+          // 🚨 ROLLBACK: START - Inicjalizacja UI produktu cyfrowego
+          updateDigitalProductUI();
+          // 🚨 ROLLBACK: END - Inicjalizacja UI produktu cyfrowego
 
           // Zdarzenia UI
           if (frameToggle) {
@@ -3522,12 +3651,17 @@
             if (!frameSelector.contains(e.target)) closeOptions();
           });
 
-          // Nasłuchiwanie na zmianę typu produktu (Plakat/Canvas)
+          // Nasłuchiwanie na zmianę typu produktu (Plakat/Canvas/Digital)
           var typeBtns = productTypeArea ? productTypeArea.querySelectorAll('.customify-product-type-btn') : [];
           typeBtns.forEach(function(btn){
             btn.addEventListener('click', function(){
               // Daj czas istniejącym handlerom na ustawienie .active
-              setTimeout(updateFrameAvailability, 0);
+              setTimeout(function(){
+                updateFrameAvailability();
+                // 🚨 ROLLBACK: START - Aktualizuj UI produktu cyfrowego
+                updateDigitalProductUI();
+                // 🚨 ROLLBACK: END - Aktualizuj UI produktu cyfrowego
+              }, 0);
             });
           });
         });

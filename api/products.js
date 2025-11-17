@@ -71,16 +71,25 @@ module.exports = async (req, res) => {
       return res.status(500).json({ error: 'Shopify access token not configured' });
     }
 
+    // 🚨 ROLLBACK: START - Feature flag dla produktu cyfrowego (PRZED obliczaniem ceny)
+    const ENABLE_DIGITAL_PRODUCTS = process.env.ENABLE_DIGITAL_PRODUCTS !== 'false'; // Domyślnie włączone, wyłącz przez 'false'
+    const isDigitalProduct = ENABLE_DIGITAL_PRODUCTS && productType === 'digital';
+    // 🚨 ROLLBACK: END - Feature flag dla produktu cyfrowego
+
     // ✅ UŻYJ CENY PRZESŁANEJ Z FRONTENDU (już obliczonej z rozmiarem)
+    // 🚨 ROLLBACK: START - Cena dla produktu cyfrowego (STAŁA 29 zł, NIE zależy od ceny bazowej)
     let totalPrice = 99.00; // Domyślna cena fallback
     
-    // Product creation data received
-    
-    if (finalPrice && finalPrice > 0) {
+    // Dla produktu cyfrowy: ZAWSZE 29 zł, niezależnie od ceny bazowej produktu
+    if (isDigitalProduct) {
+      totalPrice = 29.00; // 🚨 ROLLBACK: Stała cena produktu cyfrowego
+      console.log('💰 [PRODUCTS.JS] Digital product - using fixed price: 29.00 zł (ignoring base price)');
+    } else if (finalPrice && finalPrice > 0) {
+      // Produkt fizyczny: użyj ceny z frontendu (już obliczonej z rozmiarem)
       totalPrice = finalPrice;
-      // Using final price from frontend
+      console.log('💰 [PRODUCTS.JS] Physical product - using final price from frontend:', finalPrice);
     } else {
-      // Fallback: pobierz cenę bazową z oryginalnego produktu
+      // Fallback: pobierz cenę bazową z oryginalnego produktu (TYLKO dla produktów fizycznych)
       let basePrice = 99.00;
       
       if (originalProductId) {
@@ -111,13 +120,9 @@ module.exports = async (req, res) => {
       totalPrice = basePrice;
       // Using fallback base price
     }
+    // 🚨 ROLLBACK: END - Cena dla produktu cyfrowego
 
     // Creating product with AI image
-
-    // 🚨 ROLLBACK: START - Feature flag dla produktu cyfrowego
-    const ENABLE_DIGITAL_PRODUCTS = process.env.ENABLE_DIGITAL_PRODUCTS !== 'false'; // Domyślnie włączone, wyłącz przez 'false'
-    const isDigitalProduct = ENABLE_DIGITAL_PRODUCTS && productType === 'digital';
-    // 🚨 ROLLBACK: END - Feature flag dla produktu cyfrowego
 
     // Zmapuj productType i size na polskie nazwy
     // 🚨 ROLLBACK: START - Obsługa produktu cyfrowego w nazwach

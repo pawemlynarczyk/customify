@@ -107,6 +107,64 @@
             return noteAttributes || {};
           };
 
+          // 🚨 ROLLBACK: START - Nadpisanie updateProductPrice() dla produktu cyfrowego
+          proto.updateProductPrice = function() {
+            try {
+              const isDigitalProduct = this.selectedProductType === 'digital';
+              
+              // Dla produktu cyfrowego: ZAWSZE 29 zł, NIE sumuj z ceną bazową
+              if (isDigitalProduct) {
+                const digitalProductPrice = 29.00; // 🚨 ROLLBACK: Stała cena produktu cyfrowego
+                this.applyProductPriceDisplay(digitalProductPrice);
+                this.schedulePriceConsistency(digitalProductPrice);
+                console.log('💰 [PRICE] Digital product - fixed price: 29.00 zł (ignoring base price)');
+                return;
+              }
+              
+              // Dla produktów fizycznych: użyj oryginalnej logiki
+              const priceElement = this.getPriceElement();
+              if (!priceElement) {
+                console.warn('⚠️ [PRICE] Price element not found with any selector');
+                return;
+              }
+
+              console.log('✅ [PRICE] Found price element:', priceElement, 'Text:', priceElement.textContent);
+
+              // Pobierz oryginalną bazową cenę (zapamiętaj przy pierwszym wywołaniu)
+              if (!this.originalBasePrice) {
+                const basePriceText = priceElement.textContent;
+                this.originalBasePrice = this.extractBasePrice(basePriceText);
+                
+                if (this.originalBasePrice === null) {
+                  console.warn('⚠️ [PRICE] Could not extract original base price from:', basePriceText);
+                  this.originalBasePrice = 49.00;
+                  console.log(`💰 [PRICE] Using fallback base price: ${this.originalBasePrice} zł`);
+                } else {
+                  console.log(`💰 [PRICE] Original base price saved: ${this.originalBasePrice} zł`);
+                }
+              }
+
+              // Pobierz cenę rozmiaru
+              const sizePrice = this.getSizePrice(this.selectedSize);
+              
+              // Dopłata za ramkę (tylko plakat i wybrany kolor != none)
+              const frameSelected = (this.selectedProductType === 'plakat') && (window.CustomifyFrame && window.CustomifyFrame.color && window.CustomifyFrame.color !== 'none');
+              const frameSurcharge = frameSelected && this.selectedSize ? (this.framePricing[this.selectedSize] || 29) : 0;
+              
+              // Oblicz końcową cenę (oryginalna cena + rozmiar + ramka)
+              const finalPrice = this.originalBasePrice + sizePrice + frameSurcharge;
+              
+              // Aktualizuj cenę na stronie
+              this.applyProductPriceDisplay(finalPrice);
+              this.schedulePriceConsistency(finalPrice);
+              
+              console.log(`💰 [PRICE] Updated: base ${this.originalBasePrice} + size ${sizePrice} + frame ${frameSurcharge} = ${finalPrice} zł`);
+            } catch (error) {
+              console.error('❌ [PRICE] Error updating product price:', error);
+            }
+          };
+          // 🚨 ROLLBACK: END - Nadpisanie updateProductPrice()
+
           proto.addToCart = async function() {
             console.log('🛒 [CUSTOMIFY] addToCart called with:', {
               transformedImage: !!this.transformedImage,
@@ -131,22 +189,32 @@
             }
             // 🚨 ROLLBACK: END - Pomijaj rozmiar dla produktu cyfrowego
 
-            const basePrice = this.originalBasePrice || 49.00;
-            // 🚨 ROLLBACK: START - Cena dla produktu cyfrowego (stała, bez rozmiaru)
-            const sizePrice = isDigitalProduct ? 0 : this.getSizePrice(this.selectedSize);
-            const frameSelected = !isDigitalProduct && (this.selectedProductType === 'plakat') && (window.CustomifyFrame && window.CustomifyFrame.color && window.CustomifyFrame.color !== 'none');
-            const frameSurcharge = frameSelected ? 29 : 0;
-            // Dla produktu cyfrowego: stała cena (np. 29 zł), dla fizycznego: cena z rozmiarem
-            const digitalProductPrice = 29.00; // 🚨 ROLLBACK: Cena produktu cyfrowego
-            const finalPrice = isDigitalProduct ? digitalProductPrice : (basePrice + sizePrice + frameSurcharge);
+            // 🚨 ROLLBACK: START - Cena dla produktu cyfrowego (STAŁA 29 zł, NIE sumuje się z ceną bazową)
+            const isDigitalProductForPrice = this.selectedProductType === 'digital';
+            const digitalProductPrice = 29.00; // 🚨 ROLLBACK: Stała cena produktu cyfrowego
+            
+            let finalPrice;
+            if (isDigitalProductForPrice) {
+              // Produkt cyfrowy: ZAWSZE 29 zł, NIE zależy od ceny bazowej produktu
+              finalPrice = digitalProductPrice;
+              console.log('💰 [CUSTOMIFY] Digital product - using fixed price: 29.00 zł (ignoring base price)');
+            } else {
+              // Produkt fizyczny: cena bazowa + rozmiar + ramka
+              const basePrice = this.originalBasePrice || 49.00;
+              const sizePrice = this.getSizePrice(this.selectedSize);
+              const frameSelected = (this.selectedProductType === 'plakat') && (window.CustomifyFrame && window.CustomifyFrame.color && window.CustomifyFrame.color !== 'none');
+              const frameSurcharge = frameSelected ? 29 : 0;
+              finalPrice = basePrice + sizePrice + frameSurcharge;
+              console.log('💰 [CUSTOMIFY] Physical product - price calculation:', { basePrice, sizePrice, frameSurcharge, finalPrice });
+            }
             // 🚨 ROLLBACK: END - Cena dla produktu cyfrowego
 
             console.log('💰 [CUSTOMIFY] Price calculation:', {
+              isDigitalProduct: isDigitalProductForPrice,
               originalBasePrice: this.originalBasePrice,
-              basePrice: basePrice,
-              sizePrice: sizePrice,
               finalPrice: finalPrice,
-              size: this.selectedSize
+              size: this.selectedSize,
+              productType: this.selectedProductType
             });
 
             if (!this.transformedImage) {
