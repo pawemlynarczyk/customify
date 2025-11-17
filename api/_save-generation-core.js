@@ -347,6 +347,23 @@ async function saveGenerationHandler(req, res) {
       });
       
       console.log(`✅ [SAVE-GENERATION] Saved to Blob: ${blob.url}`);
+      
+      // ✅ DODATKOWY ZAPIS: dla niezalogowanych zapisz RÓWNIEŻ pod device token (do sprawdzania limitu 1 TOTAL)
+      if (!customerId && deviceToken) {
+        try {
+          const deviceBlobPath = `${statsPrefix}/device-${deviceToken}.json`;
+          await put(deviceBlobPath, jsonBuffer, {
+            access: 'public',
+            contentType: 'application/json',
+            token: process.env.customify_READ_WRITE_TOKEN,
+            allowOverwrite: true
+          });
+          console.log(`✅ [SAVE-GENERATION] Saved device token copy: ${deviceBlobPath}`);
+        } catch (deviceBlobError) {
+          console.warn(`⚠️ [SAVE-GENERATION] Failed to save device token copy:`, deviceBlobError.message);
+          // Nie blokuj - główny zapis się udał
+        }
+      }
     } catch (blobError) {
       console.error('❌ [SAVE-GENERATION] Error writing to Blob:', blobError);
       // Nie blokuj - zwróć sukces ale z warningiem

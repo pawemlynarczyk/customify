@@ -480,13 +480,13 @@ module.exports = async (req, res) => {
     });
   }
   
-  // ✅ TWARDY LIMIT DZIENNY: 5 prób na IP w ciągu 24h
-  if (!checkRateLimit(ip, 5, 24 * 60 * 60 * 1000)) { // 5 requestów / 24 godziny
-    console.log(`❌ [TRANSFORM] Daily limit exceeded for IP: ${ip}`);
+  // ✅ TWARDY LIMIT DZIENNY: 10 prób na IP w ciągu 24h (dla wszystkich - chroni przed wieloma kontami)
+  if (!checkRateLimit(ip, 10, 24 * 60 * 60 * 1000)) { // 10 requestów / 24 godziny
+    console.log(`❌ [TRANSFORM] Daily IP limit exceeded: ${ip}`);
     return res.status(403).json({
       error: 'Usage limit exceeded',
-      message: 'Wykorzystałeś limit generacji - zaloguj się po więcej',
-      showLoginModal: true
+      message: 'Wykorzystałeś limit generacji z tego IP - spróbuj jutro lub skontaktuj się z nami',
+      showLoginModal: false
     });
   }
   
@@ -569,6 +569,39 @@ module.exports = async (req, res) => {
     console.log(`🎯 [TRANSFORM] Product type: ${productType || 'not specified'}`);
     console.log(`🎯 [TRANSFORM] Style: ${prompt}`);
     console.log(`👤 [TRANSFORM] Customer ID: ${customerId || 'not logged in'}`);
+
+    // ✅ DEVICE TOKEN LIMIT: 1 generacja TOTAL dla niezalogowanych (na zawsze)
+    if (!customerId && deviceToken) {
+      try {
+        const { get } = require('@vercel/blob');
+        const blobPath = `customify/system/stats/generations/device-${deviceToken}.json`;
+        console.log(`🔍 [TRANSFORM] Sprawdzam device token limit: ${deviceToken.substring(0, 8)}...`);
+        
+        try {
+          const { value } = await get(blobPath);
+          const deviceData = JSON.parse(new TextDecoder().decode(value));
+          
+          if (deviceData && deviceData.totalGenerations > 0) {
+            console.warn(`❌ [TRANSFORM] Device token limit exceeded: ${deviceToken.substring(0, 8)}... (${deviceData.totalGenerations} generacji)`);
+            return res.status(403).json({
+              error: 'Usage limit exceeded',
+              message: 'Wykorzystałeś limit generacji - zaloguj się po więcej',
+              showLoginModal: true
+            });
+          }
+        } catch (blobError) {
+          if (blobError.message !== 'Blob not found') {
+            console.warn(`⚠️ [TRANSFORM] Błąd sprawdzania device token:`, blobError.message);
+          } else {
+            console.log(`✅ [TRANSFORM] Device token ${deviceToken.substring(0, 8)}... - pierwsza generacja`);
+          }
+          // Blob not found = pierwsza generacja, pozwól
+        }
+      } catch (error) {
+        console.warn(`⚠️ [TRANSFORM] Błąd device token check (nie blokuję):`, error.message);
+        // Nie blokuj jeśli wystąpił błąd sprawdzania
+      }
+    }
 
     // ✅ SPRAWDZENIE LIMITÓW UŻYCIA PRZED TRANSFORMACJĄ
     const shopDomain = process.env.SHOPIFY_STORE_DOMAIN || 'customify-ok.myshopify.com';
