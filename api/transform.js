@@ -139,7 +139,7 @@ async function segmindCaricature(imageUrl) {
         size: "1024x1536", // PIONOWY PORTRET (2:3 format) - NIE ZMIENIAJ!
         quality: "medium", // Jakość średnia dla szybszego renderowania
         background: "opaque", // Zgodnie z dokumentacją
-        output_format: "jpg", // JPEG zamiast PNG - 80-90% mniejszy rozmiar!
+        output_format: "jpeg", // JPEG zamiast PNG - 80-90% mniejszy rozmiar! (używaj "jpeg" nie "jpg")
         output_compression: 85 // Kompresja JPEG 85% - dobra jakość, mały rozmiar
       }),
     });
@@ -927,7 +927,7 @@ module.exports = async (req, res) => {
           size: "1024x1536", // PIONOWY PORTRET - NIE ZMIENIAJ! (2:3 format)
           quality: "medium", // Jakość średnia
           background: "opaque", // Nieprzezroczyste tło
-          output_format: "jpg", // JPEG zamiast PNG - 80-90% mniejszy rozmiar (rozwiązuje 413)
+          output_format: "jpeg", // JPEG zamiast PNG - 80-90% mniejszy rozmiar (rozwiązuje 413) - używaj "jpeg" nie "jpg"!
           output_compression: 85 // Kompresja JPEG 85% - dobra jakość, mały rozmiar
         }
       },
