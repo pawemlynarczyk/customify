@@ -370,12 +370,20 @@ class CustomifyEmbed {
     if (!productType) {
       // Fallback: suma wszystkich typów (backward compatibility)
       const allTypes = ['boho', 'king', 'cats', 'caricature', 'watercolor', 'other'];
-      return allTypes.reduce((sum, type) => {
-        return sum + parseInt(localStorage.getItem(`customify_usage_${type}`) || '0', 10);
+      const total = allTypes.reduce((sum, type) => {
+        const count = parseInt(localStorage.getItem(`customify_usage_${type}`) || '0', 10);
+        if (count > 0) {
+          console.log(`📊 [LOCAL-STORAGE] ${type}: ${count}`);
+        }
+        return sum + count;
       }, 0);
+      console.log(`📊 [LOCAL-STORAGE] Total (bez productType): ${total}`);
+      return total;
     }
     const key = `customify_usage_${productType}`;
-    return parseInt(localStorage.getItem(key) || '0', 10);
+    const count = parseInt(localStorage.getItem(key) || '0', 10);
+    console.log(`📊 [LOCAL-STORAGE] ${productType}: ${count} (key: ${key})`);
+    return count;
   }
 
   /**
@@ -2184,6 +2192,13 @@ class CustomifyEmbed {
       this.showError('Wgraj zdjęcie i wybierz styl');
       return;
     }
+
+    // ✅ DEBUG: Sprawdź selectedStyle przed checkUsageLimit
+    console.log(`🔍 [TRANSFORM] Przed checkUsageLimit:`, {
+      selectedStyle: this.selectedStyle,
+      productType: this.getProductTypeFromStyle(this.selectedStyle),
+      uploadedFile: !!this.uploadedFile
+    });
 
     // ✅ USAGE LIMITS: Sprawdź limit PRZED transformacją (ZAWSZE, nawet przy retry)
       const canTransform = await this.checkUsageLimit();
