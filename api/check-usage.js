@@ -111,28 +111,61 @@ module.exports = async (req, res) => {
 
     const customer = metafieldData.data?.customer;
     
+    console.log(`🔍 [CHECK-USAGE] Request body:`, {
+      customerId: customerId,
+      hasCustomerAccessToken: !!customerAccessToken,
+      productType: productType,
+      productTypeType: typeof productType
+    });
+    
     // Parsuj JSON lub konwertuj stary format (liczba)
     let usageData;
     try {
-      usageData = JSON.parse(customer?.metafield?.value || '{}');
-    } catch {
+      const rawValue = customer?.metafield?.value || '{}';
+      console.log(`🔍 [CHECK-USAGE] Parsing metafield value:`, {
+        rawValue: rawValue,
+        type: typeof rawValue
+      });
+      usageData = JSON.parse(rawValue);
+      if (typeof usageData !== 'object' || usageData === null || Array.isArray(usageData)) {
+        throw new Error('Not a valid JSON object');
+      }
+      console.log(`✅ [CHECK-USAGE] Parsed JSON successfully:`, usageData);
+    } catch (parseError) {
       // Stary format (liczba) → konwertuj
-      const oldTotal = parseInt(customer?.metafield?.value || '0', 10);
+      const rawValue = customer?.metafield?.value || '0';
+      const oldTotal = parseInt(rawValue, 10);
+      console.log(`⚠️ [CHECK-USAGE] Stary format metafield:`, {
+        rawValue: rawValue,
+        parsedTotal: oldTotal,
+        parseError: parseError.message
+      });
       usageData = {
         total: oldTotal,
         other: oldTotal  // Wszystkie stare → "other"
       };
-      console.log(`⚠️ [CHECK-USAGE] Stary format metafield - konwertuję: ${oldTotal} → {"other": ${oldTotal}}`);
+      console.log(`⚠️ [CHECK-USAGE] Konwertuję: ${oldTotal} →`, usageData);
     }
     
     const totalLimit = 3; // 3 darmowe generacje per productType dla zalogowanych
+    
+    console.log(`📊 [CHECK-USAGE] Usage data:`, {
+      usageData: usageData,
+      productType: productType,
+      hasProductType: !!productType
+    });
     
     // Jeśli productType w request → zwróć per productType
     if (productType) {
       const usedForThisType = usageData[productType] || 0;
       const remainingForThisType = Math.max(0, totalLimit - usedForThisType);
       
-      console.log(`📊 [CHECK-USAGE] Użytkownik ${customer?.email}: ${usedForThisType}/${totalLimit} użyć dla ${productType}`);
+      console.log(`📊 [CHECK-USAGE] Limit check dla ${productType}:`, {
+        usedForThisType: usedForThisType,
+        totalLimit: totalLimit,
+        remainingForThisType: remainingForThisType,
+        calculation: `${totalLimit} - ${usedForThisType} = ${remainingForThisType}`
+      });
       
       return res.json({
         isLoggedIn: true,
@@ -150,10 +183,17 @@ module.exports = async (req, res) => {
     }
     
     // Fallback: zwróć total (dla backward compatibility)
+    // ⚠️ FIX: Poprawne obliczanie - jeśli brak productType, zwróć limit dla pierwszego dostępnego typu
     const totalUsed = usageData.total || 0;
-    const totalRemaining = Math.max(0, (Object.keys(usageData).length - 1) * totalLimit - totalUsed); // Przybliżone
+    // Jeśli total = 0, to znaczy że użytkownik nie ma żadnych generacji - zwróć limit dla pierwszego typu
+    const totalRemaining = totalUsed === 0 ? totalLimit : Math.max(0, totalLimit - totalUsed);
     
-    console.log(`📊 [CHECK-USAGE] Użytkownik ${customer?.email}: ${totalUsed} total użyć (bez productType w request)`);
+    console.log(`📊 [CHECK-USAGE] Fallback (bez productType):`, {
+      totalUsed: totalUsed,
+      totalLimit: totalLimit,
+      totalRemaining: totalRemaining,
+      calculation: totalUsed === 0 ? `${totalLimit} (brak użyć)` : `${totalLimit} - ${totalUsed} = ${totalRemaining}`
+    });
 
     return res.json({
       isLoggedIn: true,
@@ -164,7 +204,7 @@ module.exports = async (req, res) => {
       remainingCount: totalRemaining,
       byProductType: usageData,
       message: totalRemaining > 0 
-        ? `Pozostało ${totalRemaining} transformacji` 
+        ? `Pozostało ${totalRemaining} transformacji`
         : 'Wykorzystałeś wszystkie transformacje'
     });
 
