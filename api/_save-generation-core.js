@@ -126,7 +126,7 @@ async function saveGenerationHandler(req, res) {
       });
     }
 
-    const { customerId, email, ip: ipFromBody, imageUrl, style, productType, originalImageUrl } = req.body;
+    const { customerId, email, ip: ipFromBody, ipHash: ipHashFromBody, deviceToken, imageUrl, style, productType, originalImageUrl } = req.body;
     
     // ✅ Użyj IP z body jeśli podane, w przeciwnym razie użyj IP z request
     const finalIp = ipFromBody || ip;
@@ -164,6 +164,8 @@ async function saveGenerationHandler(req, res) {
     console.log(`🔍 [SAVE-GENERATION] ip (from body):`, ipFromBody, typeof ipFromBody);
     console.log(`🔍 [SAVE-GENERATION] ip (from request):`, ip, typeof ip);
     console.log(`🔍 [SAVE-GENERATION] finalIp:`, finalIp, typeof finalIp);
+    console.log(`🔍 [SAVE-GENERATION] ipHash (from body):`, ipHashFromBody ? String(ipHashFromBody).substring(0, 16) + '...' : null);
+    console.log(`🔍 [SAVE-GENERATION] deviceToken:`, deviceToken || null);
     
     // Określ identyfikator klienta (priorytet: customerId > email > IP)
     let keyPrefix = 'customer';
@@ -251,7 +253,9 @@ async function saveGenerationHandler(req, res) {
       date: new Date().toISOString(),
       purchased: false,
       orderId: null,
-      purchaseDate: null
+      purchaseDate: null,
+      ipHash: ipHashFromBody || null,
+      deviceToken: deviceToken || null
     };
 
     // Pobierz istniejące generacje z Vercel Blob Storage
@@ -305,6 +309,11 @@ async function saveGenerationHandler(req, res) {
         ...existingData,
         // ✅ Aktualizuj IP jeśli nie było wcześniej (dla starych rekordów)
         ip: existingData.ip || finalIp,
+        ipHash: existingData.ipHash || ipHashFromBody || null,
+        deviceToken: deviceToken || existingData.deviceToken || null,
+        deviceTokenHistory: Array.isArray(existingData.deviceTokenHistory)
+          ? Array.from(new Set([deviceToken, ...existingData.deviceTokenHistory].filter(Boolean)))
+          : (deviceToken ? [deviceToken] : (existingData.deviceTokenHistory || [])),
         lastGenerationDate: new Date().toISOString(),
         totalGenerations: existingData.generations.length
       };
@@ -314,6 +323,9 @@ async function saveGenerationHandler(req, res) {
         customerId: customerId || null,
         email: email || null,
         ip: finalIp || null, // ✅ Użyj finalIp (z body lub request)
+        ipHash: ipHashFromBody || null,
+        deviceToken: deviceToken || null,
+        deviceTokenHistory: deviceToken ? [deviceToken] : [],
         generations: [newGeneration],
         lastGenerationDate: new Date().toISOString(),
         totalGenerations: 1,
@@ -565,7 +577,11 @@ async function saveGenerationHandler(req, res) {
       } : null,
       metafieldUpdateAttempted: metafieldUpdateAttempted,
       metafieldUpdateSuccess: metafieldUpdateSuccess,
-      metafieldUpdateError: metafieldUpdateError
+      metafieldUpdateError: metafieldUpdateError,
+      ip: dataToSave.ip || null,
+      ipHashPreview: dataToSave.ipHash ? String(dataToSave.ipHash).substring(0, 16) + '...' : null,
+      deviceToken: dataToSave.deviceToken || null,
+      deviceTokenHistoryCount: Array.isArray(dataToSave.deviceTokenHistory) ? dataToSave.deviceTokenHistory.length : 0
     };
     
     // ✅ LOGUJ DEBUG INFO W BACKEND (dla Vercel Logs)
