@@ -642,7 +642,7 @@ module.exports = async (req, res) => {
         const metafieldData = await metafieldResponse.json();
         const customer = metafieldData.data?.customer;
         const usedCount = parseInt(customer?.metafield?.value || '0', 10);
-        const totalLimit = 5; // 1 darmowa + 4 po zalogowaniu
+        const totalLimit = 3; // 3 darmowe generacje dla zalogowanych
 
         console.log(`📊 [TRANSFORM] Użytkownik ${customer?.email}: ${usedCount}/${totalLimit} użyć`);
 
@@ -650,7 +650,7 @@ module.exports = async (req, res) => {
           console.log(`❌ [TRANSFORM] Limit przekroczony dla użytkownika ${customer?.email}`);
           return res.status(403).json({
             error: 'Usage limit exceeded',
-            message: 'Wykorzystałeś wszystkie dostępne transformacje (5). Skontaktuj się z nami dla więcej.',
+            message: 'Wykorzystałeś wszystkie dostępne transformacje (3). Skontaktuj się z nami dla więcej.',
             usedCount: usedCount,
             totalLimit: totalLimit
           });

@@ -142,11 +142,11 @@ if (!customerId && deviceToken) {
 - **Dlaczego TOTAL?**: Bo token identyfikuje konkretnego użytkownika (nie resetuje się)
 - **Po zalogowaniu**: Device token NIE blokuje (kontrola przez Shopify metafields)
 
-### **3. Shopify Metafields: 5 generacji (tylko dla zalogowanych)**
+### **3. Shopify Metafields: 3 generacje (tylko dla zalogowanych)**
 ```javascript
 // Sprawdzane przez api/check-usage.js i inkrementowane po transformacji
 const usedCount = parseInt(customer?.metafield?.value || '0', 10);
-const totalLimit = 5;
+const totalLimit = 3;
 if (usedCount >= totalLimit) {
   return res.status(403).json({ error: 'Limit exceeded' });
 }
@@ -176,13 +176,14 @@ if (ip && BLOCKED_IPS.has(ip)) {
 **Niezalogowany → Zalogowany:**
 1. Robi 1 generację niezalogowany (device token: 1 użyta)
 2. Loguje się (device token check: WYŁĄCZONY dla zalogowanych)
-3. Może zrobić 5 generacji (Shopify metafields)
-4. IP: 6 total (limit 10/24h) - OK
+3. Może zrobić 3 generacje (Shopify metafields)
+4. IP: 4 total (limit 10/24h) - OK
 
 **Oszust z wieloma kontami:**
-1. Tworzy konto 1 → 5 generacji (IP: 5)
-2. Tworzy konto 2 → 5 generacji (IP: 10)
-3. Próbuje konto 3 → BLOKADA IP (10/24h)
+1. Tworzy konto 1 → 3 generacje (IP: 3)
+2. Tworzy konto 2 → 3 generacje (IP: 6)
+3. Tworzy konto 3 → 3 generacje (IP: 9)
+4. Próbuje konto 4 → BLOKADA IP (10/24h)
 
 ---
 

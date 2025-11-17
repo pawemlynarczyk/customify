@@ -1,8 +1,8 @@
 // api/check-usage.js
 /**
  * API endpoint do sprawdzania limitów użycia
- * - Niezalogowani: 3 darmowe transformacje (localStorage frontend)
- * - Zalogowani: +10 dodatkowych transformacji (Shopify Metafields)
+ * - Niezalogowani: 1 darmowa transformacja (Device Token)
+ * - Zalogowani: 3 darmowe transformacje (Shopify Metafields)
  */
 
 const { checkRateLimit, getClientIP } = require('../utils/vercelRateLimiter');
@@ -108,7 +108,7 @@ module.exports = async (req, res) => {
 
     const customer = metafieldData.data?.customer;
     const usedCount = parseInt(customer?.metafield?.value || '0', 10);
-    const totalLimit = 5; // 1 darmowa + 4 po zalogowaniu
+    const totalLimit = 3; // 3 darmowe generacje dla zalogowanych
     const remainingCount = Math.max(0, totalLimit - usedCount);
 
     console.log(`📊 [CHECK-USAGE] Użytkownik ${customer?.email}: ${usedCount}/${totalLimit} użyć`);
