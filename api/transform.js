@@ -511,6 +511,14 @@ module.exports = async (req, res) => {
   const DEVICE_COOKIE_NAME = 'customify_device_token';
   const cookies = parseCookies(req.headers.cookie || '');
   let deviceToken = cookies[DEVICE_COOKIE_NAME];
+  
+  console.log(`🍪 [TRANSFORM] Device token check:`, {
+    hasCookie: !!deviceToken,
+    cookieValue: deviceToken ? deviceToken.substring(0, 8) + '...' : null,
+    cookieHeader: req.headers.cookie ? req.headers.cookie.substring(0, 100) + '...' : 'brak',
+    userAgent: req.headers['user-agent']?.substring(0, 50) || 'brak'
+  });
+  
   if (!deviceToken) {
     deviceToken = crypto.randomBytes(16).toString('hex');
     const oneYearSeconds = 60 * 60 * 24 * 365;
@@ -533,9 +541,9 @@ module.exports = async (req, res) => {
     } else {
       res.setHeader('Set-Cookie', newCookie);
     }
-    console.log(`🍪 [TRANSFORM] Generated device token: ${deviceToken}`);
+    console.log(`🍪 [TRANSFORM] Generated NEW device token: ${deviceToken.substring(0, 8)}... (brak cookie w request)`);
   } else {
-    console.log(`🍪 [TRANSFORM] Existing device token detected: ${deviceToken}`);
+    console.log(`🍪 [TRANSFORM] Existing device token detected: ${deviceToken.substring(0, 8)}...`);
   }
 
   const hashIp = (rawIp, tokenValue) => {
