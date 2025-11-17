@@ -354,13 +354,19 @@ async function saveGenerationHandler(req, res) {
           const deviceBlobPath = `${statsPrefix}/device-${deviceToken}.json`;
           
           // ✅ SPRAWDŹ CZY PLIK JUŻ ISTNIEJE (nie nadpisuj - limit 1 TOTAL)
+          let deviceFileExists = false;
           try {
-            const existingDeviceBlob = await get(deviceBlobPath);
+            await head(deviceBlobPath);
+            deviceFileExists = true;
             console.log(`⚠️ [SAVE-GENERATION] Device token ${deviceToken.substring(0, 8)}... już ma generację - nie nadpisujemy (limit 1 TOTAL)`);
-            // Plik istnieje = użytkownik już ma generację, nie nadpisujemy
-          } catch (getError) {
-            // Blob not found = pierwsza generacja, zapisz
-            if (getError.message === 'Blob not found') {
+          } catch (headError) {
+            // Blob not found = pierwsza generacja
+            console.log(`✅ [SAVE-GENERATION] Device token ${deviceToken.substring(0, 8)}... - pierwsza generacja, zapisuję`);
+          }
+          
+          // Zapisz TYLKO jeśli plik NIE istnieje
+          if (!deviceFileExists) {
+            try {
               // Zapisz TYLKO dane device token (nie kopiuj wszystkich generacji z IP!)
               const deviceData = {
                 deviceToken: deviceToken,
@@ -384,12 +390,12 @@ async function saveGenerationHandler(req, res) {
                 allowOverwrite: false // NIE nadpisuj jeśli istnieje
               });
               console.log(`✅ [SAVE-GENERATION] Saved device token (first generation): ${deviceBlobPath}`);
-            } else {
-              console.warn(`⚠️ [SAVE-GENERATION] Błąd sprawdzania device blob:`, getError.message);
+            } catch (putError) {
+              console.warn(`⚠️ [SAVE-GENERATION] Błąd zapisu device token:`, putError.message);
             }
           }
         } catch (deviceBlobError) {
-          console.warn(`⚠️ [SAVE-GENERATION] Failed to save device token:`, deviceBlobError.message);
+          console.warn(`⚠️ [SAVE-GENERATION] Failed to save device token (outer):`, deviceBlobError.message);
           // Nie blokuj - główny zapis się udał
         }
       }
