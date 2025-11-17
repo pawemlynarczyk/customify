@@ -113,6 +113,13 @@ class CustomifyEmbed {
    * @returns {Object|null} {customerId, email, customerAccessToken} lub null jeśli niezalogowany
    */
   getCustomerInfo() {
+    // ⚠️ KRYTYCZNE: Jeśli Shopify Liquid mówi że użytkownik NIE jest zalogowany (null),
+    // to NIE sprawdzaj fallbacków - po prostu zwróć null
+    if (window.ShopifyCustomer === null) {
+      console.log('👤 [CUSTOMER DETECT] Shopify Customer is null - user not logged in');
+      return null;
+    }
+    
     if (!window.__customifyCustomerDebugLogged) {
       try {
         console.log('🔍 [CUSTOMER DETECT] Debug sources:', {
@@ -280,9 +287,13 @@ class CustomifyEmbed {
     }
     
     // METODA 3: Pamięć lokalna (ostatni znany zalogowany użytkownik)
-    const storedId = sanitizeId(getStoredValue('customify_last_customer_id'));
-    if (storedId) {
-      return buildCustomerInfo(storedId, getStoredValue('customify_last_customer_email'), 'localStorage');
+    // ⚠️ UŻYWAJ TYLKO jeśli window.ShopifyCustomer istnieje (nawet jeśli nie ma ID)
+    // Jeśli window.ShopifyCustomer jest null = użytkownik NIE jest zalogowany w Shopify
+    if (window.ShopifyCustomer !== null && window.ShopifyCustomer !== undefined) {
+      const storedId = sanitizeId(getStoredValue('customify_last_customer_id'));
+      if (storedId) {
+        return buildCustomerInfo(storedId, getStoredValue('customify_last_customer_email'), 'localStorage');
+      }
     }
     
     // METODA 4: STARY SYSTEM - window.Shopify.customerEmail (Classic Customer Accounts)
@@ -889,6 +900,7 @@ class CustomifyEmbed {
         const response = await fetch('https://customify-s56o.vercel.app/api/check-usage', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify({
             customerId: customerInfo.customerId,
             customerAccessToken: customerInfo.customerAccessToken
@@ -1005,12 +1017,19 @@ class CustomifyEmbed {
             ×
           </button>
           <h2 style="
-            margin-bottom: 25px; 
+            margin-bottom: 15px; 
             color: #333; 
             font-size: 18px;
             font-weight: 600;
             line-height: 1.5;
-          ">Widzę że lubisz nasze narzędzie, zaloguj się by móc korzystać w pełni</h2>
+          ">Chcesz wygenerować kolejną wersję?</h2>
+          
+          <p style="
+            margin-bottom: 30px;
+            color: #666;
+            font-size: 15px;
+            line-height: 1.5;
+          ">Zaloguj się – darmowe generację, zapis swoich projektów</p>
           
           <div style="
             display: flex; 
@@ -1030,7 +1049,7 @@ class CustomifyEmbed {
               box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
               transition: transform 0.2s;
             " onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
-              ✉️ Kontynuuj (podaj email)
+              Tak, chcę korzystać
             </a>
             
             <button onclick="window.customifyLoginModal.cancel()" style="
@@ -1044,7 +1063,7 @@ class CustomifyEmbed {
               cursor: pointer;
               transition: all 0.2s;
             " onmouseover="this.style.background='#e0e0e0'" onmouseout="this.style.background='#f5f5f5'">
-              ❌ Anuluj
+              Nie teraz
             </button>
           </div>
           
@@ -1059,12 +1078,7 @@ class CustomifyEmbed {
               font-size: 14px;
               margin: 0;
             ">
-              Masz już konto? 
-              <a href="${loginUrl}" onclick="window.customifyLoginModal.trackLoginClick()" style="
-                color: #1565C0;
-                text-decoration: underline;
-                font-weight: bold;
-              ">Zaloguj się tutaj</a>
+              Szybkie logowanie przez Google lub e-mail.
             </p>
           </div>
         </div>
@@ -2198,6 +2212,7 @@ class CustomifyEmbed {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify(requestBody),
         signal: controller.signal
       });
