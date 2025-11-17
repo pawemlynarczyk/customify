@@ -1665,8 +1665,16 @@ module.exports = async (req, res) => {
     }
 
     // ✅ INKREMENTACJA LICZNIKA PO UDANEJ TRANSFORMACJI
+    console.log(`🔍 [TRANSFORM] Sprawdzam warunki inkrementacji:`, {
+      hasCustomerId: !!customerId,
+      hasCustomerAccessToken: !!customerAccessToken,
+      hasAccessToken: !!accessToken,
+      customerId: customerId,
+      productType: finalProductType
+    });
+    
     if (customerId && customerAccessToken && accessToken) {
-      console.log(`➕ [TRANSFORM] Inkrementuję licznik dla użytkownika ${customerId}`);
+      console.log(`➕ [TRANSFORM] Inkrementuję licznik dla użytkownika ${customerId} (productType: ${finalProductType})`);
       
       try {
         // Pobierz obecną wartość (namespace: customify, key: usage_count)
@@ -1920,6 +1928,13 @@ module.exports = async (req, res) => {
         // ⚠️ KRYTYCZNE: Błąd inkrementacji - loguj szczegółowo, ale nie blokuj odpowiedzi
         // Transformacja się udała, ale limit nie został zaktualizowany
       }
+    } else {
+      console.warn(`⚠️ [TRANSFORM] Pomijam inkrementację - brak warunków:`, {
+        hasCustomerId: !!customerId,
+        hasCustomerAccessToken: !!customerAccessToken,
+        hasAccessToken: !!accessToken,
+        reason: !customerId ? 'brak customerId' : !customerAccessToken ? 'brak customerAccessToken' : 'brak accessToken'
+      });
     }
 
     // ✅ ZWRÓĆ DEBUG INFO Z SAVE-GENERATION (dla przeglądarki)
