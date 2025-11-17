@@ -485,7 +485,7 @@ module.exports = async (req, res) => {
     console.log(`❌ [TRANSFORM] Daily IP limit exceeded: ${ip}`);
     return res.status(403).json({
       error: 'Usage limit exceeded',
-      message: 'Wykorzystałeś limit generacji z tego IP - spróbuj jutro lub skontaktuj się z nami',
+      message: 'Wykorzystałeś limit generacji',
       showLoginModal: false
     });
   }
