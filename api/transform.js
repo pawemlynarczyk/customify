@@ -679,7 +679,18 @@ module.exports = async (req, res) => {
     console.log(`Image compressed: ${imageData.length} -> ${compressedImageData.length} bytes`);
     
     // Convert compressed base64 to Data URI for Replicate (required format)
-    const imageDataUri = `data:image/png;base64,${compressedImageData}`;
+    // 🚨 FIX: Dynamicznie wykryj format - Sharp zwraca JPEG, oryginalny może być PNG/JPEG/etc
+    let mimeType;
+    if (compressedImageData === imageData) {
+      // Sharp nie działał - użyj oryginalnego formatu (prawdopodobnie PNG z frontend)
+      mimeType = 'image/png';
+      console.log('🔍 [FORMAT] Using original format (PNG) - Sharp unavailable');
+    } else {
+      // Sharp zadziałał - użyj JPEG (format z kompresji Sharp)
+      mimeType = 'image/jpeg';
+      console.log('🔍 [FORMAT] Using JPEG format - Sharp compressed');
+    }
+    const imageDataUri = `data:${mimeType};base64,${compressedImageData}`;
 
     // Use Replicate for AI image transformation with different models based on style
     
