@@ -1555,19 +1555,32 @@ module.exports = async (req, res) => {
         });
 
         const getData = await getResponse.json();
+        const existingMetafield = getData.data?.customer?.metafield;
+        const metafieldType = existingMetafield?.type || 'json';
         
         // Parsuj JSON lub konwertuj stary format (liczba)
         let usageData;
+        let needsTypeChange = false;
         try {
-          usageData = JSON.parse(getData.data?.customer?.metafield?.value || '{}');
+          const parsed = JSON.parse(existingMetafield?.value || '{}');
+          if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
+            usageData = parsed;
+          } else {
+            throw new Error('Not a valid JSON object');
+          }
         } catch {
           // Stary format (liczba) → konwertuj
-          const oldTotal = parseInt(getData.data?.customer?.metafield?.value || '0', 10);
+          const oldTotal = parseInt(existingMetafield?.value || '0', 10);
           usageData = {
             total: oldTotal,
             other: oldTotal  // Wszystkie stare → "other"
           };
           console.log(`⚠️ [TRANSFORM] Stary format metafield przy inkrementacji - konwertuję: ${oldTotal} → {"other": ${oldTotal}}`);
+          // Jeśli stary format i typ to number_integer, musimy zmienić typ na json
+          if (metafieldType === 'number_integer') {
+            needsTypeChange = true;
+            console.log(`⚠️ [TRANSFORM] Wykryto number_integer - muszę zmienić typ na json`);
+          }
         }
         
         // Inkrementuj dla TEGO productType
@@ -1580,14 +1593,55 @@ module.exports = async (req, res) => {
         
         const newValue = JSON.stringify(usageData);
 
-        // Zaktualizuj metafield
+        // ⚠️ KRYTYCZNE: Jeśli metafield ma typ number_integer, musimy go najpierw USUNĄĆ i utworzyć jako json
+        if (needsTypeChange && existingMetafield?.id) {
+          console.log(`🔄 [TRANSFORM] Usuwam stary metafield (number_integer) i tworzę nowy (json)...`);
+          
+          // KROK 1: Usuń stary metafield
+          const deleteMutation = `
+            mutation deleteMetafield($id: ID!) {
+              metafieldDelete(id: $id) {
+                deletedId
+                userErrors {
+                  field
+                  message
+                }
+              }
+            }
+          `;
+          
+          const deleteResponse = await fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Shopify-Access-Token': accessToken
+            },
+            body: JSON.stringify({
+              query: deleteMutation,
+              variables: {
+                id: existingMetafield.id
+              }
+            })
+          });
+          
+          const deleteData = await deleteResponse.json();
+          if (deleteData.data?.metafieldDelete?.userErrors?.length > 0) {
+            console.error('⚠️ [TRANSFORM] Błąd usuwania starego metafield:', deleteData.data.metafieldDelete.userErrors);
+          } else {
+            console.log(`✅ [TRANSFORM] Stary metafield usunięty`);
+          }
+        }
+
+        // KROK 2: Utwórz/zaktualizuj metafield jako json
         const updateMutation = `
           mutation updateCustomerUsage($input: CustomerInput!) {
             customerUpdate(input: $input) {
               customer {
                 id
                 metafield(namespace: "customify", key: "usage_count") {
+                  id
                   value
+                  type
                 }
               }
               userErrors {
@@ -1614,7 +1668,9 @@ module.exports = async (req, res) => {
                     namespace: 'customify',
                     key: 'usage_count',
                     value: newValue,
-                    type: 'json' // ✅ Zmienione z number_integer na json
+                    type: 'json' // ✅ Zawsze json (nowy format)
+                    // ⚠️ UWAGA: Jeśli metafield już istnieje jako json, Shopify automatycznie go zaktualizuje
+                    // Jeśli nie istnieje, Shopify utworzy nowy jako json
                   }
                 ]
               }
