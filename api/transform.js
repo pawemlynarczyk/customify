@@ -870,19 +870,36 @@ module.exports = async (req, res) => {
 
     // ✅ DEVICE TOKEN LIMIT: 1 generacja PER PRODUCTTYPE dla niezalogowanych
     if (!customerId && deviceToken) {
+      console.log(`🔍 [DEVICE-TOKEN] START sprawdzanie limitu:`, {
+        deviceToken: deviceToken.substring(0, 8) + '...',
+        productType: finalProductType,
+        ip: ip
+      });
+      
       try {
         const blobPath = `https://vzwqqb14qtsxe2wx.public.blob.vercel-storage.com/customify/system/stats/generations/device-${deviceToken}.json`;
-        console.log(`🔍 [TRANSFORM] Sprawdzam device token limit dla ${finalProductType}: ${deviceToken.substring(0, 8)}...`);
+        console.log(`🔍 [DEVICE-TOKEN] Fetching blob: ${blobPath}`);
         
         try {
           const response = await fetch(blobPath);
+          console.log(`🔍 [DEVICE-TOKEN] Response status: ${response.status} ${response.statusText}`);
+          
           if (response.ok) {
             const deviceData = await response.json();
+            console.log(`📊 [DEVICE-TOKEN] Device data loaded:`, {
+              hasGenerationsByProductType: !!deviceData.generationsByProductType,
+              totalGenerations: deviceData.totalGenerations || 0,
+              generationsByProductType: deviceData.generationsByProductType || null,
+              lastGenerationDate: deviceData.lastGenerationDate || null
+            });
             
             // Backward compatibility: jeśli stary format (brak generationsByProductType)
             if (!deviceData.generationsByProductType && deviceData.totalGenerations > 0) {
               // Stary format - konwertuj do nowego
-              console.log(`⚠️ [TRANSFORM] Stary format device token - konwertuję`);
+              console.log(`⚠️ [DEVICE-TOKEN] Stary format device token - konwertuję:`, {
+                totalGenerations: deviceData.totalGenerations,
+                convertingTo: { 'other': deviceData.totalGenerations }
+              });
               deviceData.generationsByProductType = {
                 'other': deviceData.totalGenerations
               };
@@ -890,8 +907,20 @@ module.exports = async (req, res) => {
             
             // Sprawdź limit dla TEGO productType
             const usedForThisType = deviceData.generationsByProductType?.[finalProductType] || 0;
+            console.log(`📊 [DEVICE-TOKEN] Limit check dla ${finalProductType}:`, {
+              usedForThisType: usedForThisType,
+              limit: 1,
+              allProductTypes: deviceData.generationsByProductType || {}
+            });
+            
             if (usedForThisType >= 1) {
-              console.warn(`❌ [TRANSFORM] Device token limit exceeded dla ${finalProductType}: ${deviceToken.substring(0, 8)}... (${usedForThisType}/1)`);
+              console.warn(`❌ [DEVICE-TOKEN] LIMIT EXCEEDED:`, {
+                deviceToken: deviceToken.substring(0, 8) + '...',
+                productType: finalProductType,
+                usedForThisType: usedForThisType,
+                limit: 1,
+                allProductTypes: deviceData.generationsByProductType
+              });
               return res.status(403).json({
                 error: 'Usage limit exceeded',
                 message: `Wykorzystałeś limit generacji dla ${finalProductType} - zaloguj się po więcej`,
@@ -899,18 +928,33 @@ module.exports = async (req, res) => {
                 productType: finalProductType
               });
             }
+            
+            console.log(`✅ [DEVICE-TOKEN] Limit OK - pozwalam na generację`);
+          } else if (response.status === 404) {
+            console.log(`✅ [DEVICE-TOKEN] Blob not found (404) - pierwsza generacja dla ${finalProductType}`);
           } else {
-            console.log(`✅ [TRANSFORM] Device token ${deviceToken.substring(0, 8)}... - pierwsza generacja dla ${finalProductType} (blob not found)`);
+            console.warn(`⚠️ [DEVICE-TOKEN] Unexpected response status: ${response.status} ${response.statusText}`);
           }
         } catch (blobError) {
-          console.warn(`⚠️ [TRANSFORM] Błąd sprawdzania device token:`, blobError.message);
-          console.log(`✅ [TRANSFORM] Device token ${deviceToken.substring(0, 8)}... - pozwalam (błąd sprawdzania)`);
+          console.error(`❌ [DEVICE-TOKEN] Błąd fetch blob:`, {
+            error: blobError.message,
+            stack: blobError.stack,
+            blobPath: blobPath
+          });
+          console.log(`✅ [DEVICE-TOKEN] Pozwalam mimo błędu (fallback)`);
           // Blob not found lub inny błąd = pierwsza generacja, pozwól
         }
       } catch (error) {
-        console.warn(`⚠️ [TRANSFORM] Błąd device token check (nie blokuję):`, error.message);
+        console.error(`❌ [DEVICE-TOKEN] Błąd device token check:`, {
+          error: error.message,
+          stack: error.stack,
+          deviceToken: deviceToken.substring(0, 8) + '...'
+        });
+        console.log(`✅ [DEVICE-TOKEN] Nie blokuję mimo błędu (fallback)`);
         // Nie blokuj jeśli wystąpił błąd sprawdzania
       }
+    } else if (!customerId && !deviceToken) {
+      console.log(`⚠️ [DEVICE-TOKEN] Brak device token dla niezalogowanego użytkownika - pomijam sprawdzanie`);
     }
 
     // ✅ SPRAWDZENIE LIMITÓW SHOPIFY METAFIELDS (Zalogowani) - PER PRODUCTTYPE
@@ -951,30 +995,64 @@ module.exports = async (req, res) => {
         });
 
         const metafieldData = await metafieldResponse.json();
+        console.log(`📊 [METAFIELD-CHECK] GraphQL response:`, {
+          hasData: !!metafieldData.data,
+          hasCustomer: !!metafieldData.data?.customer,
+          hasMetafield: !!metafieldData.data?.customer?.metafield,
+          metafieldId: metafieldData.data?.customer?.metafield?.id || null,
+          metafieldType: metafieldData.data?.customer?.metafield?.type || null,
+          metafieldValue: metafieldData.data?.customer?.metafield?.value || null,
+          errors: metafieldData.errors || null
+        });
+        
         const customer = metafieldData.data?.customer;
+        
+        if (!customer) {
+          console.error(`❌ [METAFIELD-CHECK] Brak customer w response:`, metafieldData);
+        }
+        
+        if (!customer?.metafield) {
+          console.log(`📊 [METAFIELD-CHECK] Brak metafield - pierwsza generacja dla użytkownika ${customer?.email || customerId}`);
+        }
         
         // Parsuj JSON lub konwertuj stary format (liczba)
         let usageData;
         let isOldFormat = false;
         try {
-          const parsed = JSON.parse(customer?.metafield?.value || '{}');
+          const rawValue = customer?.metafield?.value;
+          console.log(`🔍 [METAFIELD-CHECK] Parsing metafield value:`, {
+            rawValue: rawValue,
+            type: typeof rawValue,
+            metafieldType: customer?.metafield?.type
+          });
+          
+          const parsed = JSON.parse(rawValue || '{}');
           // Sprawdź czy to prawdziwy JSON object (nie liczba jako string)
           if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
             usageData = parsed;
+            console.log(`✅ [METAFIELD-CHECK] Parsed JSON successfully:`, usageData);
           } else {
             throw new Error('Not a valid JSON object');
           }
-        } catch {
+        } catch (parseError) {
           // Stary format (liczba) → konwertuj
           isOldFormat = true;
-          const oldTotal = parseInt(customer?.metafield?.value || '0', 10);
+          const rawValue = customer?.metafield?.value || '0';
+          const oldTotal = parseInt(rawValue, 10);
+          console.log(`⚠️ [METAFIELD-CHECK] Stary format metafield:`, {
+            rawValue: rawValue,
+            parsedTotal: oldTotal,
+            metafieldType: customer?.metafield?.type,
+            parseError: parseError.message
+          });
+          
           // ⚠️ KRYTYCZNE: Jeśli stary format, sprawdź TOTAL (nie per productType)
           // Bo nie wiemy jak rozłożyć stare generacje na productType
           usageData = {
             total: oldTotal,
             other: oldTotal  // Wszystkie stare → "other"
           };
-          console.log(`⚠️ [TRANSFORM] Stary format metafield - konwertuję: ${oldTotal} → {"other": ${oldTotal}}`);
+          console.log(`⚠️ [METAFIELD-CHECK] Konwertuję stary format: ${oldTotal} →`, usageData);
         }
         
         const totalLimit = 3; // 3 darmowe generacje per productType dla zalogowanych
@@ -987,16 +1065,40 @@ module.exports = async (req, res) => {
           const totalUsed = usageData.total || 0;
           // Jeśli total >= 3, to blokuj (bo limit to 3 per productType, a nie wiemy jak rozłożyć)
           usedForThisType = totalUsed;
-          console.log(`⚠️ [TRANSFORM] Stary format - sprawdzam TOTAL: ${totalUsed} (limit per productType: ${totalLimit})`);
+          console.log(`⚠️ [METAFIELD-CHECK] Stary format - sprawdzam TOTAL:`, {
+            totalUsed: totalUsed,
+            limit: totalLimit,
+            productType: finalProductType
+          });
         } else {
           // Nowy format - sprawdź per productType
           usedForThisType = usageData[finalProductType] || 0;
+          console.log(`📊 [METAFIELD-CHECK] Nowy format - sprawdzam per productType:`, {
+            productType: finalProductType,
+            usedForThisType: usedForThisType,
+            allProductTypes: usageData
+          });
         }
 
-        console.log(`📊 [TRANSFORM] Użytkownik ${customer?.email}: ${usedForThisType}/${totalLimit} użyć dla ${finalProductType}${isOldFormat ? ' (stary format - sprawdzam TOTAL)' : ''}`);
+        console.log(`📊 [METAFIELD-CHECK] Limit check result:`, {
+          customerEmail: customer?.email,
+          customerId: customerId,
+          productType: finalProductType,
+          usedForThisType: usedForThisType,
+          totalLimit: totalLimit,
+          isOldFormat: isOldFormat,
+          fullUsageData: usageData
+        });
 
         if (usedForThisType >= totalLimit) {
-          console.log(`❌ [TRANSFORM] Limit przekroczony dla użytkownika ${customer?.email} (${finalProductType}): ${usedForThisType}/${totalLimit}`);
+          console.warn(`❌ [METAFIELD-CHECK] LIMIT EXCEEDED:`, {
+            customerEmail: customer?.email,
+            customerId: customerId,
+            productType: finalProductType,
+            usedForThisType: usedForThisType,
+            totalLimit: totalLimit,
+            isOldFormat: isOldFormat
+          });
           return res.status(403).json({
             error: 'Usage limit exceeded',
             message: `Wykorzystałeś wszystkie dostępne transformacje dla ${finalProductType} (3). Skontaktuj się z nami dla więcej.`,
@@ -1006,7 +1108,7 @@ module.exports = async (req, res) => {
           });
         }
 
-        console.log(`✅ [TRANSFORM] Limit OK dla ${finalProductType} - kontynuuję transformację`);
+        console.log(`✅ [METAFIELD-CHECK] Limit OK - kontynuuję transformację`);
       } catch (limitError) {
         console.error('⚠️ [TRANSFORM] Błąd sprawdzania limitów:', limitError);
         // Kontynuuj mimo błędu (fallback do IP rate limiting)
@@ -1559,33 +1661,72 @@ module.exports = async (req, res) => {
         });
 
         const getData = await getResponse.json();
+        console.log(`📊 [METAFIELD-INCREMENT] Get response:`, {
+          hasData: !!getData.data,
+          hasCustomer: !!getData.data?.customer,
+          hasMetafield: !!getData.data?.customer?.metafield,
+          errors: getData.errors || null
+        });
+        
         const existingMetafield = getData.data?.customer?.metafield;
         const metafieldType = existingMetafield?.type || 'json';
+        const metafieldId = existingMetafield?.id || null;
+        
+        console.log(`🔍 [METAFIELD-INCREMENT] Existing metafield:`, {
+          id: metafieldId,
+          type: metafieldType,
+          value: existingMetafield?.value || null,
+          hasValue: !!existingMetafield?.value
+        });
         
         // Parsuj JSON lub konwertuj stary format (liczba)
         let usageData;
         let needsTypeChange = false;
         try {
-          const parsed = JSON.parse(existingMetafield?.value || '{}');
+          const rawValue = existingMetafield?.value || '{}';
+          console.log(`🔍 [METAFIELD-INCREMENT] Parsing value:`, {
+            rawValue: rawValue,
+            type: typeof rawValue,
+            metafieldType: metafieldType
+          });
+          
+          const parsed = JSON.parse(rawValue);
           if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
             usageData = parsed;
+            console.log(`✅ [METAFIELD-INCREMENT] Parsed JSON successfully:`, usageData);
           } else {
             throw new Error('Not a valid JSON object');
           }
-        } catch {
+        } catch (parseError) {
           // Stary format (liczba) → konwertuj
-          const oldTotal = parseInt(existingMetafield?.value || '0', 10);
+          const rawValue = existingMetafield?.value || '0';
+          const oldTotal = parseInt(rawValue, 10);
+          console.log(`⚠️ [METAFIELD-INCREMENT] Stary format metafield:`, {
+            rawValue: rawValue,
+            parsedTotal: oldTotal,
+            metafieldType: metafieldType,
+            parseError: parseError.message
+          });
+          
           usageData = {
             total: oldTotal,
             other: oldTotal  // Wszystkie stare → "other"
           };
-          console.log(`⚠️ [TRANSFORM] Stary format metafield przy inkrementacji - konwertuję: ${oldTotal} → {"other": ${oldTotal}}`);
+          console.log(`⚠️ [METAFIELD-INCREMENT] Konwertuję: ${oldTotal} →`, usageData);
+          
           // Jeśli stary format i typ to number_integer, musimy zmienić typ na json
           if (metafieldType === 'number_integer') {
             needsTypeChange = true;
-            console.log(`⚠️ [TRANSFORM] Wykryto number_integer - muszę zmienić typ na json`);
+            console.log(`🔄 [METAFIELD-INCREMENT] Wykryto number_integer - wymagana konwersja na json`);
           }
         }
+        
+        const beforeIncrement = { ...usageData };
+        console.log(`📊 [METAFIELD-INCREMENT] Przed inkrementacją:`, {
+          productType: finalProductType,
+          currentValue: usageData[finalProductType] || 0,
+          fullData: beforeIncrement
+        });
         
         // Inkrementuj dla TEGO productType
         usageData[finalProductType] = (usageData[finalProductType] || 0) + 1;
@@ -1595,11 +1736,24 @@ module.exports = async (req, res) => {
           .filter(([key]) => key !== 'total')
           .reduce((sum, [, count]) => sum + (typeof count === 'number' ? count : 0), 0);
         
+        console.log(`📊 [METAFIELD-INCREMENT] Po inkrementacji:`, {
+          productType: finalProductType,
+          newValue: usageData[finalProductType],
+          total: usageData.total,
+          fullData: usageData,
+          needsTypeChange: needsTypeChange
+        });
+        
         const newValue = JSON.stringify(usageData);
+        console.log(`📊 [METAFIELD-INCREMENT] New JSON value:`, newValue);
 
         // ⚠️ KRYTYCZNE: Jeśli metafield ma typ number_integer, musimy go najpierw USUNĄĆ i utworzyć jako json
-        if (needsTypeChange && existingMetafield?.id) {
-          console.log(`🔄 [TRANSFORM] Usuwam stary metafield (number_integer) i tworzę nowy (json)...`);
+        if (needsTypeChange && metafieldId) {
+          console.log(`🔄 [METAFIELD-INCREMENT] KONWERSJA TYPU: number_integer → json`, {
+            metafieldId: metafieldId,
+            oldValue: existingMetafield?.value,
+            newValue: newValue
+          });
           
           // KROK 1: Usuń stary metafield
           const deleteMutation = `
@@ -1614,6 +1768,7 @@ module.exports = async (req, res) => {
             }
           `;
           
+          console.log(`🔄 [METAFIELD-INCREMENT] Usuwam stary metafield (id: ${metafieldId})...`);
           const deleteResponse = await fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
             method: 'POST',
             headers: {
@@ -1623,16 +1778,22 @@ module.exports = async (req, res) => {
             body: JSON.stringify({
               query: deleteMutation,
               variables: {
-                id: existingMetafield.id
+                id: metafieldId
               }
             })
           });
           
           const deleteData = await deleteResponse.json();
+          console.log(`📊 [METAFIELD-INCREMENT] Delete response:`, {
+            deletedId: deleteData.data?.metafieldDelete?.deletedId || null,
+            userErrors: deleteData.data?.metafieldDelete?.userErrors || null,
+            errors: deleteData.errors || null
+          });
+          
           if (deleteData.data?.metafieldDelete?.userErrors?.length > 0) {
-            console.error('⚠️ [TRANSFORM] Błąd usuwania starego metafield:', deleteData.data.metafieldDelete.userErrors);
+            console.error(`❌ [METAFIELD-INCREMENT] Błąd usuwania starego metafield:`, deleteData.data.metafieldDelete.userErrors);
           } else {
-            console.log(`✅ [TRANSFORM] Stary metafield usunięty`);
+            console.log(`✅ [METAFIELD-INCREMENT] Stary metafield usunięty pomyślnie`);
           }
         }
 
@@ -1683,10 +1844,34 @@ module.exports = async (req, res) => {
         });
 
         const updateData = await updateResponse.json();
-        console.log(`✅ [TRANSFORM] Licznik zaktualizowany dla ${finalProductType}: ${usageData[finalProductType] - 1} → ${usageData[finalProductType]}, total: ${usageData.total}`);
+        console.log(`📊 [METAFIELD-INCREMENT] Update response:`, {
+          hasData: !!updateData.data,
+          hasCustomer: !!updateData.data?.customerUpdate?.customer,
+          hasMetafield: !!updateData.data?.customerUpdate?.customer?.metafield,
+          metafieldId: updateData.data?.customerUpdate?.customer?.metafield?.id || null,
+          metafieldType: updateData.data?.customerUpdate?.customer?.metafield?.type || null,
+          metafieldValue: updateData.data?.customerUpdate?.customer?.metafield?.value || null,
+          userErrors: updateData.data?.customerUpdate?.userErrors || null,
+          errors: updateData.errors || null
+        });
         
         if (updateData.data?.customerUpdate?.userErrors?.length > 0) {
-          console.error('⚠️ [TRANSFORM] Błąd aktualizacji metafield:', updateData.data.customerUpdate.userErrors);
+          console.error(`❌ [METAFIELD-INCREMENT] Błąd aktualizacji metafield:`, {
+            userErrors: updateData.data.customerUpdate.userErrors,
+            customerId: customerId,
+            productType: finalProductType,
+            newValue: newValue
+          });
+        } else {
+          const oldValue = beforeIncrement[finalProductType] || 0;
+          const newValue = usageData[finalProductType];
+          console.log(`✅ [METAFIELD-INCREMENT] Licznik zaktualizowany pomyślnie:`, {
+            productType: finalProductType,
+            oldValue: oldValue,
+            newValue: newValue,
+            total: usageData.total,
+            metafieldType: updateData.data?.customerUpdate?.customer?.metafield?.type || 'unknown'
+          });
         }
       } catch (incrementError) {
         console.error('⚠️ [TRANSFORM] Błąd inkrementacji licznika:', incrementError);
