@@ -572,101 +572,7 @@ module.exports = async (req, res) => {
     console.log(`🎯 [TRANSFORM] Style: ${prompt}`);
     console.log(`👤 [TRANSFORM] Customer ID: ${customerId || 'not logged in'}`);
 
-    // ✅ DEVICE TOKEN LIMIT: 1 generacja TOTAL dla niezalogowanych (na zawsze)
-    if (!customerId && deviceToken) {
-      try {
-        const blobClient = require('@vercel/blob');
-        const blobPath = `https://vzwqqb14qtsxe2wx.public.blob.vercel-storage.com/customify/system/stats/generations/device-${deviceToken}.json`;
-        console.log(`🔍 [TRANSFORM] Sprawdzam device token limit: ${deviceToken.substring(0, 8)}...`);
-        
-        try {
-          const response = await fetch(blobPath);
-          if (response.ok) {
-            const deviceData = await response.json();
-            
-            if (deviceData && deviceData.totalGenerations > 0) {
-              console.warn(`❌ [TRANSFORM] Device token limit exceeded: ${deviceToken.substring(0, 8)}... (${deviceData.totalGenerations} generacji)`);
-              return res.status(403).json({
-                error: 'Usage limit exceeded',
-                message: 'Wykorzystałeś limit generacji - zaloguj się po więcej',
-                showLoginModal: true
-              });
-            }
-          } else {
-            console.log(`✅ [TRANSFORM] Device token ${deviceToken.substring(0, 8)}... - pierwsza generacja (blob not found)`);
-          }
-        } catch (blobError) {
-          console.warn(`⚠️ [TRANSFORM] Błąd sprawdzania device token:`, blobError.message);
-          console.log(`✅ [TRANSFORM] Device token ${deviceToken.substring(0, 8)}... - pozwalam (błąd sprawdzania)`);
-          // Blob not found lub inny błąd = pierwsza generacja, pozwól
-        }
-      } catch (error) {
-        console.warn(`⚠️ [TRANSFORM] Błąd device token check (nie blokuję):`, error.message);
-        // Nie blokuj jeśli wystąpił błąd sprawdzania
-      }
-    }
-
-    // ✅ SPRAWDZENIE LIMITÓW UŻYCIA PRZED TRANSFORMACJĄ
-    const shopDomain = process.env.SHOPIFY_STORE_DOMAIN || 'customify-ok.myshopify.com';
-    const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
-
-    if (customerId && customerAccessToken && accessToken) {
-      // Zalogowany użytkownik - sprawdź Shopify Metafields
-      console.log(`🔍 [TRANSFORM] Sprawdzam limity dla zalogowanego użytkownika...`);
-      
-      try {
-        const metafieldQuery = `
-          query getCustomerUsage($id: ID!) {
-            customer(id: $id) {
-              id
-              email
-              metafield(namespace: "customify", key: "usage_count") {
-                value
-              }
-            }
-          }
-        `;
-
-        const metafieldResponse = await fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Shopify-Access-Token': accessToken
-          },
-          body: JSON.stringify({
-            query: metafieldQuery,
-            variables: {
-              id: `gid://shopify/Customer/${customerId}`
-            }
-          })
-        });
-
-        const metafieldData = await metafieldResponse.json();
-        const customer = metafieldData.data?.customer;
-        const usedCount = parseInt(customer?.metafield?.value || '0', 10);
-        const totalLimit = 3; // 3 darmowe generacje dla zalogowanych
-
-        console.log(`📊 [TRANSFORM] Użytkownik ${customer?.email}: ${usedCount}/${totalLimit} użyć`);
-
-        if (usedCount >= totalLimit) {
-          console.log(`❌ [TRANSFORM] Limit przekroczony dla użytkownika ${customer?.email}`);
-          return res.status(403).json({
-            error: 'Usage limit exceeded',
-            message: 'Wykorzystałeś wszystkie dostępne transformacje (3). Skontaktuj się z nami dla więcej.',
-            usedCount: usedCount,
-            totalLimit: totalLimit
-          });
-        }
-
-        console.log(`✅ [TRANSFORM] Limit OK - kontynuuję transformację`);
-      } catch (limitError) {
-        console.error('⚠️ [TRANSFORM] Błąd sprawdzania limitów:', limitError);
-        // Kontynuuj mimo błędu (fallback do IP rate limiting)
-      }
-    } else {
-      // Niezalogowany użytkownik - chwilowo brak limitu IP (kontroluje frontend)
-      console.log(`👤 [TRANSFORM] Niezalogowany użytkownik - pomijam limit IP (tymczasowo wyłączony)`);
-    }
+    // ✅ SPRAWDZENIE LIMITÓW UŻYCIA PRZED TRANSFORMACJĄ (przeniesione po finalProductType)
 
     if (!replicate) {
       return res.status(400).json({ error: 'Replicate API token not configured' });
@@ -956,8 +862,135 @@ module.exports = async (req, res) => {
     const style = Object.keys(styleConfig).find(s => prompt.toLowerCase().includes(s)) || 'anime';
     const config = styleConfig[style] || styleConfig['anime'];
 
+    // ✅ Użyj productType z config (bezpieczne, użytkownik nie może zmienić)
+    const finalProductType = config.productType || productType || 'other';
+
     console.log(`Using style: ${style}, model: ${config.model}`);
-    console.log(`Config productType: ${config.productType}, Request productType: ${productType}`);
+    console.log(`🎯 [TRANSFORM] Final productType: ${finalProductType} (z config: ${config.productType}, z body: ${productType})`);
+
+    // ✅ DEVICE TOKEN LIMIT: 1 generacja PER PRODUCTTYPE dla niezalogowanych
+    if (!customerId && deviceToken) {
+      try {
+        const blobPath = `https://vzwqqb14qtsxe2wx.public.blob.vercel-storage.com/customify/system/stats/generations/device-${deviceToken}.json`;
+        console.log(`🔍 [TRANSFORM] Sprawdzam device token limit dla ${finalProductType}: ${deviceToken.substring(0, 8)}...`);
+        
+        try {
+          const response = await fetch(blobPath);
+          if (response.ok) {
+            const deviceData = await response.json();
+            
+            // Backward compatibility: jeśli stary format (brak generationsByProductType)
+            if (!deviceData.generationsByProductType && deviceData.totalGenerations > 0) {
+              // Stary format - konwertuj do nowego
+              console.log(`⚠️ [TRANSFORM] Stary format device token - konwertuję`);
+              deviceData.generationsByProductType = {
+                'other': deviceData.totalGenerations
+              };
+            }
+            
+            // Sprawdź limit dla TEGO productType
+            const usedForThisType = deviceData.generationsByProductType?.[finalProductType] || 0;
+            if (usedForThisType >= 1) {
+              console.warn(`❌ [TRANSFORM] Device token limit exceeded dla ${finalProductType}: ${deviceToken.substring(0, 8)}... (${usedForThisType}/1)`);
+              return res.status(403).json({
+                error: 'Usage limit exceeded',
+                message: `Wykorzystałeś limit generacji dla ${finalProductType} - zaloguj się po więcej`,
+                showLoginModal: true,
+                productType: finalProductType
+              });
+            }
+          } else {
+            console.log(`✅ [TRANSFORM] Device token ${deviceToken.substring(0, 8)}... - pierwsza generacja dla ${finalProductType} (blob not found)`);
+          }
+        } catch (blobError) {
+          console.warn(`⚠️ [TRANSFORM] Błąd sprawdzania device token:`, blobError.message);
+          console.log(`✅ [TRANSFORM] Device token ${deviceToken.substring(0, 8)}... - pozwalam (błąd sprawdzania)`);
+          // Blob not found lub inny błąd = pierwsza generacja, pozwól
+        }
+      } catch (error) {
+        console.warn(`⚠️ [TRANSFORM] Błąd device token check (nie blokuję):`, error.message);
+        // Nie blokuj jeśli wystąpił błąd sprawdzania
+      }
+    }
+
+    // ✅ SPRAWDZENIE LIMITÓW SHOPIFY METAFIELDS (Zalogowani) - PER PRODUCTTYPE
+    const shopDomain = process.env.SHOPIFY_STORE_DOMAIN || 'customify-ok.myshopify.com';
+    const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
+
+    if (customerId && customerAccessToken && accessToken) {
+      // Zalogowany użytkownik - sprawdź Shopify Metafields
+      console.log(`🔍 [TRANSFORM] Sprawdzam limity dla zalogowanego użytkownika (${finalProductType})...`);
+      
+      try {
+        const metafieldQuery = `
+          query getCustomerUsage($id: ID!) {
+            customer(id: $id) {
+              id
+              email
+              metafield(namespace: "customify", key: "usage_count") {
+                value
+              }
+            }
+          }
+        `;
+
+        const metafieldResponse = await fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Shopify-Access-Token': accessToken
+          },
+          body: JSON.stringify({
+            query: metafieldQuery,
+            variables: {
+              id: `gid://shopify/Customer/${customerId}`
+            }
+          })
+        });
+
+        const metafieldData = await metafieldResponse.json();
+        const customer = metafieldData.data?.customer;
+        
+        // Parsuj JSON lub konwertuj stary format (liczba)
+        let usageData;
+        try {
+          usageData = JSON.parse(customer?.metafield?.value || '{}');
+        } catch {
+          // Stary format (liczba) → konwertuj
+          const oldTotal = parseInt(customer?.metafield?.value || '0', 10);
+          usageData = {
+            total: oldTotal,
+            other: oldTotal  // Wszystkie stare → "other"
+          };
+          console.log(`⚠️ [TRANSFORM] Stary format metafield - konwertuję: ${oldTotal} → {"other": ${oldTotal}}`);
+        }
+        
+        // Sprawdź limit dla TEGO productType
+        const usedForThisType = usageData[finalProductType] || 0;
+        const totalLimit = 3; // 3 darmowe generacje per productType dla zalogowanych
+
+        console.log(`📊 [TRANSFORM] Użytkownik ${customer?.email}: ${usedForThisType}/${totalLimit} użyć dla ${finalProductType}`);
+
+        if (usedForThisType >= totalLimit) {
+          console.log(`❌ [TRANSFORM] Limit przekroczony dla użytkownika ${customer?.email} (${finalProductType}): ${usedForThisType}/${totalLimit}`);
+          return res.status(403).json({
+            error: 'Usage limit exceeded',
+            message: `Wykorzystałeś wszystkie dostępne transformacje dla ${finalProductType} (3). Skontaktuj się z nami dla więcej.`,
+            usedCount: usedForThisType,
+            totalLimit: totalLimit,
+            productType: finalProductType
+          });
+        }
+
+        console.log(`✅ [TRANSFORM] Limit OK dla ${finalProductType} - kontynuuję transformację`);
+      } catch (limitError) {
+        console.error('⚠️ [TRANSFORM] Błąd sprawdzania limitów:', limitError);
+        // Kontynuuj mimo błędu (fallback do IP rate limiting)
+      }
+    } else {
+      // Niezalogowany użytkownik - chwilowo brak limitu IP (kontroluje frontend)
+      console.log(`👤 [TRANSFORM] Niezalogowany użytkownik - pomijam limit IP (tymczasowo wyłączony)`);
+    }
 
     // Prepare input parameters based on model
     let inputParams = {
@@ -1008,7 +1041,7 @@ module.exports = async (req, res) => {
       console.log(`🖼️ [NANO-BANANA] Using aspect_ratio: ${aspectRatio}, output_format: ${outputFormat}, guidance: ${guidance}`);
       
       // Sprawdź czy to styl boho (1 obrazek) czy koty (2 obrazki)
-      if (productType === 'boho') {
+      if (finalProductType === 'boho') {
         // Style boho - tylko obrazek użytkownika
         // ✅ FIX: Dodaj negative_prompt do głównego promptu
         let fullPrompt = config.prompt;
@@ -1257,7 +1290,7 @@ module.exports = async (req, res) => {
     console.log(`🔍 [TRANSFORM] email: ${email}`);
     console.log(`🔍 [TRANSFORM] ip: ${ip}`);
     console.log(`🔍 [TRANSFORM] Warunek: imageUrl = ${!!imageUrl}`);
-    console.log(`🔍 [TRANSFORM] productType: ${productType}`);
+    console.log(`🔍 [TRANSFORM] productType: ${finalProductType}`);
     
     // ✅ Inicjalizuj finalImageUrl - będzie ustawiony podczas przetwarzania obrazu
     let finalImageUrl = imageUrl; // Domyślnie użyj imageUrl (dla Replicate URLs)
@@ -1388,7 +1421,7 @@ module.exports = async (req, res) => {
           deviceToken,
           imageUrl: finalImageUrl,
           style: prompt || 'unknown',
-          productType: productType || 'other',
+          productType: finalProductType,
           originalImageUrl: null // Opcjonalnie - można dodać później
         };
         
@@ -1500,8 +1533,30 @@ module.exports = async (req, res) => {
         });
 
         const getData = await getResponse.json();
-        const currentUsage = parseInt(getData.data?.customer?.metafield?.value || '0', 10);
-        const newUsage = currentUsage + 1;
+        
+        // Parsuj JSON lub konwertuj stary format (liczba)
+        let usageData;
+        try {
+          usageData = JSON.parse(getData.data?.customer?.metafield?.value || '{}');
+        } catch {
+          // Stary format (liczba) → konwertuj
+          const oldTotal = parseInt(getData.data?.customer?.metafield?.value || '0', 10);
+          usageData = {
+            total: oldTotal,
+            other: oldTotal  // Wszystkie stare → "other"
+          };
+          console.log(`⚠️ [TRANSFORM] Stary format metafield przy inkrementacji - konwertuję: ${oldTotal} → {"other": ${oldTotal}}`);
+        }
+        
+        // Inkrementuj dla TEGO productType
+        usageData[finalProductType] = (usageData[finalProductType] || 0) + 1;
+        
+        // Zaktualizuj total (suma wszystkich typów, bez total)
+        usageData.total = Object.entries(usageData)
+          .filter(([key]) => key !== 'total')
+          .reduce((sum, [, count]) => sum + (typeof count === 'number' ? count : 0), 0);
+        
+        const newValue = JSON.stringify(usageData);
 
         // Zaktualizuj metafield
         const updateMutation = `
@@ -1536,8 +1591,8 @@ module.exports = async (req, res) => {
                   {
                     namespace: 'customify',
                     key: 'usage_count',
-                    value: newUsage.toString(),
-                    type: 'number_integer'
+                    value: newValue,
+                    type: 'json' // ✅ Zmienione z number_integer na json
                   }
                 ]
               }
@@ -1546,7 +1601,7 @@ module.exports = async (req, res) => {
         });
 
         const updateData = await updateResponse.json();
-        console.log(`✅ [TRANSFORM] Licznik zaktualizowany: ${currentUsage} → ${newUsage}`);
+        console.log(`✅ [TRANSFORM] Licznik zaktualizowany dla ${finalProductType}: ${usageData[finalProductType] - 1} → ${usageData[finalProductType]}, total: ${usageData.total}`);
         
         if (updateData.data?.customerUpdate?.userErrors?.length > 0) {
           console.error('⚠️ [TRANSFORM] Błąd aktualizacji metafield:', updateData.data.customerUpdate.userErrors);

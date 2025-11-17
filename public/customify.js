@@ -343,20 +343,53 @@ class CustomifyEmbed {
    * Sprawdza liczbę użyć z localStorage (dla niezalogowanych)
    * @returns {number} Liczba użyć
    */
-  getLocalUsageCount() {
-    const count = parseInt(localStorage.getItem('customify_usage_count') || '0', 10);
-    // Local usage count retrieved
-    return count;
+  /**
+   * Mapuje styl na productType (zgodne z backend)
+   */
+  getProductTypeFromStyle(style) {
+    const styleToProductType = {
+      'minimalistyczny': 'boho',
+      'realistyczny': 'boho',
+      'krol-krolewski': 'king',
+      'krol-majestatyczny': 'king',
+      'krol-triumfalny': 'king',
+      'krol-imponujacy': 'king',
+      'krolewski': 'cats',
+      'na-tronie': 'cats',
+      'wojenny': 'cats',
+      'wiktorianski': 'cats',
+      'renesansowy': 'cats',
+      'karykatura': 'caricature',
+      'akwarela': 'watercolor'
+    };
+    
+    return styleToProductType[style] || 'other';
+  }
+
+  getLocalUsageCount(productType) {
+    if (!productType) {
+      // Fallback: suma wszystkich typów (backward compatibility)
+      const allTypes = ['boho', 'king', 'cats', 'caricature', 'watercolor', 'other'];
+      return allTypes.reduce((sum, type) => {
+        return sum + parseInt(localStorage.getItem(`customify_usage_${type}`) || '0', 10);
+      }, 0);
+    }
+    const key = `customify_usage_${productType}`;
+    return parseInt(localStorage.getItem(key) || '0', 10);
   }
 
   /**
-   * Inkrementuje licznik w localStorage (dla niezalogowanych)
+   * Inkrementuje licznik w localStorage (dla niezalogowanych) - PER PRODUCTTYPE
    */
-  incrementLocalUsage() {
-    const currentCount = this.getLocalUsageCount();
+  incrementLocalUsage(productType) {
+    if (!productType) {
+      productType = 'other'; // Fallback
+    }
+    const key = `customify_usage_${productType}`;
+    const currentCount = this.getLocalUsageCount(productType);
     const newCount = currentCount + 1;
-    localStorage.setItem('customify_usage_count', newCount.toString());
-    // Usage count incremented
+    localStorage.setItem(key, newCount.toString());
+    // Usage count incremented per productType
     this.showUsageCounter(); // Odśwież licznik w UI
   }
 
@@ -903,21 +936,24 @@ class CustomifyEmbed {
   async checkUsageLimit() {
     const customerInfo = this.getCustomerInfo();
     
+    // Pobierz productType z aktualnie wybranego stylu
+    const productType = this.getProductTypeFromStyle(this.selectedStyle);
+    
     if (!customerInfo) {
-      // Niezalogowany - sprawdź localStorage (limit 1)
-      const localCount = this.getLocalUsageCount();
+      // Niezalogowany - sprawdź localStorage (limit 1 per productType)
+      const localCount = this.getLocalUsageCount(productType);
       const FREE_LIMIT = 1;
       
-      // Usage limit check for anonymous users
+      // Usage limit check for anonymous users per productType
       
       if (localCount >= FREE_LIMIT) {
-        this.showLoginModal(localCount, FREE_LIMIT);
+        this.showLoginModal(localCount, FREE_LIMIT, productType);
         return false;
       }
       
       return true;
     } else {
-      // Zalogowany - sprawdź Shopify Metafields przez API
+      // Zalogowany - sprawdź Shopify Metafields przez API (per productType)
       // Checking usage limit via API for logged-in user
       
       try {
@@ -927,7 +963,8 @@ class CustomifyEmbed {
           credentials: 'include',
           body: JSON.stringify({
             customerId: customerInfo.customerId,
-            customerAccessToken: customerInfo.customerAccessToken
+            customerAccessToken: customerInfo.customerAccessToken,
+            productType: productType // ✅ Przekaż productType
           })
         });
         
@@ -935,11 +972,11 @@ class CustomifyEmbed {
         console.log('📊 [USAGE] API response:', data);
         
         if (data.remainingCount <= 0) {
-          this.showError(`Wykorzystałeś wszystkie transformacje (${data.totalLimit}). Skontaktuj się z nami dla więcej.`);
+          this.showError(`Wykorzystałeś wszystkie transformacje dla ${productType} (${data.totalLimit}). Skontaktuj się z nami dla więcej.`);
           return false;
         }
         
-        console.log(`✅ [USAGE] Pozostało ${data.remainingCount} transformacji`);
+        console.log(`✅ [USAGE] Pozostało ${data.remainingCount} transformacji dla ${productType}`);
         return true;
       } catch (error) {
         console.error('❌ [USAGE] Błąd sprawdzania limitu:', error);
@@ -952,7 +989,7 @@ class CustomifyEmbed {
   /**
    * Pokazuje modal z wymogiem rejestracji + auto-redirect
    */
-  showLoginModal(usedCount, limit) {
+  showLoginModal(usedCount, limit, productType = null) {
     // Return URL - wróć na tę samą stronę po rejestracji
     const returnUrl = window.location.pathname + window.location.search;
     
@@ -994,7 +1031,7 @@ class CustomifyEmbed {
         console.warn('⚠️ [AUTH] Failed to mark auth intent:', error);
       }
     };
-
+    
     const modalHTML = `
       <div id="loginModal" style="
         position: fixed;
@@ -1305,7 +1342,8 @@ class CustomifyEmbed {
     if (!customerInfo) {
       // Niezalogowany - NIE POKAZUJ komunikatu o punktach
       // Modal rejestracji pojawi się dopiero po wyczerpaniu 1 transformacji
-      const localCount = this.getLocalUsageCount();
+      // Fallback: bez productType użyj sumy wszystkich typów
+      const localCount = this.getLocalUsageCount(); // getLocalUsageCount() bez argumentu zwraca sumę
       const FREE_LIMIT = 1;
       
       // Brak komunikatu - użytkownik nie wie ile ma punktów
@@ -2139,10 +2177,10 @@ class CustomifyEmbed {
     }
 
     // ✅ USAGE LIMITS: Sprawdź limit PRZED transformacją (ZAWSZE, nawet przy retry)
-    const canTransform = await this.checkUsageLimit();
-    if (!canTransform) {
-      console.log('❌ [USAGE] Limit przekroczony - przerwano transformację');
-      return;
+      const canTransform = await this.checkUsageLimit();
+      if (!canTransform) {
+        console.log('❌ [USAGE] Limit przekroczony - przerwano transformację');
+        return;
     }
 
     // ✅ Google Analytics Event Tracking - "Zobacz Podgląd" kliknięty
@@ -2178,15 +2216,8 @@ class CustomifyEmbed {
       console.log('📱 [MOBILE] Base64 length:', base64.length, 'characters');
       console.log('📱 [MOBILE] Base64 preview:', base64.substring(0, 50) + '...');
       
-      // Wykryj typ produktu na podstawie URL produktu (jak w theme.liquid)
-      const currentPath = window.location.pathname;
-      let productType = 'other'; // domyślnie
-      
-      if (currentPath.includes('koty-krolewskie-zwierzeta-w-koronach')) {
-        productType = 'cats';
-      } else if (currentPath.includes('personalizowany-portret-w-stylu-boho')) {
-        productType = 'boho';
-      }
+      // ✅ Użyj productType z stylu (zgodne z backend - config.productType)
+      const productType = this.getProductTypeFromStyle(this.selectedStyle);
       
       // ✅ USAGE LIMITS: Pobierz dane użytkownika do przekazania do API
       const customerInfo = this.getCustomerInfo();
@@ -2357,8 +2388,9 @@ class CustomifyEmbed {
         
         // ✅ USAGE LIMITS: Inkrementuj licznik dla niezalogowanych (zalogowani są inkrementowani w API)
         if (!customerInfo) {
-          this.incrementLocalUsage();
-          // Usage count incremented after successful transform
+          const productType = this.getProductTypeFromStyle(this.selectedStyle);
+          this.incrementLocalUsage(productType);
+          // Usage count incremented after successful transform (per productType)
         } else {
           // Zalogowani - odśwież licznik z API (został zaktualizowany w backend)
           this.showUsageCounter();

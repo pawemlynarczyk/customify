@@ -37,7 +37,7 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const { customerId, customerAccessToken } = req.body;
+    const { customerId, customerAccessToken, productType } = req.body;
     
     // IP-based rate limiting (backup security)
     const ip = getClientIP(req);
@@ -107,21 +107,61 @@ module.exports = async (req, res) => {
     }
 
     const customer = metafieldData.data?.customer;
-    const usedCount = parseInt(customer?.metafield?.value || '0', 10);
-    const totalLimit = 3; // 3 darmowe generacje dla zalogowanych
-    const remainingCount = Math.max(0, totalLimit - usedCount);
-
-    console.log(`📊 [CHECK-USAGE] Użytkownik ${customer?.email}: ${usedCount}/${totalLimit} użyć`);
+    
+    // Parsuj JSON lub konwertuj stary format (liczba)
+    let usageData;
+    try {
+      usageData = JSON.parse(customer?.metafield?.value || '{}');
+    } catch {
+      // Stary format (liczba) → konwertuj
+      const oldTotal = parseInt(customer?.metafield?.value || '0', 10);
+      usageData = {
+        total: oldTotal,
+        other: oldTotal  // Wszystkie stare → "other"
+      };
+      console.log(`⚠️ [CHECK-USAGE] Stary format metafield - konwertuję: ${oldTotal} → {"other": ${oldTotal}}`);
+    }
+    
+    const totalLimit = 3; // 3 darmowe generacje per productType dla zalogowanych
+    
+    // Jeśli productType w request → zwróć per productType
+    if (productType) {
+      const usedForThisType = usageData[productType] || 0;
+      const remainingForThisType = Math.max(0, totalLimit - usedForThisType);
+      
+      console.log(`📊 [CHECK-USAGE] Użytkownik ${customer?.email}: ${usedForThisType}/${totalLimit} użyć dla ${productType}`);
+      
+      return res.json({
+        isLoggedIn: true,
+        customerId: customerId,
+        email: customer?.email,
+        totalLimit: totalLimit,
+        usedCount: usedForThisType,
+        remainingCount: remainingForThisType,
+        byProductType: usageData,
+        productType: productType,
+        message: remainingForThisType > 0 
+          ? `Pozostało ${remainingForThisType} transformacji dla ${productType}` 
+          : `Wykorzystałeś wszystkie transformacje dla ${productType}`
+      });
+    }
+    
+    // Fallback: zwróć total (dla backward compatibility)
+    const totalUsed = usageData.total || 0;
+    const totalRemaining = Math.max(0, (Object.keys(usageData).length - 1) * totalLimit - totalUsed); // Przybliżone
+    
+    console.log(`📊 [CHECK-USAGE] Użytkownik ${customer?.email}: ${totalUsed} total użyć (bez productType w request)`);
 
     return res.json({
       isLoggedIn: true,
       customerId: customerId,
       email: customer?.email,
       totalLimit: totalLimit,
-      usedCount: usedCount,
-      remainingCount: remainingCount,
-      message: remainingCount > 0 
-        ? `Pozostało ${remainingCount} transformacji` 
+      usedCount: totalUsed,
+      remainingCount: totalRemaining,
+      byProductType: usageData,
+      message: totalRemaining > 0 
+        ? `Pozostało ${totalRemaining} transformacji` 
         : 'Wykorzystałeś wszystkie transformacje'
     });
 

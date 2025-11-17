@@ -348,54 +348,91 @@ async function saveGenerationHandler(req, res) {
       
       console.log(`✅ [SAVE-GENERATION] Saved to Blob: ${blob.url}`);
       
-      // ✅ DODATKOWY ZAPIS: dla niezalogowanych zapisz RÓWNIEŻ pod device token (do sprawdzania limitu 1 TOTAL)
+      // ✅ DODATKOWY ZAPIS: dla niezalogowanych zapisz RÓWNIEŻ pod device token (do sprawdzania limitu 1 PER PRODUCTTYPE)
       if (!customerId && deviceToken) {
         try {
           const deviceBlobPath = `${statsPrefix}/device-${deviceToken}.json`;
+          const productType = newGeneration.productType || 'other';
           
-          // ✅ SPRAWDŹ CZY PLIK JUŻ ISTNIEJE (nie nadpisuj - limit 1 TOTAL)
-          let deviceFileExists = false;
+          // ✅ Pobierz istniejący plik (jeśli istnieje)
+          let existingDeviceData = null;
           try {
-            await head(deviceBlobPath);
-            deviceFileExists = true;
-            console.log(`⚠️ [SAVE-GENERATION] Device token ${deviceToken.substring(0, 8)}... już ma generację - nie nadpisujemy (limit 1 TOTAL)`);
+            const existingBlob = await head(deviceBlobPath, {
+              token: process.env.customify_READ_WRITE_TOKEN
+            }).catch(() => null);
+            
+            if (existingBlob && existingBlob.url) {
+              const existingResponse = await fetch(existingBlob.url);
+              if (existingResponse.ok) {
+                existingDeviceData = await existingResponse.json();
+                console.log(`📊 [SAVE-GENERATION] Existing device token data found`);
+              }
+            }
           } catch (headError) {
-            // Blob not found = pierwsza generacja
+            // Blob not found = pierwsza generacja dla tego device token
             console.log(`✅ [SAVE-GENERATION] Device token ${deviceToken.substring(0, 8)}... - pierwsza generacja, zapisuję`);
           }
           
-          // Zapisz TYLKO jeśli plik NIE istnieje
-          if (!deviceFileExists) {
-            try {
-              // Zapisz TYLKO dane device token (nie kopiuj wszystkich generacji z IP!)
-              const deviceData = {
-                deviceToken: deviceToken,
-                ip: finalIp || null,
-                ipHash: ipHashFromBody || null,
-                customerId: null,
-                email: null,
-                totalGenerations: 1,
-                createdAt: new Date().toISOString(),
-                lastGenerationDate: new Date().toISOString(),
-                generations: [newGeneration] // TYLKO ta 1 generacja
+          // Przygotuj deviceData
+          let deviceData;
+          if (existingDeviceData) {
+            // Backward compatibility: jeśli stary format (brak generationsByProductType)
+            if (!existingDeviceData.generationsByProductType) {
+              const oldTotal = existingDeviceData.totalGenerations || 0;
+              existingDeviceData.generationsByProductType = {
+                'other': oldTotal
               };
-              
-              const deviceJsonData = JSON.stringify(deviceData, null, 2);
-              const deviceJsonBuffer = Buffer.from(deviceJsonData, 'utf-8');
-              
-              await put(deviceBlobPath, deviceJsonBuffer, {
-                access: 'public',
-                contentType: 'application/json',
-                token: process.env.customify_READ_WRITE_TOKEN,
-                allowOverwrite: false // NIE nadpisuj jeśli istnieje
-              });
-              console.log(`✅ [SAVE-GENERATION] Saved device token (first generation): ${deviceBlobPath}`);
-            } catch (putError) {
-              console.warn(`⚠️ [SAVE-GENERATION] Błąd zapisu device token:`, putError.message);
+              console.log(`⚠️ [SAVE-GENERATION] Konwertuję stary format device token: ${oldTotal} → {"other": ${oldTotal}}`);
             }
+            
+            // Inkrementuj dla TEGO productType
+            existingDeviceData.generationsByProductType = existingDeviceData.generationsByProductType || {};
+            existingDeviceData.generationsByProductType[productType] = 
+              (existingDeviceData.generationsByProductType[productType] || 0) + 1;
+            
+            // Zaktualizuj totalGenerations (suma wszystkich typów)
+            existingDeviceData.totalGenerations = Object.values(existingDeviceData.generationsByProductType)
+              .reduce((sum, count) => sum + count, 0);
+            
+            existingDeviceData.lastGenerationDate = new Date().toISOString();
+            existingDeviceData.generations = existingDeviceData.generations || [];
+            existingDeviceData.generations.unshift(newGeneration);
+            if (existingDeviceData.generations.length > 50) {
+              existingDeviceData.generations = existingDeviceData.generations.slice(0, 50);
+            }
+            
+            deviceData = existingDeviceData;
+          } else {
+            // Utwórz nowy rekord
+            deviceData = {
+              deviceToken: deviceToken,
+              ip: finalIp || null,
+              ipHash: ipHashFromBody || null,
+              customerId: null,
+              email: null,
+              totalGenerations: 1,
+              generationsByProductType: {
+                [productType]: 1
+              },
+              createdAt: new Date().toISOString(),
+              lastGenerationDate: new Date().toISOString(),
+              generations: [newGeneration]
+            };
           }
+          
+          // Zapisz zaktualizowane dane
+          const deviceJsonData = JSON.stringify(deviceData, null, 2);
+          const deviceJsonBuffer = Buffer.from(deviceJsonData, 'utf-8');
+          
+          await put(deviceBlobPath, deviceJsonBuffer, {
+            access: 'public',
+            contentType: 'application/json',
+            token: process.env.customify_READ_WRITE_TOKEN,
+            allowOverwrite: true // ✅ Nadpisuj - aktualizujemy per productType
+          });
+          console.log(`✅ [SAVE-GENERATION] Saved device token (${productType}): ${deviceBlobPath}, generationsByProductType:`, deviceData.generationsByProductType);
         } catch (deviceBlobError) {
-          console.warn(`⚠️ [SAVE-GENERATION] Failed to save device token (outer):`, deviceBlobError.message);
+          console.warn(`⚠️ [SAVE-GENERATION] Failed to save device token:`, deviceBlobError.message);
           // Nie blokuj - główny zapis się udał
         }
       }
