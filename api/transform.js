@@ -573,29 +573,30 @@ module.exports = async (req, res) => {
     // ✅ DEVICE TOKEN LIMIT: 1 generacja TOTAL dla niezalogowanych (na zawsze)
     if (!customerId && deviceToken) {
       try {
-        const { get } = require('@vercel/blob');
-        const blobPath = `customify/system/stats/generations/device-${deviceToken}.json`;
+        const blobClient = require('@vercel/blob');
+        const blobPath = `https://vzwqqb14qtsxe2wx.public.blob.vercel-storage.com/customify/system/stats/generations/device-${deviceToken}.json`;
         console.log(`🔍 [TRANSFORM] Sprawdzam device token limit: ${deviceToken.substring(0, 8)}...`);
         
         try {
-          const { value } = await get(blobPath);
-          const deviceData = JSON.parse(new TextDecoder().decode(value));
-          
-          if (deviceData && deviceData.totalGenerations > 0) {
-            console.warn(`❌ [TRANSFORM] Device token limit exceeded: ${deviceToken.substring(0, 8)}... (${deviceData.totalGenerations} generacji)`);
-            return res.status(403).json({
-              error: 'Usage limit exceeded',
-              message: 'Wykorzystałeś limit generacji - zaloguj się po więcej',
-              showLoginModal: true
-            });
+          const response = await fetch(blobPath);
+          if (response.ok) {
+            const deviceData = await response.json();
+            
+            if (deviceData && deviceData.totalGenerations > 0) {
+              console.warn(`❌ [TRANSFORM] Device token limit exceeded: ${deviceToken.substring(0, 8)}... (${deviceData.totalGenerations} generacji)`);
+              return res.status(403).json({
+                error: 'Usage limit exceeded',
+                message: 'Wykorzystałeś limit generacji - zaloguj się po więcej',
+                showLoginModal: true
+              });
+            }
+          } else {
+            console.log(`✅ [TRANSFORM] Device token ${deviceToken.substring(0, 8)}... - pierwsza generacja (blob not found)`);
           }
         } catch (blobError) {
-          if (blobError.message !== 'Blob not found') {
-            console.warn(`⚠️ [TRANSFORM] Błąd sprawdzania device token:`, blobError.message);
-          } else {
-            console.log(`✅ [TRANSFORM] Device token ${deviceToken.substring(0, 8)}... - pierwsza generacja`);
-          }
-          // Blob not found = pierwsza generacja, pozwól
+          console.warn(`⚠️ [TRANSFORM] Błąd sprawdzania device token:`, blobError.message);
+          console.log(`✅ [TRANSFORM] Device token ${deviceToken.substring(0, 8)}... - pozwalam (błąd sprawdzania)`);
+          // Blob not found lub inny błąd = pierwsza generacja, pozwól
         }
       } catch (error) {
         console.warn(`⚠️ [TRANSFORM] Błąd device token check (nie blokuję):`, error.message);
