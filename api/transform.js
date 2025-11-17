@@ -1121,8 +1121,19 @@ module.exports = async (req, res) => {
 
         console.log(`✅ [METAFIELD-CHECK] Limit OK - kontynuuję transformację`);
       } catch (limitError) {
-        console.error('⚠️ [TRANSFORM] Błąd sprawdzania limitów:', limitError);
-        // Kontynuuj mimo błędu (fallback do IP rate limiting)
+        console.error('❌ [METAFIELD-CHECK] Błąd sprawdzania limitów:', {
+          error: limitError.message,
+          stack: limitError.stack,
+          customerId: customerId,
+          productType: finalProductType
+        });
+        // ⚠️ KRYTYCZNE: Jeśli błąd sprawdzania limitów dla zalogowanego użytkownika, BLOKUJ
+        // Bezpieczniejsze niż pozwalanie - użytkownik może spróbować ponownie
+        return res.status(500).json({
+          error: 'Internal server error',
+          message: 'Błąd sprawdzania limitu użycia. Spróbuj ponownie za chwilę.',
+          productType: finalProductType
+        });
       }
     } else {
       // Niezalogowany użytkownik - chwilowo brak limitu IP (kontroluje frontend)
