@@ -944,6 +944,12 @@ class CustomifyEmbed {
   async checkUsageLimit() {
     const customerInfo = this.getCustomerInfo();
     
+    // ✅ ZABEZPIECZENIE: Jeśli selectedStyle jest null, nie sprawdzaj limitu (pozwól wybrać styl)
+    if (!this.selectedStyle) {
+      console.warn(`⚠️ [USAGE-LIMIT] selectedStyle jest null - pomijam sprawdzanie limitu (user musi najpierw wybrać styl)`);
+      return true; // Pozwól wybrać styl
+    }
+    
     // Pobierz productType z aktualnie wybranego stylu
     const productType = this.getProductTypeFromStyle(this.selectedStyle);
     
