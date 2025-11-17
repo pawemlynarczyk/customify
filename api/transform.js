@@ -953,11 +953,21 @@ module.exports = async (req, res) => {
         
         // Parsuj JSON lub konwertuj stary format (liczba)
         let usageData;
+        let isOldFormat = false;
         try {
-          usageData = JSON.parse(customer?.metafield?.value || '{}');
+          const parsed = JSON.parse(customer?.metafield?.value || '{}');
+          // Sprawdź czy to prawdziwy JSON object (nie liczba jako string)
+          if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
+            usageData = parsed;
+          } else {
+            throw new Error('Not a valid JSON object');
+          }
         } catch {
           // Stary format (liczba) → konwertuj
+          isOldFormat = true;
           const oldTotal = parseInt(customer?.metafield?.value || '0', 10);
+          // ⚠️ KRYTYCZNE: Jeśli stary format, sprawdź TOTAL (nie per productType)
+          // Bo nie wiemy jak rozłożyć stare generacje na productType
           usageData = {
             total: oldTotal,
             other: oldTotal  // Wszystkie stare → "other"
@@ -965,11 +975,23 @@ module.exports = async (req, res) => {
           console.log(`⚠️ [TRANSFORM] Stary format metafield - konwertuję: ${oldTotal} → {"other": ${oldTotal}}`);
         }
         
-        // Sprawdź limit dla TEGO productType
-        const usedForThisType = usageData[finalProductType] || 0;
         const totalLimit = 3; // 3 darmowe generacje per productType dla zalogowanych
+        
+        // ⚠️ KRYTYCZNE: Jeśli stary format, sprawdź TOTAL (nie per productType)
+        // Bo stary format nie ma informacji o productType
+        let usedForThisType;
+        if (isOldFormat) {
+          // Stary format - sprawdź TOTAL (suma wszystkich typów)
+          const totalUsed = usageData.total || 0;
+          // Jeśli total >= 3, to blokuj (bo limit to 3 per productType, a nie wiemy jak rozłożyć)
+          usedForThisType = totalUsed;
+          console.log(`⚠️ [TRANSFORM] Stary format - sprawdzam TOTAL: ${totalUsed} (limit per productType: ${totalLimit})`);
+        } else {
+          // Nowy format - sprawdź per productType
+          usedForThisType = usageData[finalProductType] || 0;
+        }
 
-        console.log(`📊 [TRANSFORM] Użytkownik ${customer?.email}: ${usedForThisType}/${totalLimit} użyć dla ${finalProductType}`);
+        console.log(`📊 [TRANSFORM] Użytkownik ${customer?.email}: ${usedForThisType}/${totalLimit} użyć dla ${finalProductType}${isOldFormat ? ' (stary format - sprawdzam TOTAL)' : ''}`);
 
         if (usedForThisType >= totalLimit) {
           console.log(`❌ [TRANSFORM] Limit przekroczony dla użytkownika ${customer?.email} (${finalProductType}): ${usedForThisType}/${totalLimit}`);
