@@ -1679,9 +1679,14 @@ module.exports = async (req, res) => {
           hasValue: !!existingMetafield?.value
         });
         
+        // ⚠️ KRYTYCZNE: Jeśli typ to number_integer, MUSIMY go zmienić na json (niezależnie od wartości)
+        const needsTypeChange = (metafieldType === 'number_integer');
+        if (needsTypeChange) {
+          console.log(`🔄 [METAFIELD-INCREMENT] Wykryto number_integer - WYMAGANA konwersja na json (niezależnie od wartości)`);
+        }
+        
         // Parsuj JSON lub konwertuj stary format (liczba)
         let usageData;
-        let needsTypeChange = false;
         try {
           const rawValue = existingMetafield?.value || '{}';
           console.log(`🔍 [METAFIELD-INCREMENT] Parsing value:`, {
@@ -1701,7 +1706,7 @@ module.exports = async (req, res) => {
           // Stary format (liczba) → konwertuj
           const rawValue = existingMetafield?.value || '0';
           const oldTotal = parseInt(rawValue, 10);
-          console.log(`⚠️ [METAFIELD-INCREMENT] Stary format metafield:`, {
+          console.log(`⚠️ [METAFIELD-INCREMENT] Stary format metafield (wartość to liczba):`, {
             rawValue: rawValue,
             parsedTotal: oldTotal,
             metafieldType: metafieldType,
@@ -1713,12 +1718,6 @@ module.exports = async (req, res) => {
             other: oldTotal  // Wszystkie stare → "other"
           };
           console.log(`⚠️ [METAFIELD-INCREMENT] Konwertuję: ${oldTotal} →`, usageData);
-          
-          // Jeśli stary format i typ to number_integer, musimy zmienić typ na json
-          if (metafieldType === 'number_integer') {
-            needsTypeChange = true;
-            console.log(`🔄 [METAFIELD-INCREMENT] Wykryto number_integer - wymagana konwersja na json`);
-          }
         }
         
         const beforeIncrement = { ...usageData };
