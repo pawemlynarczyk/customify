@@ -2194,7 +2194,20 @@ class CustomifyEmbed {
 
 
   async transformImage(retryCount = 0) {
+    // ✅ DEBUG: Sprawdź selectedStyle NAJPIERW (przed walidacją)
+    console.log(`🔍🔍🔍 [TRANSFORM] START transformImage:`, {
+      selectedStyle: this.selectedStyle,
+      selectedStyleType: typeof this.selectedStyle,
+      productType: this.selectedStyle ? this.getProductTypeFromStyle(this.selectedStyle) : 'BRAK STYLU',
+      uploadedFile: !!this.uploadedFile,
+      uploadedFileName: this.uploadedFile?.name
+    });
+    
     if (!this.uploadedFile || !this.selectedStyle) {
+      console.error(`❌ [TRANSFORM] Brak wymaganych danych:`, {
+        uploadedFile: !!this.uploadedFile,
+        selectedStyle: this.selectedStyle
+      });
       this.showError('Wgraj zdjęcie i wybierz styl');
       return;
     }
