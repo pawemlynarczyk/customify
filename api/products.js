@@ -114,47 +114,82 @@ module.exports = async (req, res) => {
 
     // Creating product with AI image
 
+    // 🚨 ROLLBACK: START - Feature flag dla produktu cyfrowego
+    const ENABLE_DIGITAL_PRODUCTS = process.env.ENABLE_DIGITAL_PRODUCTS !== 'false'; // Domyślnie włączone, wyłącz przez 'false'
+    const isDigitalProduct = ENABLE_DIGITAL_PRODUCTS && productType === 'digital';
+    // 🚨 ROLLBACK: END - Feature flag dla produktu cyfrowego
+
     // Zmapuj productType i size na polskie nazwy
-    const productTypeName = productType === 'plakat' ? 'Plakat' : 'Obraz na płótnie';
-    const sizeName = size === 'a1'
-      ? '60×85 cm'
-      : size === 'a2'
-        ? '40×60 cm'
-        : size === 'a3'
-          ? '30×40 cm'
-          : size === 'a4'
-            ? '20×30 cm'
-            : size === 'a5'
-              ? '15×20 cm'
-              : size?.toUpperCase() || 'standard';
+    // 🚨 ROLLBACK: START - Obsługa produktu cyfrowego w nazwach
+    let productTypeName, sizeName;
+    
+    if (isDigitalProduct) {
+      // Produkt cyfrowy - bez rozmiaru fizycznego
+      productTypeName = 'Produkt cyfrowy';
+      sizeName = 'Plik do pobrania';
+    } else {
+      // Produkt fizyczny - normalna logika
+      productTypeName = productType === 'plakat' ? 'Plakat' : 'Obraz na płótnie';
+      sizeName = size === 'a1'
+        ? '60×85 cm'
+        : size === 'a2'
+          ? '40×60 cm'
+          : size === 'a3'
+            ? '30×40 cm'
+            : size === 'a4'
+              ? '20×30 cm'
+              : size === 'a5'
+                ? '15×20 cm'
+                : size?.toUpperCase() || 'standard';
+    }
+    // 🚨 ROLLBACK: END - Obsługa produktu cyfrowego w nazwach
 
     // KROK 1: Utwórz produkt BEZ obrazka (najpierw potrzebujemy product ID)
+    // 🚨 ROLLBACK: START - Konfiguracja produktu cyfrowego
     const productData = {
       product: {
-        title: `${productTypeName} - Rozmiar ${sizeName}`,
-        body_html: `
-          <p><strong>Spersonalizowany produkt z AI</strong></p>
-          <p><strong>Rodzaj wydruku:</strong> ${productTypeName}</p>
-          <p><strong>Styl:</strong> ${style}</p>
-          <p><strong>Rozmiar:</strong> ${sizeName}</p>
-          <p><strong>Cena całkowita:</strong> ${totalPrice.toFixed(2)} zł</p>
-          <p>Twoje zdjęcie zostało przekształcone przez AI w stylu ${style}.</p>
-        `,
+        title: isDigitalProduct 
+          ? `${productTypeName} - Styl ${style}`
+          : `${productTypeName} - Rozmiar ${sizeName}`,
+        body_html: isDigitalProduct
+          ? `
+            <p><strong>Spersonalizowany produkt cyfrowy z AI</strong></p>
+            <p><strong>Typ produktu:</strong> ${productTypeName}</p>
+            <p><strong>Styl:</strong> ${style}</p>
+            <p><strong>Cena całkowita:</strong> ${totalPrice.toFixed(2)} zł</p>
+            <p>Twoje zdjęcie zostało przekształcone przez AI w stylu ${style}.</p>
+            <p><strong>Po zakupie otrzymasz link do pobrania pliku.</strong></p>
+          `
+          : `
+            <p><strong>Spersonalizowany produkt z AI</strong></p>
+            <p><strong>Rodzaj wydruku:</strong> ${productTypeName}</p>
+            <p><strong>Styl:</strong> ${style}</p>
+            <p><strong>Rozmiar:</strong> ${sizeName}</p>
+            <p><strong>Cena całkowita:</strong> ${totalPrice.toFixed(2)} zł</p>
+            <p>Twoje zdjęcie zostało przekształcone przez AI w stylu ${style}.</p>
+          `,
         vendor: 'Customify',
-        product_type: 'Custom AI Product',
-        tags: ['custom', 'ai', 'personalized', style, 'no-recommendations', 'hidden-from-catalog', 'customer-order'],
+        product_type: isDigitalProduct ? 'Digital Product' : 'Custom AI Product',
+        tags: isDigitalProduct
+          ? ['custom', 'ai', 'personalized', style, 'digital', 'download', 'no-recommendations', 'hidden-from-catalog', 'customer-order']
+          : ['custom', 'ai', 'personalized', style, 'no-recommendations', 'hidden-from-catalog', 'customer-order'],
         status: 'active', // ✅ ACTIVE - MUSI być active żeby dodać do koszyka (Shopify zwraca 422 dla draft)
         published: true, // ✅ MUSI być published=true żeby variant działał w koszyku
         published_scope: 'web',
+        requires_shipping: !isDigitalProduct, // 🚨 ROLLBACK: Produkt cyfrowy nie wymaga wysyłki
         variants: [{
-          title: `${productTypeName} - ${sizeName}`,
+          title: isDigitalProduct
+            ? `${productTypeName} - ${style}`
+            : `${productTypeName} - ${sizeName}`,
           price: totalPrice.toFixed(2), // ✅ NAPRAWIONE: Shopify przyjmuje PLN jako string (np. "79.99")
           inventory_quantity: 100,
           inventory_management: 'shopify',
-          fulfillment_service: 'manual'
+          fulfillment_service: 'manual',
+          requires_shipping: !isDigitalProduct // 🚨 ROLLBACK: Variant cyfrowy nie wymaga wysyłki
         }]
       }
     };
+    // 🚨 ROLLBACK: END - Konfiguracja produktu cyfrowego
 
     const createResponse = await fetch(`https://${shop}/admin/api/2023-10/products.json`, {
       method: 'POST',
@@ -324,22 +359,33 @@ module.exports = async (req, res) => {
     // watermarkedImage już jest zadeklarowane na górze (linia 42)
     
     try {
+      // 🚨 ROLLBACK: START - Metafields dla produktu cyfrowego
+      const orderDetails = {
+        orderId: uniqueId,
+        shortOrderId: shortOrderId,
+        shopifyImageUrl: shopifyImageUrl,  // BEZ watermarku - do realizacji
+        vercelBlobUrl: vercelBlobUrl,  // BEZ watermarku - backup
+        permanentImageUrl: permanentImageUrl,  // BEZ watermarku - główny URL do realizacji
+        watermarkedImageUrl: watermarkedImage || null,  // Z watermarkiem - dla referencji
+        style: style,
+        size: size,
+        productType: productType,
+        createdAt: new Date().toISOString()
+      };
+
+      // Dla produktu cyfrowego - dodaj URL do pobrania
+      if (isDigitalProduct) {
+        orderDetails.digitalDownloadUrl = permanentImageUrl; // URL do pliku cyfrowego (BEZ watermarku)
+        orderDetails.isDigital = true;
+        console.log('📦 [PRODUCTS.JS] Digital product - download URL saved:', permanentImageUrl);
+      }
+      // 🚨 ROLLBACK: END - Metafields dla produktu cyfrowego
+
       const metafieldsData = {
         metafield: {
           namespace: 'customify',
           key: 'order_details',
-          value: JSON.stringify({
-            orderId: uniqueId,
-            shortOrderId: shortOrderId,
-            shopifyImageUrl: shopifyImageUrl,  // BEZ watermarku - do realizacji
-            vercelBlobUrl: vercelBlobUrl,  // BEZ watermarku - backup
-            permanentImageUrl: permanentImageUrl,  // BEZ watermarku - główny URL do realizacji
-            watermarkedImageUrl: watermarkedImage || null,  // Z watermarkiem - dla referencji
-            style: style,
-            size: size,
-            productType: productType,
-            createdAt: new Date().toISOString()
-          }),
+          value: JSON.stringify(orderDetails),
           type: 'json'
         }
       };
