@@ -165,6 +165,75 @@
           };
           // 🚨 ROLLBACK: END - Nadpisanie updateProductPrice()
 
+          // 🚨 ROLLBACK: START - Nadpisanie updateCartPrice() dla produktu cyfrowego
+          proto.updateCartPrice = function() {
+            try {
+              const isDigitalProduct = this.selectedProductType === 'digital';
+              
+              // Dla produktu cyfrowego: ZAWSZE 29 zł, NIE sumuj z ceną bazową
+              if (isDigitalProduct) {
+                const digitalProductPrice = 29.00; // 🚨 ROLLBACK: Stała cena produktu cyfrowego
+                const cartPriceElement = document.getElementById('cartPriceValue');
+                
+                if (cartPriceElement) {
+                  cartPriceElement.textContent = `${digitalProductPrice.toFixed(2)} zł`;
+                  console.log('✅ [CART-PRICE] Digital product - fixed price: 29.00 zł (ignoring base price)');
+                  this.showCartPrice();
+                } else {
+                  console.warn('⚠️ [CART-PRICE] Cart price element not found');
+                }
+                return;
+              }
+              
+              // Dla produktów fizycznych: użyj oryginalnej logiki
+              // Sprawdź czy mamy wybrany rozmiar
+              if (!this.selectedSize) {
+                console.log('🔍 [CART-PRICE] No selectedSize, hiding cart price');
+                this.hideCartPrice();
+                return;
+              }
+
+              // Pobierz oryginalną bazową cenę
+              if (!this.originalBasePrice) {
+                this.originalBasePrice = 49.00; // Fallback
+                console.log(`💰 [CART-PRICE] Using fallback base price: ${this.originalBasePrice} zł`);
+              }
+
+              // Pobierz cenę rozmiaru
+              const sizePrice = this.getSizePrice(this.selectedSize);
+              
+              // Dopłata za ramkę (tylko plakat i wybrany kolor != none)
+              const frameSelected = (this.selectedProductType === 'plakat') && (window.CustomifyFrame && window.CustomifyFrame.color && window.CustomifyFrame.color !== 'none');
+              const frameSurcharge = frameSelected && this.selectedSize ? (this.framePricing[this.selectedSize] || 29) : 0;
+              
+              // Oblicz końcową cenę (bazowa + rozmiar + ramka)
+              const finalPrice = this.originalBasePrice + sizePrice + frameSurcharge;
+
+              // Znajdź element ceny w koszyku
+              const cartPriceElement = document.getElementById('cartPriceValue');
+
+              if (cartPriceElement) {
+                cartPriceElement.textContent = `${finalPrice.toFixed(2)} zł`;
+                console.log('✅ [CART-PRICE] Cart price updated:', finalPrice.toFixed(2), 'zł');
+                console.log('🖼️ [FRAME] Cart price components:', {
+                  base: this.originalBasePrice,
+                  sizePrice,
+                  frameSelected,
+                  frame: window.CustomifyFrame?.color || 'none',
+                  frameSurcharge
+                });
+
+                // Pokaż element ceny
+                this.showCartPrice();
+              } else {
+                console.warn('⚠️ [CART-PRICE] Cart price element not found');
+              }
+            } catch (error) {
+              console.error('❌ [CART-PRICE] Error updating cart price:', error);
+            }
+          };
+          // 🚨 ROLLBACK: END - Nadpisanie updateCartPrice()
+
           proto.addToCart = async function() {
             console.log('🛒 [CUSTOMIFY] addToCart called with:', {
               transformedImage: !!this.transformedImage,
