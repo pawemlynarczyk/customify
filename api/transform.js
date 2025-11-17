@@ -928,7 +928,9 @@ module.exports = async (req, res) => {
               id
               email
               metafield(namespace: "customify", key: "usage_count") {
+                id
                 value
+                type
               }
             }
           }
