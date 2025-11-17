@@ -352,15 +352,44 @@ async function saveGenerationHandler(req, res) {
       if (!customerId && deviceToken) {
         try {
           const deviceBlobPath = `${statsPrefix}/device-${deviceToken}.json`;
-          await put(deviceBlobPath, jsonBuffer, {
-            access: 'public',
-            contentType: 'application/json',
-            token: process.env.customify_READ_WRITE_TOKEN,
-            allowOverwrite: true
-          });
-          console.log(`✅ [SAVE-GENERATION] Saved device token copy: ${deviceBlobPath}`);
+          
+          // ✅ SPRAWDŹ CZY PLIK JUŻ ISTNIEJE (nie nadpisuj - limit 1 TOTAL)
+          try {
+            const existingDeviceBlob = await get(deviceBlobPath);
+            console.log(`⚠️ [SAVE-GENERATION] Device token ${deviceToken.substring(0, 8)}... już ma generację - nie nadpisujemy (limit 1 TOTAL)`);
+            // Plik istnieje = użytkownik już ma generację, nie nadpisujemy
+          } catch (getError) {
+            // Blob not found = pierwsza generacja, zapisz
+            if (getError.message === 'Blob not found') {
+              // Zapisz TYLKO dane device token (nie kopiuj wszystkich generacji z IP!)
+              const deviceData = {
+                deviceToken: deviceToken,
+                ip: finalIp || null,
+                ipHash: ipHashFromBody || null,
+                customerId: null,
+                email: null,
+                totalGenerations: 1,
+                createdAt: new Date().toISOString(),
+                lastGenerationDate: new Date().toISOString(),
+                generations: [newGeneration] // TYLKO ta 1 generacja
+              };
+              
+              const deviceJsonData = JSON.stringify(deviceData, null, 2);
+              const deviceJsonBuffer = Buffer.from(deviceJsonData, 'utf-8');
+              
+              await put(deviceBlobPath, deviceJsonBuffer, {
+                access: 'public',
+                contentType: 'application/json',
+                token: process.env.customify_READ_WRITE_TOKEN,
+                allowOverwrite: false // NIE nadpisuj jeśli istnieje
+              });
+              console.log(`✅ [SAVE-GENERATION] Saved device token (first generation): ${deviceBlobPath}`);
+            } else {
+              console.warn(`⚠️ [SAVE-GENERATION] Błąd sprawdzania device blob:`, getError.message);
+            }
+          }
         } catch (deviceBlobError) {
-          console.warn(`⚠️ [SAVE-GENERATION] Failed to save device token copy:`, deviceBlobError.message);
+          console.warn(`⚠️ [SAVE-GENERATION] Failed to save device token:`, deviceBlobError.message);
           // Nie blokuj - główny zapis się udał
         }
       }
