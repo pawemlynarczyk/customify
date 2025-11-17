@@ -1534,7 +1534,9 @@ module.exports = async (req, res) => {
           query getCustomerUsage($id: ID!) {
             customer(id: $id) {
               metafield(namespace: "customify", key: "usage_count") {
+                id
                 value
+                type
               }
             }
           }
