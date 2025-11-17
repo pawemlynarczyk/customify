@@ -112,12 +112,12 @@
             try {
               const isDigitalProduct = this.selectedProductType === 'digital';
               
-              // Dla produktu cyfrowego: ZAWSZE 29 zł, NIE sumuj z ceną bazową
+              // Dla produktu cyfrowego: ZAWSZE 69 zł, NIE sumuj z ceną bazową
               if (isDigitalProduct) {
-                const digitalProductPrice = 29.00; // 🚨 ROLLBACK: Stała cena produktu cyfrowego
+                const digitalProductPrice = 69.00; // 🚨 ROLLBACK: Stała cena produktu cyfrowego
                 this.applyProductPriceDisplay(digitalProductPrice);
                 this.schedulePriceConsistency(digitalProductPrice);
-                console.log('💰 [PRICE] Digital product - fixed price: 29.00 zł (ignoring base price)');
+                console.log('💰 [PRICE] Digital product - fixed price: 69.00 zł (ignoring base price)');
                 return;
               }
               
@@ -170,14 +170,14 @@
             try {
               const isDigitalProduct = this.selectedProductType === 'digital';
               
-              // Dla produktu cyfrowego: ZAWSZE 29 zł, NIE sumuj z ceną bazową
+              // Dla produktu cyfrowego: ZAWSZE 69 zł, NIE sumuj z ceną bazową
               if (isDigitalProduct) {
-                const digitalProductPrice = 29.00; // 🚨 ROLLBACK: Stała cena produktu cyfrowego
+                const digitalProductPrice = 69.00; // 🚨 ROLLBACK: Stała cena produktu cyfrowego
                 const cartPriceElement = document.getElementById('cartPriceValue');
                 
                 if (cartPriceElement) {
                   cartPriceElement.textContent = `${digitalProductPrice.toFixed(2)} zł`;
-                  console.log('✅ [CART-PRICE] Digital product - fixed price: 29.00 zł (ignoring base price)');
+                  console.log('✅ [CART-PRICE] Digital product - fixed price: 69.00 zł (ignoring base price)');
                   this.showCartPrice();
                 } else {
                   console.warn('⚠️ [CART-PRICE] Cart price element not found');
@@ -310,15 +310,15 @@
             }
             // 🚨 ROLLBACK: END - Pomijaj rozmiar dla produktu cyfrowego
 
-            // 🚨 ROLLBACK: START - Cena dla produktu cyfrowego (STAŁA 29 zł, NIE sumuje się z ceną bazową)
+            // 🚨 ROLLBACK: START - Cena dla produktu cyfrowego (STAŁA 69 zł, NIE sumuje się z ceną bazową)
             const isDigitalProductForPrice = this.selectedProductType === 'digital';
-            const digitalProductPrice = 29.00; // 🚨 ROLLBACK: Stała cena produktu cyfrowego
+            const digitalProductPrice = 69.00; // 🚨 ROLLBACK: Stała cena produktu cyfrowego
             
             let finalPrice;
             if (isDigitalProductForPrice) {
-              // Produkt cyfrowy: ZAWSZE 29 zł, NIE zależy od ceny bazowej produktu
+              // Produkt cyfrowy: ZAWSZE 69 zł, NIE zależy od ceny bazowej produktu
               finalPrice = digitalProductPrice;
-              console.log('💰 [CUSTOMIFY] Digital product - using fixed price: 29.00 zł (ignoring base price)');
+              console.log('💰 [CUSTOMIFY] Digital product - using fixed price: 69.00 zł (ignoring base price)');
             } else {
               // Produkt fizyczny: cena bazowa + rozmiar + ramka
               const basePrice = this.originalBasePrice || 49.00;
