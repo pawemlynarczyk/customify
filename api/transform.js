@@ -1,4 +1,5 @@
 const Replicate = require('replicate');
+const crypto = require('crypto');
 const { checkRateLimit, getClientIP } = require('../utils/vercelRateLimiter');
 
 const VERSION_TAG = 'transform@2025-11-13T13:10';
@@ -452,6 +453,7 @@ module.exports = async (req, res) => {
   const origin = req.headers.origin;
   if (allowedOrigins.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
   } else {
     res.setHeader('Access-Control-Allow-Origin', '*');
   }
@@ -474,6 +476,59 @@ module.exports = async (req, res) => {
   }
   
   console.log(`✅ [TRANSFORM] Rate limit OK for IP: ${ip}`);
+
+  const parseCookies = (cookieHeader = '') => {
+    return cookieHeader.split(';').reduce((acc, chunk) => {
+      const trimmed = chunk.trim();
+      if (!trimmed) return acc;
+      const eqIndex = trimmed.indexOf('=');
+      if (eqIndex === -1) return acc;
+      const key = trimmed.substring(0, eqIndex).trim();
+      const value = trimmed.substring(eqIndex + 1).trim();
+      if (!key) return acc;
+      acc[key] = decodeURIComponent(value || '');
+      return acc;
+    }, {});
+  };
+
+  const DEVICE_COOKIE_NAME = 'customify_device_token';
+  const cookies = parseCookies(req.headers.cookie || '');
+  let deviceToken = cookies[DEVICE_COOKIE_NAME];
+  if (!deviceToken) {
+    deviceToken = crypto.randomBytes(16).toString('hex');
+    const oneYearSeconds = 60 * 60 * 24 * 365;
+    const cookieParts = [
+      `${DEVICE_COOKIE_NAME}=${encodeURIComponent(deviceToken)}`,
+      'Path=/',
+      `Max-Age=${oneYearSeconds}`,
+      'HttpOnly',
+      'Secure',
+      'SameSite=None'
+    ];
+    const newCookie = cookieParts.join('; ');
+    const existingSetCookie = res.getHeader('Set-Cookie');
+    if (existingSetCookie) {
+      if (Array.isArray(existingSetCookie)) {
+        res.setHeader('Set-Cookie', [...existingSetCookie, newCookie]);
+      } else {
+        res.setHeader('Set-Cookie', [existingSetCookie, newCookie]);
+      }
+    } else {
+      res.setHeader('Set-Cookie', newCookie);
+    }
+    console.log(`🍪 [TRANSFORM] Generated device token: ${deviceToken}`);
+  } else {
+    console.log(`🍪 [TRANSFORM] Existing device token detected: ${deviceToken}`);
+  }
+
+  const hashIp = (rawIp, tokenValue) => {
+    const ipToUse = rawIp || 'unknown';
+    const salt = process.env.CUSTOMIFY_IP_HASH_SALT || 'customify_ip_salt_2025';
+    return crypto.createHash('sha256').update(`${ipToUse}::${tokenValue || ''}::${salt}`).digest('hex');
+  };
+
+  const ipHash = hashIp(ip, deviceToken);
+  console.log(`🔐 [TRANSFORM] IP hash preview: ${ipHash.substring(0, 12)}...`);
 
   if (req.method === 'OPTIONS') {
     console.log(`✅ [TRANSFORM] OPTIONS request handled for IP: ${ip}`);
@@ -1140,8 +1195,11 @@ module.exports = async (req, res) => {
     console.log(`🔍 [TRANSFORM] email: ${email}`);
     console.log(`🔍 [TRANSFORM] ip: ${ip}`);
     console.log(`🔍 [TRANSFORM] Warunek: imageUrl = ${!!imageUrl}`);
+    console.log(`🔍 [TRANSFORM] productType: ${productType}`);
     
-    if (imageUrl) {
+    // 🚨 TYMCZASOWO: Wyłącz zapis generacji dla karykatur (base64 przekracza limity Vercel/Shopify)
+    // Przywróć zapis po naprawieniu uploadu base64 do Vercel Blob
+    if (imageUrl && productType !== 'caricature') {
       console.log(`✅ [TRANSFORM] WARUNEK SPEŁNIONY - zapisuję generację`);
       console.log(`💾 [TRANSFORM] Zapisuję generację w Vercel Blob Storage dla klienta...`);
       console.log(`🔍 [TRANSFORM] customerId type: ${typeof customerId}, value: ${customerId}`);
@@ -1151,8 +1209,39 @@ module.exports = async (req, res) => {
         // Sprawdź czy obraz jest już w Vercel Blob
         let finalImageUrl = imageUrl;
         
+        // 🚨 FIX: Jeśli to base64 data URI (Segmind Caricature), uploaduj do Vercel Blob
+        // Base64 przekracza limit Vercel 4.5MB w request body
+        if (imageUrl && imageUrl.startsWith('data:')) {
+          console.log(`📤 [TRANSFORM] Wykryto base64 data URI - uploaduję do Vercel Blob...`);
+          
+          try {
+            // Upload base64 do Vercel Blob
+            const uploadResponse = await fetch('https://customify-s56o.vercel.app/api/upload-temp-image', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                imageData: imageUrl, // Cały data URI
+                filename: `generation-${Date.now()}.jpg`
+              })
+            });
+            
+            if (uploadResponse.ok) {
+              const uploadResult = await uploadResponse.json();
+              finalImageUrl = uploadResult.imageUrl;
+              console.log(`✅ [TRANSFORM] Base64 zapisany w Vercel Blob: ${finalImageUrl.substring(0, 50)}...`);
+            } else {
+              const errorText = await uploadResponse.text();
+              console.error('⚠️ [TRANSFORM] Błąd uploadu base64 do Vercel Blob:', uploadResponse.status, errorText);
+              // Jeśli upload się nie powiódł, nie możemy użyć base64 (przekroczy limit)
+              // Użyj oryginalnego base64 jako fallback (może spowodować 413, ale to lepsze niż brak obrazu)
+            }
+          } catch (uploadError) {
+            console.error('⚠️ [TRANSFORM] Błąd uploadu base64 do Vercel Blob:', uploadError);
+            // Użyj oryginalnego base64 jako fallback
+          }
+        }
         // Jeśli to URL z Replicate (nie Vercel Blob), uploaduj do Vercel Blob
-        if (imageUrl.includes('replicate.delivery') || imageUrl.includes('pbxt')) {
+        else if (imageUrl.includes('replicate.delivery') || imageUrl.includes('pbxt')) {
           console.log(`📤 [TRANSFORM] Uploaduję obraz z Replicate do Vercel Blob...`);
           
           try {
@@ -1225,6 +1314,8 @@ module.exports = async (req, res) => {
           customerId: shopifyCustomerId || (customerId !== undefined && customerId !== null ? String(customerId) : null),
           email: email || null,
           ip: ip || null, // ✅ Przekaż IP dla niezalogowanych
+          ipHash,
+          deviceToken,
           imageUrl: finalImageUrl,
           style: prompt || 'unknown',
           productType: productType || 'other',
@@ -1236,6 +1327,8 @@ module.exports = async (req, res) => {
           customerIdType: typeof saveData.customerId,
           email: saveData.email,
           ip: saveData.ip,
+          ipHashPreview: ipHash ? ipHash.substring(0, 12) : null,
+          deviceToken: saveData.deviceToken || 'null',
           hasImageUrl: !!saveData.imageUrl,
           style: saveData.style,
           productType: saveData.productType
@@ -1266,7 +1359,11 @@ module.exports = async (req, res) => {
             console.log(`🔍 [TRANSFORM] metafieldUpdateError: ${saveResult.debug.metafieldUpdateError || 'none'}`);
             
             // ✅ ZWRÓĆ DEBUG INFO W RESPONSE (dla przeglądarki)
-            saveGenerationDebug = saveResult.debug;
+            saveGenerationDebug = {
+              ...saveResult.debug,
+              deviceToken,
+              ipHash
+            };
           } else {
             console.warn('⚠️ [TRANSFORM] save-generation-v2 response nie zawiera debug. Dodaję fallback info.');
             const fallbackDebug = {
@@ -1277,24 +1374,33 @@ module.exports = async (req, res) => {
               generationId: saveResult.generationId || null
             };
             console.warn('⚠️ [TRANSFORM] Fallback debug info:', JSON.stringify(fallbackDebug, null, 2));
-            saveGenerationDebug = fallbackDebug;
+            saveGenerationDebug = {
+              ...fallbackDebug,
+              deviceToken,
+              ipHash
+            };
           }
         } else {
           const errorText = await saveResponse.text();
           console.error('⚠️ [TRANSFORM] Błąd zapisu generacji:', errorText);
           console.error('⚠️ [TRANSFORM] Status:', saveResponse.status);
-          saveGenerationDebug = { error: errorText, status: saveResponse.status };
+          saveGenerationDebug = { error: errorText, status: saveResponse.status, deviceToken, ipHash };
         }
       } catch (saveError) {
         console.error('⚠️ [TRANSFORM] Błąd zapisu generacji (nie blokuję odpowiedzi):', saveError);
         console.error('⚠️ [TRANSFORM] Stack:', saveError.stack);
-        saveGenerationDebug = { error: saveError.message, stack: saveError.stack };
+        saveGenerationDebug = { error: saveError.message, stack: saveError.stack, deviceToken, ipHash };
         // Nie blokuj odpowiedzi - transformacja się udała
       }
     } else {
-      // ✅ Brak imageUrl - nie ma co zapisywać
-      console.warn(`⚠️ [TRANSFORM] Brak imageUrl - pomijam zapis generacji`);
-      saveGenerationDebug = { skipped: true, reason: 'brak imageUrl', hasImageUrl: false };
+      // ✅ Brak imageUrl lub karykatura - nie zapisujemy generacji
+      if (!imageUrl) {
+        console.warn(`⚠️ [TRANSFORM] Brak imageUrl - pomijam zapis generacji`);
+        saveGenerationDebug = { skipped: true, reason: 'brak imageUrl', hasImageUrl: false, deviceToken, ipHash };
+      } else if (productType === 'caricature') {
+        console.warn(`⚠️ [TRANSFORM] Karykatura - pomijam zapis generacji (base64 przekracza limity)`);
+        saveGenerationDebug = { skipped: true, reason: 'caricature base64 limits', productType: 'caricature', deviceToken, ipHash };
+      }
     }
 
     // ✅ INKREMENTACJA LICZNIKA PO UDANEJ TRANSFORMACJI
@@ -1388,7 +1494,9 @@ module.exports = async (req, res) => {
     // ✅ ZWRÓĆ DEBUG INFO Z SAVE-GENERATION (dla przeglądarki)
     const responseData = { 
       success: true, 
-      transformedImage: imageUrl 
+      transformedImage: imageUrl,
+      deviceToken,
+      ipHash
     };
     
     // ✅ BARDZO WIDOCZNE LOGOWANIE - SPRAWDŹ CZY saveGenerationDebug JEST USTAWIONE
