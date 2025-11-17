@@ -1015,6 +1015,10 @@ module.exports = async (req, res) => {
           console.log(`📊 [METAFIELD-CHECK] Brak metafield - pierwsza generacja dla użytkownika ${customer?.email || customerId}`);
         }
         
+        // ⚠️ KRYTYCZNE: Sprawdź TYP metafield - jeśli number_integer, traktuj jako stary format
+        const metafieldType = customer?.metafield?.type || 'json';
+        const isOldFormatType = (metafieldType === 'number_integer');
+        
         // Parsuj JSON lub konwertuj stary format (liczba)
         let usageData;
         let isOldFormat = false;
@@ -1023,8 +1027,14 @@ module.exports = async (req, res) => {
           console.log(`🔍 [METAFIELD-CHECK] Parsing metafield value:`, {
             rawValue: rawValue,
             type: typeof rawValue,
-            metafieldType: customer?.metafield?.type
+            metafieldType: metafieldType,
+            isOldFormatType: isOldFormatType
           });
+          
+          // Jeśli typ to number_integer, ZAWSZE traktuj jako stary format (niezależnie od wartości)
+          if (isOldFormatType) {
+            throw new Error('Metafield type is number_integer - treat as old format');
+          }
           
           const parsed = JSON.parse(rawValue || '{}');
           // Sprawdź czy to prawdziwy JSON object (nie liczba jako string)
@@ -1042,7 +1052,8 @@ module.exports = async (req, res) => {
           console.log(`⚠️ [METAFIELD-CHECK] Stary format metafield:`, {
             rawValue: rawValue,
             parsedTotal: oldTotal,
-            metafieldType: customer?.metafield?.type,
+            metafieldType: metafieldType,
+            isOldFormatType: isOldFormatType,
             parseError: parseError.message
           });
           
