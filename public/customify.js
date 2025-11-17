@@ -939,14 +939,23 @@ class CustomifyEmbed {
     // Pobierz productType z aktualnie wybranego stylu
     const productType = this.getProductTypeFromStyle(this.selectedStyle);
     
+    console.log(`🔍 [USAGE-LIMIT] Sprawdzam limit:`, {
+      selectedStyle: this.selectedStyle,
+      productType: productType,
+      isLoggedIn: !!customerInfo
+    });
+    
     if (!customerInfo) {
       // Niezalogowany - sprawdź localStorage (limit 1 per productType)
       const localCount = this.getLocalUsageCount(productType);
       const FREE_LIMIT = 1;
       
+      console.log(`🔍 [USAGE-LIMIT] Niezalogowany: ${localCount}/${FREE_LIMIT} dla ${productType}`);
+      
       // Usage limit check for anonymous users per productType
       
       if (localCount >= FREE_LIMIT) {
+        console.log(`❌ [USAGE-LIMIT] Limit przekroczony dla ${productType}: ${localCount} >= ${FREE_LIMIT}`);
         this.showLoginModal(localCount, FREE_LIMIT, productType);
         return false;
       }
