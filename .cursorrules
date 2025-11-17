@@ -209,6 +209,28 @@ const shopifyRequest = async (endpoint, options = {}) => {
 - Do NOT ask about token values or setup
 - SHOPIFY_ACCESS_TOKEN is available in environment variables - use it directly
 
+## 🔍 Vercel CLI - Dostęp do Logów
+- **Vercel CLI**: Zainstalowany globalnie (v48.0.2)
+- **Node**: v24.9.0
+- **Projekt**: Podlinkowany (`customify`, project.json istnieje)
+- **MAM DOSTĘP DO LOGÓW**: Mogę sprawdzać logi Vercel przez CLI
+- **Komendy**:
+  ```bash
+  # Pobierz najnowsze logi
+  vercel logs customify-s56o.vercel.app
+  
+  # Logi z ostatnich 5 minut
+  vercel logs customify-s56o.vercel.app | head -100
+  
+  # Live streaming logów (follow)
+  vercel logs customify-s56o.vercel.app --follow
+  ```
+- **Kiedy używać**: 
+  - Debugowanie błędów produkcyjnych
+  - Sprawdzanie czy device token działa
+  - Weryfikacja rate limiting
+  - Analiza błędów transformacji AI
+
 ## 🚨 CRITICAL: Vercel Blob Storage - DOMYŚLNY STORAGE DLA PLIKÓW
 - **HOSTING**: Mamy hosting na Vercel - ZAWSZE używamy Vercel Blob Storage dla plików tymczasowych
 - **WYMAGANE**: `BLOB_READ_WRITE_TOKEN` - token z Vercel Dashboard → Storage → Blob
