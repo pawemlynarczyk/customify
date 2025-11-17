@@ -2,6 +2,11 @@ const Replicate = require('replicate');
 const crypto = require('crypto');
 const { checkRateLimit, getClientIP } = require('../utils/vercelRateLimiter');
 
+// 🚫 Lista IP zablokowanych całkowicie (tymczasowe banowanie nadużyć)
+const BLOCKED_IPS = new Set([
+  '46.112.202.146', // Podejrzana aktywność - ręcznie zablokowane
+]);
+
 const VERSION_TAG = 'transform@2025-11-13T13:10';
 
 // Try to load sharp, but don't fail if it's not available
@@ -463,10 +468,20 @@ module.exports = async (req, res) => {
   res.setHeader('Access-Control-Max-Age', '86400');
 
   // RATE LIMITING - Sprawdź limit dla kosztownych operacji AI
-  const ip = getClientIP(req);
-  console.log(`🔍 [TRANSFORM] Request from IP: ${ip}, Method: ${req.method}`);
+  const rawIp = getClientIP(req);
+  const ip = rawIp ? rawIp.split(',')[0].trim() : '';
+  console.log(`🔍 [TRANSFORM] Request from IP: ${ip || rawIp}, Method: ${req.method}`);
+
+  if (ip && BLOCKED_IPS.has(ip)) {
+    console.warn(`⛔ [TRANSFORM] IP ${ip} jest zablokowane - odrzucam żądanie`);
+    return res.status(403).json({
+      error: 'Access denied',
+      message: 'Twoje IP zostało tymczasowo zablokowane.'
+    });
+  }
   
-  if (!checkRateLimit(ip, 20, 15 * 60 * 1000)) { // 20 requestów na 15 minut
+  // ✅ Miękki limit 15-minutowy (chroni przed burstami)
+  if (!checkRateLimit(ip, 20, 15 * 60 * 1000)) { // 20 requestów / 15 minut
     console.log(`❌ [TRANSFORM] Rate limit exceeded for IP: ${ip}`);
     return res.status(429).json({
       error: 'Rate limit exceeded',
@@ -476,6 +491,16 @@ module.exports = async (req, res) => {
   }
   
   console.log(`✅ [TRANSFORM] Rate limit OK for IP: ${ip}`);
+
+  // ✅ Dzienny limit miękki (maks 5 prób na IP w 24h)
+  if (!checkRateLimit(ip, 5, 24 * 60 * 60 * 1000)) { // 5 requestów / 24 godziny
+    console.log(`❌ [TRANSFORM] Daily limit exceeded for IP: ${ip}`);
+    return res.status(429).json({
+      error: 'Daily limit exceeded',
+      message: 'Wykorzystałeś dzienny limit darmowych transformacji. Spróbuj jutro lub zaloguj się.',
+      retryAfter: 24 * 60 * 60 // 24h w sekundach
+    });
+  }
 
   const parseCookies = (cookieHeader = '') => {
     return cookieHeader.split(';').reduce((acc, chunk) => {
@@ -1197,9 +1222,7 @@ module.exports = async (req, res) => {
     console.log(`🔍 [TRANSFORM] Warunek: imageUrl = ${!!imageUrl}`);
     console.log(`🔍 [TRANSFORM] productType: ${productType}`);
     
-    // 🚨 TYMCZASOWO: Wyłącz zapis generacji dla karykatur (base64 przekracza limity Vercel/Shopify)
-    // Przywróć zapis po naprawieniu uploadu base64 do Vercel Blob
-    if (imageUrl && productType !== 'caricature') {
+    if (imageUrl) {
       console.log(`✅ [TRANSFORM] WARUNEK SPEŁNIONY - zapisuję generację`);
       console.log(`💾 [TRANSFORM] Zapisuję generację w Vercel Blob Storage dla klienta...`);
       console.log(`🔍 [TRANSFORM] customerId type: ${typeof customerId}, value: ${customerId}`);
@@ -1393,14 +1416,9 @@ module.exports = async (req, res) => {
         // Nie blokuj odpowiedzi - transformacja się udała
       }
     } else {
-      // ✅ Brak imageUrl lub karykatura - nie zapisujemy generacji
-      if (!imageUrl) {
-        console.warn(`⚠️ [TRANSFORM] Brak imageUrl - pomijam zapis generacji`);
-        saveGenerationDebug = { skipped: true, reason: 'brak imageUrl', hasImageUrl: false, deviceToken, ipHash };
-      } else if (productType === 'caricature') {
-        console.warn(`⚠️ [TRANSFORM] Karykatura - pomijam zapis generacji (base64 przekracza limity)`);
-        saveGenerationDebug = { skipped: true, reason: 'caricature base64 limits', productType: 'caricature', deviceToken, ipHash };
-      }
+      // ✅ Brak imageUrl - nie ma co zapisywać
+      console.warn(`⚠️ [TRANSFORM] Brak imageUrl - pomijam zapis generacji`);
+      saveGenerationDebug = { skipped: true, reason: 'brak imageUrl', hasImageUrl: false, deviceToken, ipHash };
     }
 
     // ✅ INKREMENTACJA LICZNIKA PO UDANEJ TRANSFORMACJI
