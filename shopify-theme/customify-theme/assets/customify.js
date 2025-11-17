@@ -232,7 +232,8 @@ class CustomifyEmbed {
     }
     
     // METODA 1B: Shopify Analytics (fallback)
-    if (window.ShopifyAnalytics && window.ShopifyAnalytics.meta) {
+    // ⚠️ UŻYWAJ TYLKO jeśli window.ShopifyCustomer istnieje (nie null)
+    if (window.ShopifyCustomer !== null && window.ShopifyAnalytics && window.ShopifyAnalytics.meta) {
       const analyticsMeta = window.ShopifyAnalytics.meta;
       const analyticsId =
         analyticsMeta.page?.customerId ??
@@ -254,7 +255,8 @@ class CustomifyEmbed {
     }
     
     // METODA 1C: window.meta (Shopify storefront meta object)
-    if (window.meta) {
+    // ⚠️ UŻYWAJ TYLKO jeśli window.ShopifyCustomer istnieje (nie null)
+    if (window.ShopifyCustomer !== null && window.meta) {
       const metaId = window.meta.page?.customerId ?? window.meta.customerId ?? null;
       const metaEmail = window.meta.page?.customerEmail ?? window.meta.customerEmail ?? null;
       
@@ -265,23 +267,29 @@ class CustomifyEmbed {
     }
     
     // METODA 1D: Shopify tracking object (__st)
-    const shopifyTrackingId = window.__st ? window.__st.cid : null;
-    if (shopifyTrackingId) {
-      const trackingInfo = buildCustomerInfo(shopifyTrackingId, getStoredValue('customify_last_customer_email'), '__st.cid');
-      if (trackingInfo) {
-        return trackingInfo;
+    // ⚠️ UŻYWAJ TYLKO jeśli window.ShopifyCustomer istnieje (nie null)
+    if (window.ShopifyCustomer !== null) {
+      const shopifyTrackingId = window.__st ? window.__st.cid : null;
+      if (shopifyTrackingId) {
+        const trackingInfo = buildCustomerInfo(shopifyTrackingId, getStoredValue('customify_last_customer_email'), '__st.cid');
+        if (trackingInfo) {
+          return trackingInfo;
+        }
       }
     }
     
     // METODA 2: FALLBACK - Sprawdź cookie Shopify (customer_id)
-    const cookies = document.cookie.split(';').map(c => c.trim());
-    if (cookies.length > 0) {
-      const customerIdCookie = cookies.find(c => c.startsWith('customer_id='));
-      if (customerIdCookie) {
-        const cookieId = sanitizeId(customerIdCookie.split('=')[1]);
-        const cookieInfo = buildCustomerInfo(cookieId, getStoredValue('customify_last_customer_email') || window.ShopifyCustomer?.email, 'customer_id cookie');
-        if (cookieInfo) {
-          return cookieInfo;
+    // ⚠️ UŻYWAJ TYLKO jeśli window.ShopifyCustomer istnieje (nie null)
+    if (window.ShopifyCustomer !== null) {
+      const cookies = document.cookie.split(';').map(c => c.trim());
+      if (cookies.length > 0) {
+        const customerIdCookie = cookies.find(c => c.startsWith('customer_id='));
+        if (customerIdCookie) {
+          const cookieId = sanitizeId(customerIdCookie.split('=')[1]);
+          const cookieInfo = buildCustomerInfo(cookieId, getStoredValue('customify_last_customer_email') || window.ShopifyCustomer?.email, 'customer_id cookie');
+          if (cookieInfo) {
+            return cookieInfo;
+          }
         }
       }
     }

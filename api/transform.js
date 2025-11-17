@@ -1,6 +1,7 @@
 const Replicate = require('replicate');
 const crypto = require('crypto');
 const { checkRateLimit, getClientIP } = require('../utils/vercelRateLimiter');
+const { put } = require('@vercel/blob');
 
 // 🚫 Lista IP zablokowanych całkowicie (tymczasowe banowanie nadużyć)
 const BLOCKED_IPS = new Set([
@@ -138,18 +139,19 @@ async function segmindCaricature(imageUrl) {
         size: "1024x1536", // PIONOWY PORTRET (2:3 format) - NIE ZMIENIAJ!
         quality: "medium", // Jakość średnia dla szybszego renderowania
         background: "opaque", // Zgodnie z dokumentacją
-        output_compression: 100, // PNG wymaga 100 (bez kompresji)
-        output_format: "png" // Zgodnie z dokumentacją
+        output_format: "jpg", // JPEG zamiast PNG - 80-90% mniejszy rozmiar!
+        output_compression: 85 // Kompresja JPEG 85% - dobra jakość, mały rozmiar
       }),
     });
 
     if (response.ok) {
-      // Segmind returns PNG image, not JSON
+      // Segmind returns JPEG image (binary), not JSON
       const imageBuffer = await response.arrayBuffer();
       const base64Image = Buffer.from(imageBuffer).toString('base64');
-      const imageUrl = `data:image/png;base64,${base64Image}`;
+      const imageUrl = `data:image/jpeg;base64,${base64Image}`;
       
-      console.log('✅ [SEGMIND] Caricature generated successfully');
+      const sizeMB = (imageBuffer.byteLength / 1024 / 1024).toFixed(2);
+      console.log(`✅ [SEGMIND] Caricature generated successfully - size: ${sizeMB} MB`);
       return { image: imageUrl, output: imageUrl, url: imageUrl };
     } else {
       console.error('❌ [SEGMIND] API Error:', response.status);
@@ -923,10 +925,10 @@ module.exports = async (req, res) => {
         parameters: {
           image: "USER_IMAGE", // URL do obrazu użytkownika
           size: "1024x1536", // PIONOWY PORTRET - NIE ZMIENIAJ! (2:3 format)
-          quality: "medium", // Jakość średnia (nieużywane - wartość z funkcji segmindCaricature ma priorytet)
+          quality: "medium", // Jakość średnia
           background: "opaque", // Nieprzezroczyste tło
-          output_compression: 100, // Maksymalna kompresja
-          output_format: "png" // Format PNG
+          output_format: "jpg", // JPEG zamiast PNG - 80-90% mniejszy rozmiar (rozwiązuje 413)
+          output_compression: 85 // Kompresja JPEG 85% - dobra jakość, mały rozmiar
         }
       },
       // Style akwareli - używa Segmind Become-Image API
@@ -1257,6 +1259,9 @@ module.exports = async (req, res) => {
     console.log(`🔍 [TRANSFORM] Warunek: imageUrl = ${!!imageUrl}`);
     console.log(`🔍 [TRANSFORM] productType: ${productType}`);
     
+    // ✅ Inicjalizuj finalImageUrl - będzie ustawiony podczas przetwarzania obrazu
+    let finalImageUrl = imageUrl; // Domyślnie użyj imageUrl (dla Replicate URLs)
+    
     if (imageUrl) {
       console.log(`✅ [TRANSFORM] WARUNEK SPEŁNIONY - zapisuję generację`);
       console.log(`💾 [TRANSFORM] Zapisuję generację w Vercel Blob Storage dla klienta...`);
@@ -1265,37 +1270,44 @@ module.exports = async (req, res) => {
       
       try {
         // Sprawdź czy obraz jest już w Vercel Blob
-        let finalImageUrl = imageUrl;
+        // finalImageUrl będzie ustawiony podczas przetwarzania (base64 → Vercel Blob URL)
         
-        // 🚨 FIX: Jeśli to base64 data URI (Segmind Caricature), uploaduj do Vercel Blob
-        // Base64 przekracza limit Vercel 4.5MB w request body
+        // 🚨 FIX: Jeśli to base64 data URI (Segmind Caricature), uploaduj do Vercel Blob BEZPOŚREDNIO
+        // Base64 przekracza limit Vercel 4.5MB w request body - użyj SDK zamiast API endpoint
         if (imageUrl && imageUrl.startsWith('data:')) {
-          console.log(`📤 [TRANSFORM] Wykryto base64 data URI - uploaduję do Vercel Blob...`);
+          console.log(`📤 [TRANSFORM] Wykryto base64 data URI - uploaduję bezpośrednio do Vercel Blob (SDK)...`);
           
           try {
-            // Upload base64 do Vercel Blob
-            const uploadResponse = await fetch('https://customify-s56o.vercel.app/api/upload-temp-image', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                imageData: imageUrl, // Cały data URI
-                filename: `generation-${Date.now()}.jpg`
-              })
+            // Sprawdź czy token jest skonfigurowany
+            if (!process.env.customify_READ_WRITE_TOKEN) {
+              console.error('❌ [TRANSFORM] customify_READ_WRITE_TOKEN not configured - cannot upload base64');
+              throw new Error('Vercel Blob Storage not configured');
+            }
+            
+            // Konwertuj data URI na buffer
+            const base64Data = imageUrl.replace(/^data:image\/[a-z]+;base64,/, '');
+            const imageBuffer = Buffer.from(base64Data, 'base64');
+            console.log(`📦 [TRANSFORM] Base64 buffer size: ${imageBuffer.length} bytes (${(imageBuffer.length / 1024 / 1024).toFixed(2)} MB)`);
+            
+            // Upload bezpośrednio przez SDK (bez limitu 4.5MB request body)
+            const timestamp = Date.now();
+            const uniqueFilename = `customify/temp/generation-${timestamp}.jpg`;
+            
+            const blob = await put(uniqueFilename, imageBuffer, {
+              access: 'public',
+              contentType: 'image/jpeg',
+              token: process.env.customify_READ_WRITE_TOKEN,
             });
             
-            if (uploadResponse.ok) {
-              const uploadResult = await uploadResponse.json();
-              finalImageUrl = uploadResult.imageUrl;
-              console.log(`✅ [TRANSFORM] Base64 zapisany w Vercel Blob: ${finalImageUrl.substring(0, 50)}...`);
-            } else {
-              const errorText = await uploadResponse.text();
-              console.error('⚠️ [TRANSFORM] Błąd uploadu base64 do Vercel Blob:', uploadResponse.status, errorText);
-              // Jeśli upload się nie powiódł, nie możemy użyć base64 (przekroczy limit)
-              // Użyj oryginalnego base64 jako fallback (może spowodować 413, ale to lepsze niż brak obrazu)
-            }
+            finalImageUrl = blob.url;
+            console.log(`✅ [TRANSFORM] Base64 zapisany w Vercel Blob (SDK): ${finalImageUrl.substring(0, 50)}...`);
           } catch (uploadError) {
-            console.error('⚠️ [TRANSFORM] Błąd uploadu base64 do Vercel Blob:', uploadError);
-            // Użyj oryginalnego base64 jako fallback
+            console.error('⚠️ [TRANSFORM] Błąd uploadu base64 do Vercel Blob (SDK):', uploadError.message);
+            // Jeśli upload się nie powiódł, nie możemy użyć base64 (przekroczy limit w save-generation-v2)
+            // Ustaw finalImageUrl na null - pominie zapis w historii, ale zwróci base64 do frontendu
+            finalImageUrl = null;
+            console.warn('⚠️ [TRANSFORM] Obraz nie zostanie zapisany w historii - upload przez SDK nie powiódł się');
+            console.warn('⚠️ [TRANSFORM] Transformacja się udała - zwrócę base64 do frontendu, ale bez zapisu w historii');
           }
         }
         // Jeśli to URL z Replicate (nie Vercel Blob), uploaduj do Vercel Blob
@@ -1451,9 +1463,10 @@ module.exports = async (req, res) => {
         // Nie blokuj odpowiedzi - transformacja się udała
       }
     } else {
-      // ✅ Brak imageUrl - nie ma co zapisywać
-      console.warn(`⚠️ [TRANSFORM] Brak imageUrl - pomijam zapis generacji`);
-      saveGenerationDebug = { skipped: true, reason: 'brak imageUrl', hasImageUrl: false, deviceToken, ipHash };
+      // ✅ Brak imageUrl lub finalImageUrl = null (upload przez SDK nie powiódł się)
+      const reason = !imageUrl ? 'brak imageUrl' : 'upload przez SDK nie powiódł się (za duży)';
+      console.warn(`⚠️ [TRANSFORM] Pomijam zapis generacji - ${reason}`);
+      saveGenerationDebug = { skipped: true, reason, hasImageUrl: !!imageUrl, finalImageUrl: finalImageUrl !== null, deviceToken, ipHash };
     }
 
     // ✅ INKREMENTACJA LICZNIKA PO UDANEJ TRANSFORMACJI
