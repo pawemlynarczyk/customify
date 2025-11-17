@@ -80,8 +80,11 @@ module.exports = async (req, res) => {
       query getCustomerUsage($id: ID!) {
         customer(id: $id) {
           id
+          email
           metafield(namespace: "customify", key: "usage_count") {
+            id
             value
+            type
           }
         }
       }
@@ -110,6 +113,16 @@ module.exports = async (req, res) => {
     }
 
     const customer = metafieldData.data?.customer;
+    
+    console.log(`🔍 [CHECK-USAGE] Customer data:`, {
+      hasCustomer: !!customer,
+      customerId: customer?.id || null,
+      email: customer?.email || null,
+      hasMetafield: !!customer?.metafield,
+      metafieldId: customer?.metafield?.id || null,
+      metafieldType: customer?.metafield?.type || null,
+      metafieldValue: customer?.metafield?.value || null
+    });
     
     console.log(`🔍 [CHECK-USAGE] Request body:`, {
       customerId: customerId,
