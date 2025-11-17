@@ -1000,8 +1000,19 @@ class CustomifyEmbed {
         
         const data = await response.json();
         console.log('📊 [USAGE] API response:', data);
+        console.log('🔍 [USAGE] Detailed response analysis:', {
+          hasRemainingCount: 'remainingCount' in data,
+          remainingCount: data.remainingCount,
+          remainingCountType: typeof data.remainingCount,
+          usedCount: data.usedCount,
+          totalLimit: data.totalLimit,
+          productType: data.productType,
+          byProductType: data.byProductType,
+          calculation: `${data.totalLimit} - ${data.usedCount} = ${data.totalLimit - data.usedCount}`
+        });
         
         if (data.remainingCount <= 0) {
+          console.error(`❌ [USAGE] Limit przekroczony - przerwano transformację`);
           this.showError(`Wykorzystałeś wszystkie transformacje dla ${productType} (${data.totalLimit}). Skontaktuj się z nami dla więcej.`);
           return false;
         }
