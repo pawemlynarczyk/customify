@@ -1909,8 +1909,16 @@ module.exports = async (req, res) => {
           });
         }
       } catch (incrementError) {
-        console.error('⚠️ [TRANSFORM] Błąd inkrementacji licznika:', incrementError);
-        // Nie blokuj odpowiedzi - transformacja się udała
+        console.error('❌ [TRANSFORM] Błąd inkrementacji licznika:', {
+          error: incrementError.message,
+          stack: incrementError.stack,
+          customerId: customerId,
+          productType: finalProductType,
+          hasCustomerAccessToken: !!customerAccessToken,
+          hasAccessToken: !!accessToken
+        });
+        // ⚠️ KRYTYCZNE: Błąd inkrementacji - loguj szczegółowo, ale nie blokuj odpowiedzi
+        // Transformacja się udała, ale limit nie został zaktualizowany
       }
     }
 
