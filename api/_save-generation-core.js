@@ -4,7 +4,7 @@
  * Zapisuje w Vercel Blob Storage: customerId/email → lista generacji (JSON)
  */
 
-const { put, head } = require('@vercel/blob');
+const { put, head, get } = require('@vercel/blob');
 const { checkRateLimit, getClientIP } = require('../utils/vercelRateLimiter');
 
 const toSafeString = (value) => {
