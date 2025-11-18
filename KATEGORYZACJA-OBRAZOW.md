@@ -43,7 +43,7 @@
 - ❌ `caricature-` i `watercolor-` to UPLOAD (oryginalne zdjęcia przed transformacją)
 
 ### 6. FALLBACK
-- ✅ Wszystko inne → `wygenerowane` (może być obraz AI w innych lokalizacjach)
+- ✅ Wszystko inne → `upload` (prawdopodobnie oryginalne zdjęcie użytkownika)
 
 ## 📝 PRZYKŁADY KATEGORYZACJI
 
