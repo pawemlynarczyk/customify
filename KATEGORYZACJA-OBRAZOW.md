@@ -39,7 +39,8 @@
 - ✅ Podwójne rozszerzenie `.jpg.jpg` BEZ prefiksu `ai-`
 
 ### 5. WYGENEROWANE (poza `temp/`)
-- ✅ Zaczyna się od `generation-`, `caricature-`, `ai-`, `watercolor-`
+- ✅ Zaczyna się od `generation-`, `ai-`, `watercolor-`
+- ❌ `caricature-` to UPLOAD (oryginalne zdjęcie przed transformacją)
 
 ### 6. FALLBACK
 - ✅ Wszystko inne → `wygenerowane` (może być obraz AI w innych lokalizacjach)
