@@ -183,16 +183,43 @@ module.exports = async (req, res) => {
       });
     }
 
+    // Debug: Sprawdź właściwości pierwszego bloba
+    if (categorizedBlobs.length > 0) {
+      const firstBlob = categorizedBlobs[0];
+      console.log(`🔍 [LIST-BLOB-IMAGES] First blob properties:`, {
+        pathname: firstBlob.pathname || firstBlob.path,
+        uploadedAt: firstBlob.uploadedAt,
+        createdAt: firstBlob.createdAt,
+        allKeys: Object.keys(firstBlob)
+      });
+    }
+    
     return res.json({
       success: true,
       images: categorizedBlobs.map(blob => {
         const pathname = blob.pathname || blob.path || 'unknown';
         const isJson = pathname.toLowerCase().endsWith('.json');
+        
+        // Wyciągnij datę z uploadedAt, createdAt lub z timestamp w nazwie pliku
+        let uploadedAt = blob.uploadedAt;
+        if (!uploadedAt && blob.createdAt) {
+          uploadedAt = blob.createdAt;
+        }
+        if (!uploadedAt) {
+          // Spróbuj wyciągnąć timestamp z nazwy pliku (np. caricature-1763312200173.jpg)
+          const timestampMatch = pathname.match(/\d{13}/);
+          if (timestampMatch) {
+            uploadedAt = new Date(parseInt(timestampMatch[0])).toISOString();
+          } else {
+            uploadedAt = new Date().toISOString(); // Fallback - data teraz
+          }
+        }
+        
         return {
           url: blob.url,
           pathname: pathname,
           size: blob.size || 0,
-          uploadedAt: blob.uploadedAt || blob.uploadedAt || new Date().toISOString(),
+          uploadedAt: uploadedAt,
           category: blob.category,
           isJson: isJson,
           contentType: blob.contentType || (isJson ? 'application/json' : 'image')
