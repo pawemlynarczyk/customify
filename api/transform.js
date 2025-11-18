@@ -2077,19 +2077,62 @@ module.exports = async (req, res) => {
           console.warn(`⚠️ [METAFIELD-INCREMENT] Customer ID: ${customerId}`);
         }
         
-        const metafieldType = existingMetafield?.type || 'json';
+        // ⚠️ KRYTYCZNE: Sprawdź faktyczny typ definition (nie tylko metafield value)
+        // Shopify NIE POZWALA na zmianę typu definition - musimy sprawdzić definition
+        let actualDefinitionType = 'json'; // Default
+        
+        try {
+          const definitionQuery = `
+            query {
+              metafieldDefinitions(first: 1, ownerType: CUSTOMER, namespace: "customify", key: "usage_count") {
+                edges {
+                  node {
+                    id
+                    type {
+                      name
+                    }
+                  }
+                }
+              }
+            }
+          `;
+          
+          const definitionResponse = await fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Shopify-Access-Token': accessToken
+            },
+            body: JSON.stringify({ query: definitionQuery })
+          });
+          
+          const definitionData = await definitionResponse.json();
+          const definitionNode = definitionData.data?.metafieldDefinitions?.edges?.[0]?.node;
+          
+          if (definitionNode?.type?.name) {
+            actualDefinitionType = definitionNode.type.name;
+            console.log(`🔍 [METAFIELD-INCREMENT] Faktyczny typ definition: ${actualDefinitionType}`);
+          }
+        } catch (defError) {
+          console.warn(`⚠️ [METAFIELD-INCREMENT] Nie można sprawdzić typu definition, używam typu z metafield:`, defError.message);
+          // Fallback - użyj typu z metafield
+          actualDefinitionType = existingMetafield?.type || 'json';
+        }
+        
+        const metafieldType = existingMetafield?.type || actualDefinitionType;
         const metafieldId = existingMetafield?.id || null;
         
         console.log(`🔍 [METAFIELD-INCREMENT] Existing metafield:`, {
           id: metafieldId,
           type: metafieldType,
           value: existingMetafield?.value || null,
-          hasValue: !!existingMetafield?.value
+          hasValue: !!existingMetafield?.value,
+          actualDefinitionType: actualDefinitionType
         });
         
-        // ⚠️ KRYTYCZNE: Jeśli typ to number_integer, UŻYWAJ STARY FORMAT (liczba)
-        // Shopify NIE POZWALA na zmianę typu metafield z number_integer na json
-        const isOldFormatType = (metafieldType === 'number_integer');
+        // ⚠️ KRYTYCZNE: Użyj faktycznego typu definition (nie typu metafield value)
+        // Shopify NIE POZWALA na zmianę typu definition z number_integer na json
+        const isOldFormatType = (actualDefinitionType === 'number_integer');
         
         let newValue;
         let updateType;
