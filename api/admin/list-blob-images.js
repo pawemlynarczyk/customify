@@ -69,10 +69,11 @@ module.exports = async (req, res) => {
       console.log(`📊 [LIST-BLOB-IMAGES] Last blob: ${blobs.blobs[blobs.blobs.length - 1].pathname || blobs.blobs[blobs.blobs.length - 1].path}`);
     }
 
-    // Kategoryzacja obrazków - UPROSZCZONA I POPRAWIONA LOGIKA
+    // Kategoryzacja obrazków - POPRAWIONA LOGIKA Z WYKRYWANIEM OBRAZÓW AI
     const categorizeImage = (blob) => {
       const pathname = blob.pathname || blob.path || '';
       const path = pathname.toLowerCase();
+      const filename = pathname.split('/').pop().toLowerCase(); // Nazwa pliku bez ścieżki
       const isJson = pathname.toLowerCase().endsWith('.json');
       
       // 0. UKRYJ pliki wewnętrzne/logi (nie pokazuj w panelu)
@@ -99,12 +100,21 @@ module.exports = async (req, res) => {
         return 'orders';
       }
       
-      // 4. UPLOAD - prefix customify/temp/ (bez watermark, bez orders)
+      // 4. WYGENEROWANE (obrazy AI) - w customify/temp/ z nazwami wskazującymi na AI
+      // Sprawdź czy to obraz AI (caricature, generation, boho, king, koty, pixar, ai)
       if (path.startsWith('customify/temp/')) {
+        const aiKeywords = ['caricature', 'generation', 'boho', 'king', 'koty', 'pixar', 'ai', 'transform', 'style'];
+        const isAIGenerated = aiKeywords.some(keyword => filename.includes(keyword));
+        
+        if (isAIGenerated) {
+          return 'wygenerowane';
+        }
+        
+        // Jeśli nie ma słów kluczowych AI, to jest upload (oryginalne zdjęcie użytkownika)
         return 'upload';
       }
       
-      // 5. WYGENEROWANE - wszystko inne (obrazy AI, generacje, itp.)
+      // 5. WYGENEROWANE - wszystko inne (obrazy AI poza temp/, generacje, itp.)
       return 'wygenerowane';
     };
 
