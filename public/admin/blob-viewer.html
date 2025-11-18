@@ -563,22 +563,48 @@
       }
       
       return images.filter(image => {
-        const imageDate = new Date(image.uploadedAt);
-        imageDate.setHours(0, 0, 0, 0);
-        
-        if (dateFrom) {
-          const fromDate = new Date(dateFrom);
-          fromDate.setHours(0, 0, 0, 0);
-          if (imageDate < fromDate) return false;
+        // Sprawdź czy uploadedAt istnieje i jest poprawny
+        if (!image.uploadedAt) {
+          console.warn('⚠️ [FILTER] Image missing uploadedAt:', image.pathname);
+          return false; // Ukryj obrazy bez daty
         }
         
-        if (dateTo) {
-          const toDate = new Date(dateTo);
-          toDate.setHours(23, 59, 59, 999);
-          if (imageDate > toDate) return false;
+        try {
+          const imageDate = new Date(image.uploadedAt);
+          
+          // Sprawdź czy data jest poprawna
+          if (isNaN(imageDate.getTime())) {
+            console.warn('⚠️ [FILTER] Invalid date:', image.uploadedAt, image.pathname);
+            return false;
+          }
+          
+          imageDate.setHours(0, 0, 0, 0);
+          
+          if (dateFrom) {
+            const fromDate = new Date(dateFrom + 'T00:00:00');
+            if (isNaN(fromDate.getTime())) {
+              console.error('❌ [FILTER] Invalid dateFrom:', dateFrom);
+              return true; // Jeśli data jest niepoprawna, pokaż obraz
+            }
+            fromDate.setHours(0, 0, 0, 0);
+            if (imageDate < fromDate) return false;
+          }
+          
+          if (dateTo) {
+            const toDate = new Date(dateTo + 'T23:59:59');
+            if (isNaN(toDate.getTime())) {
+              console.error('❌ [FILTER] Invalid dateTo:', dateTo);
+              return true; // Jeśli data jest niepoprawna, pokaż obraz
+            }
+            toDate.setHours(23, 59, 59, 999);
+            if (imageDate > toDate) return false;
+          }
+          
+          return true;
+        } catch (error) {
+          console.error('❌ [FILTER] Error filtering image:', error, image.pathname);
+          return false;
         }
-        
-        return true;
       });
     }
     
@@ -622,9 +648,28 @@
       const category = document.getElementById('categoryFilter').value;
       let filteredImages = filterByDate(allImages);
       
+      // Debug logging dla pierwszych 5 obrazków po filtrowaniu datą
+      const dateFrom = document.getElementById('dateFrom').value;
+      const dateTo = document.getElementById('dateTo').value;
+      if ((dateFrom || dateTo) && filteredImages.length > 0 && filteredImages.length <= 5) {
+        console.log('🔍 [DISPLAY] After date filter:', {
+          totalBefore: allImages.length,
+          totalAfter: filteredImages.length,
+          dateFrom: dateFrom,
+          dateTo: dateTo,
+          firstImage: filteredImages[0] ? {
+            pathname: filteredImages[0].pathname,
+            uploadedAt: filteredImages[0].uploadedAt,
+            category: filteredImages[0].category
+          } : null
+        });
+      }
+      
       // Filtruj po kategorii jeśli wybrano
       if (category !== 'all') {
+        const beforeCategoryFilter = filteredImages.length;
         filteredImages = filteredImages.filter(img => img.category === category);
+        console.log(`🔍 [DISPLAY] Category filter "${category}": ${beforeCategoryFilter} → ${filteredImages.length}`);
       }
       
       // Aktualizuj licznik w filtrze
