@@ -50,7 +50,8 @@ module.exports = async (req, res) => {
       return res.status(429).json({ error: 'Rate limit exceeded' });
     }
 
-    const { prefix, limit = 1000, cursor, sortBy = 'date', sortOrder = 'desc', category } = req.query;
+    // Zwiększ domyślny limit do 5000 żeby pokazać więcej najnowszych obrazków
+    const { prefix, limit = 5000, cursor, sortBy = 'date', sortOrder = 'desc', category } = req.query;
 
     console.log('📊 [LIST-BLOB-IMAGES] Request params:', { prefix, limit, cursor, sortBy, sortOrder, category });
 
