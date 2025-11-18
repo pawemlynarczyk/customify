@@ -1692,20 +1692,69 @@ module.exports = async (req, res) => {
         });
       }
 
-      // Add timeout and better error handling (following Replicate docs)
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Request timeout - model took too long')), 300000); // 5 minutes
-      });
+      // Retry logic for Replicate API (similar to Segmind)
+      const maxRetries = 3;
+      const retryDelay = 2000; // 2 sekundy bazowego opóźnienia
+      let lastError;
+      let output = null;
 
-      console.log(`🚀 [REPLICATE] Starting prediction with model: ${config.model}`);
-      const replicatePromise = replicate.run(config.model, {
-        input: inputParams
-      });
+      for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+          // Add timeout and better error handling (following Replicate docs)
+          const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Request timeout - model took too long')), 300000); // 5 minutes
+          });
 
-      output = await Promise.race([replicatePromise, timeoutPromise]);
-      console.log(`✅ [REPLICATE] Prediction completed successfully`);
-      console.log(`📸 [REPLICATE] Output type:`, typeof output);
-      console.log(`📸 [REPLICATE] Output:`, output);
+          console.log(`🚀 [REPLICATE] Starting prediction with model: ${config.model} (attempt ${attempt}/${maxRetries})`);
+          const replicatePromise = replicate.run(config.model, {
+            input: inputParams
+          });
+
+          output = await Promise.race([replicatePromise, timeoutPromise]);
+          console.log(`✅ [REPLICATE] Prediction completed successfully (attempt ${attempt})`);
+          console.log(`📸 [REPLICATE] Output type:`, typeof output);
+          console.log(`📸 [REPLICATE] Output:`, output);
+          
+          // Success - break out of retry loop
+          break;
+        } catch (error) {
+          lastError = error;
+          
+          // Check if error is retryable (5xx server errors or timeout)
+          // Replicate ApiError has response.status property
+          const errorStatus = error.response?.status || error.status || 
+            (error.message && error.message.match(/status (\d{3})/)?.[1]);
+          const statusCode = errorStatus ? parseInt(errorStatus) : null;
+          
+          const isRetryable = 
+            (statusCode >= 500) ||
+            (error.message && (
+              error.message.includes('500') ||
+              error.message.includes('502') ||
+              error.message.includes('503') ||
+              error.message.includes('504') ||
+              error.message.includes('timeout') ||
+              error.message.includes('Internal Server Error') ||
+              error.message.includes('Internal server error')
+            ));
+          
+          if (isRetryable && attempt < maxRetries) {
+            const delay = retryDelay * Math.pow(2, attempt - 1); // Exponential backoff: 2s, 4s, 8s
+            console.warn(`⚠️ [REPLICATE] Server error (attempt ${attempt}/${maxRetries}) - retrying in ${delay}ms...`);
+            console.warn(`⚠️ [REPLICATE] Error:`, error.message?.substring(0, 200) || error.toString());
+            await new Promise(resolve => setTimeout(resolve, delay));
+            continue; // Retry
+          } else {
+            // Non-retryable error or max retries reached
+            console.error(`❌ [REPLICATE] Prediction failed after ${attempt} attempts:`, error);
+            throw error;
+          }
+        }
+      }
+
+      if (!output) {
+        throw lastError || new Error('Replicate prediction failed after all retries');
+      }
 
       // Handle different output formats based on model
       if (config.model.includes('nano-banana')) {

@@ -70,7 +70,10 @@ class CustomifyEmbed {
     this.setupAccordion();
     
     // ✅ USAGE LIMITS: Pokaż licznik użyć
-    this.showUsageCounter();
+    console.log('🔍 [INIT] Calling showUsageCounter()...');
+    this.showUsageCounter().catch(error => {
+      console.error('❌ [INIT] Error in showUsageCounter:', error);
+    });
     
     // 🎨 GALERIA: Załaduj galerię przy starcie (jeśli są zapisane generacje)
     console.log('🎨 [GALLERY] Calling updateGallery from init()');
@@ -1289,8 +1292,11 @@ class CustomifyEmbed {
    * Pokazuje licznik użyć w UI
    */
   async showUsageCounter() {
+    console.log('🔍 [USAGE] showUsageCounter() called');
+    
     // Usage counter initialization
     const customerInfo = this.getCustomerInfo();
+    console.log('🔍 [USAGE] Customer info:', customerInfo ? 'logged in' : 'not logged in');
     let counterHTML = '';
     
     if (!customerInfo) {
@@ -1298,6 +1304,8 @@ class CustomifyEmbed {
       const localCount = this.getLocalUsageCount();
       const FREE_LIMIT = 1;
       const remaining = Math.max(0, FREE_LIMIT - localCount);
+      
+      console.log(`🔍 [USAGE] Not logged in - localCount: ${localCount}, remaining: ${remaining}`);
       
       if (remaining > 0) {
         // Zielony - pozostało transformacji
@@ -1316,6 +1324,7 @@ class CustomifyEmbed {
       }
     } else {
       // Zalogowany - pobierz z API
+      console.log('🔍 [USAGE] Fetching usage data from API...');
       try {
         const response = await fetch('https://customify-s56o.vercel.app/api/check-usage', {
           method: 'POST',
@@ -1332,6 +1341,8 @@ class CustomifyEmbed {
           const data = await response.json();
           const remaining = data.remainingCount || 0;
           const totalLimit = data.totalLimit || 3;
+          
+          console.log(`🔍 [USAGE] API response - remaining: ${remaining}, totalLimit: ${totalLimit}`);
           
           if (remaining > 0) {
             // Niebieski - zalogowany, pozostało transformacji
@@ -1350,27 +1361,47 @@ class CustomifyEmbed {
           }
         } else {
           console.warn('⚠️ [USAGE] Failed to fetch usage data:', response.status);
+          // Fallback - pokaż że jest zalogowany ale nie wiemy ile ma transformacji
+          counterHTML = `
+            <div id="usageCounter" class="usage-counter usage-counter-blue">
+              ✅ Zalogowany - sprawdzanie limitów...
+            </div>
+          `;
         }
       } catch (error) {
         console.error('❌ [USAGE] Error fetching usage counter:', error);
+        // Fallback - pokaż że jest zalogowany ale nie wiemy ile ma transformacji
+        counterHTML = `
+          <div id="usageCounter" class="usage-counter usage-counter-blue">
+            ✅ Zalogowany - sprawdzanie limitów...
+          </div>
+        `;
       }
     }
     
+    console.log('🔍 [USAGE] counterHTML generated:', counterHTML ? 'YES' : 'NO', counterHTML.substring(0, 100));
+    
     // Wstaw licznik do DOM (przed upload area)
     const uploadArea = document.getElementById('uploadArea');
+    console.log('🔍 [USAGE] uploadArea found:', !!uploadArea);
+    
     if (uploadArea && counterHTML) {
       // Usuń stary licznik jeśli istnieje
       const oldCounter = document.getElementById('usageCounter');
       if (oldCounter) {
         oldCounter.remove();
+        console.log('🔍 [USAGE] Removed old counter');
       }
       
       // Wstaw nowy licznik przed upload area
       uploadArea.insertAdjacentHTML('beforebegin', counterHTML);
-      console.log('✅ [USAGE] Usage counter displayed');
+      console.log('✅ [USAGE] Usage counter displayed successfully');
     } else {
       if (!uploadArea) {
         console.warn('⚠️ [USAGE] Upload area not found - counter not displayed');
+      }
+      if (!counterHTML) {
+        console.warn('⚠️ [USAGE] counterHTML is empty - counter not displayed');
       }
     }
   }
