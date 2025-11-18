@@ -1925,8 +1925,84 @@ module.exports = async (req, res) => {
                 const updateDefinitionData = await updateDefinitionResponse.json();
                 if (updateDefinitionData.data?.metafieldDefinitionUpdate?.userErrors?.length > 0) {
                   console.error(`❌ [METAFIELD-INCREMENT] Błąd aktualizacji definition:`, updateDefinitionData.data.metafieldDefinitionUpdate.userErrors);
-                  // Nie rzucaj błędu - spróbuj utworzyć nowy definition
-                  console.log(`⚠️ [METAFIELD-INCREMENT] Próbuję utworzyć nową definition jako json...`);
+                  // ⚠️ Shopify może nie pozwolić na zmianę typu definition - usuń starą i utwórz nową
+                  console.log(`🔄 [METAFIELD-INCREMENT] Shopify nie pozwala zmienić typu - usuwam starą definition i tworzę nową jako json...`);
+                  
+                  // Usuń starą definition
+                  const deleteDefinitionMutation = `
+                    mutation DeleteMetafieldDefinition($id: ID!) {
+                      metafieldDefinitionDelete(id: $id) {
+                        deletedId
+                        userErrors {
+                          field
+                          message
+                        }
+                      }
+                    }
+                  `;
+                  
+                  const deleteDefinitionResponse = await fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'X-Shopify-Access-Token': accessToken
+                    },
+                    body: JSON.stringify({
+                      query: deleteDefinitionMutation,
+                      variables: { id: definitionNode.id }
+                    })
+                  });
+                  
+                  const deleteDefinitionData = await deleteDefinitionResponse.json();
+                  if (deleteDefinitionData.data?.metafieldDefinitionDelete?.deletedId) {
+                    console.log(`✅ [METAFIELD-INCREMENT] Stara definition usunięta`);
+                  }
+                  
+                  // Utwórz nową definition jako json
+                  const createDefinitionMutation = `
+                    mutation CreateMetafieldDefinition($definition: MetafieldDefinitionInput!) {
+                      metafieldDefinitionCreate(definition: $definition) {
+                        createdDefinition {
+                          id
+                          type {
+                            name
+                          }
+                        }
+                        userErrors {
+                          field
+                          message
+                        }
+                      }
+                    }
+                  `;
+                  
+                  const createDefinitionResponse = await fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'X-Shopify-Access-Token': accessToken
+                    },
+                    body: JSON.stringify({
+                      query: createDefinitionMutation,
+                      variables: {
+                        definition: {
+                          name: "Usage Count",
+                          namespace: "customify",
+                          key: "usage_count",
+                          description: "Liczba wykorzystanych transformacji AI przez użytkownika (per productType)",
+                          type: "json",
+                          ownerType: "CUSTOMER"
+                        }
+                      }
+                    })
+                  });
+                  
+                  const createDefinitionData = await createDefinitionResponse.json();
+                  if (createDefinitionData.data?.metafieldDefinitionCreate?.createdDefinition) {
+                    console.log(`✅ [METAFIELD-INCREMENT] Nowa definition utworzona jako json`);
+                  } else if (createDefinitionData.data?.metafieldDefinitionCreate?.userErrors?.length > 0) {
+                    console.error(`❌ [METAFIELD-INCREMENT] Błąd tworzenia nowej definition:`, createDefinitionData.data.metafieldDefinitionCreate.userErrors);
+                  }
                 } else {
                   console.log(`✅ [METAFIELD-INCREMENT] Definition zaktualizowana na json`);
                 }
