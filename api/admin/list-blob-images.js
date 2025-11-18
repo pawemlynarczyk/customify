@@ -115,8 +115,8 @@ module.exports = async (req, res) => {
         return inFilename || inPath;
       });
       
-      // Debug dla pierwszych 10 obrazków z temp/
-      if (path.startsWith('customify/temp/') && blobs.blobs.indexOf(blob) < 10) {
+      // Debug dla obrazków z temp/ zawierających "ai" w nazwie
+      if (path.startsWith('customify/temp/') && filename.includes('ai')) {
         console.log(`🔍 [CATEGORIZE] ${pathname}: filename="${filename}", isAIGenerated=${isAIGenerated}, keywords match:`, 
           aiKeywords.filter(k => filename.includes(k) || path.includes(k)));
       }
