@@ -107,9 +107,9 @@ module.exports = async (req, res) => {
       }
       
       // 4. WYGENEROWANE (obrazy AI) - sprawdź czy to obraz AI
-      // Słowa kluczowe AI w nazwie pliku
+      // Słowa kluczowe AI w nazwie pliku LUB ścieżce
       const aiKeywords = ['caricature', 'generation', 'boho', 'king', 'koty', 'pixar', 'ai', 'transform', 'style'];
-      const isAIGenerated = aiKeywords.some(keyword => filename.includes(keyword));
+      const isAIGenerated = aiKeywords.some(keyword => filename.includes(keyword) || path.includes(keyword));
       
       // 4.1. Obrazy AI w customify/temp/ → wygenerowane
       if (path.startsWith('customify/temp/') && isAIGenerated) {
