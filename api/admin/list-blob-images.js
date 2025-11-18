@@ -50,7 +50,7 @@ module.exports = async (req, res) => {
       return res.status(429).json({ error: 'Rate limit exceeded' });
     }
 
-    const { prefix, limit = 500, cursor, sortBy = 'date', sortOrder = 'desc', category } = req.query;
+    const { prefix, limit = 1000, cursor, sortBy = 'date', sortOrder = 'desc', category } = req.query;
 
     console.log('📊 [LIST-BLOB-IMAGES] Request params:', { prefix, limit, cursor, sortBy, sortOrder, category });
 
@@ -69,23 +69,13 @@ module.exports = async (req, res) => {
       console.log(`📊 [LIST-BLOB-IMAGES] Last blob: ${blobs.blobs[blobs.blobs.length - 1].pathname || blobs.blobs[blobs.blobs.length - 1].path}`);
     }
 
-    // Kategoryzacja obrazków
+    // Kategoryzacja obrazków - UPROSZCZONA I POPRAWIONA LOGIKA
     const categorizeImage = (blob) => {
-      // Użyj pathname lub path (w zależności od wersji API)
       const pathname = blob.pathname || blob.path || '';
       const path = pathname.toLowerCase();
-      const name = pathname.toLowerCase();
       const isJson = pathname.toLowerCase().endsWith('.json');
       
-      // 0. Statystyki - TYLKO pliki JSON z customify/system/stats/ lub customify/statystyki/
-      if (isJson && (
-        path.startsWith('customify/system/stats/') ||
-        path.startsWith('customify/statystyki/')
-      )) {
-        return 'statystyki';
-      }
-      
-      // 0.1. Pliki wewnętrzne (inne logi) - ukryj je w panelu
+      // 0. UKRYJ pliki wewnętrzne/logi (nie pokazuj w panelu)
       if (
         path.startsWith('customify/internal/') ||
         (path.startsWith('customify/stats/') && !path.startsWith('customify/system/stats/')) ||
@@ -94,22 +84,27 @@ module.exports = async (req, res) => {
         return null;
       }
       
-      // 1. Koszyki - zawiera "watermark" w nazwie (najpierw - ma priorytet)
-      if (name.includes('watermark')) {
+      // 1. STATYSTYKI - TYLKO pliki JSON z customify/system/stats/generations/
+      if (isJson && path.startsWith('customify/system/stats/generations/')) {
+        return 'statystyki';
+      }
+      
+      // 2. KOSZYKI - zawiera "watermark" w ścieżce LUB nazwie (najwyższy priorytet)
+      if (path.includes('watermark')) {
         return 'koszyki';
       }
       
-      // 2. Upload - prefix customify/temp/ i NIE zawiera "ai" w nazwie
-      if (path.startsWith('customify/temp/') && !name.includes('ai')) {
-        return 'upload';
-      }
-      
-      // 3. Orders - prefix customify/orders/ i NIE zawiera "ai" w nazwie
-      if (path.startsWith('customify/orders/') && !name.includes('ai')) {
+      // 3. ORDERS - prefix customify/orders/ (bez watermark)
+      if (path.startsWith('customify/orders/')) {
         return 'orders';
       }
       
-      // 4. Wygenerowane - wszystko inne (w tym obrazki z "ai" w nazwie, nawet jeśli są w temp/orders)
+      // 4. UPLOAD - prefix customify/temp/ (bez watermark, bez orders)
+      if (path.startsWith('customify/temp/')) {
+        return 'upload';
+      }
+      
+      // 5. WYGENEROWANE - wszystko inne (obrazy AI, generacje, itp.)
       return 'wygenerowane';
     };
 

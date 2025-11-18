@@ -370,7 +370,11 @@
     
     <div id="loading" class="loading">Ładowanie obrazków...</div>
     <div id="gallery" class="gallery"></div>
-    <button onclick="loadMore()" id="loadMoreBtn" style="display: none; width: 100%; margin-top: 20px; padding: 15px;">Załaduj więcej</button>
+    <div id="loadMoreIndicator" style="display: none; text-align: center; padding: 20px; color: #666;">
+      <div style="display: inline-block; padding: 10px 20px; background: #f5f5f5; border-radius: 6px;">
+        ⏳ Ładowanie więcej obrazków...
+      </div>
+    </div>
     </div>
   </div>
   
@@ -478,7 +482,7 @@
     async function loadImages(reset = true) {
       if (!AUTH_TOKEN) {
         document.getElementById('errorContainer').innerHTML = '<div class="error">❌ Brak tokena autoryzacji</div>';
-        return;
+        return Promise.resolve();
       }
       
       if (reset) {
@@ -500,7 +504,7 @@
       const sortOrder = document.getElementById('sortOrder').value;
       
       try {
-        const url = `${API_BASE}/list-blob-images?limit=500&sortBy=${sortBy}&sortOrder=${sortOrder}${category !== 'all' ? '&category=' + category : ''}${currentCursor ? '&cursor=' + encodeURIComponent(currentCursor) : ''}`;
+        const url = `${API_BASE}/list-blob-images?limit=1000&sortBy=${sortBy}&sortOrder=${sortOrder}${category !== 'all' ? '&category=' + category : ''}${currentCursor ? '&cursor=' + encodeURIComponent(currentCursor) : ''}`;
         
         const response = await fetch(url, {
           headers: {
@@ -528,15 +532,25 @@
         // Wyświetl obrazki
         displayImages();
         
-        // Pokaż/ukryj przycisk "Załaduj więcej"
-        document.getElementById('loadMoreBtn').style.display = data.hasMore ? 'block' : 'none';
+        // Ukryj wskaźnik ładowania więcej
+        document.getElementById('loadMoreIndicator').style.display = 'none';
         
         loadingEl.style.display = 'none';
+        
+        // Jeśli jest więcej obrazków, włącz infinite scroll
+        if (data.hasMore) {
+          setupInfiniteScroll();
+        } else {
+          // Usuń listener jeśli nie ma więcej obrazków
+          window.removeEventListener('scroll', handleScroll);
+        }
         
       } catch (error) {
         console.error('Error loading images:', error);
         loadingEl.style.display = 'none';
         errorContainer.innerHTML = `<div class="error"><strong>Błąd:</strong> ${error.message}</div>`;
+        isLoadingMore = false;
+        throw error; // Rzuć błąd żeby .finally() zadziałał
       }
     }
     
@@ -659,12 +673,14 @@
             </div>
           `;
         } else {
-          // Obrazek - normalne wyświetlanie
+          // Obrazek - normalne wyświetlanie z retry logic
           card.innerHTML = `
             <input type="checkbox" class="checkbox" ${isSelected ? 'checked' : ''} 
                    onchange="toggleSelection('${image.url}', ${index})">
             <img src="${image.url}" alt="${image.pathname}" loading="lazy" 
-                 onclick="window.open('${image.url}', '_blank')">
+                 onerror="retryImageLoad(this, '${image.url}', 3)"
+                 onclick="window.open('${image.url}', '_blank')"
+                 style="cursor: pointer;">
             <div class="image-info">
               <span class="category ${image.category}">${image.category}</span>
               <div class="filename">${fileName}</div>
@@ -763,8 +779,63 @@
       loadImages(true);
     }
     
+    let isLoadingMore = false;
+    
     function loadMore() {
-      loadImages(false);
+      if (isLoadingMore || !currentCursor) return;
+      
+      isLoadingMore = true;
+      document.getElementById('loadMoreIndicator').style.display = 'block';
+      
+      loadImages(false).finally(() => {
+        isLoadingMore = false;
+      });
+    }
+    
+    // Infinite scroll - automatyczne ładowanie przy scrollu do dołu
+    function setupInfiniteScroll() {
+      // Usuń poprzednie listenery
+      window.removeEventListener('scroll', handleScroll);
+      
+      // Dodaj nowy listener
+      window.addEventListener('scroll', handleScroll, { passive: true });
+    }
+    
+    function handleScroll() {
+      // Sprawdź czy użytkownik jest blisko dołu strony
+      const scrollPosition = window.innerHeight + window.scrollY;
+      const documentHeight = document.documentElement.scrollHeight;
+      const threshold = 500; // Załaduj gdy jest 500px od dołu
+      
+      if (scrollPosition >= documentHeight - threshold && !isLoadingMore && currentCursor) {
+        loadMore();
+      }
+    }
+    
+    // Retry logic dla obrazków - rozwiązuje problem z ładowaniem
+    function retryImageLoad(imgElement, imageUrl, maxRetries) {
+      if (!imgElement.dataset.retryCount) {
+        imgElement.dataset.retryCount = '0';
+      }
+      
+      const retryCount = parseInt(imgElement.dataset.retryCount, 10);
+      
+      if (retryCount >= maxRetries) {
+        // Po max próbach - pokaż placeholder
+        imgElement.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2Y1ZjVmNSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj7imYQgQmzEhCB3Y3R5dGFuaWE8L3RleHQ+PC9zdmc+';
+        imgElement.alt = 'Błąd ładowania obrazka';
+        imgElement.style.cursor = 'default';
+        imgElement.onclick = null;
+        return;
+      }
+      
+      // Retry z cache busting
+      imgElement.dataset.retryCount = (retryCount + 1).toString();
+      const retryUrl = imageUrl + (imageUrl.includes('?') ? '&' : '?') + '_retry=' + retryCount + '&_t=' + Date.now();
+      
+      setTimeout(() => {
+        imgElement.src = retryUrl;
+      }, 500 * (retryCount + 1)); // Exponential backoff: 500ms, 1000ms, 1500ms
     }
     
     // Event listeners
