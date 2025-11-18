@@ -1838,13 +1838,110 @@ module.exports = async (req, res) => {
           });
           
           if (deleteData.data?.metafieldDelete?.userErrors?.length > 0) {
-            console.error(`❌ [METAFIELD-INCREMENT] Błąd usuwania starego metafield:`, deleteData.data.metafieldDelete.userErrors);
+            console.error(`❌ [METAFIELD-INCREMENT] Błąd usuwania starego metafield:`, {
+              userErrors: deleteData.data.metafieldDelete.userErrors,
+              metafieldId: metafieldId,
+              fullResponse: JSON.stringify(deleteData, null, 2)
+            });
+            // ⚠️ KRYTYCZNE: Jeśli nie można usunąć, nie można też utworzyć nowego jako json
+            // Musimy użyć metafieldDeleteDefinition lub zaktualizować definition
+            throw new Error(`Nie można usunąć starego metafield: ${JSON.stringify(deleteData.data.metafieldDelete.userErrors)}`);
+          } else if (deleteData.errors) {
+            console.error(`❌ [METAFIELD-INCREMENT] GraphQL errors przy usuwaniu:`, deleteData.errors);
+            throw new Error(`GraphQL errors przy usuwaniu: ${JSON.stringify(deleteData.errors)}`);
           } else {
-            console.log(`✅ [METAFIELD-INCREMENT] Stary metafield usunięty pomyślnie`);
+            const deletedId = deleteData.data?.metafieldDelete?.deletedId;
+            if (deletedId) {
+              console.log(`✅ [METAFIELD-INCREMENT] Stary metafield usunięty pomyślnie (id: ${deletedId})`);
+              
+              // ⚠️ KRYTYCZNE: Po usunięciu metafield, musimy zaktualizować definition z number_integer na json
+              // W przeciwnym razie Shopify nie pozwoli utworzyć nowego jako json
+              console.log(`🔄 [METAFIELD-INCREMENT] Aktualizuję metafield definition z number_integer na json...`);
+              
+              // Pobierz definition ID
+              const definitionQuery = `
+                query {
+                  metafieldDefinitions(first: 100, ownerType: CUSTOMER, namespace: "customify", key: "usage_count") {
+                    edges {
+                      node {
+                        id
+                        type {
+                          name
+                        }
+                      }
+                    }
+                  }
+                }
+              `;
+              
+              const definitionResponse = await fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'X-Shopify-Access-Token': accessToken
+                },
+                body: JSON.stringify({ query: definitionQuery })
+              });
+              
+              const definitionData = await definitionResponse.json();
+              const definitionNode = definitionData.data?.metafieldDefinitions?.edges?.[0]?.node;
+              
+              if (definitionNode && definitionNode.type?.name === 'number_integer') {
+                // Zaktualizuj definition z number_integer na json
+                const updateDefinitionMutation = `
+                  mutation UpdateMetafieldDefinition($id: ID!, $definition: MetafieldDefinitionInput!) {
+                    metafieldDefinitionUpdate(id: $id, definition: $definition) {
+                      metafieldDefinition {
+                        id
+                        type {
+                          name
+                        }
+                      }
+                      userErrors {
+                        field
+                        message
+                      }
+                    }
+                  }
+                `;
+                
+                const updateDefinitionResponse = await fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'X-Shopify-Access-Token': accessToken
+                  },
+                  body: JSON.stringify({
+                    query: updateDefinitionMutation,
+                    variables: {
+                      id: definitionNode.id,
+                      definition: {
+                        type: 'json'
+                      }
+                    }
+                  })
+                });
+                
+                const updateDefinitionData = await updateDefinitionResponse.json();
+                if (updateDefinitionData.data?.metafieldDefinitionUpdate?.userErrors?.length > 0) {
+                  console.error(`❌ [METAFIELD-INCREMENT] Błąd aktualizacji definition:`, updateDefinitionData.data.metafieldDefinitionUpdate.userErrors);
+                  // Nie rzucaj błędu - spróbuj utworzyć nowy definition
+                  console.log(`⚠️ [METAFIELD-INCREMENT] Próbuję utworzyć nową definition jako json...`);
+                } else {
+                  console.log(`✅ [METAFIELD-INCREMENT] Definition zaktualizowana na json`);
+                }
+              } else {
+                console.log(`📊 [METAFIELD-INCREMENT] Definition już jest json lub nie znaleziono`);
+              }
+            } else {
+              console.warn(`⚠️ [METAFIELD-INCREMENT] Delete response OK, ale brak deletedId - sprawdzam dalej`);
+            }
           }
         }
 
         // KROK 2: Utwórz/zaktualizuj metafield jako json
+        // ⚠️ UWAGA: Jeśli needsTypeChange było true, metafield został usunięty, więc teraz tworzymy nowy
+        // Jeśli needsTypeChange było false, metafield już jest json, więc tylko aktualizujemy
         const updateMutation = `
           mutation updateCustomerUsage($input: CustomerInput!) {
             customerUpdate(input: $input) {
