@@ -127,42 +127,94 @@ async function segmindCaricature(imageUrl) {
   console.log('🎭 [SEGMIND] Starting caricature generation...');
   console.log('🎭 [SEGMIND] Image URL:', imageUrl);
 
-  try {
-    const response = await fetch('https://api.segmind.com/v1/caricature-style', {
-      method: 'POST',
-      headers: {
-        'x-api-key': SEGMIND_API_KEY,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        image: imageUrl, // Używamy URL (zgodnie z dokumentacją)
-        size: "1024x1536", // PIONOWY PORTRET (2:3 format) - NIE ZMIENIAJ!
-        quality: "medium", // Jakość średnia dla szybszego renderowania
-        background: "opaque", // Zgodnie z dokumentacją
-        output_format: "jpeg", // JPEG zamiast PNG - 80-90% mniejszy rozmiar! (używaj "jpeg" nie "jpg")
-        output_compression: 85 // Kompresja JPEG 85% - dobra jakość, mały rozmiar
-      }),
-    });
+  const maxRetries = 3;
+  const retryDelay = 2000; // 2 sekundy bazowego opóźnienia
+  let lastError;
 
-    if (response.ok) {
-      // Segmind returns JPEG image (binary), not JSON
-      const imageBuffer = await response.arrayBuffer();
-      const base64Image = Buffer.from(imageBuffer).toString('base64');
-      const imageUrl = `data:image/jpeg;base64,${base64Image}`;
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      // Add timeout to prevent hanging requests
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => {
+        console.log(`⏰ [SEGMIND] Request timeout after 120 seconds (attempt ${attempt}/${maxRetries}) - aborting`);
+        controller.abort();
+      }, 120000); // 120 second timeout
+
+      console.log(`🔄 [SEGMIND] Attempt ${attempt}/${maxRetries}...`);
+
+      const response = await fetch('https://api.segmind.com/v1/caricature-style', {
+        method: 'POST',
+        headers: {
+          'x-api-key': SEGMIND_API_KEY,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          image: imageUrl, // Używamy URL (zgodnie z dokumentacją)
+          size: "1024x1536", // PIONOWY PORTRET (2:3 format) - NIE ZMIENIAJ!
+          quality: "medium", // Jakość średnia dla szybszego renderowania
+          background: "opaque", // Zgodnie z dokumentacją
+          output_format: "jpeg", // JPEG zamiast PNG - 80-90% mniejszy rozmiar! (używaj "jpeg" nie "jpg")
+          output_compression: 85 // Kompresja JPEG 85% - dobra jakość, mały rozmiar
+        }),
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
+      if (response.ok) {
+        // Segmind returns JPEG image (binary), not JSON
+        const imageBuffer = await response.arrayBuffer();
+        const base64Image = Buffer.from(imageBuffer).toString('base64');
+        const imageUrl = `data:image/jpeg;base64,${base64Image}`;
+        
+        const sizeMB = (imageBuffer.byteLength / 1024 / 1024).toFixed(2);
+        console.log(`✅ [SEGMIND] Caricature generated successfully - size: ${sizeMB} MB (attempt ${attempt})`);
+        return { image: imageUrl, output: imageUrl, url: imageUrl };
+      } else {
+        const errorText = await response.text();
+        const status = response.status;
+        
+        // Retry only for server errors (5xx) and 502 Bad Gateway
+        const isRetryable = status >= 500 || status === 502;
+        
+        if (isRetryable && attempt < maxRetries) {
+          const delay = retryDelay * Math.pow(2, attempt - 1); // Exponential backoff: 2s, 4s, 8s
+          console.warn(`⚠️ [SEGMIND] Server error ${status} (attempt ${attempt}/${maxRetries}) - retrying in ${delay}ms...`);
+          console.warn(`⚠️ [SEGMIND] Error details:`, errorText.substring(0, 200));
+          lastError = new Error(`Segmind API error: ${status} - ${errorText}`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          continue; // Retry
+        } else {
+          // Non-retryable error or max retries reached
+          console.error('❌ [SEGMIND] API Error:', status);
+          console.error('❌ [SEGMIND] Error details:', errorText);
+          throw new Error(`Segmind API error: ${status} - ${errorText}`);
+        }
+      }
+    } catch (error) {
+      // Network errors or aborted requests - retry if not max attempts
+      if (error.name === 'AbortError' || (error.message && error.message.includes('fetch'))) {
+        if (attempt < maxRetries) {
+          const delay = retryDelay * Math.pow(2, attempt - 1);
+          console.warn(`⚠️ [SEGMIND] Network error (attempt ${attempt}/${maxRetries}) - retrying in ${delay}ms...`);
+          lastError = error;
+          await new Promise(resolve => setTimeout(resolve, delay));
+          continue; // Retry
+        }
+      }
       
-      const sizeMB = (imageBuffer.byteLength / 1024 / 1024).toFixed(2);
-      console.log(`✅ [SEGMIND] Caricature generated successfully - size: ${sizeMB} MB`);
-      return { image: imageUrl, output: imageUrl, url: imageUrl };
-    } else {
-      console.error('❌ [SEGMIND] API Error:', response.status);
-      const errorText = await response.text();
-      console.error('❌ [SEGMIND] Error details:', errorText);
-      throw new Error(`Segmind API error: ${response.status} - ${errorText}`);
+      // If it's the last attempt or non-retryable error, throw
+      if (attempt === maxRetries) {
+        console.error('❌ [SEGMIND] Caricature generation failed after all retries:', error);
+        throw lastError || error;
+      }
+      
+      lastError = error;
     }
-  } catch (error) {
-    console.error('❌ [SEGMIND] Caricature generation failed:', error);
-    throw error;
   }
+
+  // Should never reach here, but just in case
+  throw lastError || new Error('Segmind caricature generation failed after all retries');
 }
 
 // Function to handle Segmind Faceswap v4
@@ -217,49 +269,96 @@ async function segmindFaceswap(targetImageUrl, swapImageBase64) {
 
   console.log('📋 [SEGMIND] Request body keys:', Object.keys(requestBody));
 
-  // Add timeout to prevent 504 errors
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => {
-    console.log('⏰ [SEGMIND] Request timeout after 240 seconds - aborting');
-    controller.abort();
-  }, 240000); // 240 second timeout (Vercel Pro limit is 300s)
-  
-  const response = await fetch('https://api.segmind.com/v1/faceswap-v4', {
-    method: 'POST',
-    headers: {
-      'x-api-key': SEGMIND_API_KEY,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(requestBody),
-    signal: controller.signal
-  });
-  
-  clearTimeout(timeoutId);
+  const maxRetries = 3;
+  const retryDelay = 2000; // 2 sekundy bazowego opóźnienia
+  let lastError;
 
-  console.log('📡 [SEGMIND] Response status:', response.status);
-  console.log('📡 [SEGMIND] Response headers:', Object.fromEntries(response.headers.entries()));
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      // Add timeout to prevent 504 errors
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => {
+        console.log(`⏰ [SEGMIND] Request timeout after 240 seconds (attempt ${attempt}/${maxRetries}) - aborting`);
+        controller.abort();
+      }, 240000); // 240 second timeout (Vercel Pro limit is 300s)
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error('❌ [SEGMIND] Face-swap failed:', response.status, errorText);
-    throw new Error(`Segmind face-swap failed: ${response.status} - ${errorText}`);
+      console.log(`🔄 [SEGMIND] Attempt ${attempt}/${maxRetries}...`);
+      
+      const response = await fetch('https://api.segmind.com/v1/faceswap-v4', {
+        method: 'POST',
+        headers: {
+          'x-api-key': SEGMIND_API_KEY,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestBody),
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+
+      console.log('📡 [SEGMIND] Response status:', response.status);
+      console.log('📡 [SEGMIND] Response headers:', Object.fromEntries(response.headers.entries()));
+
+      if (response.ok) {
+        // Segmind zwraca JSON z kluczem "image"
+        const resultJson = await response.json();
+        console.log(`✅ [SEGMIND] Face-swap completed! Response:`, Object.keys(resultJson), `(attempt ${attempt})`);
+        
+        const resultBase64 = resultJson.image;
+        if (!resultBase64) {
+          console.error('❌ [SEGMIND] No image in response:', resultJson);
+          throw new Error('Segmind response missing image field');
+        }
+        
+        console.log('✅ [SEGMIND] Extracted base64, length:', resultBase64.length, 'chars');
+        console.log('🔍 [SEGMIND] Base64 preview (first 50 chars):', resultBase64.substring(0, 50));
+        
+        // Return as data URI for consistency
+        return `data:image/jpeg;base64,${resultBase64}`;
+      } else {
+        const errorText = await response.text();
+        const status = response.status;
+        
+        // Retry only for server errors (5xx) and 502 Bad Gateway
+        const isRetryable = status >= 500 || status === 502;
+        
+        if (isRetryable && attempt < maxRetries) {
+          const delay = retryDelay * Math.pow(2, attempt - 1); // Exponential backoff: 2s, 4s, 8s
+          console.warn(`⚠️ [SEGMIND] Server error ${status} (attempt ${attempt}/${maxRetries}) - retrying in ${delay}ms...`);
+          console.warn(`⚠️ [SEGMIND] Error details:`, errorText.substring(0, 200));
+          lastError = new Error(`Segmind face-swap failed: ${status} - ${errorText}`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          continue; // Retry
+        } else {
+          // Non-retryable error or max retries reached
+          console.error('❌ [SEGMIND] Face-swap failed:', status, errorText);
+          throw new Error(`Segmind face-swap failed: ${status} - ${errorText}`);
+        }
+      }
+    } catch (error) {
+      // Network errors or aborted requests - retry if not max attempts
+      if (error.name === 'AbortError' || (error.message && error.message.includes('fetch'))) {
+        if (attempt < maxRetries) {
+          const delay = retryDelay * Math.pow(2, attempt - 1);
+          console.warn(`⚠️ [SEGMIND] Network error (attempt ${attempt}/${maxRetries}) - retrying in ${delay}ms...`);
+          lastError = error;
+          await new Promise(resolve => setTimeout(resolve, delay));
+          continue; // Retry
+        }
+      }
+      
+      // If it's the last attempt or non-retryable error, throw
+      if (attempt === maxRetries) {
+        console.error('❌ [SEGMIND] Face-swap failed after all retries:', error);
+        throw lastError || error;
+      }
+      
+      lastError = error;
+    }
   }
 
-  // Segmind zwraca JSON z kluczem "image"
-  const resultJson = await response.json();
-  console.log('✅ [SEGMIND] Face-swap completed! Response:', Object.keys(resultJson));
-  
-  const resultBase64 = resultJson.image;
-  if (!resultBase64) {
-    console.error('❌ [SEGMIND] No image in response:', resultJson);
-    throw new Error('Segmind response missing image field');
-  }
-  
-  console.log('✅ [SEGMIND] Extracted base64, length:', resultBase64.length, 'chars');
-  console.log('🔍 [SEGMIND] Base64 preview (first 50 chars):', resultBase64.substring(0, 50));
-  
-  // Return as data URI for consistency
-  return `data:image/jpeg;base64,${resultBase64}`;
+  // Should never reach here, but just in case
+  throw lastError || new Error('Segmind face-swap failed after all retries');
 }
 
 // Function to handle Segmind Become-Image (Watercolor style)
@@ -300,76 +399,126 @@ async function segmindBecomeImage(imageUrl, styleImageUrl, styleParameters = {})
     disable_safety_checker
   });
 
-  try {
-    let styleImagePayload = styleImageUrl;
-
-    if (styleImageUrl && typeof styleImageUrl === 'string' && styleImageUrl.startsWith('http')) {
-      console.log('🎨 [SEGMIND] Using provided style image URL without modifications');
-      styleImagePayload = styleImageUrl;
-    } else {
-      console.warn('⚠️ [SEGMIND] Style image URL is not an absolute URL - passing as-is');
-    }
-
-    const response = await fetch('https://api.segmind.com/v1/become-image', {
-      method: 'POST',
-      headers: {
-        'x-api-key': SEGMIND_API_KEY,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        image: imageUrl,              // URL zdjęcia użytkownika
-        image_to_become: styleImagePayload, // Obraz stylu (base64 lub URL)
-        prompt,
-        prompt_strength,
-        number_of_images,
-        denoising_strength,
-        instant_id_strength,
-        image_to_become_strength,
-        image_to_become_noise,
-        control_depth_strength,
-        disable_safety_checker
-      }),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('❌ [SEGMIND] API Error:', response.status);
-      console.error('❌ [SEGMIND] Error details:', errorText);
-      throw new Error(`Segmind API error: ${response.status} - ${errorText}`);
-    }
-
-    const contentType = response.headers.get('content-type') || '';
-    console.log('📦 [SEGMIND] Response content-type:', contentType);
-
-    if (contentType.includes('application/json')) {
-      const result = await response.json();
-      console.log('✅ [SEGMIND] Become-image completed successfully (JSON)');
-      console.log('📋 [SEGMIND] Response keys:', Object.keys(result));
-      
-      if (result.image) {
-        return result.image;
-      } else if (result.images && Array.isArray(result.images) && result.images.length > 0) {
-        return result.images[0];
-      } else if (result.output) {
-        return result.output;
-      } else {
-        console.error('❌ [SEGMIND] No image in JSON response:', result);
-        throw new Error('No image in Segmind JSON response');
-      }
-    }
-
-    // Binary response (image/png, image/jpeg, etc.)
-    console.log('🖼️ [SEGMIND] Binary response detected, converting to data URI');
-    const imageBuffer = await response.arrayBuffer();
-    const base64Image = Buffer.from(imageBuffer).toString('base64');
-    const mimeType = contentType || 'image/png';
-    const dataUri = `data:${mimeType};base64,${base64Image}`;
-    return dataUri;
-    
-  } catch (error) {
-    console.error('❌ [SEGMIND] Become-image failed:', error);
-    throw error;
+  let styleImagePayload = styleImageUrl;
+  if (styleImageUrl && typeof styleImageUrl === 'string' && styleImageUrl.startsWith('http')) {
+    console.log('🎨 [SEGMIND] Using provided style image URL without modifications');
+    styleImagePayload = styleImageUrl;
+  } else {
+    console.warn('⚠️ [SEGMIND] Style image URL is not an absolute URL - passing as-is');
   }
+
+  const maxRetries = 3;
+  const retryDelay = 2000; // 2 sekundy bazowego opóźnienia
+  let lastError;
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      // Add timeout to prevent hanging requests
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => {
+        console.log(`⏰ [SEGMIND] Request timeout after 120 seconds (attempt ${attempt}/${maxRetries}) - aborting`);
+        controller.abort();
+      }, 120000); // 120 second timeout
+
+      console.log(`🔄 [SEGMIND] Attempt ${attempt}/${maxRetries}...`);
+
+      const response = await fetch('https://api.segmind.com/v1/become-image', {
+        method: 'POST',
+        headers: {
+          'x-api-key': SEGMIND_API_KEY,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          image: imageUrl,              // URL zdjęcia użytkownika
+          image_to_become: styleImagePayload, // Obraz stylu (base64 lub URL)
+          prompt,
+          prompt_strength,
+          number_of_images,
+          denoising_strength,
+          instant_id_strength,
+          image_to_become_strength,
+          image_to_become_noise,
+          control_depth_strength,
+          disable_safety_checker
+        }),
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
+      if (response.ok) {
+        const contentType = response.headers.get('content-type') || '';
+        console.log('📦 [SEGMIND] Response content-type:', contentType);
+
+        if (contentType.includes('application/json')) {
+          const result = await response.json();
+          console.log(`✅ [SEGMIND] Become-image completed successfully (JSON) (attempt ${attempt})`);
+          console.log('📋 [SEGMIND] Response keys:', Object.keys(result));
+          
+          if (result.image) {
+            return result.image;
+          } else if (result.images && Array.isArray(result.images) && result.images.length > 0) {
+            return result.images[0];
+          } else if (result.output) {
+            return result.output;
+          } else {
+            console.error('❌ [SEGMIND] No image in JSON response:', result);
+            throw new Error('No image in Segmind JSON response');
+          }
+        }
+
+        // Binary response (image/png, image/jpeg, etc.)
+        console.log('🖼️ [SEGMIND] Binary response detected, converting to data URI');
+        const imageBuffer = await response.arrayBuffer();
+        const base64Image = Buffer.from(imageBuffer).toString('base64');
+        const mimeType = contentType || 'image/png';
+        const dataUri = `data:${mimeType};base64,${base64Image}`;
+        return dataUri;
+      } else {
+        const errorText = await response.text();
+        const status = response.status;
+        
+        // Retry only for server errors (5xx) and 502 Bad Gateway
+        const isRetryable = status >= 500 || status === 502;
+        
+        if (isRetryable && attempt < maxRetries) {
+          const delay = retryDelay * Math.pow(2, attempt - 1); // Exponential backoff: 2s, 4s, 8s
+          console.warn(`⚠️ [SEGMIND] Server error ${status} (attempt ${attempt}/${maxRetries}) - retrying in ${delay}ms...`);
+          console.warn(`⚠️ [SEGMIND] Error details:`, errorText.substring(0, 200));
+          lastError = new Error(`Segmind API error: ${status} - ${errorText}`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          continue; // Retry
+        } else {
+          // Non-retryable error or max retries reached
+          console.error('❌ [SEGMIND] API Error:', status);
+          console.error('❌ [SEGMIND] Error details:', errorText);
+          throw new Error(`Segmind API error: ${status} - ${errorText}`);
+        }
+      }
+    } catch (error) {
+      // Network errors or aborted requests - retry if not max attempts
+      if (error.name === 'AbortError' || (error.message && error.message.includes('fetch'))) {
+        if (attempt < maxRetries) {
+          const delay = retryDelay * Math.pow(2, attempt - 1);
+          console.warn(`⚠️ [SEGMIND] Network error (attempt ${attempt}/${maxRetries}) - retrying in ${delay}ms...`);
+          lastError = error;
+          await new Promise(resolve => setTimeout(resolve, delay));
+          continue; // Retry
+        }
+      }
+      
+      // If it's the last attempt or non-retryable error, throw
+      if (attempt === maxRetries) {
+        console.error('❌ [SEGMIND] Become-image failed after all retries:', error);
+        throw lastError || error;
+      }
+      
+      lastError = error;
+    }
+  }
+
+  // Should never reach here, but just in case
+  throw lastError || new Error('Segmind become-image failed after all retries');
 }
 
 // Function to compress and resize images for SDXL models
