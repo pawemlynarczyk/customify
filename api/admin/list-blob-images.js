@@ -259,8 +259,34 @@ module.exports = async (req, res) => {
     // Sortowanie
     if (sortBy === 'date') {
       categorizedBlobs.sort((a, b) => {
-        const dateA = new Date(a.uploadedAt).getTime();
-        const dateB = new Date(b.uploadedAt).getTime();
+        // Funkcja pomocnicza do bezpiecznego parsowania daty
+        const getDate = (blob) => {
+          // Najpierw sprawdź uploadedAt
+          if (blob.uploadedAt) {
+            const date = new Date(blob.uploadedAt);
+            if (!isNaN(date.getTime())) {
+              return date.getTime();
+            }
+          }
+          // Potem sprawdź createdAt
+          if (blob.createdAt) {
+            const date = new Date(blob.createdAt);
+            if (!isNaN(date.getTime())) {
+              return date.getTime();
+            }
+          }
+          // Spróbuj wyciągnąć timestamp z nazwy pliku
+          const pathname = blob.pathname || blob.path || '';
+          const timestampMatch = pathname.match(/\d{13}/);
+          if (timestampMatch) {
+            return parseInt(timestampMatch[0]);
+          }
+          // Fallback - bardzo stara data (będzie na końcu przy sortowaniu desc)
+          return 0;
+        };
+        
+        const dateA = getDate(a);
+        const dateB = getDate(b);
         return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
       });
     } else if (sortBy === 'name') {
