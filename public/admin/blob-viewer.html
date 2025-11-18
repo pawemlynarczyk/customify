@@ -504,8 +504,8 @@
       
       // ⚠️ NIE FILTRUJ PO KATEGORII W API - pobierz WSZYSTKIE obrazy, filtrowanie po stronie klienta
       try {
-        // Zwiększ limit do 5000 żeby pokazać więcej najnowszych obrazków
-        const url = `${API_BASE}/list-blob-images?limit=5000&sortBy=${sortBy}&sortOrder=${sortOrder}${currentCursor ? '&cursor=' + encodeURIComponent(currentCursor) : ''}`;
+        // Backend pobiera wszystkie pliki (bez limitu) i sortuje po stronie serwera
+        const url = `${API_BASE}/list-blob-images?sortBy=${sortBy}&sortOrder=${sortOrder}${currentCursor ? '&cursor=' + encodeURIComponent(currentCursor) : ''}`;
         
         const response = await fetch(url, {
           headers: {

@@ -55,13 +55,37 @@ module.exports = async (req, res) => {
 
     console.log('📊 [LIST-BLOB-IMAGES] Request params:', { prefix, limit, cursor, sortBy, sortOrder, category });
 
-    // List all blobs (bez prefixu - pobierz wszystko)
-    const blobs = await list({
-      prefix: prefix || undefined,
-      limit: parseInt(limit),
-      cursor: cursor || undefined,
-      token: process.env.customify_READ_WRITE_TOKEN
-    });
+    // ⚠️ KRYTYCZNE: Pobierz WSZYSTKIE bloby bez limitu, żeby sortowanie działało poprawnie
+    // Vercel Blob list() zwraca bloby w kolejności alfabetycznej, nie po dacie
+    // Musimy pobrać wszystko i posortować po stronie serwera
+    const allBlobs = [];
+    let nextCursor = cursor || undefined;
+    let fetchedCount = 0;
+    const maxFetch = 20000; // Maksymalnie 20k plików (bezpieczeństwo)
+    
+    // Pobieraj wszystkie strony (pagination)
+    do {
+      const blobsBatch = await list({
+        prefix: prefix || undefined,
+        limit: 1000, // Pobieraj po 1000 na raz
+        cursor: nextCursor,
+        token: process.env.customify_READ_WRITE_TOKEN
+      });
+      
+      allBlobs.push(...blobsBatch.blobs);
+      fetchedCount += blobsBatch.blobs.length;
+      nextCursor = blobsBatch.cursor;
+      
+      console.log(`📊 [LIST-BLOB-IMAGES] Fetched ${fetchedCount} blobs so far, has more: ${!!nextCursor}`);
+      
+      // Bezpieczeństwo: zatrzymaj jeśli za dużo
+      if (fetchedCount >= maxFetch) {
+        console.warn(`⚠️ [LIST-BLOB-IMAGES] Reached max fetch limit: ${maxFetch}`);
+        break;
+      }
+    } while (nextCursor);
+    
+    const blobs = { blobs: allBlobs, cursor: nextCursor };
 
     console.log(`📊 [LIST-BLOB-IMAGES] Found ${blobs.blobs.length} blobs from Vercel Blob API`);
     console.log(`📊 [LIST-BLOB-IMAGES] Has cursor (more pages): ${!!blobs.cursor}`);
