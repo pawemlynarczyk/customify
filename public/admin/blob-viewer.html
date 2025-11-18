@@ -622,19 +622,24 @@
           }
           
           if (dateTo) {
-            const toDate = new Date(dateTo + 'T23:59:59');
+            const toDate = new Date(dateTo + 'T00:00:00');
             if (isNaN(toDate.getTime())) {
               console.error('❌ [FILTER] Invalid dateTo:', dateTo);
               filteredCount++;
               return true; // Jeśli data jest niepoprawna, pokaż obraz
             }
+            // Ustaw na koniec dnia (23:59:59.999)
             toDate.setHours(23, 59, 59, 999);
             
-            if (imageDate > toDate) {
+            // Porównaj tylko daty (bez czasu) - jeśli imageDate jest tego samego dnia lub wcześniej, OK
+            const imageDateOnly = new Date(imageDate.getFullYear(), imageDate.getMonth(), imageDate.getDate());
+            const toDateOnly = new Date(toDate.getFullYear(), toDate.getMonth(), toDate.getDate());
+            
+            if (imageDateOnly > toDateOnly) {
               rejectedCount++;
               rejectedReasons['after_to'] = (rejectedReasons['after_to'] || 0) + 1;
               if (rejectedCount <= 5) {
-                console.log(`❌ [FILTER] Rejected (after toDate): ${image.pathname}, imageDate=${imageDate.toISOString().split('T')[0]}, toDate=${toDate.toISOString().split('T')[0]}`);
+                console.log(`❌ [FILTER] Rejected (after toDate): ${image.pathname}, imageDate=${imageDateOnly.toISOString().split('T')[0]}, toDate=${toDateOnly.toISOString().split('T')[0]}`);
               }
               return false;
             }
