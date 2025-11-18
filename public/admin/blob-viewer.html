@@ -525,13 +525,24 @@
         // Dodaj nowe obrazki do listy (WSZYSTKIE kategorie)
         allImages = reset ? data.images : [...allImages, ...data.images];
         
-        // Debug: sprawdź pierwsze obrazy
+        // Debug: sprawdź pierwsze obrazy i kategorie
         if (reset && allImages.length > 0) {
-          console.log('🔍 [LOAD] First 5 images:', allImages.slice(0, 5).map(img => ({
+          console.log('🔍 [LOAD] First 10 images with categories:', allImages.slice(0, 10).map(img => ({
             pathname: img.pathname,
             category: img.category,
             uploadedAt: img.uploadedAt,
-            hasUploadedAt: !!img.uploadedAt
+            hasCategory: !!img.category
+          })));
+          
+          // Sprawdź ile obrazków ma kategorię "wygenerowane"
+          const wygenerowaneCount = allImages.filter(img => img.category === 'wygenerowane').length;
+          console.log(`🔍 [LOAD] Images with category "wygenerowane": ${wygenerowaneCount} / ${allImages.length}`);
+          
+          // Pokaż przykładowe obrazy z temp/ które powinny być "wygenerowane"
+          const tempImages = allImages.filter(img => img.pathname && img.pathname.includes('temp/'));
+          console.log(`🔍 [LOAD] Temp images (${tempImages.length}):`, tempImages.slice(0, 5).map(img => ({
+            pathname: img.pathname,
+            category: img.category
           })));
         }
         currentCursor = data.cursor;
@@ -715,15 +726,36 @@
       // 1. Filtruj po kategorii NAJPIERW
       if (category !== 'all') {
         const beforeCategoryFilter = filteredImages.length;
+        
+        // Debug: sprawdź kategorie przed filtrowaniem
+        const categoryCounts = {};
+        filteredImages.forEach(img => {
+          const cat = img.category || 'NO_CATEGORY';
+          categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
+        });
+        console.log(`🔍 [CATEGORY-FILTER] Category counts before filter:`, categoryCounts);
+        
         filteredImages = filteredImages.filter(img => {
           const matches = img.category === category;
-          // Debug dla pierwszych 5 obrazków
-          if (allImages.indexOf(img) < 5) {
-            console.log(`🔍 [CATEGORY-FILTER] ${img.pathname}: category="${img.category}" matches="${category}"? ${matches}`);
+          // Debug dla obrazków które powinny pasować ale nie pasują
+          if (category === 'wygenerowane' && img.pathname && img.pathname.includes('temp/') && (img.pathname.includes('caricature') || img.pathname.includes('generation') || img.pathname.includes('ai-'))) {
+            console.log(`⚠️ [CATEGORY-FILTER] Should match "wygenerowane": ${img.pathname}, category="${img.category}", matches=${matches}`);
           }
           return matches;
         });
         console.log(`🔍 [DISPLAY] Category filter "${category}": ${beforeCategoryFilter} → ${filteredImages.length}`);
+        
+        // Jeśli 0 obrazków, pokaż przykładowe które powinny pasować
+        if (filteredImages.length === 0 && category === 'wygenerowane') {
+          const shouldMatch = allImages.filter(img => 
+            img.pathname && img.pathname.includes('temp/') && 
+            (img.pathname.includes('caricature') || img.pathname.includes('generation') || img.pathname.includes('ai-'))
+          );
+          console.log(`⚠️ [CATEGORY-FILTER] Found ${shouldMatch.length} images that SHOULD match "wygenerowane":`, shouldMatch.slice(0, 5).map(img => ({
+            pathname: img.pathname,
+            category: img.category
+          })));
+        }
       }
       
       // 2. Filtruj po datach PO kategorii
