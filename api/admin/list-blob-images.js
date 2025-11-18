@@ -144,9 +144,8 @@ module.exports = async (req, res) => {
         // WYGENEROWANE - obrazy AI (wynik transformacji)
         // ═══════════════════════════════════════════════════════════════════════
         // Format: ai-{numer}.jpg.jpg (z podwójnym rozszerzeniem - błąd w nazwie)
-        // Format: generation-{numer}.jpg (Replicate, Segmind base64)
-        // Format: caricature-{numer}.jpg (Segmind caricature)
-        // Format: watercolor-{numer}.jpg (watercolor)
+        // Format: generation-{numer}.jpg (Replicate, Segmind base64 - WYNIK transformacji)
+        // Format: watercolor-{numer}.jpg (watercolor - WYNIK transformacji)
         // ═══════════════════════════════════════════════════════════════════════
         
         // WYGENEROWANE: Zaczyna się od "ai-" (nawet z podwójnym rozszerzeniem!)
@@ -155,8 +154,8 @@ module.exports = async (req, res) => {
           return 'wygenerowane';
         }
         
-        // WYGENEROWANE: Zaczyna się od "generation-", "caricature-", "watercolor-"
-        if (filename.startsWith('generation-') || filename.startsWith('caricature-') || filename.startsWith('watercolor-')) {
+        // WYGENEROWANE: Zaczyna się od "generation-", "watercolor-" (WYNIK transformacji)
+        if (filename.startsWith('generation-') || filename.startsWith('watercolor-')) {
           console.log(`✅ [CATEGORIZE] ${pathname}: AI generation file → wygenerowane`);
           return 'wygenerowane';
         }
@@ -165,12 +164,19 @@ module.exports = async (req, res) => {
         // UPLOAD - oryginalne zdjęcia użytkownika (przed transformacją)
         // ═══════════════════════════════════════════════════════════════════════
         // Format: image-{numer}.jpg (domyślna nazwa z upload-temp-image.js)
+        // Format: caricature-{numer}.jpg (oryginalne zdjęcie przed Segmind caricature)
         // Format: {dowolna-nazwa}.jpg.jpg (podwójne rozszerzenie BEZ prefiksu "ai-")
         // ═══════════════════════════════════════════════════════════════════════
         
         // UPLOAD: Zaczyna się od "image-" (domyślna nazwa z upload-temp-image.js)
         if (filename.startsWith('image-')) {
           console.log(`📤 [CATEGORIZE] ${pathname}: Starts with "image-" → upload`);
+          return 'upload';
+        }
+        
+        // UPLOAD: Zaczyna się od "caricature-" (oryginalne zdjęcie przed transformacją Segmind)
+        if (filename.startsWith('caricature-')) {
+          console.log(`📤 [CATEGORIZE] ${pathname}: Starts with "caricature-" → upload (original image)`);
           return 'upload';
         }
         
@@ -188,9 +194,9 @@ module.exports = async (req, res) => {
       // ────────────────────────────────────────────────────────────────────────
       // 5. WYGENEROWANE - obrazy AI poza temp/ (z prefiksami AI)
       // ────────────────────────────────────────────────────────────────────────
-      // Sprawdź czy zaczyna się od prefiksów AI (generation-, caricature-, ai-, watercolor-)
-      if (filename.startsWith('generation-') || filename.startsWith('caricature-') || 
-          filename.startsWith('ai-') || filename.startsWith('watercolor-')) {
+      // Sprawdź czy zaczyna się od prefiksów AI (generation-, ai-, watercolor-)
+      // UWAGA: caricature- to UPLOAD (oryginalne zdjęcie przed transformacją), nie wygenerowane!
+      if (filename.startsWith('generation-') || filename.startsWith('ai-') || filename.startsWith('watercolor-')) {
         return 'wygenerowane';
       }
       
