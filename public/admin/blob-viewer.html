@@ -765,6 +765,27 @@
       const beforeDateFilter = filteredImages.length;
       filteredImages = filterByDate(filteredImages);
       
+      // 3. SORTOWANIE - upewnij się że najnowsze są na górze!
+      // API już sortuje, ale na wszelki wypadek posortuj jeszcze raz po stronie klienta
+      const sortBy = document.getElementById('sortBy').value;
+      const sortOrder = document.getElementById('sortOrder').value;
+      
+      if (sortBy === 'date') {
+        filteredImages.sort((a, b) => {
+          const dateA = new Date(a.uploadedAt || 0).getTime();
+          const dateB = new Date(b.uploadedAt || 0).getTime();
+          return sortOrder === 'asc' ? dateA - dateB : dateB - dateA; // desc = najnowsze na początku
+        });
+      } else if (sortBy === 'name') {
+        filteredImages.sort((a, b) => {
+          const nameA = (a.pathname || '').toLowerCase();
+          const nameB = (b.pathname || '').toLowerCase();
+          return sortOrder === 'asc' 
+            ? nameA.localeCompare(nameB)
+            : nameB.localeCompare(nameA);
+        });
+      }
+      
       // Debug logging
       if (dateFrom || dateTo || category !== 'all') {
         console.log('🔍 [DISPLAY] Filter summary:', {
