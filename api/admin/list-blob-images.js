@@ -186,8 +186,10 @@ module.exports = async (req, res) => {
           return 'upload';
         }
         
-        // Fallback → upload (nieznany format = prawdopodobnie oryginalne zdjęcie)
-        console.log(`📤 [CATEGORIZE] ${pathname}: Unknown format → upload (fallback)`);
+        // Fallback → upload (nieznany format = prawdopodobnie oryginalne zdjęcie użytkownika)
+        // UWAGA: Jeśli nie ma żadnego z prefiksów AI (ai-, generation-, watercolor-), 
+        // to prawdopodobnie jest to oryginalne zdjęcie użytkownika (upload)
+        console.log(`📤 [CATEGORIZE] ${pathname}: Unknown format (no AI prefix) → upload (fallback)`);
         return 'upload';
       }
       
@@ -201,9 +203,11 @@ module.exports = async (req, res) => {
       }
       
       // ────────────────────────────────────────────────────────────────────────
-      // 6. FALLBACK - wszystko inne → wygenerowane (może być obraz AI w innych lokalizacjach)
+      // 6. FALLBACK - wszystko inne → upload (prawdopodobnie oryginalne zdjęcie)
       // ────────────────────────────────────────────────────────────────────────
-      return 'wygenerowane';
+      // UWAGA: Jeśli nie ma żadnego z prefiksów AI, to prawdopodobnie jest to upload
+      // (oryginalne zdjęcie użytkownika przed transformacją)
+      return 'upload';
     };
 
     // Kategoryzuj wszystkie obrazki
