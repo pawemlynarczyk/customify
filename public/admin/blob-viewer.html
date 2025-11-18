@@ -587,6 +587,10 @@
               return true; // Jeśli data jest niepoprawna, pokaż obraz
             }
             fromDate.setHours(0, 0, 0, 0);
+            // Debug dla pierwszych 3 obrazków
+            if (images.indexOf(image) < 3) {
+              console.log(`🔍 [FILTER] Comparing: imageDate=${imageDate.toISOString()} vs fromDate=${fromDate.toISOString()}, result=${imageDate >= fromDate}`);
+            }
             if (imageDate < fromDate) return false;
           }
           
@@ -597,6 +601,10 @@
               return true; // Jeśli data jest niepoprawna, pokaż obraz
             }
             toDate.setHours(23, 59, 59, 999);
+            // Debug dla pierwszych 3 obrazków
+            if (images.indexOf(image) < 3) {
+              console.log(`🔍 [FILTER] Comparing: imageDate=${imageDate.toISOString()} vs toDate=${toDate.toISOString()}, result=${imageDate <= toDate}`);
+            }
             if (imageDate > toDate) return false;
           }
           
@@ -648,20 +656,22 @@
       const category = document.getElementById('categoryFilter').value;
       let filteredImages = filterByDate(allImages);
       
-      // Debug logging dla pierwszych 5 obrazków po filtrowaniu datą
+      // Debug logging dla filtrowania datą
       const dateFrom = document.getElementById('dateFrom').value;
       const dateTo = document.getElementById('dateTo').value;
-      if ((dateFrom || dateTo) && filteredImages.length > 0 && filteredImages.length <= 5) {
-        console.log('🔍 [DISPLAY] After date filter:', {
+      if (dateFrom || dateTo) {
+        console.log('🔍 [DISPLAY] Date filter debug:', {
           totalBefore: allImages.length,
           totalAfter: filteredImages.length,
           dateFrom: dateFrom,
           dateTo: dateTo,
-          firstImage: filteredImages[0] ? {
-            pathname: filteredImages[0].pathname,
-            uploadedAt: filteredImages[0].uploadedAt,
-            category: filteredImages[0].category
-          } : null
+          category: category,
+          sampleImages: allImages.slice(0, 5).map(img => ({
+            pathname: img.pathname,
+            uploadedAt: img.uploadedAt,
+            category: img.category,
+            dateParsed: img.uploadedAt ? new Date(img.uploadedAt).toISOString().split('T')[0] : 'NO DATE'
+          }))
         });
       }
       
