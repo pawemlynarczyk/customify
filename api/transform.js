@@ -1819,13 +1819,20 @@ module.exports = async (req, res) => {
       
       try {
         // Pobierz obecną wartość (namespace: customify, key: usage_count)
+        // ⚠️ Używam metafields (lista) zamiast metafield (pojedynczy) - bardziej niezawodne
         const getQuery = `
           query getCustomerUsage($id: ID!) {
             customer(id: $id) {
-              metafield(namespace: "customify", key: "usage_count") {
-                id
-                value
-                type
+              id
+              metafields(first: 10, namespace: "customify") {
+                edges {
+                  node {
+                    id
+                    key
+                    value
+                    type
+                  }
+                }
               }
             }
           }
@@ -1846,14 +1853,32 @@ module.exports = async (req, res) => {
         });
 
         const getData = await getResponse.json();
+        
+        // ⚠️ PARSOWANIE METAFIELDS Z LISTY
+        const metafields = getData.data?.customer?.metafields?.edges || [];
+        const usageCountMetafield = metafields.find(edge => edge.node.key === 'usage_count')?.node || null;
+        
         console.log(`📊 [METAFIELD-INCREMENT] Get response:`, {
           hasData: !!getData.data,
           hasCustomer: !!getData.data?.customer,
-          hasMetafield: !!getData.data?.customer?.metafield,
+          metafieldsCount: metafields.length,
+          hasUsageCountMetafield: !!usageCountMetafield,
           errors: getData.errors || null
         });
         
-        const existingMetafield = getData.data?.customer?.metafield;
+        // ⚠️ DEBUG: Wszystkie metafields
+        if (metafields.length > 0) {
+          console.log(`🔍 [METAFIELD-INCREMENT] All metafields:`, metafields.map(e => ({ key: e.node.key, type: e.node.type, value: e.node.value?.substring(0, 50) })));
+        }
+        
+        const existingMetafield = usageCountMetafield;
+        
+        // ⚠️ KRYTYCZNE: Jeśli metafield jest null, sprawdź czy to pierwsza generacja czy błąd query
+        if (!existingMetafield) {
+          console.warn(`⚠️ [METAFIELD-INCREMENT] Metafield usage_count nie znaleziony - to pierwsza generacja lub błąd query`);
+          console.warn(`⚠️ [METAFIELD-INCREMENT] Customer ID: ${customerId}`);
+        }
+        
         const metafieldType = existingMetafield?.type || 'json';
         const metafieldId = existingMetafield?.id || null;
         
