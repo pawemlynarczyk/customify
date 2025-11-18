@@ -145,7 +145,6 @@ module.exports = async (req, res) => {
         // ═══════════════════════════════════════════════════════════════════════
         // Format: ai-{numer}.jpg.jpg (z podwójnym rozszerzeniem - błąd w nazwie)
         // Format: generation-{numer}.jpg (Replicate, Segmind base64 - WYNIK transformacji)
-        // Format: watercolor-{numer}.jpg (watercolor - WYNIK transformacji)
         // ═══════════════════════════════════════════════════════════════════════
         
         // WYGENEROWANE: Zaczyna się od "ai-" (nawet z podwójnym rozszerzeniem!)
@@ -193,7 +192,7 @@ module.exports = async (req, res) => {
         }
         
         // Fallback → upload (nieznany format = prawdopodobnie oryginalne zdjęcie użytkownika)
-        // UWAGA: Jeśli nie ma żadnego z prefiksów AI (ai-, generation-, watercolor-), 
+        // UWAGA: Jeśli nie ma żadnego z prefiksów AI (ai-, generation-), 
         // to prawdopodobnie jest to oryginalne zdjęcie użytkownika (upload)
         console.log(`📤 [CATEGORIZE] ${pathname}: Unknown format (no AI prefix) → upload (fallback)`);
         return 'upload';
