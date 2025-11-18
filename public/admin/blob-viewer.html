@@ -616,7 +616,9 @@
             return false;
           }
           
-          imageDate.setHours(0, 0, 0, 0);
+          // ⚠️ KRYTYCZNE: Porównuj TYLKO daty (bez czasu) w lokalnej strefie czasowej
+          // Użyj lokalnych dat zamiast UTC żeby uniknąć problemów ze strefą czasową
+          const imageDateOnly = new Date(imageDate.getFullYear(), imageDate.getMonth(), imageDate.getDate());
           
           if (dateFrom) {
             const fromDate = new Date(dateFrom + 'T00:00:00');
@@ -625,14 +627,15 @@
               filteredCount++;
               return true; // Jeśli data jest niepoprawna, pokaż obraz
             }
-            fromDate.setHours(0, 0, 0, 0);
+            // Porównaj tylko daty (bez czasu) w lokalnej strefie czasowej
+            const fromDateOnly = new Date(fromDate.getFullYear(), fromDate.getMonth(), fromDate.getDate());
             
-            if (imageDate < fromDate) {
+            if (imageDateOnly < fromDateOnly) {
               rejectedCount++;
               rejectedReasons['before_from'] = (rejectedReasons['before_from'] || 0) + 1;
               if (rejectedCount <= 10) {
-                const imageDateStr = imageDate.toISOString().split('T')[0];
-                const fromDateStr = fromDate.toISOString().split('T')[0];
+                const imageDateStr = `${imageDateOnly.getFullYear()}-${String(imageDateOnly.getMonth() + 1).padStart(2, '0')}-${String(imageDateOnly.getDate()).padStart(2, '0')}`;
+                const fromDateStr = `${fromDateOnly.getFullYear()}-${String(fromDateOnly.getMonth() + 1).padStart(2, '0')}-${String(fromDateOnly.getDate()).padStart(2, '0')}`;
                 console.log(`❌ [FILTER] Rejected (before fromDate): ${image.pathname}, imageDate=${imageDateStr}, fromDate=${fromDateStr}, uploadedAt="${image.uploadedAt}"`);
                 if (rejectedCount <= 5) {
                   sampleRejected.push({
@@ -654,18 +657,16 @@
               filteredCount++;
               return true; // Jeśli data jest niepoprawna, pokaż obraz
             }
-            // Ustaw na koniec dnia (23:59:59.999)
-            toDate.setHours(23, 59, 59, 999);
-            
-            // Porównaj tylko daty (bez czasu) - jeśli imageDate jest tego samego dnia lub wcześniej, OK
-            const imageDateOnly = new Date(imageDate.getFullYear(), imageDate.getMonth(), imageDate.getDate());
+            // Porównaj tylko daty (bez czasu) w lokalnej strefie czasowej
             const toDateOnly = new Date(toDate.getFullYear(), toDate.getMonth(), toDate.getDate());
             
             if (imageDateOnly > toDateOnly) {
               rejectedCount++;
               rejectedReasons['after_to'] = (rejectedReasons['after_to'] || 0) + 1;
               if (rejectedCount <= 5) {
-                console.log(`❌ [FILTER] Rejected (after toDate): ${image.pathname}, imageDate=${imageDateOnly.toISOString().split('T')[0]}, toDate=${toDateOnly.toISOString().split('T')[0]}`);
+                const imageDateStr = `${imageDateOnly.getFullYear()}-${String(imageDateOnly.getMonth() + 1).padStart(2, '0')}-${String(imageDateOnly.getDate()).padStart(2, '0')}`;
+                const toDateStr = `${toDateOnly.getFullYear()}-${String(toDateOnly.getMonth() + 1).padStart(2, '0')}-${String(toDateOnly.getDate()).padStart(2, '0')}`;
+                console.log(`❌ [FILTER] Rejected (after toDate): ${image.pathname}, imageDate=${imageDateStr}, toDate=${toDateStr}`);
               }
               return false;
             }
