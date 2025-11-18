@@ -69,14 +69,39 @@ module.exports = async (req, res) => {
       console.log(`📊 [LIST-BLOB-IMAGES] Last blob: ${blobs.blobs[blobs.blobs.length - 1].pathname || blobs.blobs[blobs.blobs.length - 1].path}`);
     }
 
-    // Kategoryzacja obrazków - POPRAWIONA LOGIKA Z WYKRYWANIEM OBRAZÓW AI
+    // ═══════════════════════════════════════════════════════════════════════════
+    // KATEGORYZACJA OBRAZKÓW - KOMPLETNA LOGIKA
+    // ═══════════════════════════════════════════════════════════════════════════
+    // 
+    // KATEGORIE (w kolejności priorytetu):
+    // 1. STATYSTYKI - pliki JSON z customify/system/stats/generations/
+    // 2. KOSZYKI - zawiera "watermark" w nazwie/ścieżce
+    // 3. ORDERS - prefix customify/orders/
+    // 4. WYGENEROWANE - obrazy AI (wynik transformacji)
+    // 5. UPLOAD - oryginalne zdjęcia użytkownika (przed transformacją)
+    //
+    // ROZRÓŻNIENIE UPLOAD vs WYGENEROWANE:
+    // - UPLOAD: oryginalne zdjęcia użytkownika (przed transformacją AI)
+    //   * Podwójne rozszerzenie .jpg.jpg → upload (błąd w nazwie)
+    //   * Zaczyna się od "image-" → upload (domyślna nazwa)
+    //   * NIE zawiera słów kluczowych AI → upload
+    // - WYGENEROWANE: obrazy wygenerowane przez AI (wynik transformacji)
+    //   * Zawiera słowa kluczowe AI (caricature, generation, ai-, boho, king, koty, pixar)
+    //   * I NIE ma podwójnego rozszerzenia .jpg.jpg
+    //   * I NIE zaczyna się od "image-"
+    //
+    // SŁOWA KLUCZOWE AI:
+    // - caricature, generation, ai-, boho, king, koty, pixar, transform, style
+    // ═══════════════════════════════════════════════════════════════════════════
     const categorizeImage = (blob) => {
       const pathname = blob.pathname || blob.path || '';
       const path = pathname.toLowerCase();
       const filename = pathname.split('/').pop().toLowerCase(); // Nazwa pliku bez ścieżki
       const isJson = pathname.toLowerCase().endsWith('.json');
       
+      // ────────────────────────────────────────────────────────────────────────
       // 0. UKRYJ pliki wewnętrzne/logi (nie pokazuj w panelu)
+      // ────────────────────────────────────────────────────────────────────────
       if (
         path.startsWith('customify/internal/') ||
         (path.startsWith('customify/stats/') && !path.startsWith('customify/system/stats/')) ||
@@ -85,76 +110,79 @@ module.exports = async (req, res) => {
         return null;
       }
       
+      // ────────────────────────────────────────────────────────────────────────
       // 1. STATYSTYKI - TYLKO pliki JSON z customify/system/stats/generations/
-      // ⚠️ KRYTYCZNE: Sprawdź NAJPIERW czy to statystyki (przed innymi kategoriami)
+      // ────────────────────────────────────────────────────────────────────────
       if (isJson && path.startsWith('customify/system/stats/generations/')) {
         return 'statystyki';
       }
       
-      // 1.1. UKRYJ inne pliki JSON (nie statystyki) - nie pokazuj w panelu
+      // UKRYJ inne pliki JSON (nie statystyki)
       if (isJson) {
-        return null; // Ukryj wszystkie inne JSON-y
+        return null;
       }
       
-      // 2. KOSZYKI - zawiera "watermark" w ścieżce LUB nazwie (najwyższy priorytet dla obrazów)
+      // ────────────────────────────────────────────────────────────────────────
+      // 2. KOSZYKI - zawiera "watermark" w ścieżce LUB nazwie (najwyższy priorytet)
+      // ────────────────────────────────────────────────────────────────────────
       if (path.includes('watermark')) {
         return 'koszyki';
       }
       
+      // ────────────────────────────────────────────────────────────────────────
       // 3. ORDERS - prefix customify/orders/ (bez watermark)
+      // ────────────────────────────────────────────────────────────────────────
       if (path.startsWith('customify/orders/')) {
         return 'orders';
       }
       
-      // 4. WYGENEROWANE (obrazy AI) - sprawdź czy to obraz AI
-      // ⚠️ KRYTYCZNE: Oryginalne zdjęcia użytkownika mogą mieć podobne nazwy!
-      // Rozróżnienie:
-      // - Wygenerowane obrazy AI: mają słowa kluczowe AI I są wynikiem transformacji
-      // - Oryginalne zdjęcia użytkownika: mogą mieć słowa kluczowe AI w nazwie (np. "caricature") ale są uploadem PRZED transformacją
-      
-      // Sprawdź czy to oryginalne zdjęcie użytkownika (upload):
-      // 1. Podwójne rozszerzenie .jpg.jpg → prawdopodobnie upload (błąd w nazwie)
-      // 2. Nazwa zaczyna się od "image-" → upload (domyślna nazwa z upload-temp-image)
-      // 3. NIE zawiera słów kluczowych AI → upload
-      const isUpload = filename.includes('.jpg.jpg') || 
-                       filename.startsWith('image-') ||
-                       (!filename.includes('caricature') && !filename.includes('generation') && !filename.includes('ai-') && !filename.includes('boho') && !filename.includes('king') && !filename.includes('koty') && !filename.includes('pixar'));
-      
-      // Sprawdź czy to wygenerowany obraz AI:
-      // Słowa kluczowe AI w nazwie pliku LUB ścieżce
-      const aiKeywords = ['caricature', 'generation', 'boho', 'king', 'koty', 'pixar', 'ai-', 'transform', 'style'];
-      const hasAIKeywords = aiKeywords.some(keyword => {
-        const inFilename = filename.includes(keyword);
-        const inPath = path.includes(keyword);
-        return inFilename || inPath;
-      });
-      
-      // Debug dla obrazków z temp/ zawierających "caricature" w nazwie
-      if (path.startsWith('customify/temp/') && filename.includes('caricature')) {
-        console.log(`🔍 [CATEGORIZE] ${pathname}: filename="${filename}", isUpload=${isUpload}, hasAIKeywords=${hasAIKeywords}, doubleExtension=${filename.includes('.jpg.jpg')}`);
-      }
-      
-      // 4.1. Obrazy w customify/temp/
+      // ────────────────────────────────────────────────────────────────────────
+      // 4. WYGENEROWANE vs UPLOAD - obrazy w customify/temp/
+      // ────────────────────────────────────────────────────────────────────────
       if (path.startsWith('customify/temp/')) {
-        // Jeśli to upload (oryginalne zdjęcie użytkownika) → upload
-        if (isUpload) {
+        // Sprawdź czy to upload (oryginalne zdjęcie użytkownika):
+        // 1. Podwójne rozszerzenie .jpg.jpg → upload (błąd w nazwie)
+        // 2. Zaczyna się od "image-" → upload (domyślna nazwa)
+        const hasDoubleExtension = filename.includes('.jpg.jpg');
+        const startsWithImage = filename.startsWith('image-');
+        const isUploadFile = hasDoubleExtension || startsWithImage;
+        
+        // Sprawdź czy zawiera słowa kluczowe AI
+        const aiKeywords = ['caricature', 'generation', 'ai-', 'boho', 'king', 'koty', 'pixar', 'transform', 'style'];
+        const hasAIKeywords = aiKeywords.some(keyword => filename.includes(keyword) || path.includes(keyword));
+        
+        // Debug dla obrazków z temp/
+        if (filename.includes('caricature') || filename.includes('generation') || filename.includes('ai-')) {
+          console.log(`🔍 [CATEGORIZE] ${pathname}: hasDoubleExtension=${hasDoubleExtension}, startsWithImage=${startsWithImage}, hasAIKeywords=${hasAIKeywords}, isUploadFile=${isUploadFile}`);
+        }
+        
+        // Jeśli to upload (podwójne rozszerzenie lub zaczyna się od "image-") → upload
+        if (isUploadFile) {
           return 'upload';
         }
+        
         // Jeśli ma słowa kluczowe AI i NIE jest uploadem → wygenerowane
         if (hasAIKeywords) {
           return 'wygenerowane';
         }
-        // Fallback → upload (bezpieczniejsze)
+        
+        // Fallback → upload (bez słów kluczowych AI = oryginalne zdjęcie)
         return 'upload';
       }
       
-      // 4.2. Obrazy AI poza temp/ → wygenerowane
+      // ────────────────────────────────────────────────────────────────────────
+      // 5. WYGENEROWANE - obrazy AI poza temp/ (z słowami kluczowymi AI)
+      // ────────────────────────────────────────────────────────────────────────
+      const aiKeywords = ['caricature', 'generation', 'ai-', 'boho', 'king', 'koty', 'pixar', 'transform', 'style'];
+      const hasAIKeywords = aiKeywords.some(keyword => filename.includes(keyword) || path.includes(keyword));
+      
       if (hasAIKeywords) {
         return 'wygenerowane';
       }
       
-      // 6. WYGENEROWANE - wszystko inne (obrazy poza temp/ które nie są orders)
-      // To mogą być obrazy AI zapisane w innych lokalizacjach
+      // ────────────────────────────────────────────────────────────────────────
+      // 6. FALLBACK - wszystko inne → wygenerowane (może być obraz AI w innych lokalizacjach)
+      // ────────────────────────────────────────────────────────────────────────
       return 'wygenerowane';
     };
 
