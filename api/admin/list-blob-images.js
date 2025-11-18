@@ -256,43 +256,56 @@ module.exports = async (req, res) => {
     console.log(`📊 [LIST-BLOB-IMAGES] Category stats:`, stats);
     console.log(`📊 [LIST-BLOB-IMAGES] After filtering by category "${category || 'all'}": ${categorizedBlobs.length} blobs`);
 
-    // Sortowanie
+    // ═══════════════════════════════════════════════════════════════════════
+    // NORMALIZACJA I MAPOWANIE OBRAZKÓW (z normalizacją daty)
+    // ═══════════════════════════════════════════════════════════════════════
+    const normalizedBlobs = categorizedBlobs.map(blob => {
+      const pathname = blob.pathname || blob.path || 'unknown';
+      const isJson = pathname.toLowerCase().endsWith('.json');
+      
+      // Wyciągnij datę z uploadedAt, createdAt lub z timestamp w nazwie pliku
+      let uploadedAt = blob.uploadedAt;
+      if (!uploadedAt && blob.createdAt) {
+        uploadedAt = blob.createdAt;
+      }
+      if (!uploadedAt) {
+        // Spróbuj wyciągnąć timestamp z nazwy pliku (np. caricature-1763312200173.jpg)
+        const timestampMatch = pathname.match(/\d{13}/);
+        if (timestampMatch) {
+          uploadedAt = new Date(parseInt(timestampMatch[0])).toISOString();
+        } else {
+          uploadedAt = new Date().toISOString(); // Fallback - data teraz
+        }
+      }
+      
+      // Parsuj datę do timestamp dla sortowania
+      const uploadedAtTimestamp = new Date(uploadedAt).getTime();
+      
+      return {
+        url: blob.url,
+        pathname: pathname,
+        size: blob.size || 0,
+        uploadedAt: uploadedAt,
+        uploadedAtTimestamp: uploadedAtTimestamp, // Dodaj timestamp dla sortowania
+        category: blob.category,
+        isJson: isJson,
+        contentType: blob.contentType || (isJson ? 'application/json' : 'image')
+      };
+    });
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // SORTOWANIE (PO normalizacji daty!)
+    // ═══════════════════════════════════════════════════════════════════════
     if (sortBy === 'date') {
-      categorizedBlobs.sort((a, b) => {
-        // Funkcja pomocnicza do bezpiecznego parsowania daty
-        const getDate = (blob) => {
-          // Najpierw sprawdź uploadedAt
-          if (blob.uploadedAt) {
-            const date = new Date(blob.uploadedAt);
-            if (!isNaN(date.getTime())) {
-              return date.getTime();
-            }
-          }
-          // Potem sprawdź createdAt
-          if (blob.createdAt) {
-            const date = new Date(blob.createdAt);
-            if (!isNaN(date.getTime())) {
-              return date.getTime();
-            }
-          }
-          // Spróbuj wyciągnąć timestamp z nazwy pliku
-          const pathname = blob.pathname || blob.path || '';
-          const timestampMatch = pathname.match(/\d{13}/);
-          if (timestampMatch) {
-            return parseInt(timestampMatch[0]);
-          }
-          // Fallback - bardzo stara data (będzie na końcu przy sortowaniu desc)
-          return 0;
-        };
-        
-        const dateA = getDate(a);
-        const dateB = getDate(b);
+      normalizedBlobs.sort((a, b) => {
+        const dateA = a.uploadedAtTimestamp || 0;
+        const dateB = b.uploadedAtTimestamp || 0;
         return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
       });
     } else if (sortBy === 'name') {
-      categorizedBlobs.sort((a, b) => {
-        const nameA = (a.pathname || a.path || '').toLowerCase();
-        const nameB = (b.pathname || b.path || '').toLowerCase();
+      normalizedBlobs.sort((a, b) => {
+        const nameA = (a.pathname || '').toLowerCase();
+        const nameB = (b.pathname || '').toLowerCase();
         return sortOrder === 'asc' 
           ? nameA.localeCompare(nameB)
           : nameB.localeCompare(nameA);
@@ -300,46 +313,22 @@ module.exports = async (req, res) => {
     }
 
     // Debug: Sprawdź właściwości pierwszego bloba
-    if (categorizedBlobs.length > 0) {
-      const firstBlob = categorizedBlobs[0];
+    if (normalizedBlobs.length > 0) {
+      const firstBlob = normalizedBlobs[0];
       console.log(`🔍 [LIST-BLOB-IMAGES] First blob properties:`, {
-        pathname: firstBlob.pathname || firstBlob.path,
+        pathname: firstBlob.pathname,
         uploadedAt: firstBlob.uploadedAt,
-        createdAt: firstBlob.createdAt,
-        allKeys: Object.keys(firstBlob)
+        uploadedAtTimestamp: firstBlob.uploadedAtTimestamp,
+        category: firstBlob.category
       });
     }
     
     return res.json({
       success: true,
-      images: categorizedBlobs.map(blob => {
-        const pathname = blob.pathname || blob.path || 'unknown';
-        const isJson = pathname.toLowerCase().endsWith('.json');
-        
-        // Wyciągnij datę z uploadedAt, createdAt lub z timestamp w nazwie pliku
-        let uploadedAt = blob.uploadedAt;
-        if (!uploadedAt && blob.createdAt) {
-          uploadedAt = blob.createdAt;
-        }
-        if (!uploadedAt) {
-          // Spróbuj wyciągnąć timestamp z nazwy pliku (np. caricature-1763312200173.jpg)
-          const timestampMatch = pathname.match(/\d{13}/);
-          if (timestampMatch) {
-            uploadedAt = new Date(parseInt(timestampMatch[0])).toISOString();
-          } else {
-            uploadedAt = new Date().toISOString(); // Fallback - data teraz
-          }
-        }
-        
-        return {
-          url: blob.url,
-          pathname: pathname,
-          size: blob.size || 0,
-          uploadedAt: uploadedAt,
-          category: blob.category,
-          isJson: isJson,
-          contentType: blob.contentType || (isJson ? 'application/json' : 'image')
-        };
+      images: normalizedBlobs.map(blob => {
+        // Usuń uploadedAtTimestamp z odpowiedzi (tylko do sortowania)
+        const { uploadedAtTimestamp, ...responseBlob } = blob;
+        return responseBlob;
       }),
       cursor: blobs.cursor,
       hasMore: !!blobs.cursor,
