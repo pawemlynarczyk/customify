@@ -86,11 +86,17 @@ module.exports = async (req, res) => {
       }
       
       // 1. STATYSTYKI - TYLKO pliki JSON z customify/system/stats/generations/
+      // ⚠️ KRYTYCZNE: Sprawdź NAJPIERW czy to statystyki (przed innymi kategoriami)
       if (isJson && path.startsWith('customify/system/stats/generations/')) {
         return 'statystyki';
       }
       
-      // 2. KOSZYKI - zawiera "watermark" w ścieżce LUB nazwie (najwyższy priorytet)
+      // 1.1. UKRYJ inne pliki JSON (nie statystyki) - nie pokazuj w panelu
+      if (isJson) {
+        return null; // Ukryj wszystkie inne JSON-y
+      }
+      
+      // 2. KOSZYKI - zawiera "watermark" w ścieżce LUB nazwie (najwyższy priorytet dla obrazów)
       if (path.includes('watermark')) {
         return 'koszyki';
       }
@@ -100,21 +106,28 @@ module.exports = async (req, res) => {
         return 'orders';
       }
       
-      // 4. WYGENEROWANE (obrazy AI) - w customify/temp/ z nazwami wskazującymi na AI
-      // Sprawdź czy to obraz AI (caricature, generation, boho, king, koty, pixar, ai)
+      // 4. WYGENEROWANE (obrazy AI) - sprawdź czy to obraz AI
+      // Słowa kluczowe AI w nazwie pliku
+      const aiKeywords = ['caricature', 'generation', 'boho', 'king', 'koty', 'pixar', 'ai', 'transform', 'style'];
+      const isAIGenerated = aiKeywords.some(keyword => filename.includes(keyword));
+      
+      // 4.1. Obrazy AI w customify/temp/ → wygenerowane
+      if (path.startsWith('customify/temp/') && isAIGenerated) {
+        return 'wygenerowane';
+      }
+      
+      // 4.2. Obrazy AI poza temp/ → wygenerowane
+      if (isAIGenerated) {
+        return 'wygenerowane';
+      }
+      
+      // 5. UPLOAD - obrazy w customify/temp/ BEZ słów kluczowych AI (oryginalne zdjęcia użytkownika)
       if (path.startsWith('customify/temp/')) {
-        const aiKeywords = ['caricature', 'generation', 'boho', 'king', 'koty', 'pixar', 'ai', 'transform', 'style'];
-        const isAIGenerated = aiKeywords.some(keyword => filename.includes(keyword));
-        
-        if (isAIGenerated) {
-          return 'wygenerowane';
-        }
-        
-        // Jeśli nie ma słów kluczowych AI, to jest upload (oryginalne zdjęcie użytkownika)
         return 'upload';
       }
       
-      // 5. WYGENEROWANE - wszystko inne (obrazy AI poza temp/, generacje, itp.)
+      // 6. WYGENEROWANE - wszystko inne (obrazy poza temp/ które nie są orders)
+      // To mogą być obrazy AI zapisane w innych lokalizacjach
       return 'wygenerowane';
     };
 
