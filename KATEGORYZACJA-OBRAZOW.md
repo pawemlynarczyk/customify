@@ -7,7 +7,7 @@
 | **WYGENEROWANE** | `ai-{numer}.jpg.jpg` | `ai-1763307205175.jpg.jpg` | Obrazy wygenerowane przez AI (wynik transformacji) |
 | **WYGENEROWANE** | `generation-{numer}.jpg` | `generation-1763309346114.jpg` | Obrazy z Replicate/Segmind base64 |
 | **UPLOAD** | `caricature-{numer}.jpg` | `caricature-1763043791544.jpg` | Oryginalne zdjęcie przed transformacją Segmind |
-| **WYGENEROWANE** | `watercolor-{numer}.jpg` | `watercolor-1763309346114.jpg` | Obrazy watercolor |
+| **UPLOAD** | `watercolor-{numer}.jpg` | `watercolor-1763309346114.jpg` | Oryginalne zdjęcie przed transformacją Segmind Become-Image |
 | **UPLOAD** | `image-{numer}.jpg` | `image-1763309346114.jpg` | Oryginalne zdjęcia użytkownika (przed transformacją) |
 | **UPLOAD** | `{dowolna-nazwa}.jpg.jpg` (bez `ai-`) | `xyz-123.jpg.jpg` | Błąd w nazwie uploadu (podwójne rozszerzenie) |
 | **ORDERS** | `customify/orders/{nazwa}.jpg` | `customify/orders/Karykatura-karykatura-00363895.jpg` | Obrazy z zamówień |
@@ -31,16 +31,16 @@
 #### WYGENEROWANE (obrazy AI):
 - ✅ Zaczyna się od `ai-` (nawet z `.jpg.jpg`)
 - ✅ Zaczyna się od `generation-` (wynik transformacji)
-- ✅ Zaczyna się od `watercolor-` (wynik transformacji)
 
 #### UPLOAD (oryginalne zdjęcia):
 - ✅ Zaczyna się od `image-` (domyślna nazwa)
 - ✅ Zaczyna się od `caricature-` (oryginalne zdjęcie przed transformacją Segmind)
+- ✅ Zaczyna się od `watercolor-` (oryginalne zdjęcie przed transformacją Segmind Become-Image)
 - ✅ Podwójne rozszerzenie `.jpg.jpg` BEZ prefiksu `ai-`
 
 ### 5. WYGENEROWANE (poza `temp/`)
-- ✅ Zaczyna się od `generation-`, `ai-`, `watercolor-`
-- ❌ `caricature-` to UPLOAD (oryginalne zdjęcie przed transformacją)
+- ✅ Zaczyna się od `generation-`, `ai-`
+- ❌ `caricature-` i `watercolor-` to UPLOAD (oryginalne zdjęcia przed transformacją)
 
 ### 6. FALLBACK
 - ✅ Wszystko inne → `wygenerowane` (może być obraz AI w innych lokalizacjach)
@@ -66,12 +66,13 @@
    - Jeśli NIE zaczyna się od `ai-` → **UPLOAD**
 
 2. **Prefiksy AI mają priorytet**:
-   - `ai-`, `generation-`, `watercolor-` → zawsze **WYGENEROWANE**
+   - `ai-`, `generation-` → zawsze **WYGENEROWANE**
    - Nawet z podwójnym rozszerzeniem!
 
-3. **UWAGA: `caricature-` to UPLOAD**:
-   - `caricature-{numer}.jpg` to oryginalne zdjęcie użytkownika przed transformacją Segmind
-   - NIE jest wynikiem transformacji!
+3. **UWAGA: `caricature-` i `watercolor-` to UPLOAD**:
+   - `caricature-{numer}.jpg` to oryginalne zdjęcie użytkownika przed transformacją Segmind Caricature
+   - `watercolor-{numer}.jpg` to oryginalne zdjęcie użytkownika przed transformacją Segmind Become-Image
+   - NIE są wynikami transformacji!
 
 3. **Format uploadu**:
    - Domyślna nazwa: `image-{timestamp}.jpg` (z `upload-temp-image.js`)

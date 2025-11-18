@@ -154,8 +154,8 @@ module.exports = async (req, res) => {
           return 'wygenerowane';
         }
         
-        // WYGENEROWANE: Zaczyna się od "generation-", "watercolor-" (WYNIK transformacji)
-        if (filename.startsWith('generation-') || filename.startsWith('watercolor-')) {
+        // WYGENEROWANE: Zaczyna się od "generation-" (WYNIK transformacji)
+        if (filename.startsWith('generation-')) {
           console.log(`✅ [CATEGORIZE] ${pathname}: AI generation file → wygenerowane`);
           return 'wygenerowane';
         }
@@ -180,6 +180,12 @@ module.exports = async (req, res) => {
           return 'upload';
         }
         
+        // UPLOAD: Zaczyna się od "watercolor-" (oryginalne zdjęcie przed transformacją Segmind Become-Image)
+        if (filename.startsWith('watercolor-')) {
+          console.log(`📤 [CATEGORIZE] ${pathname}: Starts with "watercolor-" → upload (original image)`);
+          return 'upload';
+        }
+        
         // UPLOAD: Podwójne rozszerzenie .jpg.jpg BEZ prefiksu "ai-" (błąd w nazwie uploadu)
         if (filename.includes('.jpg.jpg') && !filename.startsWith('ai-')) {
           console.log(`📤 [CATEGORIZE] ${pathname}: Double extension without "ai-" prefix → upload`);
@@ -196,9 +202,9 @@ module.exports = async (req, res) => {
       // ────────────────────────────────────────────────────────────────────────
       // 5. WYGENEROWANE - obrazy AI poza temp/ (z prefiksami AI)
       // ────────────────────────────────────────────────────────────────────────
-      // Sprawdź czy zaczyna się od prefiksów AI (generation-, ai-, watercolor-)
-      // UWAGA: caricature- to UPLOAD (oryginalne zdjęcie przed transformacją), nie wygenerowane!
-      if (filename.startsWith('generation-') || filename.startsWith('ai-') || filename.startsWith('watercolor-')) {
+      // Sprawdź czy zaczyna się od prefiksów AI (generation-, ai-)
+      // UWAGA: caricature- i watercolor- to UPLOAD (oryginalne zdjęcia przed transformacją), nie wygenerowane!
+      if (filename.startsWith('generation-') || filename.startsWith('ai-')) {
         return 'wygenerowane';
       }
       
