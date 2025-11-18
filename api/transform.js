@@ -1314,16 +1314,59 @@ module.exports = async (req, res) => {
           }
         };
 
+        // ⚠️ KRYTYCZNE: Sprawdź faktyczny typ definition (nie tylko metafield value)
+        // Shopify NIE POZWALA na zmianę typu definition - musimy sprawdzić definition
+        let actualDefinitionType = 'json'; // Default
+        
+        try {
+          const definitionQuery = `
+            query {
+              metafieldDefinitions(first: 1, ownerType: CUSTOMER, namespace: "customify", key: "usage_count") {
+                edges {
+                  node {
+                    id
+                    type {
+                      name
+                    }
+                  }
+                }
+              }
+            }
+          `;
+          
+          const definitionResponse = await fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Shopify-Access-Token': accessToken
+            },
+            body: JSON.stringify({ query: definitionQuery })
+          });
+          
+          const definitionData = await definitionResponse.json();
+          const definitionNode = definitionData.data?.metafieldDefinitions?.edges?.[0]?.node;
+          
+          if (definitionNode?.type?.name) {
+            actualDefinitionType = definitionNode.type.name;
+            console.log(`🔍 [METAFIELD-CHECK] Faktyczny typ definition: ${actualDefinitionType}`);
+          }
+        } catch (defError) {
+          console.warn(`⚠️ [METAFIELD-CHECK] Nie można sprawdzić typu definition, używam typu z metafield:`, defError.message);
+          // Fallback - użyj typu z metafield
+          actualDefinitionType = customer?.metafield?.type || 'json';
+        }
+        
         if (!customer?.metafield) {
           console.log(`📊 [METAFIELD-CHECK] Brak metafield - pierwsza generacja dla użytkownika ${customer?.email || customerId}`);
           await ensureDefinitionJson();
           usageData = {};
-          isOldFormat = false;
-          console.log(`📊 [METAFIELD-CHECK] Ustawiam usageData na pusty obiekt (0 użyć)`);
+          // ⚠️ KRYTYCZNE: Użyj faktycznego typu definition (nie domyślnego 'json')
+          isOldFormat = (actualDefinitionType === 'number_integer');
+          console.log(`📊 [METAFIELD-CHECK] Ustawiam usageData na pusty obiekt (0 użyć), isOldFormat: ${isOldFormat}`);
         } else {
-          // ⚠️ KRYTYCZNE: Sprawdź TYP metafield - jeśli number_integer, traktuj jako stary format
-          const metafieldType = customer?.metafield?.type || 'json';
-          const isOldFormatType = (metafieldType === 'number_integer');
+          // ⚠️ KRYTYCZNE: Użyj faktycznego typu definition (nie typu metafield value)
+          const metafieldType = customer?.metafield?.type || actualDefinitionType;
+          const isOldFormatType = (actualDefinitionType === 'number_integer');
           
           try {
             const rawValue = customer?.metafield?.value;
