@@ -1043,47 +1043,48 @@ module.exports = async (req, res) => {
           try {
             const rawValue = customer?.metafield?.value;
             console.log(`🔍 [METAFIELD-CHECK] Parsing metafield value:`, {
-            rawValue: rawValue,
-            type: typeof rawValue,
-            metafieldType: metafieldType,
-            isOldFormatType: isOldFormatType
-          });
-          
-          // Jeśli typ to number_integer, ZAWSZE traktuj jako stary format (niezależnie od wartości)
-          if (isOldFormatType) {
-            throw new Error('Metafield type is number_integer - treat as old format');
+              rawValue: rawValue,
+              type: typeof rawValue,
+              metafieldType: metafieldType,
+              isOldFormatType: isOldFormatType
+            });
+            
+            // Jeśli typ to number_integer, ZAWSZE traktuj jako stary format (niezależnie od wartości)
+            if (isOldFormatType) {
+              throw new Error('Metafield type is number_integer - treat as old format');
+            }
+            
+            const parsed = JSON.parse(rawValue || '{}');
+            // Sprawdź czy to prawdziwy JSON object (nie liczba jako string)
+            if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
+              usageData = parsed;
+              console.log(`✅ [METAFIELD-CHECK] Parsed JSON successfully:`, usageData);
+            } else {
+              throw new Error('Not a valid JSON object');
+            }
+          } catch (parseError) {
+            // Stary format (liczba) → konwertuj
+            isOldFormat = true;
+            const rawValue = customer?.metafield?.value || '0';
+            const oldTotal = parseInt(rawValue, 10);
+            console.log(`⚠️ [METAFIELD-CHECK] Stary format metafield:`, {
+              rawValue: rawValue,
+              parsedTotal: oldTotal,
+              metafieldType: metafieldType,
+              isOldFormatType: isOldFormatType,
+              parseError: parseError.message
+            });
+            
+            // ⚠️ KRYTYCZNE: Jeśli stary format, sprawdź TOTAL (nie per productType)
+            // Bo nie wiemy jak rozłożyć stare generacje na productType
+            usageData = {
+              total: oldTotal,
+              other: oldTotal  // Wszystkie stare → "other"
+            };
+            console.log(`⚠️ [METAFIELD-CHECK] Konwertuję stary format: ${oldTotal} →`, usageData);
           }
-          
-          const parsed = JSON.parse(rawValue || '{}');
-          // Sprawdź czy to prawdziwy JSON object (nie liczba jako string)
-          if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
-            usageData = parsed;
-            console.log(`✅ [METAFIELD-CHECK] Parsed JSON successfully:`, usageData);
-          } else {
-            throw new Error('Not a valid JSON object');
-          }
-        } catch (parseError) {
-          // Stary format (liczba) → konwertuj
-          isOldFormat = true;
-          const rawValue = customer?.metafield?.value || '0';
-          const oldTotal = parseInt(rawValue, 10);
-          console.log(`⚠️ [METAFIELD-CHECK] Stary format metafield:`, {
-            rawValue: rawValue,
-            parsedTotal: oldTotal,
-            metafieldType: metafieldType,
-            isOldFormatType: isOldFormatType,
-            parseError: parseError.message
-          });
-          
-          // ⚠️ KRYTYCZNE: Jeśli stary format, sprawdź TOTAL (nie per productType)
-          // Bo nie wiemy jak rozłożyć stare generacje na productType
-          usageData = {
-            total: oldTotal,
-            other: oldTotal  // Wszystkie stare → "other"
-          };
-          console.log(`⚠️ [METAFIELD-CHECK] Konwertuję stary format: ${oldTotal} →`, usageData);
         }
-        
+
         const totalLimit = 3; // 3 darmowe generacje per productType dla zalogowanych
         
         // ⚠️ KRYTYCZNE: Jeśli stary format, sprawdź TOTAL (nie per productType)
