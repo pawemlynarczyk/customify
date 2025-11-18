@@ -133,10 +133,18 @@ module.exports = async (req, res) => {
 
     // Kategoryzuj wszystkie obrazki
     let allCategorizedBlobs = blobs.blobs
-      .map(blob => ({
-        ...blob,
-        category: categorizeImage(blob)
-      }))
+      .map(blob => {
+        const category = categorizeImage(blob);
+        // Debug log dla pierwszych 10 obrazków
+        if (blobs.blobs.indexOf(blob) < 10) {
+          const pathname = blob.pathname || blob.path || 'unknown';
+          console.log(`🔍 [LIST-BLOB-IMAGES] Categorizing: ${pathname} → ${category || 'null (hidden)'}`);
+        }
+        return {
+          ...blob,
+          category: category
+        };
+      })
       .filter(blob => blob.category !== null);
 
     // Statystyki per kategoria - LICZ PRZED FILTROWANIEM!
