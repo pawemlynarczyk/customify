@@ -562,10 +562,18 @@
         return images; // Brak filtrowania
       }
       
-      return images.filter(image => {
+      let filteredCount = 0;
+      let rejectedCount = 0;
+      const rejectedReasons = {};
+      
+      const filtered = images.filter(image => {
         // Sprawdź czy uploadedAt istnieje i jest poprawny
         if (!image.uploadedAt) {
-          console.warn('⚠️ [FILTER] Image missing uploadedAt:', image.pathname);
+          rejectedCount++;
+          rejectedReasons['no_date'] = (rejectedReasons['no_date'] || 0) + 1;
+          if (rejectedCount <= 5) {
+            console.warn('⚠️ [FILTER] Image missing uploadedAt:', image.pathname);
+          }
           return false; // Ukryj obrazy bez daty
         }
         
@@ -574,7 +582,11 @@
           
           // Sprawdź czy data jest poprawna
           if (isNaN(imageDate.getTime())) {
-            console.warn('⚠️ [FILTER] Invalid date:', image.uploadedAt, image.pathname);
+            rejectedCount++;
+            rejectedReasons['invalid_date'] = (rejectedReasons['invalid_date'] || 0) + 1;
+            if (rejectedCount <= 5) {
+              console.warn('⚠️ [FILTER] Invalid date:', image.uploadedAt, image.pathname);
+            }
             return false;
           }
           
@@ -584,36 +596,65 @@
             const fromDate = new Date(dateFrom + 'T00:00:00');
             if (isNaN(fromDate.getTime())) {
               console.error('❌ [FILTER] Invalid dateFrom:', dateFrom);
+              filteredCount++;
               return true; // Jeśli data jest niepoprawna, pokaż obraz
             }
             fromDate.setHours(0, 0, 0, 0);
-            // Debug dla pierwszych 3 obrazków
-            if (images.indexOf(image) < 3) {
-              console.log(`🔍 [FILTER] Comparing: imageDate=${imageDate.toISOString()} vs fromDate=${fromDate.toISOString()}, result=${imageDate >= fromDate}`);
+            
+            if (imageDate < fromDate) {
+              rejectedCount++;
+              rejectedReasons['before_from'] = (rejectedReasons['before_from'] || 0) + 1;
+              if (rejectedCount <= 5) {
+                console.log(`❌ [FILTER] Rejected (before fromDate): ${image.pathname}, imageDate=${imageDate.toISOString().split('T')[0]}, fromDate=${fromDate.toISOString().split('T')[0]}`);
+              }
+              return false;
             }
-            if (imageDate < fromDate) return false;
           }
           
           if (dateTo) {
             const toDate = new Date(dateTo + 'T23:59:59');
             if (isNaN(toDate.getTime())) {
               console.error('❌ [FILTER] Invalid dateTo:', dateTo);
+              filteredCount++;
               return true; // Jeśli data jest niepoprawna, pokaż obraz
             }
             toDate.setHours(23, 59, 59, 999);
-            // Debug dla pierwszych 3 obrazków
-            if (images.indexOf(image) < 3) {
-              console.log(`🔍 [FILTER] Comparing: imageDate=${imageDate.toISOString()} vs toDate=${toDate.toISOString()}, result=${imageDate <= toDate}`);
+            
+            if (imageDate > toDate) {
+              rejectedCount++;
+              rejectedReasons['after_to'] = (rejectedReasons['after_to'] || 0) + 1;
+              if (rejectedCount <= 5) {
+                console.log(`❌ [FILTER] Rejected (after toDate): ${image.pathname}, imageDate=${imageDate.toISOString().split('T')[0]}, toDate=${toDate.toISOString().split('T')[0]}`);
+              }
+              return false;
             }
-            if (imageDate > toDate) return false;
           }
           
+          filteredCount++;
           return true;
         } catch (error) {
-          console.error('❌ [FILTER] Error filtering image:', error, image.pathname);
+          rejectedCount++;
+          rejectedReasons['error'] = (rejectedReasons['error'] || 0) + 1;
+          if (rejectedCount <= 5) {
+            console.error('❌ [FILTER] Error filtering image:', error, image.pathname);
+          }
           return false;
         }
       });
+      
+      // Debug summary
+      if (dateFrom || dateTo) {
+        console.log(`🔍 [FILTER] Date filter summary:`, {
+          total: images.length,
+          filtered: filtered.length,
+          rejected: rejectedCount,
+          dateFrom: dateFrom,
+          dateTo: dateTo,
+          rejectionReasons: rejectedReasons
+        });
+      }
+      
+      return filtered;
     }
     
     function setDateRange(range) {
