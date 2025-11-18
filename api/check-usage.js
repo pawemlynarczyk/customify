@@ -52,15 +52,15 @@ module.exports = async (req, res) => {
       });
     }
 
-    // Jeśli nie zalogowany - zwróć limit 1 (frontend sprawdza localStorage)
+    // Jeśli nie zalogowany - zwróć limit 2 (Vercel KV sprawdza device token)
     if (!customerId || !customerAccessToken) {
-      console.log(`👤 [CHECK-USAGE] Niezalogowany użytkownik - limit 1 użycia`);
+      console.log(`👤 [CHECK-USAGE] Niezalogowany użytkownik - limit 2 użycia TOTAL`);
       return res.json({
         isLoggedIn: false,
-        totalLimit: 1,
-        usedCount: 0, // Frontend sprawdza localStorage
-        remainingCount: 1,
-        message: 'Masz 1 darmową transformację. Zaloguj się dla więcej!'
+        totalLimit: 2,
+        usedCount: 0, // KV sprawdza device token
+        remainingCount: 2,
+        message: 'Masz 2 darmowe transformacje. Zaloguj się dla więcej!'
       });
     }
 
@@ -160,52 +160,17 @@ module.exports = async (req, res) => {
       console.log(`⚠️ [CHECK-USAGE] Konwertuję: ${oldTotal} →`, usageData);
     }
     
-    const totalLimit = 3; // 3 darmowe generacje per productType dla zalogowanych
+    const totalLimit = 4; // 4 darmowe generacje TOTAL dla zalogowanych
     
-    console.log(`📊 [CHECK-USAGE] Usage data:`, {
-      usageData: usageData,
-      productType: productType,
-      hasProductType: !!productType
-    });
-    
-    // Jeśli productType w request → zwróć per productType
-    if (productType) {
-      const usedForThisType = usageData[productType] || 0;
-      const remainingForThisType = Math.max(0, totalLimit - usedForThisType);
-      
-      console.log(`📊 [CHECK-USAGE] Limit check dla ${productType}:`, {
-        usedForThisType: usedForThisType,
-        totalLimit: totalLimit,
-        remainingForThisType: remainingForThisType,
-        calculation: `${totalLimit} - ${usedForThisType} = ${remainingForThisType}`
-      });
-      
-      return res.json({
-        isLoggedIn: true,
-        customerId: customerId,
-        email: customer?.email,
-        totalLimit: totalLimit,
-        usedCount: usedForThisType,
-        remainingCount: remainingForThisType,
-        byProductType: usageData,
-        productType: productType,
-        message: remainingForThisType > 0 
-          ? `Pozostało ${remainingForThisType} transformacji dla ${productType}` 
-          : `Wykorzystałeś wszystkie transformacje dla ${productType}`
-      });
-    }
-    
-    // Fallback: zwróć total (dla backward compatibility)
-    // ⚠️ FIX: Poprawne obliczanie - jeśli brak productType, zwróć limit dla pierwszego dostępnego typu
+    // Sprawdź TOTAL (bez per productType)
     const totalUsed = usageData.total || 0;
-    // Jeśli total = 0, to znaczy że użytkownik nie ma żadnych generacji - zwróć limit dla pierwszego typu
-    const totalRemaining = totalUsed === 0 ? totalLimit : Math.max(0, totalLimit - totalUsed);
+    const totalRemaining = Math.max(0, totalLimit - totalUsed);
     
-    console.log(`📊 [CHECK-USAGE] Fallback (bez productType):`, {
+    console.log(`📊 [CHECK-USAGE] Limit check TOTAL:`, {
       totalUsed: totalUsed,
       totalLimit: totalLimit,
       totalRemaining: totalRemaining,
-      calculation: totalUsed === 0 ? `${totalLimit} (brak użyć)` : `${totalLimit} - ${totalUsed} = ${totalRemaining}`
+      calculation: `${totalLimit} - ${totalUsed} = ${totalRemaining}`
     });
 
     return res.json({
@@ -215,7 +180,6 @@ module.exports = async (req, res) => {
       totalLimit: totalLimit,
       usedCount: totalUsed,
       remainingCount: totalRemaining,
-      byProductType: usageData,
       message: totalRemaining > 0 
         ? `Pozostało ${totalRemaining} transformacji`
         : 'Wykorzystałeś wszystkie transformacje'

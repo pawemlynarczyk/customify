@@ -1037,33 +1037,30 @@ module.exports = async (req, res) => {
     // ✅ DEVICE TOKEN LIMIT: 1 generacja PER PRODUCTTYPE dla niezalogowanych
     // Używa Vercel KV z atomic operations (trwałe, nie resetuje się)
     if (!customerId && deviceToken && isKVConfigured()) {
-      console.log(`🔍 [DEVICE-TOKEN] START sprawdzanie limitu (KV):`, {
+      console.log(`🔍 [DEVICE-TOKEN] START sprawdzanie limitu TOTAL (KV):`, {
         deviceToken: deviceToken.substring(0, 8) + '...',
-        productType: finalProductType,
         ip: ip
       });
       
-      const deviceLimitCheck = await checkDeviceTokenLimit(deviceToken, finalProductType);
+      const deviceLimitCheck = await checkDeviceTokenLimit(deviceToken);
       
       if (!deviceLimitCheck.allowed) {
         console.warn(`❌ [DEVICE-TOKEN] LIMIT EXCEEDED (KV):`, {
           deviceToken: deviceToken.substring(0, 8) + '...',
-          productType: finalProductType,
           count: deviceLimitCheck.count,
           limit: deviceLimitCheck.limit,
           reason: deviceLimitCheck.reason
         });
         return res.status(403).json({
           error: 'Usage limit exceeded',
-          message: `Wykorzystałeś limit generacji dla ${finalProductType} (${deviceLimitCheck.count}/${deviceLimitCheck.limit}). Zaloguj się po więcej.`,
+          message: `Wykorzystałeś wszystkie darmowe generacje (${deviceLimitCheck.count}/${deviceLimitCheck.limit}). Zaloguj się po więcej.`,
           showLoginModal: true,
-          productType: finalProductType,
           count: deviceLimitCheck.count,
           limit: deviceLimitCheck.limit
         });
       }
       
-      console.log(`✅ [DEVICE-TOKEN] Limit OK (KV): ${deviceLimitCheck.count}/${deviceLimitCheck.limit} for ${finalProductType}`);
+      console.log(`✅ [DEVICE-TOKEN] Limit OK (KV): ${deviceLimitCheck.count}/${deviceLimitCheck.limit}`);
     } else if (!customerId && deviceToken && !isKVConfigured()) {
       console.warn('⚠️ [DEVICE-TOKEN] KV not configured - skipping device token limit check');
       // Fallback: jeśli KV nie jest skonfigurowany, pozwól (ale zalecamy konfigurację)
@@ -1413,56 +1410,38 @@ module.exports = async (req, res) => {
           }
         }
 
-        const totalLimit = 3; // 3 darmowe generacje per productType dla zalogowanych
+        const totalLimit = 4; // 4 darmowe generacje TOTAL dla zalogowanych
         
-        // ⚠️ KRYTYCZNE: Jeśli stary format, sprawdź TOTAL (nie per productType)
-        // Bo stary format nie ma informacji o productType
-        let usedForThisType;
-        if (isOldFormat) {
-          // Stary format - sprawdź TOTAL (suma wszystkich typów)
-          const totalUsed = usageData.total || 0;
-          // Jeśli total >= 3, to blokuj (bo limit to 3 per productType, a nie wiemy jak rozłożyć)
-          usedForThisType = totalUsed;
-          console.log(`⚠️ [METAFIELD-CHECK] Stary format - sprawdzam TOTAL:`, {
-            totalUsed: totalUsed,
-            limit: totalLimit,
-            productType: finalProductType
-          });
-        } else {
-          // Nowy format - sprawdź per productType
-          usedForThisType = usageData[finalProductType] || 0;
-          console.log(`📊 [METAFIELD-CHECK] Nowy format - sprawdzam per productType:`, {
-            productType: finalProductType,
-            usedForThisType: usedForThisType,
-            allProductTypes: usageData
-          });
-        }
-
-        console.log(`📊 [METAFIELD-CHECK] Limit check result:`, {
-          customerEmail: customer?.email,
-          customerId: customerId,
-          productType: finalProductType,
-          usedForThisType: usedForThisType,
-          totalLimit: totalLimit,
+        // Sprawdź TOTAL (bez per productType)
+        const totalUsed = usageData.total || 0;
+        
+        console.log(`📊 [METAFIELD-CHECK] Sprawdzam TOTAL usage:`, {
+          totalUsed: totalUsed,
+          limit: totalLimit,
           isOldFormat: isOldFormat,
           fullUsageData: usageData
         });
 
-        if (usedForThisType >= totalLimit) {
+        console.log(`📊 [METAFIELD-CHECK] Limit check result:`, {
+          customerEmail: customer?.email,
+          customerId: customerId,
+          totalUsed: totalUsed,
+          totalLimit: totalLimit,
+          isOldFormat: isOldFormat
+        });
+
+        if (totalUsed >= totalLimit) {
           console.warn(`❌ [METAFIELD-CHECK] LIMIT EXCEEDED:`, {
             customerEmail: customer?.email,
             customerId: customerId,
-            productType: finalProductType,
-            usedForThisType: usedForThisType,
-            totalLimit: totalLimit,
-            isOldFormat: isOldFormat
+            totalUsed: totalUsed,
+            totalLimit: totalLimit
           });
           return res.status(403).json({
             error: 'Usage limit exceeded',
-            message: `Wykorzystałeś wszystkie dostępne transformacje dla ${finalProductType} (3). Skontaktuj się z nami dla więcej.`,
-            usedCount: usedForThisType,
-            totalLimit: totalLimit,
-            productType: finalProductType
+            message: `Wykorzystałeś wszystkie dostępne transformacje (${totalUsed}/${totalLimit}). Skontaktuj się z nami dla więcej.`,
+            usedCount: totalUsed,
+            totalLimit: totalLimit
           });
         }
 
@@ -2190,11 +2169,10 @@ module.exports = async (req, res) => {
           console.log(`📊 [METAFIELD-INCREMENT] Używam STARY FORMAT (number_integer):`, {
             oldTotal: oldTotal,
             newTotal: newTotal,
-            productType: finalProductType,
             note: 'Shopify nie pozwala na zmianę typu - używam starego formatu'
           });
         } else {
-          // NOWY FORMAT: Użyj json (per productType)
+          // NOWY FORMAT: Użyj json (tylko total, bez per productType)
           let usageData;
           try {
             const rawValue = existingMetafield?.value || '{}';
@@ -2209,22 +2187,16 @@ module.exports = async (req, res) => {
             usageData = {};
           }
           
-          const beforeIncrement = usageData[finalProductType] || 0;
-          usageData[finalProductType] = beforeIncrement + 1;
-          
-          // Zaktualizuj total (suma wszystkich typów, bez total)
-          usageData.total = Object.entries(usageData)
-            .filter(([key]) => key !== 'total')
-            .reduce((sum, [, count]) => sum + (typeof count === 'number' ? count : 0), 0);
+          const oldTotal = usageData.total || 0;
+          const newTotal = oldTotal + 1;
+          usageData.total = newTotal;
           
           newValue = JSON.stringify(usageData);
           updateType = 'json';
           
           console.log(`📊 [METAFIELD-INCREMENT] Używam NOWY FORMAT (json):`, {
-            productType: finalProductType,
-            beforeIncrement: beforeIncrement,
-            afterIncrement: usageData[finalProductType],
-            total: usageData.total,
+            oldTotal: oldTotal,
+            newTotal: newTotal,
             fullData: usageData
           });
         }
@@ -2393,9 +2365,9 @@ module.exports = async (req, res) => {
 
         // 2. Atomic Increment Device Token Limit (tylko dla niezalogowanych)
         if (!customerId && deviceToken) {
-          const deviceIncrementResult = await incrementDeviceTokenLimit(deviceToken, finalProductType);
+          const deviceIncrementResult = await incrementDeviceTokenLimit(deviceToken);
           if (deviceIncrementResult.success) {
-            console.log(`➕ [TRANSFORM] Device token limit incremented: ${deviceIncrementResult.newCount}/1 for ${finalProductType}`);
+            console.log(`➕ [TRANSFORM] Device token limit incremented: ${deviceIncrementResult.newCount}/2`);
           } else {
             console.warn(`⚠️ [TRANSFORM] Failed to increment device token limit:`, deviceIncrementResult.error);
           }

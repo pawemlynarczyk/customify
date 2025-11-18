@@ -75,31 +75,24 @@ async function incrementIPLimit(ip) {
 }
 
 /**
- * Sprawdza Device Token limit (per produkt - 1 generacja per productType)
+ * Sprawdza Device Token limit (TOTAL - 2 generacje dla wszystkich stylów)
  * @param {string} deviceToken - Device token
- * @param {string} productType - Product type (boho, king, cats, etc.)
  * @returns {Promise<{allowed: boolean, count: number, limit: number}>}
  */
-async function checkDeviceTokenLimit(deviceToken, productType) {
+async function checkDeviceTokenLimit(deviceToken) {
   if (!deviceToken) {
     console.warn('⚠️ [KV-LIMITER] No device token provided');
-    return { allowed: false, count: 0, limit: 1, reason: 'No device token' };
-  }
-
-  if (!productType) {
-    console.warn('⚠️ [KV-LIMITER] No productType provided');
-    return { allowed: false, count: 0, limit: 1, reason: 'No productType' };
+    return { allowed: false, count: 0, limit: 2, reason: 'No device token' };
   }
 
   try {
-    const key = `device:${deviceToken}:${productType}`;
+    const key = `device:${deviceToken}:generations`;
     const count = await kv.get(key) || 0;
-    const limit = 1;
+    const limit = 2; // 2 generacje TOTAL dla niezalogowanych
     const allowed = count < limit;
 
     console.log(`🔍 [KV-LIMITER] Device token limit check:`, {
       deviceToken: deviceToken.substring(0, 8) + '...',
-      productType,
       count,
       limit,
       allowed
@@ -109,30 +102,28 @@ async function checkDeviceTokenLimit(deviceToken, productType) {
   } catch (error) {
     console.error('❌ [KV-LIMITER] Error checking device token limit:', error);
     // ⚠️ KRYTYCZNE: Jeśli błąd KV, BLOKUJ dla bezpieczeństwa
-    return { allowed: false, count: 0, limit: 1, reason: 'KV error', error: error.message };
+    return { allowed: false, count: 0, limit: 2, reason: 'KV error', error: error.message };
   }
 }
 
 /**
- * Inkrementuje Device Token limit (atomic operation, per produkt)
+ * Inkrementuje Device Token limit (atomic operation, TOTAL)
  * @param {string} deviceToken - Device token
- * @param {string} productType - Product type (boho, king, cats, etc.)
  * @returns {Promise<{success: boolean, newCount: number}>}
  */
-async function incrementDeviceTokenLimit(deviceToken, productType) {
-  if (!deviceToken || !productType) {
-    console.warn('⚠️ [KV-LIMITER] Invalid device token or productType for increment');
+async function incrementDeviceTokenLimit(deviceToken) {
+  if (!deviceToken) {
+    console.warn('⚠️ [KV-LIMITER] Invalid device token for increment');
     return { success: false, newCount: 0 };
   }
 
   try {
-    const key = `device:${deviceToken}:${productType}`;
+    const key = `device:${deviceToken}:generations`;
     // Atomic increment (permanent - no TTL)
     const newCount = await kv.incr(key);
 
     console.log(`➕ [KV-LIMITER] Device token limit incremented:`, {
       deviceToken: deviceToken.substring(0, 8) + '...',
-      productType,
       newCount
     });
 

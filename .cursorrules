@@ -126,13 +126,11 @@ if (hash !== req.headers['x-shopify-hmac-sha256']) {
   - **Cel:** Zablokować oszustów tworzących wiele kont z tego samego IP
   - **Dlaczego 10?** Uczciwy user: 1 niezalogowana + 3 zalogowane + bufor = max 4-6 generacji
 
-- **Device Token Limits** (1 generacja per productType dla niezalogowanych):
-  - **Klucz:** `device:{deviceToken}:{productType}`
-  - **Wartość:** liczba (0-1)
+- **Device Token Limits** (2 generacje TOTAL dla niezalogowanych):
+  - **Klucz:** `device:{deviceToken}:generations`
+  - **Wartość:** liczba (0-2)
   - **TTL:** brak (permanentne, nie wygasa)
-  - **Przykłady:**
-    - `device:a9f0bbd70c5279324e9da859be61c064:boho` = `1`
-    - `device:a9f0bbd70c5279324e9da859be61c064:king` = `0`
+  - **Przykład:** `device:a9f0bbd70c5279324e9da859be61c064:generations` = `1`
   - **Cel:** Zablokować konkretnego niezalogowanego użytkownika (przez cookie HttpOnly, 1 rok ważności)
   - **Po zalogowaniu:** Device token NIE blokuje (kontrola przez Shopify metafields)
 
@@ -149,13 +147,13 @@ if (hash !== req.headers['x-shopify-hmac-sha256']) {
 **Key:** `usage_count`
 
 **Zapisujemy:**
-- **Usage Count** (3 generacje per productType dla zalogowanych):
-  - **Typ:** `number_integer` (stary format) lub `json` (nowy format per productType)
+- **Usage Count** (4 generacje TOTAL dla zalogowanych):
+  - **Typ:** `number_integer` (stary format) lub `json` (nowy format)
   - **Wartość:** 
-    - Stary format: `"1"` (liczba total)
-    - Nowy format: `{"total": 2, "boho": 1, "king": 1}` (per productType)
+    - Stary format: `"2"` (liczba total jako string)
+    - Nowy format: `{"total": 2}` (tylko total, bez per productType)
   - **Cel:** Kontrola użycia dla zalogowanych (zapisane w Shopify, nie do obejścia)
-  - **Limit:** 3 generacje per productType (boho, king, cats, caricature)
+  - **Limit:** 4 generacje TOTAL (wszystkie style razem)
 
 **Uwaga:** Shopify NIE POZWALA na zmianę typu metafield z `number_integer` na `json`. Kod automatycznie wykrywa typ i używa odpowiedniego formatu.
 
@@ -194,27 +192,28 @@ if (ip && BLOCKED_IPS.has(ip)) {
 
 **Niezalogowany:**
 1. IP check (KV: `ip:{ip}:generations` < 10) → OK
-2. Device token check (KV: `device:{token}:{productType}` < 1) → OK
-3. Robi 1 generację → 
-   - KV: `device:{token}:{productType}` = 1 (permanentne)
+2. Device token check (KV: `device:{token}:generations` < 2) → OK
+3. Robi 1. generację → 
+   - KV: `device:{token}:generations` = 1 (permanentne)
    - KV: `ip:{ip}:generations` = +1 (TTL 24h)
    - Blob: Zapisuje do `device-{token}.json`
-4. Próbuje 2. generację → BLOKADA (device token limit) + modal logowania
+4. Robi 2. generację → OK (1 < 2)
+5. Próbuje 3. generację → BLOKADA (device token limit 2/2) + modal logowania
 
 **Zalogowany:**
 1. IP check (KV: `ip:{ip}:generations` < 10) → OK
-2. Shopify Metafield check (`customify.usage_count` < 3 per productType) → OK
+2. Shopify Metafield check (`customify.usage_count` < 4 TOTAL) → OK
 3. Robi generację →
    - KV: `ip:{ip}:generations` = +1 (TTL 24h)
-   - Shopify: `usage_count` = +1 (stary format: total, nowy format: per productType)
+   - Shopify: `usage_count` = +1 (total, bez per productType)
    - Blob: Zapisuje do `customer-{customerId}.json`
 4. Device token NIE jest sprawdzany dla zalogowanych
+5. Po 4 generacjach → BLOKADA (limit 4/4)
 
 **Oszust z wieloma kontami:**
-1. Tworzy konto 1 → 3 generacje (KV IP: 3)
-2. Tworzy konto 2 → 3 generacje (KV IP: 6)
-3. Tworzy konto 3 → 3 generacje (KV IP: 9)
-4. Próbuje konto 4 → BLOKADA IP (KV IP: 10/10)
+1. Tworzy konto 1 → 4 generacje (KV IP: 4)
+2. Tworzy konto 2 → 4 generacje (KV IP: 8)
+3. Próbuje konto 3 → BLOKADA IP (KV IP: 10/10 - 8 + 2 = 10)
 
 ---
 
