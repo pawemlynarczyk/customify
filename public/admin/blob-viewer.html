@@ -652,34 +652,45 @@
       const galleryEl = document.getElementById('gallery');
       galleryEl.innerHTML = '';
       
-      // Filtruj po datach i kategorii
+      // ⚠️ KRYTYCZNE: Najpierw filtruj po kategorii, POTEM po dacie!
       const category = document.getElementById('categoryFilter').value;
-      let filteredImages = filterByDate(allImages);
+      let filteredImages = allImages;
       
-      // Debug logging dla filtrowania datą
-      const dateFrom = document.getElementById('dateFrom').value;
-      const dateTo = document.getElementById('dateTo').value;
-      if (dateFrom || dateTo) {
-        console.log('🔍 [DISPLAY] Date filter debug:', {
-          totalBefore: allImages.length,
-          totalAfter: filteredImages.length,
-          dateFrom: dateFrom,
-          dateTo: dateTo,
-          category: category,
-          sampleImages: allImages.slice(0, 5).map(img => ({
-            pathname: img.pathname,
-            uploadedAt: img.uploadedAt,
-            category: img.category,
-            dateParsed: img.uploadedAt ? new Date(img.uploadedAt).toISOString().split('T')[0] : 'NO DATE'
-          }))
-        });
-      }
-      
-      // Filtruj po kategorii jeśli wybrano
+      // 1. Filtruj po kategorii NAJPIERW
       if (category !== 'all') {
         const beforeCategoryFilter = filteredImages.length;
-        filteredImages = filteredImages.filter(img => img.category === category);
+        filteredImages = filteredImages.filter(img => {
+          const matches = img.category === category;
+          // Debug dla pierwszych 5 obrazków
+          if (allImages.indexOf(img) < 5) {
+            console.log(`🔍 [CATEGORY-FILTER] ${img.pathname}: category="${img.category}" matches="${category}"? ${matches}`);
+          }
+          return matches;
+        });
         console.log(`🔍 [DISPLAY] Category filter "${category}": ${beforeCategoryFilter} → ${filteredImages.length}`);
+      }
+      
+      // 2. Filtruj po datach PO kategorii
+      const dateFrom = document.getElementById('dateFrom').value;
+      const dateTo = document.getElementById('dateTo').value;
+      const beforeDateFilter = filteredImages.length;
+      filteredImages = filterByDate(filteredImages);
+      
+      // Debug logging
+      if (dateFrom || dateTo || category !== 'all') {
+        console.log('🔍 [DISPLAY] Filter summary:', {
+          totalAllImages: allImages.length,
+          afterCategoryFilter: beforeDateFilter,
+          afterDateFilter: filteredImages.length,
+          category: category,
+          dateFrom: dateFrom,
+          dateTo: dateTo,
+          sampleFiltered: filteredImages.slice(0, 3).map(img => ({
+            pathname: img.pathname,
+            uploadedAt: img.uploadedAt,
+            category: img.category
+          }))
+        });
       }
       
       // Aktualizuj licznik w filtrze

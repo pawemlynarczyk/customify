@@ -109,7 +109,17 @@ module.exports = async (req, res) => {
       // 4. WYGENEROWANE (obrazy AI) - sprawdź czy to obraz AI
       // Słowa kluczowe AI w nazwie pliku LUB ścieżce
       const aiKeywords = ['caricature', 'generation', 'boho', 'king', 'koty', 'pixar', 'ai', 'transform', 'style'];
-      const isAIGenerated = aiKeywords.some(keyword => filename.includes(keyword) || path.includes(keyword));
+      const isAIGenerated = aiKeywords.some(keyword => {
+        const inFilename = filename.includes(keyword);
+        const inPath = path.includes(keyword);
+        return inFilename || inPath;
+      });
+      
+      // Debug dla pierwszych 10 obrazków z temp/
+      if (path.startsWith('customify/temp/') && blobs.blobs.indexOf(blob) < 10) {
+        console.log(`🔍 [CATEGORIZE] ${pathname}: filename="${filename}", isAIGenerated=${isAIGenerated}, keywords match:`, 
+          aiKeywords.filter(k => filename.includes(k) || path.includes(k)));
+      }
       
       // 4.1. Obrazy AI w customify/temp/ → wygenerowane
       if (path.startsWith('customify/temp/') && isAIGenerated) {
