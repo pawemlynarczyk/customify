@@ -1025,10 +1025,6 @@ module.exports = async (req, res) => {
           console.error(`❌ [METAFIELD-CHECK] Brak customer w response:`, metafieldData);
         }
         
-        if (!customer?.metafield) {
-          console.log(`📊 [METAFIELD-CHECK] Brak metafield - pierwsza generacja dla użytkownika ${customer?.email || customerId}`);
-        }
-        
         // ⚠️ KRYTYCZNE: Sprawdź TYP metafield - jeśli number_integer, traktuj jako stary format
         const metafieldType = customer?.metafield?.type || 'json';
         const isOldFormatType = (metafieldType === 'number_integer');
@@ -1036,6 +1032,14 @@ module.exports = async (req, res) => {
         // Parsuj JSON lub konwertuj stary format (liczba)
         let usageData;
         let isOldFormat = false;
+        
+        if (!customer?.metafield) {
+          console.log(`📊 [METAFIELD-CHECK] Brak metafield - pierwsza generacja dla użytkownika ${customer?.email || customerId}`);
+          // ⚠️ KRYTYCZNE: Jeśli brak metafield, ustaw usageData na pusty obiekt (0 użyć)
+          usageData = {};
+          isOldFormat = false;
+          console.log(`📊 [METAFIELD-CHECK] Ustawiam usageData na pusty obiekt (0 użyć)`);
+        } else {
         try {
           const rawValue = customer?.metafield?.value;
           console.log(`🔍 [METAFIELD-CHECK] Parsing metafield value:`, {
