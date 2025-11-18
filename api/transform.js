@@ -1042,7 +1042,7 @@ module.exports = async (req, res) => {
           
           try {
             const rawValue = customer?.metafield?.value;
-          console.log(`🔍 [METAFIELD-CHECK] Parsing metafield value:`, {
+            console.log(`🔍 [METAFIELD-CHECK] Parsing metafield value:`, {
             rawValue: rawValue,
             type: typeof rawValue,
             metafieldType: metafieldType,
@@ -1907,18 +1907,59 @@ module.exports = async (req, res) => {
             userErrors: updateData.data.customerUpdate.userErrors,
             customerId: customerId,
             productType: finalProductType,
+            newValue: newValue,
+            fullResponse: JSON.stringify(updateData, null, 2)
+          });
+          // ⚠️ KRYTYCZNE: Jeśli są błędy, loguj szczegółowo
+          throw new Error(`GraphQL userErrors: ${JSON.stringify(updateData.data.customerUpdate.userErrors)}`);
+        } else if (updateData.errors) {
+          console.error(`❌ [METAFIELD-INCREMENT] GraphQL errors:`, {
+            errors: updateData.errors,
+            customerId: customerId,
+            productType: finalProductType,
             newValue: newValue
           });
+          throw new Error(`GraphQL errors: ${JSON.stringify(updateData.errors)}`);
+        } else if (!updateData.data?.customerUpdate?.customer?.metafield) {
+          console.error(`❌ [METAFIELD-INCREMENT] Brak metafield w response po aktualizacji:`, {
+            customerId: customerId,
+            productType: finalProductType,
+            newValue: newValue,
+            fullResponse: JSON.stringify(updateData, null, 2)
+          });
+          throw new Error('Brak metafield w response po aktualizacji');
         } else {
           const oldValue = beforeIncrement[finalProductType] || 0;
-          const newValue = usageData[finalProductType];
+          const newValueAfter = usageData[finalProductType];
+          const savedValue = updateData.data.customerUpdate.customer.metafield.value;
           console.log(`✅ [METAFIELD-INCREMENT] Licznik zaktualizowany pomyślnie:`, {
             productType: finalProductType,
             oldValue: oldValue,
-            newValue: newValue,
+            newValue: newValueAfter,
+            savedValue: savedValue,
             total: usageData.total,
-            metafieldType: updateData.data?.customerUpdate?.customer?.metafield?.type || 'unknown'
+            metafieldType: updateData.data.customerUpdate.customer.metafield.type || 'unknown',
+            metafieldId: updateData.data.customerUpdate.customer.metafield.id || null
           });
+          
+          // ⚠️ WERYFIKACJA: Sprawdź czy zapisana wartość jest poprawna
+          try {
+            const savedData = JSON.parse(savedValue);
+            if (savedData[finalProductType] !== newValueAfter) {
+              console.error(`❌ [METAFIELD-INCREMENT] WERYFIKACJA FAILED: Zapisana wartość nie zgadza się!`, {
+                expected: newValueAfter,
+                saved: savedData[finalProductType],
+                fullSavedData: savedData
+              });
+            } else {
+              console.log(`✅ [METAFIELD-INCREMENT] WERYFIKACJA OK: Zapisana wartość jest poprawna`);
+            }
+          } catch (verifyError) {
+            console.error(`❌ [METAFIELD-INCREMENT] WERYFIKACJA FAILED: Nie można sparsować zapisanej wartości:`, {
+              savedValue: savedValue,
+              error: verifyError.message
+            });
+          }
         }
       } catch (incrementError) {
         console.error('❌ [TRANSFORM] Błąd inkrementacji licznika:', {
