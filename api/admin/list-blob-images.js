@@ -140,44 +140,57 @@ module.exports = async (req, res) => {
       // 4. WYGENEROWANE vs UPLOAD - obrazy w customify/temp/
       // ────────────────────────────────────────────────────────────────────────
       if (path.startsWith('customify/temp/')) {
-        // 🚨 NAJPIERW sprawdź słowa kluczowe AI - jeśli są, ZAWSZE wygenerowane!
-        const aiKeywords = ['caricature', 'generation', 'ai-', 'boho', 'king', 'koty', 'pixar', 'transform', 'style'];
-        const hasAIKeywords = aiKeywords.some(keyword => filename.includes(keyword) || path.includes(keyword));
+        // ═══════════════════════════════════════════════════════════════════════
+        // WYGENEROWANE - obrazy AI (wynik transformacji)
+        // ═══════════════════════════════════════════════════════════════════════
+        // Format: ai-{numer}.jpg.jpg (z podwójnym rozszerzeniem - błąd w nazwie)
+        // Format: generation-{numer}.jpg (Replicate, Segmind base64)
+        // Format: caricature-{numer}.jpg (Segmind caricature)
+        // Format: watercolor-{numer}.jpg (watercolor)
+        // ═══════════════════════════════════════════════════════════════════════
         
-        // Jeśli ma słowa kluczowe AI → ZAWSZE wygenerowane (nawet z podwójnym rozszerzeniem!)
-        if (hasAIKeywords) {
-          console.log(`✅ [CATEGORIZE] ${pathname}: AI keywords detected → wygenerowane`);
+        // WYGENEROWANE: Zaczyna się od "ai-" (nawet z podwójnym rozszerzeniem!)
+        if (filename.startsWith('ai-')) {
+          console.log(`✅ [CATEGORIZE] ${pathname}: Starts with "ai-" → wygenerowane`);
           return 'wygenerowane';
         }
         
-        // Sprawdź czy to upload (oryginalne zdjęcie użytkownika):
-        // 1. Podwójne rozszerzenie .jpg.jpg → upload (błąd w nazwie, ale BEZ słów kluczowych AI)
-        // 2. Zaczyna się od "image-" → upload (domyślna nazwa)
-        const hasDoubleExtension = filename.includes('.jpg.jpg');
-        const startsWithImage = filename.startsWith('image-');
-        const isUploadFile = hasDoubleExtension || startsWithImage;
-        
-        // Debug dla obrazków z temp/
-        if (hasDoubleExtension || startsWithImage) {
-          console.log(`🔍 [CATEGORIZE] ${pathname}: hasDoubleExtension=${hasDoubleExtension}, startsWithImage=${startsWithImage}, isUploadFile=${isUploadFile} → upload`);
+        // WYGENEROWANE: Zaczyna się od "generation-", "caricature-", "watercolor-"
+        if (filename.startsWith('generation-') || filename.startsWith('caricature-') || filename.startsWith('watercolor-')) {
+          console.log(`✅ [CATEGORIZE] ${pathname}: AI generation file → wygenerowane`);
+          return 'wygenerowane';
         }
         
-        // Jeśli to upload (podwójne rozszerzenie lub zaczyna się od "image-") → upload
-        if (isUploadFile) {
+        // ═══════════════════════════════════════════════════════════════════════
+        // UPLOAD - oryginalne zdjęcia użytkownika (przed transformacją)
+        // ═══════════════════════════════════════════════════════════════════════
+        // Format: image-{numer}.jpg (domyślna nazwa z upload-temp-image.js)
+        // Format: {dowolna-nazwa}.jpg.jpg (podwójne rozszerzenie BEZ prefiksu "ai-")
+        // ═══════════════════════════════════════════════════════════════════════
+        
+        // UPLOAD: Zaczyna się od "image-" (domyślna nazwa z upload-temp-image.js)
+        if (filename.startsWith('image-')) {
+          console.log(`📤 [CATEGORIZE] ${pathname}: Starts with "image-" → upload`);
           return 'upload';
         }
         
-        // Fallback → upload (bez słów kluczowych AI = oryginalne zdjęcie)
+        // UPLOAD: Podwójne rozszerzenie .jpg.jpg BEZ prefiksu "ai-" (błąd w nazwie uploadu)
+        if (filename.includes('.jpg.jpg') && !filename.startsWith('ai-')) {
+          console.log(`📤 [CATEGORIZE] ${pathname}: Double extension without "ai-" prefix → upload`);
+          return 'upload';
+        }
+        
+        // Fallback → upload (nieznany format = prawdopodobnie oryginalne zdjęcie)
+        console.log(`📤 [CATEGORIZE] ${pathname}: Unknown format → upload (fallback)`);
         return 'upload';
       }
       
       // ────────────────────────────────────────────────────────────────────────
-      // 5. WYGENEROWANE - obrazy AI poza temp/ (z słowami kluczowymi AI)
+      // 5. WYGENEROWANE - obrazy AI poza temp/ (z prefiksami AI)
       // ────────────────────────────────────────────────────────────────────────
-      const aiKeywords = ['caricature', 'generation', 'ai-', 'boho', 'king', 'koty', 'pixar', 'transform', 'style'];
-      const hasAIKeywords = aiKeywords.some(keyword => filename.includes(keyword) || path.includes(keyword));
-      
-      if (hasAIKeywords) {
+      // Sprawdź czy zaczyna się od prefiksów AI (generation-, caricature-, ai-, watercolor-)
+      if (filename.startsWith('generation-') || filename.startsWith('caricature-') || 
+          filename.startsWith('ai-') || filename.startsWith('watercolor-')) {
         return 'wygenerowane';
       }
       
