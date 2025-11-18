@@ -140,30 +140,31 @@ module.exports = async (req, res) => {
       // 4. WYGENEROWANE vs UPLOAD - obrazy w customify/temp/
       // ────────────────────────────────────────────────────────────────────────
       if (path.startsWith('customify/temp/')) {
+        // 🚨 NAJPIERW sprawdź słowa kluczowe AI - jeśli są, ZAWSZE wygenerowane!
+        const aiKeywords = ['caricature', 'generation', 'ai-', 'boho', 'king', 'koty', 'pixar', 'transform', 'style'];
+        const hasAIKeywords = aiKeywords.some(keyword => filename.includes(keyword) || path.includes(keyword));
+        
+        // Jeśli ma słowa kluczowe AI → ZAWSZE wygenerowane (nawet z podwójnym rozszerzeniem!)
+        if (hasAIKeywords) {
+          console.log(`✅ [CATEGORIZE] ${pathname}: AI keywords detected → wygenerowane`);
+          return 'wygenerowane';
+        }
+        
         // Sprawdź czy to upload (oryginalne zdjęcie użytkownika):
-        // 1. Podwójne rozszerzenie .jpg.jpg → upload (błąd w nazwie)
+        // 1. Podwójne rozszerzenie .jpg.jpg → upload (błąd w nazwie, ale BEZ słów kluczowych AI)
         // 2. Zaczyna się od "image-" → upload (domyślna nazwa)
         const hasDoubleExtension = filename.includes('.jpg.jpg');
         const startsWithImage = filename.startsWith('image-');
         const isUploadFile = hasDoubleExtension || startsWithImage;
         
-        // Sprawdź czy zawiera słowa kluczowe AI
-        const aiKeywords = ['caricature', 'generation', 'ai-', 'boho', 'king', 'koty', 'pixar', 'transform', 'style'];
-        const hasAIKeywords = aiKeywords.some(keyword => filename.includes(keyword) || path.includes(keyword));
-        
         // Debug dla obrazków z temp/
-        if (filename.includes('caricature') || filename.includes('generation') || filename.includes('ai-')) {
-          console.log(`🔍 [CATEGORIZE] ${pathname}: hasDoubleExtension=${hasDoubleExtension}, startsWithImage=${startsWithImage}, hasAIKeywords=${hasAIKeywords}, isUploadFile=${isUploadFile}`);
+        if (hasDoubleExtension || startsWithImage) {
+          console.log(`🔍 [CATEGORIZE] ${pathname}: hasDoubleExtension=${hasDoubleExtension}, startsWithImage=${startsWithImage}, isUploadFile=${isUploadFile} → upload`);
         }
         
         // Jeśli to upload (podwójne rozszerzenie lub zaczyna się od "image-") → upload
         if (isUploadFile) {
           return 'upload';
-        }
-        
-        // Jeśli ma słowa kluczowe AI i NIE jest uploadem → wygenerowane
-        if (hasAIKeywords) {
-          return 'wygenerowane';
         }
         
         // Fallback → upload (bez słów kluczowych AI = oryginalne zdjęcie)
