@@ -8,6 +8,7 @@
 | **WYGENEROWANE** | `generation-{numer}.jpg` | `generation-1763309346114.jpg` | Obrazy z Replicate/Segmind base64 |
 | **UPLOAD** | `caricature-{numer}.jpg` | `caricature-1763043791544.jpg` | Oryginalne zdjęcie przed transformacją Segmind |
 | **UPLOAD** | `watercolor-{numer}.jpg` | `watercolor-1763309346114.jpg` | Oryginalne zdjęcie przed transformacją Segmind Become-Image |
+| **UPLOAD** | Zawiera `styl-` w nazwie | `styl-minimalistyczny-{numer}.jpg` | Oryginalne zdjęcie przed transformacją (styl minimalistyczny/realistyczny) |
 | **UPLOAD** | `image-{numer}.jpg` | `image-1763309346114.jpg` | Oryginalne zdjęcia użytkownika (przed transformacją) |
 | **UPLOAD** | `{dowolna-nazwa}.jpg.jpg` (bez `ai-`) | `xyz-123.jpg.jpg` | Błąd w nazwie uploadu (podwójne rozszerzenie) |
 | **ORDERS** | `customify/orders/{nazwa}.jpg` | `customify/orders/Karykatura-karykatura-00363895.jpg` | Obrazy z zamówień |
@@ -36,6 +37,7 @@
 - ✅ Zaczyna się od `image-` (domyślna nazwa)
 - ✅ Zaczyna się od `caricature-` (oryginalne zdjęcie przed transformacją Segmind)
 - ✅ Zaczyna się od `watercolor-` (oryginalne zdjęcie przed transformacją Segmind Become-Image)
+- ✅ Zawiera `styl-` w nazwie (np. `styl-minimalistyczny`, `styl-realistyczny`)
 - ✅ Podwójne rozszerzenie `.jpg.jpg` BEZ prefiksu `ai-`
 
 ### 5. WYGENEROWANE (poza `temp/`)

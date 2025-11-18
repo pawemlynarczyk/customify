@@ -185,6 +185,12 @@ module.exports = async (req, res) => {
           return 'upload';
         }
         
+        // UPLOAD: Zawiera "styl-" w nazwie (np. styl-minimalistyczny, styl-realistyczny)
+        if (filename.includes('styl-')) {
+          console.log(`📤 [CATEGORIZE] ${pathname}: Contains "styl-" → upload (original image)`);
+          return 'upload';
+        }
+        
         // UPLOAD: Podwójne rozszerzenie .jpg.jpg BEZ prefiksu "ai-" (błąd w nazwie uploadu)
         if (filename.includes('.jpg.jpg') && !filename.startsWith('ai-')) {
           console.log(`📤 [CATEGORIZE] ${pathname}: Double extension without "ai-" prefix → upload`);
