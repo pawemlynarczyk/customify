@@ -584,9 +584,13 @@
         return images; // Brak filtrowania
       }
       
+      // Debug: pokaż jakie daty są używane do filtrowania
+      console.log(`🔍 [FILTER-BY-DATE] Filtering ${images.length} images with dateFrom="${dateFrom}", dateTo="${dateTo}"`);
+      
       let filteredCount = 0;
       let rejectedCount = 0;
       const rejectedReasons = {};
+      const sampleRejected = []; // Przechowaj przykładowe odrzucone obrazy dla debugowania
       
       const filtered = images.filter(image => {
         // Sprawdź czy uploadedAt istnieje i jest poprawny
@@ -626,8 +630,18 @@
             if (imageDate < fromDate) {
               rejectedCount++;
               rejectedReasons['before_from'] = (rejectedReasons['before_from'] || 0) + 1;
-              if (rejectedCount <= 5) {
-                console.log(`❌ [FILTER] Rejected (before fromDate): ${image.pathname}, imageDate=${imageDate.toISOString().split('T')[0]}, fromDate=${fromDate.toISOString().split('T')[0]}`);
+              if (rejectedCount <= 10) {
+                const imageDateStr = imageDate.toISOString().split('T')[0];
+                const fromDateStr = fromDate.toISOString().split('T')[0];
+                console.log(`❌ [FILTER] Rejected (before fromDate): ${image.pathname}, imageDate=${imageDateStr}, fromDate=${fromDateStr}, uploadedAt="${image.uploadedAt}"`);
+                if (rejectedCount <= 5) {
+                  sampleRejected.push({
+                    pathname: image.pathname,
+                    imageDate: imageDateStr,
+                    fromDate: fromDateStr,
+                    uploadedAt: image.uploadedAt
+                  });
+                }
               }
               return false;
             }
@@ -677,8 +691,19 @@
           rejected: rejectedCount,
           dateFrom: dateFrom,
           dateTo: dateTo,
-          rejectionReasons: rejectedReasons
+          rejectionReasons: rejectedReasons,
+          sampleRejected: sampleRejected.slice(0, 5) // Pokaż pierwsze 5 odrzuconych dla debugowania
         });
+        
+        // Jeśli wszystkie obrazy zostały odrzucone, pokaż przykładowe daty z obrazów
+        if (filtered.length === 0 && images.length > 0) {
+          const sampleDates = images.slice(0, 10).map(img => ({
+            pathname: img.pathname,
+            uploadedAt: img.uploadedAt,
+            category: img.category
+          }));
+          console.warn(`⚠️ [FILTER] All ${images.length} images rejected! Sample dates:`, sampleDates);
+        }
       }
       
       return filtered;
@@ -689,13 +714,25 @@
       const dateFrom = document.getElementById('dateFrom');
       const dateTo = document.getElementById('dateTo');
       
+      // Funkcja pomocnicza do formatowania lokalnej daty (nie UTC!)
+      const formatLocalDate = (date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      };
+      
       let from, to;
       
       switch(range) {
         case 'today':
-          from = new Date(today);
-          to = new Date(today);
-          break;
+          // ⚠️ Użyj lokalnej daty, nie UTC! (toISOString() może zwrócić wczoraj jeśli jesteś w UTC+)
+          const localToday = formatLocalDate(today);
+          console.log(`🔍 [DATE-RANGE] Setting "dzisiaj" to: ${localToday} (local date, not UTC)`);
+          dateFrom.value = localToday;
+          dateTo.value = localToday;
+          loadImages(true);
+          return;
         case 'week':
           from = new Date(today);
           from.setDate(today.getDate() - 7);
@@ -704,8 +741,8 @@
       }
       
       if (from && to) {
-        dateFrom.value = from.toISOString().split('T')[0];
-        dateTo.value = to.toISOString().split('T')[0];
+        dateFrom.value = formatLocalDate(from);
+        dateTo.value = formatLocalDate(to);
         loadImages(true);
       }
     }
