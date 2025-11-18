@@ -1864,90 +1864,63 @@ module.exports = async (req, res) => {
           hasValue: !!existingMetafield?.value
         });
         
-        // ⚠️ KRYTYCZNE: Jeśli typ to number_integer, MUSIMY go zmienić na json (niezależnie od wartości)
-        const needsTypeChange = (metafieldType === 'number_integer');
-        if (needsTypeChange) {
-          console.log(`🔄 [METAFIELD-INCREMENT] Wykryto number_integer - WYMAGANA konwersja na json (niezależnie od wartości)`);
-        }
+        // ⚠️ KRYTYCZNE: Jeśli typ to number_integer, UŻYWAJ STARY FORMAT (liczba)
+        // Shopify NIE POZWALA na zmianę typu metafield z number_integer na json
+        const isOldFormatType = (metafieldType === 'number_integer');
         
-        // Parsuj JSON lub konwertuj stary format (liczba)
-        let usageData;
-        try {
-          const rawValue = existingMetafield?.value || '{}';
-          console.log(`🔍 [METAFIELD-INCREMENT] Parsing value:`, {
-            rawValue: rawValue,
-            type: typeof rawValue,
-            metafieldType: metafieldType
-          });
+        let newValue;
+        let updateType;
+        
+        if (isOldFormatType) {
+          // STARY FORMAT: Użyj number_integer (liczba total)
+          const oldTotal = parseInt(existingMetafield?.value || '0', 10);
+          const newTotal = oldTotal + 1;
+          newValue = newTotal.toString();
+          updateType = 'number_integer';
           
-          const parsed = JSON.parse(rawValue);
-          if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
-            usageData = parsed;
-            console.log(`✅ [METAFIELD-INCREMENT] Parsed JSON successfully:`, usageData);
-          } else {
-            throw new Error('Not a valid JSON object');
+          console.log(`📊 [METAFIELD-INCREMENT] Używam STARY FORMAT (number_integer):`, {
+            oldTotal: oldTotal,
+            newTotal: newTotal,
+            productType: finalProductType,
+            note: 'Shopify nie pozwala na zmianę typu - używam starego formatu'
+          });
+        } else {
+          // NOWY FORMAT: Użyj json (per productType)
+          let usageData;
+          try {
+            const rawValue = existingMetafield?.value || '{}';
+            const parsed = JSON.parse(rawValue);
+            if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
+              usageData = parsed;
+            } else {
+              throw new Error('Not a valid JSON object');
+            }
+          } catch (parseError) {
+            // Jeśli nie można sparsować, zacznij od zera
+            usageData = {};
           }
-        } catch (parseError) {
-          // Stary format (liczba) → konwertuj
-          const rawValue = existingMetafield?.value || '0';
-          const oldTotal = parseInt(rawValue, 10);
-          console.log(`⚠️ [METAFIELD-INCREMENT] Stary format metafield (wartość to liczba):`, {
-            rawValue: rawValue,
-            parsedTotal: oldTotal,
-            metafieldType: metafieldType,
-            parseError: parseError.message
-          });
           
-          usageData = {
-            total: oldTotal,
-            other: oldTotal  // Wszystkie stare → "other"
-          };
-          console.log(`⚠️ [METAFIELD-INCREMENT] Konwertuję: ${oldTotal} →`, usageData);
-        }
-        
-        const beforeIncrement = { ...usageData };
-        console.log(`📊 [METAFIELD-INCREMENT] Przed inkrementacją:`, {
-          productType: finalProductType,
-          currentValue: usageData[finalProductType] || 0,
-          fullData: beforeIncrement
-        });
-        
-        // Inkrementuj dla TEGO productType
-        usageData[finalProductType] = (usageData[finalProductType] || 0) + 1;
-        
-        // Zaktualizuj total (suma wszystkich typów, bez total)
-        usageData.total = Object.entries(usageData)
-          .filter(([key]) => key !== 'total')
-          .reduce((sum, [, count]) => sum + (typeof count === 'number' ? count : 0), 0);
-        
-        console.log(`📊 [METAFIELD-INCREMENT] Po inkrementacji:`, {
-          productType: finalProductType,
-          newValue: usageData[finalProductType],
-          total: usageData.total,
-          fullData: usageData,
-          needsTypeChange: needsTypeChange
-        });
-        
-        const newValue = JSON.stringify(usageData);
-        console.log(`📊 [METAFIELD-INCREMENT] New JSON value:`, newValue);
-
-        // ⚠️ KRYTYCZNE: Jeśli metafield ma typ number_integer, próbujemy zaktualizować przez customerUpdate
-        // Shopify automatycznie nadpisze stary metafield jeśli definition pozwala na json
-        if (needsTypeChange && metafieldId) {
-          console.log(`🔄 [METAFIELD-INCREMENT] KONWERSJA TYPU: number_integer → json (przez customerUpdate)`, {
-            metafieldId: metafieldId,
-            oldValue: existingMetafield?.value,
-            newValue: newValue
-          });
+          const beforeIncrement = usageData[finalProductType] || 0;
+          usageData[finalProductType] = beforeIncrement + 1;
           
-          // ⚠️ UWAGA: Nie próbujemy usuwać starego metafield (Shopify nie ma metafieldDelete)
-          // Zamiast tego używamy customerUpdate z typem json - Shopify powinien automatycznie skonwertować
-          // Jeśli definition nie pozwala na json, Shopify zwróci błąd i wtedy musimy zaktualizować definition
+          // Zaktualizuj total (suma wszystkich typów, bez total)
+          usageData.total = Object.entries(usageData)
+            .filter(([key]) => key !== 'total')
+            .reduce((sum, [, count]) => sum + (typeof count === 'number' ? count : 0), 0);
+          
+          newValue = JSON.stringify(usageData);
+          updateType = 'json';
+          
+          console.log(`📊 [METAFIELD-INCREMENT] Używam NOWY FORMAT (json):`, {
+            productType: finalProductType,
+            beforeIncrement: beforeIncrement,
+            afterIncrement: usageData[finalProductType],
+            total: usageData.total,
+            fullData: usageData
+          });
         }
 
-        // KROK: Utwórz/zaktualizuj metafield jako json
-        // ⚠️ UWAGA: Jeśli needsTypeChange było true, próbujemy zaktualizować typ przez customerUpdate
-        // Shopify automatycznie nadpisze stary metafield jeśli definition pozwala na json
+        // KROK: Utwórz/zaktualizuj metafield z odpowiednim typem
         const updateMutation = `
           mutation updateCustomerUsage($input: CustomerInput!) {
             customerUpdate(input: $input) {
@@ -1983,9 +1956,7 @@ module.exports = async (req, res) => {
                     namespace: 'customify',
                     key: 'usage_count',
                     value: newValue,
-                    type: 'json' // ✅ Zawsze json (nowy format)
-                    // ⚠️ UWAGA: Jeśli metafield już istnieje jako json, Shopify automatycznie go zaktualizuje
-                    // Jeśli nie istnieje, Shopify utworzy nowy jako json
+                    type: updateType // ✅ Użyj odpowiedniego typu (number_integer lub json)
                   }
                 ]
               }
@@ -2012,107 +1983,10 @@ module.exports = async (req, res) => {
             customerId: customerId,
             productType: finalProductType,
             newValue: newValue,
-            needsTypeChange: needsTypeChange
+            updateType: updateType,
+            isOldFormatType: isOldFormatType
           });
-          
-          // ⚠️ Jeśli błąd związany z typem metafield i needsTypeChange, spróbuj zaktualizować definition
-          const typeError = userErrors.some(err => 
-            err.message?.toLowerCase().includes('type') || 
-            err.message?.toLowerCase().includes('metafield definition') ||
-            err.message?.toLowerCase().includes('does not match')
-          );
-          
-          if (typeError && needsTypeChange) {
-            console.log(`🔄 [METAFIELD-INCREMENT] Błąd typu metafield - próbuję zaktualizować definition...`);
-            
-            // Pobierz definition ID
-            const definitionQuery = `
-              query {
-                metafieldDefinitions(first: 100, ownerType: CUSTOMER, namespace: "customify", key: "usage_count") {
-                  edges {
-                    node {
-                      id
-                      type {
-                        name
-                      }
-                    }
-                  }
-                }
-              }
-            `;
-            
-            const definitionResponse = await fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'X-Shopify-Access-Token': accessToken
-              },
-              body: JSON.stringify({ query: definitionQuery })
-            });
-            
-            const definitionData = await definitionResponse.json();
-            const definitionNode = definitionData.data?.metafieldDefinitions?.edges?.[0]?.node;
-            
-            if (definitionNode && definitionNode.type?.name === 'number_integer') {
-              // Spróbuj zaktualizować definition (może nie działać, ale spróbujmy)
-              const updateDefinitionMutation = `
-                mutation UpdateMetafieldDefinition($id: ID!, $definition: MetafieldDefinitionInput!) {
-                  metafieldDefinitionUpdate(id: $id, definition: $definition) {
-                    metafieldDefinition {
-                      id
-                      type {
-                        name
-                      }
-                    }
-                    userErrors {
-                      field
-                      message
-                    }
-                  }
-                }
-              `;
-              
-              const updateDefinitionResponse = await fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'X-Shopify-Access-Token': accessToken
-                },
-                body: JSON.stringify({
-                  query: updateDefinitionMutation,
-                  variables: {
-                    id: definitionNode.id,
-                    definition: {
-                      type: 'json'
-                    }
-                  }
-                })
-              });
-              
-              const updateDefinitionData = await updateDefinitionResponse.json();
-              if (updateDefinitionData.data?.metafieldDefinitionUpdate?.userErrors?.length === 0) {
-                console.log(`✅ [METAFIELD-INCREMENT] Definition zaktualizowana - ponawiam customerUpdate...`);
-                // Ponów customerUpdate po zaktualizowaniu definition
-                // (kod poniżej już to zrobi, więc tylko logujemy)
-              } else {
-                console.warn(`⚠️ [METAFIELD-INCREMENT] Nie można zaktualizować definition - Shopify może nie pozwalać na zmianę typu`);
-                console.warn(`⚠️ [METAFIELD-INCREMENT] Użytkownik będzie musiał użyć starego formatu (total) do czasu ręcznej aktualizacji definition`);
-                // Nie rzucaj błędu - pozwól na działanie ze starym formatem
-                // Następna próba użyje starego formatu
-              }
-            }
-          }
-          
-          // ⚠️ KRYTYCZNE: Jeśli są błędy NIE związane z typem, rzucaj błąd
-          // ⚠️ ALE: Jeśli błąd typu i nie udało się zaktualizować definition, pozwól działać ze starym formatem
-          if (!typeError) {
-            throw new Error(`GraphQL userErrors: ${JSON.stringify(userErrors)}`);
-          } else {
-            // Błąd typu - loguj warning ale nie przerywaj (użytkownik użyje starego formatu)
-            console.warn(`⚠️ [METAFIELD-INCREMENT] Nie można zaktualizować metafield na json - używam starego formatu`);
-            console.warn(`⚠️ [METAFIELD-INCREMENT] Inkrementacja nie została zapisana - następna próba użyje starego formatu`);
-            // Nie rzucaj błędu - transformacja się udała, tylko limit nie został zaktualizowany
-          }
+          throw new Error(`GraphQL userErrors: ${JSON.stringify(userErrors)}`);
         } else if (updateData.errors) {
           console.error(`❌ [METAFIELD-INCREMENT] GraphQL errors:`, {
             errors: updateData.errors,
@@ -2130,36 +2004,49 @@ module.exports = async (req, res) => {
           });
           throw new Error('Brak metafield w response po aktualizacji');
         } else {
-          const oldValue = beforeIncrement[finalProductType] || 0;
-          const newValueAfter = usageData[finalProductType];
           const savedValue = updateData.data.customerUpdate.customer.metafield.value;
+          const savedType = updateData.data.customerUpdate.customer.metafield.type;
+          
           console.log(`✅ [METAFIELD-INCREMENT] Licznik zaktualizowany pomyślnie:`, {
             productType: finalProductType,
-            oldValue: oldValue,
-            newValue: newValueAfter,
+            newValue: newValue,
             savedValue: savedValue,
-            total: usageData.total,
-            metafieldType: updateData.data.customerUpdate.customer.metafield.type || 'unknown',
+            savedType: savedType,
+            updateType: updateType,
             metafieldId: updateData.data.customerUpdate.customer.metafield.id || null
           });
           
-          // ⚠️ WERYFIKACJA: Sprawdź czy zapisana wartość jest poprawna
-          try {
-            const savedData = JSON.parse(savedValue);
-            if (savedData[finalProductType] !== newValueAfter) {
-              console.error(`❌ [METAFIELD-INCREMENT] WERYFIKACJA FAILED: Zapisana wartość nie zgadza się!`, {
-                expected: newValueAfter,
-                saved: savedData[finalProductType],
-                fullSavedData: savedData
-              });
+          // Weryfikacja zapisanej wartości
+          if (isOldFormatType) {
+            const savedTotal = parseInt(savedValue, 10);
+            const expectedTotal = parseInt(newValue, 10);
+            if (savedTotal === expectedTotal) {
+              console.log(`✅ [METAFIELD-INCREMENT] WERYFIKACJA OK: Zapisana wartość jest poprawna (${savedTotal})`);
             } else {
-              console.log(`✅ [METAFIELD-INCREMENT] WERYFIKACJA OK: Zapisana wartość jest poprawna`);
+              console.error(`❌ [METAFIELD-INCREMENT] WERYFIKACJA FAILED: Zapisana wartość nie zgadza się!`, {
+                expected: expectedTotal,
+                saved: savedTotal
+              });
             }
-          } catch (verifyError) {
-            console.error(`❌ [METAFIELD-INCREMENT] WERYFIKACJA FAILED: Nie można sparsować zapisanej wartości:`, {
-              savedValue: savedValue,
-              error: verifyError.message
-            });
+          } else {
+            try {
+              const savedData = JSON.parse(savedValue);
+              const expectedData = JSON.parse(newValue);
+              if (savedData[finalProductType] === expectedData[finalProductType]) {
+                console.log(`✅ [METAFIELD-INCREMENT] WERYFIKACJA OK: Zapisana wartość jest poprawna (${savedData[finalProductType]})`);
+              } else {
+                console.error(`❌ [METAFIELD-INCREMENT] WERYFIKACJA FAILED: Zapisana wartość nie zgadza się!`, {
+                  expected: expectedData[finalProductType],
+                  saved: savedData[finalProductType],
+                  fullSavedData: savedData
+                });
+              }
+            } catch (verifyError) {
+              console.error(`❌ [METAFIELD-INCREMENT] WERYFIKACJA FAILED: Nie można sparsować zapisanej wartości:`, {
+                savedValue: savedValue,
+                error: verifyError.message
+              });
+            }
           }
         }
       } catch (incrementError) {
