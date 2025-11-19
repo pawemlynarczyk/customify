@@ -1,7 +1,7 @@
 const Replicate = require('replicate');
 const crypto = require('crypto');
 const { getClientIP } = require('../utils/vercelRateLimiter');
-const { checkIPLimit, incrementIPLimit, checkDeviceTokenLimit, incrementDeviceTokenLimit, isKVConfigured } = require('../utils/vercelKVLimiter');
+const { checkIPLimit, incrementIPLimit, checkDeviceTokenLimit, incrementDeviceTokenLimit, isKVConfigured, isImageHashLimitEnabled, calculateImageHash, checkImageHashLimit, incrementImageHashLimit } = require('../utils/vercelKVLimiter');
 const { put } = require('@vercel/blob');
 
 // 🚫 Lista IP zablokowanych całkowicie (tymczasowe banowanie nadużyć)
@@ -1067,6 +1067,58 @@ module.exports = async (req, res) => {
     } else if (!customerId && !deviceToken) {
       console.log(`⚠️ [DEVICE-TOKEN] Brak device token dla niezalogowanego użytkownika - pomijam sprawdzanie`);
     }
+
+    // ============================================================================
+    // IMAGE-HASH-FEATURE: START - Sprawdzanie limitu per obrazek
+    // Feature flag: ENABLE_IMAGE_HASH_LIMIT (true/false w Vercel env)
+    // Aby wyłączyć: ustaw ENABLE_IMAGE_HASH_LIMIT=false w Vercel Dashboard
+    // ============================================================================
+    
+    if (isImageHashLimitEnabled() && isKVConfigured() && imageData) {
+      console.log(`🔍 [IMAGE-HASH] Feature enabled - sprawdzanie limitu per obrazek...`);
+      
+      try {
+        // Oblicz hash obrazka (imageData to base64 string)
+        const imageHash = calculateImageHash(imageData);
+        console.log(`🔐 [IMAGE-HASH] Obliczony hash: ${imageHash.substring(0, 16)}...`);
+        
+        const imageHashCheck = await checkImageHashLimit(imageHash);
+        
+        if (!imageHashCheck.allowed) {
+          console.warn(`❌ [IMAGE-HASH] LIMIT EXCEEDED:`, {
+            imageHash: imageHash.substring(0, 16) + '...',
+            count: imageHashCheck.count,
+            limit: imageHashCheck.limit,
+            reason: imageHashCheck.reason
+          });
+          return res.status(403).json({
+            error: 'Image already used',
+            message: `To zdjęcie zostało już użyte maksymalną liczbę razy (${imageHashCheck.count}/${imageHashCheck.limit}). Spróbuj z innym zdjęciem.`,
+            showLoginModal: false,
+            count: imageHashCheck.count,
+            limit: imageHashCheck.limit,
+            imageBlocked: true
+          });
+        }
+        
+        console.log(`✅ [IMAGE-HASH] Limit OK: ${imageHashCheck.count}/${imageHashCheck.limit}`);
+        
+        // Zapisz hash w request do użycia przy inkrementacji (po udanej transformacji)
+        req.imageHash = imageHash;
+      } catch (hashError) {
+        console.error('❌ [IMAGE-HASH] Błąd obliczania hash:', hashError);
+        // Nie blokuj - kontynuuj bez sprawdzania obrazka (fail-safe)
+      }
+    } else if (isImageHashLimitEnabled() && !isKVConfigured()) {
+      console.warn('⚠️ [IMAGE-HASH] Feature enabled but KV not configured - skipping');
+    } else if (isImageHashLimitEnabled() && !imageData) {
+      console.warn('⚠️ [IMAGE-HASH] Feature enabled but no imageData - skipping');
+    } else {
+      console.log(`ℹ️ [IMAGE-HASH] Feature disabled (ENABLE_IMAGE_HASH_LIMIT=${process.env.ENABLE_IMAGE_HASH_LIMIT})`);
+    }
+    
+    // IMAGE-HASH-FEATURE: END
+    // ============================================================================
 
     // ✅ SPRAWDZENIE LIMITÓW SHOPIFY METAFIELDS (Zalogowani) - PER PRODUCTTYPE
     const shopDomain = process.env.SHOPIFY_STORE_DOMAIN || 'customify-ok.myshopify.com';
@@ -2372,6 +2424,25 @@ module.exports = async (req, res) => {
             console.warn(`⚠️ [TRANSFORM] Failed to increment device token limit:`, deviceIncrementResult.error);
           }
         }
+
+        // ============================================================================
+        // IMAGE-HASH-FEATURE: START - Inkrementacja limitu per obrazek
+        // ============================================================================
+        
+        // 3. Atomic Increment Image Hash Limit (dla wszystkich - zalogowanych i niezalogowanych)
+        if (isImageHashLimitEnabled() && req.imageHash) {
+          const imageHashIncrementResult = await incrementImageHashLimit(req.imageHash);
+          if (imageHashIncrementResult.success) {
+            console.log(`➕ [TRANSFORM] Image hash limit incremented: ${imageHashIncrementResult.newCount}/4`);
+          } else {
+            console.warn(`⚠️ [TRANSFORM] Failed to increment image hash limit:`, imageHashIncrementResult.error);
+          }
+        } else if (isImageHashLimitEnabled() && !req.imageHash) {
+          console.warn(`⚠️ [TRANSFORM] Image hash feature enabled but req.imageHash not set - skipping increment`);
+        }
+        
+        // IMAGE-HASH-FEATURE: END
+        // ============================================================================
       } catch (kvError) {
         console.error('❌ [TRANSFORM] Error incrementing KV limits:', kvError);
         // Nie blokuj odpowiedzi - transformacja się udała, tylko limit nie został zaktualizowany
