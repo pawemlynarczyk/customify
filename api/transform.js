@@ -2421,11 +2421,15 @@ module.exports = async (req, res) => {
     if (isKVConfigured()) {
       try {
         // 1. Atomic Increment IP Limit (dla wszystkich)
-        const ipIncrementResult = await incrementIPLimit(ip);
-        if (ipIncrementResult.success) {
-          console.log(`➕ [TRANSFORM] IP limit incremented: ${ipIncrementResult.newCount}/10`);
+        if (ip && WHITELISTED_IPS.has(ip)) {
+          console.log(`✅ [TRANSFORM] IP ${ip} na białej liście - pomijam inkrementację IP limit`);
         } else {
-          console.warn(`⚠️ [TRANSFORM] Failed to increment IP limit:`, ipIncrementResult.error);
+          const ipIncrementResult = await incrementIPLimit(ip);
+          if (ipIncrementResult.success) {
+            console.log(`➕ [TRANSFORM] IP limit incremented: ${ipIncrementResult.newCount}/10`);
+          } else {
+            console.warn(`⚠️ [TRANSFORM] Failed to increment IP limit:`, ipIncrementResult.error);
+          }
         }
 
         // 2. Atomic Increment Device Token Limit (tylko dla niezalogowanych)
