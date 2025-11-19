@@ -7,6 +7,28 @@
 
 const { checkRateLimit, getClientIP } = require('../utils/vercelRateLimiter');
 
+// 🧪 Lista emaili testowych (pomijają WSZYSTKIE limity dla testowania)
+const TEST_EMAILS = new Set([
+  'pawel.mlynarczyk@internetcapital.pl', // Admin email - bypass wszystkich limitów
+]);
+
+/**
+ * Sprawdza czy użytkownik jest na liście testowej (bypass wszystkich limitów)
+ * @param {string} email - Email użytkownika
+ * @returns {boolean} - true jeśli użytkownik jest na liście testowej
+ */
+function isTestUser(email) {
+  const isTestEmail = email && TEST_EMAILS.has(email.toLowerCase());
+  
+  if (isTestEmail) {
+    console.log(`🧪 [CHECK-USAGE] Test user detected:`, {
+      email: email ? email.substring(0, 10) + '...' : 'brak'
+    });
+    return true;
+  }
+  return false;
+}
+
 module.exports = async (req, res) => {
   console.log(`🔍 [CHECK-USAGE] API called - Method: ${req.method}`);
   
@@ -161,6 +183,24 @@ module.exports = async (req, res) => {
     }
     
     const totalLimit = 4; // 4 darmowe generacje TOTAL dla zalogowanych
+    
+    // 🧪 BYPASS: Test users mają nieograniczone generacje
+    const customerEmail = customer?.email || null;
+    const isTest = isTestUser(customerEmail);
+    
+    if (isTest) {
+      console.log(`🧪 [CHECK-USAGE] Test user - zwracam nieograniczone generacje`);
+      return res.json({
+        isLoggedIn: true,
+        customerId: customerId,
+        email: customerEmail,
+        totalLimit: 999, // Nieograniczone dla test user
+        usedCount: 0,
+        remainingCount: 999, // Nieograniczone dla test user
+        message: 'Nieograniczone generacje (test user)',
+        isTestUser: true
+      });
+    }
     
     // Sprawdź TOTAL (bez per productType)
     const totalUsed = usageData.total || 0;
