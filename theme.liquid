@@ -572,12 +572,6 @@
         <!-- ✅ JAVASCRIPT: Ukryj produkty AI na stronach kolekcji i rekomendacji -->
         <script>
           document.addEventListener('DOMContentLoaded', function() {
-            // Ukryj produkty z "spersonalizowany" w URL (kolekcje)
-            const spersonalizowanyProducts = document.querySelectorAll('.custom-collection-card[href*="spersonalizowany"]');
-            spersonalizowanyProducts.forEach(product => {
-              product.style.display = 'none';
-            });
-            
             // Ukryj produkty z "rozmiar" w URL (kolekcje)
             const rozmiarProducts = document.querySelectorAll('.custom-collection-card[href*="rozmiar"]');
             rozmiarProducts.forEach(product => {
@@ -587,12 +581,6 @@
             // Ukryj produkty z "cyfrowy" w URL (kolekcje)
             const cyfrowyProducts = document.querySelectorAll('.custom-collection-card[href*="cyfrowy"]');
             cyfrowyProducts.forEach(product => {
-              product.style.display = 'none';
-            });
-            
-            // ✅ NOWE: Ukryj produkty AI w sekcji rekomendacji produktów
-            const recommendationsSpersonalizowany = document.querySelectorAll('.product-recommendations a[href*="spersonalizowany"]');
-            recommendationsSpersonalizowany.forEach(product => {
               product.style.display = 'none';
             });
             
@@ -607,7 +595,7 @@
               product.style.display = 'none';
             });
             
-            const totalHidden = spersonalizowanyProducts.length + rozmiarProducts.length + cyfrowyProducts.length + recommendationsSpersonalizowany.length + recommendationsRozmiar.length + recommendationsCyfrowy.length;
+            const totalHidden = rozmiarProducts.length + cyfrowyProducts.length + recommendationsRozmiar.length + recommendationsCyfrowy.length;
             console.log('🔒 [PRODUCT HIDING] Ukryto', totalHidden, 'produktów AI (kolekcje + rekomendacje)');
             
             // ✅ NOWE: Dla produktu akwarela (ID: 15475649675589 lub handle zawiera 'akwarela') - ukryj wszystkie style oprócz akwareli
@@ -1555,11 +1543,6 @@
         display: none !important;
       }
       
-        /* ✅ NAPRAWIONE: Ukryj produkty z "spersonalizowany" w URL (nowe produkty AI) */
-        .custom-collection-card[href*="spersonalizowany"] {
-          display: none !important;
-        }
-        
         /* ✅ NAPRAWIONE: Ukryj produkty z "rozmiar" w URL */
         .custom-collection-card[href*="rozmiar"] {
           display: none !important;
@@ -1571,10 +1554,6 @@
         }
         
         /* ✅ NOWE: Ukryj produkty AI w sekcji rekomendacji produktów */
-        .product-recommendations a[href*="spersonalizowany"] {
-          display: none !important;
-        }
-        
         .product-recommendations a[href*="rozmiar"] {
           display: none !important;
         }
