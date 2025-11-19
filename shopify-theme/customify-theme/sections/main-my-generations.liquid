@@ -170,28 +170,28 @@
     }
   </style>
 
-  <!-- Załaduj customify.js dla funkcji galerii -->
-  <script src="{{ 'customify.js' | asset_url }}" defer></script>
-
   <script>
-    // ✅ PROSTA INTEGRACJA: Użyj istniejącej galerii #aiGallery z customify.js
+    // ✅ BEZPOŚREDNIE UŻYCIE localStorage (bez CustomifyEmbed)
     (function() {
       console.log('🎨 [MY-GENERATIONS] Initializing gallery from localStorage');
       
       const container = document.getElementById('generations-container');
       
-      // Poczekaj na załadowanie customify.js
-      function initGallery() {
-        if (typeof window.customifyApp === 'undefined') {
-          console.log('⏳ [MY-GENERATIONS] Waiting for customify.js...');
-          setTimeout(initGallery, 100);
-          return;
+      // Pobierz generacje z localStorage (ta sama struktura co customify.js)
+      function getGenerations() {
+        try {
+          const stored = localStorage.getItem('customify_ai_generations');
+          if (!stored) return [];
+          const data = JSON.parse(stored);
+          return Array.isArray(data) ? data : [];
+        } catch (error) {
+          console.error('❌ [MY-GENERATIONS] Error reading localStorage:', error);
+          return [];
         }
-        
-        console.log('✅ [MY-GENERATIONS] customify.js loaded, showing gallery');
-        
-        // Pobierz generacje z localStorage
-        const generations = window.customifyApp.getAIGenerations();
+      }
+      
+      function initGallery() {
+        const generations = getGenerations();
         console.log('📊 [MY-GENERATIONS] Found generations:', generations.length);
         
         if (generations.length === 0) {
@@ -233,28 +233,42 @@
             </div>
           `;
           
-          // Po kliknięciu - załaduj i redirect do produktu
+          // Po kliknięciu - zapisz jako wybraną i redirect do produktu
           item.addEventListener('click', function() {
-            console.log('🎯 [MY-GENERATIONS] Loading generation:', index);
+            console.log('🎯 [MY-GENERATIONS] Selecting generation:', index);
             
-            // Załaduj generację do customify
-            window.customifyApp.loadFromGallery(index);
+            // Zapisz wybraną generację w localStorage (customify.js pobierze to na stronie produktu)
+            try {
+              localStorage.setItem('customify_selected_generation', JSON.stringify({
+                index: index,
+                generation: generation,
+                selectedAt: new Date().toISOString()
+              }));
+              console.log('✅ [MY-GENERATIONS] Generation saved to localStorage');
+            } catch (error) {
+              console.error('❌ [MY-GENERATIONS] Error saving to localStorage:', error);
+            }
             
             // Redirect do odpowiedniego produktu
             const productHandles = {
               'boho': 'personalizowany-portret-w-stylu-boho',
+              'minimalistyczny': 'personalizowany-portret-w-stylu-boho',
+              'realistyczny': 'personalizowany-portret-w-stylu-boho',
               'pixar': 'personalizowany-portret-w-stylu-boho',
               'pixar 3d': 'personalizowany-portret-w-stylu-boho',
               'cat': 'koty-krolewskie',
               'king': 'krol-personalizowany-portret',
               'queen': 'krol-personalizowany-portret',
+              'krol': 'krol-personalizowany-portret',
+              'krolowa': 'krol-personalizowany-portret',
               'karykatura': 'karykatura-personalizowany-portret',
               'caricature': 'karykatura-personalizowany-portret'
             };
             
-            const styleKey = generation.style.toLowerCase();
+            const styleKey = (generation.style || '').toLowerCase().replace(/transform this image in | style/g, '').trim();
             const productHandle = productHandles[styleKey] || 'personalizowany-portret-w-stylu-boho';
             
+            console.log('🔗 [MY-GENERATIONS] Redirecting to:', productHandle);
             window.location.href = `/products/${productHandle}`;
           });
           

@@ -3375,7 +3375,27 @@ function addMobileThumbnails() {
  */
 document.addEventListener('DOMContentLoaded', () => {
   // Initialize Customify app
-  new CustomifyEmbed();
+  const customifyApp = new CustomifyEmbed();
+  
+  // ✅ AUTO-LOAD: Sprawdź czy user wybrał generację na stronie "Moje generacje"
+  try {
+    const selectedData = localStorage.getItem('customify_selected_generation');
+    if (selectedData) {
+      const { index, generation } = JSON.parse(selectedData);
+      console.log('🎯 [CUSTOMIFY] Auto-loading generation from "Moje generacje":', index);
+      
+      // Załaduj generację
+      setTimeout(() => {
+        customifyApp.loadFromGallery(index);
+        console.log('✅ [CUSTOMIFY] Generation loaded, ready for checkout');
+      }, 500);
+      
+      // Wyczyść po użyciu
+      localStorage.removeItem('customify_selected_generation');
+    }
+  } catch (error) {
+    console.error('❌ [CUSTOMIFY] Error loading selected generation:', error);
+  }
   
   // Initialize cart integration
   initCartIntegration();
