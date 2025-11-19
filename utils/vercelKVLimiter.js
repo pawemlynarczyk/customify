@@ -184,20 +184,20 @@ function calculateImageHash(imageData) {
 }
 
 /**
- * Sprawdza Image Hash limit (4 generacje per obrazek)
+ * Sprawdza Image Hash limit (2 generacje per obrazek)
  * @param {string} imageHash - SHA-256 hash obrazka
  * @returns {Promise<{allowed: boolean, count: number, limit: number}>}
  */
 async function checkImageHashLimit(imageHash) {
   if (!imageHash) {
     console.warn('⚠️ [KV-LIMITER] No image hash provided');
-    return { allowed: false, count: 0, limit: 4, reason: 'No image hash' };
+    return { allowed: false, count: 0, limit: 2, reason: 'No image hash' };
   }
 
   try {
     const key = `image:${imageHash}:generations`;
     const count = await kv.get(key) || 0;
-    const limit = 4; // 4 generacje per obrazek (permanentne)
+    const limit = 2; // 2 generacje per obrazek (permanentne)
     const allowed = count < limit;
 
     console.log(`🔍 [KV-LIMITER] Image hash limit check:`, {

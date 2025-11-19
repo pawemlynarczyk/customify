@@ -1101,7 +1101,7 @@ module.exports = async (req, res) => {
           });
           return res.status(403).json({
             error: 'Image already used',
-            message: `To zdjęcie zostało już użyte maksymalną liczbę razy (${imageHashCheck.count}/${imageHashCheck.limit}). Spróbuj z innym zdjęciem.`,
+            message: `To zdjęcie zostało już użyte maksymalną liczbę razy (${imageHashCheck.count}/${imageHashCheck.limit}). Użyj inne zdjęcie.`,
             showLoginModal: false,
             count: imageHashCheck.count,
             limit: imageHashCheck.limit,
@@ -2450,7 +2450,7 @@ module.exports = async (req, res) => {
         if (isImageHashLimitEnabled() && req.imageHash) {
           const imageHashIncrementResult = await incrementImageHashLimit(req.imageHash);
           if (imageHashIncrementResult.success) {
-            console.log(`➕ [TRANSFORM] Image hash limit incremented: ${imageHashIncrementResult.newCount}/4`);
+            console.log(`➕ [TRANSFORM] Image hash limit incremented: ${imageHashIncrementResult.newCount}/2`);
           } else {
             console.warn(`⚠️ [TRANSFORM] Failed to increment image hash limit:`, imageHashIncrementResult.error);
           }
