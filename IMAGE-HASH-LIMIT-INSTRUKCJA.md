@@ -7,8 +7,10 @@
 ### **Jak działa:**
 1. System oblicza **SHA-256 hash** z zawartości obrazka
 2. Sprawdza w Vercel KV ile razy ten hash był użyty
-3. Jeśli >= 4 razy → **BLOKADA** (permanentna)
+3. Jeśli >= 2 razy → **BLOKADA** (permanentna)
 4. Ten sam obrazek = ten sam hash (niezależnie od konta/IP/device)
+
+**⚠️ UWAGA:** Limit został zmieniony z 4 na 2 generacje per obrazek
 
 ---
 
@@ -57,38 +59,37 @@ vercel logs customify-s56o.vercel.app --follow | grep IMAGE-HASH
 ℹ️ [IMAGE-HASH] Feature disabled (ENABLE_IMAGE_HASH_LIMIT=undefined)
 ```
 
-### **TEST 2: Feature włączona - ten sam obrazek 5 razy**
+### **TEST 2: Feature włączona - ten sam obrazek 3 razy**
 
 ```bash
-# Włącz feature (Vercel Dashboard)
-ENABLE_IMAGE_HASH_LIMIT=true
+# Feature domyślnie WŁĄCZONA (nie wymaga env variable)
 
-# Upload tego samego zdjęcia 5 razy (różne konta/przeglądarki)
+# Upload tego samego zdjęcia 3 razy (różne konta/przeglądarki)
 
 # Sprawdź logi:
 vercel logs customify-s56o.vercel.app --follow | grep IMAGE-HASH
 
-# Oczekiwany output dla 1-4 generacji:
+# Oczekiwany output dla 1-2 generacji:
 🔍 [IMAGE-HASH] Feature enabled - sprawdzanie limitu per obrazek...
 🔐 [IMAGE-HASH] Obliczony hash: abc123def456...
-🔍 [KV-LIMITER] Image hash limit check: { imageHash: 'abc123def456...', count: 0, limit: 4, allowed: true }
-✅ [IMAGE-HASH] Limit OK: 0/4
+🔍 [KV-LIMITER] Image hash limit check: { imageHash: 'abc123def456...', count: 0, limit: 2, allowed: true }
+✅ [IMAGE-HASH] Limit OK: 0/2
 ➕ [KV-LIMITER] Image hash limit incremented: { imageHash: 'abc123def456...', newCount: 1 }
-➕ [TRANSFORM] Image hash limit incremented: 1/4
+➕ [TRANSFORM] Image hash limit incremented: 1/2
 
-# Oczekiwany output dla 5. generacji (BLOKADA):
+# Oczekiwany output dla 3. generacji (BLOKADA):
 🔍 [IMAGE-HASH] Feature enabled - sprawdzanie limitu per obrazek...
 🔐 [IMAGE-HASH] Obliczony hash: abc123def456...
-🔍 [KV-LIMITER] Image hash limit check: { imageHash: 'abc123def456...', count: 4, limit: 4, allowed: false }
-❌ [IMAGE-HASH] LIMIT EXCEEDED: { imageHash: 'abc123def456...', count: 4, limit: 4, reason: undefined }
+🔍 [KV-LIMITER] Image hash limit check: { imageHash: 'abc123def456...', count: 2, limit: 2, allowed: false }
+❌ [IMAGE-HASH] LIMIT EXCEEDED: { imageHash: 'abc123def456...', count: 2, limit: 2, reason: undefined }
 
 # Response do frontendu:
 {
   "error": "Image already used",
-  "message": "To zdjęcie zostało już użyte maksymalną liczbę razy (4/4). Spróbuj z innym zdjęciem.",
+  "message": "To zdjęcie zostało już użyte maksymalną liczbę razy (2/2). Użyj inne zdjęcie.",
   "showLoginModal": false,
-  "count": 4,
-  "limit": 4,
+  "count": 2,
+  "limit": 2,
   "imageBlocked": true
 }
 ```
@@ -120,8 +121,8 @@ vercel logs customify-s56o.vercel.app --follow | grep IMAGE-HASH
 image:*:generations
 
 # Przykład:
-image:abc123def456789...:generations = 4  # Zablokowany obrazek
-image:xyz987654321...:generations = 2     # Jeszcze 2 generacje dostępne
+image:abc123def456789...:generations = 2  # Zablokowany obrazek
+image:xyz987654321...:generations = 1     # Jeszcze 1 generacja dostępna
 ```
 
 ### **Ręczne usunięcie blokady (admin):**
