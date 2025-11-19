@@ -584,6 +584,12 @@
               product.style.display = 'none';
             });
             
+            // Ukryj produkty z "cyfrowy" w URL (kolekcje)
+            const cyfrowyProducts = document.querySelectorAll('.custom-collection-card[href*="cyfrowy"]');
+            cyfrowyProducts.forEach(product => {
+              product.style.display = 'none';
+            });
+            
             // ✅ NOWE: Ukryj produkty AI w sekcji rekomendacji produktów
             const recommendationsSpersonalizowany = document.querySelectorAll('.product-recommendations a[href*="spersonalizowany"]');
             recommendationsSpersonalizowany.forEach(product => {
@@ -595,7 +601,13 @@
               product.style.display = 'none';
             });
             
-            const totalHidden = spersonalizowanyProducts.length + rozmiarProducts.length + recommendationsSpersonalizowany.length + recommendationsRozmiar.length;
+            // Ukryj produkty z "cyfrowy" w rekomendacjach
+            const recommendationsCyfrowy = document.querySelectorAll('.product-recommendations a[href*="cyfrowy"]');
+            recommendationsCyfrowy.forEach(product => {
+              product.style.display = 'none';
+            });
+            
+            const totalHidden = spersonalizowanyProducts.length + rozmiarProducts.length + cyfrowyProducts.length + recommendationsSpersonalizowany.length + recommendationsRozmiar.length + recommendationsCyfrowy.length;
             console.log('🔒 [PRODUCT HIDING] Ukryto', totalHidden, 'produktów AI (kolekcje + rekomendacje)');
             
             // ✅ NOWE: Dla produktu akwarela (ID: 15475649675589 lub handle zawiera 'akwarela') - ukryj wszystkie style oprócz akwareli
@@ -1530,11 +1542,12 @@
     
     
     <style>
-      /* Ukryj produkty Customify z nowymi nazwami rozmiarów (A5/A4/A3/A2) */
+      /* Ukryj produkty Customify z nowymi nazwami rozmiarów (A5/A4/A3/A2) i "cyfrowy" */
       .product-card:has([data-product-title*="A5"]),
       .product-card:has([data-product-title*="A4"]),
       .product-card:has([data-product-title*="A3"]),
       .product-card:has([data-product-title*="A2"]),
+      .product-card:has([data-product-title*="cyfrowy" i]),
       .product-card:has([href*="A5"]),
       .product-card:has([href*="A4"]),
       .product-card:has([href*="A3"]),
@@ -1552,12 +1565,21 @@
           display: none !important;
         }
         
+        /* ✅ Ukryj produkty z "cyfrowy" w URL */
+        .custom-collection-card[href*="cyfrowy"] {
+          display: none !important;
+        }
+        
         /* ✅ NOWE: Ukryj produkty AI w sekcji rekomendacji produktów */
         .product-recommendations a[href*="spersonalizowany"] {
           display: none !important;
         }
         
         .product-recommendations a[href*="rozmiar"] {
+          display: none !important;
+        }
+        
+        .product-recommendations a[href*="cyfrowy"] {
           display: none !important;
         }
       
