@@ -1918,37 +1918,42 @@ module.exports = async (req, res) => {
             console.warn('⚠️ [TRANSFORM] Transformacja się udała - zwrócę base64 do frontendu, ale bez zapisu w historii');
           }
         }
-        // Jeśli to URL z Replicate (nie Vercel Blob), uploaduj do Vercel Blob
+        // Jeśli to URL z Replicate (nie Vercel Blob), uploaduj do Vercel Blob przez SDK
+        // Replicate URLs wygasają po 24h - musimy zapisać do Vercel Blob dla trwałości
         else if (imageUrl.includes('replicate.delivery') || imageUrl.includes('pbxt')) {
-          console.log(`📤 [TRANSFORM] Uploaduję obraz z Replicate do Vercel Blob...`);
+          console.log(`📤 [TRANSFORM] Wykryto URL z Replicate - uploaduję do Vercel Blob (SDK)...`);
           
           try {
-            // Pobierz obraz z Replicate
-            const imageResponse = await fetch(imageUrl);
-            if (imageResponse.ok) {
-              const imageBuffer = await imageResponse.arrayBuffer();
-              const base64 = Buffer.from(imageBuffer).toString('base64');
-              const dataUri = `data:image/jpeg;base64,${base64}`;
-              
-              // Upload do Vercel Blob
-              const uploadResponse = await fetch('https://customify-s56o.vercel.app/api/upload-temp-image', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  imageData: dataUri,
-                  filename: `generation-${Date.now()}.jpg`
-                })
-              });
-              
-              if (uploadResponse.ok) {
-                const uploadResult = await uploadResponse.json();
-                finalImageUrl = uploadResult.imageUrl;
-                console.log(`✅ [TRANSFORM] Obraz zapisany w Vercel Blob: ${finalImageUrl.substring(0, 50)}...`);
+            // Sprawdź czy token jest skonfigurowany
+            if (!process.env.customify_READ_WRITE_TOKEN) {
+              console.warn('⚠️ [TRANSFORM] customify_READ_WRITE_TOKEN not configured - używam URL z Replicate (wygaśnie po 24h)');
+            } else {
+              // Pobierz obraz z Replicate
+              const imageResponse = await fetch(imageUrl);
+              if (imageResponse.ok) {
+                const imageBuffer = await imageResponse.arrayBuffer();
+                console.log(`📦 [TRANSFORM] Replicate image size: ${Buffer.from(imageBuffer).length} bytes (${(Buffer.from(imageBuffer).length / 1024 / 1024).toFixed(2)} MB)`);
+                
+                // Upload bezpośrednio przez SDK (bez limitu 4.5MB, bez podwójnego .jpg.jpg)
+                const timestamp = Date.now();
+                const uniqueFilename = `customify/temp/generation-${timestamp}.jpg`;
+                
+                const blob = await put(uniqueFilename, Buffer.from(imageBuffer), {
+                  access: 'public',
+                  contentType: 'image/jpeg',
+                  token: process.env.customify_READ_WRITE_TOKEN,
+                });
+                
+                finalImageUrl = blob.url;
+                console.log(`✅ [TRANSFORM] Obraz z Replicate zapisany w Vercel Blob (SDK): ${finalImageUrl.substring(0, 50)}...`);
+              } else {
+                console.warn('⚠️ [TRANSFORM] Nie udało się pobrać obrazu z Replicate - używam oryginalnego URL');
               }
             }
           } catch (uploadError) {
-            console.error('⚠️ [TRANSFORM] Błąd uploadu do Vercel Blob:', uploadError);
-            // Użyj oryginalnego URL
+            console.error('⚠️ [TRANSFORM] Błąd uploadu do Vercel Blob (SDK):', uploadError.message);
+            console.warn('⚠️ [TRANSFORM] Używam URL z Replicate (wygaśnie po 24h)');
+            // Użyj oryginalnego URL z Replicate
           }
         }
         

@@ -308,21 +308,32 @@ module.exports = async (req, res) => {
     let vercelBlobUrl = null;
     let blobUploadFailed = false;
     
-    if (!process.env.customify_READ_WRITE_TOKEN) {
+    // ✅ SCENARIUSZ 1: Jeśli transformedImage to już URL z Vercel Blob - użyj bezpośrednio!
+    const isVercelBlobUrl = transformedImage && 
+      (transformedImage.includes('blob.vercel-storage.com') || 
+       transformedImage.includes('.public.blob.vercel'));
+    
+    if (isVercelBlobUrl) {
+      console.log('✅ [PRODUCTS] Detected Vercel Blob URL - reusing directly (no duplicate upload)');
+      console.log('📍 [PRODUCTS] Vercel Blob URL:', transformedImage.substring(0, 80) + '...');
+      vercelBlobUrl = transformedImage;
+      // SKIP download & upload - obraz już jest w Vercel Blob!
+    } else if (!process.env.customify_READ_WRITE_TOKEN) {
       console.error('❌ [PRODUCTS.JS] CRITICAL: customify_READ_WRITE_TOKEN not configured!');
       console.error('   Image will be lost if product is deleted!');
       blobUploadFailed = true;
     } else {
       try {
-        // Pobierz obrazek BEZ watermarku (transformedImage) do backupu
+        // ✅ SCENARIUSZ 2 & 3: Base64 lub Replicate URL - pobierz i zapisz w Vercel Blob
         let nonWatermarkedBuffer;
         
         if (transformedImage.startsWith('data:image')) {
-          console.log('📦 [PRODUCTS] Converting non-watermarked image for backup...');
+          console.log('📦 [PRODUCTS] Converting non-watermarked base64 for backup...');
           const base64Data = transformedImage.split(',')[1];
           nonWatermarkedBuffer = Buffer.from(base64Data, 'base64');
         } else {
           console.log('📥 [PRODUCTS] Downloading non-watermarked image for backup...');
+          console.log('📍 [PRODUCTS] Source URL:', transformedImage.substring(0, 80) + '...');
           const imageResponse = await fetch(transformedImage);
           if (imageResponse.ok) {
             const imageArrayBuffer = await imageResponse.arrayBuffer();
