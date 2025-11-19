@@ -14,6 +14,33 @@ const WHITELISTED_IPS = new Set([
   '83.29.225.249', // Admin/Development IP - bez limitu
 ]);
 
+// 🧪 Lista emaili testowych (pomijają WSZYSTKIE limity dla testowania)
+const TEST_EMAILS = new Set([
+  'pawel.mlynarczyk@internetcapital.pl', // Admin email - bypass wszystkich limitów
+]);
+
+/**
+ * Sprawdza czy użytkownik jest na liście testowej (bypass wszystkich limitów)
+ * @param {string} email - Email użytkownika
+ * @param {string} ip - IP użytkownika
+ * @returns {boolean} - true jeśli użytkownik jest na liście testowej
+ */
+function isTestUser(email, ip) {
+  const isTestEmail = email && TEST_EMAILS.has(email.toLowerCase());
+  const isTestIP = ip && WHITELISTED_IPS.has(ip);
+  
+  if (isTestEmail || isTestIP) {
+    console.log(`🧪 [TEST-BYPASS] Test user detected:`, {
+      email: email ? email.substring(0, 10) + '...' : 'brak',
+      ip: ip ? ip.substring(0, 10) + '...' : 'brak',
+      isTestEmail,
+      isTestIP
+    });
+    return true;
+  }
+  return false;
+}
+
 const VERSION_TAG = 'transform@2025-11-13T13:10';
 
 // Try to load sharp, but don't fail if it's not available
@@ -742,9 +769,15 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: 'Image data and prompt are required' });
     }
     
+    // 🧪 BYPASS: Sprawdź czy użytkownik jest na liście testowej (przed wszystkimi limitami)
+    const isTest = isTestUser(email || null, ip);
+    
     console.log(`🎯 [TRANSFORM] Product type: ${productType || 'not specified'}`);
     console.log(`🎯 [TRANSFORM] Style: ${prompt}`);
     console.log(`👤 [TRANSFORM] Customer ID: ${customerId || 'not logged in'}`);
+    if (isTest) {
+      console.log(`🧪 [TEST-BYPASS] Test user detected - wszystkie limity pomijane`);
+    }
 
     // ✅ SPRAWDZENIE LIMITÓW UŻYCIA PRZED TRANSFORMACJĄ (przeniesione po finalProductType)
 
@@ -1044,7 +1077,9 @@ module.exports = async (req, res) => {
 
     // ✅ DEVICE TOKEN LIMIT: 1 generacja PER PRODUCTTYPE dla niezalogowanych
     // Używa Vercel KV z atomic operations (trwałe, nie resetuje się)
-    if (!customerId && deviceToken && isKVConfigured()) {
+    if (isTest) {
+      console.log(`🧪 [TEST-BYPASS] Pomijam device token limit dla test user (niezalogowany)`);
+    } else if (!customerId && deviceToken && isKVConfigured()) {
       console.log(`🔍 [DEVICE-TOKEN] START sprawdzanie limitu TOTAL (KV):`, {
         deviceToken: deviceToken.substring(0, 8) + '...',
         ip: ip
@@ -1082,7 +1117,9 @@ module.exports = async (req, res) => {
     // Limit: 1 device token = max 2 różne customerIds (aby nie blokować rodzin)
     // ============================================================================
     
-    if (customerId && deviceToken && isKVConfigured()) {
+    if (isTest) {
+      console.log(`🧪 [TEST-BYPASS] Pomijam cross-account check dla test user`);
+    } else if (customerId && deviceToken && isKVConfigured()) {
       console.log(`🔍 [CROSS-ACCOUNT] START sprawdzanie cross-account detection:`, {
         customerId: customerId.substring(0, 10) + '...',
         deviceToken: deviceToken.substring(0, 8) + '...'
@@ -1123,7 +1160,10 @@ module.exports = async (req, res) => {
     // Aby wyłączyć: ustaw ENABLE_IMAGE_HASH_LIMIT=false w Vercel Dashboard
     // ============================================================================
     
-    if (isImageHashLimitEnabled() && isKVConfigured() && imageData) {
+    // 🧪 BYPASS: Test users pomijają limit obrazka (isTest już zdefiniowane wcześniej)
+    if (isTest) {
+      console.log(`🧪 [TEST-BYPASS] Pomijam image hash limit dla test user`);
+    } else if (isImageHashLimitEnabled() && isKVConfigured() && imageData) {
       console.log(`🔍 [IMAGE-HASH] Feature enabled - sprawdzanie limitu per obrazek...`);
       
       try {
@@ -1531,7 +1571,9 @@ module.exports = async (req, res) => {
           isOldFormat: isOldFormat
         });
 
-        if (totalUsed >= totalLimit) {
+        if (isTest) {
+          console.log(`🧪 [TEST-BYPASS] Pomijam Shopify metafield limit dla test user (${totalUsed}/${totalLimit})`);
+        } else if (totalUsed >= totalLimit) {
           console.warn(`❌ [METAFIELD-CHECK] LIMIT EXCEEDED:`, {
             customerEmail: customer?.email,
             customerId: customerId,
@@ -2462,8 +2504,8 @@ module.exports = async (req, res) => {
     if (isKVConfigured()) {
       try {
         // 1. Atomic Increment IP Limit (dla wszystkich)
-        if (ip && WHITELISTED_IPS.has(ip)) {
-          console.log(`✅ [TRANSFORM] IP ${ip} na białej liście - pomijam inkrementację IP limit`);
+        if (isTest || (ip && WHITELISTED_IPS.has(ip))) {
+          console.log(`🧪 [TEST-BYPASS] Pomijam inkrementację IP limit dla test user`);
         } else {
           const ipIncrementResult = await incrementIPLimit(ip);
           if (ipIncrementResult.success) {
@@ -2474,7 +2516,9 @@ module.exports = async (req, res) => {
         }
 
         // 2. Atomic Increment Device Token Limit (tylko dla niezalogowanych)
-        if (!customerId && deviceToken) {
+        if (isTest) {
+          console.log(`🧪 [TEST-BYPASS] Pomijam inkrementację device token limit dla test user`);
+        } else if (!customerId && deviceToken) {
           const deviceIncrementResult = await incrementDeviceTokenLimit(deviceToken);
           if (deviceIncrementResult.success) {
             console.log(`➕ [TRANSFORM] Device token limit incremented: ${deviceIncrementResult.newCount}/2`);
