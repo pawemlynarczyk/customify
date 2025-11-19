@@ -9,6 +9,11 @@ const BLOCKED_IPS = new Set([
   '46.112.202.146', // Podejrzana aktywność - ręcznie zablokowane
 ]);
 
+// ✅ Biała lista IP (pomijają IP limit 10/24h)
+const WHITELISTED_IPS = new Set([
+  '83.29.225.249', // Admin/Development IP - bez limitu
+]);
+
 const VERSION_TAG = 'transform@2025-11-13T13:10';
 
 // Try to load sharp, but don't fail if it's not available
@@ -634,7 +639,10 @@ module.exports = async (req, res) => {
   
   // ✅ TWARDY LIMIT DZIENNY: 10 prób na IP w ciągu 24h (dla wszystkich - chroni przed wieloma kontami)
   // Używa Vercel KV z atomic operations (trwałe, nie resetuje się)
-  if (isKVConfigured()) {
+  // ⚠️ BIAŁA LISTA: Admin/Development IP pomijają limit
+  if (ip && WHITELISTED_IPS.has(ip)) {
+    console.log(`✅ [TRANSFORM] IP ${ip} na białej liście - pomijam IP limit`);
+  } else if (isKVConfigured()) {
     const ipLimitCheck = await checkIPLimit(ip);
     if (!ipLimitCheck.allowed) {
       console.log(`❌ [TRANSFORM] Daily IP limit exceeded: ${ip} (${ipLimitCheck.count}/${ipLimitCheck.limit})`);
