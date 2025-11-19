@@ -370,7 +370,11 @@
     
     <div id="loading" class="loading">Ładowanie obrazków...</div>
     <div id="gallery" class="gallery"></div>
-    <button onclick="loadMore()" id="loadMoreBtn" style="display: none; width: 100%; margin-top: 20px; padding: 15px;">Załaduj więcej</button>
+    <div id="loadMoreIndicator" style="display: none; text-align: center; padding: 20px; color: #666;">
+      <div style="display: inline-block; padding: 10px 20px; background: #f5f5f5; border-radius: 6px;">
+        ⏳ Ładowanie więcej obrazków...
+      </div>
+    </div>
     </div>
   </div>
   
@@ -478,7 +482,7 @@
     async function loadImages(reset = true) {
       if (!AUTH_TOKEN) {
         document.getElementById('errorContainer').innerHTML = '<div class="error">❌ Brak tokena autoryzacji</div>';
-        return;
+        return Promise.resolve();
       }
       
       if (reset) {
@@ -495,12 +499,13 @@
       loadingEl.style.display = 'block';
       errorContainer.innerHTML = '';
       
-      const category = document.getElementById('categoryFilter').value;
       const sortBy = document.getElementById('sortBy').value;
       const sortOrder = document.getElementById('sortOrder').value;
       
+      // ⚠️ NIE FILTRUJ PO KATEGORII W API - pobierz WSZYSTKIE obrazy, filtrowanie po stronie klienta
       try {
-        const url = `${API_BASE}/list-blob-images?limit=500&sortBy=${sortBy}&sortOrder=${sortOrder}${category !== 'all' ? '&category=' + category : ''}${currentCursor ? '&cursor=' + encodeURIComponent(currentCursor) : ''}`;
+        // Backend pobiera wszystkie pliki (bez limitu) i sortuje po stronie serwera
+        const url = `${API_BASE}/list-blob-images?sortBy=${sortBy}&sortOrder=${sortOrder}${currentCursor ? '&cursor=' + encodeURIComponent(currentCursor) : ''}`;
         
         const response = await fetch(url, {
           headers: {
@@ -518,8 +523,29 @@
           throw new Error(data.error || 'Unknown error');
         }
         
-        // Dodaj nowe obrazki do listy
+        // Dodaj nowe obrazki do listy (WSZYSTKIE kategorie)
         allImages = reset ? data.images : [...allImages, ...data.images];
+        
+        // Debug: sprawdź pierwsze obrazy i kategorie
+        if (reset && allImages.length > 0) {
+          console.log('🔍 [LOAD] First 10 images with categories:', allImages.slice(0, 10).map(img => ({
+            pathname: img.pathname,
+            category: img.category,
+            uploadedAt: img.uploadedAt,
+            hasCategory: !!img.category
+          })));
+          
+          // Sprawdź ile obrazków ma kategorię "wygenerowane"
+          const wygenerowaneCount = allImages.filter(img => img.category === 'wygenerowane').length;
+          console.log(`🔍 [LOAD] Images with category "wygenerowane": ${wygenerowaneCount} / ${allImages.length}`);
+          
+          // Pokaż przykładowe obrazy z temp/ które powinny być "wygenerowane"
+          const tempImages = allImages.filter(img => img.pathname && img.pathname.includes('temp/'));
+          console.log(`🔍 [LOAD] Temp images (${tempImages.length}):`, tempImages.slice(0, 5).map(img => ({
+            pathname: img.pathname,
+            category: img.category
+          })));
+        }
         currentCursor = data.cursor;
         
         // Aktualizuj statystyki
@@ -528,15 +554,25 @@
         // Wyświetl obrazki
         displayImages();
         
-        // Pokaż/ukryj przycisk "Załaduj więcej"
-        document.getElementById('loadMoreBtn').style.display = data.hasMore ? 'block' : 'none';
+        // Ukryj wskaźnik ładowania więcej
+        document.getElementById('loadMoreIndicator').style.display = 'none';
         
         loadingEl.style.display = 'none';
+        
+        // Jeśli jest więcej obrazków, włącz infinite scroll
+        if (data.hasMore) {
+          setupInfiniteScroll();
+        } else {
+          // Usuń listener jeśli nie ma więcej obrazków
+          window.removeEventListener('scroll', handleScroll);
+        }
         
       } catch (error) {
         console.error('Error loading images:', error);
         loadingEl.style.display = 'none';
         errorContainer.innerHTML = `<div class="error"><strong>Błąd:</strong> ${error.message}</div>`;
+        isLoadingMore = false;
+        throw error; // Rzuć błąd żeby .finally() zadziałał
       }
     }
     
@@ -548,24 +584,130 @@
         return images; // Brak filtrowania
       }
       
-      return images.filter(image => {
-        const imageDate = new Date(image.uploadedAt);
-        imageDate.setHours(0, 0, 0, 0);
-        
-        if (dateFrom) {
-          const fromDate = new Date(dateFrom);
-          fromDate.setHours(0, 0, 0, 0);
-          if (imageDate < fromDate) return false;
+      // Debug: pokaż jakie daty są używane do filtrowania
+      console.log(`🔍 [FILTER-BY-DATE] Filtering ${images.length} images with dateFrom="${dateFrom}", dateTo="${dateTo}"`);
+      
+      let filteredCount = 0;
+      let rejectedCount = 0;
+      const rejectedReasons = {};
+      const sampleRejected = []; // Przechowaj przykładowe odrzucone obrazy dla debugowania
+      
+      const filtered = images.filter(image => {
+        // Sprawdź czy uploadedAt istnieje i jest poprawny
+        if (!image.uploadedAt) {
+          rejectedCount++;
+          rejectedReasons['no_date'] = (rejectedReasons['no_date'] || 0) + 1;
+          if (rejectedCount <= 5) {
+            console.warn('⚠️ [FILTER] Image missing uploadedAt:', image.pathname);
+          }
+          return false; // Ukryj obrazy bez daty
         }
         
-        if (dateTo) {
-          const toDate = new Date(dateTo);
-          toDate.setHours(23, 59, 59, 999);
-          if (imageDate > toDate) return false;
+        try {
+          const imageDate = new Date(image.uploadedAt);
+          
+          // Sprawdź czy data jest poprawna
+          if (isNaN(imageDate.getTime())) {
+            rejectedCount++;
+            rejectedReasons['invalid_date'] = (rejectedReasons['invalid_date'] || 0) + 1;
+            if (rejectedCount <= 5) {
+              console.warn('⚠️ [FILTER] Invalid date:', image.uploadedAt, image.pathname);
+            }
+            return false;
+          }
+          
+          // ⚠️ KRYTYCZNE: Porównuj TYLKO daty (bez czasu) w lokalnej strefie czasowej
+          // Użyj lokalnych dat zamiast UTC żeby uniknąć problemów ze strefą czasową
+          const imageDateOnly = new Date(imageDate.getFullYear(), imageDate.getMonth(), imageDate.getDate());
+          
+          if (dateFrom) {
+            const fromDate = new Date(dateFrom + 'T00:00:00');
+            if (isNaN(fromDate.getTime())) {
+              console.error('❌ [FILTER] Invalid dateFrom:', dateFrom);
+              filteredCount++;
+              return true; // Jeśli data jest niepoprawna, pokaż obraz
+            }
+            // Porównaj tylko daty (bez czasu) w lokalnej strefie czasowej
+            const fromDateOnly = new Date(fromDate.getFullYear(), fromDate.getMonth(), fromDate.getDate());
+            
+            if (imageDateOnly < fromDateOnly) {
+              rejectedCount++;
+              rejectedReasons['before_from'] = (rejectedReasons['before_from'] || 0) + 1;
+              if (rejectedCount <= 10) {
+                const imageDateStr = `${imageDateOnly.getFullYear()}-${String(imageDateOnly.getMonth() + 1).padStart(2, '0')}-${String(imageDateOnly.getDate()).padStart(2, '0')}`;
+                const fromDateStr = `${fromDateOnly.getFullYear()}-${String(fromDateOnly.getMonth() + 1).padStart(2, '0')}-${String(fromDateOnly.getDate()).padStart(2, '0')}`;
+                console.log(`❌ [FILTER] Rejected (before fromDate): ${image.pathname}, imageDate=${imageDateStr}, fromDate=${fromDateStr}, uploadedAt="${image.uploadedAt}"`);
+                if (rejectedCount <= 5) {
+                  sampleRejected.push({
+                    pathname: image.pathname,
+                    imageDate: imageDateStr,
+                    fromDate: fromDateStr,
+                    uploadedAt: image.uploadedAt
+                  });
+                }
+              }
+              return false;
+            }
+          }
+          
+          if (dateTo) {
+            const toDate = new Date(dateTo + 'T00:00:00');
+            if (isNaN(toDate.getTime())) {
+              console.error('❌ [FILTER] Invalid dateTo:', dateTo);
+              filteredCount++;
+              return true; // Jeśli data jest niepoprawna, pokaż obraz
+            }
+            // Porównaj tylko daty (bez czasu) w lokalnej strefie czasowej
+            const toDateOnly = new Date(toDate.getFullYear(), toDate.getMonth(), toDate.getDate());
+            
+            if (imageDateOnly > toDateOnly) {
+              rejectedCount++;
+              rejectedReasons['after_to'] = (rejectedReasons['after_to'] || 0) + 1;
+              if (rejectedCount <= 5) {
+                const imageDateStr = `${imageDateOnly.getFullYear()}-${String(imageDateOnly.getMonth() + 1).padStart(2, '0')}-${String(imageDateOnly.getDate()).padStart(2, '0')}`;
+                const toDateStr = `${toDateOnly.getFullYear()}-${String(toDateOnly.getMonth() + 1).padStart(2, '0')}-${String(toDateOnly.getDate()).padStart(2, '0')}`;
+                console.log(`❌ [FILTER] Rejected (after toDate): ${image.pathname}, imageDate=${imageDateStr}, toDate=${toDateStr}`);
+              }
+              return false;
+            }
+          }
+          
+          filteredCount++;
+          return true;
+        } catch (error) {
+          rejectedCount++;
+          rejectedReasons['error'] = (rejectedReasons['error'] || 0) + 1;
+          if (rejectedCount <= 5) {
+            console.error('❌ [FILTER] Error filtering image:', error, image.pathname);
+          }
+          return false;
         }
-        
-        return true;
       });
+      
+      // Debug summary
+      if (dateFrom || dateTo) {
+        console.log(`🔍 [FILTER] Date filter summary:`, {
+          total: images.length,
+          filtered: filtered.length,
+          rejected: rejectedCount,
+          dateFrom: dateFrom,
+          dateTo: dateTo,
+          rejectionReasons: rejectedReasons,
+          sampleRejected: sampleRejected.slice(0, 5) // Pokaż pierwsze 5 odrzuconych dla debugowania
+        });
+        
+        // Jeśli wszystkie obrazy zostały odrzucone, pokaż przykładowe daty z obrazów
+        if (filtered.length === 0 && images.length > 0) {
+          const sampleDates = images.slice(0, 10).map(img => ({
+            pathname: img.pathname,
+            uploadedAt: img.uploadedAt,
+            category: img.category
+          }));
+          console.warn(`⚠️ [FILTER] All ${images.length} images rejected! Sample dates:`, sampleDates);
+        }
+      }
+      
+      return filtered;
     }
     
     function setDateRange(range) {
@@ -573,13 +715,25 @@
       const dateFrom = document.getElementById('dateFrom');
       const dateTo = document.getElementById('dateTo');
       
+      // Funkcja pomocnicza do formatowania lokalnej daty (nie UTC!)
+      const formatLocalDate = (date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      };
+      
       let from, to;
       
       switch(range) {
         case 'today':
-          from = new Date(today);
-          to = new Date(today);
-          break;
+          // ⚠️ Użyj lokalnej daty, nie UTC! (toISOString() może zwrócić wczoraj jeśli jesteś w UTC+)
+          const localToday = formatLocalDate(today);
+          console.log(`🔍 [DATE-RANGE] Setting "dzisiaj" to: ${localToday} (local date, not UTC)`);
+          dateFrom.value = localToday;
+          dateTo.value = localToday;
+          loadImages(true);
+          return;
         case 'week':
           from = new Date(today);
           from.setDate(today.getDate() - 7);
@@ -588,8 +742,8 @@
       }
       
       if (from && to) {
-        dateFrom.value = from.toISOString().split('T')[0];
-        dateTo.value = to.toISOString().split('T')[0];
+        dateFrom.value = formatLocalDate(from);
+        dateTo.value = formatLocalDate(to);
         loadImages(true);
       }
     }
@@ -604,13 +758,87 @@
       const galleryEl = document.getElementById('gallery');
       galleryEl.innerHTML = '';
       
-      // Filtruj po datach i kategorii
+      // ⚠️ KRYTYCZNE: Najpierw filtruj po kategorii, POTEM po dacie!
       const category = document.getElementById('categoryFilter').value;
-      let filteredImages = filterByDate(allImages);
+      let filteredImages = allImages;
       
-      // Filtruj po kategorii jeśli wybrano
+      // 1. Filtruj po kategorii NAJPIERW
       if (category !== 'all') {
-        filteredImages = filteredImages.filter(img => img.category === category);
+        const beforeCategoryFilter = filteredImages.length;
+        
+        // Debug: sprawdź kategorie przed filtrowaniem
+        const categoryCounts = {};
+        filteredImages.forEach(img => {
+          const cat = img.category || 'NO_CATEGORY';
+          categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
+        });
+        console.log(`🔍 [CATEGORY-FILTER] Category counts before filter:`, categoryCounts);
+        
+        filteredImages = filteredImages.filter(img => {
+          const matches = img.category === category;
+          // Debug dla obrazków które powinny pasować ale nie pasują
+          if (category === 'wygenerowane' && img.pathname && img.pathname.includes('temp/') && (img.pathname.includes('caricature') || img.pathname.includes('generation') || img.pathname.includes('ai-'))) {
+            console.log(`⚠️ [CATEGORY-FILTER] Should match "wygenerowane": ${img.pathname}, category="${img.category}", matches=${matches}`);
+          }
+          return matches;
+        });
+        console.log(`🔍 [DISPLAY] Category filter "${category}": ${beforeCategoryFilter} → ${filteredImages.length}`);
+        
+        // Jeśli 0 obrazków, pokaż przykładowe które powinny pasować
+        if (filteredImages.length === 0 && category === 'wygenerowane') {
+          const shouldMatch = allImages.filter(img => 
+            img.pathname && img.pathname.includes('temp/') && 
+            (img.pathname.includes('caricature') || img.pathname.includes('generation') || img.pathname.includes('ai-'))
+          );
+          console.log(`⚠️ [CATEGORY-FILTER] Found ${shouldMatch.length} images that SHOULD match "wygenerowane":`, shouldMatch.slice(0, 5).map(img => ({
+            pathname: img.pathname,
+            category: img.category
+          })));
+        }
+      }
+      
+      // 2. Filtruj po datach PO kategorii
+      const dateFrom = document.getElementById('dateFrom').value;
+      const dateTo = document.getElementById('dateTo').value;
+      const beforeDateFilter = filteredImages.length;
+      filteredImages = filterByDate(filteredImages);
+      
+      // 3. SORTOWANIE - upewnij się że najnowsze są na górze!
+      // API już sortuje, ale na wszelki wypadek posortuj jeszcze raz po stronie klienta
+      const sortBy = document.getElementById('sortBy').value;
+      const sortOrder = document.getElementById('sortOrder').value;
+      
+      if (sortBy === 'date') {
+        filteredImages.sort((a, b) => {
+          const dateA = new Date(a.uploadedAt || 0).getTime();
+          const dateB = new Date(b.uploadedAt || 0).getTime();
+          return sortOrder === 'asc' ? dateA - dateB : dateB - dateA; // desc = najnowsze na początku
+        });
+      } else if (sortBy === 'name') {
+        filteredImages.sort((a, b) => {
+          const nameA = (a.pathname || '').toLowerCase();
+          const nameB = (b.pathname || '').toLowerCase();
+          return sortOrder === 'asc' 
+            ? nameA.localeCompare(nameB)
+            : nameB.localeCompare(nameA);
+        });
+      }
+      
+      // Debug logging
+      if (dateFrom || dateTo || category !== 'all') {
+        console.log('🔍 [DISPLAY] Filter summary:', {
+          totalAllImages: allImages.length,
+          afterCategoryFilter: beforeDateFilter,
+          afterDateFilter: filteredImages.length,
+          category: category,
+          dateFrom: dateFrom,
+          dateTo: dateTo,
+          sampleFiltered: filteredImages.slice(0, 3).map(img => ({
+            pathname: img.pathname,
+            uploadedAt: img.uploadedAt,
+            category: img.category
+          }))
+        });
       }
       
       // Aktualizuj licznik w filtrze
@@ -659,12 +887,14 @@
             </div>
           `;
         } else {
-          // Obrazek - normalne wyświetlanie
+          // Obrazek - normalne wyświetlanie z retry logic
           card.innerHTML = `
             <input type="checkbox" class="checkbox" ${isSelected ? 'checked' : ''} 
                    onchange="toggleSelection('${image.url}', ${index})">
             <img src="${image.url}" alt="${image.pathname}" loading="lazy" 
-                 onclick="window.open('${image.url}', '_blank')">
+                 onerror="retryImageLoad(this, '${image.url}', 3)"
+                 onclick="window.open('${image.url}', '_blank')"
+                 style="cursor: pointer;">
             <div class="image-info">
               <span class="category ${image.category}">${image.category}</span>
               <div class="filename">${fileName}</div>
@@ -763,8 +993,63 @@
       loadImages(true);
     }
     
+    let isLoadingMore = false;
+    
     function loadMore() {
-      loadImages(false);
+      if (isLoadingMore || !currentCursor) return;
+      
+      isLoadingMore = true;
+      document.getElementById('loadMoreIndicator').style.display = 'block';
+      
+      loadImages(false).finally(() => {
+        isLoadingMore = false;
+      });
+    }
+    
+    // Infinite scroll - automatyczne ładowanie przy scrollu do dołu
+    function setupInfiniteScroll() {
+      // Usuń poprzednie listenery
+      window.removeEventListener('scroll', handleScroll);
+      
+      // Dodaj nowy listener
+      window.addEventListener('scroll', handleScroll, { passive: true });
+    }
+    
+    function handleScroll() {
+      // Sprawdź czy użytkownik jest blisko dołu strony
+      const scrollPosition = window.innerHeight + window.scrollY;
+      const documentHeight = document.documentElement.scrollHeight;
+      const threshold = 500; // Załaduj gdy jest 500px od dołu
+      
+      if (scrollPosition >= documentHeight - threshold && !isLoadingMore && currentCursor) {
+        loadMore();
+      }
+    }
+    
+    // Retry logic dla obrazków - rozwiązuje problem z ładowaniem
+    function retryImageLoad(imgElement, imageUrl, maxRetries) {
+      if (!imgElement.dataset.retryCount) {
+        imgElement.dataset.retryCount = '0';
+      }
+      
+      const retryCount = parseInt(imgElement.dataset.retryCount, 10);
+      
+      if (retryCount >= maxRetries) {
+        // Po max próbach - pokaż placeholder
+        imgElement.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2Y1ZjVmNSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj7imYQgQmzEhCB3Y3R5dGFuaWE8L3RleHQ+PC9zdmc+';
+        imgElement.alt = 'Błąd ładowania obrazka';
+        imgElement.style.cursor = 'default';
+        imgElement.onclick = null;
+        return;
+      }
+      
+      // Retry z cache busting
+      imgElement.dataset.retryCount = (retryCount + 1).toString();
+      const retryUrl = imageUrl + (imageUrl.includes('?') ? '&' : '?') + '_retry=' + retryCount + '&_t=' + Date.now();
+      
+      setTimeout(() => {
+        imgElement.src = retryUrl;
+      }, 500 * (retryCount + 1)); // Exponential backoff: 500ms, 1000ms, 1500ms
     }
     
     // Event listeners

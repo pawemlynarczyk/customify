@@ -70,7 +70,10 @@ class CustomifyEmbed {
     this.setupAccordion();
     
     // ✅ USAGE LIMITS: Pokaż licznik użyć
-    this.showUsageCounter();
+    console.log('🔍 [INIT] Calling showUsageCounter()...');
+    this.showUsageCounter().catch(error => {
+      console.error('❌ [INIT] Error in showUsageCounter:', error);
+    });
     
     // 🎨 GALERIA: Załaduj galerię przy starcie (jeśli są zapisane generacje)
     console.log('🎨 [GALLERY] Calling updateGallery from init()');
@@ -405,34 +408,13 @@ class CustomifyEmbed {
    * Zapisuje generację AI w localStorage
    */
   async saveAIGeneration(originalImage, transformedImage, style, size) {
-    console.log('💾 [CACHE] Saving AI generation to Vercel Blob...');
+    console.log('💾 [CACHE] Saving AI generation to localStorage...');
     
-    // ZAWSZE używamy URL (zamiast base64) dla localStorage
-    let transformedImageUrl = transformedImage; // fallback
+    // ⚠️ NIE zapisuj ponownie do Vercel Blob - już jest zapisane w transform.js jako generation-{timestamp}.jpg
+    // Używamy URL z API response (generation-{timestamp}.jpg) zamiast duplikować jako ai-{timestamp}.jpg.jpg
+    let transformedImageUrl = transformedImage; // Użyj URL z API (generation-{timestamp}.jpg lub base64)
     
-    try {
-      // ✅ ZAWSZE zapisuj na Vercel Blob dla spójności (wszystkie style: boho, koty, król, karykatura)
-      if (transformedImage && transformedImage.startsWith('data:image/')) {
-        console.log('🎨 [CACHE] Detected base64 image, uploading to Vercel Blob...');
-        transformedImageUrl = await this.saveToVercelBlob(transformedImage, `ai-${Date.now()}.jpg`);
-        console.log('✅ [CACHE] Uploaded to Vercel Blob:', transformedImageUrl?.substring(0, 50));
-      } else if (transformedImage && (transformedImage.startsWith('http://') || transformedImage.startsWith('https://'))) {
-        console.log('🌐 [CACHE] Detected URL image (Replicate), downloading and uploading to Vercel Blob...');
-        // Pobierz obraz z URL i upload na Vercel Blob dla spójności
-        const blob = await fetch(transformedImage).then(r => r.blob());
-        const reader = new FileReader();
-        const base64 = await new Promise((resolve, reject) => {
-          reader.onload = () => resolve(reader.result);
-          reader.onerror = reject;
-          reader.readAsDataURL(blob);
-        });
-        transformedImageUrl = await this.saveToVercelBlob(base64, `ai-${Date.now()}.jpg`);
-        console.log('✅ [CACHE] Replicate URL uploaded to Vercel Blob:', transformedImageUrl?.substring(0, 50));
-      }
-    } catch (error) {
-      console.warn('⚠️ [CACHE] Failed to save to Vercel Blob, using original:', error);
-      // Użyj oryginału jako fallback
-    }
+    console.log('✅ [CACHE] Using existing URL from transform.js (no duplicate upload):', transformedImageUrl?.substring(0, 50));
 
     const generation = {
       id: Date.now(),
@@ -1376,41 +1358,117 @@ class CustomifyEmbed {
    * Pokazuje licznik użyć w UI
    */
   async showUsageCounter() {
+    console.log('🔍 [USAGE] showUsageCounter() called');
+    
     // Usage counter initialization
     const customerInfo = this.getCustomerInfo();
+    console.log('🔍 [USAGE] Customer info:', customerInfo ? 'logged in' : 'not logged in');
     let counterHTML = '';
     
-    // Customer info retrieved
-    
     if (!customerInfo) {
-      // Niezalogowany - NIE POKAZUJ komunikatu o punktach
-      // Modal rejestracji pojawi się dopiero po wyczerpaniu 1 transformacji
-      // Fallback: bez productType użyj sumy wszystkich typów
-      const localCount = this.getLocalUsageCount(); // getLocalUsageCount() bez argumentu zwraca sumę
+      // Niezalogowany - pokaż licznik z localStorage
+      const localCount = this.getLocalUsageCount();
       const FREE_LIMIT = 1;
+      const remaining = Math.max(0, FREE_LIMIT - localCount);
       
-      // Brak komunikatu - użytkownik nie wie ile ma punktów
-      // Dopiero po 1 transformacji pojawi się modal rejestracji
+      console.log(`🔍 [USAGE] Not logged in - localCount: ${localCount}, remaining: ${remaining}`);
+      
+      if (remaining > 0) {
+        // Zielony - pozostało transformacji
+        counterHTML = `
+          <div id="usageCounter" class="usage-counter usage-counter-green">
+            🎨 Pozostało ${remaining}/${FREE_LIMIT} darmowych transformacji
+          </div>
+        `;
+      } else {
+        // Czerwony - limit wykorzystany
+        counterHTML = `
+          <div id="usageCounter" class="usage-counter usage-counter-red">
+            ❌ Wykorzystano ${FREE_LIMIT}/${FREE_LIMIT} - Zaloguj się!
+          </div>
+        `;
+      }
     } else {
-      // Zalogowany - NIE POKAZUJ komunikatu o kredytach
-      // Użytkownik ma nieograniczone transformacje
-      console.log('🔍 [USAGE] Logged in user - no counter display');
+      // Zalogowany - pobierz z API
+      console.log('🔍 [USAGE] Fetching usage data from API...');
+      try {
+        const response = await fetch('https://customify-s56o.vercel.app/api/check-usage', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            customerId: customerInfo.customerId,
+            customerAccessToken: customerInfo.customerAccessToken
+          })
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          const remaining = data.remainingCount || 0;
+          const totalLimit = data.totalLimit || 3;
+          
+          console.log(`🔍 [USAGE] API response - remaining: ${remaining}, totalLimit: ${totalLimit}`);
+          
+          if (remaining > 0) {
+            // Niebieski - zalogowany, pozostało transformacji
+            counterHTML = `
+              <div id="usageCounter" class="usage-counter usage-counter-blue">
+                ✅ Zalogowany: ${remaining}/${totalLimit} transformacji
+              </div>
+            `;
+          } else {
+            // Czerwony - limit wykorzystany
+            counterHTML = `
+              <div id="usageCounter" class="usage-counter usage-counter-red">
+                ❌ Wykorzystano ${totalLimit}/${totalLimit} transformacji
+              </div>
+            `;
+          }
+        } else {
+          console.warn('⚠️ [USAGE] Failed to fetch usage data:', response.status);
+          // Fallback - pokaż że jest zalogowany ale nie wiemy ile ma transformacji
+          counterHTML = `
+            <div id="usageCounter" class="usage-counter usage-counter-blue">
+              ✅ Zalogowany - sprawdzanie limitów...
+            </div>
+          `;
+        }
+      } catch (error) {
+        console.error('❌ [USAGE] Error fetching usage counter:', error);
+        // Fallback - pokaż że jest zalogowany ale nie wiemy ile ma transformacji
+        counterHTML = `
+          <div id="usageCounter" class="usage-counter usage-counter-blue">
+            ✅ Zalogowany - sprawdzanie limitów...
+          </div>
+        `;
+      }
     }
+    
+    console.log('🔍 [USAGE] counterHTML generated:', counterHTML ? 'YES' : 'NO', counterHTML.substring(0, 100));
     
     // Wstaw licznik do DOM (przed upload area)
     const uploadArea = document.getElementById('uploadArea');
+    console.log('🔍 [USAGE] uploadArea found:', !!uploadArea);
+    
     if (uploadArea && counterHTML) {
       // Usuń stary licznik jeśli istnieje
       const oldCounter = document.getElementById('usageCounter');
       if (oldCounter) {
         oldCounter.remove();
+        console.log('🔍 [USAGE] Removed old counter');
       }
       
       // Wstaw nowy licznik przed upload area
       uploadArea.insertAdjacentHTML('beforebegin', counterHTML);
-      // Counter displayed successfully
+      console.log('✅ [USAGE] Usage counter displayed successfully');
     } else {
-      // Upload area not found - counter not displayed
+      if (!uploadArea) {
+        console.warn('⚠️ [USAGE] Upload area not found - counter not displayed');
+      }
+      if (!counterHTML) {
+        console.warn('⚠️ [USAGE] counterHTML is empty - counter not displayed');
+      }
     }
   }
 
@@ -2514,35 +2572,37 @@ class CustomifyEmbed {
           // Rysuj oryginalny obraz
           ctx.drawImage(img, 0, 0);
           
-          // ===== WZÓR DIAGONALNY - "Lumly.pl" i "Podgląd" NA PRZEMIAN =====
+          // ===== WZÓR PREMIUM - 2-3 DUŻE NAPISY "Lumly.pl" NA SKOS =====
           ctx.save();
-          ctx.font = 'bold 30px Arial';
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-          ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
-          ctx.lineWidth = 1.5;
+          
+          // Oblicz rozmiar czcionki (40-60% szerokości obrazu)
+          const fontSize = Math.max(60, Math.min(120, canvas.width * 0.15));
+          ctx.font = `bold ${fontSize}px Arial`;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           
-          // Obróć canvas
+          // Kolor biały z delikatnym cieniem (opacity 0.2-0.25)
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.22)';
+          ctx.strokeStyle = 'rgba(0, 0, 0, 0.15)';
+          ctx.lineWidth = 2;
+          
+          const text = 'Lumly.pl';
+          
+          // Obróć canvas o -30 stopni (z lewej-góry do prawej-dołu)
           ctx.translate(canvas.width/2, canvas.height/2);
           ctx.rotate(-30 * Math.PI / 180);
-          ctx.translate(-canvas.width/2, -canvas.height/2);
           
-          // Rysuj watermarki w siatce - na przemian "Lumly.pl" i "Podgląd"
-          const spacing = 180;
-          let textIndex = 0;
-          const texts = ['Lumly.pl', 'Podgląd'];
+          // 1. Główny napis - centralnie przez twarz (środek obrazu)
+          ctx.strokeText(text, 0, 0);
+          ctx.fillText(text, 0, 0);
           
-          for(let y = -canvas.height; y < canvas.height * 2; y += spacing) {
-            for(let x = -canvas.width; x < canvas.width * 2; x += spacing * 1.5) {
-              const text = texts[textIndex % 2];
-              ctx.strokeText(text, x, y);
-              ctx.fillText(text, x, y);
-              textIndex++;
-            }
-            // Zmień wzór co wiersz dla lepszego efektu
-            textIndex++;
-          }
+          // 2. Drugi napis - przesunięty w górę i w lewo
+          ctx.strokeText(text, -canvas.width * 0.4, -canvas.height * 0.3);
+          ctx.fillText(text, -canvas.width * 0.4, -canvas.height * 0.3);
+          
+          // 3. Trzeci napis - przesunięty w dół i w prawo
+          ctx.strokeText(text, canvas.width * 0.4, canvas.height * 0.3);
+          ctx.fillText(text, canvas.width * 0.4, canvas.height * 0.3);
           
           ctx.restore();
           

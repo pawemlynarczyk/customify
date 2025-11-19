@@ -110,88 +110,168 @@ if (hash !== req.headers['x-shopify-hmac-sha256']) {
 
 **🛡️ SYSTEM LIMITÓW GENERACJI AI (api/transform.js):**
 
-### **1. IP Limit: 10 generacji / 24h (dla WSZYSTKICH - zalogowanych i niezalogowanych)**
-```javascript
-// Chroni przed tworzeniem wielu kont z tego samego IP
-if (!checkRateLimit(ip, 10, 24 * 60 * 60 * 1000)) {
-  return res.status(403).json({
-    error: 'Usage limit exceeded',
-    message: 'Wykorzystałeś limit generacji z tego IP - spróbuj jutro lub skontaktuj się z nami'
-  });
-}
-```
-- **Cel**: Zablokować oszustów tworzących wiele kont
-- **Dlaczego 10?**: Uczciwy user: 1 niezalogowana + 5 zalogowanych + bufor = max 6-8 generacji
-- **Reset**: Automatycznie po 24h (nie blokuje niewinnych użytkowników na zawsze)
+### **🎛️ FEATURE FLAG - IMAGE HASH LIMIT:**
+- **Zmienna env:** `ENABLE_IMAGE_HASH_LIMIT=true/false`
+- **Domyślnie:** WYŁĄCZONA (false)
+- **Aby włączyć:** Ustaw `ENABLE_IMAGE_HASH_LIMIT=true` w Vercel Dashboard → Settings → Environment Variables
+- **Aby wyłączyć:** Ustaw `ENABLE_IMAGE_HASH_LIMIT=false` lub usuń zmienną
+- **Cel:** Łatwy rollback bez edycji kodu (tylko zmiana env variable)
 
-### **2. Device Token: 1 generacja TOTAL (na zawsze, tylko dla niezalogowanych)**
-```javascript
-// Sprawdź TYLKO jeśli niezalogowany
-if (!customerId && deviceToken) {
-  const deviceData = await get(`customify/system/stats/generations/device-${deviceToken}.json`);
-  if (deviceData && deviceData.totalGenerations > 0) {
-    return res.status(403).json({
-      error: 'Usage limit exceeded',
-      message: 'Wykorzystałeś limit generacji - zaloguj się po więcej',
-      showLoginModal: true
-    });
-  }
-}
-```
-- **Cel**: Zablokować konkretnego użytkownika (przez cookie HttpOnly, 1 rok ważności)
-- **Dlaczego TOTAL?**: Bo token identyfikuje konkretnego użytkownika (nie resetuje się)
-- **Po zalogowaniu**: Device token NIE blokuje (kontrola przez Shopify metafields)
+### **📦 GDZIE CO ZAPISUJEMY:**
 
-### **3. Shopify Metafields: 3 generacje (tylko dla zalogowanych)**
-```javascript
-// Sprawdzane przez api/check-usage.js i inkrementowane po transformacji
-const usedCount = parseInt(customer?.metafield?.value || '0', 10);
-const totalLimit = 3;
-if (usedCount >= totalLimit) {
-  return res.status(403).json({ error: 'Limit exceeded' });
-}
-```
-- **Cel**: Kontrola użycia dla zalogowanych (zapisane w Shopify, nie do obejścia)
-- **Namespace**: `customify.usage_count`
+#### **1. Vercel KV (Upstash Redis) - Limity użycia API**
+**Storage:** Vercel KV (backend: Upstash Redis)  
+**Plik:** `utils/vercelKVLimiter.js`  
+**Zmienne środowiskowe:** `KV_REST_API_URL`, `KV_REST_API_TOKEN`
 
-### **4. Czarna lista IP (permanentna blokada)**
+**Zapisujemy:**
+- **IP Limits** (10 generacji / 24h dla wszystkich):
+  - **Klucz:** `ip:{ip_address}:generations`
+  - **Wartość:** liczba (0-10)
+  - **TTL:** 24 godziny (automatycznie wygasa)
+  - **Przykład:** `ip:83.29.225.249:generations` = `3`
+  - **Cel:** Zablokować oszustów tworzących wiele kont z tego samego IP
+  - **Dlaczego 10?** Uczciwy user: 1 niezalogowana + 3 zalogowane + bufor = max 4-6 generacji
+
+- **Device Token Limits** (2 generacje TOTAL dla niezalogowanych):
+  - **Klucz:** `device:{deviceToken}:generations`
+  - **Wartość:** liczba (0-2)
+  - **TTL:** brak (permanentne, nie wygasa)
+  - **Przykład:** `device:a9f0bbd70c5279324e9da859be61c064:generations` = `1`
+  - **Cel:** Zablokować konkretnego niezalogowanego użytkownika (przez cookie HttpOnly, 1 rok ważności)
+  - **Po zalogowaniu:** Device token NIE blokuje (kontrola przez Shopify metafields)
+
+- **Image Hash Limits** (2 generacje per unikalny obrazek - dla WSZYSTKICH):
+  - **Feature flag:** Domyślnie WŁĄCZONE (nie wymaga env variable)
+  - **Klucz:** `image:{sha256_hash}:generations`
+  - **Wartość:** liczba (0-2)
+  - **TTL:** brak (permanentne - obrazek zablokowany na zawsze)
+  - **Przykład:** `image:abc123def456...:generations` = `1`
+  - **Cel:** Zablokować abuse z tym samym zdjęciem (cross-account, cross-device, cross-IP)
+  - **Hash:** SHA-256 z zawartości obrazka (deterministyczny)
+
+- **Device Token Cross-Account Detection** (max 2 konta per device token - dla ZALOGOWANYCH):
+  - **Klucz:** `device:{deviceToken}:customers`
+  - **Wartość:** JSON array z customerIds: `["id1", "id2"]`
+  - **TTL:** brak (permanentne)
+  - **Przykład:** `device:d11f6b3b4aac002ef95c084e4f6736f0:customers` = `["25930613817669", "25928807153989"]`
+  - **Cel:** Wykryć abuse gdzie ten sam device token (cookie) jest używany przez wiele zalogowanych kont
+  - **Limit:** Max 2 różne customerIds per device token (aby nie blokować rodzin/współlokatorów)
+  - **Sprawdzanie:** Przed transformacją sprawdzamy czy customerId jest już na liście lub czy lista ma < 2 elementów
+  - **Blokada:** Jeśli device token ma już 2 różne customerIds i obecny nie jest na liście = BLOKADA
+  - **Inkrementacja:** Po udanej transformacji dodajemy customerId do listy (jeśli jeszcze nie ma)
+  - **Obejście:** Możliwe przez czyszczenie cookies, ale wymaga wysiłku (większość użytkowników nie wie jak)
+
+**Dlaczego Vercel KV?**
+- Atomic operations (`kv.incr`) - zapobiega race conditions
+- Trwałe (nie resetuje się przy redeploy)
+- Szybkie (Redis)
+- Małe dane (tylko liczby/liczniki)
+
+#### **2. Shopify Customer Metafields - Limity dla zalogowanych**
+**Storage:** Shopify Admin (GraphQL API)  
+**Plik:** `api/transform.js` (inkrementacja), `api/check-usage.js` (sprawdzanie)  
+**Namespace:** `customify`  
+**Key:** `usage_count`
+
+**Zapisujemy:**
+- **Usage Count** (4 generacje TOTAL dla zalogowanych):
+  - **Typ:** `number_integer` (stary format) lub `json` (nowy format)
+  - **Wartość:** 
+    - Stary format: `"2"` (liczba total jako string)
+    - Nowy format: `{"total": 2}` (tylko total, bez per productType)
+  - **Cel:** Kontrola użycia dla zalogowanych (zapisane w Shopify, nie do obejścia)
+  - **Limit:** 4 generacje TOTAL (wszystkie style razem)
+
+**Uwaga:** Shopify NIE POZWALA na zmianę typu metafield z `number_integer` na `json`. Kod automatycznie wykrywa typ i używa odpowiedniego formatu.
+
+#### **3. Vercel Blob Storage - Historia generacji**
+**Storage:** Vercel Blob Storage  
+**Plik:** `api/_save-generation-core.js` (teraz `api/save-generation-v2.js`)  
+**Zmienne środowiskowe:** `BLOB_READ_WRITE_TOKEN`
+
+**Zapisujemy:**
+- **Pełna historia generacji** (dla wszystkich użytkowników):
+  - **Ścieżka:** `customify/system/stats/generations/customer-{customerId}.json` (zalogowani)
+  - **Ścieżka:** `customify/system/stats/generations/device-{deviceToken}.json` (niezalogowani)
+  - **Zawartość:** JSON z pełną historią generacji (obrazki, style, daty, productType)
+  - **Przykład:** `https://vzwqqb14qtsxe2wx.public.blob.vercel-storage.com/customify/system/stats/generations/customer-25884417720645.json`
+  - **Cel:** Archiwizacja generacji, historia dla użytkownika, panel admin
+
+**Dlaczego Vercel Blob Storage?**
+- Większe obiekty JSON (kilka KB każdy)
+- Dane archiwalne/historyczne
+- Nie wymaga atomic operations
+- Trwałe URLs
+
+#### **4. Czarna lista IP (permanentna blokada)**
+**Storage:** Hardcoded w `api/transform.js`  
 ```javascript
 const BLOCKED_IPS = new Set(['46.112.202.146']);
 if (ip && BLOCKED_IPS.has(ip)) {
   return res.status(403).json({ error: 'Access denied' });
 }
 ```
-- **Cel**: Ręczne banowanie poważnych nadużyć (boty, spam)
+- **Cel:** Ręczne banowanie poważnych nadużyć (boty, spam)
 
 ---
 
 **📊 PODSUMOWANIE FLOW:**
 
 **Niezalogowany:**
-1. IP check (10/24h) → OK
-2. Device token check (1 TOTAL) → OK
-3. Robi 1 generację → Zapisane w `device-{token}.json`
-4. Próbuje 2. generację → BLOKADA (device token) + modal logowania
+1. IP check (KV: `ip:{ip}:generations` < 10) → OK
+2. Device token check (KV: `device:{token}:generations` < 2) → OK
+3. Robi 1. generację → 
+   - KV: `device:{token}:generations` = 1 (permanentne)
+   - KV: `ip:{ip}:generations` = +1 (TTL 24h)
+   - Blob: Zapisuje do `device-{token}.json`
+4. Robi 2. generację → OK (1 < 2)
+5. Próbuje 3. generację → BLOKADA (device token limit 2/2) + modal logowania
 
-**Niezalogowany → Zalogowany:**
-1. Robi 1 generację niezalogowany (device token: 1 użyta)
-2. Loguje się (device token check: WYŁĄCZONY dla zalogowanych)
-3. Może zrobić 3 generacje (Shopify metafields)
-4. IP: 4 total (limit 10/24h) - OK
+**Zalogowany:**
+1. IP check (KV: `ip:{ip}:generations` < 10) → OK
+2. Device Token Cross-Account check (KV: `device:{token}:customers` max 2 różne customerIds) → OK
+3. Shopify Metafield check (`customify.usage_count` < 4 TOTAL) → OK
+4. Robi generację →
+   - KV: `ip:{ip}:generations` = +1 (TTL 24h)
+   - KV: `device:{token}:customers` = dodaj customerId (jeśli jeszcze nie ma)
+   - Shopify: `usage_count` = +1 (total, bez per productType)
+   - Blob: Zapisuje do `customer-{customerId}.json`
+5. Po 4 generacjach (Shopify limit) → BLOKADA (limit 4/4)
 
-**Oszust z wieloma kontami:**
-1. Tworzy konto 1 → 3 generacje (IP: 3)
-2. Tworzy konto 2 → 3 generacje (IP: 6)
-3. Tworzy konto 3 → 3 generacje (IP: 9)
-4. Próbuje konto 4 → BLOKADA IP (10/24h)
+**Oszust z wieloma kontami (TEN SAM DEVICE TOKEN):**
+1. Tworzy konto 1 (magdasia01@wp.pl) na device token `d11f6...` → 4 generacje
+   - KV IP: 4
+   - KV Device Customers: `["25928807153989"]` (1 konto)
+2. Tworzy konto 2 (bts_army@wp.pl) na device token `d11f6...` → 4 generacje
+   - KV IP: 8
+   - KV Device Customers: `["25928807153989", "25930613817669"]` (2 konta)
+3. Próbuje konto 3 na device token `d11f6...` → ❌ BLOKADA CROSS-ACCOUNT
+   - **Komunikat:** "Wykryto nadużycie: to urządzenie jest już używane przez 2 różne konta"
+
+**Oszust z wieloma kontami (RÓŻNE DEVICE TOKENS):**
+1. Tworzy konto 1 → 4 generacje (KV IP: 4)
+2. Tworzy konto 2 → 4 generacje (KV IP: 8)
+3. Próbuje konto 3 → BLOKADA IP (KV IP: 10/10 - 8 + 2 = 10)
+
+**Oszust z tym samym zdjęciem (IMAGE_HASH włączony domyślnie):**
+1. Email 1, IP 1, Device 1 → upload kot.jpg (hash: abc123...) → 1. generacja ✅
+2. Email 2, IP 2, Device 2 → upload kot.jpg (hash: abc123...) → 2. generacja ✅
+3. Email 3, IP 3, Device 3 → upload kot.jpg (hash: abc123...) → ❌ BLOKADA "To zdjęcie zostało już użyte maksymalną liczbę razy (2/2)"
+4. **PERMANENTNA BLOKADA** - ten obrazek nigdy więcej nie może być użyty!
 
 ---
 
 **🔧 PLIKI:**
-- `api/transform.js` - główna logika limitów (IP + Device Token)
-- `api/_save-generation-core.js` - zapisuje do `device-{token}.json` dla niezalogowanych
-- `api/check-usage.js` - sprawdza Shopify metafields dla zalogowanych
-- `utils/vercelRateLimiter.js` - rate limiter (pamięć ulotna, Map)
+- `api/transform.js` - główna logika limitów (sprawdza wszystkie limity przed transformacją + cross-account detection)
+- `utils/vercelKVLimiter.js` - funkcje do sprawdzania/inkrementacji limitów w Vercel KV (IP, Device Token, Image Hash, Cross-Account)
+- `api/check-usage.js` - sprawdza Shopify metafields dla zalogowanych (frontend API)
+- `api/increment-usage.js` - inkrementuje Shopify metafields (nieużywany, logika w transform.js)
+- `api/_save-generation-core.js` / `api/save-generation-v2.js` - zapisuje historię generacji do Vercel Blob
+
+**🔧 FUNKCJE CROSS-ACCOUNT DETECTION:**
+- `checkDeviceTokenCrossAccount(deviceToken, customerId)` - sprawdza ile różnych kont używa tego device tokena (max 2)
+- `addCustomerToDeviceToken(deviceToken, customerId)` - dodaje customerId do listy (po udanej transformacji)
 
 #### **Shopify API Module:**
 ```javascript

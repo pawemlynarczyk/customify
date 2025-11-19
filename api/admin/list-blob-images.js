@@ -50,17 +50,42 @@ module.exports = async (req, res) => {
       return res.status(429).json({ error: 'Rate limit exceeded' });
     }
 
-    const { prefix, limit = 500, cursor, sortBy = 'date', sortOrder = 'desc', category } = req.query;
+    // Zwiększ domyślny limit do 5000 żeby pokazać więcej najnowszych obrazków
+    const { prefix, limit = 5000, cursor, sortBy = 'date', sortOrder = 'desc', category } = req.query;
 
     console.log('📊 [LIST-BLOB-IMAGES] Request params:', { prefix, limit, cursor, sortBy, sortOrder, category });
 
-    // List all blobs (bez prefixu - pobierz wszystko)
-    const blobs = await list({
-      prefix: prefix || undefined,
-      limit: parseInt(limit),
-      cursor: cursor || undefined,
-      token: process.env.customify_READ_WRITE_TOKEN
-    });
+    // ⚠️ KRYTYCZNE: Pobierz WSZYSTKIE bloby bez limitu, żeby sortowanie działało poprawnie
+    // Vercel Blob list() zwraca bloby w kolejności alfabetycznej, nie po dacie
+    // Musimy pobrać wszystko i posortować po stronie serwera
+    const allBlobs = [];
+    let nextCursor = cursor || undefined;
+    let fetchedCount = 0;
+    const maxFetch = 20000; // Maksymalnie 20k plików (bezpieczeństwo)
+    
+    // Pobieraj wszystkie strony (pagination)
+    do {
+      const blobsBatch = await list({
+        prefix: prefix || undefined,
+        limit: 1000, // Pobieraj po 1000 na raz
+        cursor: nextCursor,
+        token: process.env.customify_READ_WRITE_TOKEN
+      });
+      
+      allBlobs.push(...blobsBatch.blobs);
+      fetchedCount += blobsBatch.blobs.length;
+      nextCursor = blobsBatch.cursor;
+      
+      console.log(`📊 [LIST-BLOB-IMAGES] Fetched ${fetchedCount} blobs so far, has more: ${!!nextCursor}`);
+      
+      // Bezpieczeństwo: zatrzymaj jeśli za dużo
+      if (fetchedCount >= maxFetch) {
+        console.warn(`⚠️ [LIST-BLOB-IMAGES] Reached max fetch limit: ${maxFetch}`);
+        break;
+      }
+    } while (nextCursor);
+    
+    const blobs = { blobs: allBlobs, cursor: nextCursor };
 
     console.log(`📊 [LIST-BLOB-IMAGES] Found ${blobs.blobs.length} blobs from Vercel Blob API`);
     console.log(`📊 [LIST-BLOB-IMAGES] Has cursor (more pages): ${!!blobs.cursor}`);
@@ -69,23 +94,39 @@ module.exports = async (req, res) => {
       console.log(`📊 [LIST-BLOB-IMAGES] Last blob: ${blobs.blobs[blobs.blobs.length - 1].pathname || blobs.blobs[blobs.blobs.length - 1].path}`);
     }
 
-    // Kategoryzacja obrazków
+    // ═══════════════════════════════════════════════════════════════════════════
+    // KATEGORYZACJA OBRAZKÓW - KOMPLETNA LOGIKA
+    // ═══════════════════════════════════════════════════════════════════════════
+    // 
+    // KATEGORIE (w kolejności priorytetu):
+    // 1. STATYSTYKI - pliki JSON z customify/system/stats/generations/
+    // 2. KOSZYKI - zawiera "watermark" w nazwie/ścieżce
+    // 3. ORDERS - prefix customify/orders/
+    // 4. WYGENEROWANE - obrazy AI (wynik transformacji)
+    // 5. UPLOAD - oryginalne zdjęcia użytkownika (przed transformacją)
+    //
+    // ROZRÓŻNIENIE UPLOAD vs WYGENEROWANE:
+    // - UPLOAD: oryginalne zdjęcia użytkownika (przed transformacją AI)
+    //   * Podwójne rozszerzenie .jpg.jpg → upload (błąd w nazwie)
+    //   * Zaczyna się od "image-" → upload (domyślna nazwa)
+    //   * NIE zawiera słów kluczowych AI → upload
+    // - WYGENEROWANE: obrazy wygenerowane przez AI (wynik transformacji)
+    //   * Zawiera słowa kluczowe AI (caricature, generation, ai-, boho, king, koty, pixar)
+    //   * I NIE ma podwójnego rozszerzenia .jpg.jpg
+    //   * I NIE zaczyna się od "image-"
+    //
+    // SŁOWA KLUCZOWE AI:
+    // - caricature, generation, ai-, boho, king, koty, pixar, transform, style
+    // ═══════════════════════════════════════════════════════════════════════════
     const categorizeImage = (blob) => {
-      // Użyj pathname lub path (w zależności od wersji API)
       const pathname = blob.pathname || blob.path || '';
       const path = pathname.toLowerCase();
-      const name = pathname.toLowerCase();
+      const filename = pathname.split('/').pop().toLowerCase(); // Nazwa pliku bez ścieżki
       const isJson = pathname.toLowerCase().endsWith('.json');
       
-      // 0. Statystyki - TYLKO pliki JSON z customify/system/stats/ lub customify/statystyki/
-      if (isJson && (
-        path.startsWith('customify/system/stats/') ||
-        path.startsWith('customify/statystyki/')
-      )) {
-        return 'statystyki';
-      }
-      
-      // 0.1. Pliki wewnętrzne (inne logi) - ukryj je w panelu
+      // ────────────────────────────────────────────────────────────────────────
+      // 0. UKRYJ pliki wewnętrzne/logi (nie pokazuj w panelu)
+      // ────────────────────────────────────────────────────────────────────────
       if (
         path.startsWith('customify/internal/') ||
         (path.startsWith('customify/stats/') && !path.startsWith('customify/system/stats/')) ||
@@ -94,31 +135,131 @@ module.exports = async (req, res) => {
         return null;
       }
       
-      // 1. Koszyki - zawiera "watermark" w nazwie (najpierw - ma priorytet)
-      if (name.includes('watermark')) {
+      // ────────────────────────────────────────────────────────────────────────
+      // 1. STATYSTYKI - TYLKO pliki JSON z customify/system/stats/generations/
+      // ────────────────────────────────────────────────────────────────────────
+      if (isJson && path.startsWith('customify/system/stats/generations/')) {
+        return 'statystyki';
+      }
+      
+      // UKRYJ inne pliki JSON (nie statystyki)
+      if (isJson) {
+        return null;
+      }
+      
+      // ────────────────────────────────────────────────────────────────────────
+      // 2. KOSZYKI - zawiera "watermark" w ścieżce LUB nazwie (najwyższy priorytet)
+      // ────────────────────────────────────────────────────────────────────────
+      if (path.includes('watermark')) {
         return 'koszyki';
       }
       
-      // 2. Upload - prefix customify/temp/ i NIE zawiera "ai" w nazwie
-      if (path.startsWith('customify/temp/') && !name.includes('ai')) {
-        return 'upload';
-      }
-      
-      // 3. Orders - prefix customify/orders/ i NIE zawiera "ai" w nazwie
-      if (path.startsWith('customify/orders/') && !name.includes('ai')) {
+      // ────────────────────────────────────────────────────────────────────────
+      // 3. ORDERS - prefix customify/orders/ (bez watermark)
+      // ────────────────────────────────────────────────────────────────────────
+      if (path.startsWith('customify/orders/')) {
         return 'orders';
       }
       
-      // 4. Wygenerowane - wszystko inne (w tym obrazki z "ai" w nazwie, nawet jeśli są w temp/orders)
-      return 'wygenerowane';
+      // ────────────────────────────────────────────────────────────────────────
+      // 4. WYGENEROWANE vs UPLOAD - obrazy w customify/temp/
+      // ────────────────────────────────────────────────────────────────────────
+      if (path.startsWith('customify/temp/')) {
+        // ═══════════════════════════════════════════════════════════════════════
+        // WYGENEROWANE - obrazy AI (wynik transformacji)
+        // ═══════════════════════════════════════════════════════════════════════
+        // Format: ai-{numer}.jpg.jpg (z podwójnym rozszerzeniem - błąd w nazwie)
+        // Format: generation-{numer}.jpg (Replicate, Segmind base64 - WYNIK transformacji)
+        // ═══════════════════════════════════════════════════════════════════════
+        
+        // WYGENEROWANE: Zaczyna się od "ai-" (nawet z podwójnym rozszerzeniem!)
+        if (filename.startsWith('ai-')) {
+          console.log(`✅ [CATEGORIZE] ${pathname}: Starts with "ai-" → wygenerowane`);
+          return 'wygenerowane';
+        }
+        
+        // WYGENEROWANE: Zaczyna się od "generation-" (WYNIK transformacji)
+        if (filename.startsWith('generation-')) {
+          console.log(`✅ [CATEGORIZE] ${pathname}: AI generation file → wygenerowane`);
+          return 'wygenerowane';
+        }
+        
+        // ═══════════════════════════════════════════════════════════════════════
+        // UPLOAD - oryginalne zdjęcia użytkownika (przed transformacją)
+        // ═══════════════════════════════════════════════════════════════════════
+        // Format: image-{numer}.jpg (domyślna nazwa z upload-temp-image.js)
+        // Format: caricature-{numer}.jpg (oryginalne zdjęcie przed Segmind caricature)
+        // Format: {dowolna-nazwa}.jpg.jpg (podwójne rozszerzenie BEZ prefiksu "ai-")
+        // ═══════════════════════════════════════════════════════════════════════
+        
+        // UPLOAD: Zaczyna się od "image-" (domyślna nazwa z upload-temp-image.js)
+        if (filename.startsWith('image-')) {
+          console.log(`📤 [CATEGORIZE] ${pathname}: Starts with "image-" → upload`);
+          return 'upload';
+        }
+        
+        // UPLOAD: Zaczyna się od "caricature-" (oryginalne zdjęcie przed transformacją Segmind)
+        if (filename.startsWith('caricature-')) {
+          console.log(`📤 [CATEGORIZE] ${pathname}: Starts with "caricature-" → upload (original image)`);
+          return 'upload';
+        }
+        
+        // UPLOAD: Zaczyna się od "watercolor-" (oryginalne zdjęcie przed transformacją Segmind Become-Image)
+        if (filename.startsWith('watercolor-')) {
+          console.log(`📤 [CATEGORIZE] ${pathname}: Starts with "watercolor-" → upload (original image)`);
+          return 'upload';
+        }
+        
+        // UPLOAD: Zawiera "styl-" w nazwie (np. styl-minimalistyczny, styl-realistyczny)
+        if (filename.includes('styl-')) {
+          console.log(`📤 [CATEGORIZE] ${pathname}: Contains "styl-" → upload (original image)`);
+          return 'upload';
+        }
+        
+        // UPLOAD: Podwójne rozszerzenie .jpg.jpg BEZ prefiksu "ai-" (błąd w nazwie uploadu)
+        if (filename.includes('.jpg.jpg') && !filename.startsWith('ai-')) {
+          console.log(`📤 [CATEGORIZE] ${pathname}: Double extension without "ai-" prefix → upload`);
+          return 'upload';
+        }
+        
+        // Fallback → upload (nieznany format = prawdopodobnie oryginalne zdjęcie użytkownika)
+        // UWAGA: Jeśli nie ma żadnego z prefiksów AI (ai-, generation-), 
+        // to prawdopodobnie jest to oryginalne zdjęcie użytkownika (upload)
+        console.log(`📤 [CATEGORIZE] ${pathname}: Unknown format (no AI prefix) → upload (fallback)`);
+        return 'upload';
+      }
+      
+      // ────────────────────────────────────────────────────────────────────────
+      // 5. WYGENEROWANE - obrazy AI poza temp/ (z prefiksami AI)
+      // ────────────────────────────────────────────────────────────────────────
+      // Sprawdź czy zaczyna się od prefiksów AI (generation-, ai-)
+      // UWAGA: caricature- i watercolor- to UPLOAD (oryginalne zdjęcia przed transformacją), nie wygenerowane!
+      if (filename.startsWith('generation-') || filename.startsWith('ai-')) {
+        return 'wygenerowane';
+      }
+      
+      // ────────────────────────────────────────────────────────────────────────
+      // 6. FALLBACK - wszystko inne → upload (prawdopodobnie oryginalne zdjęcie)
+      // ────────────────────────────────────────────────────────────────────────
+      // UWAGA: Jeśli nie ma żadnego z prefiksów AI, to prawdopodobnie jest to upload
+      // (oryginalne zdjęcie użytkownika przed transformacją)
+      return 'upload';
     };
 
     // Kategoryzuj wszystkie obrazki
     let allCategorizedBlobs = blobs.blobs
-      .map(blob => ({
-        ...blob,
-        category: categorizeImage(blob)
-      }))
+      .map(blob => {
+        const category = categorizeImage(blob);
+        // Debug log dla pierwszych 10 obrazków
+        if (blobs.blobs.indexOf(blob) < 10) {
+          const pathname = blob.pathname || blob.path || 'unknown';
+          console.log(`🔍 [LIST-BLOB-IMAGES] Categorizing: ${pathname} → ${category || 'null (hidden)'}`);
+        }
+        return {
+          ...blob,
+          category: category
+        };
+      })
       .filter(blob => blob.category !== null);
 
     // Statystyki per kategoria - LICZ PRZED FILTROWANIEM!
@@ -140,37 +281,79 @@ module.exports = async (req, res) => {
     console.log(`📊 [LIST-BLOB-IMAGES] Category stats:`, stats);
     console.log(`📊 [LIST-BLOB-IMAGES] After filtering by category "${category || 'all'}": ${categorizedBlobs.length} blobs`);
 
-    // Sortowanie
+    // ═══════════════════════════════════════════════════════════════════════
+    // NORMALIZACJA I MAPOWANIE OBRAZKÓW (z normalizacją daty)
+    // ═══════════════════════════════════════════════════════════════════════
+    const normalizedBlobs = categorizedBlobs.map(blob => {
+      const pathname = blob.pathname || blob.path || 'unknown';
+      const isJson = pathname.toLowerCase().endsWith('.json');
+      
+      // Wyciągnij datę z uploadedAt, createdAt lub z timestamp w nazwie pliku
+      let uploadedAt = blob.uploadedAt;
+      if (!uploadedAt && blob.createdAt) {
+        uploadedAt = blob.createdAt;
+      }
+      if (!uploadedAt) {
+        // Spróbuj wyciągnąć timestamp z nazwy pliku (np. caricature-1763312200173.jpg)
+        const timestampMatch = pathname.match(/\d{13}/);
+        if (timestampMatch) {
+          uploadedAt = new Date(parseInt(timestampMatch[0])).toISOString();
+        } else {
+          uploadedAt = new Date().toISOString(); // Fallback - data teraz
+        }
+      }
+      
+      // Parsuj datę do timestamp dla sortowania
+      const uploadedAtTimestamp = new Date(uploadedAt).getTime();
+      
+      return {
+        url: blob.url,
+        pathname: pathname,
+        size: blob.size || 0,
+        uploadedAt: uploadedAt,
+        uploadedAtTimestamp: uploadedAtTimestamp, // Dodaj timestamp dla sortowania
+        category: blob.category,
+        isJson: isJson,
+        contentType: blob.contentType || (isJson ? 'application/json' : 'image')
+      };
+    });
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // SORTOWANIE (PO normalizacji daty!)
+    // ═══════════════════════════════════════════════════════════════════════
     if (sortBy === 'date') {
-      categorizedBlobs.sort((a, b) => {
-        const dateA = new Date(a.uploadedAt).getTime();
-        const dateB = new Date(b.uploadedAt).getTime();
+      normalizedBlobs.sort((a, b) => {
+        const dateA = a.uploadedAtTimestamp || 0;
+        const dateB = b.uploadedAtTimestamp || 0;
         return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
       });
     } else if (sortBy === 'name') {
-      categorizedBlobs.sort((a, b) => {
-        const nameA = (a.pathname || a.path || '').toLowerCase();
-        const nameB = (b.pathname || b.path || '').toLowerCase();
+      normalizedBlobs.sort((a, b) => {
+        const nameA = (a.pathname || '').toLowerCase();
+        const nameB = (b.pathname || '').toLowerCase();
         return sortOrder === 'asc' 
           ? nameA.localeCompare(nameB)
           : nameB.localeCompare(nameA);
       });
     }
 
+    // Debug: Sprawdź właściwości pierwszego bloba
+    if (normalizedBlobs.length > 0) {
+      const firstBlob = normalizedBlobs[0];
+      console.log(`🔍 [LIST-BLOB-IMAGES] First blob properties:`, {
+        pathname: firstBlob.pathname,
+        uploadedAt: firstBlob.uploadedAt,
+        uploadedAtTimestamp: firstBlob.uploadedAtTimestamp,
+        category: firstBlob.category
+      });
+    }
+    
     return res.json({
       success: true,
-      images: categorizedBlobs.map(blob => {
-        const pathname = blob.pathname || blob.path || 'unknown';
-        const isJson = pathname.toLowerCase().endsWith('.json');
-        return {
-          url: blob.url,
-          pathname: pathname,
-          size: blob.size || 0,
-          uploadedAt: blob.uploadedAt || blob.uploadedAt || new Date().toISOString(),
-          category: blob.category,
-          isJson: isJson,
-          contentType: blob.contentType || (isJson ? 'application/json' : 'image')
-        };
+      images: normalizedBlobs.map(blob => {
+        // Usuń uploadedAtTimestamp z odpowiedzi (tylko do sortowania)
+        const { uploadedAtTimestamp, ...responseBlob } = blob;
+        return responseBlob;
       }),
       cursor: blobs.cursor,
       hasMore: !!blobs.cursor,

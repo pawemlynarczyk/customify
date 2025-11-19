@@ -53,7 +53,14 @@ module.exports = async (req, res) => {
 
     // Generate unique filename with custom prefix
     const timestamp = Date.now();
-    const uniqueFilename = `customify/temp/${filename || `image-${timestamp}`}.jpg`;
+    let baseFilename = filename || `image-${timestamp}`;
+    
+    // ✅ FIX: Nie dodawaj .jpg jeśli filename już ma rozszerzenie
+    if (!baseFilename.match(/\.(jpg|jpeg|png|webp|gif)$/i)) {
+      baseFilename += '.jpg';
+    }
+    
+    const uniqueFilename = `customify/temp/${baseFilename}`;
 
     console.log('📝 [VERCEL-BLOB] Uploading to:', uniqueFilename);
 

@@ -572,21 +572,15 @@
         <!-- ✅ JAVASCRIPT: Ukryj produkty AI na stronach kolekcji i rekomendacji -->
         <script>
           document.addEventListener('DOMContentLoaded', function() {
-            // Ukryj produkty z "spersonalizowany" w URL (kolekcje)
-            const spersonalizowanyProducts = document.querySelectorAll('.custom-collection-card[href*="spersonalizowany"]');
-            spersonalizowanyProducts.forEach(product => {
-              product.style.display = 'none';
-            });
-            
             // Ukryj produkty z "rozmiar" w URL (kolekcje)
             const rozmiarProducts = document.querySelectorAll('.custom-collection-card[href*="rozmiar"]');
             rozmiarProducts.forEach(product => {
               product.style.display = 'none';
             });
             
-            // ✅ NOWE: Ukryj produkty AI w sekcji rekomendacji produktów
-            const recommendationsSpersonalizowany = document.querySelectorAll('.product-recommendations a[href*="spersonalizowany"]');
-            recommendationsSpersonalizowany.forEach(product => {
+            // Ukryj produkty z "cyfrowy" w URL (kolekcje)
+            const cyfrowyProducts = document.querySelectorAll('.custom-collection-card[href*="cyfrowy"]');
+            cyfrowyProducts.forEach(product => {
               product.style.display = 'none';
             });
             
@@ -595,7 +589,13 @@
               product.style.display = 'none';
             });
             
-            const totalHidden = spersonalizowanyProducts.length + rozmiarProducts.length + recommendationsSpersonalizowany.length + recommendationsRozmiar.length;
+            // Ukryj produkty z "cyfrowy" w rekomendacjach
+            const recommendationsCyfrowy = document.querySelectorAll('.product-recommendations a[href*="cyfrowy"]');
+            recommendationsCyfrowy.forEach(product => {
+              product.style.display = 'none';
+            });
+            
+            const totalHidden = rozmiarProducts.length + cyfrowyProducts.length + recommendationsRozmiar.length + recommendationsCyfrowy.length;
             console.log('🔒 [PRODUCT HIDING] Ukryto', totalHidden, 'produktów AI (kolekcje + rekomendacje)');
             
             // ✅ NOWE: Dla produktu akwarela (ID: 15475649675589 lub handle zawiera 'akwarela') - ukryj wszystkie style oprócz akwareli
@@ -965,6 +965,35 @@
       .customify-drop-zone:hover {
         border-color: #6c757d !important;
         background: transparent !important; /* USUNIĘTO SZARE TŁO Z HOVER */
+      }
+      
+      /* Usage Counter Styles */
+      .usage-counter {
+        padding: 12px 16px !important;
+        border-radius: 8px !important;
+        margin: 15px 0 !important;
+        font-size: 0.95rem !important;
+        font-weight: 600 !important;
+        text-align: center !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+      }
+      
+      .usage-counter-green {
+        background: #d4edda !important;
+        color: #155724 !important;
+        border: 1px solid #c3e6cb !important;
+      }
+      
+      .usage-counter-blue {
+        background: #d1ecf1 !important;
+        color: #0c5460 !important;
+        border: 1px solid #bee5eb !important;
+      }
+      
+      .usage-counter-red {
+        background: #f8d7da !important;
+        color: #721c24 !important;
+        border: 1px solid #f5c6cb !important;
       }
       
       .customify-drop-zone.dragover {
@@ -1501,11 +1530,12 @@
     
     
     <style>
-      /* Ukryj produkty Customify z nowymi nazwami rozmiarów (A5/A4/A3/A2) */
+      /* Ukryj produkty Customify z nowymi nazwami rozmiarów (A5/A4/A3/A2) i "cyfrowy" */
       .product-card:has([data-product-title*="A5"]),
       .product-card:has([data-product-title*="A4"]),
       .product-card:has([data-product-title*="A3"]),
       .product-card:has([data-product-title*="A2"]),
+      .product-card:has([data-product-title*="cyfrowy" i]),
       .product-card:has([href*="A5"]),
       .product-card:has([href*="A4"]),
       .product-card:has([href*="A3"]),
@@ -1513,22 +1543,22 @@
         display: none !important;
       }
       
-        /* ✅ NAPRAWIONE: Ukryj produkty z "spersonalizowany" w URL (nowe produkty AI) */
-        .custom-collection-card[href*="spersonalizowany"] {
-          display: none !important;
-        }
-        
         /* ✅ NAPRAWIONE: Ukryj produkty z "rozmiar" w URL */
         .custom-collection-card[href*="rozmiar"] {
           display: none !important;
         }
         
-        /* ✅ NOWE: Ukryj produkty AI w sekcji rekomendacji produktów */
-        .product-recommendations a[href*="spersonalizowany"] {
+        /* ✅ Ukryj produkty z "cyfrowy" w URL */
+        .custom-collection-card[href*="cyfrowy"] {
           display: none !important;
         }
         
+        /* ✅ NOWE: Ukryj produkty AI w sekcji rekomendacji produktów */
         .product-recommendations a[href*="rozmiar"] {
+          display: none !important;
+        }
+        
+        .product-recommendations a[href*="cyfrowy"] {
           display: none !important;
         }
       
@@ -3913,35 +3943,37 @@
                   // Rysuj oryginalny obraz
                   ctx.drawImage(img, 0, 0);
                   
-                  // ===== WZÓR DIAGONALNY - "Lumly.pl" i "Podgląd" NA PRZEMIAN =====
+                  // ===== WZÓR PREMIUM - 2-3 DUŻE NAPISY "Lumly.pl" NA SKOS =====
                   ctx.save();
-                  ctx.font = 'bold 30px Arial';
-                  ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-                  ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
-                  ctx.lineWidth = 1.5;
+                  
+                  // Oblicz rozmiar czcionki (40-60% szerokości obrazu)
+                  const fontSize = Math.max(60, Math.min(120, canvas.width * 0.15));
+                  ctx.font = `bold ${fontSize}px Arial`;
                   ctx.textAlign = 'center';
                   ctx.textBaseline = 'middle';
                   
-                  // Obróć canvas
+                  // Kolor biały z delikatnym cieniem (opacity 0.2-0.25)
+                  ctx.fillStyle = 'rgba(255, 255, 255, 0.22)';
+                  ctx.strokeStyle = 'rgba(0, 0, 0, 0.15)';
+                  ctx.lineWidth = 2;
+                  
+                  const text = 'Lumly.pl';
+                  
+                  // Obróć canvas o -30 stopni (z lewej-góry do prawej-dołu)
                   ctx.translate(canvas.width/2, canvas.height/2);
                   ctx.rotate(-30 * Math.PI / 180);
-                  ctx.translate(-canvas.width/2, -canvas.height/2);
                   
-                  // Rysuj watermarki w siatce - na przemian "Lumly.pl" i "Podgląd"
-                  const spacing = 180;
-                  let textIndex = 0;
-                  const texts = ['Lumly.pl', 'Podgląd'];
+                  // 1. Główny napis - centralnie przez twarz (środek obrazu)
+                  ctx.strokeText(text, 0, 0);
+                  ctx.fillText(text, 0, 0);
                   
-                  for(let y = -canvas.height; y < canvas.height * 2; y += spacing) {
-                    for(let x = -canvas.width; x < canvas.width * 2; x += spacing * 1.5) {
-                      const text = texts[textIndex % 2];
-                      ctx.strokeText(text, x, y);
-                      ctx.fillText(text, x, y);
-                      textIndex++;
-                    }
-                    // Zmień wzór co wiersz dla lepszego efektu
-                    textIndex++;
-                  }
+                  // 2. Drugi napis - przesunięty w górę i w lewo
+                  ctx.strokeText(text, -canvas.width * 0.4, -canvas.height * 0.3);
+                  ctx.fillText(text, -canvas.width * 0.4, -canvas.height * 0.3);
+                  
+                  // 3. Trzeci napis - przesunięty w dół i w prawo
+                  ctx.strokeText(text, canvas.width * 0.4, canvas.height * 0.3);
+                  ctx.fillText(text, canvas.width * 0.4, canvas.height * 0.3);
                   
                   ctx.restore();
                   
@@ -4626,7 +4658,7 @@
         </div>
 
         <!-- 2. Szczegóły produktu -->
-        <div class="accordion-item expanded" data-accordion="details">
+        <div class="accordion-item" data-accordion="details">
           <div class="accordion-header">
             <div class="accordion-title">
               <span>📋</span>

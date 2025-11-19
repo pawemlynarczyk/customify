@@ -1,12 +1,45 @@
 const Replicate = require('replicate');
 const crypto = require('crypto');
-const { checkRateLimit, getClientIP } = require('../utils/vercelRateLimiter');
+const { getClientIP } = require('../utils/vercelRateLimiter');
+const { checkIPLimit, incrementIPLimit, checkDeviceTokenLimit, incrementDeviceTokenLimit, isKVConfigured, isImageHashLimitEnabled, calculateImageHash, checkImageHashLimit, incrementImageHashLimit, checkDeviceTokenCrossAccount, addCustomerToDeviceToken } = require('../utils/vercelKVLimiter');
 const { put } = require('@vercel/blob');
 
 // 🚫 Lista IP zablokowanych całkowicie (tymczasowe banowanie nadużyć)
 const BLOCKED_IPS = new Set([
   '46.112.202.146', // Podejrzana aktywność - ręcznie zablokowane
 ]);
+
+// ✅ Biała lista IP (pomijają IP limit 10/24h)
+const WHITELISTED_IPS = new Set([
+  '83.29.225.249', // Admin/Development IP - bez limitu
+]);
+
+// 🧪 Lista emaili testowych (pomijają WSZYSTKIE limity dla testowania)
+const TEST_EMAILS = new Set([
+  'pawel.mlynarczyk@internetcapital.pl', // Admin email - bypass wszystkich limitów
+]);
+
+/**
+ * Sprawdza czy użytkownik jest na liście testowej (bypass wszystkich limitów)
+ * @param {string} email - Email użytkownika
+ * @param {string} ip - IP użytkownika
+ * @returns {boolean} - true jeśli użytkownik jest na liście testowej
+ */
+function isTestUser(email, ip) {
+  const isTestEmail = email && TEST_EMAILS.has(email.toLowerCase());
+  const isTestIP = ip && WHITELISTED_IPS.has(ip);
+  
+  if (isTestEmail || isTestIP) {
+    console.log(`🧪 [TEST-BYPASS] Test user detected:`, {
+      email: email ? email.substring(0, 10) + '...' : 'brak',
+      ip: ip ? ip.substring(0, 10) + '...' : 'brak',
+      isTestEmail,
+      isTestIP
+    });
+    return true;
+  }
+  return false;
+}
 
 const VERSION_TAG = 'transform@2025-11-13T13:10';
 
@@ -127,42 +160,94 @@ async function segmindCaricature(imageUrl) {
   console.log('🎭 [SEGMIND] Starting caricature generation...');
   console.log('🎭 [SEGMIND] Image URL:', imageUrl);
 
-  try {
-    const response = await fetch('https://api.segmind.com/v1/caricature-style', {
-      method: 'POST',
-      headers: {
-        'x-api-key': SEGMIND_API_KEY,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        image: imageUrl, // Używamy URL (zgodnie z dokumentacją)
-        size: "1024x1536", // PIONOWY PORTRET (2:3 format) - NIE ZMIENIAJ!
-        quality: "medium", // Jakość średnia dla szybszego renderowania
-        background: "opaque", // Zgodnie z dokumentacją
-        output_format: "jpeg", // JPEG zamiast PNG - 80-90% mniejszy rozmiar! (używaj "jpeg" nie "jpg")
-        output_compression: 85 // Kompresja JPEG 85% - dobra jakość, mały rozmiar
-      }),
-    });
+  const maxRetries = 3;
+  const retryDelay = 2000; // 2 sekundy bazowego opóźnienia
+  let lastError;
 
-    if (response.ok) {
-      // Segmind returns JPEG image (binary), not JSON
-      const imageBuffer = await response.arrayBuffer();
-      const base64Image = Buffer.from(imageBuffer).toString('base64');
-      const imageUrl = `data:image/jpeg;base64,${base64Image}`;
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      // Add timeout to prevent hanging requests
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => {
+        console.log(`⏰ [SEGMIND] Request timeout after 120 seconds (attempt ${attempt}/${maxRetries}) - aborting`);
+        controller.abort();
+      }, 120000); // 120 second timeout
+
+      console.log(`🔄 [SEGMIND] Attempt ${attempt}/${maxRetries}...`);
+
+      const response = await fetch('https://api.segmind.com/v1/caricature-style', {
+        method: 'POST',
+        headers: {
+          'x-api-key': SEGMIND_API_KEY,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          image: imageUrl, // Używamy URL (zgodnie z dokumentacją)
+          size: "1024x1536", // PIONOWY PORTRET (2:3 format) - NIE ZMIENIAJ!
+          quality: "medium", // Jakość średnia dla szybszego renderowania
+          background: "opaque", // Zgodnie z dokumentacją
+          output_format: "jpeg", // JPEG zamiast PNG - 80-90% mniejszy rozmiar! (używaj "jpeg" nie "jpg")
+          output_compression: 85 // Kompresja JPEG 85% - dobra jakość, mały rozmiar
+        }),
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
+      if (response.ok) {
+        // Segmind returns JPEG image (binary), not JSON
+        const imageBuffer = await response.arrayBuffer();
+        const base64Image = Buffer.from(imageBuffer).toString('base64');
+        const imageUrl = `data:image/jpeg;base64,${base64Image}`;
+        
+        const sizeMB = (imageBuffer.byteLength / 1024 / 1024).toFixed(2);
+        console.log(`✅ [SEGMIND] Caricature generated successfully - size: ${sizeMB} MB (attempt ${attempt})`);
+        return { image: imageUrl, output: imageUrl, url: imageUrl };
+      } else {
+        const errorText = await response.text();
+        const status = response.status;
+        
+        // Retry only for server errors (5xx) and 502 Bad Gateway
+        const isRetryable = status >= 500 || status === 502;
+        
+        if (isRetryable && attempt < maxRetries) {
+          const delay = retryDelay * Math.pow(2, attempt - 1); // Exponential backoff: 2s, 4s, 8s
+          console.warn(`⚠️ [SEGMIND] Server error ${status} (attempt ${attempt}/${maxRetries}) - retrying in ${delay}ms...`);
+          console.warn(`⚠️ [SEGMIND] Error details:`, errorText.substring(0, 200));
+          lastError = new Error(`Segmind API error: ${status} - ${errorText}`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          continue; // Retry
+        } else {
+          // Non-retryable error or max retries reached
+          console.error('❌ [SEGMIND] API Error:', status);
+          console.error('❌ [SEGMIND] Error details:', errorText);
+          throw new Error(`Segmind API error: ${status} - ${errorText}`);
+        }
+      }
+    } catch (error) {
+      // Network errors or aborted requests - retry if not max attempts
+      if (error.name === 'AbortError' || (error.message && error.message.includes('fetch'))) {
+        if (attempt < maxRetries) {
+          const delay = retryDelay * Math.pow(2, attempt - 1);
+          console.warn(`⚠️ [SEGMIND] Network error (attempt ${attempt}/${maxRetries}) - retrying in ${delay}ms...`);
+          lastError = error;
+          await new Promise(resolve => setTimeout(resolve, delay));
+          continue; // Retry
+        }
+      }
       
-      const sizeMB = (imageBuffer.byteLength / 1024 / 1024).toFixed(2);
-      console.log(`✅ [SEGMIND] Caricature generated successfully - size: ${sizeMB} MB`);
-      return { image: imageUrl, output: imageUrl, url: imageUrl };
-    } else {
-      console.error('❌ [SEGMIND] API Error:', response.status);
-      const errorText = await response.text();
-      console.error('❌ [SEGMIND] Error details:', errorText);
-      throw new Error(`Segmind API error: ${response.status} - ${errorText}`);
+      // If it's the last attempt or non-retryable error, throw
+      if (attempt === maxRetries) {
+        console.error('❌ [SEGMIND] Caricature generation failed after all retries:', error);
+        throw lastError || error;
+      }
+      
+      lastError = error;
     }
-  } catch (error) {
-    console.error('❌ [SEGMIND] Caricature generation failed:', error);
-    throw error;
   }
+
+  // Should never reach here, but just in case
+  throw lastError || new Error('Segmind caricature generation failed after all retries');
 }
 
 // Function to handle Segmind Faceswap v4
@@ -217,49 +302,96 @@ async function segmindFaceswap(targetImageUrl, swapImageBase64) {
 
   console.log('📋 [SEGMIND] Request body keys:', Object.keys(requestBody));
 
-  // Add timeout to prevent 504 errors
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => {
-    console.log('⏰ [SEGMIND] Request timeout after 240 seconds - aborting');
-    controller.abort();
-  }, 240000); // 240 second timeout (Vercel Pro limit is 300s)
-  
-  const response = await fetch('https://api.segmind.com/v1/faceswap-v4', {
-    method: 'POST',
-    headers: {
-      'x-api-key': SEGMIND_API_KEY,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(requestBody),
-    signal: controller.signal
-  });
-  
-  clearTimeout(timeoutId);
+  const maxRetries = 3;
+  const retryDelay = 2000; // 2 sekundy bazowego opóźnienia
+  let lastError;
 
-  console.log('📡 [SEGMIND] Response status:', response.status);
-  console.log('📡 [SEGMIND] Response headers:', Object.fromEntries(response.headers.entries()));
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      // Add timeout to prevent 504 errors
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => {
+        console.log(`⏰ [SEGMIND] Request timeout after 240 seconds (attempt ${attempt}/${maxRetries}) - aborting`);
+        controller.abort();
+      }, 240000); // 240 second timeout (Vercel Pro limit is 300s)
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error('❌ [SEGMIND] Face-swap failed:', response.status, errorText);
-    throw new Error(`Segmind face-swap failed: ${response.status} - ${errorText}`);
+      console.log(`🔄 [SEGMIND] Attempt ${attempt}/${maxRetries}...`);
+      
+      const response = await fetch('https://api.segmind.com/v1/faceswap-v4', {
+        method: 'POST',
+        headers: {
+          'x-api-key': SEGMIND_API_KEY,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestBody),
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+
+      console.log('📡 [SEGMIND] Response status:', response.status);
+      console.log('📡 [SEGMIND] Response headers:', Object.fromEntries(response.headers.entries()));
+
+      if (response.ok) {
+        // Segmind zwraca JSON z kluczem "image"
+        const resultJson = await response.json();
+        console.log(`✅ [SEGMIND] Face-swap completed! Response:`, Object.keys(resultJson), `(attempt ${attempt})`);
+        
+        const resultBase64 = resultJson.image;
+        if (!resultBase64) {
+          console.error('❌ [SEGMIND] No image in response:', resultJson);
+          throw new Error('Segmind response missing image field');
+        }
+        
+        console.log('✅ [SEGMIND] Extracted base64, length:', resultBase64.length, 'chars');
+        console.log('🔍 [SEGMIND] Base64 preview (first 50 chars):', resultBase64.substring(0, 50));
+        
+        // Return as data URI for consistency
+        return `data:image/jpeg;base64,${resultBase64}`;
+      } else {
+        const errorText = await response.text();
+        const status = response.status;
+        
+        // Retry only for server errors (5xx) and 502 Bad Gateway
+        const isRetryable = status >= 500 || status === 502;
+        
+        if (isRetryable && attempt < maxRetries) {
+          const delay = retryDelay * Math.pow(2, attempt - 1); // Exponential backoff: 2s, 4s, 8s
+          console.warn(`⚠️ [SEGMIND] Server error ${status} (attempt ${attempt}/${maxRetries}) - retrying in ${delay}ms...`);
+          console.warn(`⚠️ [SEGMIND] Error details:`, errorText.substring(0, 200));
+          lastError = new Error(`Segmind face-swap failed: ${status} - ${errorText}`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          continue; // Retry
+        } else {
+          // Non-retryable error or max retries reached
+          console.error('❌ [SEGMIND] Face-swap failed:', status, errorText);
+          throw new Error(`Segmind face-swap failed: ${status} - ${errorText}`);
+        }
+      }
+    } catch (error) {
+      // Network errors or aborted requests - retry if not max attempts
+      if (error.name === 'AbortError' || (error.message && error.message.includes('fetch'))) {
+        if (attempt < maxRetries) {
+          const delay = retryDelay * Math.pow(2, attempt - 1);
+          console.warn(`⚠️ [SEGMIND] Network error (attempt ${attempt}/${maxRetries}) - retrying in ${delay}ms...`);
+          lastError = error;
+          await new Promise(resolve => setTimeout(resolve, delay));
+          continue; // Retry
+        }
+      }
+      
+      // If it's the last attempt or non-retryable error, throw
+      if (attempt === maxRetries) {
+        console.error('❌ [SEGMIND] Face-swap failed after all retries:', error);
+        throw lastError || error;
+      }
+      
+      lastError = error;
+    }
   }
 
-  // Segmind zwraca JSON z kluczem "image"
-  const resultJson = await response.json();
-  console.log('✅ [SEGMIND] Face-swap completed! Response:', Object.keys(resultJson));
-  
-  const resultBase64 = resultJson.image;
-  if (!resultBase64) {
-    console.error('❌ [SEGMIND] No image in response:', resultJson);
-    throw new Error('Segmind response missing image field');
-  }
-  
-  console.log('✅ [SEGMIND] Extracted base64, length:', resultBase64.length, 'chars');
-  console.log('🔍 [SEGMIND] Base64 preview (first 50 chars):', resultBase64.substring(0, 50));
-  
-  // Return as data URI for consistency
-  return `data:image/jpeg;base64,${resultBase64}`;
+  // Should never reach here, but just in case
+  throw lastError || new Error('Segmind face-swap failed after all retries');
 }
 
 // Function to handle Segmind Become-Image (Watercolor style)
@@ -300,76 +432,126 @@ async function segmindBecomeImage(imageUrl, styleImageUrl, styleParameters = {})
     disable_safety_checker
   });
 
-  try {
-    let styleImagePayload = styleImageUrl;
-
-    if (styleImageUrl && typeof styleImageUrl === 'string' && styleImageUrl.startsWith('http')) {
-      console.log('🎨 [SEGMIND] Using provided style image URL without modifications');
-      styleImagePayload = styleImageUrl;
-    } else {
-      console.warn('⚠️ [SEGMIND] Style image URL is not an absolute URL - passing as-is');
-    }
-
-    const response = await fetch('https://api.segmind.com/v1/become-image', {
-      method: 'POST',
-      headers: {
-        'x-api-key': SEGMIND_API_KEY,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        image: imageUrl,              // URL zdjęcia użytkownika
-        image_to_become: styleImagePayload, // Obraz stylu (base64 lub URL)
-        prompt,
-        prompt_strength,
-        number_of_images,
-        denoising_strength,
-        instant_id_strength,
-        image_to_become_strength,
-        image_to_become_noise,
-        control_depth_strength,
-        disable_safety_checker
-      }),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('❌ [SEGMIND] API Error:', response.status);
-      console.error('❌ [SEGMIND] Error details:', errorText);
-      throw new Error(`Segmind API error: ${response.status} - ${errorText}`);
-    }
-
-    const contentType = response.headers.get('content-type') || '';
-    console.log('📦 [SEGMIND] Response content-type:', contentType);
-
-    if (contentType.includes('application/json')) {
-      const result = await response.json();
-      console.log('✅ [SEGMIND] Become-image completed successfully (JSON)');
-      console.log('📋 [SEGMIND] Response keys:', Object.keys(result));
-      
-      if (result.image) {
-        return result.image;
-      } else if (result.images && Array.isArray(result.images) && result.images.length > 0) {
-        return result.images[0];
-      } else if (result.output) {
-        return result.output;
-      } else {
-        console.error('❌ [SEGMIND] No image in JSON response:', result);
-        throw new Error('No image in Segmind JSON response');
-      }
-    }
-
-    // Binary response (image/png, image/jpeg, etc.)
-    console.log('🖼️ [SEGMIND] Binary response detected, converting to data URI');
-    const imageBuffer = await response.arrayBuffer();
-    const base64Image = Buffer.from(imageBuffer).toString('base64');
-    const mimeType = contentType || 'image/png';
-    const dataUri = `data:${mimeType};base64,${base64Image}`;
-    return dataUri;
-    
-  } catch (error) {
-    console.error('❌ [SEGMIND] Become-image failed:', error);
-    throw error;
+  let styleImagePayload = styleImageUrl;
+  if (styleImageUrl && typeof styleImageUrl === 'string' && styleImageUrl.startsWith('http')) {
+    console.log('🎨 [SEGMIND] Using provided style image URL without modifications');
+    styleImagePayload = styleImageUrl;
+  } else {
+    console.warn('⚠️ [SEGMIND] Style image URL is not an absolute URL - passing as-is');
   }
+
+  const maxRetries = 3;
+  const retryDelay = 2000; // 2 sekundy bazowego opóźnienia
+  let lastError;
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      // Add timeout to prevent hanging requests
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => {
+        console.log(`⏰ [SEGMIND] Request timeout after 120 seconds (attempt ${attempt}/${maxRetries}) - aborting`);
+        controller.abort();
+      }, 120000); // 120 second timeout
+
+      console.log(`🔄 [SEGMIND] Attempt ${attempt}/${maxRetries}...`);
+
+      const response = await fetch('https://api.segmind.com/v1/become-image', {
+        method: 'POST',
+        headers: {
+          'x-api-key': SEGMIND_API_KEY,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          image: imageUrl,              // URL zdjęcia użytkownika
+          image_to_become: styleImagePayload, // Obraz stylu (base64 lub URL)
+          prompt,
+          prompt_strength,
+          number_of_images,
+          denoising_strength,
+          instant_id_strength,
+          image_to_become_strength,
+          image_to_become_noise,
+          control_depth_strength,
+          disable_safety_checker
+        }),
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
+      if (response.ok) {
+        const contentType = response.headers.get('content-type') || '';
+        console.log('📦 [SEGMIND] Response content-type:', contentType);
+
+        if (contentType.includes('application/json')) {
+          const result = await response.json();
+          console.log(`✅ [SEGMIND] Become-image completed successfully (JSON) (attempt ${attempt})`);
+          console.log('📋 [SEGMIND] Response keys:', Object.keys(result));
+          
+          if (result.image) {
+            return result.image;
+          } else if (result.images && Array.isArray(result.images) && result.images.length > 0) {
+            return result.images[0];
+          } else if (result.output) {
+            return result.output;
+          } else {
+            console.error('❌ [SEGMIND] No image in JSON response:', result);
+            throw new Error('No image in Segmind JSON response');
+          }
+        }
+
+        // Binary response (image/png, image/jpeg, etc.)
+        console.log('🖼️ [SEGMIND] Binary response detected, converting to data URI');
+        const imageBuffer = await response.arrayBuffer();
+        const base64Image = Buffer.from(imageBuffer).toString('base64');
+        const mimeType = contentType || 'image/png';
+        const dataUri = `data:${mimeType};base64,${base64Image}`;
+        return dataUri;
+      } else {
+        const errorText = await response.text();
+        const status = response.status;
+        
+        // Retry only for server errors (5xx) and 502 Bad Gateway
+        const isRetryable = status >= 500 || status === 502;
+        
+        if (isRetryable && attempt < maxRetries) {
+          const delay = retryDelay * Math.pow(2, attempt - 1); // Exponential backoff: 2s, 4s, 8s
+          console.warn(`⚠️ [SEGMIND] Server error ${status} (attempt ${attempt}/${maxRetries}) - retrying in ${delay}ms...`);
+          console.warn(`⚠️ [SEGMIND] Error details:`, errorText.substring(0, 200));
+          lastError = new Error(`Segmind API error: ${status} - ${errorText}`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          continue; // Retry
+        } else {
+          // Non-retryable error or max retries reached
+          console.error('❌ [SEGMIND] API Error:', status);
+          console.error('❌ [SEGMIND] Error details:', errorText);
+          throw new Error(`Segmind API error: ${status} - ${errorText}`);
+        }
+      }
+    } catch (error) {
+      // Network errors or aborted requests - retry if not max attempts
+      if (error.name === 'AbortError' || (error.message && error.message.includes('fetch'))) {
+        if (attempt < maxRetries) {
+          const delay = retryDelay * Math.pow(2, attempt - 1);
+          console.warn(`⚠️ [SEGMIND] Network error (attempt ${attempt}/${maxRetries}) - retrying in ${delay}ms...`);
+          lastError = error;
+          await new Promise(resolve => setTimeout(resolve, delay));
+          continue; // Retry
+        }
+      }
+      
+      // If it's the last attempt or non-retryable error, throw
+      if (attempt === maxRetries) {
+        console.error('❌ [SEGMIND] Become-image failed after all retries:', error);
+        throw lastError || error;
+      }
+      
+      lastError = error;
+    }
+  }
+
+  // Should never reach here, but just in case
+  throw lastError || new Error('Segmind become-image failed after all retries');
 }
 
 // Function to compress and resize images for SDXL models
@@ -483,16 +665,27 @@ module.exports = async (req, res) => {
   }
   
   // ✅ TWARDY LIMIT DZIENNY: 10 prób na IP w ciągu 24h (dla wszystkich - chroni przed wieloma kontami)
-  if (!checkRateLimit(ip, 10, 24 * 60 * 60 * 1000)) { // 10 requestów / 24 godziny
-    console.log(`❌ [TRANSFORM] Daily IP limit exceeded: ${ip}`);
-    return res.status(403).json({
-      error: 'Usage limit exceeded',
-      message: 'Wykorzystałeś limit generacji',
-      showLoginModal: false
-    });
+  // Używa Vercel KV z atomic operations (trwałe, nie resetuje się)
+  // ⚠️ BIAŁA LISTA: Admin/Development IP pomijają limit
+  if (ip && WHITELISTED_IPS.has(ip)) {
+    console.log(`✅ [TRANSFORM] IP ${ip} na białej liście - pomijam IP limit`);
+  } else if (isKVConfigured()) {
+    const ipLimitCheck = await checkIPLimit(ip);
+    if (!ipLimitCheck.allowed) {
+      console.log(`❌ [TRANSFORM] Daily IP limit exceeded: ${ip} (${ipLimitCheck.count}/${ipLimitCheck.limit})`);
+      return res.status(403).json({
+        error: 'Usage limit exceeded',
+        message: `Wykorzystałeś limit generacji (${ipLimitCheck.count}/${ipLimitCheck.limit}). Spróbuj jutro.`,
+        showLoginModal: false,
+        count: ipLimitCheck.count,
+        limit: ipLimitCheck.limit
+      });
+    }
+    console.log(`✅ [TRANSFORM] IP limit OK: ${ipLimitCheck.count}/${ipLimitCheck.limit} for IP: ${ip}`);
+  } else {
+    console.warn('⚠️ [TRANSFORM] KV not configured - skipping IP limit check');
+    // Fallback: jeśli KV nie jest skonfigurowany, pozwól (ale zalecamy konfigurację)
   }
-  
-  console.log(`✅ [TRANSFORM] Daily rate limit OK for IP: ${ip}`);
 
   const parseCookies = (cookieHeader = '') => {
     return cookieHeader.split(';').reduce((acc, chunk) => {
@@ -576,9 +769,15 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: 'Image data and prompt are required' });
     }
     
+    // 🧪 BYPASS: Sprawdź czy użytkownik jest na liście testowej (przed wszystkimi limitami)
+    const isTest = isTestUser(email || null, ip);
+    
     console.log(`🎯 [TRANSFORM] Product type: ${productType || 'not specified'}`);
     console.log(`🎯 [TRANSFORM] Style: ${prompt}`);
     console.log(`👤 [TRANSFORM] Customer ID: ${customerId || 'not logged in'}`);
+    if (isTest) {
+      console.log(`🧪 [TEST-BYPASS] Test user detected - wszystkie limity pomijane`);
+    }
 
     // ✅ SPRAWDZENIE LIMITÓW UŻYCIA PRZED TRANSFORMACJĄ (przeniesione po finalProductType)
 
@@ -877,99 +1076,138 @@ module.exports = async (req, res) => {
     console.log(`🎯 [TRANSFORM] Final productType: ${finalProductType} (z config: ${config.productType}, z body: ${productType})`);
 
     // ✅ DEVICE TOKEN LIMIT: 1 generacja PER PRODUCTTYPE dla niezalogowanych
-    if (!customerId && deviceToken) {
-      console.log(`🔍 [DEVICE-TOKEN] START sprawdzanie limitu:`, {
+    // Używa Vercel KV z atomic operations (trwałe, nie resetuje się)
+    if (isTest) {
+      console.log(`🧪 [TEST-BYPASS] Pomijam device token limit dla test user (niezalogowany)`);
+    } else if (!customerId && deviceToken && isKVConfigured()) {
+      console.log(`🔍 [DEVICE-TOKEN] START sprawdzanie limitu TOTAL (KV):`, {
         deviceToken: deviceToken.substring(0, 8) + '...',
-        productType: finalProductType,
         ip: ip
       });
       
-      try {
-        const blobPath = `https://vzwqqb14qtsxe2wx.public.blob.vercel-storage.com/customify/system/stats/generations/device-${deviceToken}.json`;
-        console.log(`🔍 [DEVICE-TOKEN] Fetching blob: ${blobPath}`);
-        
-        try {
-          const response = await fetch(blobPath);
-          console.log(`🔍 [DEVICE-TOKEN] Response status: ${response.status} ${response.statusText}`);
-          
-          if (response.ok) {
-            const deviceData = await response.json();
-            console.log(`📊 [DEVICE-TOKEN] Device data loaded:`, {
-              hasGenerationsByProductType: !!deviceData.generationsByProductType,
-              totalGenerations: deviceData.totalGenerations || 0,
-              generationsByProductType: deviceData.generationsByProductType || null,
-              lastGenerationDate: deviceData.lastGenerationDate || null
-            });
-            
-            // Backward compatibility: jeśli stary format (brak generationsByProductType)
-            if (!deviceData.generationsByProductType && deviceData.totalGenerations > 0) {
-              // Stary format - konwertuj do nowego
-              console.log(`⚠️ [DEVICE-TOKEN] Stary format device token - konwertuję:`, {
-                totalGenerations: deviceData.totalGenerations,
-                convertingTo: { 'other': deviceData.totalGenerations }
-              });
-              deviceData.generationsByProductType = {
-                'other': deviceData.totalGenerations
-              };
-            }
-            
-            // Sprawdź limit dla TEGO productType
-            const usedForThisType = deviceData.generationsByProductType?.[finalProductType] || 0;
-            console.log(`📊 [DEVICE-TOKEN] Limit check dla ${finalProductType}:`, {
-              usedForThisType: usedForThisType,
-              limit: 1,
-              allProductTypes: deviceData.generationsByProductType || {}
-            });
-            
-            if (usedForThisType >= 1) {
-              console.warn(`❌ [DEVICE-TOKEN] LIMIT EXCEEDED:`, {
-                deviceToken: deviceToken.substring(0, 8) + '...',
-                productType: finalProductType,
-                usedForThisType: usedForThisType,
-                limit: 1,
-                allProductTypes: deviceData.generationsByProductType
-              });
-              return res.status(403).json({
-                error: 'Usage limit exceeded',
-                message: `Wykorzystałeś limit generacji dla ${finalProductType} - zaloguj się po więcej`,
-                showLoginModal: true,
-                productType: finalProductType
-              });
-            }
-            
-            console.log(`✅ [DEVICE-TOKEN] Limit OK - pozwalam na generację`);
-          } else if (response.status === 404) {
-            console.log(`✅ [DEVICE-TOKEN] Blob not found (404) - pierwsza generacja dla ${finalProductType} - pozwalam`);
-          } else {
-            console.warn(`⚠️ [DEVICE-TOKEN] Unexpected response status: ${response.status} ${response.statusText} - BLOKUJĘ dla bezpieczeństwa`);
-            // ⚠️ KRYTYCZNE: Jeśli nie 200 i nie 404, BLOKUJ (może być problem z Blob Storage)
-            return res.status(500).json({
-              error: 'Internal server error',
-              message: 'Błąd sprawdzania limitu użycia. Spróbuj ponownie za chwilę.',
-              productType: finalProductType
-            });
-          }
-        } catch (blobError) {
-          console.error(`❌ [DEVICE-TOKEN] Błąd fetch blob:`, {
-            error: blobError.message,
-            stack: blobError.stack,
-            blobPath: blobPath
-          });
-          console.log(`✅ [DEVICE-TOKEN] Pozwalam mimo błędu (fallback)`);
-          // Blob not found lub inny błąd = pierwsza generacja, pozwól
-        }
-      } catch (error) {
-        console.error(`❌ [DEVICE-TOKEN] Błąd device token check:`, {
-          error: error.message,
-          stack: error.stack,
-          deviceToken: deviceToken.substring(0, 8) + '...'
+      const deviceLimitCheck = await checkDeviceTokenLimit(deviceToken);
+      
+      if (!deviceLimitCheck.allowed) {
+        console.warn(`❌ [DEVICE-TOKEN] LIMIT EXCEEDED (KV):`, {
+          deviceToken: deviceToken.substring(0, 8) + '...',
+          count: deviceLimitCheck.count,
+          limit: deviceLimitCheck.limit,
+          reason: deviceLimitCheck.reason
         });
-        console.log(`✅ [DEVICE-TOKEN] Nie blokuję mimo błędu (fallback)`);
-        // Nie blokuj jeśli wystąpił błąd sprawdzania
+        return res.status(403).json({
+          error: 'Usage limit exceeded',
+          message: `Wykorzystałeś wszystkie darmowe generacje (${deviceLimitCheck.count}/${deviceLimitCheck.limit}). Zaloguj się po więcej.`,
+          showLoginModal: true,
+          count: deviceLimitCheck.count,
+          limit: deviceLimitCheck.limit
+        });
       }
+      
+      console.log(`✅ [DEVICE-TOKEN] Limit OK (KV): ${deviceLimitCheck.count}/${deviceLimitCheck.limit}`);
+    } else if (!customerId && deviceToken && !isKVConfigured()) {
+      console.warn('⚠️ [DEVICE-TOKEN] KV not configured - skipping device token limit check');
+      // Fallback: jeśli KV nie jest skonfigurowany, pozwól (ale zalecamy konfigurację)
     } else if (!customerId && !deviceToken) {
       console.log(`⚠️ [DEVICE-TOKEN] Brak device token dla niezalogowanego użytkownika - pomijam sprawdzanie`);
     }
+
+    // ============================================================================
+    // DEVICE-TOKEN-CROSS-ACCOUNT-FEATURE: START - Wykrywanie abuse z wieloma kontami
+    // Sprawdza czy ten sam device token (cookie) nie jest używany przez zbyt wiele kont
+    // Limit: 1 device token = max 2 różne customerIds (aby nie blokować rodzin)
+    // ============================================================================
+    
+    if (isTest) {
+      console.log(`🧪 [TEST-BYPASS] Pomijam cross-account check dla test user`);
+    } else if (customerId && deviceToken && isKVConfigured()) {
+      console.log(`🔍 [CROSS-ACCOUNT] START sprawdzanie cross-account detection:`, {
+        customerId: customerId.substring(0, 10) + '...',
+        deviceToken: deviceToken.substring(0, 8) + '...'
+      });
+      
+      const crossAccountCheck = await checkDeviceTokenCrossAccount(deviceToken, customerId);
+      
+      if (!crossAccountCheck.allowed) {
+        console.warn(`❌ [CROSS-ACCOUNT] BLOKADA - abuse wykryty:`, {
+          deviceToken: deviceToken.substring(0, 8) + '...',
+          customerId: customerId.substring(0, 10) + '...',
+          existingCustomers: crossAccountCheck.customerIds.length,
+          limit: crossAccountCheck.limit,
+          reason: crossAccountCheck.reason
+        });
+        return res.status(403).json({
+          error: 'Multiple accounts detected',
+          message: `Wykryto nadużycie: to urządzenie jest już używane przez ${crossAccountCheck.limit} różne konta. Skontaktuj się z supportem jeśli to pomyłka.`,
+          showLoginModal: false,
+          count: crossAccountCheck.customerIds.length,
+          limit: crossAccountCheck.limit
+        });
+      }
+      
+      console.log(`✅ [CROSS-ACCOUNT] Sprawdzenie OK: ${crossAccountCheck.customerIds.length}/${crossAccountCheck.limit} kont na tym urządzeniu`);
+    } else if (customerId && deviceToken && !isKVConfigured()) {
+      console.warn('⚠️ [CROSS-ACCOUNT] KV not configured - skipping cross-account check');
+    } else if (customerId && !deviceToken) {
+      console.log(`⚠️ [CROSS-ACCOUNT] Brak device token dla zalogowanego użytkownika - pomijam sprawdzanie`);
+    }
+    
+    // DEVICE-TOKEN-CROSS-ACCOUNT-FEATURE: END
+    // ============================================================================
+
+    // ============================================================================
+    // IMAGE-HASH-FEATURE: START - Sprawdzanie limitu per obrazek
+    // Feature flag: ENABLE_IMAGE_HASH_LIMIT (true/false w Vercel env)
+    // Aby wyłączyć: ustaw ENABLE_IMAGE_HASH_LIMIT=false w Vercel Dashboard
+    // ============================================================================
+    
+    // 🧪 BYPASS: Test users pomijają limit obrazka (isTest już zdefiniowane wcześniej)
+    if (isTest) {
+      console.log(`🧪 [TEST-BYPASS] Pomijam image hash limit dla test user`);
+    } else if (isImageHashLimitEnabled() && isKVConfigured() && imageData) {
+      console.log(`🔍 [IMAGE-HASH] Feature enabled - sprawdzanie limitu per obrazek...`);
+      
+      try {
+        // Oblicz hash obrazka (imageData to base64 string)
+        const imageHash = calculateImageHash(imageData);
+        console.log(`🔐 [IMAGE-HASH] Obliczony hash: ${imageHash.substring(0, 16)}...`);
+        
+        const imageHashCheck = await checkImageHashLimit(imageHash);
+        
+        if (!imageHashCheck.allowed) {
+          console.warn(`❌ [IMAGE-HASH] LIMIT EXCEEDED:`, {
+            imageHash: imageHash.substring(0, 16) + '...',
+            count: imageHashCheck.count,
+            limit: imageHashCheck.limit,
+            reason: imageHashCheck.reason
+          });
+          return res.status(403).json({
+            error: 'Image already used',
+            message: `To zdjęcie zostało już użyte maksymalną liczbę razy (${imageHashCheck.count}/${imageHashCheck.limit}). Użyj inne zdjęcie.`,
+            showLoginModal: false,
+            count: imageHashCheck.count,
+            limit: imageHashCheck.limit,
+            imageBlocked: true
+          });
+        }
+        
+        console.log(`✅ [IMAGE-HASH] Limit OK: ${imageHashCheck.count}/${imageHashCheck.limit}`);
+        
+        // Zapisz hash w request do użycia przy inkrementacji (po udanej transformacji)
+        req.imageHash = imageHash;
+      } catch (hashError) {
+        console.error('❌ [IMAGE-HASH] Błąd obliczania hash:', hashError);
+        // Nie blokuj - kontynuuj bez sprawdzania obrazka (fail-safe)
+      }
+    } else if (isImageHashLimitEnabled() && !isKVConfigured()) {
+      console.warn('⚠️ [IMAGE-HASH] Feature enabled but KV not configured - skipping');
+    } else if (isImageHashLimitEnabled() && !imageData) {
+      console.warn('⚠️ [IMAGE-HASH] Feature enabled but no imageData - skipping');
+    } else {
+      console.log(`ℹ️ [IMAGE-HASH] Feature disabled (ENABLE_IMAGE_HASH_LIMIT=${process.env.ENABLE_IMAGE_HASH_LIMIT})`);
+    }
+    
+    // IMAGE-HASH-FEATURE: END
+    // ============================================================================
 
     // ✅ SPRAWDZENIE LIMITÓW SHOPIFY METAFIELDS (Zalogowani) - PER PRODUCTTYPE
     const shopDomain = process.env.SHOPIFY_STORE_DOMAIN || 'customify-ok.myshopify.com';
@@ -1214,16 +1452,59 @@ module.exports = async (req, res) => {
           }
         };
 
+        // ⚠️ KRYTYCZNE: Sprawdź faktyczny typ definition (nie tylko metafield value)
+        // Shopify NIE POZWALA na zmianę typu definition - musimy sprawdzić definition
+        let actualDefinitionType = 'json'; // Default
+        
+        try {
+          const definitionQuery = `
+            query {
+              metafieldDefinitions(first: 1, ownerType: CUSTOMER, namespace: "customify", key: "usage_count") {
+                edges {
+                  node {
+                    id
+                    type {
+                      name
+                    }
+                  }
+                }
+              }
+            }
+          `;
+          
+          const definitionResponse = await fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Shopify-Access-Token': accessToken
+            },
+            body: JSON.stringify({ query: definitionQuery })
+          });
+          
+          const definitionData = await definitionResponse.json();
+          const definitionNode = definitionData.data?.metafieldDefinitions?.edges?.[0]?.node;
+          
+          if (definitionNode?.type?.name) {
+            actualDefinitionType = definitionNode.type.name;
+            console.log(`🔍 [METAFIELD-CHECK] Faktyczny typ definition: ${actualDefinitionType}`);
+          }
+        } catch (defError) {
+          console.warn(`⚠️ [METAFIELD-CHECK] Nie można sprawdzić typu definition, używam typu z metafield:`, defError.message);
+          // Fallback - użyj typu z metafield
+          actualDefinitionType = customer?.metafield?.type || 'json';
+        }
+        
         if (!customer?.metafield) {
           console.log(`📊 [METAFIELD-CHECK] Brak metafield - pierwsza generacja dla użytkownika ${customer?.email || customerId}`);
           await ensureDefinitionJson();
           usageData = {};
-          isOldFormat = false;
-          console.log(`📊 [METAFIELD-CHECK] Ustawiam usageData na pusty obiekt (0 użyć)`);
+          // ⚠️ KRYTYCZNE: Użyj faktycznego typu definition (nie domyślnego 'json')
+          isOldFormat = (actualDefinitionType === 'number_integer');
+          console.log(`📊 [METAFIELD-CHECK] Ustawiam usageData na pusty obiekt (0 użyć), isOldFormat: ${isOldFormat}`);
         } else {
-          // ⚠️ KRYTYCZNE: Sprawdź TYP metafield - jeśli number_integer, traktuj jako stary format
-          const metafieldType = customer?.metafield?.type || 'json';
-          const isOldFormatType = (metafieldType === 'number_integer');
+          // ⚠️ KRYTYCZNE: Użyj faktycznego typu definition (nie typu metafield value)
+          const metafieldType = customer?.metafield?.type || actualDefinitionType;
+          const isOldFormatType = (actualDefinitionType === 'number_integer');
           
           try {
             const rawValue = customer?.metafield?.value;
@@ -1270,56 +1551,40 @@ module.exports = async (req, res) => {
           }
         }
 
-        const totalLimit = 3; // 3 darmowe generacje per productType dla zalogowanych
+        const totalLimit = 4; // 4 darmowe generacje TOTAL dla zalogowanych
         
-        // ⚠️ KRYTYCZNE: Jeśli stary format, sprawdź TOTAL (nie per productType)
-        // Bo stary format nie ma informacji o productType
-        let usedForThisType;
-        if (isOldFormat) {
-          // Stary format - sprawdź TOTAL (suma wszystkich typów)
-          const totalUsed = usageData.total || 0;
-          // Jeśli total >= 3, to blokuj (bo limit to 3 per productType, a nie wiemy jak rozłożyć)
-          usedForThisType = totalUsed;
-          console.log(`⚠️ [METAFIELD-CHECK] Stary format - sprawdzam TOTAL:`, {
-            totalUsed: totalUsed,
-            limit: totalLimit,
-            productType: finalProductType
-          });
-        } else {
-          // Nowy format - sprawdź per productType
-          usedForThisType = usageData[finalProductType] || 0;
-          console.log(`📊 [METAFIELD-CHECK] Nowy format - sprawdzam per productType:`, {
-            productType: finalProductType,
-            usedForThisType: usedForThisType,
-            allProductTypes: usageData
-          });
-        }
-
-        console.log(`📊 [METAFIELD-CHECK] Limit check result:`, {
-          customerEmail: customer?.email,
-          customerId: customerId,
-          productType: finalProductType,
-          usedForThisType: usedForThisType,
-          totalLimit: totalLimit,
+        // Sprawdź TOTAL (bez per productType)
+        const totalUsed = usageData.total || 0;
+        
+        console.log(`📊 [METAFIELD-CHECK] Sprawdzam TOTAL usage:`, {
+          totalUsed: totalUsed,
+          limit: totalLimit,
           isOldFormat: isOldFormat,
           fullUsageData: usageData
         });
 
-        if (usedForThisType >= totalLimit) {
+        console.log(`📊 [METAFIELD-CHECK] Limit check result:`, {
+          customerEmail: customer?.email,
+          customerId: customerId,
+          totalUsed: totalUsed,
+          totalLimit: totalLimit,
+          isOldFormat: isOldFormat
+        });
+
+        if (isTest) {
+          console.log(`🧪 [TEST-BYPASS] Pomijam Shopify metafield limit dla test user (${totalUsed}/${totalLimit})`);
+        } else if (totalUsed >= totalLimit) {
           console.warn(`❌ [METAFIELD-CHECK] LIMIT EXCEEDED:`, {
             customerEmail: customer?.email,
             customerId: customerId,
-            productType: finalProductType,
-            usedForThisType: usedForThisType,
-            totalLimit: totalLimit,
-            isOldFormat: isOldFormat
+            totalUsed: totalUsed,
+            totalLimit: totalLimit
           });
           return res.status(403).json({
             error: 'Usage limit exceeded',
-            message: `Wykorzystałeś wszystkie dostępne transformacje dla ${finalProductType} (3). Skontaktuj się z nami dla więcej.`,
-            usedCount: usedForThisType,
-            totalLimit: totalLimit,
-            productType: finalProductType
+            message: `Wykorzystałeś wszystkie dostępne transformacje (${totalUsed}/${totalLimit}). Skontaktuj się z nami dla więcej.`,
+            usedCount: totalUsed,
+            totalLimit: totalLimit
           });
         }
 
@@ -1592,20 +1857,69 @@ module.exports = async (req, res) => {
         });
       }
 
-      // Add timeout and better error handling (following Replicate docs)
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Request timeout - model took too long')), 300000); // 5 minutes
-      });
+      // Retry logic for Replicate API (similar to Segmind)
+      const maxRetries = 3;
+      const retryDelay = 2000; // 2 sekundy bazowego opóźnienia
+      let lastError;
+      let output = null;
 
-      console.log(`🚀 [REPLICATE] Starting prediction with model: ${config.model}`);
-      const replicatePromise = replicate.run(config.model, {
-        input: inputParams
-      });
+      for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+          // Add timeout and better error handling (following Replicate docs)
+          const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Request timeout - model took too long')), 300000); // 5 minutes
+          });
 
-      output = await Promise.race([replicatePromise, timeoutPromise]);
-      console.log(`✅ [REPLICATE] Prediction completed successfully`);
-      console.log(`📸 [REPLICATE] Output type:`, typeof output);
-      console.log(`📸 [REPLICATE] Output:`, output);
+          console.log(`🚀 [REPLICATE] Starting prediction with model: ${config.model} (attempt ${attempt}/${maxRetries})`);
+          const replicatePromise = replicate.run(config.model, {
+            input: inputParams
+          });
+
+          output = await Promise.race([replicatePromise, timeoutPromise]);
+          console.log(`✅ [REPLICATE] Prediction completed successfully (attempt ${attempt})`);
+          console.log(`📸 [REPLICATE] Output type:`, typeof output);
+          console.log(`📸 [REPLICATE] Output:`, output);
+          
+          // Success - break out of retry loop
+          break;
+        } catch (error) {
+          lastError = error;
+          
+          // Check if error is retryable (5xx server errors or timeout)
+          // Replicate ApiError has response.status property
+          const errorStatus = error.response?.status || error.status || 
+            (error.message && error.message.match(/status (\d{3})/)?.[1]);
+          const statusCode = errorStatus ? parseInt(errorStatus) : null;
+          
+          const isRetryable = 
+            (statusCode >= 500) ||
+            (error.message && (
+              error.message.includes('500') ||
+              error.message.includes('502') ||
+              error.message.includes('503') ||
+              error.message.includes('504') ||
+              error.message.includes('timeout') ||
+              error.message.includes('Internal Server Error') ||
+              error.message.includes('Internal server error')
+            ));
+          
+          if (isRetryable && attempt < maxRetries) {
+            const delay = retryDelay * Math.pow(2, attempt - 1); // Exponential backoff: 2s, 4s, 8s
+            console.warn(`⚠️ [REPLICATE] Server error (attempt ${attempt}/${maxRetries}) - retrying in ${delay}ms...`);
+            console.warn(`⚠️ [REPLICATE] Error:`, error.message?.substring(0, 200) || error.toString());
+            await new Promise(resolve => setTimeout(resolve, delay));
+            continue; // Retry
+          } else {
+            // Non-retryable error or max retries reached
+            console.error(`❌ [REPLICATE] Prediction failed after ${attempt} attempts:`, error);
+            throw error;
+          }
+        }
+      }
+
+      if (!output) {
+        throw lastError || new Error('Replicate prediction failed after all retries');
+      }
 
       // Handle different output formats based on model
       if (config.model.includes('nano-banana')) {
@@ -1695,37 +2009,42 @@ module.exports = async (req, res) => {
             console.warn('⚠️ [TRANSFORM] Transformacja się udała - zwrócę base64 do frontendu, ale bez zapisu w historii');
           }
         }
-        // Jeśli to URL z Replicate (nie Vercel Blob), uploaduj do Vercel Blob
+        // Jeśli to URL z Replicate (nie Vercel Blob), uploaduj do Vercel Blob przez SDK
+        // Replicate URLs wygasają po 24h - musimy zapisać do Vercel Blob dla trwałości
         else if (imageUrl.includes('replicate.delivery') || imageUrl.includes('pbxt')) {
-          console.log(`📤 [TRANSFORM] Uploaduję obraz z Replicate do Vercel Blob...`);
+          console.log(`📤 [TRANSFORM] Wykryto URL z Replicate - uploaduję do Vercel Blob (SDK)...`);
           
           try {
-            // Pobierz obraz z Replicate
-            const imageResponse = await fetch(imageUrl);
-            if (imageResponse.ok) {
-              const imageBuffer = await imageResponse.arrayBuffer();
-              const base64 = Buffer.from(imageBuffer).toString('base64');
-              const dataUri = `data:image/jpeg;base64,${base64}`;
-              
-              // Upload do Vercel Blob
-              const uploadResponse = await fetch('https://customify-s56o.vercel.app/api/upload-temp-image', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  imageData: dataUri,
-                  filename: `generation-${Date.now()}.jpg`
-                })
-              });
-              
-              if (uploadResponse.ok) {
-                const uploadResult = await uploadResponse.json();
-                finalImageUrl = uploadResult.imageUrl;
-                console.log(`✅ [TRANSFORM] Obraz zapisany w Vercel Blob: ${finalImageUrl.substring(0, 50)}...`);
+            // Sprawdź czy token jest skonfigurowany
+            if (!process.env.customify_READ_WRITE_TOKEN) {
+              console.warn('⚠️ [TRANSFORM] customify_READ_WRITE_TOKEN not configured - używam URL z Replicate (wygaśnie po 24h)');
+            } else {
+              // Pobierz obraz z Replicate
+              const imageResponse = await fetch(imageUrl);
+              if (imageResponse.ok) {
+                const imageBuffer = await imageResponse.arrayBuffer();
+                console.log(`📦 [TRANSFORM] Replicate image size: ${Buffer.from(imageBuffer).length} bytes (${(Buffer.from(imageBuffer).length / 1024 / 1024).toFixed(2)} MB)`);
+                
+                // Upload bezpośrednio przez SDK (bez limitu 4.5MB, bez podwójnego .jpg.jpg)
+                const timestamp = Date.now();
+                const uniqueFilename = `customify/temp/generation-${timestamp}.jpg`;
+                
+                const blob = await put(uniqueFilename, Buffer.from(imageBuffer), {
+                  access: 'public',
+                  contentType: 'image/jpeg',
+                  token: process.env.customify_READ_WRITE_TOKEN,
+                });
+                
+                finalImageUrl = blob.url;
+                console.log(`✅ [TRANSFORM] Obraz z Replicate zapisany w Vercel Blob (SDK): ${finalImageUrl.substring(0, 50)}...`);
+              } else {
+                console.warn('⚠️ [TRANSFORM] Nie udało się pobrać obrazu z Replicate - używam oryginalnego URL');
               }
             }
           } catch (uploadError) {
-            console.error('⚠️ [TRANSFORM] Błąd uploadu do Vercel Blob:', uploadError);
-            // Użyj oryginalnego URL
+            console.error('⚠️ [TRANSFORM] Błąd uploadu do Vercel Blob (SDK):', uploadError.message);
+            console.warn('⚠️ [TRANSFORM] Używam URL z Replicate (wygaśnie po 24h)');
+            // Użyj oryginalnego URL z Replicate
           }
         }
         
@@ -1868,13 +2187,20 @@ module.exports = async (req, res) => {
       
       try {
         // Pobierz obecną wartość (namespace: customify, key: usage_count)
+        // ⚠️ Używam metafields (lista) zamiast metafield (pojedynczy) - bardziej niezawodne
         const getQuery = `
           query getCustomerUsage($id: ID!) {
             customer(id: $id) {
-              metafield(namespace: "customify", key: "usage_count") {
-                id
-                value
-                type
+              id
+              metafields(first: 10, namespace: "customify") {
+                edges {
+                  node {
+                    id
+                    key
+                    value
+                    type
+                  }
+                }
               }
             }
           }
@@ -1895,315 +2221,135 @@ module.exports = async (req, res) => {
         });
 
         const getData = await getResponse.json();
+        
+        // ⚠️ PARSOWANIE METAFIELDS Z LISTY
+        const metafields = getData.data?.customer?.metafields?.edges || [];
+        const usageCountMetafield = metafields.find(edge => edge.node.key === 'usage_count')?.node || null;
+        
         console.log(`📊 [METAFIELD-INCREMENT] Get response:`, {
           hasData: !!getData.data,
           hasCustomer: !!getData.data?.customer,
-          hasMetafield: !!getData.data?.customer?.metafield,
+          metafieldsCount: metafields.length,
+          hasUsageCountMetafield: !!usageCountMetafield,
           errors: getData.errors || null
         });
         
-        const existingMetafield = getData.data?.customer?.metafield;
-        const metafieldType = existingMetafield?.type || 'json';
+        // ⚠️ DEBUG: Wszystkie metafields
+        if (metafields.length > 0) {
+          console.log(`🔍 [METAFIELD-INCREMENT] All metafields:`, metafields.map(e => ({ key: e.node.key, type: e.node.type, value: e.node.value?.substring(0, 50) })));
+        }
+        
+        const existingMetafield = usageCountMetafield;
+        
+        // ⚠️ KRYTYCZNE: Jeśli metafield jest null, sprawdź czy to pierwsza generacja czy błąd query
+        if (!existingMetafield) {
+          console.warn(`⚠️ [METAFIELD-INCREMENT] Metafield usage_count nie znaleziony - to pierwsza generacja lub błąd query`);
+          console.warn(`⚠️ [METAFIELD-INCREMENT] Customer ID: ${customerId}`);
+        }
+        
+        // ⚠️ KRYTYCZNE: Sprawdź faktyczny typ definition (nie tylko metafield value)
+        // Shopify NIE POZWALA na zmianę typu definition - musimy sprawdzić definition
+        let actualDefinitionType = 'json'; // Default
+        
+        try {
+          const definitionQuery = `
+            query {
+              metafieldDefinitions(first: 1, ownerType: CUSTOMER, namespace: "customify", key: "usage_count") {
+                edges {
+                  node {
+                    id
+                    type {
+                      name
+                    }
+                  }
+                }
+              }
+            }
+          `;
+          
+          const definitionResponse = await fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Shopify-Access-Token': accessToken
+            },
+            body: JSON.stringify({ query: definitionQuery })
+          });
+          
+          const definitionData = await definitionResponse.json();
+          const definitionNode = definitionData.data?.metafieldDefinitions?.edges?.[0]?.node;
+          
+          if (definitionNode?.type?.name) {
+            actualDefinitionType = definitionNode.type.name;
+            console.log(`🔍 [METAFIELD-INCREMENT] Faktyczny typ definition: ${actualDefinitionType}`);
+          }
+        } catch (defError) {
+          console.warn(`⚠️ [METAFIELD-INCREMENT] Nie można sprawdzić typu definition, używam typu z metafield:`, defError.message);
+          // Fallback - użyj typu z metafield
+          actualDefinitionType = existingMetafield?.type || 'json';
+        }
+        
+        const metafieldType = existingMetafield?.type || actualDefinitionType;
         const metafieldId = existingMetafield?.id || null;
         
         console.log(`🔍 [METAFIELD-INCREMENT] Existing metafield:`, {
           id: metafieldId,
           type: metafieldType,
           value: existingMetafield?.value || null,
-          hasValue: !!existingMetafield?.value
+          hasValue: !!existingMetafield?.value,
+          actualDefinitionType: actualDefinitionType
         });
         
-        // ⚠️ KRYTYCZNE: Jeśli typ to number_integer, MUSIMY go zmienić na json (niezależnie od wartości)
-        const needsTypeChange = (metafieldType === 'number_integer');
-        if (needsTypeChange) {
-          console.log(`🔄 [METAFIELD-INCREMENT] Wykryto number_integer - WYMAGANA konwersja na json (niezależnie od wartości)`);
-        }
+        // ⚠️ KRYTYCZNE: Użyj faktycznego typu definition (nie typu metafield value)
+        // Shopify NIE POZWALA na zmianę typu definition z number_integer na json
+        const isOldFormatType = (actualDefinitionType === 'number_integer');
         
-        // Parsuj JSON lub konwertuj stary format (liczba)
-        let usageData;
-        try {
-          const rawValue = existingMetafield?.value || '{}';
-          console.log(`🔍 [METAFIELD-INCREMENT] Parsing value:`, {
-            rawValue: rawValue,
-            type: typeof rawValue,
-            metafieldType: metafieldType
+        let newValue;
+        let updateType;
+        
+        if (isOldFormatType) {
+          // STARY FORMAT: Użyj number_integer (liczba total)
+          const oldTotal = parseInt(existingMetafield?.value || '0', 10);
+          const newTotal = oldTotal + 1;
+          newValue = newTotal.toString();
+          updateType = 'number_integer';
+          
+          console.log(`📊 [METAFIELD-INCREMENT] Używam STARY FORMAT (number_integer):`, {
+            oldTotal: oldTotal,
+            newTotal: newTotal,
+            note: 'Shopify nie pozwala na zmianę typu - używam starego formatu'
           });
-          
-          const parsed = JSON.parse(rawValue);
-          if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
-            usageData = parsed;
-            console.log(`✅ [METAFIELD-INCREMENT] Parsed JSON successfully:`, usageData);
-          } else {
-            throw new Error('Not a valid JSON object');
-          }
-        } catch (parseError) {
-          // Stary format (liczba) → konwertuj
-          const rawValue = existingMetafield?.value || '0';
-          const oldTotal = parseInt(rawValue, 10);
-          console.log(`⚠️ [METAFIELD-INCREMENT] Stary format metafield (wartość to liczba):`, {
-            rawValue: rawValue,
-            parsedTotal: oldTotal,
-            metafieldType: metafieldType,
-            parseError: parseError.message
-          });
-          
-          usageData = {
-            total: oldTotal,
-            other: oldTotal  // Wszystkie stare → "other"
-          };
-          console.log(`⚠️ [METAFIELD-INCREMENT] Konwertuję: ${oldTotal} →`, usageData);
-        }
-        
-        const beforeIncrement = { ...usageData };
-        console.log(`📊 [METAFIELD-INCREMENT] Przed inkrementacją:`, {
-          productType: finalProductType,
-          currentValue: usageData[finalProductType] || 0,
-          fullData: beforeIncrement
-        });
-        
-        // Inkrementuj dla TEGO productType
-        usageData[finalProductType] = (usageData[finalProductType] || 0) + 1;
-        
-        // Zaktualizuj total (suma wszystkich typów, bez total)
-        usageData.total = Object.entries(usageData)
-          .filter(([key]) => key !== 'total')
-          .reduce((sum, [, count]) => sum + (typeof count === 'number' ? count : 0), 0);
-        
-        console.log(`📊 [METAFIELD-INCREMENT] Po inkrementacji:`, {
-          productType: finalProductType,
-          newValue: usageData[finalProductType],
-          total: usageData.total,
-          fullData: usageData,
-          needsTypeChange: needsTypeChange
-        });
-        
-        const newValue = JSON.stringify(usageData);
-        console.log(`📊 [METAFIELD-INCREMENT] New JSON value:`, newValue);
-
-        // ⚠️ KRYTYCZNE: Jeśli metafield ma typ number_integer, musimy go najpierw USUNĄĆ i utworzyć jako json
-        if (needsTypeChange && metafieldId) {
-          console.log(`🔄 [METAFIELD-INCREMENT] KONWERSJA TYPU: number_integer → json`, {
-            metafieldId: metafieldId,
-            oldValue: existingMetafield?.value,
-            newValue: newValue
-          });
-          
-          // KROK 1: Usuń stary metafield
-          const deleteMutation = `
-            mutation deleteMetafield($id: ID!) {
-              metafieldDelete(id: $id) {
-                deletedId
-                userErrors {
-                  field
-                  message
-                }
-              }
-            }
-          `;
-          
-          console.log(`🔄 [METAFIELD-INCREMENT] Usuwam stary metafield (id: ${metafieldId})...`);
-          const deleteResponse = await fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'X-Shopify-Access-Token': accessToken
-            },
-            body: JSON.stringify({
-              query: deleteMutation,
-              variables: {
-                id: metafieldId
-              }
-            })
-          });
-          
-          const deleteData = await deleteResponse.json();
-          console.log(`📊 [METAFIELD-INCREMENT] Delete response:`, {
-            deletedId: deleteData.data?.metafieldDelete?.deletedId || null,
-            userErrors: deleteData.data?.metafieldDelete?.userErrors || null,
-            errors: deleteData.errors || null
-          });
-          
-          if (deleteData.data?.metafieldDelete?.userErrors?.length > 0) {
-            console.error(`❌ [METAFIELD-INCREMENT] Błąd usuwania starego metafield:`, {
-              userErrors: deleteData.data.metafieldDelete.userErrors,
-              metafieldId: metafieldId,
-              fullResponse: JSON.stringify(deleteData, null, 2)
-            });
-            // ⚠️ KRYTYCZNE: Jeśli nie można usunąć, nie można też utworzyć nowego jako json
-            // Musimy użyć metafieldDeleteDefinition lub zaktualizować definition
-            throw new Error(`Nie można usunąć starego metafield: ${JSON.stringify(deleteData.data.metafieldDelete.userErrors)}`);
-          } else if (deleteData.errors) {
-            console.error(`❌ [METAFIELD-INCREMENT] GraphQL errors przy usuwaniu:`, deleteData.errors);
-            throw new Error(`GraphQL errors przy usuwaniu: ${JSON.stringify(deleteData.errors)}`);
-          } else {
-            const deletedId = deleteData.data?.metafieldDelete?.deletedId;
-            if (deletedId) {
-              console.log(`✅ [METAFIELD-INCREMENT] Stary metafield usunięty pomyślnie (id: ${deletedId})`);
-              
-              // ⚠️ KRYTYCZNE: Po usunięciu metafield, musimy zaktualizować definition z number_integer na json
-              // W przeciwnym razie Shopify nie pozwoli utworzyć nowego jako json
-              console.log(`🔄 [METAFIELD-INCREMENT] Aktualizuję metafield definition z number_integer na json...`);
-              
-              // Pobierz definition ID
-              const definitionQuery = `
-                query {
-                  metafieldDefinitions(first: 100, ownerType: CUSTOMER, namespace: "customify", key: "usage_count") {
-                    edges {
-                      node {
-                        id
-                        type {
-                          name
-                        }
-                      }
-                    }
-                  }
-                }
-              `;
-              
-              const definitionResponse = await fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'X-Shopify-Access-Token': accessToken
-                },
-                body: JSON.stringify({ query: definitionQuery })
-              });
-              
-              const definitionData = await definitionResponse.json();
-              const definitionNode = definitionData.data?.metafieldDefinitions?.edges?.[0]?.node;
-              
-              if (definitionNode && definitionNode.type?.name === 'number_integer') {
-                // Zaktualizuj definition z number_integer na json
-                const updateDefinitionMutation = `
-                  mutation UpdateMetafieldDefinition($id: ID!, $definition: MetafieldDefinitionInput!) {
-                    metafieldDefinitionUpdate(id: $id, definition: $definition) {
-                      metafieldDefinition {
-                        id
-                        type {
-                          name
-                        }
-                      }
-                      userErrors {
-                        field
-                        message
-                      }
-                    }
-                  }
-                `;
-                
-                const updateDefinitionResponse = await fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    'X-Shopify-Access-Token': accessToken
-                  },
-                  body: JSON.stringify({
-                    query: updateDefinitionMutation,
-                    variables: {
-                      id: definitionNode.id,
-                      definition: {
-                        type: 'json'
-                      }
-                    }
-                  })
-                });
-                
-                const updateDefinitionData = await updateDefinitionResponse.json();
-                if (updateDefinitionData.data?.metafieldDefinitionUpdate?.userErrors?.length > 0) {
-                  console.error(`❌ [METAFIELD-INCREMENT] Błąd aktualizacji definition:`, updateDefinitionData.data.metafieldDefinitionUpdate.userErrors);
-                  // ⚠️ Shopify może nie pozwolić na zmianę typu definition - usuń starą i utwórz nową
-                  console.log(`🔄 [METAFIELD-INCREMENT] Shopify nie pozwala zmienić typu - usuwam starą definition i tworzę nową jako json...`);
-                  
-                  // Usuń starą definition
-                  const deleteDefinitionMutation = `
-                    mutation DeleteMetafieldDefinition($id: ID!) {
-                      metafieldDefinitionDelete(id: $id) {
-                        deletedId
-                        userErrors {
-                          field
-                          message
-                        }
-                      }
-                    }
-                  `;
-                  
-                  const deleteDefinitionResponse = await fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
-                    method: 'POST',
-                    headers: {
-                      'Content-Type': 'application/json',
-                      'X-Shopify-Access-Token': accessToken
-                    },
-                    body: JSON.stringify({
-                      query: deleteDefinitionMutation,
-                      variables: { id: definitionNode.id }
-                    })
-                  });
-                  
-                  const deleteDefinitionData = await deleteDefinitionResponse.json();
-                  if (deleteDefinitionData.data?.metafieldDefinitionDelete?.deletedId) {
-                    console.log(`✅ [METAFIELD-INCREMENT] Stara definition usunięta`);
-                  }
-                  
-                  // Utwórz nową definition jako json
-                  const createDefinitionMutation = `
-                    mutation CreateMetafieldDefinition($definition: MetafieldDefinitionInput!) {
-                      metafieldDefinitionCreate(definition: $definition) {
-                        createdDefinition {
-                          id
-                          type {
-                            name
-                          }
-                        }
-                        userErrors {
-                          field
-                          message
-                        }
-                      }
-                    }
-                  `;
-                  
-                  const createDefinitionResponse = await fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
-                    method: 'POST',
-                    headers: {
-                      'Content-Type': 'application/json',
-                      'X-Shopify-Access-Token': accessToken
-                    },
-                    body: JSON.stringify({
-                      query: createDefinitionMutation,
-                      variables: {
-                        definition: {
-                          name: "Usage Count",
-                          namespace: "customify",
-                          key: "usage_count",
-                          description: "Liczba wykorzystanych transformacji AI przez użytkownika (per productType)",
-                          type: "json",
-                          ownerType: "CUSTOMER"
-                        }
-                      }
-                    })
-                  });
-                  
-                  const createDefinitionData = await createDefinitionResponse.json();
-                  if (createDefinitionData.data?.metafieldDefinitionCreate?.createdDefinition) {
-                    console.log(`✅ [METAFIELD-INCREMENT] Nowa definition utworzona jako json`);
-                  } else if (createDefinitionData.data?.metafieldDefinitionCreate?.userErrors?.length > 0) {
-                    console.error(`❌ [METAFIELD-INCREMENT] Błąd tworzenia nowej definition:`, createDefinitionData.data.metafieldDefinitionCreate.userErrors);
-                  }
-                } else {
-                  console.log(`✅ [METAFIELD-INCREMENT] Definition zaktualizowana na json`);
-                }
-              } else {
-                console.log(`📊 [METAFIELD-INCREMENT] Definition już jest json lub nie znaleziono`);
-              }
+        } else {
+          // NOWY FORMAT: Użyj json (tylko total, bez per productType)
+          let usageData;
+          try {
+            const rawValue = existingMetafield?.value || '{}';
+            const parsed = JSON.parse(rawValue);
+            if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
+              usageData = parsed;
             } else {
-              console.warn(`⚠️ [METAFIELD-INCREMENT] Delete response OK, ale brak deletedId - sprawdzam dalej`);
+              throw new Error('Not a valid JSON object');
             }
+          } catch (parseError) {
+            // Jeśli nie można sparsować, zacznij od zera
+            usageData = {};
           }
+          
+          const oldTotal = usageData.total || 0;
+          const newTotal = oldTotal + 1;
+          usageData.total = newTotal;
+          
+          newValue = JSON.stringify(usageData);
+          updateType = 'json';
+          
+          console.log(`📊 [METAFIELD-INCREMENT] Używam NOWY FORMAT (json):`, {
+            oldTotal: oldTotal,
+            newTotal: newTotal,
+            fullData: usageData
+          });
         }
 
-        // KROK 2: Utwórz/zaktualizuj metafield jako json
-        // ⚠️ UWAGA: Jeśli needsTypeChange było true, metafield został usunięty, więc teraz tworzymy nowy
-        // Jeśli needsTypeChange było false, metafield już jest json, więc tylko aktualizujemy
+        // KROK: Utwórz/zaktualizuj metafield z odpowiednim typem
         const updateMutation = `
           mutation updateCustomerUsage($input: CustomerInput!) {
             customerUpdate(input: $input) {
@@ -2239,9 +2385,7 @@ module.exports = async (req, res) => {
                     namespace: 'customify',
                     key: 'usage_count',
                     value: newValue,
-                    type: 'json' // ✅ Zawsze json (nowy format)
-                    // ⚠️ UWAGA: Jeśli metafield już istnieje jako json, Shopify automatycznie go zaktualizuje
-                    // Jeśli nie istnieje, Shopify utworzy nowy jako json
+                    type: updateType // ✅ Użyj odpowiedniego typu (number_integer lub json)
                   }
                 ]
               }
@@ -2262,15 +2406,16 @@ module.exports = async (req, res) => {
         });
         
         if (updateData.data?.customerUpdate?.userErrors?.length > 0) {
+          const userErrors = updateData.data.customerUpdate.userErrors;
           console.error(`❌ [METAFIELD-INCREMENT] Błąd aktualizacji metafield:`, {
-            userErrors: updateData.data.customerUpdate.userErrors,
+            userErrors: userErrors,
             customerId: customerId,
             productType: finalProductType,
             newValue: newValue,
-            fullResponse: JSON.stringify(updateData, null, 2)
+            updateType: updateType,
+            isOldFormatType: isOldFormatType
           });
-          // ⚠️ KRYTYCZNE: Jeśli są błędy, loguj szczegółowo
-          throw new Error(`GraphQL userErrors: ${JSON.stringify(updateData.data.customerUpdate.userErrors)}`);
+          throw new Error(`GraphQL userErrors: ${JSON.stringify(userErrors)}`);
         } else if (updateData.errors) {
           console.error(`❌ [METAFIELD-INCREMENT] GraphQL errors:`, {
             errors: updateData.errors,
@@ -2288,36 +2433,49 @@ module.exports = async (req, res) => {
           });
           throw new Error('Brak metafield w response po aktualizacji');
         } else {
-          const oldValue = beforeIncrement[finalProductType] || 0;
-          const newValueAfter = usageData[finalProductType];
           const savedValue = updateData.data.customerUpdate.customer.metafield.value;
+          const savedType = updateData.data.customerUpdate.customer.metafield.type;
+          
           console.log(`✅ [METAFIELD-INCREMENT] Licznik zaktualizowany pomyślnie:`, {
             productType: finalProductType,
-            oldValue: oldValue,
-            newValue: newValueAfter,
+            newValue: newValue,
             savedValue: savedValue,
-            total: usageData.total,
-            metafieldType: updateData.data.customerUpdate.customer.metafield.type || 'unknown',
+            savedType: savedType,
+            updateType: updateType,
             metafieldId: updateData.data.customerUpdate.customer.metafield.id || null
           });
           
-          // ⚠️ WERYFIKACJA: Sprawdź czy zapisana wartość jest poprawna
-          try {
-            const savedData = JSON.parse(savedValue);
-            if (savedData[finalProductType] !== newValueAfter) {
-              console.error(`❌ [METAFIELD-INCREMENT] WERYFIKACJA FAILED: Zapisana wartość nie zgadza się!`, {
-                expected: newValueAfter,
-                saved: savedData[finalProductType],
-                fullSavedData: savedData
-              });
+          // Weryfikacja zapisanej wartości
+          if (isOldFormatType) {
+            const savedTotal = parseInt(savedValue, 10);
+            const expectedTotal = parseInt(newValue, 10);
+            if (savedTotal === expectedTotal) {
+              console.log(`✅ [METAFIELD-INCREMENT] WERYFIKACJA OK: Zapisana wartość jest poprawna (${savedTotal})`);
             } else {
-              console.log(`✅ [METAFIELD-INCREMENT] WERYFIKACJA OK: Zapisana wartość jest poprawna`);
+              console.error(`❌ [METAFIELD-INCREMENT] WERYFIKACJA FAILED: Zapisana wartość nie zgadza się!`, {
+                expected: expectedTotal,
+                saved: savedTotal
+              });
             }
-          } catch (verifyError) {
-            console.error(`❌ [METAFIELD-INCREMENT] WERYFIKACJA FAILED: Nie można sparsować zapisanej wartości:`, {
-              savedValue: savedValue,
-              error: verifyError.message
-            });
+          } else {
+            try {
+              const savedData = JSON.parse(savedValue);
+              const expectedData = JSON.parse(newValue);
+              if (savedData[finalProductType] === expectedData[finalProductType]) {
+                console.log(`✅ [METAFIELD-INCREMENT] WERYFIKACJA OK: Zapisana wartość jest poprawna (${savedData[finalProductType]})`);
+              } else {
+                console.error(`❌ [METAFIELD-INCREMENT] WERYFIKACJA FAILED: Zapisana wartość nie zgadza się!`, {
+                  expected: expectedData[finalProductType],
+                  saved: savedData[finalProductType],
+                  fullSavedData: savedData
+                });
+              }
+            } catch (verifyError) {
+              console.error(`❌ [METAFIELD-INCREMENT] WERYFIKACJA FAILED: Nie można sparsować zapisanej wartości:`, {
+                savedValue: savedValue,
+                error: verifyError.message
+              });
+            }
           }
         }
       } catch (incrementError) {
@@ -2339,6 +2497,78 @@ module.exports = async (req, res) => {
         hasAccessToken: !!accessToken,
         reason: !customerId ? 'brak customerId' : !customerAccessToken ? 'brak customerAccessToken' : 'brak accessToken'
       });
+    }
+
+    // ✅ ATOMIC INCREMENT IP I DEVICE TOKEN LIMITS (PO UDANEJ TRANSFORMACJI)
+    // Używa Vercel KV z atomic operations (zapobiega race conditions)
+    if (isKVConfigured()) {
+      try {
+        // 1. Atomic Increment IP Limit (dla wszystkich)
+        if (isTest || (ip && WHITELISTED_IPS.has(ip))) {
+          console.log(`🧪 [TEST-BYPASS] Pomijam inkrementację IP limit dla test user`);
+        } else {
+          const ipIncrementResult = await incrementIPLimit(ip);
+          if (ipIncrementResult.success) {
+            console.log(`➕ [TRANSFORM] IP limit incremented: ${ipIncrementResult.newCount}/10`);
+          } else {
+            console.warn(`⚠️ [TRANSFORM] Failed to increment IP limit:`, ipIncrementResult.error);
+          }
+        }
+
+        // 2. Atomic Increment Device Token Limit (tylko dla niezalogowanych)
+        if (isTest) {
+          console.log(`🧪 [TEST-BYPASS] Pomijam inkrementację device token limit dla test user`);
+        } else if (!customerId && deviceToken) {
+          const deviceIncrementResult = await incrementDeviceTokenLimit(deviceToken);
+          if (deviceIncrementResult.success) {
+            console.log(`➕ [TRANSFORM] Device token limit incremented: ${deviceIncrementResult.newCount}/2`);
+          } else {
+            console.warn(`⚠️ [TRANSFORM] Failed to increment device token limit:`, deviceIncrementResult.error);
+          }
+        }
+
+        // ============================================================================
+        // DEVICE-TOKEN-CROSS-ACCOUNT-FEATURE: START - Dodaj customerId do device token
+        // ============================================================================
+        
+        // 2b. Dodaj customerId do device token (tylko dla zalogowanych)
+        if (customerId && deviceToken) {
+          const addCustomerResult = await addCustomerToDeviceToken(deviceToken, customerId);
+          if (addCustomerResult.success) {
+            console.log(`➕ [TRANSFORM] CustomerId dodany do device token: ${addCustomerResult.customerIds.length}/2 kont`);
+          } else {
+            console.warn(`⚠️ [TRANSFORM] Failed to add customerId to device token:`, addCustomerResult.error);
+          }
+        }
+        
+        // DEVICE-TOKEN-CROSS-ACCOUNT-FEATURE: END
+        // ============================================================================
+
+        // ============================================================================
+        // IMAGE-HASH-FEATURE: START - Inkrementacja limitu per obrazek
+        // ============================================================================
+        
+        // 3. Atomic Increment Image Hash Limit (dla wszystkich - zalogowanych i niezalogowanych)
+        if (isImageHashLimitEnabled() && req.imageHash) {
+          const imageHashIncrementResult = await incrementImageHashLimit(req.imageHash);
+          if (imageHashIncrementResult.success) {
+            console.log(`➕ [TRANSFORM] Image hash limit incremented: ${imageHashIncrementResult.newCount}/2`);
+          } else {
+            console.warn(`⚠️ [TRANSFORM] Failed to increment image hash limit:`, imageHashIncrementResult.error);
+          }
+        } else if (isImageHashLimitEnabled() && !req.imageHash) {
+          console.warn(`⚠️ [TRANSFORM] Image hash feature enabled but req.imageHash not set - skipping increment`);
+        }
+        
+        // IMAGE-HASH-FEATURE: END
+        // ============================================================================
+      } catch (kvError) {
+        console.error('❌ [TRANSFORM] Error incrementing KV limits:', kvError);
+        // Nie blokuj odpowiedzi - transformacja się udała, tylko limit nie został zaktualizowany
+        // Następna próba sprawdzi limit i zablokuje jeśli przekroczony
+      }
+    } else {
+      console.warn('⚠️ [TRANSFORM] KV not configured - skipping limit increments');
     }
 
     // ✅ ZWRÓĆ DEBUG INFO Z SAVE-GENERATION (dla przeglądarki)
