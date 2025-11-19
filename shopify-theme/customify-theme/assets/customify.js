@@ -362,17 +362,18 @@ class CustomifyEmbed {
   async saveAIGeneration(originalImage, transformedImage, style, size) {
     console.log('💾 [CACHE] Saving AI generation to localStorage...');
     
-    // ⚠️ NIE zapisuj ponownie do Vercel Blob - już jest zapisane w transform.js jako generation-{timestamp}.jpg
-    // Używamy URL z API response (generation-{timestamp}.jpg) zamiast duplikować jako ai-{timestamp}.jpg.jpg
-    let transformedImageUrl = transformedImage; // Użyj URL z API (generation-{timestamp}.jpg lub base64)
+    // ✅ WATERMARK: Zapisz obrazek Z watermarkiem (this.watermarkedImage) zamiast clean URL
+    // User widzi tylko wersję Z watermarkiem w galerii - ochrona przed pobraniem
+    let transformedImageUrl = this.watermarkedImage || transformedImage; // Priorytet: watermark > clean
     
-    console.log('✅ [CACHE] Using existing URL from transform.js (no duplicate upload):', transformedImageUrl?.substring(0, 50));
+    console.log('💾 [CACHE] Using watermarked image:', this.watermarkedImage ? 'YES (base64)' : 'NO (clean URL fallback)');
+    console.log('💾 [CACHE] Image URL length:', transformedImageUrl?.length, 'chars');
 
     const generation = {
       id: Date.now(),
       timestamp: new Date().toISOString(),
       originalImage: originalImage, // base64 lub URL (zachowaj)
-      transformedImage: transformedImageUrl, // ZAWSZE URL (nie base64)
+      transformedImage: transformedImageUrl, // ✅ Z watermarkiem (base64) lub clean URL (fallback)
       style: style,
       size: size,
       thumbnail: transformedImageUrl // Użyj tego samego URL dla thumbnail
