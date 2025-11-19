@@ -219,6 +219,7 @@
             minute: '2-digit'
           });
           
+          // ✅ Pokaż bezpośrednio z localStorage (już MA watermark!)
           item.innerHTML = `
             <img 
               src="${generation.transformedImage}" 
@@ -232,6 +233,8 @@
               <button class="btn-order-now">Zamów teraz 🛒</button>
             </div>
           `;
+          
+          grid.appendChild(item);
           
           // Po kliknięciu - zapisz jako wybraną i redirect do produktu
           item.addEventListener('click', function() {
@@ -271,8 +274,6 @@
             console.log('🔗 [MY-GENERATIONS] Redirecting to:', productHandle);
             window.location.href = `/products/${productHandle}`;
           });
-          
-          grid.appendChild(item);
         });
         
         container.appendChild(grid);
