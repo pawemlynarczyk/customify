@@ -154,7 +154,10 @@ function isKVConfigured() {
  * @returns {boolean}
  */
 function isImageHashLimitEnabled() {
-  return process.env.ENABLE_IMAGE_HASH_LIMIT === 'true';
+  // ⚠️ ZMIANA: Domyślnie WŁĄCZONE (nie wymaga env variable)
+  // Aby wyłączyć: ustaw ENABLE_IMAGE_HASH_LIMIT=false w Vercel
+  // Rollback: zmień 'true' na 'false' poniżej
+  return process.env.ENABLE_IMAGE_HASH_LIMIT !== 'false'; // !== 'false' = domyślnie true
 }
 
 /**
