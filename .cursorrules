@@ -141,12 +141,12 @@ if (hash !== req.headers['x-shopify-hmac-sha256']) {
   - **Cel:** Zablokować konkretnego niezalogowanego użytkownika (przez cookie HttpOnly, 1 rok ważności)
   - **Po zalogowaniu:** Device token NIE blokuje (kontrola przez Shopify metafields)
 
-- **Image Hash Limits** (4 generacje per unikalny obrazek - dla WSZYSTKICH):
-  - **Feature flag:** `ENABLE_IMAGE_HASH_LIMIT=true` (domyślnie wyłączone)
+- **Image Hash Limits** (2 generacje per unikalny obrazek - dla WSZYSTKICH):
+  - **Feature flag:** Domyślnie WŁĄCZONE (nie wymaga env variable)
   - **Klucz:** `image:{sha256_hash}:generations`
-  - **Wartość:** liczba (0-4)
+  - **Wartość:** liczba (0-2)
   - **TTL:** brak (permanentne - obrazek zablokowany na zawsze)
-  - **Przykład:** `image:abc123def456...:generations` = `3`
+  - **Przykład:** `image:abc123def456...:generations` = `1`
   - **Cel:** Zablokować abuse z tym samym zdjęciem (cross-account, cross-device, cross-IP)
   - **Hash:** SHA-256 z zawartości obrazka (deterministyczny)
 
@@ -231,13 +231,11 @@ if (ip && BLOCKED_IPS.has(ip)) {
 2. Tworzy konto 2 → 4 generacje (KV IP: 8)
 3. Próbuje konto 3 → BLOKADA IP (KV IP: 10/10 - 8 + 2 = 10)
 
-**Oszust z tym samym zdjęciem (jeśli IMAGE_HASH włączony):**
+**Oszust z tym samym zdjęciem (IMAGE_HASH włączony domyślnie):**
 1. Email 1, IP 1, Device 1 → upload kot.jpg (hash: abc123...) → 1. generacja ✅
 2. Email 2, IP 2, Device 2 → upload kot.jpg (hash: abc123...) → 2. generacja ✅
-3. Email 3, IP 3, Device 3 → upload kot.jpg (hash: abc123...) → 3. generacja ✅
-4. Email 4, IP 4, Device 4 → upload kot.jpg (hash: abc123...) → 4. generacja ✅
-5. Email 5, IP 5, Device 5 → upload kot.jpg (hash: abc123...) → ❌ BLOKADA "To zdjęcie zostało już użyte maksymalną liczbę razy (4/4)"
-6. **PERMANENTNA BLOKADA** - ten obrazek nigdy więcej nie może być użyty!
+3. Email 3, IP 3, Device 3 → upload kot.jpg (hash: abc123...) → ❌ BLOKADA "To zdjęcie zostało już użyte maksymalną liczbę razy (2/2)"
+4. **PERMANENTNA BLOKADA** - ten obrazek nigdy więcej nie może być użyty!
 
 ---
 
