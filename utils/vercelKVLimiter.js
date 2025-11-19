@@ -5,6 +5,7 @@
  */
 
 const { kv } = require('@vercel/kv');
+const crypto = require('crypto');
 
 /**
  * Sprawdza IP limit (globalny - 10 generacji / 24h)
@@ -142,11 +143,116 @@ function isKVConfigured() {
   return !!(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN);
 }
 
+// ============================================================================
+// IMAGE-HASH-FEATURE: START
+// Feature flag: ENABLE_IMAGE_HASH_LIMIT (true/false)
+// Aby wyłączyć: ustaw ENABLE_IMAGE_HASH_LIMIT=false w Vercel env
+// ============================================================================
+
+/**
+ * Sprawdza czy Image Hash limit jest włączony
+ * @returns {boolean}
+ */
+function isImageHashLimitEnabled() {
+  return process.env.ENABLE_IMAGE_HASH_LIMIT === 'true';
+}
+
+/**
+ * Oblicza SHA-256 hash z obrazka
+ * @param {Buffer|string} imageData - Buffer lub base64 string (bez lub z prefiksu data URI)
+ * @returns {string} - SHA-256 hash (hex)
+ */
+function calculateImageHash(imageData) {
+  let buffer;
+  
+  if (Buffer.isBuffer(imageData)) {
+    buffer = imageData;
+  } else if (typeof imageData === 'string') {
+    // Jeśli to base64 string (może mieć lub nie mieć prefiks data URI)
+    const base64Data = imageData.includes('base64,') 
+      ? imageData.split('base64,')[1] 
+      : imageData;
+    buffer = Buffer.from(base64Data, 'base64');
+  } else {
+    throw new Error('Invalid image data format');
+  }
+  
+  return crypto.createHash('sha256').update(buffer).digest('hex');
+}
+
+/**
+ * Sprawdza Image Hash limit (4 generacje per obrazek)
+ * @param {string} imageHash - SHA-256 hash obrazka
+ * @returns {Promise<{allowed: boolean, count: number, limit: number}>}
+ */
+async function checkImageHashLimit(imageHash) {
+  if (!imageHash) {
+    console.warn('⚠️ [KV-LIMITER] No image hash provided');
+    return { allowed: false, count: 0, limit: 4, reason: 'No image hash' };
+  }
+
+  try {
+    const key = `image:${imageHash}:generations`;
+    const count = await kv.get(key) || 0;
+    const limit = 4; // 4 generacje per obrazek (permanentne)
+    const allowed = count < limit;
+
+    console.log(`🔍 [KV-LIMITER] Image hash limit check:`, {
+      imageHash: imageHash.substring(0, 16) + '...',
+      count,
+      limit,
+      allowed
+    });
+
+    return { allowed, count, limit };
+  } catch (error) {
+    console.error('❌ [KV-LIMITER] Error checking image hash limit:', error);
+    // ⚠️ KRYTYCZNE: Jeśli błąd KV, BLOKUJ dla bezpieczeństwa
+    return { allowed: false, count: 0, limit: 4, reason: 'KV error', error: error.message };
+  }
+}
+
+/**
+ * Inkrementuje Image Hash limit (atomic operation, permanent)
+ * @param {string} imageHash - SHA-256 hash obrazka
+ * @returns {Promise<{success: boolean, newCount: number}>}
+ */
+async function incrementImageHashLimit(imageHash) {
+  if (!imageHash) {
+    console.warn('⚠️ [KV-LIMITER] Invalid image hash for increment');
+    return { success: false, newCount: 0 };
+  }
+
+  try {
+    const key = `image:${imageHash}:generations`;
+    // Atomic increment (permanent - no TTL)
+    const newCount = await kv.incr(key);
+
+    console.log(`➕ [KV-LIMITER] Image hash limit incremented:`, {
+      imageHash: imageHash.substring(0, 16) + '...',
+      newCount
+    });
+
+    return { success: true, newCount };
+  } catch (error) {
+    console.error('❌ [KV-LIMITER] Error incrementing image hash limit:', error);
+    return { success: false, newCount: 0, error: error.message };
+  }
+}
+
+// IMAGE-HASH-FEATURE: END
+// ============================================================================
+
 module.exports = {
   checkIPLimit,
   incrementIPLimit,
   checkDeviceTokenLimit,
   incrementDeviceTokenLimit,
-  isKVConfigured
+  isKVConfigured,
+  // IMAGE-HASH-FEATURE exports:
+  isImageHashLimitEnabled,
+  calculateImageHash,
+  checkImageHashLimit,
+  incrementImageHashLimit
 };
 
