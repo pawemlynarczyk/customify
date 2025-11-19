@@ -106,6 +106,50 @@
       color: #333;
     }
 
+    .generation-actions {
+      margin-top: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .btn-order-now {
+      background: #000;
+      color: #fff;
+      padding: 0.75rem 1rem;
+      border: none;
+      border-radius: 4px;
+      font-weight: bold;
+      cursor: pointer;
+      text-align: center;
+      transition: background 0.2s;
+    }
+
+    .btn-order-now:hover {
+      background: #333;
+    }
+
+    .email-badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      background: #E3F2FD;
+      color: #1976D2;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      margin-top: 0.5rem;
+    }
+
+    .expiry-info {
+      font-size: 0.85rem;
+      color: #666;
+      margin-top: 0.5rem;
+    }
+
+    .expiry-info.expiring-soon {
+      color: #d32f2f;
+      font-weight: bold;
+    }
+
     .generations-loading,
     .generations-error,
     .generations-empty {
@@ -164,7 +208,31 @@
             });
 
             const statusClass = generation.purchased ? 'purchased' : 'not-purchased';
-            const statusText = generation.purchased ? 'Kupione' : 'Nie kupione';
+            const statusText = generation.purchased ? '✅ Kupione' : '⏳ Nie kupione';
+
+            // Oblicz ile dni do wygaśnięcia (30 dni od utworzenia)
+            const now = new Date();
+            const createdDate = new Date(generation.date);
+            const daysPassed = Math.floor((now - createdDate) / (1000 * 60 * 60 * 24));
+            const daysLeft = 30 - daysPassed;
+            const expiryClass = daysLeft <= 7 ? 'expiring-soon' : '';
+
+            // Badge "Mail wysłany"
+            const emailBadge = generation.emailSent 
+              ? `<div class="email-badge">📧 Mail wysłany ${new Date(generation.emailSentDate).toLocaleDateString('pl-PL')}</div>`
+              : '';
+
+            // Info o wygaśnięciu
+            const expiryInfo = daysLeft > 0 
+              ? `<div class="expiry-info ${expiryClass}">⏰ Wygasa za ${daysLeft} dni</div>`
+              : `<div class="expiry-info expiring-soon">❌ Link wygasł</div>`;
+
+            // Przycisk "Zamów teraz" - tylko dla niekupionych
+            const orderButton = !generation.purchased 
+              ? `<button class="btn-order-now" onclick="orderNow('${generation.id}', '${generation.productType}')">
+                   Zamów teraz 🛒
+                 </button>`
+              : '';
 
             return `
               <div class="generation-card">
@@ -175,9 +243,12 @@
                   loading="lazy"
                 />
                 <div class="generation-info">
-                  <div class="generation-style">Styl: ${generation.style}</div>
+                  <div class="generation-style">${generation.style}</div>
                   <div class="generation-date">${dateStr}</div>
                   <div class="generation-status ${statusClass}">${statusText}</div>
+                  ${emailBadge}
+                  ${expiryInfo}
+                  ${orderButton ? `<div class="generation-actions">${orderButton}</div>` : ''}
                 </div>
               </div>
             `;
@@ -198,6 +269,24 @@
         loadGenerations();
       }
     })();
+
+    // Funkcja "Zamów teraz"
+    function orderNow(generationId, productType) {
+      // Mapowanie productType na product handle
+      const productHandles = {
+        'boho': 'personalizowany-portret-w-stylu-boho',
+        'pixar': 'personalizowany-portret-w-stylu-boho',
+        'cat': 'koty-krolewskie',
+        'king': 'krol-personalizowany-portret',
+        'queen': 'krol-personalizowany-portret',
+        'caricature': 'karykatura-personalizowany-portret'
+      };
+
+      const productHandle = productHandles[productType] || 'personalizowany-portret-w-stylu-boho';
+      
+      // Redirect do produktu z generation ID w URL
+      window.location.href = `/products/${productHandle}?generation=${generationId}`;
+    }
   </script>
 {% else %}
   <div class="my-generations-section">

@@ -74,7 +74,7 @@ module.exports = async (req, res) => {
     }
 
     // Path w Vercel Blob Storage dla JSON z generacjami
-    const blobPath = `customify/generations/${keyPrefix}-${identifier.replace(/[^a-zA-Z0-9]/g, '-')}.json`;
+    const blobPath = `customify/system/stats/generations/${keyPrefix}-${identifier.replace(/[^a-zA-Z0-9]/g, '-')}.json`;
     console.log(`📝 [GET-CUSTOMER-GENERATIONS] Blob Path: ${blobPath}`);
 
     // Pobierz plik z Vercel Blob Storage
