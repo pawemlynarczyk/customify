@@ -2572,35 +2572,37 @@ class CustomifyEmbed {
           // Rysuj oryginalny obraz
           ctx.drawImage(img, 0, 0);
           
-          // ===== WZÓR DIAGONALNY - "Lumly.pl" i "Podgląd" NA PRZEMIAN =====
+          // ===== WZÓR PREMIUM - 2-3 DUŻE NAPISY "Lumly.pl" NA SKOS =====
           ctx.save();
-          ctx.font = 'bold 30px Arial';
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-          ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
-          ctx.lineWidth = 1.5;
+          
+          // Oblicz rozmiar czcionki (40-60% szerokości obrazu)
+          const fontSize = Math.max(60, Math.min(120, canvas.width * 0.15));
+          ctx.font = `bold ${fontSize}px Arial`;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           
-          // Obróć canvas
+          // Kolor biały z delikatnym cieniem (opacity 0.2-0.25)
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.22)';
+          ctx.strokeStyle = 'rgba(0, 0, 0, 0.15)';
+          ctx.lineWidth = 2;
+          
+          const text = 'Lumly.pl';
+          
+          // Obróć canvas o -30 stopni (z lewej-góry do prawej-dołu)
           ctx.translate(canvas.width/2, canvas.height/2);
           ctx.rotate(-30 * Math.PI / 180);
-          ctx.translate(-canvas.width/2, -canvas.height/2);
           
-          // Rysuj watermarki w siatce - na przemian "Lumly.pl" i "Podgląd"
-          const spacing = 180;
-          let textIndex = 0;
-          const texts = ['Lumly.pl', 'Podgląd'];
+          // 1. Główny napis - centralnie przez twarz (środek obrazu)
+          ctx.strokeText(text, 0, 0);
+          ctx.fillText(text, 0, 0);
           
-          for(let y = -canvas.height; y < canvas.height * 2; y += spacing) {
-            for(let x = -canvas.width; x < canvas.width * 2; x += spacing * 1.5) {
-              const text = texts[textIndex % 2];
-              ctx.strokeText(text, x, y);
-              ctx.fillText(text, x, y);
-              textIndex++;
-            }
-            // Zmień wzór co wiersz dla lepszego efektu
-            textIndex++;
-          }
+          // 2. Drugi napis - przesunięty w górę i w lewo
+          ctx.strokeText(text, -canvas.width * 0.4, -canvas.height * 0.3);
+          ctx.fillText(text, -canvas.width * 0.4, -canvas.height * 0.3);
+          
+          // 3. Trzeci napis - przesunięty w dół i w prawo
+          ctx.strokeText(text, canvas.width * 0.4, canvas.height * 0.3);
+          ctx.fillText(text, canvas.width * 0.4, canvas.height * 0.3);
           
           ctx.restore();
           
