@@ -171,122 +171,103 @@
   </style>
 
   <script>
+    // ✅ PROSTA INTEGRACJA: Użyj istniejącej galerii #aiGallery z customify.js
     (function() {
-      const customerId = {{ customer.id | json }};
-      const apiUrl = 'https://customify-s56o.vercel.app/api/get-customer-generations';
+      console.log('🎨 [MY-GENERATIONS] Initializing gallery from localStorage');
+      
       const container = document.getElementById('generations-container');
-
-      if (!customerId) {
-        container.innerHTML = '<div class="generations-error">Musisz być zalogowany, aby zobaczyć swoje generacje.</div>';
-        return;
-      }
-
-      async function loadGenerations() {
-        try {
-          container.innerHTML = '<div class="generations-loading"><p>Ładowanie generacji...</p></div>';
-
-          const response = await fetch(`${apiUrl}?customerId=${customerId}`);
-          const data = await response.json();
-
-          if (!data.success) {
-            throw new Error(data.error || 'Failed to load generations');
-          }
-
-          if (!data.generations || data.generations.length === 0) {
-            container.innerHTML = '<div class="generations-empty"><p>Nie masz jeszcze żadnych generacji. Stwórz pierwszą!</p></div>';
-            return;
-          }
-
-          const html = data.generations.map(generation => {
-            const date = new Date(generation.date);
-            const dateStr = date.toLocaleDateString('pl-PL', { 
-              year: 'numeric', 
-              month: 'long', 
-              day: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit'
-            });
-
-            const statusClass = generation.purchased ? 'purchased' : 'not-purchased';
-            const statusText = generation.purchased ? '✅ Kupione' : '⏳ Nie kupione';
-
-            // Oblicz ile dni do wygaśnięcia (30 dni od utworzenia)
-            const now = new Date();
-            const createdDate = new Date(generation.date);
-            const daysPassed = Math.floor((now - createdDate) / (1000 * 60 * 60 * 24));
-            const daysLeft = 30 - daysPassed;
-            const expiryClass = daysLeft <= 7 ? 'expiring-soon' : '';
-
-            // Badge "Mail wysłany"
-            const emailBadge = generation.emailSent 
-              ? `<div class="email-badge">📧 Mail wysłany ${new Date(generation.emailSentDate).toLocaleDateString('pl-PL')}</div>`
-              : '';
-
-            // Info o wygaśnięciu
-            const expiryInfo = daysLeft > 0 
-              ? `<div class="expiry-info ${expiryClass}">⏰ Wygasa za ${daysLeft} dni</div>`
-              : `<div class="expiry-info expiring-soon">❌ Link wygasł</div>`;
-
-            // Przycisk "Zamów teraz" - tylko dla niekupionych
-            const orderButton = !generation.purchased 
-              ? `<button class="btn-order-now" onclick="orderNow('${generation.id}', '${generation.productType}')">
-                   Zamów teraz 🛒
-                 </button>`
-              : '';
-
-            return `
-              <div class="generation-card">
-                <img 
-                  src="${generation.imageUrl}" 
-                  alt="Generacja ${generation.style}" 
-                  class="generation-image"
-                  loading="lazy"
-                />
-                <div class="generation-info">
-                  <div class="generation-style">${generation.style}</div>
-                  <div class="generation-date">${dateStr}</div>
-                  <div class="generation-status ${statusClass}">${statusText}</div>
-                  ${emailBadge}
-                  ${expiryInfo}
-                  ${orderButton ? `<div class="generation-actions">${orderButton}</div>` : ''}
-                </div>
-              </div>
-            `;
-          }).join('');
-
-          container.innerHTML = html;
-
-        } catch (error) {
-          console.error('Error loading generations:', error);
-          container.innerHTML = `<div class="generations-error"><p>Błąd podczas ładowania generacji: ${error.message}</p></div>`;
+      
+      // Poczekaj na załadowanie customify.js
+      function initGallery() {
+        if (typeof window.customifyApp === 'undefined') {
+          console.log('⏳ [MY-GENERATIONS] Waiting for customify.js...');
+          setTimeout(initGallery, 100);
+          return;
         }
+        
+        console.log('✅ [MY-GENERATIONS] customify.js loaded, showing gallery');
+        
+        // Pobierz generacje z localStorage
+        const generations = window.customifyApp.getAIGenerations();
+        console.log('📊 [MY-GENERATIONS] Found generations:', generations.length);
+        
+        if (generations.length === 0) {
+          container.innerHTML = '<div class="generations-empty"><p>Nie masz jeszcze żadnych generacji. Stwórz pierwszą!</p></div>';
+          return;
+        }
+        
+        // Utwórz galerię (ta sama co na stronie produktu)
+        container.innerHTML = '';
+        
+        const grid = document.createElement('div');
+        grid.className = 'generations-container';
+        
+        generations.forEach((generation, index) => {
+          const item = document.createElement('div');
+          item.className = 'generation-card';
+          item.style.cursor = 'pointer';
+          
+          const date = new Date(generation.timestamp);
+          const dateStr = date.toLocaleDateString('pl-PL', { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          });
+          
+          item.innerHTML = `
+            <img 
+              src="${generation.transformedImage}" 
+              alt="Generacja ${generation.style}" 
+              class="generation-image"
+              loading="lazy"
+            />
+            <div class="generation-info">
+              <div class="generation-style">${generation.style}</div>
+              <div class="generation-date">${dateStr}</div>
+              <button class="btn-order-now">Zamów teraz 🛒</button>
+            </div>
+          `;
+          
+          // Po kliknięciu - załaduj i redirect do produktu
+          item.addEventListener('click', function() {
+            console.log('🎯 [MY-GENERATIONS] Loading generation:', index);
+            
+            // Załaduj generację do customify
+            window.customifyApp.loadFromGallery(index);
+            
+            // Redirect do odpowiedniego produktu
+            const productHandles = {
+              'boho': 'personalizowany-portret-w-stylu-boho',
+              'pixar': 'personalizowany-portret-w-stylu-boho',
+              'pixar 3d': 'personalizowany-portret-w-stylu-boho',
+              'cat': 'koty-krolewskie',
+              'king': 'krol-personalizowany-portret',
+              'queen': 'krol-personalizowany-portret',
+              'karykatura': 'karykatura-personalizowany-portret',
+              'caricature': 'karykatura-personalizowany-portret'
+            };
+            
+            const styleKey = generation.style.toLowerCase();
+            const productHandle = productHandles[styleKey] || 'personalizowany-portret-w-stylu-boho';
+            
+            window.location.href = `/products/${productHandle}`;
+          });
+          
+          grid.appendChild(item);
+        });
+        
+        container.appendChild(grid);
       }
-
-      // Załaduj generacje po załadowaniu strony
+      
+      // Start gdy DOM ready
       if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', loadGenerations);
+        document.addEventListener('DOMContentLoaded', initGallery);
       } else {
-        loadGenerations();
+        initGallery();
       }
     })();
-
-    // Funkcja "Zamów teraz"
-    function orderNow(generationId, productType) {
-      // Mapowanie productType na product handle
-      const productHandles = {
-        'boho': 'personalizowany-portret-w-stylu-boho',
-        'pixar': 'personalizowany-portret-w-stylu-boho',
-        'cat': 'koty-krolewskie',
-        'king': 'krol-personalizowany-portret',
-        'queen': 'krol-personalizowany-portret',
-        'caricature': 'karykatura-personalizowany-portret'
-      };
-
-      const productHandle = productHandles[productType] || 'personalizowany-portret-w-stylu-boho';
-      
-      // Redirect do produktu z generation ID w URL
-      window.location.href = `/products/${productHandle}?generation=${generationId}`;
-    }
   </script>
 {% else %}
   <div class="my-generations-section">
