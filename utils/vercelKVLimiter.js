@@ -246,6 +246,110 @@ async function incrementImageHashLimit(imageHash) {
 // IMAGE-HASH-FEATURE: END
 // ============================================================================
 
+// ============================================================================
+// DEVICE-TOKEN-CROSS-ACCOUNT-FEATURE: START
+// Wykrywa abuse: ten sam device token używany przez wiele kont
+// Limit: 1 device token = max 2 różne customerIds (rodziny/współlokatorzy)
+// ============================================================================
+
+/**
+ * Sprawdza Device Token Cross-Account (max 2 różne customerIds per device token)
+ * @param {string} deviceToken - Device token
+ * @param {string} customerId - Shopify Customer ID (np. "25930613817669")
+ * @returns {Promise<{allowed: boolean, customerIds: string[], limit: number, reason?: string}>}
+ */
+async function checkDeviceTokenCrossAccount(deviceToken, customerId) {
+  if (!deviceToken || !customerId) {
+    console.warn('⚠️ [KV-LIMITER-CROSS] Missing deviceToken or customerId');
+    return { allowed: true, customerIds: [], limit: 2, reason: 'Missing data' };
+  }
+
+  try {
+    const key = `device:${deviceToken}:customers`;
+    const customerIdsJson = await kv.get(key);
+    const customerIds = customerIdsJson ? JSON.parse(customerIdsJson) : [];
+    const limit = 2; // Max 2 różne customerIds per device token
+
+    console.log(`🔍 [KV-LIMITER-CROSS] Device token cross-account check:`, {
+      deviceToken: deviceToken.substring(0, 8) + '...',
+      customerId: customerId.substring(0, 10) + '...',
+      existingCustomers: customerIds.length,
+      customerIds: customerIds.map(id => id.substring(0, 10) + '...'),
+      limit
+    });
+
+    // Jeśli customerId już jest na liście - OK
+    if (customerIds.includes(customerId)) {
+      console.log(`✅ [KV-LIMITER-CROSS] CustomerId już na liście - allowed`);
+      return { allowed: true, customerIds, limit };
+    }
+
+    // Jeśli lista ma < limit różnych customerIds - można dodać nowy
+    if (customerIds.length < limit) {
+      console.log(`✅ [KV-LIMITER-CROSS] Lista ma ${customerIds.length}/${limit} - można dodać`);
+      return { allowed: true, customerIds, limit };
+    }
+
+    // Lista pełna (2+ różnych customerIds) i obecny nie jest na liście = BLOKADA
+    console.warn(`❌ [KV-LIMITER-CROSS] BLOKADA - device token ma już ${customerIds.length} różnych kont`);
+    return { 
+      allowed: false, 
+      customerIds, 
+      limit,
+      reason: `Device token already used by ${customerIds.length} different accounts`
+    };
+  } catch (error) {
+    console.error('❌ [KV-LIMITER-CROSS] Error checking cross-account:', error);
+    // ⚠️ W razie błędu KV - pozwól (aby nie blokować użytkowników)
+    return { allowed: true, customerIds: [], limit: 2, reason: 'KV error', error: error.message };
+  }
+}
+
+/**
+ * Dodaje customerId do device token (atomic operation)
+ * @param {string} deviceToken - Device token
+ * @param {string} customerId - Shopify Customer ID
+ * @returns {Promise<{success: boolean, customerIds: string[]}>}
+ */
+async function addCustomerToDeviceToken(deviceToken, customerId) {
+  if (!deviceToken || !customerId) {
+    console.warn('⚠️ [KV-LIMITER-CROSS] Invalid deviceToken or customerId for add');
+    return { success: false, customerIds: [] };
+  }
+
+  try {
+    const key = `device:${deviceToken}:customers`;
+    const customerIdsJson = await kv.get(key);
+    const customerIds = customerIdsJson ? JSON.parse(customerIdsJson) : [];
+
+    // Jeśli customerId już jest na liście - nie dodawaj ponownie
+    if (customerIds.includes(customerId)) {
+      console.log(`ℹ️ [KV-LIMITER-CROSS] CustomerId już jest na liście - pomijam`);
+      return { success: true, customerIds };
+    }
+
+    // Dodaj customerId do listy
+    customerIds.push(customerId);
+    await kv.set(key, JSON.stringify(customerIds));
+    // Brak TTL - permanentne przechowywanie
+
+    console.log(`➕ [KV-LIMITER-CROSS] CustomerId dodany do device token:`, {
+      deviceToken: deviceToken.substring(0, 8) + '...',
+      customerId: customerId.substring(0, 10) + '...',
+      totalCustomers: customerIds.length,
+      customerIds: customerIds.map(id => id.substring(0, 10) + '...')
+    });
+
+    return { success: true, customerIds };
+  } catch (error) {
+    console.error('❌ [KV-LIMITER-CROSS] Error adding customer to device token:', error);
+    return { success: false, customerIds: [], error: error.message };
+  }
+}
+
+// DEVICE-TOKEN-CROSS-ACCOUNT-FEATURE: END
+// ============================================================================
+
 module.exports = {
   checkIPLimit,
   incrementIPLimit,
@@ -256,6 +360,9 @@ module.exports = {
   isImageHashLimitEnabled,
   calculateImageHash,
   checkImageHashLimit,
-  incrementImageHashLimit
+  incrementImageHashLimit,
+  // DEVICE-TOKEN-CROSS-ACCOUNT-FEATURE exports:
+  checkDeviceTokenCrossAccount,
+  addCustomerToDeviceToken
 };
 

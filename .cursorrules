@@ -150,6 +150,18 @@ if (hash !== req.headers['x-shopify-hmac-sha256']) {
   - **Cel:** Zablokować abuse z tym samym zdjęciem (cross-account, cross-device, cross-IP)
   - **Hash:** SHA-256 z zawartości obrazka (deterministyczny)
 
+- **Device Token Cross-Account Detection** (max 2 konta per device token - dla ZALOGOWANYCH):
+  - **Klucz:** `device:{deviceToken}:customers`
+  - **Wartość:** JSON array z customerIds: `["id1", "id2"]`
+  - **TTL:** brak (permanentne)
+  - **Przykład:** `device:d11f6b3b4aac002ef95c084e4f6736f0:customers` = `["25930613817669", "25928807153989"]`
+  - **Cel:** Wykryć abuse gdzie ten sam device token (cookie) jest używany przez wiele zalogowanych kont
+  - **Limit:** Max 2 różne customerIds per device token (aby nie blokować rodzin/współlokatorów)
+  - **Sprawdzanie:** Przed transformacją sprawdzamy czy customerId jest już na liście lub czy lista ma < 2 elementów
+  - **Blokada:** Jeśli device token ma już 2 różne customerIds i obecny nie jest na liście = BLOKADA
+  - **Inkrementacja:** Po udanej transformacji dodajemy customerId do listy (jeśli jeszcze nie ma)
+  - **Obejście:** Możliwe przez czyszczenie cookies, ale wymaga wysiłku (większość użytkowników nie wie jak)
+
 **Dlaczego Vercel KV?**
 - Atomic operations (`kv.incr`) - zapobiega race conditions
 - Trwałe (nie resetuje się przy redeploy)
@@ -218,15 +230,26 @@ if (ip && BLOCKED_IPS.has(ip)) {
 
 **Zalogowany:**
 1. IP check (KV: `ip:{ip}:generations` < 10) → OK
-2. Shopify Metafield check (`customify.usage_count` < 4 TOTAL) → OK
-3. Robi generację →
+2. Device Token Cross-Account check (KV: `device:{token}:customers` max 2 różne customerIds) → OK
+3. Shopify Metafield check (`customify.usage_count` < 4 TOTAL) → OK
+4. Robi generację →
    - KV: `ip:{ip}:generations` = +1 (TTL 24h)
+   - KV: `device:{token}:customers` = dodaj customerId (jeśli jeszcze nie ma)
    - Shopify: `usage_count` = +1 (total, bez per productType)
    - Blob: Zapisuje do `customer-{customerId}.json`
-4. Device token NIE jest sprawdzany dla zalogowanych
-5. Po 4 generacjach → BLOKADA (limit 4/4)
+5. Po 4 generacjach (Shopify limit) → BLOKADA (limit 4/4)
 
-**Oszust z wieloma kontami:**
+**Oszust z wieloma kontami (TEN SAM DEVICE TOKEN):**
+1. Tworzy konto 1 (magdasia01@wp.pl) na device token `d11f6...` → 4 generacje
+   - KV IP: 4
+   - KV Device Customers: `["25928807153989"]` (1 konto)
+2. Tworzy konto 2 (bts_army@wp.pl) na device token `d11f6...` → 4 generacje
+   - KV IP: 8
+   - KV Device Customers: `["25928807153989", "25930613817669"]` (2 konta)
+3. Próbuje konto 3 na device token `d11f6...` → ❌ BLOKADA CROSS-ACCOUNT
+   - **Komunikat:** "Wykryto nadużycie: to urządzenie jest już używane przez 2 różne konta"
+
+**Oszust z wieloma kontami (RÓŻNE DEVICE TOKENS):**
 1. Tworzy konto 1 → 4 generacje (KV IP: 4)
 2. Tworzy konto 2 → 4 generacje (KV IP: 8)
 3. Próbuje konto 3 → BLOKADA IP (KV IP: 10/10 - 8 + 2 = 10)
@@ -240,11 +263,15 @@ if (ip && BLOCKED_IPS.has(ip)) {
 ---
 
 **🔧 PLIKI:**
-- `api/transform.js` - główna logika limitów (sprawdza wszystkie limity przed transformacją)
-- `utils/vercelKVLimiter.js` - funkcje do sprawdzania/inkrementacji limitów w Vercel KV
+- `api/transform.js` - główna logika limitów (sprawdza wszystkie limity przed transformacją + cross-account detection)
+- `utils/vercelKVLimiter.js` - funkcje do sprawdzania/inkrementacji limitów w Vercel KV (IP, Device Token, Image Hash, Cross-Account)
 - `api/check-usage.js` - sprawdza Shopify metafields dla zalogowanych (frontend API)
 - `api/increment-usage.js` - inkrementuje Shopify metafields (nieużywany, logika w transform.js)
 - `api/_save-generation-core.js` / `api/save-generation-v2.js` - zapisuje historię generacji do Vercel Blob
+
+**🔧 FUNKCJE CROSS-ACCOUNT DETECTION:**
+- `checkDeviceTokenCrossAccount(deviceToken, customerId)` - sprawdza ile różnych kont używa tego device tokena (max 2)
+- `addCustomerToDeviceToken(deviceToken, customerId)` - dodaje customerId do listy (po udanej transformacji)
 
 #### **Shopify API Module:**
 ```javascript

@@ -1,7 +1,7 @@
 const Replicate = require('replicate');
 const crypto = require('crypto');
 const { getClientIP } = require('../utils/vercelRateLimiter');
-const { checkIPLimit, incrementIPLimit, checkDeviceTokenLimit, incrementDeviceTokenLimit, isKVConfigured, isImageHashLimitEnabled, calculateImageHash, checkImageHashLimit, incrementImageHashLimit } = require('../utils/vercelKVLimiter');
+const { checkIPLimit, incrementIPLimit, checkDeviceTokenLimit, incrementDeviceTokenLimit, isKVConfigured, isImageHashLimitEnabled, calculateImageHash, checkImageHashLimit, incrementImageHashLimit, checkDeviceTokenCrossAccount, addCustomerToDeviceToken } = require('../utils/vercelKVLimiter');
 const { put } = require('@vercel/blob');
 
 // 🚫 Lista IP zablokowanych całkowicie (tymczasowe banowanie nadużyć)
@@ -1075,6 +1075,47 @@ module.exports = async (req, res) => {
     } else if (!customerId && !deviceToken) {
       console.log(`⚠️ [DEVICE-TOKEN] Brak device token dla niezalogowanego użytkownika - pomijam sprawdzanie`);
     }
+
+    // ============================================================================
+    // DEVICE-TOKEN-CROSS-ACCOUNT-FEATURE: START - Wykrywanie abuse z wieloma kontami
+    // Sprawdza czy ten sam device token (cookie) nie jest używany przez zbyt wiele kont
+    // Limit: 1 device token = max 2 różne customerIds (aby nie blokować rodzin)
+    // ============================================================================
+    
+    if (customerId && deviceToken && isKVConfigured()) {
+      console.log(`🔍 [CROSS-ACCOUNT] START sprawdzanie cross-account detection:`, {
+        customerId: customerId.substring(0, 10) + '...',
+        deviceToken: deviceToken.substring(0, 8) + '...'
+      });
+      
+      const crossAccountCheck = await checkDeviceTokenCrossAccount(deviceToken, customerId);
+      
+      if (!crossAccountCheck.allowed) {
+        console.warn(`❌ [CROSS-ACCOUNT] BLOKADA - abuse wykryty:`, {
+          deviceToken: deviceToken.substring(0, 8) + '...',
+          customerId: customerId.substring(0, 10) + '...',
+          existingCustomers: crossAccountCheck.customerIds.length,
+          limit: crossAccountCheck.limit,
+          reason: crossAccountCheck.reason
+        });
+        return res.status(403).json({
+          error: 'Multiple accounts detected',
+          message: `Wykryto nadużycie: to urządzenie jest już używane przez ${crossAccountCheck.limit} różne konta. Skontaktuj się z supportem jeśli to pomyłka.`,
+          showLoginModal: false,
+          count: crossAccountCheck.customerIds.length,
+          limit: crossAccountCheck.limit
+        });
+      }
+      
+      console.log(`✅ [CROSS-ACCOUNT] Sprawdzenie OK: ${crossAccountCheck.customerIds.length}/${crossAccountCheck.limit} kont na tym urządzeniu`);
+    } else if (customerId && deviceToken && !isKVConfigured()) {
+      console.warn('⚠️ [CROSS-ACCOUNT] KV not configured - skipping cross-account check');
+    } else if (customerId && !deviceToken) {
+      console.log(`⚠️ [CROSS-ACCOUNT] Brak device token dla zalogowanego użytkownika - pomijam sprawdzanie`);
+    }
+    
+    // DEVICE-TOKEN-CROSS-ACCOUNT-FEATURE: END
+    // ============================================================================
 
     // ============================================================================
     // IMAGE-HASH-FEATURE: START - Sprawdzanie limitu per obrazek
@@ -2441,6 +2482,23 @@ module.exports = async (req, res) => {
             console.warn(`⚠️ [TRANSFORM] Failed to increment device token limit:`, deviceIncrementResult.error);
           }
         }
+
+        // ============================================================================
+        // DEVICE-TOKEN-CROSS-ACCOUNT-FEATURE: START - Dodaj customerId do device token
+        // ============================================================================
+        
+        // 2b. Dodaj customerId do device token (tylko dla zalogowanych)
+        if (customerId && deviceToken) {
+          const addCustomerResult = await addCustomerToDeviceToken(deviceToken, customerId);
+          if (addCustomerResult.success) {
+            console.log(`➕ [TRANSFORM] CustomerId dodany do device token: ${addCustomerResult.customerIds.length}/2 kont`);
+          } else {
+            console.warn(`⚠️ [TRANSFORM] Failed to add customerId to device token:`, addCustomerResult.error);
+          }
+        }
+        
+        // DEVICE-TOKEN-CROSS-ACCOUNT-FEATURE: END
+        // ============================================================================
 
         // ============================================================================
         // IMAGE-HASH-FEATURE: START - Inkrementacja limitu per obrazek
