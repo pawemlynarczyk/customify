@@ -2529,6 +2529,9 @@ class CustomifyEmbed {
         await this.showResult(result.transformedImage);
         this.showSuccess('Teraz wybierz rozmiar obrazu');
         
+        // ✅ UKRYJ PASEK POSTĘPU - obraz jest już widoczny, reszta działa w tle
+        this.hideLoading();
+        
         // 🎨 GENERUJ WATERMARK Z PRZETWORZONEGO OBRAZU (PO transformacji AI)
         if (result.transformedImage && result.saveGenerationDebug?.generationId) {
           try {
