@@ -2140,6 +2140,9 @@ module.exports = async (req, res) => {
         // Sprawdź czy obraz jest już w Vercel Blob
         // finalImageUrl będzie ustawiony podczas przetwarzania (base64 → Vercel Blob URL)
         
+        // ✅ Inicjalizuj watermarkedImageUrl (dodatkowa wersja z watermarkiem dla zalogowanych)
+        let watermarkedImageUrl = null;
+        
         // 🚨 FIX: Jeśli to base64 data URI (Segmind Caricature), uploaduj do Vercel Blob BEZPOŚREDNIO
         // Base64 przekracza limit Vercel 4.5MB w request body - użyj SDK zamiast API endpoint
         if (imageUrl && imageUrl.startsWith('data:')) {
@@ -2302,7 +2305,8 @@ module.exports = async (req, res) => {
           ip: ip || null, // ✅ Przekaż IP dla niezalogowanych
           ipHash,
           deviceToken,
-          imageUrl: finalImageUrl,
+          imageUrl: finalImageUrl, // ✅ BEZ watermarku (do realizacji zamówienia)
+          watermarkedImageUrl: watermarkedImageUrl || null, // ✅ Z watermarkiem (do emaili) - tylko dla zalogowanych
           style: prompt || 'unknown',
           productType: finalProductType,
           originalImageUrl: null // Opcjonalnie - można dodać później
