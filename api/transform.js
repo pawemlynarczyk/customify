@@ -2303,24 +2303,25 @@ module.exports = async (req, res) => {
           console.error('❌ [TRANSFORM] finalImageUrl:', finalImageUrl);
           // Kontynuuj bez zapisu - zwróć wynik do frontendu
         } else {
-          console.log(`📤 [TRANSFORM] Wywołuję /api/save-generation-v2 z danymi:`, {
-            customerId: saveData.customerId,
-            customerIdType: typeof saveData.customerId,
-            email: saveData.email,
-            ip: saveData.ip,
-            ipHashPreview: ipHash ? ipHash.substring(0, 12) : null,
-            deviceToken: saveData.deviceToken || 'null',
-            hasImageUrl: !!saveData.imageUrl,
-            imageUrlPreview: saveData.imageUrl?.substring(0, 100),
-            style: saveData.style,
-            productType: saveData.productType
-          });
-          
-          const saveResponse = await fetch('https://customify-s56o.vercel.app/api/save-generation-v2', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(saveData)
-          });
+          try {
+            console.log(`📤 [TRANSFORM] Wywołuję /api/save-generation-v2 z danymi:`, {
+              customerId: saveData.customerId,
+              customerIdType: typeof saveData.customerId,
+              email: saveData.email,
+              ip: saveData.ip,
+              ipHashPreview: ipHash ? ipHash.substring(0, 12) : null,
+              deviceToken: saveData.deviceToken || 'null',
+              hasImageUrl: !!saveData.imageUrl,
+              imageUrlPreview: saveData.imageUrl?.substring(0, 100),
+              style: saveData.style,
+              productType: saveData.productType
+            });
+            
+            const saveResponse = await fetch('https://customify-s56o.vercel.app/api/save-generation-v2', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(saveData)
+            });
           
           console.log(`📥 [TRANSFORM] save-generation-v2 response status: ${saveResponse.status}`);
           
@@ -2329,47 +2330,47 @@ module.exports = async (req, res) => {
             console.log(`✅ [TRANSFORM] Generacja zapisana w Vercel Blob Storage: ${saveResult.generationId}`);
             console.log(`📊 [TRANSFORM] Total generations: ${saveResult.totalGenerations || 'unknown'}`);
             console.log(`🔍 [TRANSFORM] Save-generation-v2 raw response:`, JSON.stringify(saveResult, null, 2));
-          
-          // ✅ LOGUJ SZCZEGÓŁY DLA DIAGNOSTYKI (dla Vercel Logs)
-          if (saveResult.debug) {
-            console.log(`🔍 [TRANSFORM] customerId w save-generation-v2: ${saveResult.debug.customerId || 'null'}`);
-            console.log(`🔍 [TRANSFORM] customerIdType: ${saveResult.debug.customerIdType || 'null'}`);
-            console.log(`🔍 [TRANSFORM] hasMetafieldUpdate: ${saveResult.debug.hasMetafieldUpdate || false}`);
-            console.log(`🔍 [TRANSFORM] email: ${saveResult.debug.email || 'null'}`);
-            console.log(`🔍 [TRANSFORM] metafieldUpdateAttempted: ${saveResult.debug.metafieldUpdateAttempted || false}`);
-            console.log(`🔍 [TRANSFORM] metafieldUpdateSuccess: ${saveResult.debug.metafieldUpdateSuccess || false}`);
-            console.log(`🔍 [TRANSFORM] metafieldUpdateError: ${saveResult.debug.metafieldUpdateError || 'none'}`);
             
-            // ✅ ZWRÓĆ DEBUG INFO W RESPONSE (dla przeglądarki)
-            saveGenerationDebug = {
-              ...saveResult.debug,
-              generationId: saveResult.generationId || null, // ✅ DODAJ generationId dla aktualizacji watermarku
-              deviceToken,
-              ipHash
-            };
+            // ✅ LOGUJ SZCZEGÓŁY DLA DIAGNOSTYKI (dla Vercel Logs)
+            if (saveResult.debug) {
+              console.log(`🔍 [TRANSFORM] customerId w save-generation-v2: ${saveResult.debug.customerId || 'null'}`);
+              console.log(`🔍 [TRANSFORM] customerIdType: ${saveResult.debug.customerIdType || 'null'}`);
+              console.log(`🔍 [TRANSFORM] hasMetafieldUpdate: ${saveResult.debug.hasMetafieldUpdate || false}`);
+              console.log(`🔍 [TRANSFORM] email: ${saveResult.debug.email || 'null'}`);
+              console.log(`🔍 [TRANSFORM] metafieldUpdateAttempted: ${saveResult.debug.metafieldUpdateAttempted || false}`);
+              console.log(`🔍 [TRANSFORM] metafieldUpdateSuccess: ${saveResult.debug.metafieldUpdateSuccess || false}`);
+              console.log(`🔍 [TRANSFORM] metafieldUpdateError: ${saveResult.debug.metafieldUpdateError || 'none'}`);
+              
+              // ✅ ZWRÓĆ DEBUG INFO W RESPONSE (dla przeglądarki)
+              saveGenerationDebug = {
+                ...saveResult.debug,
+                generationId: saveResult.generationId || null, // ✅ DODAJ generationId dla aktualizacji watermarku
+                deviceToken,
+                ipHash
+              };
+            } else {
+              console.warn('⚠️ [TRANSFORM] save-generation-v2 response nie zawiera debug. Dodaję fallback info.');
+              const fallbackDebug = {
+                missingDebug: true,
+                responseKeys: Object.keys(saveResult || {}),
+                warning: saveResult.warning || null,
+                message: saveResult.message || null,
+                generationId: saveResult.generationId || null
+              };
+              console.warn('⚠️ [TRANSFORM] Fallback debug info:', JSON.stringify(fallbackDebug, null, 2));
+              saveGenerationDebug = {
+                ...fallbackDebug,
+                deviceToken,
+                ipHash
+              };
+            }
           } else {
-            console.warn('⚠️ [TRANSFORM] save-generation-v2 response nie zawiera debug. Dodaję fallback info.');
-            const fallbackDebug = {
-              missingDebug: true,
-              responseKeys: Object.keys(saveResult || {}),
-              warning: saveResult.warning || null,
-              message: saveResult.message || null,
-              generationId: saveResult.generationId || null
-            };
-            console.warn('⚠️ [TRANSFORM] Fallback debug info:', JSON.stringify(fallbackDebug, null, 2));
-            saveGenerationDebug = {
-              ...fallbackDebug,
-              deviceToken,
-              ipHash
-            };
+            const errorText = await saveResponse.text();
+            console.error('⚠️ [TRANSFORM] Błąd zapisu generacji:', errorText);
+            console.error('⚠️ [TRANSFORM] Status:', saveResponse.status);
+            saveGenerationDebug = { error: errorText, status: saveResponse.status, deviceToken, ipHash };
           }
-        } else {
-          const errorText = await saveResponse.text();
-          console.error('⚠️ [TRANSFORM] Błąd zapisu generacji:', errorText);
-          console.error('⚠️ [TRANSFORM] Status:', saveResponse.status);
-          saveGenerationDebug = { error: errorText, status: saveResponse.status, deviceToken, ipHash };
-        }
-      } catch (saveError) {
+          } catch (saveError) {
         console.error('⚠️ [TRANSFORM] Błąd zapisu generacji (nie blokuję odpowiedzi):', saveError);
         console.error('⚠️ [TRANSFORM] Stack:', saveError.stack);
         saveGenerationDebug = { error: saveError.message, stack: saveError.stack, deviceToken, ipHash };
