@@ -240,17 +240,31 @@
             
             const isDigitalProduct = this.selectedProductType === 'digital';
             
+            // ✅ ZABEZPIECZENIE: Sprawdź czy resultImage istnieje, jeśli nie - znajdź ponownie
+            if (!this.resultImage) {
+              console.warn('⚠️ [CUSTOMIFY] resultImage not found, searching again...');
+              this.resultImage = document.getElementById('resultImage');
+              if (!this.resultImage) {
+                console.error('❌ [CUSTOMIFY] resultImage element not found in DOM!');
+                return; // Nie kontynuuj jeśli element nie istnieje
+              }
+            }
+            
             // WATERMARK WŁĄCZONY
             try {
               const watermarkedImage = await this.addWatermark(imageUrl);
-              this.resultImage.src = watermarkedImage;
+              if (this.resultImage) {
+                this.resultImage.src = watermarkedImage;
+              }
               
               // ✅ ZAPISZ OBRAZEK Z WATERMARKIEM (do użycia w koszyku)
               this.watermarkedImage = watermarkedImage;
               console.log('🎨 [CUSTOMIFY] Watermark dodany do podglądu i zapisany');
             } catch (error) {
               console.error('❌ [CUSTOMIFY] Watermark error:', error);
-              this.resultImage.src = imageUrl;
+              if (this.resultImage) {
+                this.resultImage.src = imageUrl;
+              }
               this.watermarkedImage = null;
             }
             
