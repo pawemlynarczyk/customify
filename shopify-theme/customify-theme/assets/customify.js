@@ -752,10 +752,25 @@ class CustomifyEmbed {
     const workingGenerations = [];
     
     for (const generation of generations) {
+      // ✅ PRIORYTET: Jeśli ma watermarkedImageUrl (Vercel) - ZAWSZE zachowaj
+      if (generation.watermarkedImageUrl) {
+        workingGenerations.push(generation);
+        console.log('✅ [CLEANUP] Generation with watermarked URL kept:', generation.id);
+        continue;
+      }
+      
       // Sprawdź czy thumbnail to URL (nie base64)
       if (generation.thumbnail && 
           (generation.thumbnail.startsWith('http://') || generation.thumbnail.startsWith('https://'))) {
         
+        // ✅ NIE SPRAWDZAJ Replicate URLs (CORS blokuje) - zachowaj jeśli to Replicate
+        if (generation.thumbnail.includes('replicate.delivery')) {
+          workingGenerations.push(generation);
+          console.log('✅ [CLEANUP] Replicate URL kept (CORS safe):', generation.id);
+          continue;
+        }
+        
+        // Sprawdź tylko Vercel Blob URLs
         const isWorking = await this.checkImageUrl(generation.thumbnail);
         if (isWorking) {
           workingGenerations.push(generation);
@@ -2546,12 +2561,12 @@ class CustomifyEmbed {
       console.log('🎨 [CUSTOMIFY] Watermark dodany do podglądu i zapisany');
       
       // ✅ OD RAZU UPLOAD WATERMARKED NA VERCEL (dla "Moje generacje" + cart)
-      console.log('📤 [CUSTOMIFY] STARTING upload watermarked to Vercel Blob...');
+      // TO SAMO CO W addToCart() - przeniesione tutaj żeby upload był od razu po transformacji
+      console.log('📤 [CUSTOMIFY] Uploading watermarked image to Vercel Blob...');
       console.log('📤 [CUSTOMIFY] Watermarked image type:', typeof watermarkedImage);
       console.log('📤 [CUSTOMIFY] Watermarked image length:', watermarkedImage?.length);
       
       try {
-        const uploadStartTime = Date.now();
         const watermarkUploadResponse = await fetch('https://customify-s56o.vercel.app/api/upload-temp-image', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -2562,29 +2577,18 @@ class CustomifyEmbed {
         });
         
         console.log('📤 [CUSTOMIFY] Upload response status:', watermarkUploadResponse.status);
-        console.log('📤 [CUSTOMIFY] Upload response OK:', watermarkUploadResponse.ok);
+        const watermarkUploadResult = await watermarkUploadResponse.json();
+        console.log('📤 [CUSTOMIFY] Upload result:', watermarkUploadResult);
         
-        if (!watermarkUploadResponse.ok) {
-          const errorText = await watermarkUploadResponse.text();
-          console.error('❌ [CUSTOMIFY] Upload HTTP error:', watermarkUploadResponse.status, errorText);
-          this.watermarkedImageUrl = null;
+        if (watermarkUploadResult.success) {
+          this.watermarkedImageUrl = watermarkUploadResult.url;
+          console.log('✅ [CUSTOMIFY] Watermarked image uploaded to Vercel:', this.watermarkedImageUrl);
         } else {
-          const watermarkUploadResult = await watermarkUploadResponse.json();
-          console.log('📤 [CUSTOMIFY] Upload result:', watermarkUploadResult);
-          
-          if (watermarkUploadResult.success && watermarkUploadResult.url) {
-            this.watermarkedImageUrl = watermarkUploadResult.url;
-            const uploadTime = Date.now() - uploadStartTime;
-            console.log('✅ [CUSTOMIFY] Watermarked image uploaded to Vercel:', this.watermarkedImageUrl);
-            console.log('✅ [CUSTOMIFY] Upload took:', uploadTime, 'ms');
-          } else {
-            console.error('❌ [CUSTOMIFY] Upload failed - no success or URL:', watermarkUploadResult);
-            this.watermarkedImageUrl = null;
-          }
+          console.error('❌ [CUSTOMIFY] Failed to upload watermarked image:', watermarkUploadResult.error);
+          this.watermarkedImageUrl = null;
         }
       } catch (uploadError) {
         console.error('❌ [CUSTOMIFY] Error uploading watermarked image:', uploadError);
-        console.error('❌ [CUSTOMIFY] Error stack:', uploadError.stack);
         this.watermarkedImageUrl = null;
       }
     } catch (error) {
