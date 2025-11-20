@@ -66,11 +66,21 @@ module.exports = async (req, res) => {
     const result = await updateResponse.json();
     console.log('✅ Theme updated successfully');
     console.log('📝 Shopify API response:', JSON.stringify(result, null, 2));
+    console.log('📝 Shopify API response keys:', Object.keys(result));
+    console.log('📝 Shopify API asset key:', result.asset?.key);
+    console.log('📝 Shopify API asset value length:', result.asset?.value?.length || 0);
     
     // Sprawdź czy Shopify zwrócił błąd w JSON
     if (result.errors) {
       console.error('❌ Shopify API errors:', result.errors);
       return res.status(500).json({ error: 'Shopify API returned errors', details: result.errors });
+    }
+    
+    // Sprawdź czy plik został faktycznie zaktualizowany (Shopify zwraca asset.value w odpowiedzi)
+    if (result.asset && result.asset.value) {
+      console.log('✅ Shopify zwrócił zaktualizowany plik w odpowiedzi (długość:', result.asset.value.length, 'znaków)');
+    } else {
+      console.warn('⚠️ Shopify NIE zwrócił zaktualizowanego pliku w odpowiedzi - może być problem z aktualizacją');
     }
 
     res.json({ 

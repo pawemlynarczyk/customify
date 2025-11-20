@@ -798,6 +798,14 @@ class CustomifyEmbed {
       if (generation.thumbnail && 
           (generation.thumbnail.startsWith('http://') || generation.thumbnail.startsWith('https://'))) {
         
+        // ✅ NIE SPRAWDZAJ Replicate URLs (CORS blokuje) - zachowaj jeśli to Replicate
+        if (generation.thumbnail.includes('replicate.delivery')) {
+          workingGenerations.push(generation);
+          console.log('✅ [CLEANUP] Replicate URL kept (CORS safe):', generation.id);
+          continue;
+        }
+        
+        // Sprawdź tylko Vercel Blob URLs
         const isWorking = await this.checkImageUrl(generation.thumbnail);
         if (isWorking) {
           workingGenerations.push(generation);
@@ -3488,7 +3496,44 @@ function addMobileThumbnails() {
  */
 document.addEventListener('DOMContentLoaded', () => {
   // Initialize Customify app
-  new CustomifyEmbed();
+  const customifyApp = new CustomifyEmbed();
+  
+  // ✅ AUTO-LOAD: Sprawdź czy user wybrał generację na stronie "Moje generacje"
+  try {
+    const selectedData = localStorage.getItem('customify_selected_generation');
+    if (selectedData) {
+      const { index, generation } = JSON.parse(selectedData);
+      console.log('🎯 [CUSTOMIFY] Auto-loading generation from "Moje generacje":', index, generation);
+      
+      // Załaduj generację używając reuseGeneration() (ta sama funkcja co kliknięcie w galerii)
+      setTimeout(() => {
+        // Sprawdź czy DOM jest gotowy (resultImage musi istnieć)
+        const resultImage = document.getElementById('resultImage');
+        if (!resultImage) {
+          console.warn('⚠️ [CUSTOMIFY] resultImage not found, retrying in 1s...');
+          setTimeout(() => {
+            customifyApp.reuseGeneration(generation);
+            console.log('✅ [CUSTOMIFY] Generation loaded from "Moje generacje" (retry), ready for checkout');
+          }, 1000);
+          return;
+        }
+        
+        customifyApp.reuseGeneration(generation);
+        console.log('✅ [CUSTOMIFY] Generation loaded from "Moje generacje", ready for checkout');
+        
+        // Scroll do wyniku żeby user widział co się załadowało
+        const resultArea = document.getElementById('resultArea');
+        if (resultArea) {
+          resultArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 2000); // 2s delay żeby DOM się załadował + galeria się zbudowała
+      
+      // Wyczyść po użyciu
+      localStorage.removeItem('customify_selected_generation');
+    }
+  } catch (error) {
+    console.error('❌ [CUSTOMIFY] Error loading selected generation:', error);
+  }
   
   // Initialize cart integration
   initCartIntegration();
