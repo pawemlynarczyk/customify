@@ -61,6 +61,76 @@ if (process.env.REPLICATE_API_TOKEN && process.env.REPLICATE_API_TOKEN !== 'leav
   });
 }
 
+// Function to add watermark to image buffer using Sharp
+async function addWatermarkToImage(imageBuffer) {
+  if (!sharp) {
+    console.warn('⚠️ [WATERMARK] Sharp not available, returning original image');
+    return imageBuffer;
+  }
+  
+  try {
+    console.log('🎨 [WATERMARK] Adding watermark to image...');
+    
+    // Get image metadata
+    const metadata = await sharp(imageBuffer).metadata();
+    const { width, height } = metadata;
+    console.log(`📐 [WATERMARK] Image dimensions: ${width}x${height}`);
+    
+    // Calculate font size based on image size
+    const fontSize = Math.min(width, height) * 0.08; // 8% of smaller dimension
+    const spacing = Math.min(width, height) * 0.3; // 30% spacing
+    
+    // Create SVG watermark with diagonal text pattern
+    const svgWatermark = `
+      <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <style>
+            .watermark-text {
+              font-family: Arial, sans-serif;
+              font-weight: bold;
+              font-size: ${fontSize}px;
+              fill: rgba(255, 255, 255, 0.5);
+              stroke: rgba(0, 0, 0, 0.35);
+              stroke-width: 1.5;
+              text-anchor: middle;
+              dominant-baseline: middle;
+            }
+          </style>
+        </defs>
+        <g transform="rotate(-30 ${width/2} ${height/2})">
+          ${Array.from({ length: Math.ceil(height / spacing) + 2 }, (_, i) => {
+            const y = (i - 1) * spacing;
+            return Array.from({ length: Math.ceil(width / spacing) + 2 }, (_, j) => {
+              const x = (j - 1) * spacing * 1.5;
+              const text = (i + j) % 2 === 0 ? 'Lumly.pl' : 'Podgląd';
+              return `<text x="${x}" y="${y}" class="watermark-text">${text}</text>`;
+            }).join('');
+          }).join('')}
+        </g>
+      </svg>
+    `;
+    
+    // Apply watermark using Sharp composite
+    const watermarkedBuffer = await sharp(imageBuffer)
+      .composite([
+        {
+          input: Buffer.from(svgWatermark),
+          blend: 'over'
+        }
+      ])
+      .jpeg({ quality: 92 })
+      .toBuffer();
+    
+    console.log(`✅ [WATERMARK] Watermark added successfully (${watermarkedBuffer.length} bytes)`);
+    return watermarkedBuffer;
+    
+  } catch (error) {
+    console.error('❌ [WATERMARK] Error adding watermark:', error);
+    console.warn('⚠️ [WATERMARK] Returning original image without watermark');
+    return imageBuffer; // Return original if watermark fails
+  }
+}
+
 // Function to add watermark to base64 image - USUNIĘTA (problemy z Sharp w Vercel)
 // TODO: Przywrócić po rozwiązaniu problemów z Sharp
 
@@ -2087,11 +2157,18 @@ module.exports = async (req, res) => {
             const imageBuffer = Buffer.from(base64Data, 'base64');
             console.log(`📦 [TRANSFORM] Base64 buffer size: ${imageBuffer.length} bytes (${(imageBuffer.length / 1024 / 1024).toFixed(2)} MB)`);
             
+            // ✅ DODAJ WATERMARK PRZED ZAPISEM (tylko dla zalogowanych - do emaili)
+            let finalBuffer = imageBuffer;
+            if (customerId) {
+              console.log('🎨 [TRANSFORM] Dodaję watermark dla zalogowanego użytkownika...');
+              finalBuffer = await addWatermarkToImage(imageBuffer);
+            }
+            
             // Upload bezpośrednio przez SDK (bez limitu 4.5MB request body)
             const timestamp = Date.now();
             const uniqueFilename = `customify/temp/generation-${timestamp}.jpg`;
             
-            const blob = await put(uniqueFilename, imageBuffer, {
+            const blob = await put(uniqueFilename, finalBuffer, {
               access: 'public',
               contentType: 'image/jpeg',
               token: process.env.customify_READ_WRITE_TOKEN,
@@ -2122,13 +2199,21 @@ module.exports = async (req, res) => {
               const imageResponse = await fetch(imageUrl);
               if (imageResponse.ok) {
                 const imageBuffer = await imageResponse.arrayBuffer();
-                console.log(`📦 [TRANSFORM] Replicate image size: ${Buffer.from(imageBuffer).length} bytes (${(Buffer.from(imageBuffer).length / 1024 / 1024).toFixed(2)} MB)`);
+                const buffer = Buffer.from(imageBuffer);
+                console.log(`📦 [TRANSFORM] Replicate image size: ${buffer.length} bytes (${(buffer.length / 1024 / 1024).toFixed(2)} MB)`);
+                
+                // ✅ DODAJ WATERMARK PRZED ZAPISEM (tylko dla zalogowanych - do emaili)
+                let finalBuffer = buffer;
+                if (customerId) {
+                  console.log('🎨 [TRANSFORM] Dodaję watermark dla zalogowanego użytkownika...');
+                  finalBuffer = await addWatermarkToImage(buffer);
+                }
                 
                 // Upload bezpośrednio przez SDK (bez limitu 4.5MB, bez podwójnego .jpg.jpg)
                 const timestamp = Date.now();
                 const uniqueFilename = `customify/temp/generation-${timestamp}.jpg`;
                 
-                const blob = await put(uniqueFilename, Buffer.from(imageBuffer), {
+                const blob = await put(uniqueFilename, finalBuffer, {
                   access: 'public',
                   contentType: 'image/jpeg',
                   token: process.env.customify_READ_WRITE_TOKEN,
