@@ -2359,6 +2359,7 @@ module.exports = async (req, res) => {
             // ✅ ZWRÓĆ DEBUG INFO W RESPONSE (dla przeglądarki)
             saveGenerationDebug = {
               ...saveResult.debug,
+              generationId: saveResult.generationId || null, // ✅ DODAJ generationId dla aktualizacji watermarku
               deviceToken,
               ipHash
             };

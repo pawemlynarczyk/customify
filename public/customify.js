@@ -2525,8 +2525,49 @@ class CustomifyEmbed {
       if (result.success) {
         this.transformedImage = result.transformedImage;
         this.hideError(); // Ukryj komunikat błędu po udanej transformacji
-        this.showResult(result.transformedImage);
+        
+        // ✅ AWAIT: Czekaj aż watermark zostanie dodany (showResult jest async)
+        await this.showResult(result.transformedImage);
         this.showSuccess('Teraz wybierz rozmiar obrazu');
+        
+        // ✅ WYŚLIJ WATERMARKED IMAGE DO BACKENDU (tylko dla zalogowanych)
+        if (this.watermarkedImage && result.saveGenerationDebug?.generationId) {
+          const generationId = result.saveGenerationDebug.generationId;
+          const customerInfo = this.getCustomerInfo();
+          
+          console.log('🎨 [CUSTOMIFY] Wysyłam watermarked image do backendu...');
+          console.log('🎨 [CUSTOMIFY] GenerationId:', generationId);
+          console.log('🎨 [CUSTOMIFY] Watermarked image length:', this.watermarkedImage?.length);
+          
+          try {
+            const updateResponse = await fetch('https://customify-s56o.vercel.app/api/update-generation-watermark', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                generationId: generationId,
+                watermarkedImage: this.watermarkedImage,
+                customerId: customerInfo?.customerId || null,
+                email: customerInfo?.email || null
+              })
+            });
+            
+            if (updateResponse.ok) {
+              const updateResult = await updateResponse.json();
+              console.log('✅ [CUSTOMIFY] Watermarked image zapisany w Vercel Blob:', updateResult.watermarkedImageUrl);
+            } else {
+              const errorText = await updateResponse.text();
+              console.warn('⚠️ [CUSTOMIFY] Błąd zapisu watermarked image:', errorText);
+            }
+          } catch (updateError) {
+            console.error('⚠️ [CUSTOMIFY] Błąd wysyłania watermarked image:', updateError);
+            // Nie blokuj - główna funkcjonalność działa
+          }
+        } else {
+          console.log('ℹ️ [CUSTOMIFY] Pomijam zapis watermarked image:', {
+            hasWatermarkedImage: !!this.watermarkedImage,
+            hasGenerationId: !!result.saveGenerationDebug?.generationId
+          });
+        }
         
         // 🎨 GALERIA: Zapisz generację do localStorage z base64 cache
         // ✅ DODAJ productType do generacji (dla skalowalności)
