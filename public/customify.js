@@ -1743,11 +1743,19 @@ class CustomifyEmbed {
     });
 
     this.stylesArea.addEventListener('click', (e) => {
+      console.log('🖱️ [CLICK] Kliknięcie w stylesArea:', e.target);
+      console.log('🖱️ [CLICK] Czy to customify-style-card?', e.target.classList.contains('customify-style-card'));
+      console.log('🖱️ [CLICK] Czy closest?', e.target.closest('.customify-style-card'));
+      
       if (e.target.classList.contains('customify-style-card') || 
           e.target.closest('.customify-style-card')) {
         const card = e.target.classList.contains('customify-style-card') ? 
                     e.target : e.target.closest('.customify-style-card');
+        console.log('🖱️ [CLICK] Znaleziona karta:', card);
+        console.log('🖱️ [CLICK] data-style:', card?.dataset?.style);
         this.selectStyle(card);
+      } else {
+        console.log('🖱️ [CLICK] Kliknięcie poza kartą stylu');
       }
     });
 
@@ -1875,6 +1883,14 @@ class CustomifyEmbed {
     this.stylesArea.querySelectorAll('.customify-style-card').forEach(card => card.classList.remove('active'));
     styleCard.classList.add('active');
     this.selectedStyle = styleCard.dataset.style;
+    
+    // ✅ DEBUG: Pokaż który styl został wybrany
+    console.log('🎨 [STYLE-SELECT] ===== WYBÓR STYLU =====');
+    console.log('🎨 [STYLE-SELECT] Wybrany styl:', this.selectedStyle);
+    console.log('🎨 [STYLE-SELECT] data-style attribute:', styleCard.dataset.style);
+    console.log('🎨 [STYLE-SELECT] styleCard element:', styleCard);
+    console.log('🎨 [STYLE-SELECT] this.selectedStyle type:', typeof this.selectedStyle);
+    console.log('🎨 [STYLE-SELECT] =========================');
     
     // Ukryj komunikat błędu po wyborze stylu
     this.hideError();
