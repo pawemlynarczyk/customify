@@ -2662,10 +2662,13 @@ class CustomifyEmbed {
           
           // ===== WZÓR DIAGONALNY - "Lumly.pl" i "Podgląd" NA PRZEMIAN =====
           ctx.save();
-          ctx.font = 'bold 30px Arial';
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'; // Zwiększona widoczność (było 0.4)
-          ctx.strokeStyle = 'rgba(0, 0, 0, 0.35)'; // Zwiększona widoczność (było 0.3)
-          ctx.lineWidth = 1.5;
+          
+          // ✅ ZWIĘKSZONY FONT I OPACITY DLA LEPSZEJ WIDOCZNOŚCI
+          const fontSize = Math.max(40, Math.min(canvas.width, canvas.height) * 0.08); // Min 40px, max 8% obrazu
+          ctx.font = `bold ${fontSize}px Arial`;
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'; // ✅ ZWIĘKSZONA OPACITY (było 0.5)
+          ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)'; // ✅ ZWIĘKSZONA OPACITY (było 0.35)
+          ctx.lineWidth = 2; // ✅ ZWIĘKSZONA GRUBOŚĆ (było 1.5)
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           
@@ -2675,13 +2678,14 @@ class CustomifyEmbed {
           ctx.translate(-canvas.width/2, -canvas.height/2);
           
           // Rysuj watermarki w siatce - na przemian "Lumly.pl" i "Podgląd"
-          const spacing = 180;
+          const spacing = Math.max(200, Math.min(canvas.width, canvas.height) * 0.3); // ✅ DYNAMICZNY SPACING
           let textIndex = 0;
           const texts = ['Lumly.pl', 'Podgląd'];
           
           for(let y = -canvas.height; y < canvas.height * 2; y += spacing) {
             for(let x = -canvas.width; x < canvas.width * 2; x += spacing * 1.5) {
               const text = texts[textIndex % 2];
+              // ✅ RYSUJ STROKE PRZED FILL (dla lepszej widoczności)
               ctx.strokeText(text, x, y);
               ctx.fillText(text, x, y);
               textIndex++;
