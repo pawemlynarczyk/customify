@@ -2559,11 +2559,15 @@ class CustomifyEmbed {
             let updateSuccess = false;
             let lastError = null;
             
-            // 🔄 Retry 3 razy z opóźnieniem (1s, 2s, 3s)
-            for (let attempt = 0; attempt < 3; attempt++) {
+            // 🔄 Retry 4 razy z opóźnieniem (3s przed pierwszą próbą, potem 2s, 3s, 4s)
+            // ⚠️ RACE CONDITION: Generacja może nie być jeszcze w Blob Storage - dajemy czas na propagację
+            console.log('⏳ [TRANSFORM] Czekam 3 sekundy przed pierwszą próbą (propagacja w Blob Storage)...');
+            await new Promise(resolve => setTimeout(resolve, 3000)); // 3s przed pierwszą próbą
+            
+            for (let attempt = 0; attempt < 4; attempt++) {
               if (attempt > 0) {
-                const delay = attempt * 1000; // 1s, 2s, 3s
-                console.log(`🔄 [TRANSFORM] Retry attempt ${attempt + 1}/3 po ${delay}ms opóźnieniu...`);
+                const delay = (attempt + 1) * 1000; // 2s, 3s, 4s
+                console.log(`🔄 [TRANSFORM] Retry attempt ${attempt + 1}/4 po ${delay}ms opóźnieniu...`);
                 await new Promise(resolve => setTimeout(resolve, delay));
               }
               
@@ -2788,9 +2792,8 @@ class CustomifyEmbed {
             ctx.translate(-canvas.width/2, -canvas.height/2);
             console.log('🔄 [WATERMARK DEBUG] Canvas rotated -30°');
             
-            // 🔧 TEKSTY BEZ POLSKICH ZNAKÓW (ł → L, ą → A)
-            // Uppercase dla lepszej czytelności i kompatybilności
-            const texts = ['LUMLY.PL', 'PODGLAD'];
+            // 🔧 TEKST WATERMARKU - tylko "Lumly.pl"
+            const texts = ['Lumly.pl'];
             console.log('📝 [WATERMARK DEBUG] Teksty watermarku:', texts);
             
             // Rysuj watermarki w siatce - na przemian
@@ -2802,7 +2805,7 @@ class CustomifyEmbed {
             
             for(let y = -canvas.height; y < canvas.height * 2; y += spacing) {
               for(let x = -canvas.width; x < canvas.width * 2; x += spacing * 1.5) {
-                const text = texts[textIndex % 2];
+                const text = texts[0]; // Tylko "Lumly.pl"
                 // ✅ RYSUJ STROKE PRZED FILL (dla lepszej widoczności)
                 ctx.strokeText(text, x, y);
                 ctx.fillText(text, x, y);
