@@ -1054,6 +1054,15 @@ module.exports = async (req, res) => {
           swap_image: "USER_IMAGE"
         }
       },
+      'krolowa-styl-4': {
+        model: "segmind/faceswap-v4",
+        apiType: "segmind-faceswap",
+        productType: "queen",
+        parameters: {
+          target_image: "https://customify-s56o.vercel.app/krolowa/krolowa_sitting.png",
+          swap_image: "USER_IMAGE"
+        }
+      },
       // Style karykatury - używają Segmind API
       'karykatura': {
         model: "segmind/caricature-style",
