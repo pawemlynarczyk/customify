@@ -2377,6 +2377,11 @@ module.exports = async (req, res) => {
             // Nie blokuj odpowiedzi - transformacja się udała
           }
         }
+      } catch (uploadError) {
+        console.error('⚠️ [TRANSFORM] Błąd uploadu/przetwarzania obrazu (nie blokuję odpowiedzi):', uploadError);
+        console.error('⚠️ [TRANSFORM] Stack:', uploadError.stack);
+        // Nie blokuj odpowiedzi - transformacja się udała
+      }
     } else {
       // ✅ Brak imageUrl lub finalImageUrl = null (upload przez SDK nie powiódł się)
       const reason = !imageUrl ? 'brak imageUrl' : 'upload przez SDK nie powiódł się (za duży)';
