@@ -322,12 +322,16 @@
                 return;
               }
               
+              console.log('🎯 [MY-GENERATIONS] ===== KLIKNIĘCIE W GENERACJĘ =====');
               console.log('🎯 [MY-GENERATIONS] Selecting generation:', index);
               console.log('🎯 [MY-GENERATIONS] Full generation object:', generation);
               console.log('🎯 [MY-GENERATIONS] Generation keys:', Object.keys(generation));
               console.log('🎯 [MY-GENERATIONS] Generation details:', {
                 id: generation.id,
                 style: generation.style,
+                styleType: typeof generation.style,
+                productType: generation.productType,
+                productTypeType: typeof generation.productType,
                 size: generation.size,
                 timestamp: generation.timestamp,
                 hasTransformedImage: !!generation.transformedImage,
@@ -390,6 +394,10 @@
               };
               
               // ✅ PRIORYTET 1: Użyj productType z generacji (jeśli jest dostępny - dla nowych generacji)
+              console.log('🔍 [MY-GENERATIONS] ===== PARSOWANIE PRODUCT TYPE =====');
+              console.log('🔍 [MY-GENERATIONS] generation.productType:', generation.productType);
+              console.log('🔍 [MY-GENERATIONS] generation.style:', generation.style);
+              
               let productHandle = null;
               if (generation.productType && productTypeToHandle[generation.productType]) {
                 productHandle = productTypeToHandle[generation.productType];
@@ -397,25 +405,34 @@
               } else {
                 // ✅ PRIORYTET 2: Parsuj styl i rozpoznaj productType na podstawie wzorców (dla starych generacji)
                 let styleKey = (generation.style || '').toLowerCase().replace(/transform this image in | style/g, '').trim();
+                console.log('🔍 [MY-GENERATIONS] Parsowany styleKey:', styleKey);
                 
                 // Rozpoznaj productType na podstawie wzorców stylu (skalowalne - działa dla wszystkich stylów)
                 let detectedProductType = 'other'; // Domyślny fallback
                 
+                console.log('🔍 [MY-GENERATIONS] Sprawdzam wzorce:');
+                console.log('🔍 [MY-GENERATIONS] - startsWith("krol-"):', styleKey.startsWith('krol-'));
+                console.log('🔍 [MY-GENERATIONS] - startsWith("krolowa-"):', styleKey.startsWith('krolowa-'));
+                console.log('🔍 [MY-GENERATIONS] - includes("king"):', styleKey.includes('king'));
+                console.log('🔍 [MY-GENERATIONS] - includes("queen"):', styleKey.includes('queen'));
+                
                 if (styleKey.startsWith('krol-') || styleKey.startsWith('krolowa-') || styleKey.includes('king') || styleKey.includes('queen')) {
                   detectedProductType = 'king';
-                  console.log('👑 [MY-GENERATIONS] Rozpoznano styl króla/królowej:', styleKey);
+                  console.log('👑 [MY-GENERATIONS] ✅ Rozpoznano styl króla/królowej:', styleKey, '→', detectedProductType);
                 } else if (styleKey.includes('krolewski') || styleKey.includes('na-tronie') || styleKey.includes('wojenny') || styleKey.includes('wiktorianski') || styleKey.includes('renesansowy')) {
                   detectedProductType = 'cats';
-                  console.log('🐱 [MY-GENERATIONS] Rozpoznano styl kota:', styleKey);
+                  console.log('🐱 [MY-GENERATIONS] ✅ Rozpoznano styl kota:', styleKey, '→', detectedProductType);
                 } else if (styleKey.includes('minimalistyczny') || styleKey.includes('realistyczny') || styleKey.includes('pixar') || styleKey.includes('boho')) {
                   detectedProductType = 'boho';
-                  console.log('🎨 [MY-GENERATIONS] Rozpoznano styl boho:', styleKey);
+                  console.log('🎨 [MY-GENERATIONS] ✅ Rozpoznano styl boho:', styleKey, '→', detectedProductType);
                 } else if (styleKey.includes('karykatura') || styleKey.includes('caricature')) {
                   detectedProductType = 'caricature';
-                  console.log('🎭 [MY-GENERATIONS] Rozpoznano styl karykatury:', styleKey);
+                  console.log('🎭 [MY-GENERATIONS] ✅ Rozpoznano styl karykatury:', styleKey, '→', detectedProductType);
                 } else if (styleKey.includes('akwarela') || styleKey.includes('watercolor')) {
                   detectedProductType = 'watercolor';
-                  console.log('💧 [MY-GENERATIONS] Rozpoznano styl akwareli:', styleKey);
+                  console.log('💧 [MY-GENERATIONS] ✅ Rozpoznano styl akwareli:', styleKey, '→', detectedProductType);
+                } else {
+                  console.log('⚠️ [MY-GENERATIONS] Nie rozpoznano stylu, używam fallback:', detectedProductType);
                 }
                 
                 productHandle = productTypeToHandle[detectedProductType] || productTypeToHandle['other'];
