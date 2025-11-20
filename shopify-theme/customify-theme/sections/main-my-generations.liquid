@@ -205,7 +205,52 @@
         const grid = document.createElement('div');
         grid.className = 'generations-container';
         
-        generations.forEach((generation, index) => {
+        // ✅ Funkcja dodawania watermarku
+        function addWatermark(imageDataUri) {
+          return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            
+            img.onload = function() {
+              const canvas = document.createElement('canvas');
+              canvas.width = img.width;
+              canvas.height = img.height;
+              const ctx = canvas.getContext('2d');
+              
+              ctx.drawImage(img, 0, 0);
+              ctx.save();
+              
+              const fontSize = Math.min(img.width, img.height) * 0.15;
+              ctx.font = `bold ${fontSize}px Arial`;
+              ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+              ctx.strokeStyle = 'rgba(0, 0, 0, 0.15)';
+              ctx.lineWidth = 2;
+              
+              const text = 'Lumly.pl';
+              ctx.translate(canvas.width/2, canvas.height/2);
+              ctx.rotate(-30 * Math.PI / 180);
+              
+              const lines = 3;
+              const lineHeight = fontSize * 1.8;
+              const startY = -((lines - 1) * lineHeight) / 2;
+              
+              for (let i = 0; i < lines; i++) {
+                const y = startY + (i * lineHeight);
+                ctx.strokeText(text, -ctx.measureText(text).width / 2, y);
+                ctx.fillText(text, -ctx.measureText(text).width / 2, y);
+              }
+              
+              ctx.restore();
+              resolve(canvas.toDataURL('image/jpeg', 0.95));
+            };
+            
+            img.onerror = () => reject(new Error('Failed to load image'));
+            img.src = imageDataUri;
+          });
+        }
+        
+        // Async render każdej generacji
+        async function renderGeneration(generation, index) {
           const item = document.createElement('div');
           item.className = 'generation-card';
           item.style.cursor = 'pointer';
@@ -219,62 +264,91 @@
             minute: '2-digit'
           });
           
-          // ✅ Pokaż bezpośrednio z localStorage (już MA watermark!)
+          // Placeholder
           item.innerHTML = `
-            <img 
-              src="${generation.transformedImage}" 
-              alt="Generacja ${generation.style}" 
-              class="generation-image"
-              loading="lazy"
-            />
+            <div class="generation-image" style="background: #f0f0f0; aspect-ratio: 3/4; display: flex; align-items: center; justify-content: center;">
+              <p style="color: #999;">⏳</p>
+            </div>
             <div class="generation-info">
               <div class="generation-style">${generation.style}</div>
               <div class="generation-date">${dateStr}</div>
-              <button class="btn-order-now">Zamów teraz 🛒</button>
             </div>
           `;
           
           grid.appendChild(item);
           
-          // Po kliknięciu - zapisz jako wybraną i redirect do produktu
-          item.addEventListener('click', function() {
-            console.log('🎯 [MY-GENERATIONS] Selecting generation:', index);
-            
-            // Zapisz wybraną generację w localStorage (customify.js pobierze to na stronie produktu)
-            try {
-              localStorage.setItem('customify_selected_generation', JSON.stringify({
-                index: index,
-                generation: generation,
-                selectedAt: new Date().toISOString()
-              }));
-              console.log('✅ [MY-GENERATIONS] Generation saved to localStorage');
-            } catch (error) {
-              console.error('❌ [MY-GENERATIONS] Error saving to localStorage:', error);
+          // ✅ PRIORYTET: watermarkedImageUrl (Vercel Z watermarkiem) > addWatermark (on-the-fly dla starych)
+          try {
+            let watermarkedImage;
+            if (generation.watermarkedImageUrl) {
+              // Nowa generacja - użyj URL z Vercel (już z watermarkiem)
+              watermarkedImage = generation.watermarkedImageUrl;
+              console.log('✅ [MY-GENERATIONS] Using watermarked URL from Vercel:', watermarkedImage.substring(0, 80));
+            } else {
+              // Stara generacja - dodaj watermark on-the-fly
+              watermarkedImage = await addWatermark(generation.transformedImage);
+              console.log('🎨 [MY-GENERATIONS] Added watermark on-the-fly for old generation');
             }
             
-            // Redirect do odpowiedniego produktu
-            const productHandles = {
-              'boho': 'personalizowany-portret-w-stylu-boho',
-              'minimalistyczny': 'personalizowany-portret-w-stylu-boho',
-              'realistyczny': 'personalizowany-portret-w-stylu-boho',
-              'pixar': 'personalizowany-portret-w-stylu-boho',
-              'pixar 3d': 'personalizowany-portret-w-stylu-boho',
-              'cat': 'koty-krolewskie',
-              'king': 'krol-personalizowany-portret',
-              'queen': 'krol-personalizowany-portret',
-              'krol': 'krol-personalizowany-portret',
-              'krolowa': 'krol-personalizowany-portret',
-              'karykatura': 'karykatura-personalizowany-portret',
-              'caricature': 'karykatura-personalizowany-portret'
-            };
+            item.innerHTML = `
+              <img 
+                src="${watermarkedImage}" 
+                alt="Generacja ${generation.style}" 
+                class="generation-image"
+                loading="lazy"
+              />
+              <div class="generation-info">
+                <div class="generation-style">${generation.style}</div>
+                <div class="generation-date">${dateStr}</div>
+                <button class="btn-order-now">Zamów teraz 🛒</button>
+              </div>
+            `;
             
-            const styleKey = (generation.style || '').toLowerCase().replace(/transform this image in | style/g, '').trim();
-            const productHandle = productHandles[styleKey] || 'personalizowany-portret-w-stylu-boho';
-            
-            console.log('🔗 [MY-GENERATIONS] Redirecting to:', productHandle);
-            window.location.href = `/products/${productHandle}`;
-          });
-        });
+            // Po kliknięciu - zapisz jako wybraną i redirect do produktu
+            item.addEventListener('click', function() {
+              console.log('🎯 [MY-GENERATIONS] Selecting generation:', index);
+              
+              // Zapisz wybraną generację w localStorage (customify.js pobierze to na stronie produktu)
+              try {
+                localStorage.setItem('customify_selected_generation', JSON.stringify({
+                  index: index,
+                  generation: generation,
+                  selectedAt: new Date().toISOString()
+                }));
+                console.log('✅ [MY-GENERATIONS] Generation saved to localStorage');
+              } catch (error) {
+                console.error('❌ [MY-GENERATIONS] Error saving to localStorage:', error);
+              }
+              
+              // Redirect do odpowiedniego produktu
+              const productHandles = {
+                'boho': 'personalizowany-portret-w-stylu-boho',
+                'minimalistyczny': 'personalizowany-portret-w-stylu-boho',
+                'realistyczny': 'personalizowany-portret-w-stylu-boho',
+                'pixar': 'personalizowany-portret-w-stylu-boho',
+                'pixar 3d': 'personalizowany-portret-w-stylu-boho',
+                'cat': 'koty-krolewskie',
+                'king': 'krol-personalizowany-portret',
+                'queen': 'krol-personalizowany-portret',
+                'krol': 'krol-personalizowany-portret',
+                'krolowa': 'krol-personalizowany-portret',
+                'karykatura': 'karykatura-personalizowany-portret',
+                'caricature': 'karykatura-personalizowany-portret'
+              };
+              
+              const styleKey = (generation.style || '').toLowerCase().replace(/transform this image in | style/g, '').trim();
+              const productHandle = productHandles[styleKey] || 'personalizowany-portret-w-stylu-boho';
+              
+              console.log('🔗 [MY-GENERATIONS] Redirecting to:', productHandle);
+              window.location.href = `/products/${productHandle}`;
+            });
+          } catch (error) {
+            console.error('❌ [MY-GENERATIONS] Error rendering generation:', error);
+          }
+        }
+        
+        // Renderuj wszystkie generacje
+        generations.forEach((gen, idx) => renderGeneration(gen, idx));
         
         container.appendChild(grid);
       }
