@@ -2665,7 +2665,10 @@ class CustomifyEmbed {
           
           // ✅ ZWIĘKSZONY FONT I OPACITY DLA LEPSZEJ WIDOCZNOŚCI
           const fontSize = Math.max(40, Math.min(canvas.width, canvas.height) * 0.08); // Min 40px, max 8% obrazu
-          ctx.font = `bold ${fontSize}px Arial`;
+          
+          // ✅ FIX: Użyj systemowego fontu (Arial może nie być dostępny w Canvas - powoduje kwadraty)
+          // sans-serif jest ZAWSZE dostępny w przeglądarce
+          ctx.font = `bold ${fontSize}px sans-serif`;
           ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'; // ✅ ZWIĘKSZONA OPACITY (było 0.5)
           ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)'; // ✅ ZWIĘKSZONA OPACITY (było 0.35)
           ctx.lineWidth = 2; // ✅ ZWIĘKSZONA GRUBOŚĆ (było 1.5)

@@ -3980,12 +3980,26 @@
                   
                   // ✅ ZWIĘKSZONY FONT I OPACITY DLA LEPSZEJ WIDOCZNOŚCI
                   const fontSize = Math.max(40, Math.min(canvas.width, canvas.height) * 0.08); // Min 40px, max 8% obrazu
-                  ctx.font = `bold ${fontSize}px Arial`;
+                  
+                  // ✅ FIX: Użyj systemowego fontu z fallbackami (Arial może nie być dostępny w Canvas)
+                  // Użyj fontu który ZAWSZE jest dostępny w przeglądarce
+                  const fontFamily = 'sans-serif'; // Systemowy font - zawsze dostępny
+                  ctx.font = `bold ${fontSize}px ${fontFamily}`;
+                  
+                  // ✅ SPRAWDŹ CZY FONT JEST ZAŁADOWANY (test renderowania)
                   ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'; // ✅ ZWIĘKSZONA OPACITY (było 0.5)
                   ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)'; // ✅ ZWIĘKSZONA OPACITY (było 0.35)
                   ctx.lineWidth = 2; // ✅ ZWIĘKSZONA GRUBOŚĆ (było 1.5)
                   ctx.textAlign = 'center';
                   ctx.textBaseline = 'middle';
+                  
+                  // ✅ TEST: Sprawdź czy tekst się renderuje (jeśli nie - użyj innego fontu)
+                  const testText = 'Test';
+                  const testMetrics = ctx.measureText(testText);
+                  if (testMetrics.width === 0) {
+                    console.warn('⚠️ [WATERMARK] Font test failed, using fallback');
+                    ctx.font = `bold ${fontSize}px monospace`; // Fallback na monospace
+                  }
                   
                   // Obróć canvas
                   ctx.translate(canvas.width/2, canvas.height/2);
