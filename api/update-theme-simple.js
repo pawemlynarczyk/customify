@@ -64,11 +64,6 @@ module.exports = async (req, res) => {
     }
 
     const result = await updateResponse.json();
-    console.log('✅ Theme updated successfully');
-    console.log('📝 Shopify API response:', JSON.stringify(result, null, 2));
-    console.log('📝 Shopify API response keys:', Object.keys(result));
-    console.log('📝 Shopify API asset key:', result.asset?.key);
-    console.log('📝 Shopify API asset value length:', result.asset?.value?.length || 0);
     
     // Sprawdź czy Shopify zwrócił błąd w JSON
     if (result.errors) {
@@ -76,11 +71,20 @@ module.exports = async (req, res) => {
       return res.status(500).json({ error: 'Shopify API returned errors', details: result.errors });
     }
     
-    // Sprawdź czy plik został faktycznie zaktualizowany (Shopify zwraca asset.value w odpowiedzi)
-    if (result.asset && result.asset.value) {
-      console.log('✅ Shopify zwrócił zaktualizowany plik w odpowiedzi (długość:', result.asset.value.length, 'znaków)');
+    // ✅ Sprawdź czy plik został zaktualizowany
+    // Shopify API PUT /assets.json może NIE zwracać asset.value w odpowiedzi (to jest normalne)
+    // Jeśli response.ok === true i nie ma błędów, to plik został zaktualizowany
+    if (result.asset?.key) {
+      console.log('✅ Theme updated successfully');
+      console.log('📝 Shopify API response - asset key:', result.asset.key);
+      if (result.asset.value) {
+        console.log('📝 Shopify API response - asset value length:', result.asset.value.length, 'znaków');
+      } else {
+        // To jest normalne - Shopify może nie zwracać asset.value w odpowiedzi PUT
+        console.log('📝 Shopify API response - asset.value nie zwrócone (to jest normalne dla PUT)');
+      }
     } else {
-      console.warn('⚠️ Shopify NIE zwrócił zaktualizowanego pliku w odpowiedzi - może być problem z aktualizacją');
+      console.log('✅ Theme updated successfully (Shopify zwrócił potwierdzenie bez asset object)');
     }
 
     res.json({ 
