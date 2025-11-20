@@ -2355,7 +2355,16 @@ class CustomifyEmbed {
         console.log('🎨 [TRANSFORM] Generuję watermark PRZED wysłaniem do API...');
         
         // Konwertuj base64 na Blob URL (addWatermark oczekuje URL, nie base64)
-        const blob = await fetch(base64).then(r => r.blob());
+        // ❌ NIE UŻYWAJ fetch() - nie działa z data URI!
+        // ✅ Użyj bezpośredniej konwersji base64 → Blob
+        const base64Data = base64.split(',')[1]; // Usuń prefix "data:image/jpeg;base64,"
+        const byteCharacters = atob(base64Data);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: 'image/jpeg' });
         const blobUrl = URL.createObjectURL(blob);
         console.log('🎨 [TRANSFORM] Blob URL utworzony:', blobUrl.substring(0, 50));
         
