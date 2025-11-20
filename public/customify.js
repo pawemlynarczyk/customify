@@ -2553,31 +2553,62 @@ class CustomifyEmbed {
             console.log('✅ [TRANSFORM] Watermark preview:', watermarkedImageBase64.substring(0, 100));
             console.log('✅ [TRANSFORM] Watermark is base64?', watermarkedImageBase64.startsWith('data:'));
             
-            // ✅ WYŚLIJ WATERMARK DO BACKENDU - zaktualizuj istniejącą generację
+            // ✅ WYŚLIJ WATERMARK DO BACKENDU - zaktualizuj istniejącą generację z RETRY LOGIC
+            // 🔄 RETRY: Poczekaj na zapis generacji (race condition - generacja może nie być jeszcze w Blob Storage)
             console.log('📤 [TRANSFORM] Wysyłam watermark do /api/update-generation-watermark...');
-            const updateResponse = await fetch('https://customify-s56o.vercel.app/api/update-generation-watermark', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                generationId: result.saveGenerationDebug.generationId,
-                watermarkedImage: watermarkedImageBase64,
-                customerId: customerInfo?.customerId || null,
-                email: (!customerInfo?.customerId) ? (email || null) : null
-              })
-            });
             
-            console.log('📥 [TRANSFORM] Response status:', updateResponse.status, updateResponse.statusText);
+            let updateSuccess = false;
+            let lastError = null;
             
-            if (updateResponse.ok) {
-              const updateResult = await updateResponse.json();
-              console.log('✅ [TRANSFORM] ===== WATERMARK ZAKTUALIZOWANY W GENERACJI =====');
-              console.log('✅ [TRANSFORM] Watermarked image URL:', updateResult.watermarkedImageUrl?.substring(0, 100));
-              console.log('✅ [TRANSFORM] Generation ID:', updateResult.generationId);
-            } else {
-              const errorText = await updateResponse.text();
-              console.error('❌ [TRANSFORM] ===== BŁĄD AKTUALIZACJI WATERMARKU =====');
-              console.error('❌ [TRANSFORM] Status:', updateResponse.status);
-              console.error('❌ [TRANSFORM] Error:', errorText);
+            // 🔄 Retry 3 razy z opóźnieniem (1s, 2s, 3s)
+            for (let attempt = 0; attempt < 3; attempt++) {
+              if (attempt > 0) {
+                const delay = attempt * 1000; // 1s, 2s, 3s
+                console.log(`🔄 [TRANSFORM] Retry attempt ${attempt + 1}/3 po ${delay}ms opóźnieniu...`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+              }
+              
+              try {
+                const updateResponse = await fetch('https://customify-s56o.vercel.app/api/update-generation-watermark', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    generationId: result.saveGenerationDebug.generationId,
+                    watermarkedImage: watermarkedImageBase64,
+                    customerId: customerInfo?.customerId || null,
+                    email: (!customerInfo?.customerId) ? (email || null) : null
+                  })
+                });
+                
+                console.log(`📥 [TRANSFORM] Response status (attempt ${attempt + 1}):`, updateResponse.status, updateResponse.statusText);
+                
+                if (updateResponse.ok) {
+                  const updateResult = await updateResponse.json();
+                  console.log('✅ [TRANSFORM] ===== WATERMARK ZAKTUALIZOWANY W GENERACJI =====');
+                  console.log('✅ [TRANSFORM] Watermarked image URL:', updateResult.watermarkedImageUrl?.substring(0, 100));
+                  console.log('✅ [TRANSFORM] Generation ID:', updateResult.generationId);
+                  updateSuccess = true;
+                  break; // Sukces - przerwij retry
+                } else {
+                  const errorText = await updateResponse.text();
+                  lastError = { status: updateResponse.status, error: errorText };
+                  console.warn(`⚠️ [TRANSFORM] Attempt ${attempt + 1} failed:`, updateResponse.status, errorText);
+                  
+                  // Jeśli to nie 404, nie próbuj ponownie
+                  if (updateResponse.status !== 404) {
+                    break;
+                  }
+                }
+              } catch (fetchError) {
+                lastError = { error: fetchError.message };
+                console.warn(`⚠️ [TRANSFORM] Attempt ${attempt + 1} error:`, fetchError.message);
+              }
+            }
+            
+            if (!updateSuccess) {
+              console.error('❌ [TRANSFORM] ===== BŁĄD AKTUALIZACJI WATERMARKU (wszystkie próby nieudane) =====');
+              console.error('❌ [TRANSFORM] Last error:', lastError);
+              // Nie rzucaj błędu - kontynuuj bez watermarku
             }
           } catch (watermarkError) {
             console.error('❌ [TRANSFORM] ===== BŁĄD GENEROWANIA/AKTUALIZACJI WATERMARKU =====');

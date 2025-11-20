@@ -109,13 +109,31 @@ module.exports = async (req, res) => {
       });
     }
 
+    // ✅ DEBUG: Pokaż pierwsze 5 ID w tablicy
+    console.log(`🔍 [UPDATE-WATERMARK] First 5 generation IDs in file:`, 
+      existingData.generations.slice(0, 5).map(gen => gen.id));
+    console.log(`🔍 [UPDATE-WATERMARK] Looking for ID: ${generationId}`);
+
     // Znajdź generację po generationId
     const generationIndex = existingData.generations.findIndex(gen => gen.id === generationId);
     
     if (generationIndex === -1) {
+      // ✅ DEBUG: Sprawdź czy może być problem z formatem ID
+      const similarIds = existingData.generations
+        .slice(0, 10)
+        .map(gen => gen.id)
+        .filter(id => id.includes(generationId.split('-')[1])); // Szukaj podobnych (po timestamp)
+      
+      console.log(`⚠️ [UPDATE-WATERMARK] Generation not found. Similar IDs (by timestamp):`, similarIds);
+      
       return res.status(404).json({
         error: 'Generation not found',
-        message: `Generation with id ${generationId} not found`
+        message: `Generation with id ${generationId} not found`,
+        debug: {
+          totalGenerations: existingData.generations.length,
+          firstId: existingData.generations[0]?.id || null,
+          similarIds: similarIds
+        }
       });
     }
 
