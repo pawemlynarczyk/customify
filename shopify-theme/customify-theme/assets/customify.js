@@ -2546,8 +2546,12 @@ class CustomifyEmbed {
       console.log('🎨 [CUSTOMIFY] Watermark dodany do podglądu i zapisany');
       
       // ✅ OD RAZU UPLOAD WATERMARKED NA VERCEL (dla "Moje generacje" + cart)
+      console.log('📤 [CUSTOMIFY] STARTING upload watermarked to Vercel Blob...');
+      console.log('📤 [CUSTOMIFY] Watermarked image type:', typeof watermarkedImage);
+      console.log('📤 [CUSTOMIFY] Watermarked image length:', watermarkedImage?.length);
+      
       try {
-        console.log('📤 [CUSTOMIFY] Uploading watermarked image to Vercel Blob...');
+        const uploadStartTime = Date.now();
         const watermarkUploadResponse = await fetch('https://customify-s56o.vercel.app/api/upload-temp-image', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -2557,16 +2561,30 @@ class CustomifyEmbed {
           })
         });
         
-        const watermarkUploadResult = await watermarkUploadResponse.json();
-        if (watermarkUploadResult.success) {
-          this.watermarkedImageUrl = watermarkUploadResult.url;
-          console.log('✅ [CUSTOMIFY] Watermarked image uploaded to Vercel:', this.watermarkedImageUrl);
-        } else {
-          console.error('❌ [CUSTOMIFY] Failed to upload watermarked image:', watermarkUploadResult.error);
+        console.log('📤 [CUSTOMIFY] Upload response status:', watermarkUploadResponse.status);
+        console.log('📤 [CUSTOMIFY] Upload response OK:', watermarkUploadResponse.ok);
+        
+        if (!watermarkUploadResponse.ok) {
+          const errorText = await watermarkUploadResponse.text();
+          console.error('❌ [CUSTOMIFY] Upload HTTP error:', watermarkUploadResponse.status, errorText);
           this.watermarkedImageUrl = null;
+        } else {
+          const watermarkUploadResult = await watermarkUploadResponse.json();
+          console.log('📤 [CUSTOMIFY] Upload result:', watermarkUploadResult);
+          
+          if (watermarkUploadResult.success && watermarkUploadResult.url) {
+            this.watermarkedImageUrl = watermarkUploadResult.url;
+            const uploadTime = Date.now() - uploadStartTime;
+            console.log('✅ [CUSTOMIFY] Watermarked image uploaded to Vercel:', this.watermarkedImageUrl);
+            console.log('✅ [CUSTOMIFY] Upload took:', uploadTime, 'ms');
+          } else {
+            console.error('❌ [CUSTOMIFY] Upload failed - no success or URL:', watermarkUploadResult);
+            this.watermarkedImageUrl = null;
+          }
         }
       } catch (uploadError) {
         console.error('❌ [CUSTOMIFY] Error uploading watermarked image:', uploadError);
+        console.error('❌ [CUSTOMIFY] Error stack:', uploadError.stack);
         this.watermarkedImageUrl = null;
       }
     } catch (error) {
