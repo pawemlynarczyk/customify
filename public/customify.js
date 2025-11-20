@@ -193,13 +193,6 @@ class CustomifyEmbed {
         // Ignore storage errors (Safari private mode etc.)
       }
       if (source) {
-        // ⚠️ DEBUG: Sprawdź czy window.ShopifyCustomer jest null przed logowaniem
-        if (window.ShopifyCustomer === null) {
-          console.warn(`⚠️ [CUSTOMER DETECT] BŁĄD: Próba użycia ${source} gdy window.ShopifyCustomer === null!`);
-          console.warn(`⚠️ [CUSTOMER DETECT] window.ShopifyCustomer:`, window.ShopifyCustomer);
-          console.warn(`⚠️ [CUSTOMER DETECT] Zwracam null zamiast info z ${source}`);
-          return null; // ⚠️ ZWRÓĆ NULL jeśli window.ShopifyCustomer jest null!
-        }
         console.log(`✅ [CUSTOMER DETECT] Zidentyfikowano klienta (${source}):`, info.customerId);
       }
       return info;
@@ -346,61 +339,20 @@ class CustomifyEmbed {
    * Sprawdza liczbę użyć z localStorage (dla niezalogowanych)
    * @returns {number} Liczba użyć
    */
-  /**
-   * Mapuje styl na productType (zgodne z backend)
-   */
-  getProductTypeFromStyle(style) {
-    const styleToProductType = {
-      'minimalistyczny': 'boho',
-      'realistyczny': 'boho',
-      'krol-krolewski': 'king',
-      'krol-majestatyczny': 'king',
-      'krol-triumfalny': 'king',
-      'krol-imponujacy': 'king',
-      'krolewski': 'cats',
-      'na-tronie': 'cats',
-      'wojenny': 'cats',
-      'wiktorianski': 'cats',
-      'renesansowy': 'cats',
-      'karykatura': 'caricature',
-      'akwarela': 'watercolor'
-    };
-    
-    return styleToProductType[style] || 'other';
-  }
-
-  getLocalUsageCount(productType) {
-    if (!productType) {
-      // Fallback: suma wszystkich typów (backward compatibility)
-      const allTypes = ['boho', 'king', 'cats', 'caricature', 'watercolor', 'other'];
-      const total = allTypes.reduce((sum, type) => {
-        const count = parseInt(localStorage.getItem(`customify_usage_${type}`) || '0', 10);
-        if (count > 0) {
-          console.log(`📊 [LOCAL-STORAGE] ${type}: ${count}`);
-        }
-        return sum + count;
-      }, 0);
-      console.log(`📊 [LOCAL-STORAGE] Total (bez productType): ${total}`);
-      return total;
-    }
-    const key = `customify_usage_${productType}`;
-    const count = parseInt(localStorage.getItem(key) || '0', 10);
-    console.log(`📊 [LOCAL-STORAGE] ${productType}: ${count} (key: ${key})`);
+  getLocalUsageCount() {
+    const count = parseInt(localStorage.getItem('customify_usage_count') || '0', 10);
+    // Local usage count retrieved
     return count;
   }
 
   /**
-   * Inkrementuje licznik w localStorage (dla niezalogowanych) - PER PRODUCTTYPE
+   * Inkrementuje licznik w localStorage (dla niezalogowanych)
    */
-  incrementLocalUsage(productType) {
-    if (!productType) {
-      productType = 'other'; // Fallback
-    }
-    const key = `customify_usage_${productType}`;
-    const currentCount = this.getLocalUsageCount(productType);
+  incrementLocalUsage() {
+    const currentCount = this.getLocalUsageCount();
     const newCount = currentCount + 1;
-    localStorage.setItem(key, newCount.toString());
-    // Usage count incremented per productType
+    localStorage.setItem('customify_usage_count', newCount.toString());
+    // Usage count incremented
     this.showUsageCounter(); // Odśwież licznik w UI
   }
 
@@ -410,17 +362,18 @@ class CustomifyEmbed {
   async saveAIGeneration(originalImage, transformedImage, style, size) {
     console.log('💾 [CACHE] Saving AI generation to localStorage...');
     
-    // ⚠️ NIE zapisuj ponownie do Vercel Blob - już jest zapisane w transform.js jako generation-{timestamp}.jpg
-    // Używamy URL z API response (generation-{timestamp}.jpg) zamiast duplikować jako ai-{timestamp}.jpg.jpg
-    let transformedImageUrl = transformedImage; // Użyj URL z API (generation-{timestamp}.jpg lub base64)
+    // ✅ WATERMARK: Zapisz obrazek Z watermarkiem (this.watermarkedImage) zamiast clean URL
+    // User widzi tylko wersję Z watermarkiem w galerii - ochrona przed pobraniem
+    let transformedImageUrl = this.watermarkedImage || transformedImage; // Priorytet: watermark > clean
     
-    console.log('✅ [CACHE] Using existing URL from transform.js (no duplicate upload):', transformedImageUrl?.substring(0, 50));
+    console.log('💾 [CACHE] Using watermarked image:', this.watermarkedImage ? 'YES (base64)' : 'NO (clean URL fallback)');
+    console.log('💾 [CACHE] Image URL length:', transformedImageUrl?.length, 'chars');
 
     const generation = {
       id: Date.now(),
       timestamp: new Date().toISOString(),
       originalImage: originalImage, // base64 lub URL (zachowaj)
-      transformedImage: transformedImageUrl, // ZAWSZE URL (nie base64)
+      transformedImage: transformedImageUrl, // ✅ Z watermarkiem (base64) lub clean URL (fallback)
       style: style,
       size: size,
       thumbnail: transformedImageUrl // Użyj tego samego URL dla thumbnail
@@ -926,39 +879,21 @@ class CustomifyEmbed {
   async checkUsageLimit() {
     const customerInfo = this.getCustomerInfo();
     
-    // ✅ ZABEZPIECZENIE: Jeśli selectedStyle jest null, nie sprawdzaj limitu (pozwól wybrać styl)
-    if (!this.selectedStyle) {
-      console.warn(`⚠️ [USAGE-LIMIT] selectedStyle jest null - pomijam sprawdzanie limitu (user musi najpierw wybrać styl)`);
-      return true; // Pozwól wybrać styl
-    }
-    
-    // Pobierz productType z aktualnie wybranego stylu
-    const productType = this.getProductTypeFromStyle(this.selectedStyle);
-    
-    console.log(`🔍 [USAGE-LIMIT] Sprawdzam limit:`, {
-      selectedStyle: this.selectedStyle,
-      productType: productType,
-      isLoggedIn: !!customerInfo
-    });
-    
     if (!customerInfo) {
-      // Niezalogowany - sprawdź localStorage (limit 1 per productType)
-      const localCount = this.getLocalUsageCount(productType);
+      // Niezalogowany - sprawdź localStorage (limit 1)
+      const localCount = this.getLocalUsageCount();
       const FREE_LIMIT = 1;
       
-      console.log(`🔍 [USAGE-LIMIT] Niezalogowany: ${localCount}/${FREE_LIMIT} dla ${productType}`);
-      
-      // Usage limit check for anonymous users per productType
+      // Usage limit check for anonymous users
       
       if (localCount >= FREE_LIMIT) {
-        console.log(`❌ [USAGE-LIMIT] Limit przekroczony dla ${productType}: ${localCount} >= ${FREE_LIMIT}`);
-        this.showLoginModal(localCount, FREE_LIMIT, productType);
+        this.showLoginModal(localCount, FREE_LIMIT);
         return false;
       }
       
       return true;
     } else {
-      // Zalogowany - sprawdź Shopify Metafields przez API (per productType)
+      // Zalogowany - sprawdź Shopify Metafields przez API
       // Checking usage limit via API for logged-in user
       
       try {
@@ -968,45 +903,24 @@ class CustomifyEmbed {
           credentials: 'include',
           body: JSON.stringify({
             customerId: customerInfo.customerId,
-            customerAccessToken: customerInfo.customerAccessToken,
-            productType: productType // ✅ Przekaż productType
+            customerAccessToken: customerInfo.customerAccessToken
           })
         });
         
-        if (!response.ok) {
-          console.error(`❌ [USAGE] API error: ${response.status} ${response.statusText}`);
-          // ⚠️ KRYTYCZNE: Jeśli błąd API, BLOKUJ (bezpieczniejsze niż pozwalanie)
-          this.showError(`Błąd sprawdzania limitu użycia. Spróbuj ponownie za chwilę.`);
-          return false;
-        }
-        
         const data = await response.json();
         console.log('📊 [USAGE] API response:', data);
-        console.log('🔍 [USAGE] Detailed response analysis:', {
-          hasRemainingCount: 'remainingCount' in data,
-          remainingCount: data.remainingCount,
-          remainingCountType: typeof data.remainingCount,
-          usedCount: data.usedCount,
-          totalLimit: data.totalLimit,
-          productType: data.productType,
-          byProductType: data.byProductType,
-          calculation: `${data.totalLimit} - ${data.usedCount} = ${data.totalLimit - data.usedCount}`
-        });
         
         if (data.remainingCount <= 0) {
-          console.error(`❌ [USAGE] Limit przekroczony - przerwano transformację`);
-          this.showError(`Wykorzystałeś wszystkie transformacje dla ${productType} (${data.totalLimit}). Skontaktuj się z nami dla więcej.`);
+          this.showError(`Wykorzystałeś wszystkie transformacje (${data.totalLimit}). Skontaktuj się z nami dla więcej.`);
           return false;
         }
         
-        console.log(`✅ [USAGE] Pozostało ${data.remainingCount} transformacji dla ${productType}`);
+        console.log(`✅ [USAGE] Pozostało ${data.remainingCount} transformacji`);
         return true;
       } catch (error) {
         console.error('❌ [USAGE] Błąd sprawdzania limitu:', error);
-        // ⚠️ KRYTYCZNE: Jeśli błąd, BLOKUJ (bezpieczniejsze niż pozwalanie)
-        // Użytkownik może spróbować ponownie, ale nie może obejść limitu przez błąd
-        this.showError(`Błąd sprawdzania limitu użycia. Spróbuj ponownie za chwilę.`);
-        return false;
+        // W razie błędu - pozwól (fallback)
+        return true;
       }
     }
   }
@@ -1014,7 +928,7 @@ class CustomifyEmbed {
   /**
    * Pokazuje modal z wymogiem rejestracji + auto-redirect
    */
-  showLoginModal(usedCount, limit, productType = null) {
+  showLoginModal(usedCount, limit) {
     // Return URL - wróć na tę samą stronę po rejestracji
     const returnUrl = window.location.pathname + window.location.search;
     
@@ -1056,7 +970,7 @@ class CustomifyEmbed {
         console.warn('⚠️ [AUTH] Failed to mark auth intent:', error);
       }
     };
-    
+
     const modalHTML = `
       <div id="loginModal" style="
         position: fixed;
@@ -2272,36 +2186,16 @@ class CustomifyEmbed {
 
 
   async transformImage(retryCount = 0) {
-    // ✅ DEBUG: Sprawdź selectedStyle NAJPIERW (przed walidacją)
-    console.log(`🔍🔍🔍 [TRANSFORM] START transformImage:`, {
-      selectedStyle: this.selectedStyle,
-      selectedStyleType: typeof this.selectedStyle,
-      productType: this.selectedStyle ? this.getProductTypeFromStyle(this.selectedStyle) : 'BRAK STYLU',
-      uploadedFile: !!this.uploadedFile,
-      uploadedFileName: this.uploadedFile?.name
-    });
-    
     if (!this.uploadedFile || !this.selectedStyle) {
-      console.error(`❌ [TRANSFORM] Brak wymaganych danych:`, {
-        uploadedFile: !!this.uploadedFile,
-        selectedStyle: this.selectedStyle
-      });
       this.showError('Wgraj zdjęcie i wybierz styl');
       return;
     }
 
-    // ✅ DEBUG: Sprawdź selectedStyle przed checkUsageLimit
-    console.log(`🔍 [TRANSFORM] Przed checkUsageLimit:`, {
-      selectedStyle: this.selectedStyle,
-      productType: this.getProductTypeFromStyle(this.selectedStyle),
-      uploadedFile: !!this.uploadedFile
-    });
-
     // ✅ USAGE LIMITS: Sprawdź limit PRZED transformacją (ZAWSZE, nawet przy retry)
-      const canTransform = await this.checkUsageLimit();
-      if (!canTransform) {
-        console.log('❌ [USAGE] Limit przekroczony - przerwano transformację');
-        return;
+    const canTransform = await this.checkUsageLimit();
+    if (!canTransform) {
+      console.log('❌ [USAGE] Limit przekroczony - przerwano transformację');
+      return;
     }
 
     // ✅ Google Analytics Event Tracking - "Zobacz Podgląd" kliknięty
@@ -2337,8 +2231,15 @@ class CustomifyEmbed {
       console.log('📱 [MOBILE] Base64 length:', base64.length, 'characters');
       console.log('📱 [MOBILE] Base64 preview:', base64.substring(0, 50) + '...');
       
-      // ✅ Użyj productType z stylu (zgodne z backend - config.productType)
-      const productType = this.getProductTypeFromStyle(this.selectedStyle);
+      // Wykryj typ produktu na podstawie URL produktu (jak w theme.liquid)
+      const currentPath = window.location.pathname;
+      let productType = 'other'; // domyślnie
+      
+      if (currentPath.includes('koty-krolewskie-zwierzeta-w-koronach')) {
+        productType = 'cats';
+      } else if (currentPath.includes('personalizowany-portret-w-stylu-boho')) {
+        productType = 'boho';
+      }
       
       // ✅ USAGE LIMITS: Pobierz dane użytkownika do przekazania do API
       const customerInfo = this.getCustomerInfo();
@@ -2509,9 +2410,8 @@ class CustomifyEmbed {
         
         // ✅ USAGE LIMITS: Inkrementuj licznik dla niezalogowanych (zalogowani są inkrementowani w API)
         if (!customerInfo) {
-          const productType = this.getProductTypeFromStyle(this.selectedStyle);
-          this.incrementLocalUsage(productType);
-          // Usage count incremented after successful transform (per productType)
+          this.incrementLocalUsage();
+          // Usage count incremented after successful transform
         } else {
           // Zalogowani - odśwież licznik z API (został zaktualizowany w backend)
           this.showUsageCounter();
