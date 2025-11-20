@@ -126,7 +126,7 @@ async function saveGenerationHandler(req, res) {
       });
     }
 
-    const { customerId, email, ip: ipFromBody, ipHash: ipHashFromBody, deviceToken, imageUrl, style, productType, originalImageUrl } = req.body;
+    const { customerId, email, ip: ipFromBody, ipHash: ipHashFromBody, deviceToken, imageUrl, watermarkedImageUrl, style, productType, originalImageUrl } = req.body;
     
     // ✅ Użyj IP z body jeśli podane, w przeciwnym razie użyj IP z request
     const finalIp = ipFromBody || ip;
@@ -246,7 +246,8 @@ async function saveGenerationHandler(req, res) {
     // Nowa generacja
     const newGeneration = {
       id: generationId,
-      imageUrl: imageUrl,
+      imageUrl: imageUrl, // ✅ BEZ watermarku (do realizacji zamówienia)
+      watermarkedImageUrl: watermarkedImageUrl || null, // ✅ Z watermarkiem (do emaili) - tylko dla zalogowanych
       style: style || 'unknown',
       productType: productType || 'other',
       originalImageUrl: originalImageUrl || null,

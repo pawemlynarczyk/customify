@@ -2157,25 +2157,39 @@ module.exports = async (req, res) => {
             const imageBuffer = Buffer.from(base64Data, 'base64');
             console.log(`📦 [TRANSFORM] Base64 buffer size: ${imageBuffer.length} bytes (${(imageBuffer.length / 1024 / 1024).toFixed(2)} MB)`);
             
-            // ✅ DODAJ WATERMARK PRZED ZAPISEM (tylko dla zalogowanych - do emaili)
-            let finalBuffer = imageBuffer;
-            if (customerId) {
-              console.log('🎨 [TRANSFORM] Dodaję watermark dla zalogowanego użytkownika...');
-              finalBuffer = await addWatermarkToImage(imageBuffer);
-            }
-            
-            // Upload bezpośrednio przez SDK (bez limitu 4.5MB request body)
+            // ✅ ZAPISZ OBRAZEK BEZ WATERMARKU (do realizacji zamówienia)
             const timestamp = Date.now();
             const uniqueFilename = `customify/temp/generation-${timestamp}.jpg`;
             
-            const blob = await put(uniqueFilename, finalBuffer, {
+            const blob = await put(uniqueFilename, imageBuffer, {
               access: 'public',
               contentType: 'image/jpeg',
               token: process.env.customify_READ_WRITE_TOKEN,
             });
             
             finalImageUrl = blob.url;
-            console.log(`✅ [TRANSFORM] Base64 zapisany w Vercel Blob (SDK): ${finalImageUrl.substring(0, 50)}...`);
+            console.log(`✅ [TRANSFORM] Obraz BEZ watermarku zapisany w Vercel Blob (SDK): ${finalImageUrl.substring(0, 50)}...`);
+            
+            // ✅ DODATKOWA WERSJA Z WATERMARKIEM (tylko dla zalogowanych - do emaili)
+            if (customerId) {
+              console.log('🎨 [TRANSFORM] Tworzę dodatkową wersję z watermarkiem dla zalogowanego użytkownika...');
+              try {
+                const watermarkedBuffer = await addWatermarkToImage(imageBuffer);
+                const watermarkedFilename = `customify/temp/generation-${timestamp}-watermarked.jpg`;
+                
+                const watermarkedBlob = await put(watermarkedFilename, watermarkedBuffer, {
+                  access: 'public',
+                  contentType: 'image/jpeg',
+                  token: process.env.customify_READ_WRITE_TOKEN,
+                });
+                
+                watermarkedImageUrl = watermarkedBlob.url;
+                console.log(`✅ [TRANSFORM] Obraz Z watermarkiem zapisany w Vercel Blob (SDK): ${watermarkedImageUrl.substring(0, 50)}...`);
+              } catch (watermarkError) {
+                console.error('⚠️ [TRANSFORM] Błąd tworzenia wersji z watermarkiem:', watermarkError.message);
+                // Nie blokuj - główny obraz jest zapisany
+              }
+            }
           } catch (uploadError) {
             console.error('⚠️ [TRANSFORM] Błąd uploadu base64 do Vercel Blob (SDK):', uploadError.message);
             // Jeśli upload się nie powiódł, nie możemy użyć base64 (przekroczy limit w save-generation-v2)
@@ -2202,25 +2216,39 @@ module.exports = async (req, res) => {
                 const buffer = Buffer.from(imageBuffer);
                 console.log(`📦 [TRANSFORM] Replicate image size: ${buffer.length} bytes (${(buffer.length / 1024 / 1024).toFixed(2)} MB)`);
                 
-                // ✅ DODAJ WATERMARK PRZED ZAPISEM (tylko dla zalogowanych - do emaili)
-                let finalBuffer = buffer;
-                if (customerId) {
-                  console.log('🎨 [TRANSFORM] Dodaję watermark dla zalogowanego użytkownika...');
-                  finalBuffer = await addWatermarkToImage(buffer);
-                }
-                
-                // Upload bezpośrednio przez SDK (bez limitu 4.5MB, bez podwójnego .jpg.jpg)
+                // ✅ ZAPISZ OBRAZEK BEZ WATERMARKU (do realizacji zamówienia)
                 const timestamp = Date.now();
                 const uniqueFilename = `customify/temp/generation-${timestamp}.jpg`;
                 
-                const blob = await put(uniqueFilename, finalBuffer, {
+                const blob = await put(uniqueFilename, buffer, {
                   access: 'public',
                   contentType: 'image/jpeg',
                   token: process.env.customify_READ_WRITE_TOKEN,
                 });
                 
                 finalImageUrl = blob.url;
-                console.log(`✅ [TRANSFORM] Obraz z Replicate zapisany w Vercel Blob (SDK): ${finalImageUrl.substring(0, 50)}...`);
+                console.log(`✅ [TRANSFORM] Obraz BEZ watermarku zapisany w Vercel Blob (SDK): ${finalImageUrl.substring(0, 50)}...`);
+                
+                // ✅ DODATKOWA WERSJA Z WATERMARKIEM (tylko dla zalogowanych - do emaili)
+                if (customerId) {
+                  console.log('🎨 [TRANSFORM] Tworzę dodatkową wersję z watermarkiem dla zalogowanego użytkownika...');
+                  try {
+                    const watermarkedBuffer = await addWatermarkToImage(buffer);
+                    const watermarkedFilename = `customify/temp/generation-${timestamp}-watermarked.jpg`;
+                    
+                    const watermarkedBlob = await put(watermarkedFilename, watermarkedBuffer, {
+                      access: 'public',
+                      contentType: 'image/jpeg',
+                      token: process.env.customify_READ_WRITE_TOKEN,
+                    });
+                    
+                    watermarkedImageUrl = watermarkedBlob.url;
+                    console.log(`✅ [TRANSFORM] Obraz Z watermarkiem zapisany w Vercel Blob (SDK): ${watermarkedImageUrl.substring(0, 50)}...`);
+                  } catch (watermarkError) {
+                    console.error('⚠️ [TRANSFORM] Błąd tworzenia wersji z watermarkiem:', watermarkError.message);
+                    // Nie blokuj - główny obraz jest zapisany
+                  }
+                }
               } else {
                 console.warn('⚠️ [TRANSFORM] Nie udało się pobrać obrazu z Replicate - używam oryginalnego URL');
               }
