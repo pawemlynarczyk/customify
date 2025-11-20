@@ -531,3 +531,5 @@ git push origin main
 
 **Gotowy do wdrożenia!** 🚀
 
+
+

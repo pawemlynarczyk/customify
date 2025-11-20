@@ -26,3 +26,5 @@ echo ""
 echo "💡 Aby zobaczyć live logi:"
 echo "   vercel logs customify-s56o.vercel.app --follow | grep IMAGE-HASH"
 
+
+

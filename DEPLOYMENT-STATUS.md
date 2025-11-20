@@ -107,3 +107,5 @@ Jeśli coś nie działa:
 **Status:** ✅ Wdrożone na GitHub, oczekiwanie na Vercel deployment
 
 
+
+

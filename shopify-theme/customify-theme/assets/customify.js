@@ -19,6 +19,7 @@ class CustomifyEmbed {
     this.resultImage = document.getElementById('resultImage');
     this.errorMessage = document.getElementById('errorMessage');
     this.errorMessageBottom = document.getElementById('errorMessageBottom');
+    this.errorMessageTransform = document.getElementById('errorMessageTransform');
     this.successMessage = document.getElementById('successMessage');
     
     this.uploadedFile = null;
@@ -193,6 +194,13 @@ class CustomifyEmbed {
         // Ignore storage errors (Safari private mode etc.)
       }
       if (source) {
+        // ⚠️ DEBUG: Sprawdź czy window.ShopifyCustomer jest null przed logowaniem
+        if (window.ShopifyCustomer === null) {
+          console.warn(`⚠️ [CUSTOMER DETECT] BŁĄD: Próba użycia ${source} gdy window.ShopifyCustomer === null!`);
+          console.warn(`⚠️ [CUSTOMER DETECT] window.ShopifyCustomer:`, window.ShopifyCustomer);
+          console.warn(`⚠️ [CUSTOMER DETECT] Zwracam null zamiast info z ${source}`);
+          return null; // ⚠️ ZWRÓĆ NULL jeśli window.ShopifyCustomer jest null!
+        }
         console.log(`✅ [CUSTOMER DETECT] Zidentyfikowano klienta (${source}):`, info.customerId);
       }
       return info;
@@ -339,20 +347,61 @@ class CustomifyEmbed {
    * Sprawdza liczbę użyć z localStorage (dla niezalogowanych)
    * @returns {number} Liczba użyć
    */
-  getLocalUsageCount() {
-    const count = parseInt(localStorage.getItem('customify_usage_count') || '0', 10);
-    // Local usage count retrieved
+  /**
+   * Mapuje styl na productType (zgodne z backend)
+   */
+  getProductTypeFromStyle(style) {
+    const styleToProductType = {
+      'minimalistyczny': 'boho',
+      'realistyczny': 'boho',
+      'krol-krolewski': 'king',
+      'krol-majestatyczny': 'king',
+      'krol-triumfalny': 'king',
+      'krol-imponujacy': 'king',
+      'krolewski': 'cats',
+      'na-tronie': 'cats',
+      'wojenny': 'cats',
+      'wiktorianski': 'cats',
+      'renesansowy': 'cats',
+      'karykatura': 'caricature',
+      'akwarela': 'watercolor'
+    };
+    
+    return styleToProductType[style] || 'other';
+  }
+
+  getLocalUsageCount(productType) {
+    if (!productType) {
+      // Fallback: suma wszystkich typów (backward compatibility)
+      const allTypes = ['boho', 'king', 'cats', 'caricature', 'watercolor', 'other'];
+      const total = allTypes.reduce((sum, type) => {
+        const count = parseInt(localStorage.getItem(`customify_usage_${type}`) || '0', 10);
+        if (count > 0) {
+          console.log(`📊 [LOCAL-STORAGE] ${type}: ${count}`);
+        }
+        return sum + count;
+      }, 0);
+      console.log(`📊 [LOCAL-STORAGE] Total (bez productType): ${total}`);
+      return total;
+    }
+    const key = `customify_usage_${productType}`;
+    const count = parseInt(localStorage.getItem(key) || '0', 10);
+    console.log(`📊 [LOCAL-STORAGE] ${productType}: ${count} (key: ${key})`);
     return count;
   }
 
   /**
-   * Inkrementuje licznik w localStorage (dla niezalogowanych)
+   * Inkrementuje licznik w localStorage (dla niezalogowanych) - PER PRODUCTTYPE
    */
-  incrementLocalUsage() {
-    const currentCount = this.getLocalUsageCount();
+  incrementLocalUsage(productType) {
+    if (!productType) {
+      productType = 'other'; // Fallback
+    }
+    const key = `customify_usage_${productType}`;
+    const currentCount = this.getLocalUsageCount(productType);
     const newCount = currentCount + 1;
-    localStorage.setItem('customify_usage_count', newCount.toString());
-    // Usage count incremented
+    localStorage.setItem(key, newCount.toString());
+    // Usage count incremented per productType
     this.showUsageCounter(); // Odśwież licznik w UI
   }
 
@@ -879,21 +928,39 @@ class CustomifyEmbed {
   async checkUsageLimit() {
     const customerInfo = this.getCustomerInfo();
     
+    // ✅ ZABEZPIECZENIE: Jeśli selectedStyle jest null, nie sprawdzaj limitu (pozwól wybrać styl)
+    if (!this.selectedStyle) {
+      console.warn(`⚠️ [USAGE-LIMIT] selectedStyle jest null - pomijam sprawdzanie limitu (user musi najpierw wybrać styl)`);
+      return true; // Pozwól wybrać styl
+    }
+    
+    // Pobierz productType z aktualnie wybranego stylu
+    const productType = this.getProductTypeFromStyle(this.selectedStyle);
+    
+    console.log(`🔍 [USAGE-LIMIT] Sprawdzam limit:`, {
+      selectedStyle: this.selectedStyle,
+      productType: productType,
+      isLoggedIn: !!customerInfo
+    });
+    
     if (!customerInfo) {
-      // Niezalogowany - sprawdź localStorage (limit 1)
-      const localCount = this.getLocalUsageCount();
+      // Niezalogowany - sprawdź localStorage (limit 1 per productType)
+      const localCount = this.getLocalUsageCount(productType);
       const FREE_LIMIT = 1;
       
-      // Usage limit check for anonymous users
+      console.log(`🔍 [USAGE-LIMIT] Niezalogowany: ${localCount}/${FREE_LIMIT} dla ${productType}`);
+      
+      // Usage limit check for anonymous users per productType
       
       if (localCount >= FREE_LIMIT) {
-        this.showLoginModal(localCount, FREE_LIMIT);
+        console.log(`❌ [USAGE-LIMIT] Limit przekroczony dla ${productType}: ${localCount} >= ${FREE_LIMIT}`);
+        this.showLoginModal(localCount, FREE_LIMIT, productType);
         return false;
       }
       
       return true;
     } else {
-      // Zalogowany - sprawdź Shopify Metafields przez API
+      // Zalogowany - sprawdź Shopify Metafields przez API (per productType)
       // Checking usage limit via API for logged-in user
       
       try {
@@ -903,24 +970,45 @@ class CustomifyEmbed {
           credentials: 'include',
           body: JSON.stringify({
             customerId: customerInfo.customerId,
-            customerAccessToken: customerInfo.customerAccessToken
+            customerAccessToken: customerInfo.customerAccessToken,
+            productType: productType // ✅ Przekaż productType
           })
         });
         
-        const data = await response.json();
-        console.log('📊 [USAGE] API response:', data);
-        
-        if (data.remainingCount <= 0) {
-          this.showError(`Wykorzystałeś wszystkie transformacje (${data.totalLimit}). Skontaktuj się z nami dla więcej.`);
+        if (!response.ok) {
+          console.error(`❌ [USAGE] API error: ${response.status} ${response.statusText}`);
+          // ⚠️ KRYTYCZNE: Jeśli błąd API, BLOKUJ (bezpieczniejsze niż pozwalanie)
+          this.showError(`Błąd sprawdzania limitu użycia. Spróbuj ponownie za chwilę.`, 'transform');
           return false;
         }
         
-        console.log(`✅ [USAGE] Pozostało ${data.remainingCount} transformacji`);
+        const data = await response.json();
+        console.log('📊 [USAGE] API response:', data);
+        console.log('🔍 [USAGE] Detailed response analysis:', {
+          hasRemainingCount: 'remainingCount' in data,
+          remainingCount: data.remainingCount,
+          remainingCountType: typeof data.remainingCount,
+          usedCount: data.usedCount,
+          totalLimit: data.totalLimit,
+          productType: data.productType,
+          byProductType: data.byProductType,
+          calculation: `${data.totalLimit} - ${data.usedCount} = ${data.totalLimit - data.usedCount}`
+        });
+        
+        if (data.remainingCount <= 0) {
+          console.error(`❌ [USAGE] Limit przekroczony - przerwano transformację`);
+          this.showError(`Wykorzystałeś wszystkie transformacje dla ${productType} (${data.totalLimit}). Skontaktuj się z nami dla więcej.`, 'transform');
+          return false;
+        }
+        
+        console.log(`✅ [USAGE] Pozostało ${data.remainingCount} transformacji dla ${productType}`);
         return true;
       } catch (error) {
         console.error('❌ [USAGE] Błąd sprawdzania limitu:', error);
-        // W razie błędu - pozwól (fallback)
-        return true;
+        // ⚠️ KRYTYCZNE: Jeśli błąd, BLOKUJ (bezpieczniejsze niż pozwalanie)
+        // Użytkownik może spróbować ponownie, ale nie może obejść limitu przez błąd
+        this.showError(`Błąd sprawdzania limitu użycia. Spróbuj ponownie za chwilę.`, 'transform');
+        return false;
       }
     }
   }
@@ -928,7 +1016,7 @@ class CustomifyEmbed {
   /**
    * Pokazuje modal z wymogiem rejestracji + auto-redirect
    */
-  showLoginModal(usedCount, limit) {
+  showLoginModal(usedCount, limit, productType = null) {
     // Return URL - wróć na tę samą stronę po rejestracji
     const returnUrl = window.location.pathname + window.location.search;
     
@@ -970,7 +1058,7 @@ class CustomifyEmbed {
         console.warn('⚠️ [AUTH] Failed to mark auth intent:', error);
       }
     };
-
+    
     const modalHTML = `
       <div id="loginModal" style="
         position: fixed;
@@ -1280,28 +1368,9 @@ class CustomifyEmbed {
     let counterHTML = '';
     
     if (!customerInfo) {
-      // Niezalogowany - pokaż licznik z localStorage
-      const localCount = this.getLocalUsageCount();
-      const FREE_LIMIT = 1;
-      const remaining = Math.max(0, FREE_LIMIT - localCount);
-      
-      console.log(`🔍 [USAGE] Not logged in - localCount: ${localCount}, remaining: ${remaining}`);
-      
-      if (remaining > 0) {
-        // Zielony - pozostało transformacji
-        counterHTML = `
-          <div id="usageCounter" class="usage-counter usage-counter-green">
-            🎨 Pozostało ${remaining}/${FREE_LIMIT} darmowych transformacji
-          </div>
-        `;
-      } else {
-        // Czerwony - limit wykorzystany
-        counterHTML = `
-          <div id="usageCounter" class="usage-counter usage-counter-red">
-            ❌ Wykorzystano ${FREE_LIMIT}/${FREE_LIMIT} - Zaloguj się!
-          </div>
-        `;
-      }
+      // Niezalogowany - UKRYJ licznik (nie pokazuj komunikatu)
+      console.log(`🔍 [USAGE] Not logged in - hiding usage counter`);
+      counterHTML = ''; // Nie pokazuj komunikatu dla niezalogowanych
     } else {
       // Zalogowany - pobierz z API
       console.log('🔍 [USAGE] Fetching usage data from API...');
@@ -1800,6 +1869,9 @@ class CustomifyEmbed {
     styleCard.classList.add('active');
     this.selectedStyle = styleCard.dataset.style;
     
+    // Ukryj komunikat błędu po wyborze stylu
+    this.hideError();
+    
     // Rozmiary już są widoczne od razu
   }
 
@@ -2186,16 +2258,36 @@ class CustomifyEmbed {
 
 
   async transformImage(retryCount = 0) {
+    // ✅ DEBUG: Sprawdź selectedStyle NAJPIERW (przed walidacją)
+    console.log(`🔍🔍🔍 [TRANSFORM] START transformImage:`, {
+      selectedStyle: this.selectedStyle,
+      selectedStyleType: typeof this.selectedStyle,
+      productType: this.selectedStyle ? this.getProductTypeFromStyle(this.selectedStyle) : 'BRAK STYLU',
+      uploadedFile: !!this.uploadedFile,
+      uploadedFileName: this.uploadedFile?.name
+    });
+    
     if (!this.uploadedFile || !this.selectedStyle) {
-      this.showError('Wgraj zdjęcie i wybierz styl');
+      console.error(`❌ [TRANSFORM] Brak wymaganych danych:`, {
+        uploadedFile: !!this.uploadedFile,
+        selectedStyle: this.selectedStyle
+      });
+      this.showError('Wgraj zdjęcie i wybierz styl', 'transform');
       return;
     }
 
+    // ✅ DEBUG: Sprawdź selectedStyle przed checkUsageLimit
+    console.log(`🔍 [TRANSFORM] Przed checkUsageLimit:`, {
+      selectedStyle: this.selectedStyle,
+      productType: this.getProductTypeFromStyle(this.selectedStyle),
+      uploadedFile: !!this.uploadedFile
+    });
+
     // ✅ USAGE LIMITS: Sprawdź limit PRZED transformacją (ZAWSZE, nawet przy retry)
-    const canTransform = await this.checkUsageLimit();
-    if (!canTransform) {
-      console.log('❌ [USAGE] Limit przekroczony - przerwano transformację');
-      return;
+      const canTransform = await this.checkUsageLimit();
+      if (!canTransform) {
+        console.log('❌ [USAGE] Limit przekroczony - przerwano transformację');
+        return;
     }
 
     // ✅ Google Analytics Event Tracking - "Zobacz Podgląd" kliknięty
@@ -2231,15 +2323,8 @@ class CustomifyEmbed {
       console.log('📱 [MOBILE] Base64 length:', base64.length, 'characters');
       console.log('📱 [MOBILE] Base64 preview:', base64.substring(0, 50) + '...');
       
-      // Wykryj typ produktu na podstawie URL produktu (jak w theme.liquid)
-      const currentPath = window.location.pathname;
-      let productType = 'other'; // domyślnie
-      
-      if (currentPath.includes('koty-krolewskie-zwierzeta-w-koronach')) {
-        productType = 'cats';
-      } else if (currentPath.includes('personalizowany-portret-w-stylu-boho')) {
-        productType = 'boho';
-      }
+      // ✅ Użyj productType z stylu (zgodne z backend - config.productType)
+      const productType = this.getProductTypeFromStyle(this.selectedStyle);
       
       // ✅ USAGE LIMITS: Pobierz dane użytkownika do przekazania do API
       const customerInfo = this.getCustomerInfo();
@@ -2328,7 +2413,7 @@ class CustomifyEmbed {
             this.showLoginModal(usedCount, totalLimit);
           } else {
             const limitMessage = errorJson.message || 'Wykorzystałeś wszystkie dostępne transformacje.';
-            this.showError(limitMessage);
+            this.showError(limitMessage, 'transform');
           }
 
           return;
@@ -2382,6 +2467,7 @@ class CustomifyEmbed {
       
       if (result.success) {
         this.transformedImage = result.transformedImage;
+        this.hideError(); // Ukryj komunikat błędu po udanej transformacji
         this.showResult(result.transformedImage);
         this.showSuccess('Teraz wybierz rozmiar obrazu');
         
@@ -2410,15 +2496,16 @@ class CustomifyEmbed {
         
         // ✅ USAGE LIMITS: Inkrementuj licznik dla niezalogowanych (zalogowani są inkrementowani w API)
         if (!customerInfo) {
-          this.incrementLocalUsage();
-          // Usage count incremented after successful transform
+          const productType = this.getProductTypeFromStyle(this.selectedStyle);
+          this.incrementLocalUsage(productType);
+          // Usage count incremented after successful transform (per productType)
         } else {
           // Zalogowani - odśwież licznik z API (został zaktualizowany w backend)
           this.showUsageCounter();
           // Counter refreshed for logged-in user
         }
       } else {
-        this.showError('Błąd podczas transformacji: ' + (result.error || 'Nieznany błąd'));
+        this.showError('Błąd podczas transformacji: ' + (result.error || 'Nieznany błąd'), 'transform');
       }
     } catch (error) {
       console.error('📱 [MOBILE] Transform error:', error);
@@ -2449,7 +2536,7 @@ class CustomifyEmbed {
         errorMessage = 'Błąd przetwarzania. Spróbuj ponownie.';
       }
       
-      this.showError(errorMessage);
+      this.showError(errorMessage, 'transform');
     } finally {
       this.hideLoading();
     }
@@ -2472,37 +2559,35 @@ class CustomifyEmbed {
           // Rysuj oryginalny obraz
           ctx.drawImage(img, 0, 0);
           
-          // ===== WZÓR PREMIUM - 2-3 DUŻE NAPISY "Lumly.pl" NA SKOS =====
+          // ===== WZÓR DIAGONALNY - "Lumly.pl" i "Podgląd" NA PRZEMIAN =====
           ctx.save();
-          
-          // Oblicz rozmiar czcionki (40-60% szerokości obrazu)
-          const fontSize = Math.max(60, Math.min(120, canvas.width * 0.15));
-          ctx.font = `bold ${fontSize}px Arial`;
+          ctx.font = 'bold 30px Arial';
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'; // Zwiększona widoczność (było 0.4)
+          ctx.strokeStyle = 'rgba(0, 0, 0, 0.35)'; // Zwiększona widoczność (było 0.3)
+          ctx.lineWidth = 1.5;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           
-          // Kolor biały z delikatnym cieniem (opacity 0.2-0.25)
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.22)';
-          ctx.strokeStyle = 'rgba(0, 0, 0, 0.15)';
-          ctx.lineWidth = 2;
-          
-          const text = 'Lumly.pl';
-          
-          // Obróć canvas o -30 stopni (z lewej-góry do prawej-dołu)
+          // Obróć canvas
           ctx.translate(canvas.width/2, canvas.height/2);
           ctx.rotate(-30 * Math.PI / 180);
+          ctx.translate(-canvas.width/2, -canvas.height/2);
           
-          // 1. Główny napis - centralnie przez twarz (środek obrazu)
-          ctx.strokeText(text, 0, 0);
-          ctx.fillText(text, 0, 0);
+          // Rysuj watermarki w siatce - na przemian "Lumly.pl" i "Podgląd"
+          const spacing = 180;
+          let textIndex = 0;
+          const texts = ['Lumly.pl', 'Podgląd'];
           
-          // 2. Drugi napis - przesunięty w górę i w lewo
-          ctx.strokeText(text, -canvas.width * 0.4, -canvas.height * 0.3);
-          ctx.fillText(text, -canvas.width * 0.4, -canvas.height * 0.3);
-          
-          // 3. Trzeci napis - przesunięty w dół i w prawo
-          ctx.strokeText(text, canvas.width * 0.4, canvas.height * 0.3);
-          ctx.fillText(text, canvas.width * 0.4, canvas.height * 0.3);
+          for(let y = -canvas.height; y < canvas.height * 2; y += spacing) {
+            for(let x = -canvas.width; x < canvas.width * 2; x += spacing * 1.5) {
+              const text = texts[textIndex % 2];
+              ctx.strokeText(text, x, y);
+              ctx.fillText(text, x, y);
+              textIndex++;
+            }
+            // Zmień wzór co wiersz dla lepszego efektu
+            textIndex++;
+          }
           
           ctx.restore();
           
@@ -2610,7 +2695,7 @@ class CustomifyEmbed {
     console.log('🔍 [CUSTOMIFY] Checking selectedSize:', this.selectedSize);
     if (!this.selectedSize) {
       console.log('❌ [CUSTOMIFY] No selectedSize, showing error');
-      this.showError('Nie wybrałeś rozmiaru');
+      this.showError('Nie wybrałeś rozmiaru', 'cart');
       return;
     }
     console.log('✅ [CUSTOMIFY] selectedSize OK, proceeding with price calculation');
@@ -2636,13 +2721,13 @@ class CustomifyEmbed {
 
     // ✅ SPRAWDŹ OBRAZ AI DOPIERO POTEM
     if (!this.transformedImage) {
-      this.showError('Brak przekształconego obrazu');
+      this.showError('Brak przekształconego obrazu', 'cart');
       return;
     }
     
     // ✅ SPRAWDŹ STYL
     if (!this.selectedStyle) {
-      this.showError('Wybierz styl');
+      this.showError('Wybierz styl', 'cart');
       return;
     }
 
@@ -2665,7 +2750,7 @@ class CustomifyEmbed {
       // Sprawdź czy finalPrice jest poprawny
       if (!finalPrice || finalPrice <= 0) {
         console.error('❌ [CUSTOMIFY] Invalid finalPrice:', finalPrice);
-        this.showError('Błąd obliczania ceny. Spróbuj ponownie.');
+        this.showError('Błąd obliczania ceny. Spróbuj ponownie.', 'cart');
         return;
       }
 
@@ -2836,7 +2921,7 @@ class CustomifyEmbed {
           if (fullUrl.length > 2048) {
             console.error('❌ [CUSTOMIFY] URL TOO LONG:', fullUrl.length, 'chars (max 2048)');
             console.error('❌ [CUSTOMIFY] Properties:', properties);
-            this.showError('URL zbyt długi - usuń niektóre właściwości lub skontaktuj się z supportem');
+            this.showError('URL zbyt długi - usuń niektóre właściwości lub skontaktuj się z supportem', 'cart');
             return;
           }
           
@@ -2861,7 +2946,7 @@ class CustomifyEmbed {
       } else {
         console.error('❌ [CUSTOMIFY] Product creation failed:', result);
         this.hideCartLoading();
-        this.showError('❌ Błąd podczas tworzenia produktu: ' + (result.error || 'Nieznany błąd'));
+        this.showError('❌ Błąd podczas tworzenia produktu: ' + (result.error || 'Nieznany błąd'), 'cart');
       }
     } catch (error) {
       console.error('❌ [CUSTOMIFY] Add to cart error:', error);
@@ -2879,7 +2964,7 @@ class CustomifyEmbed {
         errorMessage = '❌ Błąd: ' + error.message;
       }
       
-      this.showError(errorMessage);
+      this.showError(errorMessage, 'cart');
     }
   }
 
@@ -3209,19 +3294,48 @@ class CustomifyEmbed {
     }
   }
 
-  showError(message) {
-    // Pokaż błąd w OBUMIASTA miejscach (góra + dół)
-    this.errorMessage.textContent = message;
-    this.errorMessage.style.display = 'block';
+  showError(message, location = 'top') {
+    // Ukryj wszystkie komunikaty błędów najpierw
+    if (this.errorMessage) {
+      this.errorMessage.style.display = 'none';
+    }
+    if (this.errorMessageTransform) {
+      this.errorMessageTransform.style.display = 'none';
+    }
     if (this.errorMessageBottom) {
+      this.errorMessageBottom.style.display = 'none';
+    }
+    
+    // Pokaż błąd w odpowiednim miejscu
+    if (location === 'transform' && this.errorMessageTransform) {
+      // Błędy transformacji - nad przyciskiem "Zobacz Podgląd"
+      this.errorMessageTransform.textContent = message;
+      this.errorMessageTransform.style.display = 'block';
+    } else if (location === 'cart' && this.errorMessageBottom) {
+      // Błędy koszyka - nad przyciskiem "Dodaj do koszyka"
       this.errorMessageBottom.textContent = message;
       this.errorMessageBottom.style.display = 'block';
+    } else if (location === 'top' && this.errorMessage) {
+      // Błędy uploadu/walidacji pliku - na górze
+      this.errorMessage.textContent = message;
+      this.errorMessage.style.display = 'block';
+    } else {
+      // Fallback: pokaż w górze jeśli nie określono lokalizacji
+      if (this.errorMessage) {
+        this.errorMessage.textContent = message;
+        this.errorMessage.style.display = 'block';
+      }
     }
   }
 
   hideError() {
-    // Ukryj błąd w OBUMIASTA miejscach
-    this.errorMessage.style.display = 'none';
+    // Ukryj wszystkie komunikaty błędów
+    if (this.errorMessage) {
+      this.errorMessage.style.display = 'none';
+    }
+    if (this.errorMessageTransform) {
+      this.errorMessageTransform.style.display = 'none';
+    }
     if (this.errorMessageBottom) {
       this.errorMessageBottom.style.display = 'none';
     }

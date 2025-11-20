@@ -267,7 +267,23 @@ async function checkDeviceTokenCrossAccount(deviceToken, customerId) {
   try {
     const key = `device:${deviceToken}:customers`;
     const customerIdsJson = await kv.get(key);
-    const customerIds = customerIdsJson ? JSON.parse(customerIdsJson) : [];
+    
+    // Parsuj JSON i upewnij się, że to jest tablica
+    let customerIds = [];
+    if (customerIdsJson) {
+      try {
+        const parsed = JSON.parse(customerIdsJson);
+        // Walidacja: upewnij się, że to jest tablica
+        customerIds = Array.isArray(parsed) ? parsed : [];
+        if (!Array.isArray(parsed)) {
+          console.warn(`⚠️ [KV-LIMITER-CROSS] Invalid data format in KV - expected array, got:`, typeof parsed);
+        }
+      } catch (parseError) {
+        console.error(`❌ [KV-LIMITER-CROSS] Failed to parse customerIds JSON:`, parseError.message);
+        customerIds = [];
+      }
+    }
+    
     const limit = 2; // Max 2 różne customerIds per device token
 
     console.log(`🔍 [KV-LIMITER-CROSS] Device token cross-account check:`, {
@@ -320,7 +336,22 @@ async function addCustomerToDeviceToken(deviceToken, customerId) {
   try {
     const key = `device:${deviceToken}:customers`;
     const customerIdsJson = await kv.get(key);
-    const customerIds = customerIdsJson ? JSON.parse(customerIdsJson) : [];
+    
+    // Parsuj JSON i upewnij się, że to jest tablica
+    let customerIds = [];
+    if (customerIdsJson) {
+      try {
+        const parsed = JSON.parse(customerIdsJson);
+        // Walidacja: upewnij się, że to jest tablica
+        customerIds = Array.isArray(parsed) ? parsed : [];
+        if (!Array.isArray(parsed)) {
+          console.warn(`⚠️ [KV-LIMITER-CROSS] Invalid data format in KV for add - expected array, got:`, typeof parsed);
+        }
+      } catch (parseError) {
+        console.error(`❌ [KV-LIMITER-CROSS] Failed to parse customerIds JSON for add:`, parseError.message);
+        customerIds = [];
+      }
+    }
 
     // Jeśli customerId już jest na liście - nie dodawaj ponownie
     if (customerIds.includes(customerId)) {

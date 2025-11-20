@@ -213,11 +213,8 @@
           return;
         }
         
-        // Utwórz galerię (ta sama co na stronie produktu)
+        // Wyczyść kontener i używaj go bezpośrednio (bez tworzenia nowego diva)
         container.innerHTML = '';
-        
-        const grid = document.createElement('div');
-        grid.className = 'generations-container';
         
         // ✅ Funkcja dodawania watermarku
         function addWatermark(imageDataUri) {
@@ -289,7 +286,7 @@
             </div>
           `;
           
-          grid.appendChild(item);
+          container.appendChild(item);
           
           // ✅ PRIORYTET: watermarkedImageUrl (Vercel Z watermarkiem) > addWatermark (on-the-fly dla starych)
           try {
@@ -363,8 +360,6 @@
         
         // Renderuj wszystkie generacje
         generations.forEach((gen, idx) => renderGeneration(gen, idx));
-        
-        container.appendChild(grid);
       }
       
       // Start gdy DOM ready
