@@ -262,11 +262,21 @@ async function segmindFaceswap(targetImageUrl, swapImageBase64) {
   }
 
   console.log('🎭 [SEGMIND] Starting face-swap (synchronous)...');
+  console.log('🎭 [SEGMIND] ===== TARGET IMAGE DEBUG =====');
   console.log('🎭 [SEGMIND] Target image URL:', targetImageUrl);
+  console.log('🎭 [SEGMIND] Target image URL type:', typeof targetImageUrl);
+  console.log('🎭 [SEGMIND] Target image URL length:', targetImageUrl?.length);
   console.log('🎭 [SEGMIND] Swap image (base64):', swapImageBase64.substring(0, 50) + '...');
+  console.log('🎭 [SEGMIND] ==============================');
 
   // Convert target image URL to base64
+  console.log('📥 [SEGMIND] Konwertuję target image URL na base64...');
   const targetImageBase64 = await urlToBase64(targetImageUrl);
+  console.log('✅ [SEGMIND] Target image skonwertowany na base64:', {
+    base64Length: targetImageBase64?.length,
+    base64Preview: targetImageBase64?.substring(0, 50) + '...',
+    originalUrl: targetImageUrl
+  });
 
   // Remove data URI prefix if present (keep only base64 string)
   let cleanSwapImage = swapImageBase64.replace(/^data:image\/[a-z]+;base64,/, '');
@@ -763,13 +773,28 @@ module.exports = async (req, res) => {
   console.log(`📝 [TRANSFORM] POST request processing for IP: ${ip}`);
 
   try {
-    const { imageData, prompt, productType, customerId, customerAccessToken, email } = req.body;
+    const { imageData, prompt, style, productType, customerId, email } = req.body;
+    // ✅ EMAIL: Tylko dla niezalogowanych - używany do powiązania generacji z użytkownikiem w save-generation
+    // ❌ USUNIĘTO: customerAccessToken - nie jest używany, API używa SHOPIFY_ACCESS_TOKEN z env
+
+    // ✅ DEBUG: Pokaż dokładnie co przyszło w request body
+    console.log('📥 [API] ===== REQUEST BODY OTRZYMANY =====');
+    console.log('📥 [API] hasImageData:', !!imageData);
+    console.log('📥 [API] imageDataLength:', imageData?.length || 0);
+    console.log('📥 [API] prompt:', prompt);
+    console.log('📥 [API] style (z request body):', style, typeof style);
+    console.log('📥 [API] style === undefined:', style === undefined);
+    console.log('📥 [API] style === null:', style === null);
+    console.log('📥 [API] productType:', productType);
+    console.log('📥 [API] customerId:', customerId || 'niezalogowany');
+    console.log('📥 [API] ===================================');
 
     if (!imageData || !prompt) {
       return res.status(400).json({ error: 'Image data and prompt are required' });
     }
     
     // 🧪 BYPASS: Sprawdź czy użytkownik jest na liście testowej (przed wszystkimi limitami)
+    // ✅ Email używany tylko do test bypass (dla zalogowanych można sprawdzić przez customerId)
     const isTest = isTestUser(email || null, ip);
     
     console.log(`🎯 [TRANSFORM] Product type: ${productType || 'not specified'}`);
@@ -1065,15 +1090,72 @@ module.exports = async (req, res) => {
       }
     };
 
-    // Get style from prompt or use default
-    const style = Object.keys(styleConfig).find(s => prompt.toLowerCase().includes(s)) || 'anime';
-    const config = styleConfig[style] || styleConfig['anime'];
-
+    // ✅ KRYTYCZNE: Brak fallbacków - jeśli styl nie istnieje, zwróć błąd
+    // Get style from request body (priority) or parse from prompt (fallback tylko jeśli brak style w body)
+    let selectedStyle = style; // Styl z request body (frontend wysyła selectedStyle)
+    
+    if (!selectedStyle) {
+      // ❌ BRAK STYLU W REQUEST BODY - parsuj z prompta jako ostatnia szansa
+      console.log(`⚠️ [STYLE-DEBUG] Brak pola 'style' w request body, parsuję z prompta...`);
+      console.log(`🔍 [STYLE-DEBUG] Prompt: "${prompt}"`);
+      console.log(`🔍 [STYLE-DEBUG] Available styles:`, Object.keys(styleConfig));
+      
+      // Szukaj najdłuższego dopasowania (żeby "krol-krolewski" miało priorytet nad "krolewski")
+      const matchingStyles = Object.keys(styleConfig).filter(s => prompt.toLowerCase().includes(s));
+      console.log(`🔍 [STYLE-DEBUG] Matching styles:`, matchingStyles);
+      
+      if (matchingStyles.length > 0) {
+        selectedStyle = matchingStyles.reduce((a, b) => a.length > b.length ? a : b);
+        console.log(`⚠️ [STYLE-DEBUG] Parsed style from prompt: "${selectedStyle}" (from ${matchingStyles.length} matches)`);
+      } else {
+        // ❌ BRAK DOPASOWANIA - BŁĄD
+        console.error(`❌ [STYLE-DEBUG] Nie znaleziono stylu w promptcie: "${prompt}"`);
+        return res.status(400).json({
+          error: 'Invalid style',
+          message: `Nieznany styl: "${prompt}". Dostępne style: ${Object.keys(styleConfig).join(', ')}`,
+          availableStyles: Object.keys(styleConfig)
+        });
+      }
+    }
+    
+    // ✅ WALIDACJA: Sprawdź czy styl istnieje w config
+    if (!styleConfig[selectedStyle]) {
+      console.error(`❌ [STYLE-DEBUG] Styl "${selectedStyle}" nie istnieje w config!`);
+      console.error(`❌ [STYLE-DEBUG] Dostępne style:`, Object.keys(styleConfig));
+      return res.status(400).json({
+        error: 'Invalid style',
+        message: `Nieznany styl: "${selectedStyle}". Dostępne style: ${Object.keys(styleConfig).join(', ')}`,
+        requestedStyle: selectedStyle,
+        availableStyles: Object.keys(styleConfig)
+      });
+    }
+    
+    console.log(`✅ [STYLE-DEBUG] Using style: "${selectedStyle}"`);
+    
+    // ✅ DEBUG: Sprawdź config
+    const config = styleConfig[selectedStyle];
+    console.log(`🔍 [STYLE-DEBUG] ===== CONFIG DLA STYLU "${selectedStyle}" =====`);
+    console.log(`🔍 [STYLE-DEBUG] model:`, config.model);
+    console.log(`🔍 [STYLE-DEBUG] apiType:`, config.apiType);
+    console.log(`🔍 [STYLE-DEBUG] productType:`, config.productType);
+    if (config.apiType === 'segmind-faceswap' && config.parameters?.target_image) {
+      console.log(`🔍 [STYLE-DEBUG] target_image URL:`, config.parameters.target_image);
+    }
+    console.log(`🔍 [STYLE-DEBUG] ==========================================`);
     // ✅ Użyj productType z config (bezpieczne, użytkownik nie może zmienić)
     const finalProductType = config.productType || productType || 'other';
 
-    console.log(`Using style: ${style}, model: ${config.model}`);
+    console.log(`Using style: ${selectedStyle}, model: ${config.model}`);
     console.log(`🎯 [TRANSFORM] Final productType: ${finalProductType} (z config: ${config.productType}, z body: ${productType})`);
+    
+    // ✅ DEBUG: Sprawdź target_image dla stylów króla
+    if (config.apiType === 'segmind-faceswap' && config.parameters?.target_image) {
+      console.log(`🎭 [STYLE-DEBUG] ===== TARGET IMAGE INFO =====`);
+      console.log(`🎭 [STYLE-DEBUG] Selected style: "${selectedStyle}"`);
+      console.log(`🎭 [STYLE-DEBUG] Target image URL: ${config.parameters.target_image}`);
+      console.log(`🎭 [STYLE-DEBUG] Config parameters:`, JSON.stringify(config.parameters, null, 2));
+      console.log(`🎭 [STYLE-DEBUG] ============================`);
+    }
 
     // ✅ DEVICE TOKEN LIMIT: 1 generacja PER PRODUCTTYPE dla niezalogowanych
     // Używa Vercel KV z atomic operations (trwałe, nie resetuje się)
@@ -1213,7 +1295,7 @@ module.exports = async (req, res) => {
     const shopDomain = process.env.SHOPIFY_STORE_DOMAIN || 'customify-ok.myshopify.com';
     const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
 
-    if (customerId && customerAccessToken && accessToken) {
+    if (customerId && accessToken) {
       // Zalogowany użytkownik - sprawdź Shopify Metafields
       console.log(`🔍 [TRANSFORM] Sprawdzam limity dla zalogowanego użytkownika (${finalProductType})...`);
       
@@ -1765,6 +1847,14 @@ module.exports = async (req, res) => {
         const targetImageUrl = config.parameters.target_image;
         const swapImageBase64 = imageDataUri; // Zdjęcie użytkownika (data URI)
         
+        console.log('🎯 [TRANSFORM] ===== WYWOŁANIE SEGMIND FACESWAP =====');
+        console.log('🎯 [TRANSFORM] Selected style:', selectedStyle);
+        console.log('🎯 [TRANSFORM] Target image URL:', targetImageUrl);
+        console.log('🎯 [TRANSFORM] Target image URL type:', typeof targetImageUrl);
+        console.log('🎯 [TRANSFORM] Config parameters:', JSON.stringify(config.parameters, null, 2));
+        console.log('🎯 [TRANSFORM] Swap image (base64) length:', swapImageBase64?.length);
+        console.log('🎯 [TRANSFORM] ======================================');
+        
         imageUrl = await segmindFaceswap(targetImageUrl, swapImageBase64);
         console.log('✅ [SEGMIND] Face-swap completed successfully');
         
@@ -2176,13 +2266,12 @@ module.exports = async (req, res) => {
     // ✅ INKREMENTACJA LICZNIKA PO UDANEJ TRANSFORMACJI
     console.log(`🔍 [TRANSFORM] Sprawdzam warunki inkrementacji:`, {
       hasCustomerId: !!customerId,
-      hasCustomerAccessToken: !!customerAccessToken,
       hasAccessToken: !!accessToken,
       customerId: customerId,
       productType: finalProductType
     });
     
-    if (customerId && customerAccessToken && accessToken) {
+    if (customerId && accessToken) {
       console.log(`➕ [TRANSFORM] Inkrementuję licznik dla użytkownika ${customerId} (productType: ${finalProductType})`);
       
       try {
@@ -2484,7 +2573,6 @@ module.exports = async (req, res) => {
           stack: incrementError.stack,
           customerId: customerId,
           productType: finalProductType,
-          hasCustomerAccessToken: !!customerAccessToken,
           hasAccessToken: !!accessToken
         });
         // ⚠️ KRYTYCZNE: Błąd inkrementacji - loguj szczegółowo, ale nie blokuj odpowiedzi
@@ -2493,9 +2581,8 @@ module.exports = async (req, res) => {
     } else {
       console.warn(`⚠️ [TRANSFORM] Pomijam inkrementację - brak warunków:`, {
         hasCustomerId: !!customerId,
-        hasCustomerAccessToken: !!customerAccessToken,
         hasAccessToken: !!accessToken,
-        reason: !customerId ? 'brak customerId' : !customerAccessToken ? 'brak customerAccessToken' : 'brak accessToken'
+        reason: !customerId ? 'brak customerId' : 'brak accessToken'
       });
     }
 

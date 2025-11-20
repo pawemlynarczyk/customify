@@ -2342,10 +2342,12 @@ class CustomifyEmbed {
       const requestBody = {
         imageData: base64,
         prompt: `Transform this image in ${this.selectedStyle} style`,
+        style: this.selectedStyle, // ✅ DODAJ STYL JAKO OSOBNE POLE - API użyje tego zamiast parsować prompt
         productType: productType, // Przekaż typ produktu do API
         customerId: customerInfo?.customerId || null,
-        customerAccessToken: customerInfo?.customerAccessToken || null,
-        email: email // ✅ Dodaj email dla niezalogowanych lub jako backup
+        // ✅ EMAIL: Tylko dla niezalogowanych - używany do powiązania generacji z użytkownikiem w save-generation
+        email: (!customerInfo?.customerId) ? (email || null) : null
+        // ❌ USUNIĘTO: customerAccessToken - nie jest używany, API używa SHOPIFY_ACCESS_TOKEN z env
       };
       
       console.log('📱 [MOBILE] Request body size:', JSON.stringify(requestBody).length, 'bytes');
@@ -2367,12 +2369,33 @@ class CustomifyEmbed {
       
       console.log('🔍 [FRONTEND] Request Body (bez imageData):', {
         prompt: requestBody.prompt,
+        style: requestBody.style, // ✅ POKAŻ STYL W REQUEST BODY
+        selectedStyle: this.selectedStyle, // ✅ DEBUG: Dodaj selectedStyle
         productType: requestBody.productType,
         customerId: requestBody.customerId,
         customerIdType: typeof requestBody.customerId,
         customerAccessToken: requestBody.customerAccessToken ? 'present' : 'null',
         email: requestBody.email,
         imageDataLength: requestBody.imageData?.length || 0
+      });
+      
+      // ✅ POKAŻ PEŁNY REQUEST BODY (bez imageData dla czytelności)
+      const requestBodyForLog = { ...requestBody };
+      requestBodyForLog.imageData = `[BASE64 DATA: ${requestBody.imageData?.length || 0} characters]`;
+      console.log('📤 [FRONTEND] ===== PEŁNY REQUEST BODY (imageData skrócony) =====');
+      console.log('📤 [FRONTEND]', JSON.stringify(requestBodyForLog, null, 2));
+      console.log('📤 [FRONTEND] style value:', requestBody.style);
+      console.log('📤 [FRONTEND] style type:', typeof requestBody.style);
+      console.log('📤 [FRONTEND] style === undefined:', requestBody.style === undefined);
+      console.log('📤 [FRONTEND] this.selectedStyle:', this.selectedStyle);
+      console.log('📤 [FRONTEND] ====================================================');
+      
+      // ✅ DEBUG: Sprawdź czy selectedStyle jest poprawny
+      console.log('🔍🔍🔍 [FRONTEND-DEBUG] selectedStyle przed wysłaniem:', {
+        selectedStyle: this.selectedStyle,
+        selectedStyleType: typeof this.selectedStyle,
+        promptContainsStyle: requestBody.prompt.includes(this.selectedStyle || ''),
+        styleCard: document.querySelector(`[data-style="${this.selectedStyle}"]`) ? 'found' : 'NOT FOUND'
       });
       
       const response = await fetch('https://customify-s56o.vercel.app/api/transform', {
