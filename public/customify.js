@@ -2353,8 +2353,17 @@ class CustomifyEmbed {
       let watermarkedImageBase64 = null;
       try {
         console.log('🎨 [TRANSFORM] Generuję watermark PRZED wysłaniem do API...');
-        watermarkedImageBase64 = await this.addWatermark(base64);
+        
+        // Konwertuj base64 na Blob URL (addWatermark oczekuje URL, nie base64)
+        const blob = await fetch(base64).then(r => r.blob());
+        const blobUrl = URL.createObjectURL(blob);
+        console.log('🎨 [TRANSFORM] Blob URL utworzony:', blobUrl.substring(0, 50));
+        
+        watermarkedImageBase64 = await this.addWatermark(blobUrl);
         console.log('✅ [TRANSFORM] Watermark wygenerowany, długość:', watermarkedImageBase64?.length);
+        
+        // Zwolnij Blob URL
+        URL.revokeObjectURL(blobUrl);
       } catch (watermarkError) {
         console.error('⚠️ [TRANSFORM] Błąd generowania watermarku (kontynuuję bez):', watermarkError);
         // Kontynuuj bez watermarku - nie blokuj transformacji
