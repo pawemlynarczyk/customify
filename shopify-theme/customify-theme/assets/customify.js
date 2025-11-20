@@ -362,20 +362,27 @@ class CustomifyEmbed {
   async saveAIGeneration(originalImage, transformedImage, style, size) {
     console.log('💾 [CACHE] Saving AI generation to localStorage...');
     
-    // ⚠️ NIE zapisuj ponownie do Vercel Blob - już jest zapisane w transform.js jako generation-{timestamp}.jpg
-    // Używamy URL z API response (generation-{timestamp}.jpg) zamiast duplikować jako ai-{timestamp}.jpg.jpg
-    let transformedImageUrl = transformedImage; // Użyj URL z API (generation-{timestamp}.jpg lub base64)
+    // ✅ WATERMARK URL: Użyj URL z Vercel (permanentny, z watermarkiem)
+    // Priorytet: watermarkedImageUrl (Vercel URL) > watermarkedImage (base64) > transformedImage (clean)
+    let finalImageUrl = this.watermarkedImageUrl || this.watermarkedImage || transformedImage;
     
-    console.log('✅ [CACHE] Using existing URL from transform.js (no duplicate upload):', transformedImageUrl?.substring(0, 50));
+    console.log('💾 [CACHE] Using image:', {
+      hasWatermarkedUrl: !!this.watermarkedImageUrl,
+      hasWatermarkedBase64: !!this.watermarkedImage,
+      hasClean: !!transformedImage,
+      finalUrlLength: finalImageUrl?.length,
+      isUrl: finalImageUrl?.startsWith('http')
+    });
 
     const generation = {
       id: Date.now(),
       timestamp: new Date().toISOString(),
       originalImage: originalImage, // base64 lub URL (zachowaj)
-      transformedImage: transformedImageUrl, // ZAWSZE URL (nie base64)
+      transformedImage: finalImageUrl, // ✅ Vercel URL z watermarkiem (priorytet) lub fallback
+      watermarkedImageUrl: this.watermarkedImageUrl || null, // ✅ URL dla addToCart (żeby nie uploadować 2x)
       style: style,
       size: size,
-      thumbnail: transformedImageUrl // Użyj tego samego URL dla thumbnail
+      thumbnail: finalImageUrl // Użyj tego samego URL dla thumbnail
     };
 
     // Pobierz istniejące generacje
@@ -745,10 +752,25 @@ class CustomifyEmbed {
     const workingGenerations = [];
     
     for (const generation of generations) {
+      // ✅ PRIORYTET: Jeśli ma watermarkedImageUrl (Vercel) - ZAWSZE zachowaj
+      if (generation.watermarkedImageUrl) {
+        workingGenerations.push(generation);
+        console.log('✅ [CLEANUP] Generation with watermarked URL kept:', generation.id);
+        continue;
+      }
+      
       // Sprawdź czy thumbnail to URL (nie base64)
       if (generation.thumbnail && 
           (generation.thumbnail.startsWith('http://') || generation.thumbnail.startsWith('https://'))) {
         
+        // ✅ NIE SPRAWDZAJ Replicate URLs (CORS blokuje) - zachowaj jeśli to Replicate
+        if (generation.thumbnail.includes('replicate.delivery')) {
+          workingGenerations.push(generation);
+          console.log('✅ [CLEANUP] Replicate URL kept (CORS safe):', generation.id);
+          continue;
+        }
+        
+        // Sprawdź tylko Vercel Blob URLs
         const isWorking = await this.checkImageUrl(generation.thumbnail);
         if (isWorking) {
           workingGenerations.push(generation);
@@ -831,6 +853,10 @@ class CustomifyEmbed {
       console.log('✅ [GALLERY] Set this.transformedImage for addToCart:', this.transformedImage?.substring(0, 100));
       console.log('✅ [GALLERY] this.transformedImage is base64?', this.transformedImage?.startsWith('data:'));
       console.log('✅ [GALLERY] this.transformedImage is URL?', this.transformedImage?.startsWith('http'));
+      
+      // ✅ KLUCZOWE: Ustaw this.watermarkedImageUrl z generacji (żeby nie uploadować 2x)
+      this.watermarkedImageUrl = generation.watermarkedImageUrl || null;
+      console.log('✅ [GALLERY] Set this.watermarkedImageUrl from generation:', this.watermarkedImageUrl);
       
       // ✅ KLUCZOWE: Ustaw this.originalImageFromGallery żeby addToCart() działało
       this.originalImageFromGallery = generation.originalImage;
@@ -2530,13 +2556,46 @@ class CustomifyEmbed {
       const watermarkedImage = await this.addWatermark(imageUrl);
       this.resultImage.src = watermarkedImage;
       
-      // ✅ ZAPISZ OBRAZEK Z WATERMARKIEM (do użycia w koszyku)
+      // ✅ ZAPISZ OBRAZEK Z WATERMARKIEM (base64)
       this.watermarkedImage = watermarkedImage;
       console.log('🎨 [CUSTOMIFY] Watermark dodany do podglądu i zapisany');
+      
+      // ✅ OD RAZU UPLOAD WATERMARKED NA VERCEL (dla "Moje generacje" + cart)
+      // TO SAMO CO W addToCart() - przeniesione tutaj żeby upload był od razu po transformacji
+      console.log('📤 [CUSTOMIFY] Uploading watermarked image to Vercel Blob...');
+      console.log('📤 [CUSTOMIFY] Watermarked image type:', typeof watermarkedImage);
+      console.log('📤 [CUSTOMIFY] Watermarked image length:', watermarkedImage?.length);
+      
+      try {
+        const watermarkUploadResponse = await fetch('https://customify-s56o.vercel.app/api/upload-temp-image', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            imageData: watermarkedImage,
+            filename: `watermarked-${Date.now()}.jpg`
+          })
+        });
+        
+        console.log('📤 [CUSTOMIFY] Upload response status:', watermarkUploadResponse.status);
+        const watermarkUploadResult = await watermarkUploadResponse.json();
+        console.log('📤 [CUSTOMIFY] Upload result:', watermarkUploadResult);
+        
+        if (watermarkUploadResult.success) {
+          this.watermarkedImageUrl = watermarkUploadResult.url;
+          console.log('✅ [CUSTOMIFY] Watermarked image uploaded to Vercel:', this.watermarkedImageUrl);
+        } else {
+          console.error('❌ [CUSTOMIFY] Failed to upload watermarked image:', watermarkUploadResult.error);
+          this.watermarkedImageUrl = null;
+        }
+      } catch (uploadError) {
+        console.error('❌ [CUSTOMIFY] Error uploading watermarked image:', uploadError);
+        this.watermarkedImageUrl = null;
+      }
     } catch (error) {
       console.error('❌ [CUSTOMIFY] Watermark error:', error);
       this.resultImage.src = imageUrl;
       this.watermarkedImage = null;
+      this.watermarkedImageUrl = null;
     }
     
     this.resultArea.style.display = 'block';
@@ -2650,13 +2709,16 @@ class CustomifyEmbed {
         console.warn('⚠️ [CUSTOMIFY] No original image available, using transformed image as fallback');
       }
 
-      // ✅ UPLOAD OBRAZKA Z WATERMARKIEM NA VERCEL BLOB
-      let watermarkedImageUrl = null;
-      if (this.watermarkedImage) {
-        console.log('📤 [CUSTOMIFY] Uploading watermarked image to Vercel Blob...');
+      // ✅ SPRAWDŹ CZY JUŻ MAMY WATERMARKED URL (z galerii lub z showResult)
+      let watermarkedImageUrl = this.watermarkedImageUrl || null;
+      
+      if (watermarkedImageUrl) {
+        console.log('✅ [CUSTOMIFY] Using existing watermarked URL (already uploaded):', watermarkedImageUrl);
+      } else if (this.watermarkedImage) {
+        // FALLBACK: Upload dopiero teraz (jeśli nie było uploadowane wcześniej)
+        console.log('📤 [CUSTOMIFY] No watermarked URL found, uploading now...');
         console.log('📤 [CUSTOMIFY] Watermarked image type:', typeof this.watermarkedImage);
         console.log('📤 [CUSTOMIFY] Watermarked image length:', this.watermarkedImage?.length);
-        console.log('📤 [CUSTOMIFY] Watermarked image preview:', this.watermarkedImage?.substring(0, 100));
         
         try {
           const watermarkUploadResponse = await fetch('https://customify-s56o.vercel.app/api/upload-temp-image', {
@@ -2668,14 +2730,11 @@ class CustomifyEmbed {
             })
           });
           
-          console.log('📤 [CUSTOMIFY] Upload response status:', watermarkUploadResponse.status);
           const watermarkUploadResult = await watermarkUploadResponse.json();
-          console.log('📤 [CUSTOMIFY] Upload result:', watermarkUploadResult);
           
           if (watermarkUploadResult.success) {
             watermarkedImageUrl = watermarkUploadResult.url;
             console.log('✅ [CUSTOMIFY] Watermarked image uploaded:', watermarkedImageUrl);
-            console.log('✅ [CUSTOMIFY] URL length:', watermarkedImageUrl.length);
           } else {
             console.error('❌ [CUSTOMIFY] Failed to upload watermarked image:', watermarkUploadResult.error);
           }
@@ -2683,7 +2742,7 @@ class CustomifyEmbed {
           console.error('❌ [CUSTOMIFY] Error uploading watermarked image:', error);
         }
       } else {
-        console.warn('⚠️ [CUSTOMIFY] No watermarked image available - this.watermarkedImage is null/undefined');
+        console.warn('⚠️ [CUSTOMIFY] No watermarked image available - neither URL nor base64');
       }
 
       const productData = {
@@ -3374,7 +3433,27 @@ function addMobileThumbnails() {
  */
 document.addEventListener('DOMContentLoaded', () => {
   // Initialize Customify app
-  new CustomifyEmbed();
+  const customifyApp = new CustomifyEmbed();
+  
+  // ✅ AUTO-LOAD: Sprawdź czy user wybrał generację na stronie "Moje generacje"
+  try {
+    const selectedData = localStorage.getItem('customify_selected_generation');
+    if (selectedData) {
+      const { index, generation } = JSON.parse(selectedData);
+      console.log('🎯 [CUSTOMIFY] Auto-loading generation from "Moje generacje":', index);
+      
+      // Załaduj generację
+      setTimeout(() => {
+        customifyApp.loadFromGallery(index);
+        console.log('✅ [CUSTOMIFY] Generation loaded, ready for checkout');
+      }, 500);
+      
+      // Wyczyść po użyciu
+      localStorage.removeItem('customify_selected_generation');
+    }
+  } catch (error) {
+    console.error('❌ [CUSTOMIFY] Error loading selected generation:', error);
+  }
   
   // Initialize cart integration
   initCartIntegration();

@@ -106,6 +106,50 @@
       color: #333;
     }
 
+    .generation-actions {
+      margin-top: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .btn-order-now {
+      background: #000;
+      color: #fff;
+      padding: 0.75rem 1rem;
+      border: none;
+      border-radius: 4px;
+      font-weight: bold;
+      cursor: pointer;
+      text-align: center;
+      transition: background 0.2s;
+    }
+
+    .btn-order-now:hover {
+      background: #333;
+    }
+
+    .email-badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      background: #E3F2FD;
+      color: #1976D2;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      margin-top: 0.5rem;
+    }
+
+    .expiry-info {
+      font-size: 0.85rem;
+      color: #666;
+      margin-top: 0.5rem;
+    }
+
+    .expiry-info.expiring-soon {
+      color: #d32f2f;
+      font-weight: bold;
+    }
+
     .generations-loading,
     .generations-error,
     .generations-empty {
@@ -127,75 +171,193 @@
   </style>
 
   <script>
+    // ✅ BEZPOŚREDNIE UŻYCIE localStorage (bez CustomifyEmbed)
     (function() {
-      const customerId = {{ customer.id | json }};
-      const apiUrl = 'https://customify-s56o.vercel.app/api/get-customer-generations';
+      console.log('🎨 [MY-GENERATIONS] Initializing gallery from localStorage');
+      
       const container = document.getElementById('generations-container');
-
-      if (!customerId) {
-        container.innerHTML = '<div class="generations-error">Musisz być zalogowany, aby zobaczyć swoje generacje.</div>';
-        return;
-      }
-
-      async function loadGenerations() {
+      
+      // Pobierz generacje z localStorage (ta sama struktura co customify.js)
+      function getGenerations() {
         try {
-          container.innerHTML = '<div class="generations-loading"><p>Ładowanie generacji...</p></div>';
-
-          const response = await fetch(`${apiUrl}?customerId=${customerId}`);
-          const data = await response.json();
-
-          if (!data.success) {
-            throw new Error(data.error || 'Failed to load generations');
-          }
-
-          if (!data.generations || data.generations.length === 0) {
-            container.innerHTML = '<div class="generations-empty"><p>Nie masz jeszcze żadnych generacji. Stwórz pierwszą!</p></div>';
-            return;
-          }
-
-          const html = data.generations.map(generation => {
-            const date = new Date(generation.date);
-            const dateStr = date.toLocaleDateString('pl-PL', { 
-              year: 'numeric', 
-              month: 'long', 
-              day: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit'
-            });
-
-            const statusClass = generation.purchased ? 'purchased' : 'not-purchased';
-            const statusText = generation.purchased ? 'Kupione' : 'Nie kupione';
-
-            return `
-              <div class="generation-card">
-                <img 
-                  src="${generation.imageUrl}" 
-                  alt="Generacja ${generation.style}" 
-                  class="generation-image"
-                  loading="lazy"
-                />
-                <div class="generation-info">
-                  <div class="generation-style">Styl: ${generation.style}</div>
-                  <div class="generation-date">${dateStr}</div>
-                  <div class="generation-status ${statusClass}">${statusText}</div>
-                </div>
-              </div>
-            `;
-          }).join('');
-
-          container.innerHTML = html;
-
+          const stored = localStorage.getItem('customify_ai_generations');
+          if (!stored) return [];
+          const data = JSON.parse(stored);
+          return Array.isArray(data) ? data : [];
         } catch (error) {
-          console.error('Error loading generations:', error);
-          container.innerHTML = `<div class="generations-error"><p>Błąd podczas ładowania generacji: ${error.message}</p></div>`;
+          console.error('❌ [MY-GENERATIONS] Error reading localStorage:', error);
+          return [];
         }
       }
-
-      // Załaduj generacje po załadowaniu strony
+      
+      function initGallery() {
+        const generations = getGenerations();
+        console.log('📊 [MY-GENERATIONS] Found generations:', generations.length);
+        
+        if (generations.length === 0) {
+          container.innerHTML = '<div class="generations-empty"><p>Nie masz jeszcze żadnych generacji. Stwórz pierwszą!</p></div>';
+          return;
+        }
+        
+        // Utwórz galerię (ta sama co na stronie produktu)
+        container.innerHTML = '';
+        
+        const grid = document.createElement('div');
+        grid.className = 'generations-container';
+        
+        // ✅ Funkcja dodawania watermarku
+        function addWatermark(imageDataUri) {
+          return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            
+            img.onload = function() {
+              const canvas = document.createElement('canvas');
+              canvas.width = img.width;
+              canvas.height = img.height;
+              const ctx = canvas.getContext('2d');
+              
+              ctx.drawImage(img, 0, 0);
+              ctx.save();
+              
+              const fontSize = Math.min(img.width, img.height) * 0.15;
+              ctx.font = `bold ${fontSize}px Arial`;
+              ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+              ctx.strokeStyle = 'rgba(0, 0, 0, 0.15)';
+              ctx.lineWidth = 2;
+              
+              const text = 'Lumly.pl';
+              ctx.translate(canvas.width/2, canvas.height/2);
+              ctx.rotate(-30 * Math.PI / 180);
+              
+              const lines = 3;
+              const lineHeight = fontSize * 1.8;
+              const startY = -((lines - 1) * lineHeight) / 2;
+              
+              for (let i = 0; i < lines; i++) {
+                const y = startY + (i * lineHeight);
+                ctx.strokeText(text, -ctx.measureText(text).width / 2, y);
+                ctx.fillText(text, -ctx.measureText(text).width / 2, y);
+              }
+              
+              ctx.restore();
+              resolve(canvas.toDataURL('image/jpeg', 0.95));
+            };
+            
+            img.onerror = () => reject(new Error('Failed to load image'));
+            img.src = imageDataUri;
+          });
+        }
+        
+        // Async render każdej generacji
+        async function renderGeneration(generation, index) {
+          const item = document.createElement('div');
+          item.className = 'generation-card';
+          item.style.cursor = 'pointer';
+          
+          const date = new Date(generation.timestamp);
+          const dateStr = date.toLocaleDateString('pl-PL', { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          });
+          
+          // Placeholder
+          item.innerHTML = `
+            <div class="generation-image" style="background: #f0f0f0; aspect-ratio: 3/4; display: flex; align-items: center; justify-content: center;">
+              <p style="color: #999;">⏳</p>
+            </div>
+            <div class="generation-info">
+              <div class="generation-style">${generation.style}</div>
+              <div class="generation-date">${dateStr}</div>
+            </div>
+          `;
+          
+          grid.appendChild(item);
+          
+          // ✅ PRIORYTET: watermarkedImageUrl (Vercel Z watermarkiem) > addWatermark (on-the-fly dla starych)
+          try {
+            let watermarkedImage;
+            if (generation.watermarkedImageUrl) {
+              // Nowa generacja - użyj URL z Vercel (już z watermarkiem)
+              watermarkedImage = generation.watermarkedImageUrl;
+              console.log('✅ [MY-GENERATIONS] Using watermarked URL from Vercel:', watermarkedImage.substring(0, 80));
+            } else {
+              // Stara generacja - dodaj watermark on-the-fly
+              watermarkedImage = await addWatermark(generation.transformedImage);
+              console.log('🎨 [MY-GENERATIONS] Added watermark on-the-fly for old generation');
+            }
+            
+            item.innerHTML = `
+              <img 
+                src="${watermarkedImage}" 
+                alt="Generacja ${generation.style}" 
+                class="generation-image"
+                loading="lazy"
+              />
+              <div class="generation-info">
+                <div class="generation-style">${generation.style}</div>
+                <div class="generation-date">${dateStr}</div>
+                <button class="btn-order-now">Zamów teraz 🛒</button>
+              </div>
+            `;
+            
+            // Po kliknięciu - zapisz jako wybraną i redirect do produktu
+            item.addEventListener('click', function() {
+              console.log('🎯 [MY-GENERATIONS] Selecting generation:', index);
+              
+              // Zapisz wybraną generację w localStorage (customify.js pobierze to na stronie produktu)
+              try {
+                localStorage.setItem('customify_selected_generation', JSON.stringify({
+                  index: index,
+                  generation: generation,
+                  selectedAt: new Date().toISOString()
+                }));
+                console.log('✅ [MY-GENERATIONS] Generation saved to localStorage');
+              } catch (error) {
+                console.error('❌ [MY-GENERATIONS] Error saving to localStorage:', error);
+              }
+              
+              // Redirect do odpowiedniego produktu
+              const productHandles = {
+                'boho': 'personalizowany-portret-w-stylu-boho',
+                'minimalistyczny': 'personalizowany-portret-w-stylu-boho',
+                'realistyczny': 'personalizowany-portret-w-stylu-boho',
+                'pixar': 'personalizowany-portret-w-stylu-boho',
+                'pixar 3d': 'personalizowany-portret-w-stylu-boho',
+                'cat': 'koty-krolewskie',
+                'king': 'krol-personalizowany-portret',
+                'queen': 'krol-personalizowany-portret',
+                'krol': 'krol-personalizowany-portret',
+                'krolowa': 'krol-personalizowany-portret',
+                'karykatura': 'karykatura-personalizowany-portret',
+                'caricature': 'karykatura-personalizowany-portret'
+              };
+              
+              const styleKey = (generation.style || '').toLowerCase().replace(/transform this image in | style/g, '').trim();
+              const productHandle = productHandles[styleKey] || 'personalizowany-portret-w-stylu-boho';
+              
+              console.log('🔗 [MY-GENERATIONS] Redirecting to:', productHandle);
+              window.location.href = `/products/${productHandle}`;
+            });
+          } catch (error) {
+            console.error('❌ [MY-GENERATIONS] Error rendering generation:', error);
+          }
+        }
+        
+        // Renderuj wszystkie generacje
+        generations.forEach((gen, idx) => renderGeneration(gen, idx));
+        
+        container.appendChild(grid);
+      }
+      
+      // Start gdy DOM ready
       if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', loadGenerations);
+        document.addEventListener('DOMContentLoaded', initGallery);
       } else {
-        loadGenerations();
+        initGallery();
       }
     })();
   </script>
