@@ -2533,15 +2533,28 @@ class CustomifyEmbed {
         // 🎨 GENERUJ WATERMARK Z PRZETWORZONEGO OBRAZU (PO transformacji AI)
         if (result.transformedImage && result.saveGenerationDebug?.generationId) {
           try {
-            console.log('🎨 [TRANSFORM] Generuję watermark z PRZETWORZONEGO obrazu (PO transformacji AI)...');
-            console.log('🎨 [TRANSFORM] Transformed image URL:', result.transformedImage?.substring(0, 100));
+            console.log('🎨 [TRANSFORM] ===== GENERUJĘ WATERMARK Z PRZETWORZONEGO OBRAZU =====');
+            console.log('🎨 [TRANSFORM] Transformed image type:', typeof result.transformedImage);
+            console.log('🎨 [TRANSFORM] Transformed image URL:', result.transformedImage?.substring(0, 150));
+            console.log('🎨 [TRANSFORM] Is URL?', result.transformedImage?.startsWith('http'));
+            console.log('🎨 [TRANSFORM] Is base64?', result.transformedImage?.startsWith('data:'));
             console.log('🎨 [TRANSFORM] Generation ID:', result.saveGenerationDebug.generationId);
             
             // ✅ DODAJ WATERMARK DO PRZETWORZONEGO OBRAZU (nie do oryginalnego!)
+            console.log('🎨 [TRANSFORM] Wywołuję addWatermark()...');
             const watermarkedImageBase64 = await this.addWatermark(result.transformedImage);
-            console.log('✅ [TRANSFORM] Watermark wygenerowany z przetworzonego obrazu, długość:', watermarkedImageBase64?.length);
+            
+            if (!watermarkedImageBase64) {
+              throw new Error('addWatermark() zwróciło null/undefined');
+            }
+            
+            console.log('✅ [TRANSFORM] Watermark wygenerowany z przetworzonego obrazu');
+            console.log('✅ [TRANSFORM] Watermark długość:', watermarkedImageBase64.length, 'znaków');
+            console.log('✅ [TRANSFORM] Watermark preview:', watermarkedImageBase64.substring(0, 100));
+            console.log('✅ [TRANSFORM] Watermark is base64?', watermarkedImageBase64.startsWith('data:'));
             
             // ✅ WYŚLIJ WATERMARK DO BACKENDU - zaktualizuj istniejącą generację
+            console.log('📤 [TRANSFORM] Wysyłam watermark do /api/update-generation-watermark...');
             const updateResponse = await fetch('https://customify-s56o.vercel.app/api/update-generation-watermark', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -2553,19 +2566,31 @@ class CustomifyEmbed {
               })
             });
             
+            console.log('📥 [TRANSFORM] Response status:', updateResponse.status, updateResponse.statusText);
+            
             if (updateResponse.ok) {
               const updateResult = await updateResponse.json();
-              console.log('✅ [TRANSFORM] Watermark zaktualizowany w generacji:', updateResult.watermarkedImageUrl?.substring(0, 100));
+              console.log('✅ [TRANSFORM] ===== WATERMARK ZAKTUALIZOWANY W GENERACJI =====');
+              console.log('✅ [TRANSFORM] Watermarked image URL:', updateResult.watermarkedImageUrl?.substring(0, 100));
+              console.log('✅ [TRANSFORM] Generation ID:', updateResult.generationId);
             } else {
               const errorText = await updateResponse.text();
-              console.error('⚠️ [TRANSFORM] Błąd aktualizacji watermarku:', errorText);
+              console.error('❌ [TRANSFORM] ===== BŁĄD AKTUALIZACJI WATERMARKU =====');
+              console.error('❌ [TRANSFORM] Status:', updateResponse.status);
+              console.error('❌ [TRANSFORM] Error:', errorText);
             }
           } catch (watermarkError) {
-            console.error('⚠️ [TRANSFORM] Błąd generowania/aktualizacji watermarku (kontynuuję bez):', watermarkError);
+            console.error('❌ [TRANSFORM] ===== BŁĄD GENEROWANIA/AKTUALIZACJI WATERMARKU =====');
+            console.error('❌ [TRANSFORM] Error type:', watermarkError.name);
+            console.error('❌ [TRANSFORM] Error message:', watermarkError.message);
+            console.error('❌ [TRANSFORM] Error stack:', watermarkError.stack);
             // Kontynuuj bez watermarku - nie blokuj dalszej pracy
           }
         } else {
-          console.warn('⚠️ [TRANSFORM] Brak transformedImage lub generationId - pomijam watermark');
+          console.warn('⚠️ [TRANSFORM] ===== POMIJAM WATERMARK =====');
+          console.warn('⚠️ [TRANSFORM] hasTransformedImage:', !!result.transformedImage);
+          console.warn('⚠️ [TRANSFORM] hasGenerationId:', !!result.saveGenerationDebug?.generationId);
+          console.warn('⚠️ [TRANSFORM] saveGenerationDebug:', result.saveGenerationDebug);
         }
         
         // 🎨 GALERIA: Zapisz generację do localStorage z base64 cache
