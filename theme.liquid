@@ -1120,6 +1120,13 @@
           margin: 10px 0 !important;
         }
         
+        /* Komunikat błędu transformacji - pełna szerokość nad przyciskami */
+        #errorMessageTransform {
+          width: 100% !important;
+          display: block !important;
+          margin-bottom: 10px !important;
+        }
+        
         /* Przyciski - wyrównanie do lewej */
         .customify-actions {
           text-align: left !important;
@@ -2996,8 +3003,8 @@
         </div>
 
 
-            <!-- Komunikat błędu - nad przyciskami -->
-            <div class="customify-error" id="errorMessageBottom" style="display: none; margin: 15px 0;"></div>
+            <!-- Komunikat błędu - tuż nad przyciskiem "Zobacz Podgląd" -->
+            <div class="customify-error" id="errorMessageTransform" style="display: none; margin: 10px 0;"></div>
             
             <div class="customify-actions" id="actionsArea" style="display: none;">
               <button class="customify-btn customify-btn-red" id="transformBtn">
@@ -3040,6 +3047,9 @@
                 <span class="cart-price-label" style="font-weight: 600; color: #333; margin-right: 12px;">Cena:</span>
                 <span class="cart-price-value" id="cartPriceValue" style="font-size: 1.2rem; font-weight: 700; color: #e55a2b;">0.00 zł</span>
               </div>
+              
+              <!-- Komunikat błędu - tuż nad przyciskiem "Dodaj do koszyka" -->
+              <div class="customify-error" id="errorMessageBottom" style="display: none; margin: 10px 0;"></div>
               
               <div class="customify-actions" style="margin-top: 15px;">
                 <button class="customify-btn customify-btn-primary customify-btn-red" id="addToCartBtn">
@@ -3125,9 +3135,11 @@
                 <div class="accordion-content">
                   <ul>
                     <li><strong>⚡ Szybka realizacja:</strong> 3-5 dni roboczych od akceptacji projektu</li>
-                    <li><strong>📦 Bezpieczne opakowanie:</strong> Karton wzmocniony + folia bąbelkowa</li>
-                    <li><strong>🇵🇱 Wysyłka z Polski:</strong> InPost Paczkomaty, Poczta Polska, Kurier DPD</li>
-                    <li><strong>📍 Śledzenie przesyłki:</strong> Numer trackingowy wysyłany mailem</li>
+                    <li><strong>📦 Bezpieczne opakowanie:</strong> Karton wzmocniony + folia bąbelkowa - gwarancja bezpiecznej dostawy</li>
+                    <li><strong>🇵🇱 Wysyłka:</strong> InPost Paczkomaty, InPost Kurier</li>
+                    <li><strong>📍 Śledzenie przesyłki:</strong> Numer trackingowy wysyłany mailem - zawsze wiesz gdzie jest Twoja przesyłka</li>
+                    <li><strong>🚚 Darmowa dostawa:</strong> Przy zamówieniach powyżej 400 zł</li>
+                    <li><strong>⏰ Czas dostawy:</strong> 1-3 dni robocze (w zależności od wybranej opcji)</li>
                   </ul>
                 </div>
               </div>
@@ -3943,37 +3955,35 @@
                   // Rysuj oryginalny obraz
                   ctx.drawImage(img, 0, 0);
                   
-                  // ===== WZÓR PREMIUM - 2-3 DUŻE NAPISY "Lumly.pl" NA SKOS =====
+                  // ===== WZÓR DIAGONALNY - "Lumly.pl" i "Podgląd" NA PRZEMIAN =====
                   ctx.save();
-                  
-                  // Oblicz rozmiar czcionki (40-60% szerokości obrazu)
-                  const fontSize = Math.max(60, Math.min(120, canvas.width * 0.15));
-                  ctx.font = `bold ${fontSize}px Arial`;
+                  ctx.font = 'bold 30px Arial';
+                  ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'; // Zwiększona widoczność (było 0.4)
+                  ctx.strokeStyle = 'rgba(0, 0, 0, 0.35)'; // Zwiększona widoczność (było 0.3)
+                  ctx.lineWidth = 1.5;
                   ctx.textAlign = 'center';
                   ctx.textBaseline = 'middle';
                   
-                  // Kolor biały z delikatnym cieniem (opacity 0.2-0.25)
-                  ctx.fillStyle = 'rgba(255, 255, 255, 0.22)';
-                  ctx.strokeStyle = 'rgba(0, 0, 0, 0.15)';
-                  ctx.lineWidth = 2;
-                  
-                  const text = 'Lumly.pl';
-                  
-                  // Obróć canvas o -30 stopni (z lewej-góry do prawej-dołu)
+                  // Obróć canvas
                   ctx.translate(canvas.width/2, canvas.height/2);
                   ctx.rotate(-30 * Math.PI / 180);
+                  ctx.translate(-canvas.width/2, -canvas.height/2);
                   
-                  // 1. Główny napis - centralnie przez twarz (środek obrazu)
-                  ctx.strokeText(text, 0, 0);
-                  ctx.fillText(text, 0, 0);
+                  // Rysuj watermarki w siatce - na przemian "Lumly.pl" i "Podgląd"
+                  const spacing = 180;
+                  let textIndex = 0;
+                  const texts = ['Lumly.pl', 'Podgląd'];
                   
-                  // 2. Drugi napis - przesunięty w górę i w lewo
-                  ctx.strokeText(text, -canvas.width * 0.4, -canvas.height * 0.3);
-                  ctx.fillText(text, -canvas.width * 0.4, -canvas.height * 0.3);
-                  
-                  // 3. Trzeci napis - przesunięty w dół i w prawo
-                  ctx.strokeText(text, canvas.width * 0.4, canvas.height * 0.3);
-                  ctx.fillText(text, canvas.width * 0.4, canvas.height * 0.3);
+                  for(let y = -canvas.height; y < canvas.height * 2; y += spacing) {
+                    for(let x = -canvas.width; x < canvas.width * 2; x += spacing * 1.5) {
+                      const text = texts[textIndex % 2];
+                      ctx.strokeText(text, x, y);
+                      ctx.fillText(text, x, y);
+                      textIndex++;
+                    }
+                    // Zmień wzór co wiersz dla lepszego efektu
+                    textIndex++;
+                  }
                   
                   ctx.restore();
                   
@@ -4723,9 +4733,9 @@
             </div>
             <ul style="margin: 12px 0; padding-left: 20px;">
               <li><strong>📦 Bezpieczne opakowanie:</strong> Karton wzmocniony + folia bąbelkowa - gwarancja bezpiecznej dostawy</li>
-              <li><strong>🇵🇱 Wysyłka z Polski:</strong> InPost Paczkomaty, Poczta Polska, Kurier DPD</li>
+              <li><strong>🇵🇱 Wysyłka:</strong> InPost Paczkomaty, InPost Kurier</li>
               <li><strong>📍 Śledzenie przesyłki:</strong> Numer trackingowy wysyłany mailem - zawsze wiesz gdzie jest Twoja przesyłka</li>
-              <li><strong>🚚 Darmowa dostawa:</strong> Przy zamówieniach powyżej 200 zł</li>
+              <li><strong>🚚 Darmowa dostawa:</strong> Przy zamówieniach powyżej 400 zł</li>
               <li><strong>⏰ Czas dostawy:</strong> 1-3 dni robocze (w zależności od wybranej opcji)</li>
             </ul>
           </div>
