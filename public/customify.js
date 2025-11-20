@@ -2801,7 +2801,7 @@ class CustomifyEmbed {
             
             for(let y = -canvas.height; y < canvas.height * 2; y += spacing) {
               for(let x = -canvas.width; x < canvas.width * 2; x += spacing * 1.5) {
-                const text = texts[textIndex % 2];
+                const text = texts[0]; // Tylko "Lumly.pl"
                 // ✅ RYSUJ STROKE PRZED FILL (dla lepszej widoczności)
                 ctx.strokeText(text, x, y);
                 ctx.fillText(text, x, y);
