@@ -2534,10 +2534,42 @@ class CustomifyEmbed {
       // ✅ ZAPISZ OBRAZEK Z WATERMARKIEM (do użycia w koszyku)
       this.watermarkedImage = watermarkedImage;
       console.log('🎨 [CUSTOMIFY] Watermark dodany do podglądu i zapisany');
+      
+      // ✅ OD RAZU UPLOAD WATERMARKED NA VERCEL (dla "Moje generacje" + cart)
+      console.log('📤 [CUSTOMIFY] Uploading watermarked image to Vercel Blob...');
+      console.log('📤 [CUSTOMIFY] Watermarked image type:', typeof watermarkedImage);
+      console.log('📤 [CUSTOMIFY] Watermarked image length:', watermarkedImage?.length);
+      
+      try {
+        const watermarkUploadResponse = await fetch('https://customify-s56o.vercel.app/api/upload-temp-image', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            imageData: watermarkedImage,
+            filename: `watermarked-${Date.now()}.jpg`
+          })
+        });
+        
+        console.log('📤 [CUSTOMIFY] Upload response status:', watermarkUploadResponse.status);
+        const watermarkUploadResult = await watermarkUploadResponse.json();
+        console.log('📤 [CUSTOMIFY] Upload result:', watermarkUploadResult);
+        
+        if (watermarkUploadResult.success) {
+          this.watermarkedImageUrl = watermarkUploadResult.url;
+          console.log('✅ [CUSTOMIFY] Watermarked image uploaded to Vercel:', this.watermarkedImageUrl);
+        } else {
+          console.error('❌ [CUSTOMIFY] Failed to upload watermarked image:', watermarkUploadResult.error);
+          this.watermarkedImageUrl = null;
+        }
+      } catch (uploadError) {
+        console.error('❌ [CUSTOMIFY] Error uploading watermarked image:', uploadError);
+        this.watermarkedImageUrl = null;
+      }
     } catch (error) {
       console.error('❌ [CUSTOMIFY] Watermark error:', error);
       this.resultImage.src = imageUrl;
       this.watermarkedImage = null;
+      this.watermarkedImageUrl = null;
     }
     
     this.resultArea.style.display = 'block';
