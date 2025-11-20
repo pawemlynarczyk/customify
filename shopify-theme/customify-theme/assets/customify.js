@@ -18,6 +18,7 @@ class CustomifyEmbed {
     this.resultArea = document.getElementById('resultArea');
     this.resultImage = document.getElementById('resultImage');
     this.errorMessage = document.getElementById('errorMessage');
+    this.errorMessageTransform = document.getElementById('errorMessageTransform');
     this.errorMessageBottom = document.getElementById('errorMessageBottom');
     this.successMessage = document.getElementById('successMessage');
     
@@ -1282,28 +1283,15 @@ class CustomifyEmbed {
     let counterHTML = '';
     
     if (!customerInfo) {
-      // Niezalogowany - pokaż licznik z localStorage
-      const localCount = this.getLocalUsageCount();
-      const FREE_LIMIT = 1;
-      const remaining = Math.max(0, FREE_LIMIT - localCount);
-      
-      console.log(`🔍 [USAGE] Not logged in - localCount: ${localCount}, remaining: ${remaining}`);
-      
-      if (remaining > 0) {
-        // Zielony - pozostało transformacji
-        counterHTML = `
-          <div id="usageCounter" class="usage-counter usage-counter-green">
-            🎨 Pozostało ${remaining}/${FREE_LIMIT} darmowych transformacji
-          </div>
-        `;
-      } else {
-        // Czerwony - limit wykorzystany
-        counterHTML = `
-          <div id="usageCounter" class="usage-counter usage-counter-red">
-            ❌ Wykorzystano ${FREE_LIMIT}/${FREE_LIMIT} - Zaloguj się!
-          </div>
-        `;
+      // Niezalogowany - UKRYJ licznik (nie pokazuj informacji o limitach)
+      console.log('🔍 [USAGE] Not logged in - hiding usage counter');
+      // Usuń stary licznik jeśli istnieje
+      const oldCounter = document.getElementById('usageCounter');
+      if (oldCounter) {
+        oldCounter.remove();
+        console.log('🔍 [USAGE] Removed counter for non-logged user');
       }
+      return; // Nie pokazuj licznika dla niezalogowanych
     } else {
       // Zalogowany - pobierz z API
       console.log('🔍 [USAGE] Fetching usage data from API...');
@@ -3218,19 +3206,48 @@ class CustomifyEmbed {
     }
   }
 
-  showError(message) {
-    // Pokaż błąd w OBUMIASTA miejscach (góra + dół)
-    this.errorMessage.textContent = message;
-    this.errorMessage.style.display = 'block';
+  showError(message, location = 'top') {
+    // Ukryj wszystkie komunikaty błędów najpierw
+    if (this.errorMessage) {
+      this.errorMessage.style.display = 'none';
+    }
+    if (this.errorMessageTransform) {
+      this.errorMessageTransform.style.display = 'none';
+    }
     if (this.errorMessageBottom) {
+      this.errorMessageBottom.style.display = 'none';
+    }
+    
+    // Pokaż błąd w odpowiednim miejscu
+    if (location === 'transform' && this.errorMessageTransform) {
+      // Błędy transformacji - nad przyciskiem "Zobacz Podgląd"
+      this.errorMessageTransform.textContent = message;
+      this.errorMessageTransform.style.display = 'block';
+    } else if (location === 'cart' && this.errorMessageBottom) {
+      // Błędy koszyka - nad przyciskiem "Dodaj do koszyka"
       this.errorMessageBottom.textContent = message;
       this.errorMessageBottom.style.display = 'block';
+    } else if (location === 'top' && this.errorMessage) {
+      // Błędy uploadu/walidacji pliku - na górze
+      this.errorMessage.textContent = message;
+      this.errorMessage.style.display = 'block';
+    } else {
+      // Fallback: pokaż w górze jeśli nie określono lokalizacji
+      if (this.errorMessage) {
+        this.errorMessage.textContent = message;
+        this.errorMessage.style.display = 'block';
+      }
     }
   }
 
   hideError() {
-    // Ukryj błąd w OBUMIASTA miejscach
-    this.errorMessage.style.display = 'none';
+    // Ukryj wszystkie komunikaty błędów
+    if (this.errorMessage) {
+      this.errorMessage.style.display = 'none';
+    }
+    if (this.errorMessageTransform) {
+      this.errorMessageTransform.style.display = 'none';
+    }
     if (this.errorMessageBottom) {
       this.errorMessageBottom.style.display = 'none';
     }
