@@ -2295,31 +2295,40 @@ module.exports = async (req, res) => {
           originalImageUrl: null // Opcjonalnie - można dodać później
         };
         
-        console.log(`📤 [TRANSFORM] Wywołuję /api/save-generation-v2 z danymi:`, {
-          customerId: saveData.customerId,
-          customerIdType: typeof saveData.customerId,
-          email: saveData.email,
-          ip: saveData.ip,
-          ipHashPreview: ipHash ? ipHash.substring(0, 12) : null,
-          deviceToken: saveData.deviceToken || 'null',
-          hasImageUrl: !!saveData.imageUrl,
-          style: saveData.style,
-          productType: saveData.productType
-        });
-        
-        const saveResponse = await fetch('https://customify-s56o.vercel.app/api/save-generation-v2', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(saveData)
-        });
-        
-        console.log(`📥 [TRANSFORM] save-generation-v2 response status: ${saveResponse.status}`);
-        
-        if (saveResponse.ok) {
-          const saveResult = await saveResponse.json();
-          console.log(`✅ [TRANSFORM] Generacja zapisana w Vercel Blob Storage: ${saveResult.generationId}`);
-          console.log(`📊 [TRANSFORM] Total generations: ${saveResult.totalGenerations || 'unknown'}`);
-          console.log(`🔍 [TRANSFORM] Save-generation-v2 raw response:`, JSON.stringify(saveResult, null, 2));
+        // ✅ WALIDACJA: Upewnij się że finalImageUrl jest ustawiony przed zapisem
+        if (!finalImageUrl) {
+          console.error('❌ [TRANSFORM] ===== BRAK finalImageUrl - POMIJAM ZAPIS GENERACJI =====');
+          console.error('❌ [TRANSFORM] finalImageUrl jest null/undefined - generacja NIE zostanie zapisana!');
+          console.error('❌ [TRANSFORM] imageUrl (oryginał):', imageUrl?.substring(0, 100));
+          console.error('❌ [TRANSFORM] finalImageUrl:', finalImageUrl);
+          // Kontynuuj bez zapisu - zwróć wynik do frontendu
+        } else {
+          console.log(`📤 [TRANSFORM] Wywołuję /api/save-generation-v2 z danymi:`, {
+            customerId: saveData.customerId,
+            customerIdType: typeof saveData.customerId,
+            email: saveData.email,
+            ip: saveData.ip,
+            ipHashPreview: ipHash ? ipHash.substring(0, 12) : null,
+            deviceToken: saveData.deviceToken || 'null',
+            hasImageUrl: !!saveData.imageUrl,
+            imageUrlPreview: saveData.imageUrl?.substring(0, 100),
+            style: saveData.style,
+            productType: saveData.productType
+          });
+          
+          const saveResponse = await fetch('https://customify-s56o.vercel.app/api/save-generation-v2', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(saveData)
+          });
+          
+          console.log(`📥 [TRANSFORM] save-generation-v2 response status: ${saveResponse.status}`);
+          
+          if (saveResponse.ok) {
+            const saveResult = await saveResponse.json();
+            console.log(`✅ [TRANSFORM] Generacja zapisana w Vercel Blob Storage: ${saveResult.generationId}`);
+            console.log(`📊 [TRANSFORM] Total generations: ${saveResult.totalGenerations || 'unknown'}`);
+            console.log(`🔍 [TRANSFORM] Save-generation-v2 raw response:`, JSON.stringify(saveResult, null, 2));
           
           // ✅ LOGUJ SZCZEGÓŁY DLA DIAGNOSTYKI (dla Vercel Logs)
           if (saveResult.debug) {

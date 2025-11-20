@@ -2349,25 +2349,6 @@ class CustomifyEmbed {
       const base64 = await this.fileToBase64(this.uploadedFile);
       console.log('📱 [MOBILE] Starting transform request...');
       
-      // 🎨 GENERUJ WATERMARK PRZED WYSŁANIEM DO API
-      let watermarkedImageBase64 = null;
-      try {
-        console.log('🎨 [TRANSFORM] Generuję watermark PRZED wysłaniem do API...');
-        console.log('🎨 [TRANSFORM] Base64 type:', typeof base64, 'starts with data:', base64?.startsWith('data:'));
-        
-        // ✅ DODAJ DATA URI PREFIX - fileToBase64() zwraca tylko surowy base64!
-        // new Image() wymaga pełnego data URI: "data:image/jpeg;base64,/9j/4AAQ..."
-        const base64DataUri = base64.startsWith('data:') ? base64 : `data:image/jpeg;base64,${base64}`;
-        console.log('🎨 [TRANSFORM] Base64 Data URI utworzony, długość:', base64DataUri.length);
-        
-        watermarkedImageBase64 = await this.addWatermark(base64DataUri);
-        console.log('✅ [TRANSFORM] Watermark wygenerowany, długość:', watermarkedImageBase64?.length);
-      } catch (watermarkError) {
-        console.error('⚠️ [TRANSFORM] Błąd generowania watermarku (kontynuuję bez):', watermarkError);
-        console.error('⚠️ [TRANSFORM] Watermark error details:', watermarkError.message, watermarkError.stack);
-        // Kontynuuj bez watermarku - nie blokuj transformacji
-      }
-      
       // Create AbortController for timeout
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 300000); // 5 minutes
@@ -2387,14 +2368,13 @@ class CustomifyEmbed {
       
       const requestBody = {
         imageData: base64,
-        watermarkedImage: watermarkedImageBase64, // 🎨 DODAJ WATERMARK DO REQUEST BODY
         prompt: `Transform this image in ${this.selectedStyle} style`,
         style: this.selectedStyle, // ✅ DODAJ STYL JAKO OSOBNE POLE - API użyje tego zamiast parsować prompt
         productType: productType, // Przekaż typ produktu do API
         customerId: customerInfo?.customerId || null,
         // ✅ EMAIL: Tylko dla niezalogowanych - używany do powiązania generacji z użytkownikiem w save-generation
         email: (!customerInfo?.customerId) ? (email || null) : null
-        // ❌ USUNIĘTO: customerAccessToken - nie jest używany, API używa SHOPIFY_ACCESS_TOKEN z env
+        // ❌ USUNIĘTO: watermarkedImage - watermark generujemy PO transformacji AI, nie przed!
       };
       
       console.log('📱 [MOBILE] Request body size:', JSON.stringify(requestBody).length, 'bytes');
@@ -2546,12 +2526,103 @@ class CustomifyEmbed {
         this.transformedImage = result.transformedImage;
         this.hideError(); // Ukryj komunikat błędu po udanej transformacji
         
-        // ✅ AWAIT: Czekaj aż watermark zostanie dodany (showResult jest async)
+        // ✅ AWAIT: Czekaj aż wynik zostanie pokazany
         await this.showResult(result.transformedImage);
         this.showSuccess('Teraz wybierz rozmiar obrazu');
         
-        // ✅ WATERMARK JUŻ ZAPISANY W /api/transform - nie trzeba osobnego endpointu
-        console.log('✅ [CUSTOMIFY] Watermark został zapisany razem z generacją w /api/transform');
+        // 🎨 GENERUJ WATERMARK Z PRZETWORZONEGO OBRAZU (PO transformacji AI)
+        if (result.transformedImage && result.saveGenerationDebug?.generationId) {
+          try {
+            console.log('🎨 [TRANSFORM] ===== GENERUJĘ WATERMARK Z PRZETWORZONEGO OBRAZU =====');
+            console.log('🎨 [TRANSFORM] Transformed image type:', typeof result.transformedImage);
+            console.log('🎨 [TRANSFORM] Transformed image URL:', result.transformedImage?.substring(0, 150));
+            console.log('🎨 [TRANSFORM] Is URL?', result.transformedImage?.startsWith('http'));
+            console.log('🎨 [TRANSFORM] Is base64?', result.transformedImage?.startsWith('data:'));
+            console.log('🎨 [TRANSFORM] Generation ID:', result.saveGenerationDebug.generationId);
+            
+            // ✅ DODAJ WATERMARK DO PRZETWORZONEGO OBRAZU (nie do oryginalnego!)
+            console.log('🎨 [TRANSFORM] Wywołuję addWatermark()...');
+            const watermarkedImageBase64 = await this.addWatermark(result.transformedImage);
+            
+            if (!watermarkedImageBase64) {
+              throw new Error('addWatermark() zwróciło null/undefined');
+            }
+            
+            console.log('✅ [TRANSFORM] Watermark wygenerowany z przetworzonego obrazu');
+            console.log('✅ [TRANSFORM] Watermark długość:', watermarkedImageBase64.length, 'znaków');
+            console.log('✅ [TRANSFORM] Watermark preview:', watermarkedImageBase64.substring(0, 100));
+            console.log('✅ [TRANSFORM] Watermark is base64?', watermarkedImageBase64.startsWith('data:'));
+            
+            // ✅ WYŚLIJ WATERMARK DO BACKENDU - zaktualizuj istniejącą generację z RETRY LOGIC
+            // 🔄 RETRY: Poczekaj na zapis generacji (race condition - generacja może nie być jeszcze w Blob Storage)
+            console.log('📤 [TRANSFORM] Wysyłam watermark do /api/update-generation-watermark...');
+            
+            let updateSuccess = false;
+            let lastError = null;
+            
+            // 🔄 Retry 3 razy z opóźnieniem (1s, 2s, 3s)
+            for (let attempt = 0; attempt < 3; attempt++) {
+              if (attempt > 0) {
+                const delay = attempt * 1000; // 1s, 2s, 3s
+                console.log(`🔄 [TRANSFORM] Retry attempt ${attempt + 1}/3 po ${delay}ms opóźnieniu...`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+              }
+              
+              try {
+                const updateResponse = await fetch('https://customify-s56o.vercel.app/api/update-generation-watermark', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    generationId: result.saveGenerationDebug.generationId,
+                    watermarkedImage: watermarkedImageBase64,
+                    customerId: customerInfo?.customerId || null,
+                    email: (!customerInfo?.customerId) ? (email || null) : null
+                  })
+                });
+                
+                console.log(`📥 [TRANSFORM] Response status (attempt ${attempt + 1}):`, updateResponse.status, updateResponse.statusText);
+                
+                if (updateResponse.ok) {
+                  const updateResult = await updateResponse.json();
+                  console.log('✅ [TRANSFORM] ===== WATERMARK ZAKTUALIZOWANY W GENERACJI =====');
+                  console.log('✅ [TRANSFORM] Watermarked image URL:', updateResult.watermarkedImageUrl?.substring(0, 100));
+                  console.log('✅ [TRANSFORM] Generation ID:', updateResult.generationId);
+                  updateSuccess = true;
+                  break; // Sukces - przerwij retry
+                } else {
+                  const errorText = await updateResponse.text();
+                  lastError = { status: updateResponse.status, error: errorText };
+                  console.warn(`⚠️ [TRANSFORM] Attempt ${attempt + 1} failed:`, updateResponse.status, errorText);
+                  
+                  // Jeśli to nie 404, nie próbuj ponownie
+                  if (updateResponse.status !== 404) {
+                    break;
+                  }
+                }
+              } catch (fetchError) {
+                lastError = { error: fetchError.message };
+                console.warn(`⚠️ [TRANSFORM] Attempt ${attempt + 1} error:`, fetchError.message);
+              }
+            }
+            
+            if (!updateSuccess) {
+              console.error('❌ [TRANSFORM] ===== BŁĄD AKTUALIZACJI WATERMARKU (wszystkie próby nieudane) =====');
+              console.error('❌ [TRANSFORM] Last error:', lastError);
+              // Nie rzucaj błędu - kontynuuj bez watermarku
+            }
+          } catch (watermarkError) {
+            console.error('❌ [TRANSFORM] ===== BŁĄD GENEROWANIA/AKTUALIZACJI WATERMARKU =====');
+            console.error('❌ [TRANSFORM] Error type:', watermarkError.name);
+            console.error('❌ [TRANSFORM] Error message:', watermarkError.message);
+            console.error('❌ [TRANSFORM] Error stack:', watermarkError.stack);
+            // Kontynuuj bez watermarku - nie blokuj dalszej pracy
+          }
+        } else {
+          console.warn('⚠️ [TRANSFORM] ===== POMIJAM WATERMARK =====');
+          console.warn('⚠️ [TRANSFORM] hasTransformedImage:', !!result.transformedImage);
+          console.warn('⚠️ [TRANSFORM] hasGenerationId:', !!result.saveGenerationDebug?.generationId);
+          console.warn('⚠️ [TRANSFORM] saveGenerationDebug:', result.saveGenerationDebug);
+        }
         
         // 🎨 GALERIA: Zapisz generację do localStorage z base64 cache
         // ✅ DODAJ productType do generacji (dla skalowalności)
@@ -2663,8 +2734,8 @@ class CustomifyEmbed {
             // ===== WZÓR DIAGONALNY - "LUMLY.PL" i "PODGLAD" NA PRZEMIAN =====
             ctx.save();
             
-            // ✅ ZWIĘKSZONY FONT I OPACITY DLA LEPSZEJ WIDOCZNOŚCI
-            const fontSize = Math.max(40, Math.min(canvas.width, canvas.height) * 0.08); // Min 40px, max 8% obrazu
+            // ✅ MNIEJSZA WIDOCZNOŚĆ WATERMARKU - subtelniejszy znak wodny
+            const fontSize = Math.max(30, Math.min(canvas.width, canvas.height) * 0.06); // Min 30px, max 6% obrazu (było 40px/8%)
             console.log('📏 [WATERMARK DEBUG] fontSize:', fontSize);
             
             // 🔧 POZIOM 2: Użyj systemowych fontów z fallbackami + UPPERCASE bez polskich znaków
@@ -2672,9 +2743,10 @@ class CustomifyEmbed {
             ctx.font = `bold ${fontSize}px ${fontFamily}`;
             console.log('🔤 [WATERMARK DEBUG] Font ustawiony:', ctx.font);
             
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-            ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)';
-            ctx.lineWidth = 2;
+            // ✅ ZMNIEJSZONA OPACITY - subtelniejszy znak wodny (było 0.7/0.5, teraz 0.35/0.25)
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.35)'; // Biały tekst z 35% opacity (było 70%)
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.25)'; // Czarna obwódka z 25% opacity (było 50%)
+            ctx.lineWidth = 1; // Cieńsza obwódka (było 2px)
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             
@@ -2779,10 +2851,10 @@ class CustomifyEmbed {
   async showResult(imageUrl) {
     console.log('🎯 [CUSTOMIFY] showResult called, hiding actionsArea and stylesArea');
     
-    // ✅ WATERMARK JUŻ WYGENEROWANY W transformImage() - użyj go
-    // Watermark jest już zapisany w Vercel Blob przez /api/transform
-    this.resultImage.src = imageUrl; // Pokaż ORYGINAŁ (bez watermarku) w podglądzie
-    console.log('✅ [CUSTOMIFY] Showing result (watermark already saved in Vercel Blob)');
+    // ✅ POKAŻ PRZETWORZONY OBRAZ AI (bez watermarku w podglądzie)
+    // Watermark będzie dodany PO transformacji i zapisany przez /api/update-generation-watermark
+    this.resultImage.src = imageUrl; // Pokaż PRZETWORZONY obraz AI (bez watermarku w podglądzie)
+    console.log('✅ [CUSTOMIFY] Showing AI result (watermark will be added after)');
     
     this.resultArea.style.display = 'block';
     
