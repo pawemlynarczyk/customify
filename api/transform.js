@@ -76,36 +76,44 @@ async function addWatermarkToImage(imageBuffer) {
     const { width, height } = metadata;
     console.log(`📐 [WATERMARK] Image dimensions: ${width}x${height}`);
     
-    // Calculate font size based on image size
-    const fontSize = Math.min(width, height) * 0.08; // 8% of smaller dimension
-    const spacing = Math.min(width, height) * 0.3; // 30% spacing
+    // Calculate font size based on image size (większy font dla lepszej widoczności)
+    const fontSize = Math.min(width, height) * 0.12; // 12% of smaller dimension (było 8%)
+    const spacing = Math.min(width, height) * 0.25; // 25% spacing (było 30%)
     
-    // Create SVG watermark with diagonal text pattern
+    // Create SVG watermark with diagonal text pattern - INLINE STYLES (Sharp nie obsługuje CSS class)
+    const texts = ['Lumly.pl', 'Podgląd'];
+    const textElements = [];
+    
+    // Obróć całą grupę o -30 stopni
+    const centerX = width / 2;
+    const centerY = height / 2;
+    
+    // Generuj teksty w siatce diagonalnej
+    for (let i = -2; i < Math.ceil(height / spacing) + 3; i++) {
+      for (let j = -2; j < Math.ceil(width / spacing) + 3; j++) {
+        const x = (j - 1) * spacing * 1.5;
+        const y = (i - 1) * spacing;
+        const text = texts[(i + j) % 2];
+        
+        // Inline styles dla każdego elementu text (Sharp wymaga inline styles)
+        textElements.push(
+          `<text x="${x}" y="${y}" ` +
+          `font-family="Arial, sans-serif" ` +
+          `font-weight="bold" ` +
+          `font-size="${fontSize}" ` +
+          `fill="rgba(255, 255, 255, 0.5)" ` +
+          `stroke="rgba(0, 0, 0, 0.35)" ` +
+          `stroke-width="1.5" ` +
+          `text-anchor="middle" ` +
+          `dominant-baseline="middle">${text}</text>`
+        );
+      }
+    }
+    
     const svgWatermark = `
       <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <style>
-            .watermark-text {
-              font-family: Arial, sans-serif;
-              font-weight: bold;
-              font-size: ${fontSize}px;
-              fill: rgba(255, 255, 255, 0.5);
-              stroke: rgba(0, 0, 0, 0.35);
-              stroke-width: 1.5;
-              text-anchor: middle;
-              dominant-baseline: middle;
-            }
-          </style>
-        </defs>
-        <g transform="rotate(-30 ${width/2} ${height/2})">
-          ${Array.from({ length: Math.ceil(height / spacing) + 2 }, (_, i) => {
-            const y = (i - 1) * spacing;
-            return Array.from({ length: Math.ceil(width / spacing) + 2 }, (_, j) => {
-              const x = (j - 1) * spacing * 1.5;
-              const text = (i + j) % 2 === 0 ? 'Lumly.pl' : 'Podgląd';
-              return `<text x="${x}" y="${y}" class="watermark-text">${text}</text>`;
-            }).join('');
-          }).join('')}
+        <g transform="rotate(-30 ${centerX} ${centerY})">
+          ${textElements.join('\n')}
         </g>
       </svg>
     `;
