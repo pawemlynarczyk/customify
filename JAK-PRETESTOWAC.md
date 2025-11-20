@@ -267,3 +267,5 @@ Jeśli coś nie działa:
 **Gotowe do testów!** 🚀
 
 
+
+

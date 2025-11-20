@@ -95,3 +95,5 @@ Dla użytkownika z 7 generacjami (1 boho, 2 król, 3 koty, 1 karykatura):
 **Jeśli widzisz `totalGenerations` w `usage_count`** - to jest BŁĄD i trzeba to naprawić!
 
 
+
+

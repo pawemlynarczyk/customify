@@ -114,3 +114,5 @@ Jeśli coś nie działa:
 
 **Następny krok:** Wdrożenie na Vercel i testy na żywo
 
+
+

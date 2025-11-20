@@ -321,3 +321,5 @@ Jeśli to nie wystarczy, możesz dodać:
 3. **Admin Review System** - ręczna weryfikacja high-usage kont
 4. **Tighter Limits** - zmniejsz limit z 2 na 1 konto per device token
 
+
+

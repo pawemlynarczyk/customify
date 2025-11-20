@@ -19,6 +19,7 @@ class CustomifyEmbed {
     this.resultImage = document.getElementById('resultImage');
     this.errorMessage = document.getElementById('errorMessage');
     this.errorMessageBottom = document.getElementById('errorMessageBottom');
+    this.errorMessageTransform = document.getElementById('errorMessageTransform');
     this.successMessage = document.getElementById('successMessage');
     
     this.uploadedFile = null;
@@ -976,7 +977,7 @@ class CustomifyEmbed {
         if (!response.ok) {
           console.error(`❌ [USAGE] API error: ${response.status} ${response.statusText}`);
           // ⚠️ KRYTYCZNE: Jeśli błąd API, BLOKUJ (bezpieczniejsze niż pozwalanie)
-          this.showError(`Błąd sprawdzania limitu użycia. Spróbuj ponownie za chwilę.`);
+          this.showError(`Błąd sprawdzania limitu użycia. Spróbuj ponownie za chwilę.`, 'transform');
           return false;
         }
         
@@ -995,7 +996,7 @@ class CustomifyEmbed {
         
         if (data.remainingCount <= 0) {
           console.error(`❌ [USAGE] Limit przekroczony - przerwano transformację`);
-          this.showError(`Wykorzystałeś wszystkie transformacje dla ${productType} (${data.totalLimit}). Skontaktuj się z nami dla więcej.`);
+          this.showError(`Wykorzystałeś wszystkie transformacje dla ${productType} (${data.totalLimit}). Skontaktuj się z nami dla więcej.`, 'transform');
           return false;
         }
         
@@ -1005,7 +1006,7 @@ class CustomifyEmbed {
         console.error('❌ [USAGE] Błąd sprawdzania limitu:', error);
         // ⚠️ KRYTYCZNE: Jeśli błąd, BLOKUJ (bezpieczniejsze niż pozwalanie)
         // Użytkownik może spróbować ponownie, ale nie może obejść limitu przez błąd
-        this.showError(`Błąd sprawdzania limitu użycia. Spróbuj ponownie za chwilę.`);
+        this.showError(`Błąd sprawdzania limitu użycia. Spróbuj ponownie za chwilę.`, 'transform');
         return false;
       }
     }
@@ -1366,28 +1367,9 @@ class CustomifyEmbed {
     let counterHTML = '';
     
     if (!customerInfo) {
-      // Niezalogowany - pokaż licznik z localStorage
-      const localCount = this.getLocalUsageCount();
-      const FREE_LIMIT = 1;
-      const remaining = Math.max(0, FREE_LIMIT - localCount);
-      
-      console.log(`🔍 [USAGE] Not logged in - localCount: ${localCount}, remaining: ${remaining}`);
-      
-      if (remaining > 0) {
-        // Zielony - pozostało transformacji
-        counterHTML = `
-          <div id="usageCounter" class="usage-counter usage-counter-green">
-            🎨 Pozostało ${remaining}/${FREE_LIMIT} darmowych transformacji
-          </div>
-        `;
-      } else {
-        // Czerwony - limit wykorzystany
-        counterHTML = `
-          <div id="usageCounter" class="usage-counter usage-counter-red">
-            ❌ Wykorzystano ${FREE_LIMIT}/${FREE_LIMIT} - Zaloguj się!
-          </div>
-        `;
-      }
+      // Niezalogowany - UKRYJ licznik (nie pokazuj komunikatu)
+      console.log(`🔍 [USAGE] Not logged in - hiding usage counter`);
+      counterHTML = ''; // Nie pokazuj komunikatu dla niezalogowanych
     } else {
       // Zalogowany - pobierz z API
       console.log('🔍 [USAGE] Fetching usage data from API...');
@@ -1886,6 +1868,9 @@ class CustomifyEmbed {
     styleCard.classList.add('active');
     this.selectedStyle = styleCard.dataset.style;
     
+    // Ukryj komunikat błędu po wyborze stylu
+    this.hideError();
+    
     // Rozmiary już są widoczne od razu
   }
 
@@ -2286,7 +2271,7 @@ class CustomifyEmbed {
         uploadedFile: !!this.uploadedFile,
         selectedStyle: this.selectedStyle
       });
-      this.showError('Wgraj zdjęcie i wybierz styl');
+      this.showError('Wgraj zdjęcie i wybierz styl', 'transform');
       return;
     }
 
@@ -2427,7 +2412,7 @@ class CustomifyEmbed {
             this.showLoginModal(usedCount, totalLimit);
           } else {
             const limitMessage = errorJson.message || 'Wykorzystałeś wszystkie dostępne transformacje.';
-            this.showError(limitMessage);
+            this.showError(limitMessage, 'transform');
           }
 
           return;
@@ -2481,6 +2466,7 @@ class CustomifyEmbed {
       
       if (result.success) {
         this.transformedImage = result.transformedImage;
+        this.hideError(); // Ukryj komunikat błędu po udanej transformacji
         this.showResult(result.transformedImage);
         this.showSuccess('Teraz wybierz rozmiar obrazu');
         
@@ -2518,7 +2504,7 @@ class CustomifyEmbed {
           // Counter refreshed for logged-in user
         }
       } else {
-        this.showError('Błąd podczas transformacji: ' + (result.error || 'Nieznany błąd'));
+        this.showError('Błąd podczas transformacji: ' + (result.error || 'Nieznany błąd'), 'transform');
       }
     } catch (error) {
       console.error('📱 [MOBILE] Transform error:', error);
@@ -2549,7 +2535,7 @@ class CustomifyEmbed {
         errorMessage = 'Błąd przetwarzania. Spróbuj ponownie.';
       }
       
-      this.showError(errorMessage);
+      this.showError(errorMessage, 'transform');
     } finally {
       this.hideLoading();
     }
@@ -2572,37 +2558,35 @@ class CustomifyEmbed {
           // Rysuj oryginalny obraz
           ctx.drawImage(img, 0, 0);
           
-          // ===== WZÓR PREMIUM - 2-3 DUŻE NAPISY "Lumly.pl" NA SKOS =====
+          // ===== WZÓR DIAGONALNY - "Lumly.pl" i "Podgląd" NA PRZEMIAN =====
           ctx.save();
-          
-          // Oblicz rozmiar czcionki (40-60% szerokości obrazu)
-          const fontSize = Math.max(60, Math.min(120, canvas.width * 0.15));
-          ctx.font = `bold ${fontSize}px Arial`;
+          ctx.font = 'bold 30px Arial';
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'; // Zwiększona widoczność (było 0.4)
+          ctx.strokeStyle = 'rgba(0, 0, 0, 0.35)'; // Zwiększona widoczność (było 0.3)
+          ctx.lineWidth = 1.5;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           
-          // Kolor biały z delikatnym cieniem (opacity 0.2-0.25)
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.22)';
-          ctx.strokeStyle = 'rgba(0, 0, 0, 0.15)';
-          ctx.lineWidth = 2;
-          
-          const text = 'Lumly.pl';
-          
-          // Obróć canvas o -30 stopni (z lewej-góry do prawej-dołu)
+          // Obróć canvas
           ctx.translate(canvas.width/2, canvas.height/2);
           ctx.rotate(-30 * Math.PI / 180);
+          ctx.translate(-canvas.width/2, -canvas.height/2);
           
-          // 1. Główny napis - centralnie przez twarz (środek obrazu)
-          ctx.strokeText(text, 0, 0);
-          ctx.fillText(text, 0, 0);
+          // Rysuj watermarki w siatce - na przemian "Lumly.pl" i "Podgląd"
+          const spacing = 180;
+          let textIndex = 0;
+          const texts = ['Lumly.pl', 'Podgląd'];
           
-          // 2. Drugi napis - przesunięty w górę i w lewo
-          ctx.strokeText(text, -canvas.width * 0.4, -canvas.height * 0.3);
-          ctx.fillText(text, -canvas.width * 0.4, -canvas.height * 0.3);
-          
-          // 3. Trzeci napis - przesunięty w dół i w prawo
-          ctx.strokeText(text, canvas.width * 0.4, canvas.height * 0.3);
-          ctx.fillText(text, canvas.width * 0.4, canvas.height * 0.3);
+          for(let y = -canvas.height; y < canvas.height * 2; y += spacing) {
+            for(let x = -canvas.width; x < canvas.width * 2; x += spacing * 1.5) {
+              const text = texts[textIndex % 2];
+              ctx.strokeText(text, x, y);
+              ctx.fillText(text, x, y);
+              textIndex++;
+            }
+            // Zmień wzór co wiersz dla lepszego efektu
+            textIndex++;
+          }
           
           ctx.restore();
           
@@ -2678,7 +2662,7 @@ class CustomifyEmbed {
     console.log('🔍 [CUSTOMIFY] Checking selectedSize:', this.selectedSize);
     if (!this.selectedSize) {
       console.log('❌ [CUSTOMIFY] No selectedSize, showing error');
-      this.showError('Nie wybrałeś rozmiaru');
+      this.showError('Nie wybrałeś rozmiaru', 'cart');
       return;
     }
     console.log('✅ [CUSTOMIFY] selectedSize OK, proceeding with price calculation');
@@ -2704,13 +2688,13 @@ class CustomifyEmbed {
 
     // ✅ SPRAWDŹ OBRAZ AI DOPIERO POTEM
     if (!this.transformedImage) {
-      this.showError('Brak przekształconego obrazu');
+      this.showError('Brak przekształconego obrazu', 'cart');
       return;
     }
     
     // ✅ SPRAWDŹ STYL
     if (!this.selectedStyle) {
-      this.showError('Wybierz styl');
+      this.showError('Wybierz styl', 'cart');
       return;
     }
 
@@ -2733,7 +2717,7 @@ class CustomifyEmbed {
       // Sprawdź czy finalPrice jest poprawny
       if (!finalPrice || finalPrice <= 0) {
         console.error('❌ [CUSTOMIFY] Invalid finalPrice:', finalPrice);
-        this.showError('Błąd obliczania ceny. Spróbuj ponownie.');
+        this.showError('Błąd obliczania ceny. Spróbuj ponownie.', 'cart');
         return;
       }
 
@@ -2904,7 +2888,7 @@ class CustomifyEmbed {
           if (fullUrl.length > 2048) {
             console.error('❌ [CUSTOMIFY] URL TOO LONG:', fullUrl.length, 'chars (max 2048)');
             console.error('❌ [CUSTOMIFY] Properties:', properties);
-            this.showError('URL zbyt długi - usuń niektóre właściwości lub skontaktuj się z supportem');
+            this.showError('URL zbyt długi - usuń niektóre właściwości lub skontaktuj się z supportem', 'cart');
             return;
           }
           
@@ -2929,7 +2913,7 @@ class CustomifyEmbed {
       } else {
         console.error('❌ [CUSTOMIFY] Product creation failed:', result);
         this.hideCartLoading();
-        this.showError('❌ Błąd podczas tworzenia produktu: ' + (result.error || 'Nieznany błąd'));
+        this.showError('❌ Błąd podczas tworzenia produktu: ' + (result.error || 'Nieznany błąd'), 'cart');
       }
     } catch (error) {
       console.error('❌ [CUSTOMIFY] Add to cart error:', error);
@@ -2947,7 +2931,7 @@ class CustomifyEmbed {
         errorMessage = '❌ Błąd: ' + error.message;
       }
       
-      this.showError(errorMessage);
+      this.showError(errorMessage, 'cart');
     }
   }
 
@@ -3277,19 +3261,48 @@ class CustomifyEmbed {
     }
   }
 
-  showError(message) {
-    // Pokaż błąd w OBUMIASTA miejscach (góra + dół)
-    this.errorMessage.textContent = message;
-    this.errorMessage.style.display = 'block';
+  showError(message, location = 'top') {
+    // Ukryj wszystkie komunikaty błędów najpierw
+    if (this.errorMessage) {
+      this.errorMessage.style.display = 'none';
+    }
+    if (this.errorMessageTransform) {
+      this.errorMessageTransform.style.display = 'none';
+    }
     if (this.errorMessageBottom) {
+      this.errorMessageBottom.style.display = 'none';
+    }
+    
+    // Pokaż błąd w odpowiednim miejscu
+    if (location === 'transform' && this.errorMessageTransform) {
+      // Błędy transformacji - nad przyciskiem "Zobacz Podgląd"
+      this.errorMessageTransform.textContent = message;
+      this.errorMessageTransform.style.display = 'block';
+    } else if (location === 'cart' && this.errorMessageBottom) {
+      // Błędy koszyka - nad przyciskiem "Dodaj do koszyka"
       this.errorMessageBottom.textContent = message;
       this.errorMessageBottom.style.display = 'block';
+    } else if (location === 'top' && this.errorMessage) {
+      // Błędy uploadu/walidacji pliku - na górze
+      this.errorMessage.textContent = message;
+      this.errorMessage.style.display = 'block';
+    } else {
+      // Fallback: pokaż w górze jeśli nie określono lokalizacji
+      if (this.errorMessage) {
+        this.errorMessage.textContent = message;
+        this.errorMessage.style.display = 'block';
+      }
     }
   }
 
   hideError() {
-    // Ukryj błąd w OBUMIASTA miejscach
-    this.errorMessage.style.display = 'none';
+    // Ukryj wszystkie komunikaty błędów
+    if (this.errorMessage) {
+      this.errorMessage.style.display = 'none';
+    }
+    if (this.errorMessageTransform) {
+      this.errorMessageTransform.style.display = 'none';
+    }
     if (this.errorMessageBottom) {
       this.errorMessageBottom.style.display = 'none';
     }

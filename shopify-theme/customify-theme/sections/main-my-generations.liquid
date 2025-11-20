@@ -300,24 +300,71 @@
               <div class="generation-info">
                 <div class="generation-style">${generation.style}</div>
                 <div class="generation-date">${dateStr}</div>
-                <button class="btn-order-now">Zamów teraz 🛒</button>
+                <div style="margin-top: 0.5rem; font-size: 0.85rem; color: #666;">Kliknij, aby zamówić</div>
               </div>
             `;
             
-            // Po kliknięciu - zapisz jako wybraną i redirect do produktu
-            item.addEventListener('click', function() {
-              console.log('🎯 [MY-GENERATIONS] Selecting generation:', index);
+            // Po kliknięciu - zapisz jako wybraną i redirect do produktu (działa jak w galerii produktu)
+            item.addEventListener('click', function(e) {
+              // Zapobiegaj propagacji jeśli kliknięto w link/przycisk (jeśli będzie dodany)
+              if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON') {
+                return;
+              }
               
-              // Zapisz wybraną generację w localStorage (customify.js pobierze to na stronie produktu)
+              console.log('🎯 [MY-GENERATIONS] Selecting generation:', index);
+              console.log('🎯 [MY-GENERATIONS] Full generation object:', generation);
+              console.log('🎯 [MY-GENERATIONS] Generation keys:', Object.keys(generation));
+              console.log('🎯 [MY-GENERATIONS] Generation details:', {
+                id: generation.id,
+                style: generation.style,
+                size: generation.size,
+                timestamp: generation.timestamp,
+                hasTransformedImage: !!generation.transformedImage,
+                hasOriginalImage: !!generation.originalImage,
+                hasWatermarkedUrl: !!generation.watermarkedImageUrl,
+                transformedImageType: typeof generation.transformedImage,
+                transformedImageLength: generation.transformedImage?.length,
+                transformedImagePreview: generation.transformedImage?.substring(0, 100)
+              });
+              
+              // Zapisz wybraną generację w localStorage (customify.js użyje reuseGeneration() na stronie produktu)
               try {
-                localStorage.setItem('customify_selected_generation', JSON.stringify({
+                const dataToSave = {
                   index: index,
-                  generation: generation,
+                  generation: generation, // Pełny obiekt generacji z wszystkimi danymi
                   selectedAt: new Date().toISOString()
-                }));
-                console.log('✅ [MY-GENERATIONS] Generation saved to localStorage');
+                };
+                
+                console.log('💾 [MY-GENERATIONS] Saving to localStorage:', {
+                  index: dataToSave.index,
+                  generationId: dataToSave.generation.id,
+                  generationStyle: dataToSave.generation.style,
+                  dataSize: JSON.stringify(dataToSave).length
+                });
+                
+                localStorage.setItem('customify_selected_generation', JSON.stringify(dataToSave));
+                
+                // Weryfikacja zapisu
+                const verify = localStorage.getItem('customify_selected_generation');
+                if (verify) {
+                  const parsed = JSON.parse(verify);
+                  console.log('✅ [MY-GENERATIONS] Verification - saved successfully:', {
+                    index: parsed.index,
+                    generationId: parsed.generation?.id,
+                    generationStyle: parsed.generation?.style,
+                    hasTransformedImage: !!parsed.generation?.transformedImage
+                  });
+                } else {
+                  console.error('❌ [MY-GENERATIONS] Verification failed - data not found after save!');
+                }
               } catch (error) {
                 console.error('❌ [MY-GENERATIONS] Error saving to localStorage:', error);
+                console.error('❌ [MY-GENERATIONS] Error details:', {
+                  message: error.message,
+                  name: error.name,
+                  stack: error.stack
+                });
+                return; // Nie przekierowuj jeśli błąd zapisu
               }
               
               // Redirect do odpowiedniego produktu
