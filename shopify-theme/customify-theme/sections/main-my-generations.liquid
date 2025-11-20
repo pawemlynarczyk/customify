@@ -394,9 +394,31 @@
                 'caricature': 'personalizowany-portret-w-stylu-boho'
               };
               
-              const styleKey = (generation.style || '').toLowerCase().replace(/transform this image in | style/g, '').trim();
+              // ✅ FIX: Parsuj styl - usuń "transform this image in" i " style" jeśli są
+              let styleKey = (generation.style || '').toLowerCase().replace(/transform this image in | style/g, '').trim();
+              
+              // ✅ FIX: Rozpoznaj style króla (krol-*) i przekieruj na właściwy produkt
+              if (styleKey.startsWith('krol-') || styleKey.startsWith('krolowa-')) {
+                // Style króla/królowej - przekieruj na produkt króla
+                styleKey = 'krol';
+                console.log('👑 [MY-GENERATIONS] Rozpoznano styl króla/królowej, przekierowuję na produkt króla');
+              } else if (styleKey.includes('krol') || styleKey.includes('king') || styleKey.includes('queen')) {
+                // Fallback dla innych wariantów
+                styleKey = 'krol';
+                console.log('👑 [MY-GENERATIONS] Rozpoznano styl króla/królowej (fallback), przekierowuję na produkt króla');
+              } else if (styleKey.includes('krolewski') || styleKey.includes('na-tronie') || styleKey.includes('wojenny') || styleKey.includes('wiktorianski') || styleKey.includes('renesansowy')) {
+                // Style kotów
+                styleKey = 'cat';
+                console.log('🐱 [MY-GENERATIONS] Rozpoznano styl kota, przekierowuję na produkt kotów');
+              }
+              
               const productHandle = productHandles[styleKey] || 'personalizowany-portret-w-stylu-boho';
               
+              console.log('🔗 [MY-GENERATIONS] Parsowanie stylu:', {
+                originalStyle: generation.style,
+                parsedStyleKey: styleKey,
+                productHandle: productHandle
+              });
               console.log('🔗 [MY-GENERATIONS] Redirecting to:', productHandle);
               window.location.href = `/products/${productHandle}`;
             });
