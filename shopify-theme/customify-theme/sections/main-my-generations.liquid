@@ -439,12 +439,19 @@
                 console.log('🔄 [MY-GENERATIONS] Wywnioskowano productType z stylu:', detectedProductType, '→', productHandle);
               }
               
+              console.log('🔗 [MY-GENERATIONS] ===== FINALNE PARSOWANIE =====');
               console.log('🔗 [MY-GENERATIONS] Parsowanie generacji:', {
                 originalStyle: generation.style,
                 productType: generation.productType || 'brak',
-                finalProductHandle: productHandle
+                finalProductHandle: productHandle,
+                productTypeToHandle: productTypeToHandle
               });
               console.log('🔗 [MY-GENERATIONS] Redirecting to:', productHandle);
+              console.log('🔗 [MY-GENERATIONS] ================================');
+              
+              // ✅ TYMCZASOWO: Dodaj alert żeby zobaczyć co się dzieje (usuń po debugowaniu)
+              // alert(`Style: ${generation.style}\nProductType: ${generation.productType || 'brak'}\nRedirect: ${productHandle}`);
+              
               window.location.href = `/products/${productHandle}`;
             });
           } catch (error) {
