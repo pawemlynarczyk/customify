@@ -2349,25 +2349,6 @@ class CustomifyEmbed {
       const base64 = await this.fileToBase64(this.uploadedFile);
       console.log('📱 [MOBILE] Starting transform request...');
       
-      // 🎨 GENERUJ WATERMARK PRZED WYSŁANIEM DO API
-      let watermarkedImageBase64 = null;
-      try {
-        console.log('🎨 [TRANSFORM] Generuję watermark PRZED wysłaniem do API...');
-        console.log('🎨 [TRANSFORM] Base64 type:', typeof base64, 'starts with data:', base64?.startsWith('data:'));
-        
-        // ✅ DODAJ DATA URI PREFIX - fileToBase64() zwraca tylko surowy base64!
-        // new Image() wymaga pełnego data URI: "data:image/jpeg;base64,/9j/4AAQ..."
-        const base64DataUri = base64.startsWith('data:') ? base64 : `data:image/jpeg;base64,${base64}`;
-        console.log('🎨 [TRANSFORM] Base64 Data URI utworzony, długość:', base64DataUri.length);
-        
-        watermarkedImageBase64 = await this.addWatermark(base64DataUri);
-        console.log('✅ [TRANSFORM] Watermark wygenerowany, długość:', watermarkedImageBase64?.length);
-      } catch (watermarkError) {
-        console.error('⚠️ [TRANSFORM] Błąd generowania watermarku (kontynuuję bez):', watermarkError);
-        console.error('⚠️ [TRANSFORM] Watermark error details:', watermarkError.message, watermarkError.stack);
-        // Kontynuuj bez watermarku - nie blokuj transformacji
-      }
-      
       // Create AbortController for timeout
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 300000); // 5 minutes
@@ -2387,14 +2368,13 @@ class CustomifyEmbed {
       
       const requestBody = {
         imageData: base64,
-        watermarkedImage: watermarkedImageBase64, // 🎨 DODAJ WATERMARK DO REQUEST BODY
         prompt: `Transform this image in ${this.selectedStyle} style`,
         style: this.selectedStyle, // ✅ DODAJ STYL JAKO OSOBNE POLE - API użyje tego zamiast parsować prompt
         productType: productType, // Przekaż typ produktu do API
         customerId: customerInfo?.customerId || null,
         // ✅ EMAIL: Tylko dla niezalogowanych - używany do powiązania generacji z użytkownikiem w save-generation
         email: (!customerInfo?.customerId) ? (email || null) : null
-        // ❌ USUNIĘTO: customerAccessToken - nie jest używany, API używa SHOPIFY_ACCESS_TOKEN z env
+        // ❌ USUNIĘTO: watermarkedImage - watermark generujemy PO transformacji AI, nie przed!
       };
       
       console.log('📱 [MOBILE] Request body size:', JSON.stringify(requestBody).length, 'bytes');
@@ -2546,12 +2526,47 @@ class CustomifyEmbed {
         this.transformedImage = result.transformedImage;
         this.hideError(); // Ukryj komunikat błędu po udanej transformacji
         
-        // ✅ AWAIT: Czekaj aż watermark zostanie dodany (showResult jest async)
+        // ✅ AWAIT: Czekaj aż wynik zostanie pokazany
         await this.showResult(result.transformedImage);
         this.showSuccess('Teraz wybierz rozmiar obrazu');
         
-        // ✅ WATERMARK JUŻ ZAPISANY W /api/transform - nie trzeba osobnego endpointu
-        console.log('✅ [CUSTOMIFY] Watermark został zapisany razem z generacją w /api/transform');
+        // 🎨 GENERUJ WATERMARK Z PRZETWORZONEGO OBRAZU (PO transformacji AI)
+        if (result.transformedImage && result.saveGenerationDebug?.generationId) {
+          try {
+            console.log('🎨 [TRANSFORM] Generuję watermark z PRZETWORZONEGO obrazu (PO transformacji AI)...');
+            console.log('🎨 [TRANSFORM] Transformed image URL:', result.transformedImage?.substring(0, 100));
+            console.log('🎨 [TRANSFORM] Generation ID:', result.saveGenerationDebug.generationId);
+            
+            // ✅ DODAJ WATERMARK DO PRZETWORZONEGO OBRAZU (nie do oryginalnego!)
+            const watermarkedImageBase64 = await this.addWatermark(result.transformedImage);
+            console.log('✅ [TRANSFORM] Watermark wygenerowany z przetworzonego obrazu, długość:', watermarkedImageBase64?.length);
+            
+            // ✅ WYŚLIJ WATERMARK DO BACKENDU - zaktualizuj istniejącą generację
+            const updateResponse = await fetch('https://customify-s56o.vercel.app/api/update-generation-watermark', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                generationId: result.saveGenerationDebug.generationId,
+                watermarkedImage: watermarkedImageBase64,
+                customerId: customerInfo?.customerId || null,
+                email: (!customerInfo?.customerId) ? (email || null) : null
+              })
+            });
+            
+            if (updateResponse.ok) {
+              const updateResult = await updateResponse.json();
+              console.log('✅ [TRANSFORM] Watermark zaktualizowany w generacji:', updateResult.watermarkedImageUrl?.substring(0, 100));
+            } else {
+              const errorText = await updateResponse.text();
+              console.error('⚠️ [TRANSFORM] Błąd aktualizacji watermarku:', errorText);
+            }
+          } catch (watermarkError) {
+            console.error('⚠️ [TRANSFORM] Błąd generowania/aktualizacji watermarku (kontynuuję bez):', watermarkError);
+            // Kontynuuj bez watermarku - nie blokuj dalszej pracy
+          }
+        } else {
+          console.warn('⚠️ [TRANSFORM] Brak transformedImage lub generationId - pomijam watermark');
+        }
         
         // 🎨 GALERIA: Zapisz generację do localStorage z base64 cache
         // ✅ DODAJ productType do generacji (dla skalowalności)
@@ -2779,10 +2794,10 @@ class CustomifyEmbed {
   async showResult(imageUrl) {
     console.log('🎯 [CUSTOMIFY] showResult called, hiding actionsArea and stylesArea');
     
-    // ✅ WATERMARK JUŻ WYGENEROWANY W transformImage() - użyj go
-    // Watermark jest już zapisany w Vercel Blob przez /api/transform
-    this.resultImage.src = imageUrl; // Pokaż ORYGINAŁ (bez watermarku) w podglądzie
-    console.log('✅ [CUSTOMIFY] Showing result (watermark already saved in Vercel Blob)');
+    // ✅ POKAŻ PRZETWORZONY OBRAZ AI (bez watermarku w podglądzie)
+    // Watermark będzie dodany PO transformacji i zapisany przez /api/update-generation-watermark
+    this.resultImage.src = imageUrl; // Pokaż PRZETWORZONY obraz AI (bez watermarku w podglądzie)
+    console.log('✅ [CUSTOMIFY] Showing AI result (watermark will be added after)');
     
     this.resultArea.style.display = 'block';
     
