@@ -408,7 +408,7 @@ class CustomifyEmbed {
   /**
    * Zapisuje generację AI w localStorage
    */
-  async saveAIGeneration(originalImage, transformedImage, style, size) {
+  async saveAIGeneration(originalImage, transformedImage, style, size, productType = null) {
     console.log('💾 [CACHE] Saving AI generation to localStorage...');
     
     // ⚠️ NIE zapisuj ponownie do Vercel Blob - już jest zapisane w transform.js jako generation-{timestamp}.jpg
@@ -417,6 +417,12 @@ class CustomifyEmbed {
     
     console.log('✅ [CACHE] Using existing URL from transform.js (no duplicate upload):', transformedImageUrl?.substring(0, 50));
 
+    // ✅ DODAJ productType jeśli nie został przekazany (fallback dla starych generacji)
+    if (!productType && style) {
+      productType = this.getProductTypeFromStyle(style);
+      console.log('🔄 [CACHE] ProductType wywnioskowany z stylu:', productType);
+    }
+
     const generation = {
       id: Date.now(),
       timestamp: new Date().toISOString(),
@@ -424,6 +430,7 @@ class CustomifyEmbed {
       transformedImage: transformedImageUrl, // ZAWSZE URL (nie base64)
       style: style,
       size: size,
+      productType: productType, // ✅ DODAJ productType (boho, king, cats, etc) - dla skalowalności
       thumbnail: transformedImageUrl // Użyj tego samego URL dla thumbnail
     };
 
@@ -2518,11 +2525,14 @@ class CustomifyEmbed {
         this.showSuccess('Teraz wybierz rozmiar obrazu');
         
         // 🎨 GALERIA: Zapisz generację do localStorage z base64 cache
+        // ✅ DODAJ productType do generacji (dla skalowalności)
+        const productType = this.getProductTypeFromStyle(this.selectedStyle);
         this.saveAIGeneration(
           base64,                     // Oryginalne zdjęcie (base64)
           result.transformedImage,    // AI obraz URL
           this.selectedStyle,         // Styl (pixar, boho, etc)
-          this.selectedSize           // Rozmiar (a4, a3, etc)
+          this.selectedSize,         // Rozmiar (a4, a3, etc)
+          productType                 // ✅ ProductType (boho, king, cats, etc)
         ).then(() => {
           console.log('✅ [CACHE] AI generation saved with base64 cache');
           

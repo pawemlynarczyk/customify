@@ -378,46 +378,54 @@
                 return; // Nie przekierowuj jeśli błąd zapisu
               }
               
-              // Redirect do odpowiedniego produktu
-              const productHandles = {
+              // ✅ SKALOWALNE ROZWIĄZANIE: Mapuj productType → productHandle (działa dla wszystkich stylów obecnych i przyszłych)
+              const productTypeToHandle = {
                 'boho': 'personalizowany-portret-w-stylu-boho',
-                'minimalistyczny': 'personalizowany-portret-w-stylu-boho',
-                'realistyczny': 'personalizowany-portret-w-stylu-boho',
-                'pixar': 'personalizowany-portret-w-stylu-boho',
-                'pixar 3d': 'personalizowany-portret-w-stylu-boho',
-                'cat': 'koty-krolewskie',
                 'king': 'krol-personalizowany-portret',
                 'queen': 'krol-personalizowany-portret',
-                'krol': 'krol-personalizowany-portret',
-                'krolowa': 'krol-personalizowany-portret',
-                'karykatura': 'personalizowany-portret-w-stylu-boho',
-                'caricature': 'personalizowany-portret-w-stylu-boho'
+                'cats': 'koty-krolewskie',
+                'caricature': 'personalizowany-portret-w-stylu-boho',
+                'watercolor': 'personalizowany-portret-w-stylu-boho',
+                'other': 'personalizowany-portret-w-stylu-boho' // Fallback dla nieznanych stylów
               };
               
-              // ✅ FIX: Parsuj styl - usuń "transform this image in" i " style" jeśli są
-              let styleKey = (generation.style || '').toLowerCase().replace(/transform this image in | style/g, '').trim();
-              
-              // ✅ FIX: Rozpoznaj style króla (krol-*) i przekieruj na właściwy produkt
-              if (styleKey.startsWith('krol-') || styleKey.startsWith('krolowa-')) {
-                // Style króla/królowej - przekieruj na produkt króla
-                styleKey = 'krol';
-                console.log('👑 [MY-GENERATIONS] Rozpoznano styl króla/królowej, przekierowuję na produkt króla');
-              } else if (styleKey.includes('krol') || styleKey.includes('king') || styleKey.includes('queen')) {
-                // Fallback dla innych wariantów
-                styleKey = 'krol';
-                console.log('👑 [MY-GENERATIONS] Rozpoznano styl króla/królowej (fallback), przekierowuję na produkt króla');
-              } else if (styleKey.includes('krolewski') || styleKey.includes('na-tronie') || styleKey.includes('wojenny') || styleKey.includes('wiktorianski') || styleKey.includes('renesansowy')) {
-                // Style kotów
-                styleKey = 'cat';
-                console.log('🐱 [MY-GENERATIONS] Rozpoznano styl kota, przekierowuję na produkt kotów');
+              // ✅ PRIORYTET 1: Użyj productType z generacji (jeśli jest dostępny - dla nowych generacji)
+              let productHandle = null;
+              if (generation.productType && productTypeToHandle[generation.productType]) {
+                productHandle = productTypeToHandle[generation.productType];
+                console.log('✅ [MY-GENERATIONS] Użyto productType z generacji:', generation.productType, '→', productHandle);
+              } else {
+                // ✅ PRIORYTET 2: Parsuj styl i rozpoznaj productType na podstawie wzorców (dla starych generacji)
+                let styleKey = (generation.style || '').toLowerCase().replace(/transform this image in | style/g, '').trim();
+                
+                // Rozpoznaj productType na podstawie wzorców stylu (skalowalne - działa dla wszystkich stylów)
+                let detectedProductType = 'other'; // Domyślny fallback
+                
+                if (styleKey.startsWith('krol-') || styleKey.startsWith('krolowa-') || styleKey.includes('king') || styleKey.includes('queen')) {
+                  detectedProductType = 'king';
+                  console.log('👑 [MY-GENERATIONS] Rozpoznano styl króla/królowej:', styleKey);
+                } else if (styleKey.includes('krolewski') || styleKey.includes('na-tronie') || styleKey.includes('wojenny') || styleKey.includes('wiktorianski') || styleKey.includes('renesansowy')) {
+                  detectedProductType = 'cats';
+                  console.log('🐱 [MY-GENERATIONS] Rozpoznano styl kota:', styleKey);
+                } else if (styleKey.includes('minimalistyczny') || styleKey.includes('realistyczny') || styleKey.includes('pixar') || styleKey.includes('boho')) {
+                  detectedProductType = 'boho';
+                  console.log('🎨 [MY-GENERATIONS] Rozpoznano styl boho:', styleKey);
+                } else if (styleKey.includes('karykatura') || styleKey.includes('caricature')) {
+                  detectedProductType = 'caricature';
+                  console.log('🎭 [MY-GENERATIONS] Rozpoznano styl karykatury:', styleKey);
+                } else if (styleKey.includes('akwarela') || styleKey.includes('watercolor')) {
+                  detectedProductType = 'watercolor';
+                  console.log('💧 [MY-GENERATIONS] Rozpoznano styl akwareli:', styleKey);
+                }
+                
+                productHandle = productTypeToHandle[detectedProductType] || productTypeToHandle['other'];
+                console.log('🔄 [MY-GENERATIONS] Wywnioskowano productType z stylu:', detectedProductType, '→', productHandle);
               }
               
-              const productHandle = productHandles[styleKey] || 'personalizowany-portret-w-stylu-boho';
-              
-              console.log('🔗 [MY-GENERATIONS] Parsowanie stylu:', {
+              console.log('🔗 [MY-GENERATIONS] Parsowanie generacji:', {
                 originalStyle: generation.style,
-                parsedStyleKey: styleKey,
-                productHandle: productHandle
+                productType: generation.productType || 'brak',
+                finalProductHandle: productHandle
               });
               console.log('🔗 [MY-GENERATIONS] Redirecting to:', productHandle);
               window.location.href = `/products/${productHandle}`;
