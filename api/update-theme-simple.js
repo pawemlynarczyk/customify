@@ -65,6 +65,13 @@ module.exports = async (req, res) => {
 
     const result = await updateResponse.json();
     console.log('✅ Theme updated successfully');
+    console.log('📝 Shopify API response:', JSON.stringify(result, null, 2));
+    
+    // Sprawdź czy Shopify zwrócił błąd w JSON
+    if (result.errors) {
+      console.error('❌ Shopify API errors:', result.errors);
+      return res.status(500).json({ error: 'Shopify API returned errors', details: result.errors });
+    }
 
     res.json({ 
       success: true, 
