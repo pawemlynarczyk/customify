@@ -2353,28 +2353,18 @@ class CustomifyEmbed {
       let watermarkedImageBase64 = null;
       try {
         console.log('🎨 [TRANSFORM] Generuję watermark PRZED wysłaniem do API...');
+        console.log('🎨 [TRANSFORM] Base64 type:', typeof base64, 'starts with data:', base64?.startsWith('data:'));
         
-        // Konwertuj base64 na Blob URL (addWatermark oczekuje URL, nie base64)
-        // ❌ NIE UŻYWAJ fetch() - nie działa z data URI!
-        // ✅ Użyj bezpośredniej konwersji base64 → Blob
-        const base64Data = base64.split(',')[1]; // Usuń prefix "data:image/jpeg;base64,"
-        const byteCharacters = atob(base64Data);
-        const byteNumbers = new Array(byteCharacters.length);
-        for (let i = 0; i < byteCharacters.length; i++) {
-          byteNumbers[i] = byteCharacters.charCodeAt(i);
-        }
-        const byteArray = new Uint8Array(byteNumbers);
-        const blob = new Blob([byteArray], { type: 'image/jpeg' });
-        const blobUrl = URL.createObjectURL(blob);
-        console.log('🎨 [TRANSFORM] Blob URL utworzony:', blobUrl.substring(0, 50));
+        // ✅ DODAJ DATA URI PREFIX - fileToBase64() zwraca tylko surowy base64!
+        // new Image() wymaga pełnego data URI: "data:image/jpeg;base64,/9j/4AAQ..."
+        const base64DataUri = base64.startsWith('data:') ? base64 : `data:image/jpeg;base64,${base64}`;
+        console.log('🎨 [TRANSFORM] Base64 Data URI utworzony, długość:', base64DataUri.length);
         
-        watermarkedImageBase64 = await this.addWatermark(blobUrl);
+        watermarkedImageBase64 = await this.addWatermark(base64DataUri);
         console.log('✅ [TRANSFORM] Watermark wygenerowany, długość:', watermarkedImageBase64?.length);
-        
-        // Zwolnij Blob URL
-        URL.revokeObjectURL(blobUrl);
       } catch (watermarkError) {
         console.error('⚠️ [TRANSFORM] Błąd generowania watermarku (kontynuuję bez):', watermarkError);
+        console.error('⚠️ [TRANSFORM] Watermark error details:', watermarkError.message, watermarkError.stack);
         // Kontynuuj bez watermarku - nie blokuj transformacji
       }
       
@@ -2650,7 +2640,11 @@ class CustomifyEmbed {
         console.log('✅ [WATERMARK DEBUG] document.fonts.ready - fonty załadowane!');
         
         const img = new Image();
-        img.crossOrigin = 'anonymous';
+        // ✅ crossOrigin tylko dla zdalnych URL-i (HTTP/HTTPS), NIE dla base64 data URI!
+        // Base64 data URI nie wymaga crossOrigin - działa bezpośrednio
+        if (imageUrl && !imageUrl.startsWith('data:')) {
+          img.crossOrigin = 'anonymous'; // Tylko dla zdalnych URL-i
+        }
         
         img.onload = () => {
           try {
@@ -2767,9 +2761,12 @@ class CustomifyEmbed {
         
         img.onerror = (error) => {
           console.error('❌ [WATERMARK DEBUG] Image load error:', error);
-          reject(error);
+          console.error('❌ [WATERMARK DEBUG] Failed imageUrl:', imageUrl?.substring(0, 100));
+          reject(new Error('Nie udało się załadować obrazu do watermarku: ' + error.message));
         };
         
+        // ✅ Ustaw src - działa zarówno z URL jak i base64 data URI
+        console.log('🖼️ [WATERMARK DEBUG] Setting img.src, type:', imageUrl?.startsWith('data:') ? 'base64' : 'URL');
         img.src = imageUrl;
       } catch (error) {
         console.error('❌ [WATERMARK DEBUG] Async error:', error);
