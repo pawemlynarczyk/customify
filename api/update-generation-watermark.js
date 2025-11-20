@@ -52,7 +52,7 @@ module.exports = async (req, res) => {
     }
 
     // Sprawdź czy Vercel Blob Storage jest skonfigurowany
-    if (!process.env.customify_READ_WRITE_TOKEN) {
+    if (!process.env.BLOB_READ_WRITE_TOKEN) {
       return res.status(500).json({
         error: 'Vercel Blob Storage not configured'
       });
@@ -83,7 +83,7 @@ module.exports = async (req, res) => {
     let existingData = null;
     try {
       const existingBlob = await head(blobPath, {
-        token: process.env.customify_READ_WRITE_TOKEN
+        token: process.env.BLOB_READ_WRITE_TOKEN
       }).catch(() => null);
       
       if (existingBlob && existingBlob.url) {
@@ -136,7 +136,7 @@ module.exports = async (req, res) => {
       const blob = await put(watermarkedFilename, imageBuffer, {
         access: 'public',
         contentType: 'image/jpeg',
-        token: process.env.customify_READ_WRITE_TOKEN,
+        token: process.env.BLOB_READ_WRITE_TOKEN,
       });
       
       watermarkedImageUrl = blob.url;
@@ -161,7 +161,7 @@ module.exports = async (req, res) => {
     await put(blobPath, updatedJsonBuffer, {
       access: 'public',
       contentType: 'application/json',
-      token: process.env.customify_READ_WRITE_TOKEN,
+      token: process.env.BLOB_READ_WRITE_TOKEN,
       allowOverwrite: true
     });
 
