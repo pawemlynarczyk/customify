@@ -2349,6 +2349,17 @@ class CustomifyEmbed {
       const base64 = await this.fileToBase64(this.uploadedFile);
       console.log('📱 [MOBILE] Starting transform request...');
       
+      // 🎨 GENERUJ WATERMARK PRZED WYSŁANIEM DO API
+      let watermarkedImageBase64 = null;
+      try {
+        console.log('🎨 [TRANSFORM] Generuję watermark PRZED wysłaniem do API...');
+        watermarkedImageBase64 = await this.addWatermark(base64);
+        console.log('✅ [TRANSFORM] Watermark wygenerowany, długość:', watermarkedImageBase64?.length);
+      } catch (watermarkError) {
+        console.error('⚠️ [TRANSFORM] Błąd generowania watermarku (kontynuuję bez):', watermarkError);
+        // Kontynuuj bez watermarku - nie blokuj transformacji
+      }
+      
       // Create AbortController for timeout
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 300000); // 5 minutes
@@ -2368,6 +2379,7 @@ class CustomifyEmbed {
       
       const requestBody = {
         imageData: base64,
+        watermarkedImage: watermarkedImageBase64, // 🎨 DODAJ WATERMARK DO REQUEST BODY
         prompt: `Transform this image in ${this.selectedStyle} style`,
         style: this.selectedStyle, // ✅ DODAJ STYL JAKO OSOBNE POLE - API użyje tego zamiast parsować prompt
         productType: productType, // Przekaż typ produktu do API
@@ -2530,44 +2542,8 @@ class CustomifyEmbed {
         await this.showResult(result.transformedImage);
         this.showSuccess('Teraz wybierz rozmiar obrazu');
         
-        // ✅ WYŚLIJ WATERMARKED IMAGE DO BACKENDU (tylko dla zalogowanych)
-        if (this.watermarkedImage && result.saveGenerationDebug?.generationId) {
-          const generationId = result.saveGenerationDebug.generationId;
-          const customerInfo = this.getCustomerInfo();
-          
-          console.log('🎨 [CUSTOMIFY] Wysyłam watermarked image do backendu...');
-          console.log('🎨 [CUSTOMIFY] GenerationId:', generationId);
-          console.log('🎨 [CUSTOMIFY] Watermarked image length:', this.watermarkedImage?.length);
-          
-          try {
-            const updateResponse = await fetch('https://customify-s56o.vercel.app/api/update-generation-watermark', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                generationId: generationId,
-                watermarkedImage: this.watermarkedImage,
-                customerId: customerInfo?.customerId || null,
-                email: customerInfo?.email || null
-              })
-            });
-            
-            if (updateResponse.ok) {
-              const updateResult = await updateResponse.json();
-              console.log('✅ [CUSTOMIFY] Watermarked image zapisany w Vercel Blob:', updateResult.watermarkedImageUrl);
-            } else {
-              const errorText = await updateResponse.text();
-              console.warn('⚠️ [CUSTOMIFY] Błąd zapisu watermarked image:', errorText);
-            }
-          } catch (updateError) {
-            console.error('⚠️ [CUSTOMIFY] Błąd wysyłania watermarked image:', updateError);
-            // Nie blokuj - główna funkcjonalność działa
-          }
-        } else {
-          console.log('ℹ️ [CUSTOMIFY] Pomijam zapis watermarked image:', {
-            hasWatermarkedImage: !!this.watermarkedImage,
-            hasGenerationId: !!result.saveGenerationDebug?.generationId
-          });
-        }
+        // ✅ WATERMARK JUŻ ZAPISANY W /api/transform - nie trzeba osobnego endpointu
+        console.log('✅ [CUSTOMIFY] Watermark został zapisany razem z generacją w /api/transform');
         
         // 🎨 GALERIA: Zapisz generację do localStorage z base64 cache
         // ✅ DODAJ productType do generacji (dla skalowalności)
@@ -2645,93 +2621,153 @@ class CustomifyEmbed {
 
   // FUNKCJA DODAWANIA WATERMARKU
   async addWatermark(imageUrl) {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      
-      img.onload = () => {
-        try {
-          const canvas = document.createElement('canvas');
-          const ctx = canvas.getContext('2d');
-          
-          canvas.width = img.width;
-          canvas.height = img.height;
-          
-          // Rysuj oryginalny obraz
-          ctx.drawImage(img, 0, 0);
-          
-          // ===== WZÓR DIAGONALNY - "Lumly.pl" i "Podgląd" NA PRZEMIAN =====
-          ctx.save();
-          
-          // ✅ ZWIĘKSZONY FONT I OPACITY DLA LEPSZEJ WIDOCZNOŚCI
-          const fontSize = Math.max(40, Math.min(canvas.width, canvas.height) * 0.08); // Min 40px, max 8% obrazu
-          
-          // ✅ FIX: Użyj systemowego fontu (Arial może nie być dostępny w Canvas - powoduje kwadraty)
-          // sans-serif jest ZAWSZE dostępny w przeglądarce
-          ctx.font = `bold ${fontSize}px sans-serif`;
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'; // ✅ ZWIĘKSZONA OPACITY (było 0.5)
-          ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)'; // ✅ ZWIĘKSZONA OPACITY (było 0.35)
-          ctx.lineWidth = 2; // ✅ ZWIĘKSZONA GRUBOŚĆ (było 1.5)
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          
-          // Obróć canvas
-          ctx.translate(canvas.width/2, canvas.height/2);
-          ctx.rotate(-30 * Math.PI / 180);
-          ctx.translate(-canvas.width/2, -canvas.height/2);
-          
-          // Rysuj watermarki w siatce - na przemian "Lumly.pl" i "Podgląd"
-          const spacing = Math.max(200, Math.min(canvas.width, canvas.height) * 0.3); // ✅ DYNAMICZNY SPACING
-          let textIndex = 0;
-          const texts = ['Lumly.pl', 'Podgląd'];
-          
-          for(let y = -canvas.height; y < canvas.height * 2; y += spacing) {
-            for(let x = -canvas.width; x < canvas.width * 2; x += spacing * 1.5) {
-              const text = texts[textIndex % 2];
-              // ✅ RYSUJ STROKE PRZED FILL (dla lepszej widoczności)
-              ctx.strokeText(text, x, y);
-              ctx.fillText(text, x, y);
+    return new Promise(async (resolve, reject) => {
+      try {
+        console.log('🔤 [WATERMARK DEBUG] START - imageUrl:', imageUrl?.substring(0, 100));
+        console.log('🔤 [WATERMARK DEBUG] document.fonts.status:', document.fonts.status);
+        console.log('🔤 [WATERMARK DEBUG] Czekam na document.fonts.ready...');
+        
+        // 🔧 POZIOM 1: Poczekaj na załadowanie fontów PRZED renderowaniem
+        await document.fonts.ready;
+        console.log('✅ [WATERMARK DEBUG] document.fonts.ready - fonty załadowane!');
+        
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        
+        img.onload = () => {
+          try {
+            console.log('🖼️ [WATERMARK DEBUG] Image loaded:', img.width, 'x', img.height);
+            
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = img.width;
+            canvas.height = img.height;
+            
+            // Rysuj oryginalny obraz
+            ctx.drawImage(img, 0, 0);
+            console.log('✅ [WATERMARK DEBUG] Original image drawn on canvas');
+            
+            // ===== WZÓR DIAGONALNY - "LUMLY.PL" i "PODGLAD" NA PRZEMIAN =====
+            ctx.save();
+            
+            // ✅ ZWIĘKSZONY FONT I OPACITY DLA LEPSZEJ WIDOCZNOŚCI
+            const fontSize = Math.max(40, Math.min(canvas.width, canvas.height) * 0.08); // Min 40px, max 8% obrazu
+            console.log('📏 [WATERMARK DEBUG] fontSize:', fontSize);
+            
+            // 🔧 POZIOM 2: Użyj systemowych fontów z fallbackami + UPPERCASE bez polskich znaków
+            const fontFamily = 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif';
+            ctx.font = `bold ${fontSize}px ${fontFamily}`;
+            console.log('🔤 [WATERMARK DEBUG] Font ustawiony:', ctx.font);
+            
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)';
+            ctx.lineWidth = 2;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            // 🔧 POZIOM 3: Test renderowania - sprawdź czy font działa
+            const testText = 'TEST';
+            const testMetrics = ctx.measureText(testText);
+            console.log('🔍 [WATERMARK DEBUG] Test measureText("TEST"):', {
+              width: testMetrics.width,
+              actualBoundingBoxLeft: testMetrics.actualBoundingBoxLeft,
+              actualBoundingBoxRight: testMetrics.actualBoundingBoxRight
+            });
+            
+            if (testMetrics.width === 0) {
+              console.error('❌ [WATERMARK DEBUG] Font test FAILED! width=0, próbuję fallback monospace');
+              ctx.font = `bold ${fontSize}px monospace`;
+              console.log('🔄 [WATERMARK DEBUG] Fallback font:', ctx.font);
+              
+              const fallbackMetrics = ctx.measureText(testText);
+              console.log('🔍 [WATERMARK DEBUG] Fallback measureText("TEST"):', {
+                width: fallbackMetrics.width
+              });
+            } else {
+              console.log('✅ [WATERMARK DEBUG] Font test OK! width=' + testMetrics.width);
+            }
+            
+            // Test canvas rendering - czy tekst się faktycznie renderuje?
+            const testCanvas = document.createElement('canvas');
+            testCanvas.width = 200;
+            testCanvas.height = 100;
+            const testCtx = testCanvas.getContext('2d');
+            testCtx.font = ctx.font;
+            testCtx.fillStyle = 'black';
+            testCtx.fillText('Lumly.pl', 100, 50);
+            const testDataUrl = testCanvas.toDataURL();
+            console.log('🧪 [WATERMARK DEBUG] Test canvas rendering:', testDataUrl.substring(0, 100) + '...');
+            
+            // Obróć canvas
+            ctx.translate(canvas.width/2, canvas.height/2);
+            ctx.rotate(-30 * Math.PI / 180);
+            ctx.translate(-canvas.width/2, -canvas.height/2);
+            console.log('🔄 [WATERMARK DEBUG] Canvas rotated -30°');
+            
+            // 🔧 TEKSTY BEZ POLSKICH ZNAKÓW (ł → L, ą → A)
+            // Uppercase dla lepszej czytelności i kompatybilności
+            const texts = ['LUMLY.PL', 'PODGLAD'];
+            console.log('📝 [WATERMARK DEBUG] Teksty watermarku:', texts);
+            
+            // Rysuj watermarki w siatce - na przemian
+            const spacing = Math.max(200, Math.min(canvas.width, canvas.height) * 0.3);
+            console.log('📏 [WATERMARK DEBUG] Spacing:', spacing);
+            
+            let textIndex = 0;
+            let watermarkCount = 0;
+            
+            for(let y = -canvas.height; y < canvas.height * 2; y += spacing) {
+              for(let x = -canvas.width; x < canvas.width * 2; x += spacing * 1.5) {
+                const text = texts[textIndex % 2];
+                // ✅ RYSUJ STROKE PRZED FILL (dla lepszej widoczności)
+                ctx.strokeText(text, x, y);
+                ctx.fillText(text, x, y);
+                textIndex++;
+                watermarkCount++;
+              }
+              // Zmień wzór co wiersz dla lepszego efektu
               textIndex++;
             }
-            // Zmień wzór co wiersz dla lepszego efektu
-            textIndex++;
+            
+            console.log('✅ [WATERMARK DEBUG] Narysowano', watermarkCount, 'watermarków');
+            
+            ctx.restore();
+            
+            // Zwróć obraz z watermarkiem jako Data URL
+            const result = canvas.toDataURL('image/jpeg', 0.92);
+            console.log('✅ [WATERMARK DEBUG] Canvas.toDataURL() - rozmiar:', result.length, 'znaków (', (result.length / 1024 / 1024).toFixed(2), 'MB)');
+            console.log('✅ [WATERMARK DEBUG] Result preview:', result.substring(0, 100) + '...');
+            
+            resolve(result);
+          } catch (error) {
+            console.error('❌ [WATERMARK DEBUG] Canvas error:', error);
+            console.error('❌ [WATERMARK DEBUG] Error stack:', error.stack);
+            reject(error);
           }
-          
-          ctx.restore();
-          
-          // Zwróć obraz z watermarkiem jako Data URL
-          resolve(canvas.toDataURL('image/jpeg', 0.92));
-        } catch (error) {
-          console.error('❌ Watermark error:', error);
+        };
+        
+        img.onerror = (error) => {
+          console.error('❌ [WATERMARK DEBUG] Image load error:', error);
           reject(error);
-        }
-      };
-      
-      img.onerror = (error) => {
-        console.error('❌ Image load error:', error);
+        };
+        
+        img.src = imageUrl;
+      } catch (error) {
+        console.error('❌ [WATERMARK DEBUG] Async error:', error);
+        console.error('❌ [WATERMARK DEBUG] Error stack:', error.stack);
         reject(error);
-      };
-      
-      img.src = imageUrl;
+      }
     });
   }
 
   async showResult(imageUrl) {
     console.log('🎯 [CUSTOMIFY] showResult called, hiding actionsArea and stylesArea');
     
-    // WATERMARK WŁĄCZONY
-    try {
-      const watermarkedImage = await this.addWatermark(imageUrl);
-      this.resultImage.src = watermarkedImage;
-      
-      // ✅ ZAPISZ OBRAZEK Z WATERMARKIEM (do użycia w koszyku)
-      this.watermarkedImage = watermarkedImage;
-      console.log('🎨 [CUSTOMIFY] Watermark dodany do podglądu i zapisany');
-    } catch (error) {
-      console.error('❌ [CUSTOMIFY] Watermark error:', error);
-      this.resultImage.src = imageUrl;
-      this.watermarkedImage = null;
-    }
+    // ✅ WATERMARK JUŻ WYGENEROWANY W transformImage() - użyj go
+    // Watermark jest już zapisany w Vercel Blob przez /api/transform
+    this.resultImage.src = imageUrl; // Pokaż ORYGINAŁ (bez watermarku) w podglądzie
+    console.log('✅ [CUSTOMIFY] Showing result (watermark already saved in Vercel Blob)');
     
     this.resultArea.style.display = 'block';
     

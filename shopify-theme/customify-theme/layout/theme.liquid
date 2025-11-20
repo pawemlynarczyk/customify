@@ -240,17 +240,31 @@
             
             const isDigitalProduct = this.selectedProductType === 'digital';
             
+            // ✅ ZABEZPIECZENIE: Sprawdź czy resultImage istnieje, jeśli nie - znajdź ponownie
+            if (!this.resultImage) {
+              console.warn('⚠️ [CUSTOMIFY] resultImage not found, searching again...');
+              this.resultImage = document.getElementById('resultImage');
+              if (!this.resultImage) {
+                console.error('❌ [CUSTOMIFY] resultImage element not found in DOM!');
+                return; // Nie kontynuuj jeśli element nie istnieje
+              }
+            }
+            
             // WATERMARK WŁĄCZONY
             try {
               const watermarkedImage = await this.addWatermark(imageUrl);
-              this.resultImage.src = watermarkedImage;
+              if (this.resultImage) {
+                this.resultImage.src = watermarkedImage;
+              }
               
               // ✅ ZAPISZ OBRAZEK Z WATERMARKIEM (do użycia w koszyku)
               this.watermarkedImage = watermarkedImage;
               console.log('🎨 [CUSTOMIFY] Watermark dodany do podglądu i zapisany');
             } catch (error) {
               console.error('❌ [CUSTOMIFY] Watermark error:', error);
-              this.resultImage.src = imageUrl;
+              if (this.resultImage) {
+                this.resultImage.src = imageUrl;
+              }
               this.watermarkedImage = null;
             }
             
@@ -2906,6 +2920,12 @@
                       <div class="style-name">Królowa - Styl 3</div>
                     </div>
                   </div>
+                  <div class="customify-style-card" data-style="krolowa-styl-4">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/krolowa/krolowa_sitting.png'); background-size: cover; background-position: center;"></div>
+                    <div class="style-info">
+                      <div class="style-name">Królowa - Sitting</div>
+                    </div>
+                  </div>
                 {% elsif product.handle == 'koty-krolewskie-zwierzeta-w-koronach' %}
                   {% comment %} TYLKO STYLE KOTÓW dla produktu kotów {% endcomment %}
                   <div class="customify-style-card" data-style="krolewski">
@@ -3957,12 +3977,29 @@
                   
                   // ===== WZÓR DIAGONALNY - "Lumly.pl" i "Podgląd" NA PRZEMIAN =====
                   ctx.save();
-                  ctx.font = 'bold 30px Arial';
-                  ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'; // Zwiększona widoczność (było 0.4)
-                  ctx.strokeStyle = 'rgba(0, 0, 0, 0.35)'; // Zwiększona widoczność (było 0.3)
-                  ctx.lineWidth = 1.5;
+                  
+                  // ✅ ZWIĘKSZONY FONT I OPACITY DLA LEPSZEJ WIDOCZNOŚCI
+                  const fontSize = Math.max(40, Math.min(canvas.width, canvas.height) * 0.08); // Min 40px, max 8% obrazu
+                  
+                  // ✅ FIX: Użyj systemowego fontu z fallbackami (Arial może nie być dostępny w Canvas)
+                  // Użyj fontu który ZAWSZE jest dostępny w przeglądarce
+                  const fontFamily = 'sans-serif'; // Systemowy font - zawsze dostępny
+                  ctx.font = `bold ${fontSize}px ${fontFamily}`;
+                  
+                  // ✅ SPRAWDŹ CZY FONT JEST ZAŁADOWANY (test renderowania)
+                  ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'; // ✅ ZWIĘKSZONA OPACITY (było 0.5)
+                  ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)'; // ✅ ZWIĘKSZONA OPACITY (było 0.35)
+                  ctx.lineWidth = 2; // ✅ ZWIĘKSZONA GRUBOŚĆ (było 1.5)
                   ctx.textAlign = 'center';
                   ctx.textBaseline = 'middle';
+                  
+                  // ✅ TEST: Sprawdź czy tekst się renderuje (jeśli nie - użyj innego fontu)
+                  const testText = 'Test';
+                  const testMetrics = ctx.measureText(testText);
+                  if (testMetrics.width === 0) {
+                    console.warn('⚠️ [WATERMARK] Font test failed, using fallback');
+                    ctx.font = `bold ${fontSize}px monospace`; // Fallback na monospace
+                  }
                   
                   // Obróć canvas
                   ctx.translate(canvas.width/2, canvas.height/2);
@@ -3970,13 +4007,14 @@
                   ctx.translate(-canvas.width/2, -canvas.height/2);
                   
                   // Rysuj watermarki w siatce - na przemian "Lumly.pl" i "Podgląd"
-                  const spacing = 180;
+                  const spacing = Math.max(200, Math.min(canvas.width, canvas.height) * 0.3); // ✅ DYNAMICZNY SPACING
                   let textIndex = 0;
                   const texts = ['Lumly.pl', 'Podgląd'];
                   
                   for(let y = -canvas.height; y < canvas.height * 2; y += spacing) {
                     for(let x = -canvas.width; x < canvas.width * 2; x += spacing * 1.5) {
                       const text = texts[textIndex % 2];
+                      // ✅ RYSUJ STROKE PRZED FILL (dla lepszej widoczności)
                       ctx.strokeText(text, x, y);
                       ctx.fillText(text, x, y);
                       textIndex++;

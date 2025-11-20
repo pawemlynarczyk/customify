@@ -358,6 +358,10 @@ class CustomifyEmbed {
       'krol-majestatyczny': 'king',
       'krol-triumfalny': 'king',
       'krol-imponujacy': 'king',
+      'krolowa-styl-1': 'queen',
+      'krolowa-styl-2': 'queen',
+      'krolowa-styl-3': 'queen',
+      'krolowa-styl-4': 'queen',
       'krolewski': 'cats',
       'na-tronie': 'cats',
       'wojenny': 'cats',
@@ -408,23 +412,29 @@ class CustomifyEmbed {
   /**
    * Zapisuje generację AI w localStorage
    */
-  async saveAIGeneration(originalImage, transformedImage, style, size) {
+  async saveAIGeneration(originalImage, transformedImage, style, size, productType = null) {
     console.log('💾 [CACHE] Saving AI generation to localStorage...');
     
-    // ✅ WATERMARK: Zapisz obrazek Z watermarkiem (this.watermarkedImage) zamiast clean URL
-    // User widzi tylko wersję Z watermarkiem w galerii - ochrona przed pobraniem
-    let transformedImageUrl = this.watermarkedImage || transformedImage; // Priorytet: watermark > clean
+    // ⚠️ NIE zapisuj ponownie do Vercel Blob - już jest zapisane w transform.js jako generation-{timestamp}.jpg
+    // Używamy URL z API response (generation-{timestamp}.jpg) zamiast duplikować jako ai-{timestamp}.jpg.jpg
+    let transformedImageUrl = transformedImage; // Użyj URL z API (generation-{timestamp}.jpg lub base64)
     
-    console.log('💾 [CACHE] Using watermarked image:', this.watermarkedImage ? 'YES (base64)' : 'NO (clean URL fallback)');
-    console.log('💾 [CACHE] Image URL length:', transformedImageUrl?.length, 'chars');
+    console.log('✅ [CACHE] Using existing URL from transform.js (no duplicate upload):', transformedImageUrl?.substring(0, 50));
+
+    // ✅ DODAJ productType jeśli nie został przekazany (fallback dla starych generacji)
+    if (!productType && style) {
+      productType = this.getProductTypeFromStyle(style);
+      console.log('🔄 [CACHE] ProductType wywnioskowany z stylu:', productType);
+    }
 
     const generation = {
       id: Date.now(),
       timestamp: new Date().toISOString(),
       originalImage: originalImage, // base64 lub URL (zachowaj)
-      transformedImage: transformedImageUrl, // ✅ Z watermarkiem (base64) lub clean URL (fallback)
+      transformedImage: transformedImageUrl, // ZAWSZE URL (nie base64)
       style: style,
       size: size,
+      productType: productType, // ✅ DODAJ productType (boho, king, cats, etc) - dla skalowalności
       thumbnail: transformedImageUrl // Użyj tego samego URL dla thumbnail
     };
 
@@ -799,6 +809,14 @@ class CustomifyEmbed {
       if (generation.thumbnail && 
           (generation.thumbnail.startsWith('http://') || generation.thumbnail.startsWith('https://'))) {
         
+        // ✅ NIE SPRAWDZAJ Replicate URLs (CORS blokuje) - zachowaj jeśli to Replicate
+        if (generation.thumbnail.includes('replicate.delivery')) {
+          workingGenerations.push(generation);
+          console.log('✅ [CLEANUP] Replicate URL kept (CORS safe):', generation.id);
+          continue;
+        }
+        
+        // Sprawdź tylko Vercel Blob URLs
         const isWorking = await this.checkImageUrl(generation.thumbnail);
         if (isWorking) {
           workingGenerations.push(generation);
@@ -1736,11 +1754,19 @@ class CustomifyEmbed {
     });
 
     this.stylesArea.addEventListener('click', (e) => {
+      console.log('🖱️ [CLICK] Kliknięcie w stylesArea:', e.target);
+      console.log('🖱️ [CLICK] Czy to customify-style-card?', e.target.classList.contains('customify-style-card'));
+      console.log('🖱️ [CLICK] Czy closest?', e.target.closest('.customify-style-card'));
+      
       if (e.target.classList.contains('customify-style-card') || 
           e.target.closest('.customify-style-card')) {
         const card = e.target.classList.contains('customify-style-card') ? 
                     e.target : e.target.closest('.customify-style-card');
+        console.log('🖱️ [CLICK] Znaleziona karta:', card);
+        console.log('🖱️ [CLICK] data-style:', card?.dataset?.style);
         this.selectStyle(card);
+      } else {
+        console.log('🖱️ [CLICK] Kliknięcie poza kartą stylu');
       }
     });
 
@@ -1868,6 +1894,14 @@ class CustomifyEmbed {
     this.stylesArea.querySelectorAll('.customify-style-card').forEach(card => card.classList.remove('active'));
     styleCard.classList.add('active');
     this.selectedStyle = styleCard.dataset.style;
+    
+    // ✅ DEBUG: Pokaż który styl został wybrany
+    console.log('🎨 [STYLE-SELECT] ===== WYBÓR STYLU =====');
+    console.log('🎨 [STYLE-SELECT] Wybrany styl:', this.selectedStyle);
+    console.log('🎨 [STYLE-SELECT] data-style attribute:', styleCard.dataset.style);
+    console.log('🎨 [STYLE-SELECT] styleCard element:', styleCard);
+    console.log('🎨 [STYLE-SELECT] this.selectedStyle type:', typeof this.selectedStyle);
+    console.log('🎨 [STYLE-SELECT] =========================');
     
     // Ukryj komunikat błędu po wyborze stylu
     this.hideError();
@@ -2315,6 +2349,17 @@ class CustomifyEmbed {
       const base64 = await this.fileToBase64(this.uploadedFile);
       console.log('📱 [MOBILE] Starting transform request...');
       
+      // 🎨 GENERUJ WATERMARK PRZED WYSŁANIEM DO API
+      let watermarkedImageBase64 = null;
+      try {
+        console.log('🎨 [TRANSFORM] Generuję watermark PRZED wysłaniem do API...');
+        watermarkedImageBase64 = await this.addWatermark(base64);
+        console.log('✅ [TRANSFORM] Watermark wygenerowany, długość:', watermarkedImageBase64?.length);
+      } catch (watermarkError) {
+        console.error('⚠️ [TRANSFORM] Błąd generowania watermarku (kontynuuję bez):', watermarkError);
+        // Kontynuuj bez watermarku - nie blokuj transformacji
+      }
+      
       // Create AbortController for timeout
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 300000); // 5 minutes
@@ -2334,11 +2379,14 @@ class CustomifyEmbed {
       
       const requestBody = {
         imageData: base64,
+        watermarkedImage: watermarkedImageBase64, // 🎨 DODAJ WATERMARK DO REQUEST BODY
         prompt: `Transform this image in ${this.selectedStyle} style`,
+        style: this.selectedStyle, // ✅ DODAJ STYL JAKO OSOBNE POLE - API użyje tego zamiast parsować prompt
         productType: productType, // Przekaż typ produktu do API
         customerId: customerInfo?.customerId || null,
-        customerAccessToken: customerInfo?.customerAccessToken || null,
-        email: email // ✅ Dodaj email dla niezalogowanych lub jako backup
+        // ✅ EMAIL: Tylko dla niezalogowanych - używany do powiązania generacji z użytkownikiem w save-generation
+        email: (!customerInfo?.customerId) ? (email || null) : null
+        // ❌ USUNIĘTO: customerAccessToken - nie jest używany, API używa SHOPIFY_ACCESS_TOKEN z env
       };
       
       console.log('📱 [MOBILE] Request body size:', JSON.stringify(requestBody).length, 'bytes');
@@ -2360,12 +2408,33 @@ class CustomifyEmbed {
       
       console.log('🔍 [FRONTEND] Request Body (bez imageData):', {
         prompt: requestBody.prompt,
+        style: requestBody.style, // ✅ POKAŻ STYL W REQUEST BODY
+        selectedStyle: this.selectedStyle, // ✅ DEBUG: Dodaj selectedStyle
         productType: requestBody.productType,
         customerId: requestBody.customerId,
         customerIdType: typeof requestBody.customerId,
         customerAccessToken: requestBody.customerAccessToken ? 'present' : 'null',
         email: requestBody.email,
         imageDataLength: requestBody.imageData?.length || 0
+      });
+      
+      // ✅ POKAŻ PEŁNY REQUEST BODY (bez imageData dla czytelności)
+      const requestBodyForLog = { ...requestBody };
+      requestBodyForLog.imageData = `[BASE64 DATA: ${requestBody.imageData?.length || 0} characters]`;
+      console.log('📤 [FRONTEND] ===== PEŁNY REQUEST BODY (imageData skrócony) =====');
+      console.log('📤 [FRONTEND]', JSON.stringify(requestBodyForLog, null, 2));
+      console.log('📤 [FRONTEND] style value:', requestBody.style);
+      console.log('📤 [FRONTEND] style type:', typeof requestBody.style);
+      console.log('📤 [FRONTEND] style === undefined:', requestBody.style === undefined);
+      console.log('📤 [FRONTEND] this.selectedStyle:', this.selectedStyle);
+      console.log('📤 [FRONTEND] ====================================================');
+      
+      // ✅ DEBUG: Sprawdź czy selectedStyle jest poprawny
+      console.log('🔍🔍🔍 [FRONTEND-DEBUG] selectedStyle przed wysłaniem:', {
+        selectedStyle: this.selectedStyle,
+        selectedStyleType: typeof this.selectedStyle,
+        promptContainsStyle: requestBody.prompt.includes(this.selectedStyle || ''),
+        styleCard: document.querySelector(`[data-style="${this.selectedStyle}"]`) ? 'found' : 'NOT FOUND'
       });
       
       const response = await fetch('https://customify-s56o.vercel.app/api/transform', {
@@ -2468,15 +2537,23 @@ class CustomifyEmbed {
       if (result.success) {
         this.transformedImage = result.transformedImage;
         this.hideError(); // Ukryj komunikat błędu po udanej transformacji
-        this.showResult(result.transformedImage);
+        
+        // ✅ AWAIT: Czekaj aż watermark zostanie dodany (showResult jest async)
+        await this.showResult(result.transformedImage);
         this.showSuccess('Teraz wybierz rozmiar obrazu');
         
+        // ✅ WATERMARK JUŻ ZAPISANY W /api/transform - nie trzeba osobnego endpointu
+        console.log('✅ [CUSTOMIFY] Watermark został zapisany razem z generacją w /api/transform');
+        
         // 🎨 GALERIA: Zapisz generację do localStorage z base64 cache
+        // ✅ DODAJ productType do generacji (dla skalowalności)
+        const productType = this.getProductTypeFromStyle(this.selectedStyle);
         this.saveAIGeneration(
           base64,                     // Oryginalne zdjęcie (base64)
           result.transformedImage,    // AI obraz URL
           this.selectedStyle,         // Styl (pixar, boho, etc)
-          this.selectedSize           // Rozmiar (a4, a3, etc)
+          this.selectedSize,         // Rozmiar (a4, a3, etc)
+          productType                 // ✅ ProductType (boho, king, cats, etc)
         ).then(() => {
           console.log('✅ [CACHE] AI generation saved with base64 cache');
           
@@ -2544,118 +2621,153 @@ class CustomifyEmbed {
 
   // FUNKCJA DODAWANIA WATERMARKU
   async addWatermark(imageUrl) {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      
-      img.onload = () => {
-        try {
-          const canvas = document.createElement('canvas');
-          const ctx = canvas.getContext('2d');
-          
-          canvas.width = img.width;
-          canvas.height = img.height;
-          
-          // Rysuj oryginalny obraz
-          ctx.drawImage(img, 0, 0);
-          
-          // ===== WZÓR DIAGONALNY - "Lumly.pl" i "Podgląd" NA PRZEMIAN =====
-          ctx.save();
-          ctx.font = 'bold 30px Arial';
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'; // Zwiększona widoczność (było 0.4)
-          ctx.strokeStyle = 'rgba(0, 0, 0, 0.35)'; // Zwiększona widoczność (było 0.3)
-          ctx.lineWidth = 1.5;
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          
-          // Obróć canvas
-          ctx.translate(canvas.width/2, canvas.height/2);
-          ctx.rotate(-30 * Math.PI / 180);
-          ctx.translate(-canvas.width/2, -canvas.height/2);
-          
-          // Rysuj watermarki w siatce - na przemian "Lumly.pl" i "Podgląd"
-          const spacing = 180;
-          let textIndex = 0;
-          const texts = ['Lumly.pl', 'Podgląd'];
-          
-          for(let y = -canvas.height; y < canvas.height * 2; y += spacing) {
-            for(let x = -canvas.width; x < canvas.width * 2; x += spacing * 1.5) {
-              const text = texts[textIndex % 2];
-              ctx.strokeText(text, x, y);
-              ctx.fillText(text, x, y);
+    return new Promise(async (resolve, reject) => {
+      try {
+        console.log('🔤 [WATERMARK DEBUG] START - imageUrl:', imageUrl?.substring(0, 100));
+        console.log('🔤 [WATERMARK DEBUG] document.fonts.status:', document.fonts.status);
+        console.log('🔤 [WATERMARK DEBUG] Czekam na document.fonts.ready...');
+        
+        // 🔧 POZIOM 1: Poczekaj na załadowanie fontów PRZED renderowaniem
+        await document.fonts.ready;
+        console.log('✅ [WATERMARK DEBUG] document.fonts.ready - fonty załadowane!');
+        
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        
+        img.onload = () => {
+          try {
+            console.log('🖼️ [WATERMARK DEBUG] Image loaded:', img.width, 'x', img.height);
+            
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = img.width;
+            canvas.height = img.height;
+            
+            // Rysuj oryginalny obraz
+            ctx.drawImage(img, 0, 0);
+            console.log('✅ [WATERMARK DEBUG] Original image drawn on canvas');
+            
+            // ===== WZÓR DIAGONALNY - "LUMLY.PL" i "PODGLAD" NA PRZEMIAN =====
+            ctx.save();
+            
+            // ✅ ZWIĘKSZONY FONT I OPACITY DLA LEPSZEJ WIDOCZNOŚCI
+            const fontSize = Math.max(40, Math.min(canvas.width, canvas.height) * 0.08); // Min 40px, max 8% obrazu
+            console.log('📏 [WATERMARK DEBUG] fontSize:', fontSize);
+            
+            // 🔧 POZIOM 2: Użyj systemowych fontów z fallbackami + UPPERCASE bez polskich znaków
+            const fontFamily = 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif';
+            ctx.font = `bold ${fontSize}px ${fontFamily}`;
+            console.log('🔤 [WATERMARK DEBUG] Font ustawiony:', ctx.font);
+            
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)';
+            ctx.lineWidth = 2;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            // 🔧 POZIOM 3: Test renderowania - sprawdź czy font działa
+            const testText = 'TEST';
+            const testMetrics = ctx.measureText(testText);
+            console.log('🔍 [WATERMARK DEBUG] Test measureText("TEST"):', {
+              width: testMetrics.width,
+              actualBoundingBoxLeft: testMetrics.actualBoundingBoxLeft,
+              actualBoundingBoxRight: testMetrics.actualBoundingBoxRight
+            });
+            
+            if (testMetrics.width === 0) {
+              console.error('❌ [WATERMARK DEBUG] Font test FAILED! width=0, próbuję fallback monospace');
+              ctx.font = `bold ${fontSize}px monospace`;
+              console.log('🔄 [WATERMARK DEBUG] Fallback font:', ctx.font);
+              
+              const fallbackMetrics = ctx.measureText(testText);
+              console.log('🔍 [WATERMARK DEBUG] Fallback measureText("TEST"):', {
+                width: fallbackMetrics.width
+              });
+            } else {
+              console.log('✅ [WATERMARK DEBUG] Font test OK! width=' + testMetrics.width);
+            }
+            
+            // Test canvas rendering - czy tekst się faktycznie renderuje?
+            const testCanvas = document.createElement('canvas');
+            testCanvas.width = 200;
+            testCanvas.height = 100;
+            const testCtx = testCanvas.getContext('2d');
+            testCtx.font = ctx.font;
+            testCtx.fillStyle = 'black';
+            testCtx.fillText('Lumly.pl', 100, 50);
+            const testDataUrl = testCanvas.toDataURL();
+            console.log('🧪 [WATERMARK DEBUG] Test canvas rendering:', testDataUrl.substring(0, 100) + '...');
+            
+            // Obróć canvas
+            ctx.translate(canvas.width/2, canvas.height/2);
+            ctx.rotate(-30 * Math.PI / 180);
+            ctx.translate(-canvas.width/2, -canvas.height/2);
+            console.log('🔄 [WATERMARK DEBUG] Canvas rotated -30°');
+            
+            // 🔧 TEKSTY BEZ POLSKICH ZNAKÓW (ł → L, ą → A)
+            // Uppercase dla lepszej czytelności i kompatybilności
+            const texts = ['LUMLY.PL', 'PODGLAD'];
+            console.log('📝 [WATERMARK DEBUG] Teksty watermarku:', texts);
+            
+            // Rysuj watermarki w siatce - na przemian
+            const spacing = Math.max(200, Math.min(canvas.width, canvas.height) * 0.3);
+            console.log('📏 [WATERMARK DEBUG] Spacing:', spacing);
+            
+            let textIndex = 0;
+            let watermarkCount = 0;
+            
+            for(let y = -canvas.height; y < canvas.height * 2; y += spacing) {
+              for(let x = -canvas.width; x < canvas.width * 2; x += spacing * 1.5) {
+                const text = texts[textIndex % 2];
+                // ✅ RYSUJ STROKE PRZED FILL (dla lepszej widoczności)
+                ctx.strokeText(text, x, y);
+                ctx.fillText(text, x, y);
+                textIndex++;
+                watermarkCount++;
+              }
+              // Zmień wzór co wiersz dla lepszego efektu
               textIndex++;
             }
-            // Zmień wzór co wiersz dla lepszego efektu
-            textIndex++;
+            
+            console.log('✅ [WATERMARK DEBUG] Narysowano', watermarkCount, 'watermarków');
+            
+            ctx.restore();
+            
+            // Zwróć obraz z watermarkiem jako Data URL
+            const result = canvas.toDataURL('image/jpeg', 0.92);
+            console.log('✅ [WATERMARK DEBUG] Canvas.toDataURL() - rozmiar:', result.length, 'znaków (', (result.length / 1024 / 1024).toFixed(2), 'MB)');
+            console.log('✅ [WATERMARK DEBUG] Result preview:', result.substring(0, 100) + '...');
+            
+            resolve(result);
+          } catch (error) {
+            console.error('❌ [WATERMARK DEBUG] Canvas error:', error);
+            console.error('❌ [WATERMARK DEBUG] Error stack:', error.stack);
+            reject(error);
           }
-          
-          ctx.restore();
-          
-          // Zwróć obraz z watermarkiem jako Data URL
-          resolve(canvas.toDataURL('image/jpeg', 0.92));
-        } catch (error) {
-          console.error('❌ Watermark error:', error);
+        };
+        
+        img.onerror = (error) => {
+          console.error('❌ [WATERMARK DEBUG] Image load error:', error);
           reject(error);
-        }
-      };
-      
-      img.onerror = (error) => {
-        console.error('❌ Image load error:', error);
+        };
+        
+        img.src = imageUrl;
+      } catch (error) {
+        console.error('❌ [WATERMARK DEBUG] Async error:', error);
+        console.error('❌ [WATERMARK DEBUG] Error stack:', error.stack);
         reject(error);
-      };
-      
-      img.src = imageUrl;
+      }
     });
   }
 
   async showResult(imageUrl) {
     console.log('🎯 [CUSTOMIFY] showResult called, hiding actionsArea and stylesArea');
     
-    // WATERMARK WŁĄCZONY
-    try {
-      const watermarkedImage = await this.addWatermark(imageUrl);
-      this.resultImage.src = watermarkedImage;
-      
-      // ✅ ZAPISZ OBRAZEK Z WATERMARKIEM (do użycia w koszyku)
-      this.watermarkedImage = watermarkedImage;
-      console.log('🎨 [CUSTOMIFY] Watermark dodany do podglądu i zapisany');
-      
-      // ✅ OD RAZU UPLOAD WATERMARKED NA VERCEL (dla "Moje generacje" + cart)
-      console.log('📤 [CUSTOMIFY] Uploading watermarked image to Vercel Blob...');
-      console.log('📤 [CUSTOMIFY] Watermarked image type:', typeof watermarkedImage);
-      console.log('📤 [CUSTOMIFY] Watermarked image length:', watermarkedImage?.length);
-      
-      try {
-        const watermarkUploadResponse = await fetch('https://customify-s56o.vercel.app/api/upload-temp-image', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            imageData: watermarkedImage,
-            filename: `watermarked-${Date.now()}.jpg`
-          })
-        });
-        
-        console.log('📤 [CUSTOMIFY] Upload response status:', watermarkUploadResponse.status);
-        const watermarkUploadResult = await watermarkUploadResponse.json();
-        console.log('📤 [CUSTOMIFY] Upload result:', watermarkUploadResult);
-        
-        if (watermarkUploadResult.success) {
-          this.watermarkedImageUrl = watermarkUploadResult.url;
-          console.log('✅ [CUSTOMIFY] Watermarked image uploaded to Vercel:', this.watermarkedImageUrl);
-        } else {
-          console.error('❌ [CUSTOMIFY] Failed to upload watermarked image:', watermarkUploadResult.error);
-          this.watermarkedImageUrl = null;
-        }
-      } catch (uploadError) {
-        console.error('❌ [CUSTOMIFY] Error uploading watermarked image:', uploadError);
-        this.watermarkedImageUrl = null;
-      }
-    } catch (error) {
-      console.error('❌ [CUSTOMIFY] Watermark error:', error);
-      this.resultImage.src = imageUrl;
-      this.watermarkedImage = null;
-      this.watermarkedImageUrl = null;
-    }
+    // ✅ WATERMARK JUŻ WYGENEROWANY W transformImage() - użyj go
+    // Watermark jest już zapisany w Vercel Blob przez /api/transform
+    this.resultImage.src = imageUrl; // Pokaż ORYGINAŁ (bez watermarku) w podglądzie
+    console.log('✅ [CUSTOMIFY] Showing result (watermark already saved in Vercel Blob)');
     
     this.resultArea.style.display = 'block';
     
@@ -3519,84 +3631,45 @@ function addMobileThumbnails() {
 /**
  * INITIALIZATION
  */
-// ✅ AUTO-LOAD: Funkcja do załadowania generacji po pełnej inicjalizacji
-function autoLoadGeneration(customifyApp) {
-  try {
-    console.log('🔍 [AUTO-LOAD] Checking localStorage for selected generation...');
-    const selectedData = localStorage.getItem('customify_selected_generation');
-    console.log('🔍 [AUTO-LOAD] localStorage data:', selectedData ? 'Found' : 'Not found');
-    
-    if (!selectedData) {
-      console.log('ℹ️ [AUTO-LOAD] No selected generation found in localStorage');
-      return;
-    }
-    
-    console.log('🔍 [AUTO-LOAD] Parsing selected data...');
-    const parsed = JSON.parse(selectedData);
-    console.log('🔍 [AUTO-LOAD] Parsed data:', parsed);
-    
-    const { index, generation } = parsed;
-    console.log('🎯 [CUSTOMIFY] Auto-loading generation from "Moje generacje":', index);
-    console.log('🎯 [CUSTOMIFY] Generation data:', {
-      id: generation?.id,
-      style: generation?.style,
-      size: generation?.size,
-      hasTransformedImage: !!generation?.transformedImage,
-      hasOriginalImage: !!generation?.originalImage,
-      hasWatermarkedUrl: !!generation?.watermarkedImageUrl,
-      transformedImagePreview: generation?.transformedImage?.substring(0, 100)
-    });
-    
-    // Sprawdź czy aplikacja jest gotowa
-    if (!customifyApp || !customifyApp.resultArea || !customifyApp.resultImage) {
-      console.warn('⚠️ [AUTO-LOAD] App not ready yet, retrying in 500ms...');
-      setTimeout(() => autoLoadGeneration(customifyApp), 500);
-      return;
-    }
-    
-    console.log('⏳ [AUTO-LOAD] App is ready, calling reuseGeneration()...');
-    console.log('⏳ [AUTO-LOAD] App elements:', {
-      hasUploadArea: !!customifyApp.uploadArea,
-      hasResultArea: !!customifyApp.resultArea,
-      hasResultImage: !!customifyApp.resultImage,
-      hasStylesArea: !!customifyApp.stylesArea,
-      hasSizeArea: !!customifyApp.sizeArea
-    });
-    
-    try {
-      customifyApp.reuseGeneration(generation);
-      console.log('✅ [CUSTOMIFY] Generation loaded via reuseGeneration(), ready for checkout');
-      
-      // Wyczyść po użyciu
-      localStorage.removeItem('customify_selected_generation');
-      console.log('🧹 [AUTO-LOAD] Cleared localStorage after loading');
-    } catch (error) {
-      console.error('❌ [AUTO-LOAD] Error in reuseGeneration():', error);
-      console.error('❌ [AUTO-LOAD] Error stack:', error.stack);
-    }
-  } catch (error) {
-    console.error('❌ [CUSTOMIFY] Error loading selected generation:', error);
-    console.error('❌ [CUSTOMIFY] Error stack:', error.stack);
-  }
-}
-
 document.addEventListener('DOMContentLoaded', () => {
   // Initialize Customify app
   const customifyApp = new CustomifyEmbed();
   
-  // ✅ AUTO-LOAD: Sprawdź localStorage od razu i próbuj załadować generację
-  // Użyj większego timeoutu żeby aplikacja zdążyła się zainicjalizować
-  setTimeout(() => {
-    console.log('📦 [AUTO-LOAD] Checking for selected generation after initialization delay...');
-    autoLoadGeneration(customifyApp);
-  }, 2000); // 2 sekundy - daj czas aplikacji na pełną inicjalizację
-  
-  // Fallback: jeśli window.load już się wydarzył (strona była już załadowana)
-  if (document.readyState === 'complete') {
-    console.log('📦 [AUTO-LOAD] Page already loaded, checking with delay...');
-    setTimeout(() => {
-      autoLoadGeneration(customifyApp);
-    }, 1500);
+  // ✅ AUTO-LOAD: Sprawdź czy user wybrał generację na stronie "Moje generacje"
+  try {
+    const selectedData = localStorage.getItem('customify_selected_generation');
+    if (selectedData) {
+      const { index, generation } = JSON.parse(selectedData);
+      console.log('🎯 [CUSTOMIFY] Auto-loading generation from "Moje generacje":', index, generation);
+      
+      // Załaduj generację używając reuseGeneration() (ta sama funkcja co kliknięcie w galerii)
+      setTimeout(() => {
+        // Sprawdź czy DOM jest gotowy (resultImage musi istnieć)
+        const resultImage = document.getElementById('resultImage');
+        if (!resultImage) {
+          console.warn('⚠️ [CUSTOMIFY] resultImage not found, retrying in 1s...');
+          setTimeout(() => {
+            customifyApp.reuseGeneration(generation);
+            console.log('✅ [CUSTOMIFY] Generation loaded from "Moje generacje" (retry), ready for checkout');
+          }, 1000);
+          return;
+        }
+        
+        customifyApp.reuseGeneration(generation);
+        console.log('✅ [CUSTOMIFY] Generation loaded from "Moje generacje", ready for checkout');
+        
+        // Scroll do wyniku żeby user widział co się załadowało
+        const resultArea = document.getElementById('resultArea');
+        if (resultArea) {
+          resultArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 2000); // 2s delay żeby DOM się załadował + galeria się zbudowała
+      
+      // Wyczyść po użyciu
+      localStorage.removeItem('customify_selected_generation');
+    }
+  } catch (error) {
+    console.error('❌ [CUSTOMIFY] Error loading selected generation:', error);
   }
   
   // Initialize cart integration
