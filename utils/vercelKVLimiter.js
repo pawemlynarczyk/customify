@@ -76,20 +76,20 @@ async function incrementIPLimit(ip) {
 }
 
 /**
- * Sprawdza Device Token limit (TOTAL - 2 generacje dla wszystkich stylów)
+ * Sprawdza Device Token limit (TOTAL - 3 generacje dla wszystkich stylów)
  * @param {string} deviceToken - Device token
  * @returns {Promise<{allowed: boolean, count: number, limit: number}>}
  */
 async function checkDeviceTokenLimit(deviceToken) {
   if (!deviceToken) {
     console.warn('⚠️ [KV-LIMITER] No device token provided');
-    return { allowed: false, count: 0, limit: 2, reason: 'No device token' };
+    return { allowed: false, count: 0, limit: 3, reason: 'No device token' };
   }
 
   try {
     const key = `device:${deviceToken}:generations`;
     const count = await kv.get(key) || 0;
-    const limit = 2; // 2 generacje TOTAL dla niezalogowanych
+    const limit = 3; // 3 generacje TOTAL dla niezalogowanych
     const allowed = count < limit;
 
     console.log(`🔍 [KV-LIMITER] Device token limit check:`, {
@@ -103,7 +103,7 @@ async function checkDeviceTokenLimit(deviceToken) {
   } catch (error) {
     console.error('❌ [KV-LIMITER] Error checking device token limit:', error);
     // ⚠️ KRYTYCZNE: Jeśli błąd KV, BLOKUJ dla bezpieczeństwa
-    return { allowed: false, count: 0, limit: 2, reason: 'KV error', error: error.message };
+    return { allowed: false, count: 0, limit: 3, reason: 'KV error', error: error.message };
   }
 }
 
@@ -267,7 +267,23 @@ async function checkDeviceTokenCrossAccount(deviceToken, customerId) {
   try {
     const key = `device:${deviceToken}:customers`;
     const customerIdsJson = await kv.get(key);
-    const customerIds = customerIdsJson ? JSON.parse(customerIdsJson) : [];
+    
+    // Parsuj JSON i upewnij się, że to jest tablica
+    let customerIds = [];
+    if (customerIdsJson) {
+      try {
+        const parsed = JSON.parse(customerIdsJson);
+        // Walidacja: upewnij się, że to jest tablica
+        customerIds = Array.isArray(parsed) ? parsed : [];
+        if (!Array.isArray(parsed)) {
+          console.warn(`⚠️ [KV-LIMITER-CROSS] Invalid data format in KV - expected array, got:`, typeof parsed);
+        }
+      } catch (parseError) {
+        console.error(`❌ [KV-LIMITER-CROSS] Failed to parse customerIds JSON:`, parseError.message);
+        customerIds = [];
+      }
+    }
+    
     const limit = 2; // Max 2 różne customerIds per device token
 
     console.log(`🔍 [KV-LIMITER-CROSS] Device token cross-account check:`, {
@@ -320,7 +336,22 @@ async function addCustomerToDeviceToken(deviceToken, customerId) {
   try {
     const key = `device:${deviceToken}:customers`;
     const customerIdsJson = await kv.get(key);
-    const customerIds = customerIdsJson ? JSON.parse(customerIdsJson) : [];
+    
+    // Parsuj JSON i upewnij się, że to jest tablica
+    let customerIds = [];
+    if (customerIdsJson) {
+      try {
+        const parsed = JSON.parse(customerIdsJson);
+        // Walidacja: upewnij się, że to jest tablica
+        customerIds = Array.isArray(parsed) ? parsed : [];
+        if (!Array.isArray(parsed)) {
+          console.warn(`⚠️ [KV-LIMITER-CROSS] Invalid data format in KV for add - expected array, got:`, typeof parsed);
+        }
+      } catch (parseError) {
+        console.error(`❌ [KV-LIMITER-CROSS] Failed to parse customerIds JSON for add:`, parseError.message);
+        customerIds = [];
+      }
+    }
 
     // Jeśli customerId już jest na liście - nie dodawaj ponownie
     if (customerIds.includes(customerId)) {
