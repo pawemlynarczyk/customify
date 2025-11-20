@@ -277,17 +277,21 @@
           
           grid.appendChild(item);
           
-          // ✅ PRIORYTET: watermarkedImageUrl (Vercel Z watermarkiem) > addWatermark (on-the-fly dla starych)
+          // ✅ PRIORYTET: watermarkedImageUrl (Vercel) > base64 (już z watermarkiem) > URL (dodaj watermark)
           try {
             let watermarkedImage;
             if (generation.watermarkedImageUrl) {
-              // Nowa generacja - użyj URL z Vercel (już z watermarkiem)
+              // URL z Vercel (już z watermarkiem)
               watermarkedImage = generation.watermarkedImageUrl;
               console.log('✅ [MY-GENERATIONS] Using watermarked URL from Vercel:', watermarkedImage.substring(0, 80));
+            } else if (generation.transformedImage?.startsWith('data:')) {
+              // Base64 (już z watermarkiem) - NIE DODAWAJ watermarku ponownie!
+              watermarkedImage = generation.transformedImage;
+              console.log('✅ [MY-GENERATIONS] Using base64 with watermark (already watermarked, no double watermark)');
             } else {
-              // Stara generacja - dodaj watermark on-the-fly
+              // URL bez watermarku - dodaj watermark on-the-fly
               watermarkedImage = await addWatermark(generation.transformedImage);
-              console.log('🎨 [MY-GENERATIONS] Added watermark on-the-fly for old generation');
+              console.log('🎨 [MY-GENERATIONS] Added watermark on-the-fly for clean URL');
             }
             
             item.innerHTML = `

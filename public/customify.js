@@ -814,7 +814,7 @@ class CustomifyEmbed {
   /**
    * Używa ponownie wybraną generację
    */
-  reuseGeneration(generation) {
+  async reuseGeneration(generation) {
     console.log('🔄 [GALLERY] Reusing generation:', generation.id);
     console.log('🔄 [GALLERY] Generation data:', generation);
     console.log('🔄 [GALLERY] originalImage type:', typeof generation.originalImage);
@@ -837,7 +837,8 @@ class CustomifyEmbed {
       this.originalImageFromGallery = generation.originalImage;
       console.log('✅ [GALLERY] Set this.originalImageFromGallery for addToCart:', this.originalImageFromGallery);
       
-      this.showResult(generation.transformedImage);
+      // ✅ AWAIT: Czekaj aż showResult() zakończy (dla spójności)
+      await this.showResult(generation.transformedImage);
       this.hideError();
     } else {
       console.error('❌ [GALLERY] No transformedImage in generation');
@@ -911,7 +912,8 @@ class CustomifyEmbed {
         console.log('📊 [USAGE] API response:', data);
         
         if (data.remainingCount <= 0) {
-          this.showError(`Wykorzystałeś wszystkie transformacje (${data.totalLimit}). Skontaktuj się z nami dla więcej.`);
+          // ✅ Błąd limitu transformacji → nad przyciskiem "Zobacz Podgląd"
+          this.showError(`Wykorzystałeś wszystkie transformacje (${data.totalLimit}). Skontaktuj się z nami dla więcej.`, 'transform');
           return false;
         }
         
@@ -2382,10 +2384,12 @@ class CustomifyEmbed {
       
       if (result.success) {
         this.transformedImage = result.transformedImage;
-        this.showResult(result.transformedImage);
+        // ✅ AWAIT: Czekaj aż showResult() zakończy upload watermarked na Vercel
+        await this.showResult(result.transformedImage);
         this.showSuccess('Teraz wybierz rozmiar obrazu');
         
         // 🎨 GALERIA: Zapisz generację do localStorage z base64 cache
+        // ✅ TERAZ this.watermarkedImageUrl jest już ustawione (z showResult)
         this.saveAIGeneration(
           base64,                     // Oryginalne zdjęcie (base64)
           result.transformedImage,    // AI obraz URL
@@ -2417,9 +2421,10 @@ class CustomifyEmbed {
           this.showUsageCounter();
           // Counter refreshed for logged-in user
         }
-      } else {
-        this.showError('Błąd podczas transformacji: ' + (result.error || 'Nieznany błąd'));
-      }
+        } else {
+          // ✅ Błąd transformacji → nad przyciskiem "Zobacz Podgląd"
+          this.showError('Błąd podczas transformacji: ' + (result.error || 'Nieznany błąd'), 'transform');
+        }
     } catch (error) {
       console.error('📱 [MOBILE] Transform error:', error);
       
@@ -2449,7 +2454,8 @@ class CustomifyEmbed {
         errorMessage = 'Błąd przetwarzania. Spróbuj ponownie.';
       }
       
-      this.showError(errorMessage);
+      // ✅ Błąd transformacji → nad przyciskiem "Zobacz Podgląd"
+      this.showError(errorMessage, 'transform');
     } finally {
       this.hideLoading();
     }
@@ -2665,7 +2671,8 @@ class CustomifyEmbed {
       // Sprawdź czy finalPrice jest poprawny
       if (!finalPrice || finalPrice <= 0) {
         console.error('❌ [CUSTOMIFY] Invalid finalPrice:', finalPrice);
-        this.showError('Błąd obliczania ceny. Spróbuj ponownie.');
+        // ✅ Błąd koszyka → nad przyciskiem "Dodaj do koszyka"
+        this.showError('Błąd obliczania ceny. Spróbuj ponownie.', 'cart');
         return;
       }
 
@@ -2861,7 +2868,8 @@ class CustomifyEmbed {
       } else {
         console.error('❌ [CUSTOMIFY] Product creation failed:', result);
         this.hideCartLoading();
-        this.showError('❌ Błąd podczas tworzenia produktu: ' + (result.error || 'Nieznany błąd'));
+        // ✅ Błąd koszyka → nad przyciskiem "Dodaj do koszyka"
+        this.showError('❌ Błąd podczas tworzenia produktu: ' + (result.error || 'Nieznany błąd'), 'cart');
       }
     } catch (error) {
       console.error('❌ [CUSTOMIFY] Add to cart error:', error);
@@ -2879,7 +2887,8 @@ class CustomifyEmbed {
         errorMessage = '❌ Błąd: ' + error.message;
       }
       
-      this.showError(errorMessage);
+      // ✅ Błąd koszyka → nad przyciskiem "Dodaj do koszyka"
+      this.showError(errorMessage, 'cart');
     }
   }
 
