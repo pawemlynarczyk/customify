@@ -2678,8 +2678,8 @@ class CustomifyEmbed {
             // ===== WZÓR DIAGONALNY - "LUMLY.PL" i "PODGLAD" NA PRZEMIAN =====
             ctx.save();
             
-            // ✅ ZWIĘKSZONY FONT I OPACITY DLA LEPSZEJ WIDOCZNOŚCI
-            const fontSize = Math.max(40, Math.min(canvas.width, canvas.height) * 0.08); // Min 40px, max 8% obrazu
+            // ✅ MNIEJSZA WIDOCZNOŚĆ WATERMARKU - subtelniejszy znak wodny
+            const fontSize = Math.max(30, Math.min(canvas.width, canvas.height) * 0.06); // Min 30px, max 6% obrazu (było 40px/8%)
             console.log('📏 [WATERMARK DEBUG] fontSize:', fontSize);
             
             // 🔧 POZIOM 2: Użyj systemowych fontów z fallbackami + UPPERCASE bez polskich znaków
@@ -2687,9 +2687,10 @@ class CustomifyEmbed {
             ctx.font = `bold ${fontSize}px ${fontFamily}`;
             console.log('🔤 [WATERMARK DEBUG] Font ustawiony:', ctx.font);
             
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-            ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)';
-            ctx.lineWidth = 2;
+            // ✅ ZMNIEJSZONA OPACITY - subtelniejszy znak wodny (było 0.7/0.5, teraz 0.35/0.25)
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.35)'; // Biały tekst z 35% opacity (było 70%)
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.25)'; // Czarna obwódka z 25% opacity (było 50%)
+            ctx.lineWidth = 1; // Cieńsza obwódka (było 2px)
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             
