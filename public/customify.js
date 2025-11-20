@@ -2788,9 +2788,8 @@ class CustomifyEmbed {
             ctx.translate(-canvas.width/2, -canvas.height/2);
             console.log('🔄 [WATERMARK DEBUG] Canvas rotated -30°');
             
-            // 🔧 TEKSTY BEZ POLSKICH ZNAKÓW (ł → L, ą → A)
-            // Uppercase dla lepszej czytelności i kompatybilności
-            const texts = ['LUMLY.PL', 'PODGLAD'];
+            // 🔧 TEKST WATERMARKU - tylko "Lumly.pl"
+            const texts = ['Lumly.pl'];
             console.log('📝 [WATERMARK DEBUG] Teksty watermarku:', texts);
             
             // Rysuj watermarki w siatce - na przemian
