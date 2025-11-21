@@ -2562,10 +2562,10 @@ class CustomifyEmbed {
             let updateSuccess = false;
             let lastError = null;
             
-            // 🔄 Retry 2 razy z opóźnieniem (1s przed pierwszą próbą, potem 2s)
+            // 🔄 Retry 2 razy z opóźnieniem (2s przed pierwszą próbą, potem 2s)
             // ⚠️ RACE CONDITION: Generacja może nie być jeszcze w Blob Storage - dajemy czas na propagację
-            console.log('⏳ [TRANSFORM] Czekam 1 sekundę przed pierwszą próbą (propagacja w Blob Storage)...');
-            await new Promise(resolve => setTimeout(resolve, 1000)); // 1s przed pierwszą próbą (skrócone z 3s)
+            console.log('⏳ [TRANSFORM] Czekam 2 sekundy przed pierwszą próbą (propagacja w Blob Storage)...');
+            await new Promise(resolve => setTimeout(resolve, 2000)); // 2s przed pierwszą próbą
             
             for (let attempt = 0; attempt < 2; attempt++) {
               if (attempt > 0) {
