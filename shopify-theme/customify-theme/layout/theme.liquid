@@ -338,7 +338,7 @@
               const basePrice = this.originalBasePrice || 49.00;
               const sizePrice = this.getSizePrice(this.selectedSize);
               const frameSelected = (this.selectedProductType === 'plakat') && (window.CustomifyFrame && window.CustomifyFrame.color && window.CustomifyFrame.color !== 'none');
-              const frameSurcharge = frameSelected ? 29 : 0;
+              const frameSurcharge = frameSelected && this.selectedSize ? (this.framePricing[this.selectedSize] || 29) : 0;
               finalPrice = basePrice + sizePrice + frameSurcharge;
               console.log('💰 [CUSTOMIFY] Physical product - price calculation:', { basePrice, sizePrice, frameSurcharge, finalPrice });
             }
