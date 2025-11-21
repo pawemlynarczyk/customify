@@ -2527,7 +2527,7 @@ class CustomifyEmbed {
         
         // ✅ AWAIT: Czekaj aż wynik zostanie pokazany
         await this.showResult(result.transformedImage);
-        this.showSuccess('Teraz wybierz rozmiar obrazu');
+        this.showSuccess('Wybierz rozmiar i Zamów swój projekt!');
         
         // ✅ UKRYJ PASEK POSTĘPU - obraz jest już widoczny, reszta działa w tle
         this.hideLoading();
