@@ -2800,21 +2800,26 @@ class CustomifyEmbed {
           try {
             console.log('🖼️ [WATERMARK DEBUG] Image loaded:', img.width, 'x', img.height);
             
+            // ✅ ZMNIEJSZENIE WATERMARKU: 50% rozmiaru oryginału (dla miniaturki w Shopify i emaili)
+            // Oryginał BEZ watermarku pozostaje w pełnym rozmiarze na Vercel (do druku)
+            const scale = 0.5; // 50% rozmiaru (zmniejszamy dla Shopify + Vercel watermark)
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
             
-            canvas.width = img.width;
-            canvas.height = img.height;
+            canvas.width = Math.round(img.width * scale);
+            canvas.height = Math.round(img.height * scale);
+            console.log(`📐 [WATERMARK DEBUG] Watermark canvas size: ${canvas.width}x${canvas.height} (${Math.round(scale * 100)}% of original)`);
             
-            // Rysuj oryginalny obraz
-            ctx.drawImage(img, 0, 0);
-            console.log('✅ [WATERMARK DEBUG] Original image drawn on canvas');
+            // Rysuj oryginalny obraz na zmniejszonym Canvas (automatycznie skaluje)
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            console.log('✅ [WATERMARK DEBUG] Original image drawn on resized canvas (50% scale)');
             
             // ===== WZÓR DIAGONALNY - "LUMLY.PL" i "PODGLAD" NA PRZEMIAN =====
             ctx.save();
             
-            // ✅ MNIEJSZA WIDOCZNOŚĆ WATERMARKU - subtelniejszy znak wodny
-            const fontSize = Math.max(30, Math.min(canvas.width, canvas.height) * 0.06); // Min 30px, max 6% obrazu (było 40px/8%)
+            // ✅ DOSTOSOWANY FONT SIZE: Przy 50% canvas, zwiększamy procent żeby zachować podobną widoczność
+            // Watermark na zmniejszonym obrazie (50%) - font powinien być proporcjonalnie większy
+            const fontSize = Math.max(20, Math.min(canvas.width, canvas.height) * 0.08); // Min 20px (bo canvas jest 50%), 8% canvas (zwiększone z 6% dla lepszej widoczności)
             console.log('📏 [WATERMARK DEBUG] fontSize:', fontSize);
             
             // 🔧 POZIOM 2: Użyj systemowych fontów z fallbackami + UPPERCASE bez polskich znaków
@@ -2897,8 +2902,11 @@ class CustomifyEmbed {
             ctx.restore();
             
             // Zwróć obraz z watermarkiem jako Data URL
-            const result = canvas.toDataURL('image/jpeg', 0.92);
-            console.log('✅ [WATERMARK DEBUG] Canvas.toDataURL() - rozmiar:', result.length, 'znaków (', (result.length / 1024 / 1024).toFixed(2), 'MB)');
+            // ✅ ZMNIEJSZONA JAKOŚĆ: 70% quality (watermark nie musi być w wysokiej jakości - tylko do podglądu/emaili)
+            const result = canvas.toDataURL('image/jpeg', 0.70);
+            const resultSizeKB = Math.round(result.length / 1024);
+            console.log('✅ [WATERMARK DEBUG] Canvas.toDataURL() - rozmiar:', result.length, 'znaków (', resultSizeKB, 'KB /', (result.length / 1024 / 1024).toFixed(2), 'MB)');
+            console.log('✅ [WATERMARK DEBUG] Watermark: 50% rozmiaru + 70% quality = kompaktowy plik');
             console.log('✅ [WATERMARK DEBUG] Result preview:', result.substring(0, 100) + '...');
             
             resolve(result);
