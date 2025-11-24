@@ -1742,8 +1742,13 @@ module.exports = async (req, res) => {
           isOldFormat: isOldFormat
         });
 
-        if (isTest) {
+        // ✅ SPRAWDŹ WHITELIST Z EMAIL Z GRAPHQL (bardziej wiarygodne niż request body)
+        const customerEmailFromGraphQL = customer?.email;
+        const isTestUserFromGraphQL = isTestUser(customerEmailFromGraphQL || null, ip);
+        
+        if (isTest || isTestUserFromGraphQL) {
           console.log(`🧪 [TEST-BYPASS] Pomijam Shopify metafield limit dla test user (${totalUsed}/${totalLimit})`);
+          console.log(`🧪 [TEST-BYPASS] Test check - original isTest: ${isTest}, GraphQL email test: ${isTestUserFromGraphQL}, email: ${customerEmailFromGraphQL}`);
         } else if (totalUsed >= totalLimit) {
           console.warn(`❌ [METAFIELD-CHECK] LIMIT EXCEEDED:`, {
             customerEmail: customer?.email,
@@ -2391,10 +2396,12 @@ module.exports = async (req, res) => {
       hasCustomerId: !!customerId,
       hasAccessToken: !!accessToken,
       customerId: customerId,
-      productType: finalProductType
+      productType: finalProductType,
+      isTest: isTest
     });
     
-    if (customerId && accessToken) {
+    // ✅ POMIŃ INKREMENTACJĘ DLA TEST USERS (whitelist - nieograniczone generacje)
+    if (customerId && accessToken && !isTest) {
       console.log(`➕ [TRANSFORM] Inkrementuję licznik dla użytkownika ${customerId} (productType: ${finalProductType})`);
       
       try {
