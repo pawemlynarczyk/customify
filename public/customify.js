@@ -27,6 +27,10 @@ class CustomifyEmbed {
     this.selectedSize = null;
     this.selectedProductType = 'canvas'; // Domyślny wybór: Obraz na płótnie
     this.transformedImage = null;
+    
+    // ✅ PENDING WATERMARK UPLOAD: Dane do wysłania jeśli użytkownik zmieni stronę
+    this.pendingWatermarkUpload = null; // { generationId, watermarkedImage, customerId, email }
+    this.watermarkUploadInProgress = false;
     this.sizePricing = {
       plakat: {
         a4: 29,
@@ -54,6 +58,51 @@ class CustomifyEmbed {
 
     // Udostępnij instancję globalnie do aktualizacji ceny z zewnątrz (np. wybór ramki)
     window.__customify = this;
+    
+    // ✅ PAGE UNLOAD PROTECTION: Obsługa zmiany/zamknięcia strony podczas upload watermarku
+    this.setupPageUnloadProtection();
+  }
+
+  setupPageUnloadProtection() {
+    // ✅ pagehide event - bardziej niezawodny niż beforeunload
+    window.addEventListener('pagehide', (event) => {
+      if (this.pendingWatermarkUpload && this.watermarkUploadInProgress) {
+        console.warn('⚠️ [WATERMARK] Strona się zamyka - próbuję wysłać watermark przed zamknięciem...');
+        
+        // Spróbuj wysłać przez fetch z keepalive: true (kontynuuje request po zamknięciu strony)
+        // ⚠️ LIMIT: keepalive ma limit ~64KB, ale spróbujemy (watermark może być większy)
+        const payload = JSON.stringify({
+          generationId: this.pendingWatermarkUpload.generationId,
+          watermarkedImage: this.pendingWatermarkUpload.watermarkedImage,
+          customerId: this.pendingWatermarkUpload.customerId,
+          email: this.pendingWatermarkUpload.email
+        });
+        
+        // Tylko jeśli payload jest mniejszy niż ~50KB (bezpieczny limit)
+        if (payload.length < 50000) {
+          try {
+            navigator.sendBeacon(
+              'https://customify-s56o.vercel.app/api/update-generation-watermark',
+              new Blob([payload], { type: 'application/json' })
+            );
+            console.log('✅ [WATERMARK] Watermark wysłany przez sendBeacon przed zamknięciem strony');
+          } catch (beaconError) {
+            console.warn('⚠️ [WATERMARK] sendBeacon failed, próbuję fetch z keepalive...', beaconError);
+            // Fallback: fetch z keepalive (może działać dla większych payloads)
+            fetch('https://customify-s56o.vercel.app/api/update-generation-watermark', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: payload,
+              keepalive: true // Kontynuuj request po zamknięciu strony
+            }).catch(err => {
+              console.warn('⚠️ [WATERMARK] Fetch z keepalive też nie zadziałał:', err);
+            });
+          }
+        } else {
+          console.warn('⚠️ [WATERMARK] Payload za duży dla sendBeacon/fetch keepalive (~' + Math.round(payload.length/1024) + 'KB) - watermark może nie zostać zapisany');
+        }
+      }
+    });
   }
 
   init() {
@@ -2555,6 +2604,15 @@ class CustomifyEmbed {
             console.log('✅ [TRANSFORM] Watermark preview:', watermarkedImageBase64.substring(0, 100));
             console.log('✅ [TRANSFORM] Watermark is base64?', watermarkedImageBase64.startsWith('data:'));
             
+            // ✅ ZAPISZ DANE DO PENDING UPLOAD (na wypadek zmiany strony)
+            this.pendingWatermarkUpload = {
+              generationId: result.saveGenerationDebug.generationId,
+              watermarkedImage: watermarkedImageBase64,
+              customerId: customerInfo?.customerId || null,
+              email: (!customerInfo?.customerId) ? (email || null) : null
+            };
+            this.watermarkUploadInProgress = true;
+            
             // ✅ WYŚLIJ WATERMARK DO BACKENDU - zaktualizuj istniejącą generację z RETRY LOGIC
             // 🔄 RETRY: Poczekaj na zapis generacji (race condition - generacja może nie być jeszcze w Blob Storage)
             console.log('📤 [TRANSFORM] Wysyłam watermark do /api/update-generation-watermark...');
@@ -2562,17 +2620,19 @@ class CustomifyEmbed {
             let updateSuccess = false;
             let lastError = null;
             
-            // 🔄 Retry 2 razy z opóźnieniem (4s przed pierwszą próbą, potem 2s)
+            // 🔄 Retry 3 razy z opóźnieniem (3s przed pierwszą próbą, potem 2s)
             // ⚠️ RACE CONDITION: Generacja może nie być jeszcze w Blob Storage - dajemy czas na propagację
-            // ✅ ZWIĘKSZONE DO 4s: Vercel Blob Storage potrzebuje ~2-4s na zapis + propagację
+            // ✅ KOMPROMIS 3s: Mniej niż 4s (lepsze UX jeśli użytkownik zmieni stronę), ale więcej niż 2s (bezpieczniejsze)
+            // ✅ WIĘCEJ RETRY (3 zamiast 2): Więcej szans na sukces
             // ✅ BEZPIECZNE DLA UX: Watermark upload dzieje się W TLE (po pokazaniu obrazu użytkownikowi)
-            console.log('⏳ [TRANSFORM] Czekam 4 sekundy przed pierwszą próbą (propagacja w Blob Storage)...');
-            await new Promise(resolve => setTimeout(resolve, 4000)); // 4s przed pierwszą próbą (zwiększone z 2s)
+            // ✅ PAGE UNLOAD PROTECTION: Jeśli użytkownik zmieni stronę, watermark zostanie wysłany przez pagehide handler
+            console.log('⏳ [TRANSFORM] Czekam 3 sekundy przed pierwszą próbą (propagacja w Blob Storage)...');
+            await new Promise(resolve => setTimeout(resolve, 3000)); // 3s przed pierwszą próbą (kompromis między 2s a 4s)
             
-            for (let attempt = 0; attempt < 2; attempt++) {
+            for (let attempt = 0; attempt < 3; attempt++) {
               if (attempt > 0) {
                 const delay = 2000; // 2s (jedno retry zamiast 3)
-                console.log(`🔄 [TRANSFORM] Retry attempt ${attempt + 1}/2 po ${delay}ms opóźnieniu...`);
+                  console.log(`🔄 [TRANSFORM] Retry attempt ${attempt + 1}/3 po ${delay}ms opóźnieniu...`);
                 await new Promise(resolve => setTimeout(resolve, delay));
               }
               
@@ -2596,6 +2656,11 @@ class CustomifyEmbed {
                   console.log('✅ [TRANSFORM] Watermarked image URL:', updateResult.watermarkedImageUrl?.substring(0, 100));
                   console.log('✅ [TRANSFORM] Generation ID:', updateResult.generationId);
                   updateSuccess = true;
+                  
+                  // ✅ WYCZYŚĆ PENDING UPLOAD - watermark został wysłany
+                  this.pendingWatermarkUpload = null;
+                  this.watermarkUploadInProgress = false;
+                  
                   break; // Sukces - przerwij retry
                 } else {
                   const errorText = await updateResponse.text();
@@ -2616,7 +2681,13 @@ class CustomifyEmbed {
             if (!updateSuccess) {
               console.error('❌ [TRANSFORM] ===== BŁĄD AKTUALIZACJI WATERMARKU (wszystkie próby nieudane) =====');
               console.error('❌ [TRANSFORM] Last error:', lastError);
+              console.warn('⚠️ [TRANSFORM] Watermark pozostaje w pending - zostanie wysłany przy zamknięciu strony (jeśli payload < 50KB)');
+              // NIE czyść pendingWatermarkUpload - zostanie wysłane przez pagehide handler
               // Nie rzucaj błędu - kontynuuj bez watermarku
+            } else {
+              // ✅ WYCZYŚĆ PENDING UPLOAD - watermark został wysłany
+              this.pendingWatermarkUpload = null;
+              this.watermarkUploadInProgress = false;
             }
           } catch (watermarkError) {
             console.error('❌ [TRANSFORM] ===== BŁĄD GENEROWANIA/AKTUALIZACJI WATERMARKU =====');
