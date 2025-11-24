@@ -2523,22 +2523,6 @@
   <body class="page-width-{{ settings.page_width }} card-hover-effect-{{ settings.card_hover_effect }}">
     {% render 'skip-to-content-link', href: '#MainContent', text: 'accessibility.skip_to_text' %}
     
-    <!-- REDIRECT AFTER LOGIN - Przekieruj użytkownika na /pages/my-generations po zalogowaniu -->
-    <script>
-      {% if customer %}
-        // Sprawdź czy to pierwsze załadowanie po zalogowaniu
-        if (sessionStorage.getItem('justLoggedIn') === 'true') {
-          sessionStorage.removeItem('justLoggedIn');
-          window.location.href = '/pages/my-generations?country=PL';
-        }
-      {% else %}
-        // Ustaw flagę przed logowaniem
-        if (window.location.pathname.includes('/account/login') || 
-            window.location.pathname.includes('/account/register')) {
-          sessionStorage.setItem('justLoggedIn', 'true');
-        }
-      {% endif %}
-    </script>
     <!-- TRACK LOGIN/REGISTER SUCCESS -->
     <script>
       (function() {
@@ -5372,6 +5356,31 @@
           }, 500); // Czekaj 500ms na załadowanie DOM
         }
       });
+    </script>
+
+    <!-- REDIRECT AFTER LOGIN - Przekieruj użytkownika na /pages/my-generations po zalogowaniu -->
+    <script>
+      {% if customer %}
+        // Sprawdź czy to pierwsze załadowanie po zalogowaniu
+        if (sessionStorage.getItem('justLoggedIn') === 'true') {
+          sessionStorage.removeItem('justLoggedIn');
+          window.location.href = '/pages/my-generations?country=PL';
+        }
+        // Obsługa dla account.lumly.pl (Customer Account API)
+        if (window.location.hostname.includes('account.')) {
+          if (sessionStorage.getItem('justLoggedIn') === 'true') {
+            sessionStorage.removeItem('justLoggedIn');
+            window.location.href = 'https://lumly.pl/pages/my-generations?country=PL';
+          }
+        }
+      {% else %}
+        // Ustaw flagę przed logowaniem
+        if (window.location.pathname.includes('/account/login') || 
+            window.location.pathname.includes('/account/register') ||
+            window.location.hostname.includes('account.')) {
+          sessionStorage.setItem('justLoggedIn', 'true');
+        }
+      {% endif %}
     </script>
 
   </body>
