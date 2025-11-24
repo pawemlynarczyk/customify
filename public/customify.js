@@ -135,11 +135,27 @@ class CustomifyEmbed {
     this.initializeDefaultPrice();
 
     // 🎯 SYNC: Zsynchronizuj początkowy typ produktu i rozmiar z aktywnymi przyciskami w DOM
+    // ✅ FIX: Dla produktu Boho domyślnie ustaw "canvas" zamiast "plakat"
     try {
-      const activeTypeBtn = document.querySelector('.customify-product-type-btn.active');
-      if (activeTypeBtn && activeTypeBtn.dataset.productType) {
-        this.selectedProductType = activeTypeBtn.dataset.productType;
-        console.log('🔄 [INIT] Synced selectedProductType from DOM:', this.selectedProductType);
+      const isBohoProduct = window.location.pathname.includes('personalizowany-portret-w-stylu-boho');
+      
+      if (isBohoProduct) {
+        // Dla produktu Boho: domyślnie "canvas" (zgodnie z dokumentacją)
+        this.selectedProductType = 'canvas';
+        // Zaktualizuj DOM - usuń active z "plakat", dodaj do "canvas"
+        const plakatBtn = document.querySelector('.customify-product-type-btn[data-product-type="plakat"]');
+        const canvasBtn = document.querySelector('.customify-product-type-btn[data-product-type="canvas"]');
+        if (plakatBtn) plakatBtn.classList.remove('active');
+        if (canvasBtn) {
+          canvasBtn.classList.add('active');
+          console.log('🎨 [INIT] Boho product detected - set default productType to canvas');
+        }
+      } else {
+        const activeTypeBtn = document.querySelector('.customify-product-type-btn.active');
+        if (activeTypeBtn && activeTypeBtn.dataset.productType) {
+          this.selectedProductType = activeTypeBtn.dataset.productType;
+          console.log('🔄 [INIT] Synced selectedProductType from DOM:', this.selectedProductType);
+        }
       }
       const activeSizeBtn = document.querySelector('.customify-size-btn.active');
       if (activeSizeBtn && activeSizeBtn.dataset.size) {
@@ -2131,13 +2147,21 @@ class CustomifyEmbed {
 
       // Pobierz oryginalną bazową cenę (zapamiętaj przy pierwszym wywołaniu)
       if (!this.originalBasePrice) {
-        const basePriceText = priceElement.textContent;
-        this.originalBasePrice = this.extractBasePrice(basePriceText);
+        // ✅ Użyj window.ShopifyProduct (niezmienione źródło) zamiast DOM
+        this.originalBasePrice = this.getBasePriceFromShopify();
         
         if (this.originalBasePrice === null) {
-          console.warn('⚠️ [INIT-PRICE] Could not extract original base price from:', basePriceText);
-          this.originalBasePrice = 49.00;
-          console.log(`💰 [INIT-PRICE] Using fallback base price: ${this.originalBasePrice} zł`);
+          // Fallback: spróbuj z DOM jeśli window.ShopifyProduct nie dostępne
+          const basePriceText = priceElement.textContent;
+          this.originalBasePrice = this.extractBasePrice(basePriceText);
+          
+          if (this.originalBasePrice === null) {
+            console.warn('⚠️ [INIT-PRICE] Could not get base price from Shopify or DOM, using fallback');
+            this.originalBasePrice = 49.00;
+            console.log(`💰 [INIT-PRICE] Using fallback base price: ${this.originalBasePrice} zł`);
+          } else {
+            console.log(`💰 [INIT-PRICE] Base price from DOM (fallback): ${this.originalBasePrice} zł`);
+          }
         } else {
           console.log(`💰 [INIT-PRICE] Original base price saved: ${this.originalBasePrice} zł`);
         }
@@ -2167,14 +2191,22 @@ class CustomifyEmbed {
 
       // Pobierz oryginalną bazową cenę (zapamiętaj przy pierwszym wywołaniu)
       if (!this.originalBasePrice) {
-        const basePriceText = priceElement.textContent;
-        this.originalBasePrice = this.extractBasePrice(basePriceText);
+        // ✅ Użyj window.ShopifyProduct (niezmienione źródło) zamiast DOM
+        this.originalBasePrice = this.getBasePriceFromShopify();
         
         if (this.originalBasePrice === null) {
-          console.warn('⚠️ [PRICE] Could not extract original base price from:', basePriceText);
-          // Fallback - użyj domyślnej ceny
-          this.originalBasePrice = 49.00;
-          console.log(`💰 [PRICE] Using fallback base price: ${this.originalBasePrice} zł`);
+          // Fallback: spróbuj z DOM jeśli window.ShopifyProduct nie dostępne
+          const basePriceText = priceElement.textContent;
+          this.originalBasePrice = this.extractBasePrice(basePriceText);
+          
+          if (this.originalBasePrice === null) {
+            console.warn('⚠️ [PRICE] Could not get base price from Shopify or DOM, using fallback');
+            // Fallback - użyj domyślnej ceny
+            this.originalBasePrice = 49.00;
+            console.log(`💰 [PRICE] Using fallback base price: ${this.originalBasePrice} zł`);
+          } else {
+            console.log(`💰 [PRICE] Base price from DOM (fallback): ${this.originalBasePrice} zł`);
+          }
         } else {
           console.log(`💰 [PRICE] Original base price saved: ${this.originalBasePrice} zł`);
         }
@@ -2210,7 +2242,22 @@ class CustomifyEmbed {
   }
 
   /**
-   * Wyciąga bazową cenę z tekstu ceny
+   * Pobiera bazową cenę produktu z window.ShopifyProduct (niezmienione źródło)
+   */
+  getBasePriceFromShopify() {
+    if (window.ShopifyProduct && window.ShopifyProduct.variants && window.ShopifyProduct.variants.length > 0) {
+      // variants[0].price jest w groszach, konwertuj na złotówki
+      const priceInGrosz = parseFloat(window.ShopifyProduct.variants[0].price);
+      const priceInZl = priceInGrosz / 100;
+      console.log(`💰 [BASE-PRICE] Pobrano z window.ShopifyProduct: ${priceInZl} zł (${priceInGrosz} groszy)`);
+      return priceInZl;
+    }
+    console.warn('⚠️ [BASE-PRICE] window.ShopifyProduct.variants nie dostępne, używam fallback');
+    return null;
+  }
+
+  /**
+   * Wyciąga bazową cenę z tekstu ceny (stara metoda - tylko jako fallback)
    */
   extractBasePrice(priceText) {
     // Usuń "zł" i spacje, znajdź liczbę
