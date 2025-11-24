@@ -2185,57 +2185,9 @@ module.exports = async (req, res) => {
                 finalImageUrl = blob.url;
                 console.log(`✅ [TRANSFORM] Obraz BEZ watermarku zapisany w Vercel Blob (SDK): ${finalImageUrl.substring(0, 50)}...`);
                 
-                // ============================================================================
-                // ✅ BACKEND WATERMARK FEATURE: START - Feature flag ENABLE_BACKEND_WATERMARK
-                // Aby wyłączyć: ustaw ENABLE_BACKEND_WATERMARK=false w Vercel Dashboard
-                // ============================================================================
-                const enableBackendWatermark = process.env.ENABLE_BACKEND_WATERMARK !== 'false'; // Domyślnie włączony
-                
-                // ✅ BACKUP STARY KOD (do wycofania):
-                // // ✅ DODATKOWA WERSJA Z WATERMARKIEM (tylko dla zalogowanych - do emaili)
-                // if (customerId) {
-                //   console.log('🎨 [TRANSFORM] Tworzę dodatkową wersję z watermarkiem dla zalogowanego użytkownika...');
-                //   // ✅ WATERMARK JUŻ ZAPISANY Z FRONTENDU - pomijam Sharp watermark
-                //   console.log('ℹ️ [TRANSFORM] Watermark już zapisany z frontendu - pomijam Sharp watermark');
-                // }
-                
-                // ✅ UŻYJ IMAGEBUFFER (Buffer) dla base64 data URI
-                if (enableBackendWatermark && sharp && imageBuffer) {
-                  try {
-                    console.log('🎨 [TRANSFORM] Feature flag włączony - generuję watermark Sharp w backendzie (base64)...');
-                    const watermarkedBuffer = await addWatermarkToImage(imageBuffer);
-                    
-                    if (watermarkedBuffer && watermarkedBuffer.length > 0) {
-                      // Upload watermarked version
-                      const watermarkedFilename = `customify/temp/generation-${timestamp}-watermarked.jpg`;
-                      const watermarkedBlob = await put(watermarkedFilename, watermarkedBuffer, {
-                        access: 'public',
-                        contentType: 'image/jpeg',
-                        token: process.env.customify_READ_WRITE_TOKEN,
-                      });
-                      
-                      // ✅ ZAPISZ watermarkedImageUrl - będzie przekazany do save-generation-v2
-                      req.watermarkedImageUrl = watermarkedBlob.url;
-                      console.log(`✅ [TRANSFORM] Watermarked image uploaded: ${req.watermarkedImageUrl.substring(0, 50)}...`);
-                    } else {
-                      console.warn('⚠️ [TRANSFORM] Sharp watermark zwrócił pusty buffer - kontynuuję bez watermarku');
-                    }
-                  } catch (watermarkError) {
-                    console.error('❌ [TRANSFORM] Błąd generowania watermarku Sharp:', watermarkError);
-                    console.warn('⚠️ [TRANSFORM] Kontynuuję bez watermarku - transformacja się udała');
-                    // Nie blokuj - kontynuuj bez watermarku
-                  }
-                } else {
-                  if (!enableBackendWatermark) {
-                    console.log('ℹ️ [TRANSFORM] Backend watermark wyłączony (ENABLE_BACKEND_WATERMARK=false)');
-                  } else if (!sharp) {
-                    console.warn('⚠️ [TRANSFORM] Sharp not available - pomijam backend watermark');
-                  } else if (!imageBuffer) {
-                    console.warn('⚠️ [TRANSFORM] ImageBuffer not available (base64) - pomijam backend watermark');
-                  }
-                }
-                // BACKEND WATERMARK FEATURE: END
-                // ============================================================================
+                // ✅ WATERMARK: Frontend Canvas generuje i uploaduje przez /api/update-generation-watermark
+                // Backend Sharp watermark WYŁĄCZONY - Sharp nie ma fontów w Vercel serverless (kwadraty zamiast liter)
+                console.log('ℹ️ [TRANSFORM] Watermark zostanie wygenerowany przez frontend Canvas i zapisany przez /api/update-generation-watermark');
           } catch (uploadError) {
             console.error('⚠️ [TRANSFORM] Błąd uploadu base64 do Vercel Blob (SDK):', uploadError.message);
             // Jeśli upload się nie powiódł, nie możemy użyć base64 (przekroczy limit w save-generation-v2)
@@ -2275,57 +2227,9 @@ module.exports = async (req, res) => {
                 finalImageUrl = blob.url;
                 console.log(`✅ [TRANSFORM] Obraz BEZ watermarku zapisany w Vercel Blob (SDK): ${finalImageUrl.substring(0, 50)}...`);
                 
-                // ============================================================================
-                // ✅ BACKEND WATERMARK FEATURE: START - Feature flag ENABLE_BACKEND_WATERMARK
-                // Aby wyłączyć: ustaw ENABLE_BACKEND_WATERMARK=false w Vercel Dashboard
-                // ============================================================================
-                const enableBackendWatermark = process.env.ENABLE_BACKEND_WATERMARK !== 'false'; // Domyślnie włączony
-                
-                // ✅ BACKUP STARY KOD (do wycofania):
-                // // ✅ DODATKOWA WERSJA Z WATERMARKIEM (tylko dla zalogowanych - do emaili)
-                // if (customerId) {
-                //   console.log('🎨 [TRANSFORM] Tworzę dodatkową wersję z watermarkiem dla zalogowanego użytkownika...');
-                //   // ✅ WATERMARK JUŻ ZAPISANY Z FRONTENDU - pomijam Sharp watermark
-                //   console.log('ℹ️ [TRANSFORM] Watermark już zapisany z frontendu - pomijam Sharp watermark');
-                // }
-                
-                // ✅ UŻYJ BUFFER (nie imageBuffer - to jest ArrayBuffer) dla Replicate URL
-                if (enableBackendWatermark && sharp && buffer) {
-                  try {
-                    console.log('🎨 [TRANSFORM] Feature flag włączony - generuję watermark Sharp w backendzie (Replicate URL)...');
-                    const watermarkedBuffer = await addWatermarkToImage(buffer);
-                    
-                    if (watermarkedBuffer && watermarkedBuffer.length > 0) {
-                      // Upload watermarked version
-                      const watermarkedFilename = `customify/temp/generation-${timestamp}-watermarked.jpg`;
-                      const watermarkedBlob = await put(watermarkedFilename, watermarkedBuffer, {
-                        access: 'public',
-                        contentType: 'image/jpeg',
-                        token: process.env.customify_READ_WRITE_TOKEN,
-                      });
-                      
-                      // ✅ ZAPISZ watermarkedImageUrl - będzie przekazany do save-generation-v2
-                      req.watermarkedImageUrl = watermarkedBlob.url;
-                      console.log(`✅ [TRANSFORM] Watermarked image uploaded: ${req.watermarkedImageUrl.substring(0, 50)}...`);
-                    } else {
-                      console.warn('⚠️ [TRANSFORM] Sharp watermark zwrócił pusty buffer - kontynuuję bez watermarku');
-                    }
-                  } catch (watermarkError) {
-                    console.error('❌ [TRANSFORM] Błąd generowania watermarku Sharp:', watermarkError);
-                    console.warn('⚠️ [TRANSFORM] Kontynuuję bez watermarku - transformacja się udała');
-                    // Nie blokuj - kontynuuj bez watermarku
-                  }
-                } else {
-                  if (!enableBackendWatermark) {
-                    console.log('ℹ️ [TRANSFORM] Backend watermark wyłączony (ENABLE_BACKEND_WATERMARK=false)');
-                  } else if (!sharp) {
-                    console.warn('⚠️ [TRANSFORM] Sharp not available - pomijam backend watermark');
-                  } else if (!buffer) {
-                    console.warn('⚠️ [TRANSFORM] Buffer not available (Replicate) - pomijam backend watermark');
-                  }
-                }
-                // BACKEND WATERMARK FEATURE: END
-                // ============================================================================
+                // ✅ WATERMARK: Frontend Canvas generuje i uploaduje przez /api/update-generation-watermark
+                // Backend Sharp watermark WYŁĄCZONY - Sharp nie ma fontów w Vercel serverless (kwadraty zamiast liter)
+                console.log('ℹ️ [TRANSFORM] Watermark zostanie wygenerowany przez frontend Canvas i zapisany przez /api/update-generation-watermark');
               } else {
                 console.warn('⚠️ [TRANSFORM] Nie udało się pobrać obrazu z Replicate - używam oryginalnego URL');
               }
@@ -2380,12 +2284,9 @@ module.exports = async (req, res) => {
           ipHash,
           deviceToken,
           imageUrl: finalImageUrl, // ✅ BEZ watermarku (do realizacji zamówienia)
-          // ============================================================================
-          // ✅ BACKEND WATERMARK FEATURE: Jeśli Sharp wygenerował watermark, użyj go
-          // ✅ BACKUP STARY KOD (do wycofania):
-          // watermarkedImageUrl: null, // ✅ Zostanie zaktualizowany przez /api/update-generation-watermark po transformacji AI
-          // ============================================================================
-          watermarkedImageUrl: req.watermarkedImageUrl || null, // ✅ Backend Sharp watermark (jeśli włączony) lub null (stary system)
+          // ✅ WATERMARK: Frontend Canvas generuje i uploaduje przez /api/update-generation-watermark
+          // Backend Sharp watermark WYŁĄCZONY (brak fontów w Vercel serverless)
+          watermarkedImageUrl: null, // ✅ Zostanie zaktualizowany przez /api/update-generation-watermark po transformacji AI
           style: prompt || 'unknown',
           productType: finalProductType,
           originalImageUrl: null // Opcjonalnie - można dodać później
