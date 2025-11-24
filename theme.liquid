@@ -2768,8 +2768,8 @@
                     </svg>
                   </a>
                   <div class="user-links">
-                    <a href="{{ routes.account_login_url }}" class="user-text-link">Zaloguj</a>
-                    <a href="{{ routes.account_register_url }}" class="user-text-link">Zarejestruj</a>
+                    <a href="{{ routes.account_login_url }}?return_url={{ '/pages/my-generations?country=PL' | url_encode }}" class="user-text-link">Zaloguj</a>
+                    <a href="{{ routes.account_register_url }}?return_url={{ '/pages/my-generations?country=PL' | url_encode }}" class="user-text-link">Zarejestruj</a>
                   </div>
                 </div>
               {% endif %}
@@ -5358,21 +5358,32 @@
       });
     </script>
 
-    <!-- REDIRECT AFTER LOGIN - Przekieruj użytkownika na /pages/my-generations PO LOGOWANIU (nie przy każdym wejściu) -->
+    <!-- REDIRECT AFTER LOGIN - Przekieruj użytkownika na /pages/my-generations PO LOGOWANIU -->
     <script>
-      {% if customer %}
-        // Sprawdź czy to pierwsze załadowanie po zalogowaniu
-        if (sessionStorage.getItem('justLoggedIn') === 'true') {
-          sessionStorage.removeItem('justLoggedIn');
-          window.location.href = '/pages/my-generations?country=PL';
+      (function() {
+        // Obsługa dla account.lumly.pl (Customer Account API) - sprawdź parametr new_login
+        if (window.location.hostname.includes('account.') && 
+            new URLSearchParams(window.location.search).get('new_login') === '1') {
+          // Przekieruj na lumly.pl/pages/my-generations
+          window.location.href = 'https://lumly.pl/pages/my-generations?country=PL';
+          return;
         }
-      {% else %}
-        // Ustaw flagę przed logowaniem
-        if (window.location.pathname.includes('/account/login') || 
-            window.location.pathname.includes('/account/register')) {
-          sessionStorage.setItem('justLoggedIn', 'true');
-        }
-      {% endif %}
+        
+        // Obsługa dla lumly.pl (główna domena)
+        {% if customer %}
+          // Sprawdź czy to pierwsze załadowanie po zalogowaniu
+          if (sessionStorage.getItem('justLoggedIn') === 'true') {
+            sessionStorage.removeItem('justLoggedIn');
+            window.location.href = '/pages/my-generations?country=PL';
+          }
+        {% else %}
+          // Ustaw flagę przed logowaniem
+          if (window.location.pathname.includes('/account/login') || 
+              window.location.pathname.includes('/account/register')) {
+            sessionStorage.setItem('justLoggedIn', 'true');
+          }
+        {% endif %}
+      })();
     </script>
 
   </body>
