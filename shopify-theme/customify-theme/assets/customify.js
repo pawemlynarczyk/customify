@@ -29,10 +29,10 @@ class CustomifyEmbed {
     this.transformedImage = null;
     this.sizePricing = {
       plakat: {
-        a4: 29,
-        a3: 49,
-        a2: 79,
-        a1: 129
+        a4: 0,
+        a3: 10,
+        a2: 30,
+        a1: 50
       },
       canvas: {
         a4: 49,
