@@ -2768,9 +2768,9 @@
                     </svg>
                   </a>
                   <div class="user-links">
-                    {% assign return_url = 'https://lumly.pl/pages/my-generations?country=PL' | url_encode %}
-                    <a href="{{ routes.account_login_url }}?return_url={{ return_url }}" class="user-text-link">Zaloguj</a>
-                    <a href="{{ routes.account_register_url }}?return_url={{ return_url }}" class="user-text-link">Zarejestruj</a>
+                    {% assign return_url = 'https://lumly.pl/pages/my-generations?country=PL' %}
+                    <a href="{{ routes.account_login_url }}?return_url={{ return_url | url_encode }}" class="user-text-link">Zaloguj</a>
+                    <a href="{{ routes.account_register_url }}?return_url={{ return_url | url_encode }}" class="user-text-link">Zarejestruj</a>
                   </div>
                 </div>
               {% endif %}
