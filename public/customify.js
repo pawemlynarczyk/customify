@@ -27,12 +27,16 @@ class CustomifyEmbed {
     this.selectedSize = null;
     this.selectedProductType = 'canvas'; // Domyślny wybór: Obraz na płótnie
     this.transformedImage = null;
+    
+    // ✅ PENDING WATERMARK UPLOAD: Dane do wysłania jeśli użytkownik zmieni stronę
+    this.pendingWatermarkUpload = null; // { generationId, watermarkedImage, customerId, email }
+    this.watermarkUploadInProgress = false;
     this.sizePricing = {
       plakat: {
-        a4: 0,
-        a3: 10,
+        a4: 0,   // Domyślny rozmiar - bez dopłaty
+        a3: 9,
         a2: 30,
-        a1: 50
+        a1: 60
       },
       canvas: {
         a4: 49,
@@ -54,6 +58,51 @@ class CustomifyEmbed {
 
     // Udostępnij instancję globalnie do aktualizacji ceny z zewnątrz (np. wybór ramki)
     window.__customify = this;
+    
+    // ✅ PAGE UNLOAD PROTECTION: Obsługa zmiany/zamknięcia strony podczas upload watermarku
+    this.setupPageUnloadProtection();
+  }
+
+  setupPageUnloadProtection() {
+    // ✅ pagehide event - bardziej niezawodny niż beforeunload
+    window.addEventListener('pagehide', (event) => {
+      if (this.pendingWatermarkUpload && this.watermarkUploadInProgress) {
+        console.warn('⚠️ [WATERMARK] Strona się zamyka - próbuję wysłać watermark przed zamknięciem...');
+        
+        // Spróbuj wysłać przez fetch z keepalive: true (kontynuuje request po zamknięciu strony)
+        // ⚠️ LIMIT: keepalive ma limit ~64KB, ale spróbujemy (watermark może być większy)
+        const payload = JSON.stringify({
+          generationId: this.pendingWatermarkUpload.generationId,
+          watermarkedImage: this.pendingWatermarkUpload.watermarkedImage,
+          customerId: this.pendingWatermarkUpload.customerId,
+          email: this.pendingWatermarkUpload.email
+        });
+        
+        // Tylko jeśli payload jest mniejszy niż ~50KB (bezpieczny limit)
+        if (payload.length < 50000) {
+          try {
+            navigator.sendBeacon(
+              'https://customify-s56o.vercel.app/api/update-generation-watermark',
+              new Blob([payload], { type: 'application/json' })
+            );
+            console.log('✅ [WATERMARK] Watermark wysłany przez sendBeacon przed zamknięciem strony');
+          } catch (beaconError) {
+            console.warn('⚠️ [WATERMARK] sendBeacon failed, próbuję fetch z keepalive...', beaconError);
+            // Fallback: fetch z keepalive (może działać dla większych payloads)
+            fetch('https://customify-s56o.vercel.app/api/update-generation-watermark', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: payload,
+              keepalive: true // Kontynuuj request po zamknięciu strony
+            }).catch(err => {
+              console.warn('⚠️ [WATERMARK] Fetch z keepalive też nie zadziałał:', err);
+            });
+          }
+        } else {
+          console.warn('⚠️ [WATERMARK] Payload za duży dla sendBeacon/fetch keepalive (~' + Math.round(payload.length/1024) + 'KB) - watermark może nie zostać zapisany');
+        }
+      }
+    });
   }
 
   init() {
@@ -86,11 +135,27 @@ class CustomifyEmbed {
     this.initializeDefaultPrice();
 
     // 🎯 SYNC: Zsynchronizuj początkowy typ produktu i rozmiar z aktywnymi przyciskami w DOM
+    // ✅ FIX: Dla produktu Boho domyślnie ustaw "canvas" zamiast "plakat"
     try {
-      const activeTypeBtn = document.querySelector('.customify-product-type-btn.active');
-      if (activeTypeBtn && activeTypeBtn.dataset.productType) {
-        this.selectedProductType = activeTypeBtn.dataset.productType;
-        console.log('🔄 [INIT] Synced selectedProductType from DOM:', this.selectedProductType);
+      const isBohoProduct = window.location.pathname.includes('personalizowany-portret-w-stylu-boho');
+      
+      if (isBohoProduct) {
+        // Dla produktu Boho: domyślnie "canvas" (zgodnie z dokumentacją)
+        this.selectedProductType = 'canvas';
+        // Zaktualizuj DOM - usuń active z "plakat", dodaj do "canvas"
+        const plakatBtn = document.querySelector('.customify-product-type-btn[data-product-type="plakat"]');
+        const canvasBtn = document.querySelector('.customify-product-type-btn[data-product-type="canvas"]');
+        if (plakatBtn) plakatBtn.classList.remove('active');
+        if (canvasBtn) {
+          canvasBtn.classList.add('active');
+          console.log('🎨 [INIT] Boho product detected - set default productType to canvas');
+        }
+      } else {
+        const activeTypeBtn = document.querySelector('.customify-product-type-btn.active');
+        if (activeTypeBtn && activeTypeBtn.dataset.productType) {
+          this.selectedProductType = activeTypeBtn.dataset.productType;
+          console.log('🔄 [INIT] Synced selectedProductType from DOM:', this.selectedProductType);
+        }
       }
       const activeSizeBtn = document.querySelector('.customify-size-btn.active');
       if (activeSizeBtn && activeSizeBtn.dataset.size) {
@@ -2082,13 +2147,21 @@ class CustomifyEmbed {
 
       // Pobierz oryginalną bazową cenę (zapamiętaj przy pierwszym wywołaniu)
       if (!this.originalBasePrice) {
-        const basePriceText = priceElement.textContent;
-        this.originalBasePrice = this.extractBasePrice(basePriceText);
+        // ✅ Użyj window.ShopifyProduct (niezmienione źródło) zamiast DOM
+        this.originalBasePrice = this.getBasePriceFromShopify();
         
         if (this.originalBasePrice === null) {
-          console.warn('⚠️ [INIT-PRICE] Could not extract original base price from:', basePriceText);
-          this.originalBasePrice = 49.00;
-          console.log(`💰 [INIT-PRICE] Using fallback base price: ${this.originalBasePrice} zł`);
+          // Fallback: spróbuj z DOM jeśli window.ShopifyProduct nie dostępne
+          const basePriceText = priceElement.textContent;
+          this.originalBasePrice = this.extractBasePrice(basePriceText);
+          
+          if (this.originalBasePrice === null) {
+            console.warn('⚠️ [INIT-PRICE] Could not get base price from Shopify or DOM, using fallback');
+            this.originalBasePrice = 49.00;
+            console.log(`💰 [INIT-PRICE] Using fallback base price: ${this.originalBasePrice} zł`);
+          } else {
+            console.log(`💰 [INIT-PRICE] Base price from DOM (fallback): ${this.originalBasePrice} zł`);
+          }
         } else {
           console.log(`💰 [INIT-PRICE] Original base price saved: ${this.originalBasePrice} zł`);
         }
@@ -2118,14 +2191,22 @@ class CustomifyEmbed {
 
       // Pobierz oryginalną bazową cenę (zapamiętaj przy pierwszym wywołaniu)
       if (!this.originalBasePrice) {
-        const basePriceText = priceElement.textContent;
-        this.originalBasePrice = this.extractBasePrice(basePriceText);
+        // ✅ Użyj window.ShopifyProduct (niezmienione źródło) zamiast DOM
+        this.originalBasePrice = this.getBasePriceFromShopify();
         
         if (this.originalBasePrice === null) {
-          console.warn('⚠️ [PRICE] Could not extract original base price from:', basePriceText);
-          // Fallback - użyj domyślnej ceny
-          this.originalBasePrice = 49.00;
-          console.log(`💰 [PRICE] Using fallback base price: ${this.originalBasePrice} zł`);
+          // Fallback: spróbuj z DOM jeśli window.ShopifyProduct nie dostępne
+          const basePriceText = priceElement.textContent;
+          this.originalBasePrice = this.extractBasePrice(basePriceText);
+          
+          if (this.originalBasePrice === null) {
+            console.warn('⚠️ [PRICE] Could not get base price from Shopify or DOM, using fallback');
+            // Fallback - użyj domyślnej ceny
+            this.originalBasePrice = 49.00;
+            console.log(`💰 [PRICE] Using fallback base price: ${this.originalBasePrice} zł`);
+          } else {
+            console.log(`💰 [PRICE] Base price from DOM (fallback): ${this.originalBasePrice} zł`);
+          }
         } else {
           console.log(`💰 [PRICE] Original base price saved: ${this.originalBasePrice} zł`);
         }
@@ -2161,7 +2242,22 @@ class CustomifyEmbed {
   }
 
   /**
-   * Wyciąga bazową cenę z tekstu ceny
+   * Pobiera bazową cenę produktu z window.ShopifyProduct (niezmienione źródło)
+   */
+  getBasePriceFromShopify() {
+    if (window.ShopifyProduct && window.ShopifyProduct.variants && window.ShopifyProduct.variants.length > 0) {
+      // variants[0].price jest w groszach, konwertuj na złotówki
+      const priceInGrosz = parseFloat(window.ShopifyProduct.variants[0].price);
+      const priceInZl = priceInGrosz / 100;
+      console.log(`💰 [BASE-PRICE] Pobrano z window.ShopifyProduct: ${priceInZl} zł (${priceInGrosz} groszy)`);
+      return priceInZl;
+    }
+    console.warn('⚠️ [BASE-PRICE] window.ShopifyProduct.variants nie dostępne, używam fallback');
+    return null;
+  }
+
+  /**
+   * Wyciąga bazową cenę z tekstu ceny (stara metoda - tylko jako fallback)
    */
   extractBasePrice(priceText) {
     // Usuń "zł" i spacje, znajdź liczbę
@@ -2555,6 +2651,15 @@ class CustomifyEmbed {
             console.log('✅ [TRANSFORM] Watermark preview:', watermarkedImageBase64.substring(0, 100));
             console.log('✅ [TRANSFORM] Watermark is base64?', watermarkedImageBase64.startsWith('data:'));
             
+            // ✅ ZAPISZ DANE DO PENDING UPLOAD (na wypadek zmiany strony)
+            this.pendingWatermarkUpload = {
+              generationId: result.saveGenerationDebug.generationId,
+              watermarkedImage: watermarkedImageBase64,
+              customerId: customerInfo?.customerId || null,
+              email: (!customerInfo?.customerId) ? (email || null) : null
+            };
+            this.watermarkUploadInProgress = true;
+            
             // ✅ WYŚLIJ WATERMARK DO BACKENDU - zaktualizuj istniejącą generację z RETRY LOGIC
             // 🔄 RETRY: Poczekaj na zapis generacji (race condition - generacja może nie być jeszcze w Blob Storage)
             console.log('📤 [TRANSFORM] Wysyłam watermark do /api/update-generation-watermark...');
@@ -2562,15 +2667,19 @@ class CustomifyEmbed {
             let updateSuccess = false;
             let lastError = null;
             
-            // 🔄 Retry 2 razy z opóźnieniem (2s przed pierwszą próbą, potem 2s)
+            // 🔄 Retry 3 razy z opóźnieniem (3s przed pierwszą próbą, potem 2s)
             // ⚠️ RACE CONDITION: Generacja może nie być jeszcze w Blob Storage - dajemy czas na propagację
-            console.log('⏳ [TRANSFORM] Czekam 2 sekundy przed pierwszą próbą (propagacja w Blob Storage)...');
-            await new Promise(resolve => setTimeout(resolve, 2000)); // 2s przed pierwszą próbą
+            // ✅ KOMPROMIS 3s: Mniej niż 4s (lepsze UX jeśli użytkownik zmieni stronę), ale więcej niż 2s (bezpieczniejsze)
+            // ✅ WIĘCEJ RETRY (3 zamiast 2): Więcej szans na sukces
+            // ✅ BEZPIECZNE DLA UX: Watermark upload dzieje się W TLE (po pokazaniu obrazu użytkownikowi)
+            // ✅ PAGE UNLOAD PROTECTION: Jeśli użytkownik zmieni stronę, watermark zostanie wysłany przez pagehide handler
+            console.log('⏳ [TRANSFORM] Czekam 3 sekundy przed pierwszą próbą (propagacja w Blob Storage)...');
+            await new Promise(resolve => setTimeout(resolve, 3000)); // 3s przed pierwszą próbą (kompromis między 2s a 4s)
             
-            for (let attempt = 0; attempt < 2; attempt++) {
+            for (let attempt = 0; attempt < 3; attempt++) {
               if (attempt > 0) {
                 const delay = 2000; // 2s (jedno retry zamiast 3)
-                console.log(`🔄 [TRANSFORM] Retry attempt ${attempt + 1}/2 po ${delay}ms opóźnieniu...`);
+                  console.log(`🔄 [TRANSFORM] Retry attempt ${attempt + 1}/3 po ${delay}ms opóźnieniu...`);
                 await new Promise(resolve => setTimeout(resolve, delay));
               }
               
@@ -2594,6 +2703,11 @@ class CustomifyEmbed {
                   console.log('✅ [TRANSFORM] Watermarked image URL:', updateResult.watermarkedImageUrl?.substring(0, 100));
                   console.log('✅ [TRANSFORM] Generation ID:', updateResult.generationId);
                   updateSuccess = true;
+                  
+                  // ✅ WYCZYŚĆ PENDING UPLOAD - watermark został wysłany
+                  this.pendingWatermarkUpload = null;
+                  this.watermarkUploadInProgress = false;
+                  
                   break; // Sukces - przerwij retry
                 } else {
                   const errorText = await updateResponse.text();
@@ -2614,7 +2728,13 @@ class CustomifyEmbed {
             if (!updateSuccess) {
               console.error('❌ [TRANSFORM] ===== BŁĄD AKTUALIZACJI WATERMARKU (wszystkie próby nieudane) =====');
               console.error('❌ [TRANSFORM] Last error:', lastError);
+              console.warn('⚠️ [TRANSFORM] Watermark pozostaje w pending - zostanie wysłany przy zamknięciu strony (jeśli payload < 50KB)');
+              // NIE czyść pendingWatermarkUpload - zostanie wysłane przez pagehide handler
               // Nie rzucaj błędu - kontynuuj bez watermarku
+            } else {
+              // ✅ WYCZYŚĆ PENDING UPLOAD - watermark został wysłany
+              this.pendingWatermarkUpload = null;
+              this.watermarkUploadInProgress = false;
             }
           } catch (watermarkError) {
             console.error('❌ [TRANSFORM] ===== BŁĄD GENEROWANIA/AKTUALIZACJI WATERMARKU =====');
@@ -2727,21 +2847,26 @@ class CustomifyEmbed {
           try {
             console.log('🖼️ [WATERMARK DEBUG] Image loaded:', img.width, 'x', img.height);
             
+            // ✅ ZMNIEJSZENIE WATERMARKU: 50% rozmiaru oryginału (dla miniaturki w Shopify i emaili)
+            // Oryginał BEZ watermarku pozostaje w pełnym rozmiarze na Vercel (do druku)
+            const scale = 0.5; // 50% rozmiaru (zmniejszamy dla Shopify + Vercel watermark)
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
             
-            canvas.width = img.width;
-            canvas.height = img.height;
+            canvas.width = Math.round(img.width * scale);
+            canvas.height = Math.round(img.height * scale);
+            console.log(`📐 [WATERMARK DEBUG] Watermark canvas size: ${canvas.width}x${canvas.height} (${Math.round(scale * 100)}% of original)`);
             
-            // Rysuj oryginalny obraz
-            ctx.drawImage(img, 0, 0);
-            console.log('✅ [WATERMARK DEBUG] Original image drawn on canvas');
+            // Rysuj oryginalny obraz na zmniejszonym Canvas (automatycznie skaluje)
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            console.log('✅ [WATERMARK DEBUG] Original image drawn on resized canvas (50% scale)');
             
             // ===== WZÓR DIAGONALNY - "LUMLY.PL" i "PODGLAD" NA PRZEMIAN =====
             ctx.save();
             
-            // ✅ MNIEJSZA WIDOCZNOŚĆ WATERMARKU - subtelniejszy znak wodny
-            const fontSize = Math.max(30, Math.min(canvas.width, canvas.height) * 0.06); // Min 30px, max 6% obrazu (było 40px/8%)
+            // ✅ DOSTOSOWANY FONT SIZE: Przy 50% canvas, zwiększamy procent żeby zachować podobną widoczność
+            // Watermark na zmniejszonym obrazie (50%) - font powinien być proporcjonalnie większy
+            const fontSize = Math.max(20, Math.min(canvas.width, canvas.height) * 0.08); // Min 20px (bo canvas jest 50%), 8% canvas (zwiększone z 6% dla lepszej widoczności)
             console.log('📏 [WATERMARK DEBUG] fontSize:', fontSize);
             
             // 🔧 POZIOM 2: Użyj systemowych fontów z fallbackami + UPPERCASE bez polskich znaków
@@ -2824,8 +2949,11 @@ class CustomifyEmbed {
             ctx.restore();
             
             // Zwróć obraz z watermarkiem jako Data URL
-            const result = canvas.toDataURL('image/jpeg', 0.92);
-            console.log('✅ [WATERMARK DEBUG] Canvas.toDataURL() - rozmiar:', result.length, 'znaków (', (result.length / 1024 / 1024).toFixed(2), 'MB)');
+            // ✅ ZMNIEJSZONA JAKOŚĆ: 70% quality (watermark nie musi być w wysokiej jakości - tylko do podglądu/emaili)
+            const result = canvas.toDataURL('image/jpeg', 0.70);
+            const resultSizeKB = Math.round(result.length / 1024);
+            console.log('✅ [WATERMARK DEBUG] Canvas.toDataURL() - rozmiar:', result.length, 'znaków (', resultSizeKB, 'KB /', (result.length / 1024 / 1024).toFixed(2), 'MB)');
+            console.log('✅ [WATERMARK DEBUG] Watermark: 50% rozmiaru + 70% quality = kompaktowy plik');
             console.log('✅ [WATERMARK DEBUG] Result preview:', result.substring(0, 100) + '...');
             
             resolve(result);

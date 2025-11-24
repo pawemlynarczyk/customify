@@ -37,25 +37,25 @@ module.exports = async (req, res) => {
             {
               "code": "a4",
               "name": "20×30 cm",
-              "price": 29,
+              "price": 0,
               "enabled": true
             },
             {
               "code": "a3",
               "name": "30×40 cm",
-              "price": 49,
+              "price": 9,
               "enabled": true
             },
             {
               "code": "a2",
               "name": "40×60 cm",
-              "price": 79,
+              "price": 30,
               "enabled": true
             },
             {
               "code": "a1",
               "name": "60×85 cm",
-              "price": 129,
+              "price": 60,
               "enabled": true
             }
           ]

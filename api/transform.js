@@ -76,12 +76,13 @@ async function addWatermarkToImage(imageBuffer) {
     const { width, height } = metadata;
     console.log(`📐 [WATERMARK] Image dimensions: ${width}x${height}`);
     
-    // Calculate font size based on image size (większy font dla lepszej widoczności)
-    const fontSize = Math.min(width, height) * 0.12; // 12% of smaller dimension (było 8%)
-    const spacing = Math.min(width, height) * 0.25; // 25% spacing (było 30%)
+    // Calculate font size based on image size - zgodnie z frontendem (mniejszy, subtelniejszy)
+    const fontSize = Math.max(30, Math.min(width, height) * 0.06); // Min 30px, max 6% obrazu (zgodnie z frontendem)
+    const spacing = Math.max(200, Math.min(width, height) * 0.3); // Min 200px, max 30% (zgodnie z frontendem)
     
     // Create SVG watermark with diagonal text pattern - INLINE STYLES (Sharp nie obsługuje CSS class)
-    const texts = ['Lumly.pl', 'Podgląd'];
+    // ✅ ZMIANA: Tylko "Lumly.pl" (zgodnie z frontendem)
+    const texts = ['Lumly.pl'];
     const textElements = [];
     
     // Obróć całą grupę o -30 stopni
@@ -93,7 +94,7 @@ async function addWatermarkToImage(imageBuffer) {
       for (let j = -2; j < Math.ceil(width / spacing) + 3; j++) {
         const x = (j - 1) * spacing * 1.5;
         const y = (i - 1) * spacing;
-        const text = texts[(i + j) % 2];
+        const text = texts[0]; // Tylko "Lumly.pl"
         
         // Inline styles dla każdego elementu text (Sharp wymaga inline styles)
         textElements.push(
@@ -101,11 +102,11 @@ async function addWatermarkToImage(imageBuffer) {
           `font-family="Arial, sans-serif" ` +
           `font-weight="bold" ` +
           `font-size="${fontSize}" ` +
-          `fill="rgba(255, 255, 255, 0.5)" ` +
-          `stroke="rgba(0, 0, 0, 0.35)" ` +
-          `stroke-width="1.5" ` +
-          `text-anchor="middle" ` +
-          `dominant-baseline="middle">${text}</text>`
+            `fill="rgba(255, 255, 255, 0.35)" ` +
+            `stroke="rgba(0, 0, 0, 0.25)" ` +
+            `stroke-width="1" ` +
+            `text-anchor="middle" ` +
+            `dominant-baseline="middle">${text}</text>`
         );
       }
     }
@@ -874,7 +875,8 @@ module.exports = async (req, res) => {
     
     // 🧪 BYPASS: Sprawdź czy użytkownik jest na liście testowej (przed wszystkimi limitami)
     // ✅ Email używany tylko do test bypass (dla zalogowanych można sprawdzić przez customerId)
-    const isTest = isTestUser(email || null, ip);
+    // ⚠️ Zaktualizujemy isTest po pobraniu email z GraphQL (dla zalogowanych)
+    let isTest = isTestUser(email || null, ip);
     
     console.log(`🎯 [TRANSFORM] Product type: ${productType || 'not specified'}`);
     console.log(`🎯 [TRANSFORM] Style: ${prompt}`);
@@ -1741,8 +1743,18 @@ module.exports = async (req, res) => {
           isOldFormat: isOldFormat
         });
 
-        if (isTest) {
+        // ✅ SPRAWDŹ WHITELIST Z EMAIL Z GRAPHQL (bardziej wiarygodne niż request body)
+        const customerEmailFromGraphQL = customer?.email;
+        const isTestUserFromGraphQL = isTestUser(customerEmailFromGraphQL || null, ip);
+        
+        // ✅ ZAKTUALIZUJ isTest żeby uwzględniać email z GraphQL (dostępne w sekcji inkrementacji)
+        if (isTestUserFromGraphQL) {
+          isTest = true;
+        }
+        
+        if (isTest || isTestUserFromGraphQL) {
           console.log(`🧪 [TEST-BYPASS] Pomijam Shopify metafield limit dla test user (${totalUsed}/${totalLimit})`);
+          console.log(`🧪 [TEST-BYPASS] Test check - original isTest: ${isTest}, GraphQL email test: ${isTestUserFromGraphQL}, email: ${customerEmailFromGraphQL}`);
         } else if (totalUsed >= totalLimit) {
           console.warn(`❌ [METAFIELD-CHECK] LIMIT EXCEEDED:`, {
             customerEmail: customer?.email,
@@ -2181,15 +2193,12 @@ module.exports = async (req, res) => {
               token: process.env.customify_READ_WRITE_TOKEN,
             });
             
-            finalImageUrl = blob.url;
-            console.log(`✅ [TRANSFORM] Obraz BEZ watermarku zapisany w Vercel Blob (SDK): ${finalImageUrl.substring(0, 50)}...`);
-            
-            // ✅ DODATKOWA WERSJA Z WATERMARKIEM (tylko dla zalogowanych - do emaili)
-            if (customerId) {
-              console.log('🎨 [TRANSFORM] Tworzę dodatkową wersję z watermarkiem dla zalogowanego użytkownika...');
-              // ✅ WATERMARK JUŻ ZAPISANY Z FRONTENDU - pomijam Sharp watermark
-              console.log('ℹ️ [TRANSFORM] Watermark już zapisany z frontendu - pomijam Sharp watermark');
-            }
+                finalImageUrl = blob.url;
+                console.log(`✅ [TRANSFORM] Obraz BEZ watermarku zapisany w Vercel Blob (SDK): ${finalImageUrl.substring(0, 50)}...`);
+                
+                // ✅ WATERMARK: Frontend Canvas generuje i uploaduje przez /api/update-generation-watermark
+                // Backend Sharp watermark WYŁĄCZONY - Sharp nie ma fontów w Vercel serverless (kwadraty zamiast liter)
+                console.log('ℹ️ [TRANSFORM] Watermark zostanie wygenerowany przez frontend Canvas i zapisany przez /api/update-generation-watermark');
           } catch (uploadError) {
             console.error('⚠️ [TRANSFORM] Błąd uploadu base64 do Vercel Blob (SDK):', uploadError.message);
             // Jeśli upload się nie powiódł, nie możemy użyć base64 (przekroczy limit w save-generation-v2)
@@ -2229,12 +2238,9 @@ module.exports = async (req, res) => {
                 finalImageUrl = blob.url;
                 console.log(`✅ [TRANSFORM] Obraz BEZ watermarku zapisany w Vercel Blob (SDK): ${finalImageUrl.substring(0, 50)}...`);
                 
-                // ✅ DODATKOWA WERSJA Z WATERMARKIEM (tylko dla zalogowanych - do emaili)
-                if (customerId) {
-                  console.log('🎨 [TRANSFORM] Tworzę dodatkową wersję z watermarkiem dla zalogowanego użytkownika...');
-                  // ✅ WATERMARK JUŻ ZAPISANY Z FRONTENDU - pomijam Sharp watermark
-                  console.log('ℹ️ [TRANSFORM] Watermark już zapisany z frontendu - pomijam Sharp watermark');
-                }
+                // ✅ WATERMARK: Frontend Canvas generuje i uploaduje przez /api/update-generation-watermark
+                // Backend Sharp watermark WYŁĄCZONY - Sharp nie ma fontów w Vercel serverless (kwadraty zamiast liter)
+                console.log('ℹ️ [TRANSFORM] Watermark zostanie wygenerowany przez frontend Canvas i zapisany przez /api/update-generation-watermark');
               } else {
                 console.warn('⚠️ [TRANSFORM] Nie udało się pobrać obrazu z Replicate - używam oryginalnego URL');
               }
@@ -2289,6 +2295,8 @@ module.exports = async (req, res) => {
           ipHash,
           deviceToken,
           imageUrl: finalImageUrl, // ✅ BEZ watermarku (do realizacji zamówienia)
+          // ✅ WATERMARK: Frontend Canvas generuje i uploaduje przez /api/update-generation-watermark
+          // Backend Sharp watermark WYŁĄCZONY (brak fontów w Vercel serverless)
           watermarkedImageUrl: null, // ✅ Zostanie zaktualizowany przez /api/update-generation-watermark po transformacji AI
           style: prompt || 'unknown',
           productType: finalProductType,
@@ -2394,10 +2402,12 @@ module.exports = async (req, res) => {
       hasCustomerId: !!customerId,
       hasAccessToken: !!accessToken,
       customerId: customerId,
-      productType: finalProductType
+      productType: finalProductType,
+      isTest: isTest
     });
     
-    if (customerId && accessToken) {
+    // ✅ POMIŃ INKREMENTACJĘ DLA TEST USERS (whitelist - nieograniczone generacje)
+    if (customerId && accessToken && !isTest) {
       console.log(`➕ [TRANSFORM] Inkrementuję licznik dla użytkownika ${customerId} (productType: ${finalProductType})`);
       
       try {
@@ -2705,11 +2715,15 @@ module.exports = async (req, res) => {
         // Transformacja się udała, ale limit nie został zaktualizowany
       }
     } else {
-      console.warn(`⚠️ [TRANSFORM] Pomijam inkrementację - brak warunków:`, {
-        hasCustomerId: !!customerId,
-        hasAccessToken: !!accessToken,
-        reason: !customerId ? 'brak customerId' : 'brak accessToken'
-      });
+      if (isTest) {
+        console.log(`🧪 [TEST-BYPASS] Pomijam inkrementację metafield dla test user (nieograniczone generacje)`);
+      } else {
+        console.warn(`⚠️ [TRANSFORM] Pomijam inkrementację - brak warunków:`, {
+          hasCustomerId: !!customerId,
+          hasAccessToken: !!accessToken,
+          reason: !customerId ? 'brak customerId' : 'brak accessToken'
+        });
+      }
     }
 
     // ✅ ATOMIC INCREMENT IP I DEVICE TOKEN LIMITS (PO UDANEJ TRANSFORMACJI)
