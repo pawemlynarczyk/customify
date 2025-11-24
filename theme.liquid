@@ -2768,9 +2768,8 @@
                     </svg>
                   </a>
                   <div class="user-links">
-                    {% assign return_url = 'https://lumly.pl/pages/my-generations?country=PL' %}
-                    <a href="{{ routes.account_login_url }}?return_url={{ return_url | url_encode }}" class="user-text-link">Zaloguj</a>
-                    <a href="{{ routes.account_register_url }}?return_url={{ return_url | url_encode }}" class="user-text-link">Zarejestruj</a>
+                    <a href="{{ routes.account_login_url }}" class="user-text-link">Zaloguj</a>
+                    <a href="{{ routes.account_register_url }}" class="user-text-link">Zarejestruj</a>
                   </div>
                 </div>
               {% endif %}
@@ -5359,34 +5358,6 @@
       });
     </script>
 
-    <!-- REDIRECT AFTER LOGIN - Przekieruj użytkownika na /pages/my-generations PO LOGOWANIU -->
-    <script>
-      (function() {
-        // NATYCHMIAST sprawdź i przekieruj - działa na obu domenach (lumly.pl i account.lumly.pl)
-        const urlParams = new URLSearchParams(window.location.search);
-        const newLogin = urlParams.get('new_login');
-        const isAccountDomain = window.location.hostname.includes('account.');
-        
-        // Obsługa dla account.lumly.pl - przekieruj NATYCHMIAST jeśli new_login=1
-        if (isAccountDomain && newLogin === '1') {
-          window.location.replace('https://lumly.pl/pages/my-generations?country=PL');
-          return;
-        }
-        
-        // Obsługa dla lumly.pl - sprawdź sessionStorage
-        {% if customer %}
-          if (sessionStorage.getItem('justLoggedIn') === 'true') {
-            sessionStorage.removeItem('justLoggedIn');
-            window.location.replace('/pages/my-generations?country=PL');
-          }
-        {% else %}
-          if (window.location.pathname.includes('/account/login') || 
-              window.location.pathname.includes('/account/register')) {
-            sessionStorage.setItem('justLoggedIn', 'true');
-          }
-        {% endif %}
-      })();
-    </script>
 
   </body>
 </html>{% comment %} Cache bust: 1761686705 {% endcomment %}

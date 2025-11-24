@@ -2523,41 +2523,6 @@
   <body class="page-width-{{ settings.page_width }} card-hover-effect-{{ settings.card_hover_effect }}">
     {% render 'skip-to-content-link', href: '#MainContent', text: 'accessibility.skip_to_text' %}
     
-    <!-- REDIRECT AFTER LOGIN - Przekieruj użytkownika z powrotem na produkt po zalogowaniu -->
-    <script>
-      // NATYCHMIAST sprawdź i przekieruj - zanim Shopify przekieruje na /account
-      (function() {
-        // Redirect script initialized
-        
-        const isLoggedIn = {{ customer.id | json }} !== null;
-        const returnUrl = localStorage.getItem('customify_return_url');
-        const timestamp = localStorage.getItem('customify_return_url_timestamp');
-        const currentPath = window.location.pathname;
-        const currentFull = window.location.pathname + window.location.search;
-        
-        // Redirect logic processing
-        
-        if (isLoggedIn && returnUrl) {
-          // Jeśli jesteśmy na /account/* i mamy return URL - przekieruj NATYCHMIAST
-          if (currentPath.startsWith('/account')) {
-            // Redirecting to return URL
-            localStorage.removeItem('customify_return_url');
-            localStorage.removeItem('customify_return_url_timestamp');
-            window.location.replace(returnUrl); // replace() nie dodaje do historii przeglądarki
-          } 
-          // Jeśli jesteśmy już na stronie produktu - wyczyść localStorage
-          else if (currentPath === returnUrl || currentFull === returnUrl) {
-            // Already on correct page - clearing localStorage
-            localStorage.removeItem('customify_return_url');
-            localStorage.removeItem('customify_return_url_timestamp');
-          } else {
-            // No matching condition - waiting
-          }
-        } else {
-          // No redirect conditions met
-        }
-      })();
-    </script>
     <!-- TRACK LOGIN/REGISTER SUCCESS -->
     <script>
       (function() {
@@ -2607,107 +2572,150 @@
     <!-- DODAJ LINK "MOJE OBRAZY" DO MENU KONTA KLIENTA -->
     <script>
       (function() {
-        // Funkcja dodająca link "Moje generacje" do menu konta klienta
+        // Funkcja dodająca link "Moje obrazy" do menu konta klienta
         function addMyImagesLink() {
-          // Sprawdź czy jesteśmy na stronie konta klienta
-          if (!window.location.pathname.startsWith('/account')) {
+          // Sprawdź czy jesteśmy na stronie konta klienta (Shopify Customer Account API)
+          const isAccountPage = window.location.hostname.includes('account.') || 
+                                window.location.pathname.startsWith('/account') ||
+                                document.querySelector('[data-customer-account]');
+          
+          if (!isAccountPage) {
             return;
           }
 
-          // Różne selektory dla menu konta klienta (w zależności od motywu Shopify)
+          // Sprawdź czy link już istnieje
+          const existingLink = document.querySelector('a[href="/pages/my-generations"], a[href*="my-generations"]');
+          if (existingLink) {
+            console.log('✅ [ACCOUNT-MENU] Link "Moje obrazy" już istnieje');
+            return true;
+          }
+
+          // Różne selektory dla menu konta klienta w Shopify Customer Account API
           const menuSelectors = [
             'nav[aria-label*="Account"]',
             'nav[aria-label*="Konto"]',
             'nav[role="navigation"]',
-            '.account-menu',
-            '[data-account-menu]',
             'nav ul',
             'aside nav',
-            'aside nav ul'
+            'aside nav ul',
+            '[role="navigation"] ul',
+            'nav > ul',
+            'ul[role="list"]'
           ];
 
           let menuElement = null;
+          let ordersLink = null;
+
+          // Szukaj menu i linku "Zamówienia" jednocześnie
           for (const selector of menuSelectors) {
             const elements = document.querySelectorAll(selector);
             for (const el of elements) {
-              // Sprawdź czy menu zawiera link do "Zamówienia" lub "Orders"
-              const menuText = el.textContent || '';
-              if (menuText.includes('Zamówienia') || menuText.includes('Orders') || menuText.includes('Order')) {
-                menuElement = el;
+              // Sprawdź czy to menu (zawiera linki)
+              const links = el.querySelectorAll('a');
+              if (links.length === 0) continue;
+
+              // Szukaj linku "Zamówienia" w tym menu
+              for (const link of links) {
+                const text = link.textContent.trim().toLowerCase();
+                if (text.includes('zamówienia') || text.includes('orders') || text.includes('order')) {
+                  menuElement = el;
+                  ordersLink = link;
+                  break;
+                }
+              }
+              
+              if (menuElement && ordersLink) break;
+            }
+            if (menuElement && ordersLink) break;
+          }
+
+          // Alternatywnie: szukaj bezpośrednio linku "Zamówienia" i znajdź jego menu
+          if (!menuElement || !ordersLink) {
+            const allLinks = document.querySelectorAll('nav a, aside a');
+            for (const link of allLinks) {
+              const text = link.textContent.trim().toLowerCase();
+              if (text.includes('zamówienia') || text.includes('orders') || text.includes('order')) {
+                ordersLink = link;
+                menuElement = link.closest('ul') || link.closest('nav') || link.parentElement;
                 break;
               }
             }
-            if (menuElement) break;
           }
 
-          if (!menuElement) {
-            console.log('🔍 [ACCOUNT-MENU] Menu konta klienta nie znalezione, próbuję ponownie...');
+          if (!menuElement || !ordersLink) {
+            console.log('🔍 [ACCOUNT-MENU] Menu lub link "Zamówienia" nie znalezione');
             return false;
           }
 
-          // Sprawdź czy link już istnieje
-          const existingLink = menuElement.querySelector('a[href="/pages/my-generations"]');
-          if (existingLink) {
-            console.log('✅ [ACCOUNT-MENU] Link "Moje generacje" już istnieje');
-            return true;
-          }
-
-          // Znajdź link "Zamówienia" lub "Orders"
-          const ordersLinks = Array.from(menuElement.querySelectorAll('a')).filter(link => {
-            const text = link.textContent.trim().toLowerCase();
-            return text.includes('zamówienia') || text.includes('orders') || text.includes('order');
-          });
-
-          if (ordersLinks.length === 0) {
-            console.log('🔍 [ACCOUNT-MENU] Link "Zamówienia" nie znaleziony');
-            return false;
-          }
-
-          const ordersLink = ordersLinks[0];
           const ordersListItem = ordersLink.closest('li') || ordersLink.parentElement;
+          if (!ordersListItem) {
+            console.log('🔍 [ACCOUNT-MENU] Nie można znaleźć elementu listy dla "Zamówienia"');
+            return false;
+          }
 
-          // Utwórz nowy element listy z linkiem "Moje generacje"
+          // Utwórz nowy element listy z linkiem "Moje obrazy"
           const newListItem = document.createElement('li');
-          newListItem.className = ordersListItem.className || '';
+          if (ordersListItem.className) {
+            newListItem.className = ordersListItem.className;
+          }
           
           const newLink = document.createElement('a');
           newLink.href = '/pages/my-generations';
-          newLink.textContent = 'Moje generacje';
-          newLink.className = ordersLink.className || '';
+          newLink.textContent = 'Moje obrazy';
+          if (ordersLink.className) {
+            newLink.className = ordersLink.className;
+          }
+          // Skopiuj style z linku "Zamówienia"
+          if (ordersLink.style.cssText) {
+            newLink.style.cssText = ordersLink.style.cssText;
+          }
           
           newListItem.appendChild(newLink);
 
           // Dodaj link po "Zamówienia"
-          if (ordersListItem.nextSibling) {
-            ordersListItem.parentNode.insertBefore(newListItem, ordersListItem.nextSibling);
-          } else {
-            ordersListItem.parentNode.appendChild(newListItem);
+          const parent = ordersListItem.parentElement;
+          if (parent) {
+            if (ordersListItem.nextSibling) {
+              parent.insertBefore(newListItem, ordersListItem.nextSibling);
+            } else {
+              parent.appendChild(newListItem);
+            }
+            console.log('✅ [ACCOUNT-MENU] Link "Moje obrazy" dodany do menu konta klienta');
+            return true;
           }
 
-          console.log('✅ [ACCOUNT-MENU] Link "Moje generacje" dodany do menu konta klienta');
-          return true;
+          return false;
         }
 
-        // Próbuj dodać link po załadowaniu DOM
+        // Próbuj dodać link wielokrotnie (dla dynamicznych stron Shopify Customer Account API)
+        function tryAddLink() {
+          const maxAttempts = 10;
+          let attempts = 0;
+          
+          const interval = setInterval(function() {
+            attempts++;
+            if (addMyImagesLink() || attempts >= maxAttempts) {
+              clearInterval(interval);
+            }
+          }, 500);
+        }
+
+        // Start gdy DOM ready
         if (document.readyState === 'loading') {
           document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(addMyImagesLink, 500);
-            // Próbuj ponownie po 2 sekundach (dla dynamicznych menu)
-            setTimeout(addMyImagesLink, 2000);
+            tryAddLink();
           });
         } else {
-          setTimeout(addMyImagesLink, 500);
-          setTimeout(addMyImagesLink, 2000);
+          tryAddLink();
         }
 
-        // Obserwuj zmiany w DOM (dla dynamicznych menu)
+        // Obserwuj zmiany w DOM (dla dynamicznych menu Shopify Customer Account API)
         const observer = new MutationObserver(function(mutations) {
           addMyImagesLink();
         });
 
-        // Rozpocznij obserwację po załadowaniu strony
         setTimeout(function() {
-          const accountSection = document.querySelector('main') || document.body;
+          const accountSection = document.querySelector('main') || document.querySelector('body');
           if (accountSection) {
             observer.observe(accountSection, {
               childList: true,
@@ -5349,6 +5357,7 @@
         }
       });
     </script>
+
 
   </body>
 </html>{% comment %} Cache bust: 1761686705 {% endcomment %}

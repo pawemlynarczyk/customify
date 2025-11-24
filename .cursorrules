@@ -10,6 +10,25 @@
 - 🚨 **Jeśli dodajesz nowy styl - NIE ZMIENIAJ logiki dla istniejących stylów**
 - 🚨 **Pytanie: "Czy ta zmiana zepsuje coś co już działa?" - jeśli TAK, NIE RÓB TEGO**
 
+### **🚨 CRITICAL: ZAWSZE ZMIENIAJ KOD ŹRÓDŁOWY - NIE TWÓRZ SKRYPTÓW FRONTOWYCH!**
+- 🚨 **ZAWSZE edytuj kod źródłowy** (Liquid, HTML, CSS) zamiast tworzyć skrypty JavaScript które modyfikują DOM
+- 🚨 **NIE TWÓRZ skryptów JavaScript** które dodają/zmieniają elementy HTML na froncie - jeśli mamy dostęp do kodu źródłowego
+- 🚨 **EDYTUJ BEZPOŚREDNIO** pliki źródłowe: `theme.liquid`, sekcje Liquid, templates, CSS
+- 🚨 **JavaScript injection TYLKO** gdy NIE MAMY dostępu do kodu źródłowego (np. Shopify Customer Account API)
+- 🚨 **ZASADA**: Jeśli możemy zmienić kod źródłowy → ZMIEŃ KOD ŹRÓDŁOWY, nie twórz skryptów frontowych
+- 🚨 **WYJĄTKI**: JavaScript injection dozwolony TYLKO dla:
+  - Shopify Customer Account API (strony `/account/*` - nie mamy dostępu do kodu)
+  - Zewnętrzne systemy gdzie nie mamy dostępu do źródła
+- 🚨 **PRZYKŁADY ZŁYCH PRAKTYK** (NIE RÓB TEGO):
+  - ❌ Tworzenie skryptu który dodaje link do menu - ZMIEŃ HTML W KODZIE ŹRÓDŁOWYM
+  - ❌ Tworzenie skryptu który zmienia tekst - ZMIEŃ TEKST W PLIKU LIQUID/HTML
+  - ❌ Tworzenie skryptu który dodaje elementy - DODAJ ELEMENTY W HTML
+- 🚨 **PRZYKŁADY DOBRYCH PRAKTYK** (RÓB TAK):
+  - ✅ Edytuj `theme.liquid` bezpośrednio - dodaj HTML/Liquid
+  - ✅ Edytuj sekcje Liquid - zmień teksty w kodzie źródłowym
+  - ✅ Edytuj templates - zmień ustawienia w JSON/Liquid
+  - ✅ Edytuj CSS - zmień style w plikach CSS
+
 ### **✅ DO:**
 - ✅ **Dodawaj walidację stopniowo** (jeden plik na raz)
 - ✅ **Testuj po każdej zmianie** - sprawdź czy działa
