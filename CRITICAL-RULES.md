@@ -83,30 +83,78 @@ npm run deploy
 
 ## 💰 ZASADA SYSTEMU CEN ROZMIARÓW:
 
-### **CENY ROZMIARÓW:**
-- **A4 (20×30 cm):** +49 zł
-- **A3 (30×40 cm):** +99 zł  
-- **A2 (40×60 cm):** +149 zł
-- **A1 (60×85 cm):** +199 zł
+### **WZÓR CENY KOŃCOWEJ:**
+```
+CENA KOŃCOWA = CENA BAZOWA (z produktu Shopify) + CENA ROZMIARU + DOPŁATA ZA RAMKĘ (tylko plakat)
+```
+
+### **CENY ROZMIARÓW (dodawane do ceny bazowej):**
+
+#### **PLAKAT:**
+| Rozmiar | Wymiary | Dopłata |
+|---------|---------|---------|
+| A4 | 20×30 cm | +0 zł (domyślny - bez dopłaty) |
+| A3 | 30×40 cm | +9 zł |
+| A2 | 40×60 cm | +30 zł |
+| A1 | 60×85 cm | +60 zł |
+
+#### **CANVAS (Obraz na płótnie):**
+| Rozmiar | Wymiary | Dopłata |
+|---------|---------|---------|
+| A4 | 20×30 cm | +49 zł |
+| A3 | 30×40 cm | +99 zł |
+| A2 | 40×60 cm | +149 zł |
+| A1 | 60×85 cm | +199 zł |
+
+### **DOPŁATA ZA RAMKĘ (tylko dla plakatu, jeśli wybrano ramkę):**
+| Rozmiar | Dopłata za ramkę |
+|---------|------------------|
+| A4 | +29 zł |
+| A3 | +45 zł |
+| A2 | +65 zł |
+| A1 | +85 zł |
 
 ### **LOGIKA CENOWA:**
-- **Cena końcowa = Cena bazowa produktu + Cena rozmiaru**
-- **Cena bazowa** pobierana z oryginalnego produktu Shopify:
-  - Król: 99 zł
-  - Koty: 69 zł
+- **Cena bazowa** pobierana z `window.ShopifyProduct.variants[0].price` (NIE z DOM!)
+- **Rozmiar A4 Plakat** jest domyślny - NIE dodaje nic do ceny bazowej (0 zł)
 - **Przy starcie** automatycznie wybiera A4 i aktualizuje cenę
 - **Po kliknięciu rozmiaru** cena natychmiast się aktualizuje
 - **Wyświetlanie** w głównym polu produktu (`product-price div`)
 
 ### **FUNKCJE JAVASCRIPT:**
+- `getBasePriceFromShopify()` - pobiera bazową cenę z `window.ShopifyProduct` (niezmienione źródło)
 - `updateProductPrice()` - aktualizuje cenę na stronie
 - `getSizePrice()` - zwraca cenę dla rozmiaru
-- `extractBasePrice()` - wyciąga bazową cenę z tekstu
+- `extractBasePrice()` - wyciąga bazową cenę z tekstu (fallback)
 - `initializeDefaultPrice()` - ustawia domyślny A4 przy starcie
 
 ### **PRZYKŁADY CEN:**
-- Król A2: 99 + 149 = **248 zł**
-- Koty A1: 69 + 199 = **268 zł**
+
+**Boho (cena bazowa: 69 zł) - Plakat A4:**
+- Cena bazowa: 69 zł
+- Rozmiar A4 (Plakat): +0 zł (domyślny)
+- **Razem: 69 zł**
+
+**Boho (cena bazowa: 69 zł) - Plakat A3:**
+- Cena bazowa: 69 zł
+- Rozmiar A3 (Plakat): +9 zł
+- **Razem: 78 zł**
+
+**Boho (cena bazowa: 69 zł) - Canvas A3:**
+- Cena bazowa: 69 zł
+- Rozmiar A3 (Canvas): +99 zł
+- **Razem: 168 zł**
+
+**Boho (cena bazowa: 69 zł) - Plakat A2 z ramką:**
+- Cena bazowa: 69 zł
+- Rozmiar A2 (Plakat): +30 zł
+- Ramka A2: +65 zł
+- **Razem: 164 zł**
+
+**Król (cena bazowa: 99 zł) - Canvas A1:**
+- Cena bazowa: 99 zł
+- Rozmiar A1 (Canvas): +199 zł
+- **Razem: 298 zł**
 
 ## 🎯 ZASADA KONFIGURACJI STYLÓW AI:
 
