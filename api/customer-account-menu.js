@@ -15,6 +15,19 @@ module.exports = async (req, res) => {
   const script = `(function() {
   'use strict';
 
+  // 🔄 PRZEKIEROWANIE PO LOGOWANIU - działa na account.lumly.pl
+  (function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const newLogin = urlParams.get('new_login');
+    const isAccountDomain = window.location.hostname.includes('account.');
+    
+    if (isAccountDomain && newLogin === '1') {
+      console.log('🔄 [REDIRECT] Redirecting after login to /pages/my-generations');
+      window.location.replace('https://lumly.pl/pages/my-generations?country=PL');
+      return; // Nie wykonuj reszty kodu
+    }
+  })();
+
   // Funkcja dodająca link "Moje obrazy" do menu konta klienta
   function addMyImagesLink() {
     // Sprawdź czy jesteśmy na stronie konta klienta (Shopify Customer Account API)
