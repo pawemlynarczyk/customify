@@ -2709,11 +2709,15 @@ module.exports = async (req, res) => {
         // Transformacja się udała, ale limit nie został zaktualizowany
       }
     } else {
-      console.warn(`⚠️ [TRANSFORM] Pomijam inkrementację - brak warunków:`, {
-        hasCustomerId: !!customerId,
-        hasAccessToken: !!accessToken,
-        reason: !customerId ? 'brak customerId' : 'brak accessToken'
-      });
+      if (isTest) {
+        console.log(`🧪 [TEST-BYPASS] Pomijam inkrementację metafield dla test user (nieograniczone generacje)`);
+      } else {
+        console.warn(`⚠️ [TRANSFORM] Pomijam inkrementację - brak warunków:`, {
+          hasCustomerId: !!customerId,
+          hasAccessToken: !!accessToken,
+          reason: !customerId ? 'brak customerId' : 'brak accessToken'
+        });
+      }
     }
 
     // ✅ ATOMIC INCREMENT IP I DEVICE TOKEN LIMITS (PO UDANEJ TRANSFORMACJI)
