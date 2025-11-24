@@ -875,7 +875,8 @@ module.exports = async (req, res) => {
     
     // 🧪 BYPASS: Sprawdź czy użytkownik jest na liście testowej (przed wszystkimi limitami)
     // ✅ Email używany tylko do test bypass (dla zalogowanych można sprawdzić przez customerId)
-    const isTest = isTestUser(email || null, ip);
+    // ⚠️ Zaktualizujemy isTest po pobraniu email z GraphQL (dla zalogowanych)
+    let isTest = isTestUser(email || null, ip);
     
     console.log(`🎯 [TRANSFORM] Product type: ${productType || 'not specified'}`);
     console.log(`🎯 [TRANSFORM] Style: ${prompt}`);
@@ -1745,6 +1746,11 @@ module.exports = async (req, res) => {
         // ✅ SPRAWDŹ WHITELIST Z EMAIL Z GRAPHQL (bardziej wiarygodne niż request body)
         const customerEmailFromGraphQL = customer?.email;
         const isTestUserFromGraphQL = isTestUser(customerEmailFromGraphQL || null, ip);
+        
+        // ✅ ZAKTUALIZUJ isTest żeby uwzględniać email z GraphQL (dostępne w sekcji inkrementacji)
+        if (isTestUserFromGraphQL) {
+          isTest = true;
+        }
         
         if (isTest || isTestUserFromGraphQL) {
           console.log(`🧪 [TEST-BYPASS] Pomijam Shopify metafield limit dla test user (${totalUsed}/${totalLimit})`);
