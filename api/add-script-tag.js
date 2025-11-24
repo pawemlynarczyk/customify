@@ -47,11 +47,24 @@ module.exports = async (req, res) => {
       );
 
       if (existingScript) {
-        return res.json({
-          success: true,
-          message: 'Script Tag już istnieje',
-          script_tag: existingScript
-        });
+        // Usuń stary Script Tag jeśli display_scope jest zły
+        if (existingScript.display_scope !== 'all') {
+          console.log('⚠️ [SCRIPT-TAG] Stary Script Tag ma zły display_scope, usuwam...');
+          await fetch(`https://${shop}/admin/api/2024-01/script_tags/${existingScript.id}.json`, {
+            method: 'DELETE',
+            headers: {
+              'X-Shopify-Access-Token': accessToken,
+              'Content-Type': 'application/json'
+            }
+          });
+          // Kontynuuj tworzenie nowego
+        } else {
+          return res.json({
+            success: true,
+            message: 'Script Tag już istnieje z poprawnym display_scope',
+            script_tag: existingScript
+          });
+        }
       }
     }
 
