@@ -107,6 +107,21 @@
             return noteAttributes || {};
           };
 
+          /**
+           * Pobiera bazową cenę produktu z window.ShopifyProduct (niezmienione źródło)
+           */
+          proto.getBasePriceFromShopify = function() {
+            if (window.ShopifyProduct && window.ShopifyProduct.variants && window.ShopifyProduct.variants.length > 0) {
+              // variants[0].price jest w groszach, konwertuj na złotówki
+              const priceInGrosz = parseFloat(window.ShopifyProduct.variants[0].price);
+              const priceInZl = priceInGrosz / 100;
+              console.log(`💰 [BASE-PRICE] Pobrano z window.ShopifyProduct: ${priceInZl} zł (${priceInGrosz} groszy)`);
+              return priceInZl;
+            }
+            console.warn('⚠️ [BASE-PRICE] window.ShopifyProduct.variants nie dostępne, używam fallback');
+            return null;
+          };
+
           // 🚨 ROLLBACK: START - Nadpisanie updateProductPrice() dla produktu cyfrowego
           proto.updateProductPrice = function() {
             try {
@@ -132,13 +147,21 @@
 
               // Pobierz oryginalną bazową cenę (zapamiętaj przy pierwszym wywołaniu)
               if (!this.originalBasePrice) {
-                const basePriceText = priceElement.textContent;
-                this.originalBasePrice = this.extractBasePrice(basePriceText);
+                // ✅ Użyj window.ShopifyProduct (niezmienione źródło) zamiast DOM
+                this.originalBasePrice = this.getBasePriceFromShopify();
                 
                 if (this.originalBasePrice === null) {
-                  console.warn('⚠️ [PRICE] Could not extract original base price from:', basePriceText);
-                  this.originalBasePrice = 49.00;
-                  console.log(`💰 [PRICE] Using fallback base price: ${this.originalBasePrice} zł`);
+                  // Fallback: spróbuj z DOM jeśli window.ShopifyProduct nie dostępne
+                  const basePriceText = priceElement.textContent;
+                  this.originalBasePrice = this.extractBasePrice(basePriceText);
+                  
+                  if (this.originalBasePrice === null) {
+                    console.warn('⚠️ [PRICE] Could not get base price from Shopify or DOM, using fallback');
+                    this.originalBasePrice = 49.00;
+                    console.log(`💰 [PRICE] Using fallback base price: ${this.originalBasePrice} zł`);
+                  } else {
+                    console.log(`💰 [PRICE] Base price from DOM (fallback): ${this.originalBasePrice} zł`);
+                  }
                 } else {
                   console.log(`💰 [PRICE] Original base price saved: ${this.originalBasePrice} zł`);
                 }
