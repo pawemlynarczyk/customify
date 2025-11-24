@@ -7,10 +7,8 @@
   <div class="my-generations-section">
     <div class="section-container">
       <div class="section-header">
-        <h1 class="section-title">{{ section.settings.title | default: "Moje Obrazy do zamówienia" }}</h1>
-        {% if section.settings.description != blank %}
-          <p class="section-description">{{ section.settings.description }}</p>
-        {% endif %}
+        <h1 class="section-title">Moje obrazy</h1>
+        <p class="section-description">Kliknij obraz by wybrać typ, rozmiar i zamówić</p>
       </div>
 
       <div id="generations-container" class="generations-container">
@@ -114,7 +112,7 @@
     }
 
     .btn-order-now {
-      background: #000;
+      background: #d32f2f;
       color: #fff;
       padding: 0.6rem 0.8rem;
       border: none;
@@ -124,10 +122,11 @@
       cursor: pointer;
       text-align: center;
       transition: background 0.2s;
+      width: 100%;
     }
 
     .btn-order-now:hover {
-      background: #333;
+      background: #b71c1c;
     }
 
     .email-badge {
@@ -171,10 +170,10 @@
       }
     }
 
-    /* Mobile: 1 kolumna (≤768px) */
+    /* Mobile: 2 kolumny (≤768px) */
     @media (max-width: 768px) {
       .generations-container {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
         gap: 0.75rem;
       }
 
@@ -313,6 +312,18 @@
         // Wyczyść kontener i używaj go bezpośrednio (bez tworzenia nowego diva)
         container.innerHTML = '';
         
+        // ✅ Funkcja sprawdzania czy obraz istnieje
+        async function checkImageExists(url) {
+          return new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => resolve(true);
+            img.onerror = () => resolve(false);
+            img.src = url;
+            // Timeout po 5 sekundach
+            setTimeout(() => resolve(false), 5000);
+          });
+        }
+        
         // ✅ Funkcja dodawania watermarku
         function addWatermark(imageDataUri) {
           return new Promise((resolve, reject) => {
@@ -388,34 +399,140 @@
           // ✅ PRIORYTET: watermarkedImageUrl (Vercel Z watermarkiem) > addWatermark (on-the-fly dla starych)
           try {
             let watermarkedImage;
+            let imageUrlToCheck = null;
+            
             if (generation.watermarkedImageUrl) {
               // Nowa generacja - użyj URL z Vercel (już z watermarkiem)
               watermarkedImage = generation.watermarkedImageUrl;
+              imageUrlToCheck = generation.watermarkedImageUrl;
               console.log('✅ [MY-GENERATIONS] Using watermarked URL from Vercel:', watermarkedImage.substring(0, 80));
+            } else if (generation.transformedImage) {
+              // Stara generacja - sprawdź czy obraz istnieje przed dodaniem watermarku
+              imageUrlToCheck = generation.transformedImage;
+              const imageExists = await checkImageExists(generation.transformedImage);
+              
+              if (imageExists) {
+                // Obraz istnieje - dodaj watermark on-the-fly
+                watermarkedImage = await addWatermark(generation.transformedImage);
+                console.log('🎨 [MY-GENERATIONS] Added watermark on-the-fly for old generation');
+              } else {
+                // Obraz nie istnieje (404) - użyj placeholder
+                console.warn('⚠️ [MY-GENERATIONS] Image not found (404):', generation.transformedImage?.substring(0, 80));
+                watermarkedImage = null; // Użyj placeholder
+              }
             } else {
-              // Stara generacja - dodaj watermark on-the-fly
-              watermarkedImage = await addWatermark(generation.transformedImage);
-              console.log('🎨 [MY-GENERATIONS] Added watermark on-the-fly for old generation');
+              // Brak URL obrazu
+              console.warn('⚠️ [MY-GENERATIONS] No image URL found for generation:', generation.id);
+              watermarkedImage = null;
             }
             
-            item.innerHTML = `
-              <img 
-                src="${watermarkedImage}" 
-                alt="Generacja ${generation.style}" 
-                class="generation-image"
-                loading="lazy"
-              />
-              <div class="generation-info">
-                <div class="generation-style">${generation.style}</div>
-                <div class="generation-date">${dateStr}</div>
-                <div style="margin-top: 0.5rem; font-size: 0.85rem; color: #666;">Kliknij, aby zamówić</div>
-              </div>
-            `;
+            // Jeśli obraz nie istnieje, pokaż placeholder
+            if (!watermarkedImage) {
+              item.innerHTML = `
+                <div class="generation-image" style="background: #f0f0f0; aspect-ratio: 3/4; display: flex; align-items: center; justify-content: center; flex-direction: column; color: #999;">
+                  <p style="font-size: 2rem; margin: 0;">📷</p>
+                  <p style="font-size: 0.9rem; margin: 0.5rem 0 0 0;">Obraz niedostępny</p>
+                </div>
+                <div class="generation-info">
+                  <div class="generation-style">${generation.style}</div>
+                  <div class="generation-date">${dateStr}</div>
+                  <button class="btn-order-now" data-generation-index="${index}" disabled style="opacity: 0.5; cursor: not-allowed;">Niedostępne</button>
+                </div>
+              `;
+            } else {
+              item.innerHTML = `
+                <img 
+                  src="${watermarkedImage}" 
+                  alt="Generacja ${generation.style}" 
+                  class="generation-image"
+                  loading="lazy"
+                  onerror="this.parentElement.innerHTML='<div class=\\'generation-image\\' style=\\'background: #f0f0f0; aspect-ratio: 3/4; display: flex; align-items: center; justify-content: center; flex-direction: column; color: #999;\\'><p style=\\'font-size: 2rem; margin: 0;\\'>📷</p><p style=\\'font-size: 0.9rem; margin: 0.5rem 0 0 0;\\'>Obraz niedostępny</p></div><div class=\\'generation-info\\'><div class=\\'generation-style\\'>${generation.style}</div><div class=\\'generation-date\\'>${dateStr}</div><button class=\\'btn-order-now\\' data-generation-index=\\'${index}\\' disabled style=\\'opacity: 0.5; cursor: not-allowed;\\'>Niedostępne</button></div>'"
+                />
+                <div class="generation-info">
+                  <div class="generation-style">${generation.style}</div>
+                  <div class="generation-date">${dateStr}</div>
+                  <button class="btn-order-now" data-generation-index="${index}">Zamów</button>
+                </div>
+              `;
+            }
             
-            // Po kliknięciu - zapisz jako wybraną i redirect do produktu (działa jak w galerii produktu)
+            // Funkcja obsługująca zamówienie
+            function handleOrder(generationIndex) {
+              const gen = allGenerations[generationIndex];
+              console.log('🎯 [MY-GENERATIONS] ===== KLIKNIĘCIE W GENERACJĘ =====');
+              console.log('🎯 [MY-GENERATIONS] Selecting generation:', generationIndex);
+              console.log('🎯 [MY-GENERATIONS] Full generation object:', gen);
+              
+              // Zapisz wybraną generację w localStorage
+              try {
+                const dataToSave = {
+                  index: generationIndex,
+                  generation: gen,
+                  selectedAt: new Date().toISOString()
+                };
+                
+                console.log('💾 [MY-GENERATIONS] Saving to localStorage:', {
+                  index: dataToSave.index,
+                  generationId: dataToSave.generation.id,
+                  generationStyle: dataToSave.generation.style
+                });
+                
+                localStorage.setItem('customify_selected_generation', JSON.stringify(dataToSave));
+              } catch (error) {
+                console.error('❌ [MY-GENERATIONS] Error saving to localStorage:', error);
+                return;
+              }
+              
+              // Mapuj productType → productHandle
+              const productTypeToHandle = {
+                'boho': 'personalizowany-portret-w-stylu-boho',
+                'king': 'krol-portret-personalizowany',
+                'queen': 'krol-portret-personalizowany',
+                'cats': 'koty-krolewskie',
+                'caricature': 'personalizowany-portret-w-stylu-boho',
+                'watercolor': 'personalizowany-portret-w-stylu-boho',
+                'other': 'personalizowany-portret-w-stylu-boho'
+              };
+              
+              let productHandle = null;
+              if (gen.productType && productTypeToHandle[gen.productType]) {
+                productHandle = productTypeToHandle[gen.productType];
+              } else {
+                let styleKey = (gen.style || '').toLowerCase().replace(/transform this image in | style/g, '').trim();
+                let detectedProductType = 'other';
+                
+                if (styleKey.startsWith('krol-') || styleKey.startsWith('krolowa-') || styleKey.includes('king') || styleKey.includes('queen')) {
+                  detectedProductType = 'king';
+                } else if (styleKey.includes('krolewski') || styleKey.includes('na-tronie') || styleKey.includes('wojenny') || styleKey.includes('wiktorianski') || styleKey.includes('renesansowy')) {
+                  detectedProductType = 'cats';
+                } else if (styleKey.includes('minimalistyczny') || styleKey.includes('realistyczny') || styleKey.includes('pixar') || styleKey.includes('boho')) {
+                  detectedProductType = 'boho';
+                } else if (styleKey.includes('karykatura') || styleKey.includes('caricature')) {
+                  detectedProductType = 'caricature';
+                } else if (styleKey.includes('akwarela') || styleKey.includes('watercolor')) {
+                  detectedProductType = 'watercolor';
+                }
+                
+                productHandle = productTypeToHandle[detectedProductType] || productTypeToHandle['other'];
+              }
+              
+              console.log('🔗 [MY-GENERATIONS] Redirecting to:', productHandle);
+              window.location.href = `/products/${productHandle}`;
+            }
+            
+            // Po kliknięciu na przycisk - zamów
+            const orderButton = item.querySelector('.btn-order-now');
+            if (orderButton) {
+              orderButton.addEventListener('click', function(e) {
+                e.stopPropagation();
+                handleOrder(index);
+              });
+            }
+            
+            // Po kliknięciu na całą kartę - zapisz jako wybraną i redirect do produktu (działa jak w galerii produktu)
             item.addEventListener('click', function(e) {
-              // Zapobiegaj propagacji jeśli kliknięto w link/przycisk (jeśli będzie dodany)
-              if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON') {
+              // Zapobiegaj propagacji jeśli kliknięto w przycisk
+              if (e.target.tagName === 'BUTTON' || e.target.closest('button')) {
                 return;
               }
               
@@ -572,7 +689,7 @@
   <div class="my-generations-section">
     <div class="section-container">
       <div class="section-header">
-        <h1 class="section-title">Moje Obrazy do zamówienia</h1>
+        <h1 class="section-title">Moje obrazy</h1>
         <p class="section-description">Musisz być zalogowany, aby zobaczyć swoje generacje.</p>
         <a href="{{ routes.account_login_url }}" class="button button--primary">Zaloguj się</a>
       </div>
