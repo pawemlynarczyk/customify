@@ -92,7 +92,6 @@ npm run deploy
 ### **LOGIKA CENOWA:**
 - **Cena końcowa = Cena bazowa produktu + Cena rozmiaru**
 - **Cena bazowa** pobierana z oryginalnego produktu Shopify:
-  - Boho: 49 zł
   - Król: 99 zł
   - Koty: 69 zł
 - **Przy starcie** automatycznie wybiera A4 i aktualizuje cenę
@@ -106,8 +105,6 @@ npm run deploy
 - `initializeDefaultPrice()` - ustawia domyślny A4 przy starcie
 
 ### **PRZYKŁADY CEN:**
-- Boho A4: 49 + 49 = **98 zł**
-- Boho A3: 49 + 99 = **148 zł**
 - Król A2: 99 + 149 = **248 zł**
 - Koty A1: 69 + 199 = **268 zł**
 
