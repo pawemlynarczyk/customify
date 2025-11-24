@@ -5358,12 +5358,22 @@
       });
     </script>
 
-    <!-- REDIRECT AFTER LOGIN - Przekieruj wszystkich zalogowanych użytkowników na /pages/my-generations gdy wchodzą na stronę główną -->
-    {% if customer and request.path == '/' %}
-      <script>
-        window.location.href = '/pages/my-generations?country=PL';
-      </script>
-    {% endif %}
+    <!-- REDIRECT AFTER LOGIN - Przekieruj użytkownika na /pages/my-generations PO LOGOWANIU (nie przy każdym wejściu) -->
+    <script>
+      {% if customer %}
+        // Sprawdź czy to pierwsze załadowanie po zalogowaniu
+        if (sessionStorage.getItem('justLoggedIn') === 'true') {
+          sessionStorage.removeItem('justLoggedIn');
+          window.location.href = '/pages/my-generations?country=PL';
+        }
+      {% else %}
+        // Ustaw flagę przed logowaniem
+        if (window.location.pathname.includes('/account/login') || 
+            window.location.pathname.includes('/account/register')) {
+          sessionStorage.setItem('justLoggedIn', 'true');
+        }
+      {% endif %}
+    </script>
 
   </body>
 </html>{% comment %} Cache bust: 1761686705 {% endcomment %}
