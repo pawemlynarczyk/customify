@@ -7,7 +7,7 @@
   <div class="my-generations-section">
     <div class="section-container">
       <div class="section-header">
-        <h1 class="section-title">{{ section.settings.title | default: "Moje generacje AI" }}</h1>
+        <h1 class="section-title">{{ section.settings.title | default: "Moje Obrazy do zamówienia" }}</h1>
         {% if section.settings.description != blank %}
           <p class="section-description">{{ section.settings.description }}</p>
         {% endif %}
@@ -185,14 +185,33 @@
   </style>
 
   <script>
-    // ✅ BEZPOŚREDNIE UŻYCIE localStorage (bez CustomifyEmbed)
+    // ✅ POŁĄCZENIE API + localStorage (dla zalogowanych klientów)
     (function() {
-      console.log('🎨 [MY-GENERATIONS] Initializing gallery from localStorage');
+      console.log('🎨 [MY-GENERATIONS] Initializing gallery');
       
       const container = document.getElementById('generations-container');
       
+      // Pobierz customerId z Shopify
+      function getCustomerId() {
+        try {
+          // Shopify 2.0 Customer Account API
+          if (window.ShopifyCustomer && window.ShopifyCustomer.id) {
+            return window.ShopifyCustomer.id;
+          }
+          // Fallback: sprawdź w localStorage (jeśli był zapisany)
+          const stored = localStorage.getItem('customify_customer_id');
+          if (stored) {
+            return stored;
+          }
+          return null;
+        } catch (error) {
+          console.error('❌ [MY-GENERATIONS] Error getting customerId:', error);
+          return null;
+        }
+      }
+      
       // Pobierz generacje z localStorage (ta sama struktura co customify.js)
-      function getGenerations() {
+      function getGenerationsFromLocalStorage() {
         try {
           const stored = localStorage.getItem('customify_ai_generations');
           if (!stored) return [];
@@ -204,11 +223,89 @@
         }
       }
       
-      function initGallery() {
-        const generations = getGenerations();
-        console.log('📊 [MY-GENERATIONS] Found generations:', generations.length);
+      // Pobierz generacje z API (Vercel Blob Storage)
+      async function getGenerationsFromAPI(customerId) {
+        try {
+          console.log('📡 [MY-GENERATIONS] Fetching generations from API for customerId:', customerId);
+          const response = await fetch(`https://customify-s56o.vercel.app/api/get-customer-generations?customerId=${encodeURIComponent(customerId)}`);
+          
+          if (!response.ok) {
+            console.warn('⚠️ [MY-GENERATIONS] API response not OK:', response.status);
+            return [];
+          }
+          
+          const data = await response.json();
+          console.log('✅ [MY-GENERATIONS] API response:', {
+            success: data.success,
+            totalGenerations: data.totalGenerations,
+            generationsCount: data.generations?.length || 0
+          });
+          
+          if (data.success && data.generations && Array.isArray(data.generations)) {
+            // Konwertuj format z API na format localStorage (dla kompatybilności)
+            return data.generations.map(gen => ({
+              id: gen.id || `api-${gen.createdAt || Date.now()}`,
+              style: gen.style || gen.productType || 'unknown',
+              productType: gen.productType || 'other',
+              transformedImage: gen.imageUrl || gen.transformedImageUrl,
+              watermarkedImageUrl: gen.watermarkedImageUrl,
+              originalImage: gen.originalImageUrl,
+              timestamp: gen.date || gen.createdAt || new Date().toISOString(),
+              size: gen.size || 'medium',
+              orderId: gen.orderId || null,
+              purchased: gen.purchased || false
+            }));
+          }
+          
+          return [];
+        } catch (error) {
+          console.error('❌ [MY-GENERATIONS] Error fetching from API:', error);
+          return [];
+        }
+      }
+      
+      // Połącz generacje z API i localStorage (usuń duplikaty)
+      function mergeGenerations(apiGenerations, localStorageGenerations) {
+        const merged = [...apiGenerations];
+        const apiIds = new Set(apiGenerations.map(g => g.id));
         
-        if (generations.length === 0) {
+        // Dodaj tylko te z localStorage, które nie są już w API
+        localStorageGenerations.forEach(localGen => {
+          if (!apiIds.has(localGen.id)) {
+            merged.push(localGen);
+          }
+        });
+        
+        // Sortuj po dacie (najnowsze pierwsze)
+        merged.sort((a, b) => {
+          const dateA = new Date(a.timestamp || 0);
+          const dateB = new Date(b.timestamp || 0);
+          return dateB - dateA;
+        });
+        
+        return merged;
+      }
+      
+      async function initGallery() {
+        const customerId = getCustomerId();
+        console.log('👤 [MY-GENERATIONS] Customer ID:', customerId);
+        
+        // Pobierz z localStorage (szybkie wyświetlenie)
+        const localStorageGenerations = getGenerationsFromLocalStorage();
+        console.log('📊 [MY-GENERATIONS] Found in localStorage:', localStorageGenerations.length);
+        
+        // Jeśli jest customerId, pobierz z API
+        let apiGenerations = [];
+        if (customerId) {
+          apiGenerations = await getGenerationsFromAPI(customerId);
+          console.log('📊 [MY-GENERATIONS] Found in API:', apiGenerations.length);
+        }
+        
+        // Połącz generacje (API + localStorage)
+        const allGenerations = mergeGenerations(apiGenerations, localStorageGenerations);
+        console.log('📊 [MY-GENERATIONS] Total generations:', allGenerations.length);
+        
+        if (allGenerations.length === 0) {
           container.innerHTML = '<div class="generations-empty"><p>Nie masz jeszcze żadnych generacji. Stwórz pierwszą!</p></div>';
           return;
         }
@@ -460,7 +557,7 @@
         }
         
         // Renderuj wszystkie generacje
-        generations.forEach((gen, idx) => renderGeneration(gen, idx));
+        allGenerations.forEach((gen, idx) => renderGeneration(gen, idx));
       }
       
       // Start gdy DOM ready
@@ -475,7 +572,7 @@
   <div class="my-generations-section">
     <div class="section-container">
       <div class="section-header">
-        <h1 class="section-title">Moje generacje AI</h1>
+        <h1 class="section-title">Moje Obrazy do zamówienia</h1>
         <p class="section-description">Musisz być zalogowany, aby zobaczyć swoje generacje.</p>
         <a href="{{ routes.account_login_url }}" class="button button--primary">Zaloguj się</a>
       </div>
@@ -485,19 +582,19 @@
 
 {% schema %}
 {
-  "name": "Moje generacje AI",
+  "name": "Moje Obrazy do zamówienia",
   "settings": [
     {
       "type": "text",
       "id": "title",
       "label": "Tytuł",
-      "default": "Moje generacje AI"
+      "default": "Moje Obrazy do zamówienia"
     },
     {
       "type": "textarea",
       "id": "description",
       "label": "Opis",
-      "default": "Zobacz wszystkie obrazy wygenerowane przez AI"
+      "default": "Kliknij obraz by wybrać typ, rozmiar i zamówić"
     }
   ]
 }

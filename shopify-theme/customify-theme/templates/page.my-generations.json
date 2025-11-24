@@ -3,8 +3,8 @@
     "main": {
       "type": "main-my-generations",
       "settings": {
-        "title": "Moje generacje AI",
-        "description": "Zobacz wszystkie obrazy wygenerowane przez AI"
+        "title": "Moje Obrazy do zamówienia",
+        "description": "Kliknij obraz by wybrać typ, rozmiar i zamówić"
       }
     }
   },

@@ -1,4 +1,4 @@
-<!-- Cache buster: 20250115123456 -->
+<!-- Cache buster: 20250121180000 -->
 <!doctype html>
 <html
   class="no-js{% if request.design_mode %} shopify-design-mode{% endif %}"
@@ -338,7 +338,13 @@
               const basePrice = this.originalBasePrice || 49.00;
               const sizePrice = this.getSizePrice(this.selectedSize);
               const frameSelected = (this.selectedProductType === 'plakat') && (window.CustomifyFrame && window.CustomifyFrame.color && window.CustomifyFrame.color !== 'none');
-              const frameSurcharge = frameSelected && this.selectedSize ? (this.framePricing[this.selectedSize] || 29) : 0;
+              console.log('🔍 [CUSTOMIFY] Frame debug:', { 
+                frameSelected, 
+                selectedSize: this.selectedSize, 
+                framePricing: this.framePricing,
+                framePricingValue: this.framePricing?.[this.selectedSize]
+              });
+              const frameSurcharge = frameSelected && this.selectedSize ? (this.framePricing?.[this.selectedSize] || 29) : 0;
               finalPrice = basePrice + sizePrice + frameSurcharge;
               console.log('💰 [CUSTOMIFY] Physical product - price calculation:', { basePrice, sizePrice, frameSurcharge, finalPrice });
             }
@@ -1137,8 +1143,35 @@
         /* Komunikat błędu transformacji - pełna szerokość nad przyciskami */
         #errorMessageTransform {
           width: 100% !important;
-          display: block !important;
           margin-bottom: 10px !important;
+        }
+        
+        /* Ukryj tło i margines gdy element jest ukryty */
+        .customify-error[style*="display: none"],
+        .customify-error[style*="display:none"],
+        .customify-error[style*="display:none;"],
+        .customify-error[style*="display: none;"] {
+          background-color: transparent !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          height: 0 !important;
+          overflow: hidden !important;
+          border: none !important;
+        }
+        
+        /* Dodatkowa ochrona - ukryj wszystkie ukryte elementy błędów */
+        .customify-error:not(:has(*)) {
+          /* Jeśli element jest pusty i ukryty, usuń wszystkie style */
+        }
+        
+        /* Gdy element ma display: none, usuń wszystkie style wizualne */
+        .customify-error {
+          transition: all 0.2s ease;
+        }
+        
+        .customify-error[style*="display: none"] *,
+        .customify-error[style*="display:none"] * {
+          display: none !important;
         }
         
         /* Przyciski - wyrównanie do lewej */
@@ -1234,43 +1267,39 @@
 
       /* EXPANDABLE DESCRIPTION USUNIĘTE - opisy produktów są teraz pełne */
 
-      /* ACCORDION POD PRZYCISKAMI - STYL ETSY */
+      /* ACCORDION POD PRZYCISKAMI - STYL MINIMALISTYCZNY */
       .product-details-accordion {
         display: block !important;
         margin-top: 24px;
-        border-top: 1px solid #e5e5e5;
-        padding-top: 8px;
+        border-top: none;
+        padding-top: 0;
       }
 
       .accordion-item {
-        border-bottom: 1px solid #e5e5e5;
-        margin-bottom: 8px;
+        border-bottom: none;
+        margin-bottom: 0;
       }
 
       .accordion-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 16px 20px;
+        padding: 16px 0;
         cursor: pointer;
-        font-weight: 600;
-        color: #333;
-        font-size: 1.1rem; /* 🚨 ROLLBACK: Zwiększono rozmiar czcionki dla nazw sekcji */
+        font-weight: 400;
+        color: #000;
+        font-size: 1rem;
         transition: all 0.2s ease;
         user-select: none;
-        background: #fff;
-        border-radius: 8px;
-        border: 1px solid #e5e5e5;
-        margin-bottom: 4px;
+        background: transparent;
+        border-bottom: 1px solid #e5e5e5;
+        margin-bottom: 0;
         width: 100%;
         box-sizing: border-box;
       }
 
       .accordion-header:hover {
-        background: #f8f9fa;
-        border-color: #d32f2f;
-        color: #000000; /* CZARNY KOLOR */
-        box-shadow: 0 2px 8px rgba(211, 47, 47, 0.1);
+        color: #000;
       }
 
       .accordion-title {
@@ -1281,21 +1310,23 @@
       }
 
       .accordion-icon {
-        font-size: 1.2rem;
+        font-size: 1.5rem;
+        font-weight: 300;
         transition: transform 0.3s ease;
-        color: #666;
+        color: #000;
         flex-shrink: 0;
+        line-height: 1;
+        display: inline-block;
       }
 
       .accordion-item.expanded .accordion-icon {
-        transform: rotate(180deg);
-        color: #000000; /* CZARNY KOLOR */
+        transform: rotate(45deg);
+        color: #000;
       }
 
       .accordion-item.expanded .accordion-header {
-        background: #f8f9fa;
-        border-color: #d32f2f;
-        color: #000000; /* CZARNY KOLOR */
+        border-bottom-color: #e5e5e5;
+        color: #000;
       }
 
       .accordion-content {
@@ -1309,14 +1340,12 @@
       }
 
       .accordion-item.expanded .accordion-content {
-        max-height: 2000px; /* 🚨 ROLLBACK: Zwiększono dla produktu cyfrowego */
-        padding: 16px 20px;
-        background: #f8f9fa;
-        border-radius: 0 0 8px 8px;
-        border: 1px solid #e5e5e5;
-        border-top: none;
-        margin-bottom: 8px;
-        overflow: visible; /* 🚨 ROLLBACK: Pozwól na pełne wyświetlenie treści */
+        max-height: 2000px;
+        padding: 16px 0;
+        background: transparent;
+        border: none;
+        margin-bottom: 0;
+        overflow: visible;
       }
 
       .accordion-content ul {
@@ -2552,6 +2581,120 @@
       })();
     </script>
     
+    <!-- DODAJ LINK "MOJE OBRAZY" DO MENU KONTA KLIENTA -->
+    <script>
+      (function() {
+        // Funkcja dodająca link "Moje generacje" do menu konta klienta
+        function addMyImagesLink() {
+          // Sprawdź czy jesteśmy na stronie konta klienta
+          if (!window.location.pathname.startsWith('/account')) {
+            return;
+          }
+
+          // Różne selektory dla menu konta klienta (w zależności od motywu Shopify)
+          const menuSelectors = [
+            'nav[aria-label*="Account"]',
+            'nav[aria-label*="Konto"]',
+            'nav[role="navigation"]',
+            '.account-menu',
+            '[data-account-menu]',
+            'nav ul',
+            'aside nav',
+            'aside nav ul'
+          ];
+
+          let menuElement = null;
+          for (const selector of menuSelectors) {
+            const elements = document.querySelectorAll(selector);
+            for (const el of elements) {
+              // Sprawdź czy menu zawiera link do "Zamówienia" lub "Orders"
+              const menuText = el.textContent || '';
+              if (menuText.includes('Zamówienia') || menuText.includes('Orders') || menuText.includes('Order')) {
+                menuElement = el;
+                break;
+              }
+            }
+            if (menuElement) break;
+          }
+
+          if (!menuElement) {
+            console.log('🔍 [ACCOUNT-MENU] Menu konta klienta nie znalezione, próbuję ponownie...');
+            return false;
+          }
+
+          // Sprawdź czy link już istnieje
+          const existingLink = menuElement.querySelector('a[href="/pages/my-generations"]');
+          if (existingLink) {
+            console.log('✅ [ACCOUNT-MENU] Link "Moje generacje" już istnieje');
+            return true;
+          }
+
+          // Znajdź link "Zamówienia" lub "Orders"
+          const ordersLinks = Array.from(menuElement.querySelectorAll('a')).filter(link => {
+            const text = link.textContent.trim().toLowerCase();
+            return text.includes('zamówienia') || text.includes('orders') || text.includes('order');
+          });
+
+          if (ordersLinks.length === 0) {
+            console.log('🔍 [ACCOUNT-MENU] Link "Zamówienia" nie znaleziony');
+            return false;
+          }
+
+          const ordersLink = ordersLinks[0];
+          const ordersListItem = ordersLink.closest('li') || ordersLink.parentElement;
+
+          // Utwórz nowy element listy z linkiem "Moje generacje"
+          const newListItem = document.createElement('li');
+          newListItem.className = ordersListItem.className || '';
+          
+          const newLink = document.createElement('a');
+          newLink.href = '/pages/my-generations';
+          newLink.textContent = 'Moje generacje';
+          newLink.className = ordersLink.className || '';
+          
+          newListItem.appendChild(newLink);
+
+          // Dodaj link po "Zamówienia"
+          if (ordersListItem.nextSibling) {
+            ordersListItem.parentNode.insertBefore(newListItem, ordersListItem.nextSibling);
+          } else {
+            ordersListItem.parentNode.appendChild(newListItem);
+          }
+
+          console.log('✅ [ACCOUNT-MENU] Link "Moje generacje" dodany do menu konta klienta');
+          return true;
+        }
+
+        // Próbuj dodać link po załadowaniu DOM
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(addMyImagesLink, 500);
+            // Próbuj ponownie po 2 sekundach (dla dynamicznych menu)
+            setTimeout(addMyImagesLink, 2000);
+          });
+        } else {
+          setTimeout(addMyImagesLink, 500);
+          setTimeout(addMyImagesLink, 2000);
+        }
+
+        // Obserwuj zmiany w DOM (dla dynamicznych menu)
+        const observer = new MutationObserver(function(mutations) {
+          addMyImagesLink();
+        });
+
+        // Rozpocznij obserwację po załadowaniu strony
+        setTimeout(function() {
+          const accountSection = document.querySelector('main') || document.body;
+          if (accountSection) {
+            observer.observe(accountSection, {
+              childList: true,
+              subtree: true
+            });
+          }
+        }, 1000);
+      })();
+    </script>
+    
     <!-- KOMPLETNY NAGŁÓWEK CUSTOMIFY -->
     <header class="header-main">
       <!-- GÓRA HEADERA: Logo + Linki użytkownika + Koszyk -->
@@ -2622,15 +2765,14 @@
       <div class="header-bottom">
         <div class="header-container">
           <nav class="header-nav">
-            <div class="nav-item">
-              <a href="/" class="nav-link">Główna</a>
-            </div>
-            <div class="nav-item">
-              <a href="/collections/all" class="nav-link">Produkty</a>
-            </div>
-            <div class="nav-item">
-              <a href="/pages/kontakt" class="nav-link">Kontakt</a>
-            </div>
+            {% comment %} TYLKO MENU Z SHOPIFY - main-menu-1 {% endcomment %}
+            {% if linklists['main-menu-1'] and linklists['main-menu-1'].links.size > 0 %}
+              {% for link in linklists['main-menu-1'].links %}
+                <div class="nav-item">
+                  <a href="{{ link.url }}" class="nav-link">{{ link.title }}</a>
+                </div>
+              {% endfor %}
+            {% endif %}
           </nav>
         </div>
       </div>
@@ -2835,7 +2977,7 @@
             </div>
             <input type="file" id="fileInput" class="customify-file-input" accept="image/*">
             <!-- Komunikat błędu - od razu pod uploadem -->
-            <div class="customify-error" id="errorMessage" style="display: none; margin-top: 10px;"></div>
+            <div class="customify-error" id="errorMessage" style="display: none;"></div>
           </div>
 
             <div class="customify-preview" id="previewArea">
@@ -3024,7 +3166,7 @@
 
 
             <!-- Komunikat błędu - tuż nad przyciskiem "Zobacz Podgląd" -->
-            <div class="customify-error" id="errorMessageTransform" style="display: none; margin: 10px 0;"></div>
+            <div class="customify-error" id="errorMessageTransform" style="display: none;"></div>
             
             <div class="customify-actions" id="actionsArea" style="display: none;">
               <button class="customify-btn customify-btn-red" id="transformBtn">
@@ -3069,7 +3211,7 @@
               </div>
               
               <!-- Komunikat błędu - tuż nad przyciskiem "Dodaj do koszyka" -->
-              <div class="customify-error" id="errorMessageBottom" style="display: none; margin: 10px 0;"></div>
+              <div class="customify-error" id="errorMessageBottom" style="display: none;"></div>
               
               <div class="customify-actions" style="margin-top: 15px;">
                 <button class="customify-btn customify-btn-primary customify-btn-red" id="addToCartBtn">
@@ -3098,10 +3240,9 @@
               <div class="accordion-item" data-accordion="details">
                 <div class="accordion-header">
                   <div class="accordion-title">
-                    <span>📋</span>
                     <span>O produkcie</span>
                   </div>
-                  <span class="accordion-icon">▼</span>
+                  <span class="accordion-icon">+</span>
                 </div>
                 <div class="accordion-content">
                   <p><strong>Obraz na płótnie</strong> - wydrukowane na grubym, premium płótnie canvas z naturalną teksturą. Naciągnięte na drewnianą antyramę</p>
@@ -3147,10 +3288,9 @@
               <div class="accordion-item" data-accordion="shipping">
                 <div class="accordion-header">
                   <div class="accordion-title">
-                    <span>📦</span>
                     <span>Wysyłka i dostawa</span>
                   </div>
-                  <span class="accordion-icon">▼</span>
+                  <span class="accordion-icon">+</span>
                 </div>
                 <div class="accordion-content">
                   <ul>
@@ -3170,7 +3310,7 @@
                   <div class="accordion-title">
                     <span>Dostępne rozmiary</span>
                   </div>
-                  <span class="accordion-icon">▼</span>
+                  <span class="accordion-icon">+</span>
                 </div>
                 <div class="accordion-content">
                   <!-- Wizualizacja: Rozmiary -->
@@ -3206,10 +3346,9 @@
               <div class="accordion-item" data-accordion="howto">
                 <div class="accordion-header">
                   <div class="accordion-title">
-                    <span>💡</span>
                     <span>Jak to działa?</span>
                   </div>
-                  <span class="accordion-icon">▼</span>
+                  <span class="accordion-icon">+</span>
                 </div>
                 <div class="accordion-content">
                   <div class="accordion-step">
@@ -4709,7 +4848,6 @@
         <div class="accordion-item" data-accordion="details">
           <div class="accordion-header">
             <div class="accordion-title">
-              <span>📋</span>
               <span>O produkcie</span>
             </div>
             <span class="accordion-icon">▼</span>
@@ -4758,7 +4896,6 @@
         <div class="accordion-item" data-accordion="shipping">
           <div class="accordion-header">
             <div class="accordion-title">
-              <span>📦</span>
               <span>Wysyłka i dostawa</span>
             </div>
             <span class="accordion-icon">▼</span>
