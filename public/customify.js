@@ -33,10 +33,10 @@ class CustomifyEmbed {
     this.watermarkUploadInProgress = false;
     this.sizePricing = {
       plakat: {
-        a4: 29,
-        a3: 49,
-        a2: 79,
-        a1: 129
+        a4: 0,   // Domyślny rozmiar - bez dopłaty
+        a3: 9,
+        a2: 30,
+        a1: 60
       },
       canvas: {
         a4: 49,
