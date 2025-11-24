@@ -2562,10 +2562,12 @@ class CustomifyEmbed {
             let updateSuccess = false;
             let lastError = null;
             
-            // 🔄 Retry 2 razy z opóźnieniem (2s przed pierwszą próbą, potem 2s)
+            // 🔄 Retry 2 razy z opóźnieniem (4s przed pierwszą próbą, potem 2s)
             // ⚠️ RACE CONDITION: Generacja może nie być jeszcze w Blob Storage - dajemy czas na propagację
-            console.log('⏳ [TRANSFORM] Czekam 2 sekundy przed pierwszą próbą (propagacja w Blob Storage)...');
-            await new Promise(resolve => setTimeout(resolve, 2000)); // 2s przed pierwszą próbą
+            // ✅ ZWIĘKSZONE DO 4s: Vercel Blob Storage potrzebuje ~2-4s na zapis + propagację
+            // ✅ BEZPIECZNE DLA UX: Watermark upload dzieje się W TLE (po pokazaniu obrazu użytkownikowi)
+            console.log('⏳ [TRANSFORM] Czekam 4 sekundy przed pierwszą próbą (propagacja w Blob Storage)...');
+            await new Promise(resolve => setTimeout(resolve, 4000)); // 4s przed pierwszą próbą (zwiększone z 2s)
             
             for (let attempt = 0; attempt < 2; attempt++) {
               if (attempt > 0) {
