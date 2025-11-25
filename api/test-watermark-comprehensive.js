@@ -46,11 +46,11 @@ module.exports = async (req, res) => {
         description: 'Format kwadratowy używany dla niektórych stylów kotów'
       },
       {
-        name: 'Duży portret 1536x2048 (Karykatura)',
+        name: 'Portret 1024x1536 (Karykatura Segmind)',
         imageUrl: 'https://customify-s56o.vercel.app/koty/krolewski.png',
-        expectedSize: '1536x2048',
+        expectedSize: '1024x1536',
         productType: 'caricature',
-        description: 'Duży format dla karykatury Segmind'
+        description: 'Format portretowy 2:3 dla karykatury Segmind (używany w transform.js)'
       }
     ];
 
