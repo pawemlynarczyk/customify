@@ -914,6 +914,10 @@ module.exports = async (req, res) => {
   
   console.log(`📝 [TRANSFORM] POST request processing for IP: ${ip}`);
 
+  // ✅ ZMIENNA DO PRZECHOWYWANIA EMAIL Z GRAPHQL (NA SAMYM POCZĄTKU FUNKCJI)
+  // customerEmailFromGraphQL będzie ustawiony w bloku if (customerId), ale potrzebujemy go zdefiniować wcześniej
+  let customerEmailFromGraphQL = null;
+
   try {
     const { imageData, prompt, style, productType, customerId, email } = req.body;
     // ✅ EMAIL: Tylko dla niezalogowanych - używany do powiązania generacji z użytkownikiem w save-generation
@@ -2201,10 +2205,6 @@ module.exports = async (req, res) => {
 
     // ✅ WATERMARK DLA REPLICATE URL-I - USUNIĘTY (problemy z Sharp w Vercel)
     // TODO: Przywrócić po rozwiązaniu problemów z Sharp
-
-    // ✅ ZMIENNA DO PRZECHOWYWANIA EMAIL Z GRAPHQL (NA WYŻSZYM POZIOMIE SCOPE)
-    // customerEmailFromGraphQL może być zdefiniowany w bloku if (customerId), ale potrzebujemy go później
-    let customerEmailFromGraphQL = null;
 
     // ✅ ZMIENNA DO PRZECHOWYWANIA DEBUG INFO Z SAVE-GENERATION (PRZED BLOKIEM IF)
     let saveGenerationDebug = null;
