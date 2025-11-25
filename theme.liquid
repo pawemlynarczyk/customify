@@ -2768,8 +2768,8 @@
                     </svg>
                   </a>
                   <div class="user-links">
-                    <a href="{{ routes.account_login_url }}" class="user-text-link">Zaloguj</a>
-                    <a href="{{ routes.account_register_url }}" class="user-text-link">Zarejestruj</a>
+                    <a href="{{ routes.account_login_url }}" class="user-text-link" onclick="localStorage.setItem('customify_just_logged_in', 'true');">Zaloguj</a>
+                    <a href="{{ routes.account_register_url }}" class="user-text-link" onclick="localStorage.setItem('customify_just_logged_in', 'true');">Zarejestruj</a>
                   </div>
                 </div>
               {% endif %}
