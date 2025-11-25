@@ -24,12 +24,11 @@ Wysyłać email z obrazkiem (Shopify Email template) zamiast tekstowego (`send_i
 
 ## ✅ KROK 3: Ustaw Trigger (Wyzwalacz)
 
-1. **Trigger**: **Customer updated**
+1. **Trigger**: **Customer tags added**
 2. **Condition** (warunek):
-   - **If** `Customer metafield` → `customify.generation_ready` → `is not empty`
-   - **And** `Customer metafield` → `customify.generation_ready` → `was changed`
+   - **If** `Customer tags` → `contains` → `generation-ready`
 
-**Uwaga**: Jeśli nie ma opcji "was changed", użyj tylko "is not empty" (może wysyłać duplikaty, ale działa).
+**Uwaga**: Kod automatycznie dodaje tag `generation-ready` do customera po ustawieniu metafield. Flow reaguje na ten tag.
 
 ---
 
@@ -57,8 +56,9 @@ Wysyłać email z obrazkiem (Shopify Email template) zamiast tekstowego (`send_i
 
 ### Problem: Flow się nie uruchamia
 - Sprawdź czy metafield został ustawiony (Shopify Admin → Customers → [Customer] → Metafields)
-- Sprawdź warunki w Flow (czy są poprawne)
-- Sprawdź logi Vercel: `📧 [SAVE-GENERATION] Metafield generation_ready ustawiony`
+- Sprawdź czy tag `generation-ready` został dodany (Shopify Admin → Customers → [Customer] → Tags)
+- Sprawdź warunki w Flow (czy są poprawne - tag `generation-ready`)
+- Sprawdź logi Vercel: `📧 [SAVE-GENERATION] Tag "generation-ready" dodany do customera`
 
 ### Problem: Email przychodzi bez obrazka
 - Sprawdź czy template ma kod z `SHOPIFY-EMAIL-CUSTOM-LIQUID.md`
