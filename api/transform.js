@@ -1494,8 +1494,9 @@ module.exports = async (req, res) => {
         
         const customer = metafieldData.data?.customer;
         
-        // ✅ ZAPISZ EMAIL Z GRAPHQL NA WYŻSZYM POZIOMIE SCOPE (dla użycia w save-generation)
-        let customerEmailFromGraphQL = customer?.email || null;
+        // ✅ ZAPISZ EMAIL Z GRAPHQL (dla użycia w save-generation)
+        // customerEmailFromGraphQL jest już zdefiniowany na wyższym poziomie scope
+        customerEmailFromGraphQL = customer?.email || null;
         
         if (!customer) {
           console.error(`❌ [METAFIELD-CHECK] Brak customer w response:`, metafieldData);
@@ -2200,6 +2201,10 @@ module.exports = async (req, res) => {
 
     // ✅ WATERMARK DLA REPLICATE URL-I - USUNIĘTY (problemy z Sharp w Vercel)
     // TODO: Przywrócić po rozwiązaniu problemów z Sharp
+
+    // ✅ ZMIENNA DO PRZECHOWYWANIA EMAIL Z GRAPHQL (NA WYŻSZYM POZIOMIE SCOPE)
+    // customerEmailFromGraphQL może być zdefiniowany w bloku if (customerId), ale potrzebujemy go później
+    let customerEmailFromGraphQL = null;
 
     // ✅ ZMIENNA DO PRZECHOWYWANIA DEBUG INFO Z SAVE-GENERATION (PRZED BLOKIEM IF)
     let saveGenerationDebug = null;
