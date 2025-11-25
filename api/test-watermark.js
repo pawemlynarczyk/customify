@@ -90,8 +90,9 @@ module.exports = async (req, res) => {
     console.log(`📐 [TEST-WATERMARK] Test image dimensions: ${width}x${height}`);
 
     // KROK 4: Resize watermark do 40% rozmiaru obrazu (większy, bardziej widoczny)
+    // Watermark PNG ma 2000x2000px, zmniejszamy go proporcjonalnie do obrazu
     const watermarkSize = Math.min(width, height) * 0.40;
-    console.log(`📏 [TEST-WATERMARK] Watermark size: ${Math.round(watermarkSize)}px (40% of image)`);
+    console.log(`📏 [TEST-WATERMARK] Watermark size: ${Math.round(watermarkSize)}px (40% of image, original: 2000x2000px)`);
     
     const watermarkTile = await sharp(watermarkBuffer)
       .resize(Math.round(watermarkSize), Math.round(watermarkSize), {
@@ -102,16 +103,22 @@ module.exports = async (req, res) => {
 
     console.log('✅ [TEST-WATERMARK] Watermark tile resized:', watermarkTile.length, 'bytes');
 
-    // KROK 5: Sharp composite - nakładaj watermark w siatce
-    console.log('🎨 [TEST-WATERMARK] Applying watermark with Sharp composite...');
+    // KROK 5: Sharp composite - nakładaj POJEDYNCZY watermark na środku (1:1, nie siatka!)
+    console.log('🎨 [TEST-WATERMARK] Applying SINGLE watermark in center (not tile!)...');
+    
+    // Obróć watermark -30° (diagonalnie)
+    const rotatedWatermark = await sharp(watermarkTile)
+      .rotate(-30, {
+        background: { r: 0, g: 0, b: 0, alpha: 0 } // Transparent background
+      })
+      .toBuffer();
     
     const watermarkedBuffer = await sharp(testImageBuffer)
       .composite([
         {
-          input: watermarkTile,
+          input: rotatedWatermark,
           blend: 'over',
-          tile: true, // Powtarzaj watermark w siatce
-          gravity: 'center'
+          gravity: 'center' // POJEDYNCZY watermark na środku, NIE tile!
         }
       ])
       .jpeg({ quality: 92 })
