@@ -480,7 +480,7 @@ class CustomifyEmbed {
   /**
    * Zapisuje generację AI w localStorage
    */
-  async saveAIGeneration(originalImage, transformedImage, style, size, productType = null) {
+  async saveAIGeneration(originalImage, transformedImage, style, size, productType = null, watermarkedImageUrl = null) {
     console.log('💾 [CACHE] Saving AI generation to localStorage...');
     
     // ⚠️ NIE zapisuj ponownie do Vercel Blob - już jest zapisane w transform.js jako generation-{timestamp}.jpg
@@ -495,15 +495,22 @@ class CustomifyEmbed {
       console.log('🔄 [CACHE] ProductType wywnioskowany z stylu:', productType);
     }
 
+    // ✅ PRIORYTET: watermarkedImageUrl (Vercel Blob z watermarkiem) > transformedImageUrl (bez watermarku)
+    const thumbnailUrl = watermarkedImageUrl || transformedImageUrl;
+    if (watermarkedImageUrl) {
+      console.log('✅ [CACHE] Using watermarkedImageUrl for thumbnail:', watermarkedImageUrl.substring(0, 50));
+    }
+
     const generation = {
       id: Date.now(),
       timestamp: new Date().toISOString(),
       originalImage: originalImage, // base64 lub URL (zachowaj)
       transformedImage: transformedImageUrl, // ZAWSZE URL (nie base64)
+      watermarkedImageUrl: watermarkedImageUrl || null, // ✅ ZAPISZ watermarkedImageUrl (Vercel Blob z watermarkiem)
       style: style,
       size: size,
       productType: productType, // ✅ DODAJ productType (boho, king, cats, etc) - dla skalowalności
-      thumbnail: transformedImageUrl // Użyj tego samego URL dla thumbnail
+      thumbnail: thumbnailUrl // ✅ Użyj watermarkedImageUrl jeśli dostępny, w przeciwnym razie transformedImageUrl
     };
 
     // Pobierz istniejące generacje
@@ -654,9 +661,19 @@ class CustomifyEmbed {
       transition: transform 0.2s ease;
     `;
 
+    // ✅ PRIORYTET: watermarkedImageUrl (Vercel Blob z watermarkiem) > thumbnail > transformedImage
+    const imageUrl = generation.watermarkedImageUrl || generation.thumbnail || generation.transformedImage;
+    if (generation.watermarkedImageUrl) {
+      console.log('✅ [GALLERY] Using watermarkedImageUrl from Vercel Blob:', generation.watermarkedImageUrl.substring(0, 50));
+    } else if (generation.thumbnail) {
+      console.log('✅ [GALLERY] Using thumbnail:', generation.thumbnail.substring(0, 50));
+    } else {
+      console.log('✅ [GALLERY] Using transformedImage:', generation.transformedImage?.substring(0, 50));
+    }
+
     // Obraz
     const img = document.createElement('img');
-    img.src = generation.thumbnail;
+    img.src = imageUrl;
     img.style.cssText = `
       width: 100%;
       height: 120px;
@@ -667,7 +684,7 @@ class CustomifyEmbed {
     
     // Obsługa błędów ładowania obrazu
     img.onerror = function() {
-      console.error('❌ [GALLERY] Image failed to load:', generation.thumbnail?.substring(0, 50));
+      console.error('❌ [GALLERY] Image failed to load:', imageUrl?.substring(0, 50));
       console.log('🔄 [GALLERY] Generation data:', generation);
       // Ukryj uszkodzony obraz, ale zachowaj element
       img.style.display = 'none';
@@ -679,7 +696,7 @@ class CustomifyEmbed {
     };
     
     img.onload = function() {
-      console.log('✅ [GALLERY] Image loaded successfully:', generation.thumbnail?.substring(0, 50));
+      console.log('✅ [GALLERY] Image loaded successfully:', imageUrl?.substring(0, 50));
     };
 
     // Overlay z informacjami
@@ -2667,7 +2684,8 @@ class CustomifyEmbed {
           result.transformedImage,    // AI obraz URL
           this.selectedStyle,         // Styl (pixar, boho, etc)
           this.selectedSize,         // Rozmiar (a4, a3, etc)
-          productType                 // ✅ ProductType (boho, king, cats, etc)
+          productType,                // ✅ ProductType (boho, king, cats, etc)
+          result.watermarkedImageUrl || this.watermarkedImageUrl || null // ✅ ZAPISZ watermarkedImageUrl (Vercel Blob z watermarkiem)
         ).then(() => {
           console.log('✅ [CACHE] AI generation saved with base64 cache');
           
