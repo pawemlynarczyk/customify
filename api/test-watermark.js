@@ -67,9 +67,9 @@ module.exports = async (req, res) => {
 
     console.log('✅ [TEST-WATERMARK] Test image loaded:', testImageBuffer.length, 'bytes');
 
-    // KROK 2: Pobierz watermark PNG (mały plik do siatki)
-    const watermarkUrl = 'https://customify-s56o.vercel.app/watermark_small.png';
-    console.log('📥 [TEST-WATERMARK] Fetching watermark PNG (small tile):', watermarkUrl);
+    // KROK 2: Pobierz watermark PNG (mały plik do siatki z opacity)
+    const watermarkUrl = 'https://customify-s56o.vercel.app/watermark_opacity.png';
+    console.log('📥 [TEST-WATERMARK] Fetching watermark PNG (with opacity):', watermarkUrl);
     
     const watermarkResponse = await fetch(watermarkUrl);
     if (!watermarkResponse.ok) {
@@ -77,7 +77,7 @@ module.exports = async (req, res) => {
       return res.status(404).json({
         error: 'Watermark PNG not found',
         message: `Watermark PNG not found at: ${watermarkUrl}`,
-        instruction: 'Please create public/watermark_small.png (400x400px, transparent, text "Lumly.pl" rotated -30°)'
+        instruction: 'Please create public/watermark_opacity.png (400x400px, transparent with opacity, text "Lumly.pl" rotated -30°)'
       });
     }
 
@@ -94,35 +94,28 @@ module.exports = async (req, res) => {
     const watermarkSize = Math.min(width, height) * 0.40;
     console.log(`📏 [TEST-WATERMARK] Watermark size: ${Math.round(watermarkSize)}px (40% of image, original: 2000x2000px)`);
     
-    // KROK 4a: Zastosuj opacity 15% do watermarku PNG (jeśli PNG nie ma przezroczystości)
-    // Sharp composite używa alpha channel z PNG, ale możemy wymusić opacity przez composite
-    const watermarkWithOpacity = await sharp(watermarkBuffer)
+    // KROK 4: Resize watermark (PNG już ma opacity w alpha channel)
+    // Sharp composite automatycznie użyje przezroczystości z PNG
+    console.log('🎨 [TEST-WATERMARK] Resizing watermark (opacity from PNG alpha channel)...');
+    
+    const watermarkTile = await sharp(watermarkBuffer)
       .resize(Math.round(watermarkSize), Math.round(watermarkSize), {
         fit: 'contain',
         background: { r: 0, g: 0, b: 0, alpha: 0 } // Transparent background
       })
-      .composite([
-        {
-          input: Buffer.from(`<svg width="${Math.round(watermarkSize)}" height="${Math.round(watermarkSize)}">
-            <rect width="100%" height="100%" fill="white" opacity="0.15"/>
-          </svg>`),
-          blend: 'dest-in' // Użyj jako maska alpha (15% opacity)
-        }
-      ])
-      .png() // Zachowaj alpha channel
       .toBuffer();
 
-    console.log('✅ [TEST-WATERMARK] Watermark tile resized with 15% opacity:', watermarkWithOpacity.length, 'bytes');
+    console.log('✅ [TEST-WATERMARK] Watermark tile resized:', watermarkTile.length, 'bytes');
 
     // KROK 5: Sharp composite - nakładaj watermark w siatce (tile: true)
-    // Watermark PNG jest już mały (400x400px) z 15% opacity, Sharp automatycznie powtórzy go w siatce
-    console.log('🎨 [TEST-WATERMARK] Applying watermark in tile grid with 15% opacity (automatic spacing)...');
+    // Watermark PNG ma już opacity w alpha channel, Sharp automatycznie użyje tej przezroczystości
+    console.log('🎨 [TEST-WATERMARK] Applying watermark in tile grid (opacity from PNG, automatic spacing)...');
     
     const watermarkedBuffer = await sharp(testImageBuffer)
       .composite([
         {
-          input: watermarkWithOpacity,
-          blend: 'over', // Sharp użyje alpha channel z PNG (15% opacity)
+          input: watermarkTile,
+          blend: 'over', // Sharp automatycznie użyje alpha channel z PNG (opacity z pliku)
           tile: true, // Sharp automatycznie powtarza watermark w siatce
           gravity: 'center'
         }
