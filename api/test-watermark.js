@@ -89,9 +89,9 @@ module.exports = async (req, res) => {
     const { width, height } = metadata;
     console.log(`📐 [TEST-WATERMARK] Test image dimensions: ${width}x${height}`);
 
-    // KROK 4: Resize watermark do 25% rozmiaru obrazu (większy, bardziej widoczny)
-    const watermarkSize = Math.min(width, height) * 0.25;
-    console.log(`📏 [TEST-WATERMARK] Watermark size: ${Math.round(watermarkSize)}px (25% of image)`);
+    // KROK 4: Resize watermark do 40% rozmiaru obrazu (większy, bardziej widoczny)
+    const watermarkSize = Math.min(width, height) * 0.40;
+    console.log(`📏 [TEST-WATERMARK] Watermark size: ${Math.round(watermarkSize)}px (40% of image)`);
     
     const watermarkTile = await sharp(watermarkBuffer)
       .resize(Math.round(watermarkSize), Math.round(watermarkSize), {
