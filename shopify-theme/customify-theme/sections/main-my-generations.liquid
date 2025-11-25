@@ -312,64 +312,9 @@
         // Wyczyść kontener i używaj go bezpośrednio (bez tworzenia nowego diva)
         container.innerHTML = '';
         
-        // ✅ Funkcja sprawdzania czy obraz istnieje
-        async function checkImageExists(url) {
-          return new Promise((resolve) => {
-            const img = new Image();
-            img.onload = () => resolve(true);
-            img.onerror = () => resolve(false);
-            img.src = url;
-            // Timeout po 5 sekundach
-            setTimeout(() => resolve(false), 5000);
-          });
-        }
-        
-        // ✅ Funkcja dodawania watermarku
-        function addWatermark(imageDataUri) {
-          return new Promise((resolve, reject) => {
-            const img = new Image();
-            img.crossOrigin = 'anonymous';
-            
-            img.onload = function() {
-              const canvas = document.createElement('canvas');
-              canvas.width = img.width;
-              canvas.height = img.height;
-              const ctx = canvas.getContext('2d');
-              
-              ctx.drawImage(img, 0, 0);
-              ctx.save();
-              
-              const fontSize = Math.min(img.width, img.height) * 0.15;
-              ctx.font = `bold ${fontSize}px Arial`;
-              ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
-              ctx.strokeStyle = 'rgba(0, 0, 0, 0.15)';
-              ctx.lineWidth = 2;
-              
-              const text = 'Lumly.pl';
-              ctx.translate(canvas.width/2, canvas.height/2);
-              ctx.rotate(-30 * Math.PI / 180);
-              
-              const lines = 3;
-              const lineHeight = fontSize * 1.8;
-              const startY = -((lines - 1) * lineHeight) / 2;
-              
-              for (let i = 0; i < lines; i++) {
-                const y = startY + (i * lineHeight);
-                ctx.strokeText(text, -ctx.measureText(text).width / 2, y);
-                ctx.fillText(text, -ctx.measureText(text).width / 2, y);
-              }
-              
-              ctx.restore();
-              resolve(canvas.toDataURL('image/jpeg', 0.95));
-            };
-            
-            img.onerror = () => reject(new Error('Failed to load image'));
-            img.src = imageDataUri;
-          });
-        }
-        
-        // Async render każdej generacji
-        async function renderGeneration(generation, index) {
+        // ✅ UPROSZCZONA LOGIKA: Wszystkie watermarki są zapisywane na Vercel Blob
+        // Bezpośrednio wyświetlaj obrazy z Vercel Blob (bez sprawdzania i dodawania watermarku on-the-fly)
+        function renderGeneration(generation, index) {
           const item = document.createElement('div');
           item.className = 'generation-card';
           item.style.cursor = 'pointer';
@@ -383,78 +328,46 @@
             minute: '2-digit'
           });
           
-          // Placeholder
-          item.innerHTML = `
-            <div class="generation-image" style="background: #f0f0f0; aspect-ratio: 3/4; display: flex; align-items: center; justify-content: center;">
-              <p style="color: #999;">⏳</p>
-            </div>
-            <div class="generation-info">
-              <div class="generation-style">${generation.style}</div>
-              <div class="generation-date">${dateStr}</div>
-            </div>
-          `;
+          // ✅ PRIORYTET: watermarkedImageUrl (Vercel Blob z watermarkiem) > transformedImage (fallback)
+          const imageUrl = generation.watermarkedImageUrl || generation.transformedImage;
           
-          container.appendChild(item);
-          
-          // ✅ PRIORYTET: watermarkedImageUrl (Vercel Z watermarkiem) > addWatermark (on-the-fly dla starych)
-          try {
-            let watermarkedImage;
-            let imageUrlToCheck = null;
-            
+          if (!imageUrl) {
+            // Brak URL obrazu - pokaż placeholder
+            console.warn('⚠️ [MY-GENERATIONS] No image URL found for generation:', generation.id);
+            item.innerHTML = `
+              <div class="generation-image" style="background: #f0f0f0; aspect-ratio: 3/4; display: flex; align-items: center; justify-content: center; flex-direction: column; color: #999;">
+                <p style="font-size: 2rem; margin: 0;">📷</p>
+                <p style="font-size: 0.9rem; margin: 0.5rem 0 0 0;">Obraz niedostępny</p>
+              </div>
+              <div class="generation-info">
+                <div class="generation-style">${generation.style}</div>
+                <div class="generation-date">${dateStr}</div>
+                <button class="btn-order-now" data-generation-index="${index}" disabled style="opacity: 0.5; cursor: not-allowed;">Niedostępne</button>
+              </div>
+            `;
+          } else {
+            // Wyświetl obraz bezpośrednio z Vercel Blob
             if (generation.watermarkedImageUrl) {
-              // Nowa generacja - użyj URL z Vercel (już z watermarkiem)
-              watermarkedImage = generation.watermarkedImageUrl;
-              imageUrlToCheck = generation.watermarkedImageUrl;
-              console.log('✅ [MY-GENERATIONS] Using watermarked URL from Vercel:', watermarkedImage.substring(0, 80));
-            } else if (generation.transformedImage) {
-              // Stara generacja - sprawdź czy obraz istnieje przed dodaniem watermarku
-              imageUrlToCheck = generation.transformedImage;
-              const imageExists = await checkImageExists(generation.transformedImage);
-              
-              if (imageExists) {
-                // Obraz istnieje - dodaj watermark on-the-fly
-                watermarkedImage = await addWatermark(generation.transformedImage);
-                console.log('🎨 [MY-GENERATIONS] Added watermark on-the-fly for old generation');
-              } else {
-                // Obraz nie istnieje (404) - użyj placeholder
-                console.warn('⚠️ [MY-GENERATIONS] Image not found (404):', generation.transformedImage?.substring(0, 80));
-                watermarkedImage = null; // Użyj placeholder
-              }
+              console.log('✅ [MY-GENERATIONS] Using watermarked URL from Vercel Blob:', generation.watermarkedImageUrl.substring(0, 80));
             } else {
-              // Brak URL obrazu
-              console.warn('⚠️ [MY-GENERATIONS] No image URL found for generation:', generation.id);
-              watermarkedImage = null;
+              console.log('✅ [MY-GENERATIONS] Using transformedImage URL:', generation.transformedImage?.substring(0, 80));
             }
             
-            // Jeśli obraz nie istnieje, pokaż placeholder
-            if (!watermarkedImage) {
-              item.innerHTML = `
-                <div class="generation-image" style="background: #f0f0f0; aspect-ratio: 3/4; display: flex; align-items: center; justify-content: center; flex-direction: column; color: #999;">
-                  <p style="font-size: 2rem; margin: 0;">📷</p>
-                  <p style="font-size: 0.9rem; margin: 0.5rem 0 0 0;">Obraz niedostępny</p>
-                </div>
-                <div class="generation-info">
-                  <div class="generation-style">${generation.style}</div>
-                  <div class="generation-date">${dateStr}</div>
-                  <button class="btn-order-now" data-generation-index="${index}" disabled style="opacity: 0.5; cursor: not-allowed;">Niedostępne</button>
-                </div>
-              `;
-            } else {
-              item.innerHTML = `
-                <img 
-                  src="${watermarkedImage}" 
-                  alt="Generacja ${generation.style}" 
-                  class="generation-image"
-                  loading="lazy"
-                  onerror="this.parentElement.innerHTML='<div class=\\'generation-image\\' style=\\'background: #f0f0f0; aspect-ratio: 3/4; display: flex; align-items: center; justify-content: center; flex-direction: column; color: #999;\\'><p style=\\'font-size: 2rem; margin: 0;\\'>📷</p><p style=\\'font-size: 0.9rem; margin: 0.5rem 0 0 0;\\'>Obraz niedostępny</p></div><div class=\\'generation-info\\'><div class=\\'generation-style\\'>${generation.style}</div><div class=\\'generation-date\\'>${dateStr}</div><button class=\\'btn-order-now\\' data-generation-index=\\'${index}\\' disabled style=\\'opacity: 0.5; cursor: not-allowed;\\'>Niedostępne</button></div>'"
-                />
-                <div class="generation-info">
-                  <div class="generation-style">${generation.style}</div>
-                  <div class="generation-date">${dateStr}</div>
-                  <button class="btn-order-now" data-generation-index="${index}">Zamów</button>
-                </div>
-              `;
-            }
+            item.innerHTML = `
+              <img 
+                src="${imageUrl}" 
+                alt="Generacja ${generation.style}" 
+                class="generation-image"
+                loading="lazy"
+                onerror="this.parentElement.innerHTML='<div class=\\'generation-image\\' style=\\'background: #f0f0f0; aspect-ratio: 3/4; display: flex; align-items: center; justify-content: center; flex-direction: column; color: #999;\\'><p style=\\'font-size: 2rem; margin: 0;\\'>📷</p><p style=\\'font-size: 0.9rem; margin: 0.5rem 0 0 0;\\'>Obraz niedostępny</p></div><div class=\\'generation-info\\'><div class=\\'generation-style\\'>${generation.style}</div><div class=\\'generation-date\\'>${dateStr}</div><button class=\\'btn-order-now\\' data-generation-index=\\'${index}\\' disabled style=\\'opacity: 0.5; cursor: not-allowed;\\'>Niedostępne</button></div>'"
+              />
+              <div class="generation-info">
+                <div class="generation-style">${generation.style}</div>
+                <div class="generation-date">${dateStr}</div>
+                <button class="btn-order-now" data-generation-index="${index}">Zamów</button>
+              </div>
+            `;
+          }
             
             // Funkcja obsługująca zamówienie
             function handleOrder(generationIndex) {
