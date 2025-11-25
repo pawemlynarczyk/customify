@@ -454,60 +454,85 @@ async function saveGenerationHandler(req, res) {
       });
     }
 
-    // ✅ USTAW METAFIELD DLA SHOPIFY FLOW (TRIGGER EMAIL)
-    // Ustaw metafield customify.generation_ready - Shopify Flow wykryje to i wyśle email
+    // ✅ WYŚLIJ EMAIL BEZPOŚREDNIO PRZEZ SHOPIFY API (bez Shopify Flow)
+    // Shopify Flow nie ma triggera dla metafield updates - używamy bezpośredniego API
     if (customerId && email && watermarkedImageUrl && process.env.SHOPIFY_ACCESS_TOKEN) {
       const shop = process.env.SHOP_DOMAIN || 'customify-ok.myshopify.com';
       const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
       
-      console.log('📧 [SAVE-GENERATION] Ustawiam metafield generation_ready dla Shopify Flow:', {
+      console.log('📧 [SAVE-GENERATION] Wysyłam email przez Shopify API:', {
         customerId,
         email: email.substring(0, 10) + '...',
         hasWatermarkedUrl: !!watermarkedImageUrl
       });
       
+      // Mapuj style na czytelne nazwy
+      const styleNames = {
+        'pixar': 'Pixar',
+        'minimalistyczny': 'Minimalistyczny',
+        'realistyczny': 'Realistyczny',
+        'krol-krolewski': 'Król - Królewski',
+        'krolowa-krolewska': 'Królowa - Królewska',
+        'krolewski': 'Królewski',
+        'barokowy': 'Barokowy',
+        'renesansowy': 'Renesansowy',
+        'wiktorianski': 'Wiktoriański',
+        'wojenny': 'Wojenny',
+        'na-tronie': 'Na tronie'
+      };
+      
+      const styleName = styleNames[style] || style;
+      const sizeText = size ? `Rozmiar: ${size}` : '';
+      
+      // Przygotuj treść emaila (Shopify send_invite obsługuje tylko tekst, nie HTML)
+      const emailMessage = `
+Cześć!
+
+Twoja generacja w stylu ${styleName} jest gotowa! 🎨
+
+Obrazek: ${watermarkedImageUrl}
+
+${sizeText ? sizeText + '\n' : ''}
+Zobacz wszystkie generacje: https://lumly.pl/pages/my-generations
+
+Pozdrawiamy,
+Zespół Lumly
+      `.trim();
+      
       try {
-        // Ustaw metafield na customer (trigger dla Shopify Flow)
-        const metafieldResponse = await fetch(`https://${shop}/admin/api/2023-10/customers/${customerId}/metafields.json`, {
+        // Shopify Customer Notification API (send_invite)
+        const emailResponse = await fetch(`https://${shop}/admin/api/2023-10/customers/${customerId}/send_invite.json`, {
           method: 'POST',
           headers: {
             'X-Shopify-Access-Token': accessToken,
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            metafield: {
-              namespace: 'customify',
-              key: 'generation_ready',
-              value: JSON.stringify({
-                imageUrl: watermarkedImageUrl,
-                style: style,
-                size: size || null,
-                productType: productType || 'other',
-                timestamp: new Date().toISOString(),
-                galleryUrl: 'https://lumly.pl/pages/my-generations'
-              }),
-              type: 'json'
+            customer_invite: {
+              to: email,
+              subject: 'Twoja generacja AI jest gotowa! 🎨',
+              custom_message: emailMessage
             }
           })
         });
         
-        if (metafieldResponse.ok) {
-          console.log('✅ [SAVE-GENERATION] Metafield generation_ready ustawiony - Shopify Flow wyśle email');
+        if (emailResponse.ok) {
+          console.log('✅ [SAVE-GENERATION] Email wysłany przez Shopify API');
         } else {
-          const error = await metafieldResponse.text();
-          console.warn('⚠️ [SAVE-GENERATION] Nie udało się ustawić metafield generation_ready:', error);
+          const error = await emailResponse.text();
+          console.warn('⚠️ [SAVE-GENERATION] Nie udało się wysłać emaila:', error);
         }
       } catch (error) {
-        console.error('❌ [SAVE-GENERATION] Błąd ustawiania metafield generation_ready:', error);
+        console.error('❌ [SAVE-GENERATION] Błąd wysyłania emaila:', error);
         // Nie blokuj - email to bonus, nie krytyczna funkcja
       }
     } else {
       if (!customerId) {
-        console.log('📧 [SAVE-GENERATION] Pomijam Shopify Flow - brak customerId (niezalogowany)');
+        console.log('📧 [SAVE-GENERATION] Pomijam email - brak customerId (niezalogowany)');
       } else if (!email) {
-        console.log('📧 [SAVE-GENERATION] Pomijam Shopify Flow - brak emaila');
+        console.log('📧 [SAVE-GENERATION] Pomijam email - brak emaila');
       } else if (!watermarkedImageUrl) {
-        console.log('📧 [SAVE-GENERATION] Pomijam Shopify Flow - brak watermarkedImageUrl');
+        console.log('📧 [SAVE-GENERATION] Pomijam email - brak watermarkedImageUrl');
       }
     }
 
