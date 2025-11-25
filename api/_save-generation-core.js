@@ -510,6 +510,7 @@ async function saveGenerationHandler(req, res) {
           
           // ✅ KROK 1.5: Dodaj tag do customera (trigger dla Shopify Flow)
           // Shopify Flow nie ma triggera "Customer updated", ale ma "Customer tags added"
+          // ⚠️ WAŻNE: Usuwamy tag przed dodaniem, żeby Flow się uruchomił za każdym razem
           try {
             // Najpierw pobierz aktualne tagi customera
             const customerResponse = await fetch(`https://${shop}/admin/api/2023-10/customers/${customerId}.json`, {
@@ -522,34 +523,34 @@ async function saveGenerationHandler(req, res) {
             
             if (customerResponse.ok) {
               const customerData = await customerResponse.json();
-              const currentTags = customerData.customer?.tags?.split(', ').filter(t => t) || [];
+              const currentTags = customerData.customer?.tags?.split(', ').filter(t => t && t.trim()) || [];
               
-              // Dodaj tag "generation-ready" jeśli jeszcze nie ma
-              if (!currentTags.includes('generation-ready')) {
-                const updatedTags = [...currentTags, 'generation-ready'].join(', ');
-                
-                const updateResponse = await fetch(`https://${shop}/admin/api/2023-10/customers/${customerId}.json`, {
-                  method: 'PUT',
-                  headers: {
-                    'X-Shopify-Access-Token': accessToken,
-                    'Content-Type': 'application/json'
-                  },
-                  body: JSON.stringify({
-                    customer: {
-                      id: customerId,
-                      tags: updatedTags
-                    }
-                  })
-                });
-                
-                if (updateResponse.ok) {
-                  console.log('✅ [SAVE-GENERATION] Tag "generation-ready" dodany do customera (trigger dla Shopify Flow)');
-                } else {
-                  const error = await updateResponse.text();
-                  console.warn('⚠️ [SAVE-GENERATION] Nie udało się dodać tagu:', error);
-                }
+              // ✅ USUŃ tag "generation-ready" jeśli istnieje (żeby Flow się uruchomił ponownie)
+              const tagsWithoutGenerationReady = currentTags.filter(t => t !== 'generation-ready');
+              
+              // ✅ DODAJ tag "generation-ready" (zawsze, nawet jeśli był wcześniej)
+              const updatedTags = [...tagsWithoutGenerationReady, 'generation-ready'].join(', ');
+              
+              const updateResponse = await fetch(`https://${shop}/admin/api/2023-10/customers/${customerId}.json`, {
+                method: 'PUT',
+                headers: {
+                  'X-Shopify-Access-Token': accessToken,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                  customer: {
+                    id: customerId,
+                    tags: updatedTags
+                  }
+                })
+              });
+              
+              if (updateResponse.ok) {
+                console.log('✅ [SAVE-GENERATION] Tag "generation-ready" dodany do customera (trigger dla Shopify Flow)');
+                console.log('📧 [SAVE-GENERATION] Flow powinien się uruchomić za każdym razem (tag jest usuwany i dodawany ponownie)');
               } else {
-                console.log('ℹ️ [SAVE-GENERATION] Tag "generation-ready" już istnieje - pomijam');
+                const error = await updateResponse.text();
+                console.warn('⚠️ [SAVE-GENERATION] Nie udało się dodać tagu:', error);
               }
             }
           } catch (tagError) {
