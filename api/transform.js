@@ -1494,6 +1494,9 @@ module.exports = async (req, res) => {
         
         const customer = metafieldData.data?.customer;
         
+        // ✅ ZAPISZ EMAIL Z GRAPHQL NA WYŻSZYM POZIOMIE SCOPE (dla użycia w save-generation)
+        let customerEmailFromGraphQL = customer?.email || null;
+        
         if (!customer) {
           console.error(`❌ [METAFIELD-CHECK] Brak customer w response:`, metafieldData);
         }
@@ -1807,7 +1810,7 @@ module.exports = async (req, res) => {
         });
 
         // ✅ SPRAWDŹ WHITELIST Z EMAIL Z GRAPHQL (bardziej wiarygodne niż request body)
-        const customerEmailFromGraphQL = customer?.email;
+        // customerEmailFromGraphQL jest już zdefiniowany na wyższym poziomie scope (linia ~1497)
         const isTestUserFromGraphQL = isTestUser(customerEmailFromGraphQL || null, ip);
         
         // ✅ ZAKTUALIZUJ isTest żeby uwzględniać email z GraphQL (dostępne w sekcji inkrementacji)
@@ -2386,16 +2389,12 @@ module.exports = async (req, res) => {
         
         // Wywołaj endpoint zapisu generacji
         // ✅ Dla niezalogowanych używamy IP jako identyfikatora
-        // ✅ Użyj email z GraphQL (customer?.email) jeśli dostępny, w przeciwnym razie z request body
-        // customerEmailFromGraphQL jest zdefiniowany w sekcji sprawdzania limitów (linia ~1810)
-        // Jeśli customerEmailFromGraphQL nie jest dostępny (poza blokiem if), użyj customer?.email bezpośrednio
-        const finalEmail = (typeof customerEmailFromGraphQL !== 'undefined' ? customerEmailFromGraphQL : null) || 
-                          (typeof customer !== 'undefined' && customer?.email ? customer.email : null) || 
-                          email || null;
+        // ✅ Użyj email z GraphQL (customerEmailFromGraphQL) jeśli dostępny, w przeciwnym razie z request body
+        // customerEmailFromGraphQL jest zdefiniowany na wyższym poziomie scope (linia ~1497)
+        const finalEmail = customerEmailFromGraphQL || email || null;
         
         console.log(`📧 [TRANSFORM] Email do zapisu generacji:`, {
-          fromGraphQLVariable: typeof customerEmailFromGraphQL !== 'undefined' ? customerEmailFromGraphQL : 'undefined',
-          fromCustomerObject: typeof customer !== 'undefined' && customer?.email ? customer.email : 'undefined',
+          fromGraphQL: customerEmailFromGraphQL || null,
           fromRequestBody: email || null,
           final: finalEmail || null
         });
