@@ -36,12 +36,14 @@ class CustomifyEmbed {
         a4: 0,   // Domyślny rozmiar - bez dopłaty
         a3: 9,
         a2: 30,
+        a0: 45,  // Nowy rozmiar 50×75 cm
         a1: 60
       },
       canvas: {
         a4: 49,
         a3: 99,
         a2: 149,
+        a0: 170,  // Nowy rozmiar 50×75 cm
         a1: 199
       }
     };
@@ -51,6 +53,7 @@ class CustomifyEmbed {
       a4: 29,
       a3: 45,
       a2: 65,
+      a0: 75,  // Nowy rozmiar 50×75 cm
       a1: 85
     };
     
@@ -2280,9 +2283,10 @@ class CustomifyEmbed {
   getSizeDimension(size) {
     const dimensions = {
       'a4': '20×30 cm',
-      'a3': '30×40 cm', 
+      'a3': '30×45 cm', 
       'a2': '40×60 cm',
-      'a1': '60×85 cm'
+      'a0': '50×75 cm',  // Nowy rozmiar
+      'a1': '60×90 cm'
     };
     return dimensions[size] || size;
   }
@@ -2651,9 +2655,32 @@ class CustomifyEmbed {
             console.log('✅ [TRANSFORM] Watermark preview:', watermarkedImageBase64.substring(0, 100));
             console.log('✅ [TRANSFORM] Watermark is base64?', watermarkedImageBase64.startsWith('data:'));
             
+            // ✅ WALIDACJA: Sprawdź czy generationId jest dostępne
+            const generationIdFromDebug = result.saveGenerationDebug?.generationId;
+            const generationIdFromRoot = result.generationId;
+            const generationId = generationIdFromDebug || generationIdFromRoot;
+            
+            console.log('🔍 [TRANSFORM] ===== SPRAWDZANIE generationId =====');
+            console.log('🔍 [TRANSFORM] result.saveGenerationDebug:', result.saveGenerationDebug);
+            console.log('🔍 [TRANSFORM] result.saveGenerationDebug?.generationId:', generationIdFromDebug);
+            console.log('🔍 [TRANSFORM] result.generationId:', generationIdFromRoot);
+            console.log('🔍 [TRANSFORM] Final generationId (do użycia):', generationId);
+            console.log('🔍 [TRANSFORM] result keys:', Object.keys(result));
+            
+            if (!generationId) {
+              console.error('❌ [TRANSFORM] ===== BRAK generationId - NIE MOŻNA ZAKTUALIZOWAĆ WATERMARKA =====');
+              console.error('❌ [TRANSFORM] result.saveGenerationDebug:', result.saveGenerationDebug);
+              console.error('❌ [TRANSFORM] result.generationId:', result.generationId);
+              console.error('❌ [TRANSFORM] result keys:', Object.keys(result));
+              throw new Error('generationId nie jest dostępne - zapis generacji nie powiódł się lub nie został zwrócony');
+            }
+            
+            console.log('✅ [TRANSFORM] GenerationId do aktualizacji watermarka:', generationId);
+            console.log('🔍 [TRANSFORM] ===== KONIEC SPRAWDZANIA generationId =====');
+            
             // ✅ ZAPISZ DANE DO PENDING UPLOAD (na wypadek zmiany strony)
             this.pendingWatermarkUpload = {
-              generationId: result.saveGenerationDebug.generationId,
+              generationId: generationId,
               watermarkedImage: watermarkedImageBase64,
               customerId: customerInfo?.customerId || null,
               email: (!customerInfo?.customerId) ? (email || null) : null
@@ -2663,6 +2690,7 @@ class CustomifyEmbed {
             // ✅ WYŚLIJ WATERMARK DO BACKENDU - zaktualizuj istniejącą generację z RETRY LOGIC
             // 🔄 RETRY: Poczekaj na zapis generacji (race condition - generacja może nie być jeszcze w Blob Storage)
             console.log('📤 [TRANSFORM] Wysyłam watermark do /api/update-generation-watermark...');
+            console.log('🔍 [TRANSFORM] Używam generationId:', generationId);
             
             let updateSuccess = false;
             let lastError = null;
@@ -2688,7 +2716,7 @@ class CustomifyEmbed {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({
-                    generationId: result.saveGenerationDebug.generationId,
+                    generationId: generationId, // ✅ Użyj zmiennej z walidacją
                     watermarkedImage: watermarkedImageBase64,
                     customerId: customerInfo?.customerId || null,
                     email: (!customerInfo?.customerId) ? (email || null) : null
