@@ -674,6 +674,7 @@ class CustomifyEmbed {
     // Obraz
     const img = document.createElement('img');
     img.src = imageUrl;
+    img.loading = 'lazy'; // ✅ Lazy loading - nie preloaduj wszystkich obrazków na raz
     img.style.cssText = `
       width: 100%;
       height: 120px;
