@@ -454,6 +454,63 @@ async function saveGenerationHandler(req, res) {
       });
     }
 
+    // ✅ USTAW METAFIELD DLA SHOPIFY FLOW (TRIGGER EMAIL)
+    // Ustaw metafield customify.generation_ready - Shopify Flow wykryje to i wyśle email
+    if (customerId && email && watermarkedImageUrl && process.env.SHOPIFY_ACCESS_TOKEN) {
+      const shop = process.env.SHOP_DOMAIN || 'customify-ok.myshopify.com';
+      const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
+      
+      console.log('📧 [SAVE-GENERATION] Ustawiam metafield generation_ready dla Shopify Flow:', {
+        customerId,
+        email: email.substring(0, 10) + '...',
+        hasWatermarkedUrl: !!watermarkedImageUrl
+      });
+      
+      try {
+        // Ustaw metafield na customer (trigger dla Shopify Flow)
+        const metafieldResponse = await fetch(`https://${shop}/admin/api/2023-10/customers/${customerId}/metafields.json`, {
+          method: 'POST',
+          headers: {
+            'X-Shopify-Access-Token': accessToken,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            metafield: {
+              namespace: 'customify',
+              key: 'generation_ready',
+              value: JSON.stringify({
+                imageUrl: watermarkedImageUrl,
+                style: style,
+                size: size || null,
+                productType: productType || 'other',
+                timestamp: new Date().toISOString(),
+                galleryUrl: 'https://lumly.pl/pages/my-generations'
+              }),
+              type: 'json'
+            }
+          })
+        });
+        
+        if (metafieldResponse.ok) {
+          console.log('✅ [SAVE-GENERATION] Metafield generation_ready ustawiony - Shopify Flow wyśle email');
+        } else {
+          const error = await metafieldResponse.text();
+          console.warn('⚠️ [SAVE-GENERATION] Nie udało się ustawić metafield generation_ready:', error);
+        }
+      } catch (error) {
+        console.error('❌ [SAVE-GENERATION] Błąd ustawiania metafield generation_ready:', error);
+        // Nie blokuj - email to bonus, nie krytyczna funkcja
+      }
+    } else {
+      if (!customerId) {
+        console.log('📧 [SAVE-GENERATION] Pomijam Shopify Flow - brak customerId (niezalogowany)');
+      } else if (!email) {
+        console.log('📧 [SAVE-GENERATION] Pomijam Shopify Flow - brak emaila');
+      } else if (!watermarkedImageUrl) {
+        console.log('📧 [SAVE-GENERATION] Pomijam Shopify Flow - brak watermarkedImageUrl');
+      }
+    }
+
     // ✅ AKTUALIZUJ CUSTOMER METAFIELD W SHOPIFY (jeśli customerId)
     // To pozwoli wyświetlić generacje w Shopify Admin na koncie klienta
     console.log(`🔍 [SAVE-GENERATION] Sprawdzam customerId:`, customerId, typeof customerId);
