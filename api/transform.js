@@ -2386,9 +2386,19 @@ module.exports = async (req, res) => {
         
         // Wywołaj endpoint zapisu generacji
         // ✅ Dla niezalogowanych używamy IP jako identyfikatora
+        // ✅ Użyj email z GraphQL (customer?.email) jeśli dostępny, w przeciwnym razie z request body
+        // customerEmailFromGraphQL jest zdefiniowany w sekcji sprawdzania limitów (linia ~1810)
+        const finalEmail = customerEmailFromGraphQL || email || null;
+        
+        console.log(`📧 [TRANSFORM] Email do zapisu generacji:`, {
+          fromGraphQL: customerEmailFromGraphQL || null,
+          fromRequestBody: email || null,
+          final: finalEmail || null
+        });
+        
         const saveData = {
           customerId: shopifyCustomerId || (customerId !== undefined && customerId !== null ? String(customerId) : null),
-          email: email || null,
+          email: finalEmail, // ✅ Użyj email z GraphQL (dla zalogowanych) lub z request body (dla niezalogowanych)
           ip: ip || null, // ✅ Przekaż IP dla niezalogowanych
           ipHash,
           deviceToken,
