@@ -315,7 +315,8 @@
         // ✅ UPROSZCZONA LOGIKA: Wszystkie watermarki są zapisywane na Vercel Blob
         // Bezpośrednio wyświetlaj obrazy z Vercel Blob (bez sprawdzania i dodawania watermarku on-the-fly)
         function renderGeneration(generation, index) {
-          const item = document.createElement('div');
+          try {
+            const item = document.createElement('div');
           item.className = 'generation-card';
           item.style.cursor = 'pointer';
           
@@ -581,6 +582,9 @@
               
               window.location.href = `/products/${productHandle}`;
             });
+            
+            // Dodaj element do kontenera
+            container.appendChild(item);
           } catch (error) {
             console.error('❌ [MY-GENERATIONS] Error rendering generation:', error);
           }
