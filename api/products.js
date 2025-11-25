@@ -231,6 +231,7 @@ module.exports = async (req, res) => {
     // ✅ Używamy watermarkedImageUrl (Z watermarkiem) zamiast transformedImage (BEZ watermarku)
     // ✅ Użytkownik widzi miniaturkę Z watermarkiem w koszyku i checkout
     let imageBuffer;
+    let contentType = 'image/jpeg'; // Domyślnie JPEG
     // Priorytet: watermarkedImageUrl z request body (backend PNG) > watermarkedImage (frontend Canvas) > transformedImage (bez watermarku)
     const imageToUpload = watermarkedImageUrl || watermarkedImage || transformedImage;
     console.log('📦 [PRODUCTS] Image to upload priority:', {
@@ -243,6 +244,12 @@ module.exports = async (req, res) => {
     if (imageToUpload.startsWith('data:image')) {
       // Base64 format - convert directly
       console.log('📦 [PRODUCTS] Detected base64 watermarked image, converting...');
+      // ✅ WYKRYJ FORMAT Z data URI
+      const dataUriMatch = imageToUpload.match(/^data:image\/([a-z]+);base64,/);
+      if (dataUriMatch) {
+        contentType = `image/${dataUriMatch[1]}`;
+        console.log('📦 [PRODUCTS] Detected format from data URI:', contentType);
+      }
       const base64Data = imageToUpload.split(',')[1];
       imageBuffer = Buffer.from(base64Data, 'base64');
     } else {
@@ -252,7 +259,7 @@ module.exports = async (req, res) => {
       
       if (!imageResponse.ok) {
         // Failed to download watermarked image
-        console.error('❌ [PRODUCTS] Failed to download watermarked image');
+        console.error('❌ [PRODUCTS] Failed to download watermarked image:', imageResponse.status, imageResponse.statusText);
         return res.json({
           success: true,
           product: product,
@@ -263,13 +270,67 @@ module.exports = async (req, res) => {
         });
       }
       
+      // ✅ SPRAWDŹ Content-Type z response
+      contentType = imageResponse.headers.get('content-type') || 'image/jpeg';
+      console.log('📦 [PRODUCTS] Image Content-Type:', contentType);
+      
       const imageArrayBuffer = await imageResponse.arrayBuffer();
       imageBuffer = Buffer.from(imageArrayBuffer);
+      
+      // ✅ WALIDACJA: Sprawdź czy obrazek nie jest pusty
+      if (!imageBuffer || imageBuffer.length === 0) {
+        console.error('❌ [PRODUCTS] Downloaded image is empty');
+        return res.json({
+          success: true,
+          product: product,
+          variantId: product.variants[0].id,
+          productId: productId,
+          warning: 'Product created but downloaded image is empty',
+          imageUrl: imageToUpload
+        });
+      }
+      
+      console.log('✅ [PRODUCTS] Image downloaded successfully:', imageBuffer.length, 'bytes');
     }
+    
+    // ✅ WALIDACJA: Sprawdź czy imageBuffer jest poprawny
+    if (!imageBuffer || imageBuffer.length === 0) {
+      console.error('❌ [PRODUCTS] Image buffer is empty or invalid');
+      return res.json({
+        success: true,
+        product: product,
+        variantId: product.variants[0].id,
+        productId: productId,
+        warning: 'Product created but image buffer is invalid',
+        imageUrl: transformedImage
+      });
+    }
+    
+    // ✅ WALIDACJA: Sprawdź magic bytes (pierwsze bajty pliku) - czy to jest poprawny obrazek
+    const magicBytes = imageBuffer.slice(0, 4);
+    const isValidImage = 
+      magicBytes[0] === 0xFF && magicBytes[1] === 0xD8 && magicBytes[2] === 0xFF && (magicBytes[3] === 0xE0 || magicBytes[3] === 0xE1 || magicBytes[3] === 0xDB) || // JPEG
+      magicBytes[0] === 0x89 && magicBytes[1] === 0x50 && magicBytes[2] === 0x4E && magicBytes[3] === 0x47 || // PNG
+      magicBytes[0] === 0x52 && magicBytes[1] === 0x49 && magicBytes[2] === 0x46 && magicBytes[3] === 0x46; // WebP (RIFF)
+    
+    if (!isValidImage) {
+      console.error('❌ [PRODUCTS] Image magic bytes invalid:', magicBytes);
+      console.error('❌ [PRODUCTS] First 16 bytes:', imageBuffer.slice(0, 16));
+      return res.json({
+        success: true,
+        product: product,
+        variantId: product.variants[0].id,
+        productId: productId,
+        warning: 'Product created but image format is invalid (corrupt file)',
+        imageUrl: transformedImage
+      });
+    }
+    
+    console.log('✅ [PRODUCTS] Image magic bytes validated:', magicBytes.toString('hex'));
     
     // Convert imageBuffer to base64 for Shopify API
     const base64Image = imageBuffer.toString('base64');
-    console.log('✅ [PRODUCTS] Watermarked image ready for Shopify upload');
+    console.log('✅ [PRODUCTS] Watermarked image ready for Shopify upload:', base64Image.length, 'chars base64');
 
     // Uploading image to product
 
@@ -277,10 +338,28 @@ module.exports = async (req, res) => {
     const customerName = (originalProductTitle || 'Customer').replace(/[^a-zA-Z0-9]/g, '').substring(0, 10);
     const uniqueId = `${customerName}-${style}-${timestamp}`;
     
+    // ✅ WYKRYJ FORMAT OBRAZKA z Content-Type lub URL
+    let imageExtension = 'jpg'; // Domyślnie JPEG
+    if (contentType.includes('png')) {
+      imageExtension = 'png';
+    } else if (contentType.includes('webp')) {
+      imageExtension = 'webp';
+    } else if (contentType.includes('jpeg') || contentType.includes('jpg')) {
+      imageExtension = 'jpg';
+    } else if (imageToUpload.includes('.png')) {
+      imageExtension = 'png';
+    } else if (imageToUpload.includes('.webp')) {
+      imageExtension = 'webp';
+    } else if (imageToUpload.includes('.jpg') || imageToUpload.includes('.jpeg')) {
+      imageExtension = 'jpg';
+    }
+    
+    console.log('📦 [PRODUCTS] Detected image format:', imageExtension, '(from Content-Type:', contentType, ')');
+    
     const imageUploadData = {
       image: {
         attachment: base64Image,
-        filename: `ai-${uniqueId}.webp`,
+        filename: `ai-${uniqueId}.${imageExtension}`,
         alt: `AI ${style} for ${customerName} - ${timestamp}`
       }
     };
