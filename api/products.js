@@ -135,17 +135,19 @@ module.exports = async (req, res) => {
     } else {
       // Produkt fizyczny - normalna logika
       productTypeName = productType === 'plakat' ? 'Plakat' : 'Obraz na płótnie';
-      sizeName = size === 'a1'
-        ? '60×85 cm'
-        : size === 'a2'
-          ? '40×60 cm'
-          : size === 'a3'
-            ? '30×40 cm'
-            : size === 'a4'
-              ? '20×30 cm'
-              : size === 'a5'
-                ? '15×20 cm'
-                : size?.toUpperCase() || 'standard';
+      sizeName = size === 'a4'
+        ? '20×30 cm'
+        : size === 'a3'
+          ? '30×45 cm'
+          : size === 'a2'
+            ? '40×60 cm'
+            : size === 'a0'
+              ? '50×75 cm'
+              : size === 'a1'
+                ? '60×90 cm'
+                : size === 'a5'
+                  ? '15×20 cm'
+                  : size?.toUpperCase() || 'standard';
     }
     // 🚨 ROLLBACK: END - Obsługa produktu cyfrowego w nazwach
 
