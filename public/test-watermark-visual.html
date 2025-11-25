@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Watermark - Wizualna Weryfikacja</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        .test-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .test-section h2 {
+            color: #444;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .image-card {
+            background: #fafafa;
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .image-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        
+        .image-card h3 {
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        .image-card .info {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .image-card img {
+            width: 100%;
+            height: auto;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .image-card img:hover {
+            transform: scale(1.05);
+        }
+        
+        .image-card .url {
+            font-size: 11px;
+            color: #999;
+            word-break: break-all;
+            margin-top: 10px;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .status-success {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .status-error {
+            background: #f44336;
+            color: white;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            cursor: pointer;
+        }
+        
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            max-width: 90%;
+            max-height: 90%;
+        }
+        
+        .modal-content img {
+            width: 100%;
+            height: auto;
+            border-radius: 4px;
+        }
+        
+        .close {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: white;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close:hover {
+            color: #ccc;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Test Watermark - Wizualna Weryfikacja</h1>
+        <p class="subtitle">Sprawdź jak watermark wygląda dla różnych źródeł obrazów i rozdzielczości</p>
+        
+        <div id="loading" class="loading">Ładowanie wyników testów...</div>
+        
+        <div id="content" style="display: none;">
+            <!-- Testy różnych źródeł -->
+            <div class="test-section" id="sources-section">
+                <h2>📸 Różne Źródła Obrazów</h2>
+                <div class="image-grid" id="sources-grid"></div>
+            </div>
+            
+            <!-- Testy różnych formatów -->
+            <div class="test-section" id="formats-section">
+                <h2>📐 Różne Formaty Obrazów</h2>
+                <div class="image-grid" id="formats-grid"></div>
+            </div>
+        </div>
+        
+        <!-- Modal do powiększenia -->
+        <div id="imageModal" class="modal">
+            <span class="close">&times;</span>
+            <div class="modal-content">
+                <img id="modalImage" src="" alt="Watermarked Image">
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Pobierz wyniki testów
+        async function loadTestResults() {
+            try {
+                // Test różnych źródeł
+                const sourcesResponse = await fetch('https://customify-s56o.vercel.app/api/test-watermark-sources?t=' + Date.now());
+                const sourcesData = await sourcesResponse.json();
+                
+                // Test różnych formatów
+                const formatsResponse = await fetch('https://customify-s56o.vercel.app/api/test-watermark-comprehensive?t=' + Date.now());
+                const formatsData = await formatsResponse.json();
+                
+                // Renderuj wyniki
+                renderResults(sourcesData.results, 'sources-grid');
+                renderResults(formatsData.results, 'formats-grid');
+                
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('content').style.display = 'block';
+            } catch (error) {
+                console.error('Błąd ładowania wyników:', error);
+                document.getElementById('loading').innerHTML = '❌ Błąd ładowania wyników testów';
+            }
+        }
+        
+        function renderResults(results, containerId) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            
+            results.forEach(result => {
+                if (result.status === 'success' && result.watermarkedImageUrl) {
+                    const card = document.createElement('div');
+                    card.className = 'image-card';
+                    
+                    const info = result.imageSize ? 
+                        `Rozmiar: ${result.imageSize} | Watermark: ${result.watermarkSize || 'N/A'}` : 
+                        'Brak informacji';
+                    
+                    card.innerHTML = `
+                        <span class="status-badge status-success">SUCCESS</span>
+                        <h3>${result.testCase || result.name || 'Test'}</h3>
+                        <div class="info">${info}</div>
+                        <img src="${result.watermarkedImageUrl}" alt="${result.testCase || result.name}" 
+                             onclick="openModal('${result.watermarkedImageUrl}')">
+                        <div class="url">${result.watermarkedImageUrl.substring(0, 60)}...</div>
+                    `;
+                    
+                    container.appendChild(card);
+                } else if (result.status === 'error') {
+                    const card = document.createElement('div');
+                    card.className = 'image-card';
+                    card.innerHTML = `
+                        <span class="status-badge status-error">ERROR</span>
+                        <h3>${result.testCase || result.name || 'Test'}</h3>
+                        <div class="info" style="color: #f44336;">${result.error || 'Błąd'}</div>
+                    `;
+                    container.appendChild(card);
+                }
+            });
+        }
+        
+        // Modal
+        const modal = document.getElementById('imageModal');
+        const modalImg = document.getElementById('modalImage');
+        const closeBtn = document.getElementsByClassName('close')[0];
+        
+        function openModal(imageUrl) {
+            modal.style.display = 'block';
+            modalImg.src = imageUrl;
+        }
+        
+        closeBtn.onclick = function() {
+            modal.style.display = 'none';
+        }
+        
+        modal.onclick = function(event) {
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+        
+        // Załaduj wyniki przy starcie
+        loadTestResults();
+    </script>
+</body>
+</html>
+
