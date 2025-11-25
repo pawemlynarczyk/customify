@@ -320,15 +320,6 @@
           item.className = 'generation-card';
           item.style.cursor = 'pointer';
           
-          const date = new Date(generation.timestamp);
-          const dateStr = date.toLocaleDateString('pl-PL', { 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-          });
-          
           // ✅ PRIORYTET: watermarkedImageUrl (Vercel Blob z watermarkiem) > transformedImage (fallback)
           const imageUrl = generation.watermarkedImageUrl || generation.transformedImage;
           
@@ -341,8 +332,6 @@
                 <p style="font-size: 0.9rem; margin: 0.5rem 0 0 0;">Obraz niedostępny</p>
               </div>
               <div class="generation-info">
-                <div class="generation-style">${generation.style}</div>
-                <div class="generation-date">${dateStr}</div>
                 <button class="btn-order-now" data-generation-index="${index}" disabled style="opacity: 0.5; cursor: not-allowed;">Niedostępne</button>
               </div>
             `;
@@ -360,11 +349,9 @@
                 alt="Generacja ${generation.style}" 
                 class="generation-image"
                 loading="lazy"
-                onerror="this.parentElement.innerHTML='<div class=\\'generation-image\\' style=\\'background: #f0f0f0; aspect-ratio: 3/4; display: flex; align-items: center; justify-content: center; flex-direction: column; color: #999;\\'><p style=\\'font-size: 2rem; margin: 0;\\'>📷</p><p style=\\'font-size: 0.9rem; margin: 0.5rem 0 0 0;\\'>Obraz niedostępny</p></div><div class=\\'generation-info\\'><div class=\\'generation-style\\'>${generation.style}</div><div class=\\'generation-date\\'>${dateStr}</div><button class=\\'btn-order-now\\' data-generation-index=\\'${index}\\' disabled style=\\'opacity: 0.5; cursor: not-allowed;\\'>Niedostępne</button></div>'"
+                onerror="this.parentElement.innerHTML='<div class=\\'generation-image\\' style=\\'background: #f0f0f0; aspect-ratio: 3/4; display: flex; align-items: center; justify-content: center; flex-direction: column; color: #999;\\'><p style=\\'font-size: 2rem; margin: 0;\\'>📷</p><p style=\\'font-size: 0.9rem; margin: 0.5rem 0 0 0;\\'>Obraz niedostępny</p></div><div class=\\'generation-info\\'><button class=\\'btn-order-now\\' data-generation-index=\\'${index}\\' disabled style=\\'opacity: 0.5; cursor: not-allowed;\\'>Niedostępne</button></div>'"
               />
               <div class="generation-info">
-                <div class="generation-style">${generation.style}</div>
-                <div class="generation-date">${dateStr}</div>
                 <button class="btn-order-now" data-generation-index="${index}">Zamów</button>
               </div>
             `;
