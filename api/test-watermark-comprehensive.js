@@ -25,11 +25,11 @@ module.exports = async (req, res) => {
     // Test cases - różne scenariusze używane w transform.js
     const testCases = [
       {
-        name: 'Portret 3:4 (Boho, Koty, Król)',
+        name: 'Portret 3:4 (Boho, Koty)',
         imageUrl: 'https://customify-s56o.vercel.app/koty/krolewski.png',
         expectedSize: '896x1152',
-        productType: 'boho/cats/king',
-        description: 'Standardowy format portretowy używany dla większości stylów'
+        productType: 'boho/cats',
+        description: 'Format portretowy używany dla stylów Replicate (Nano-Banana) - Boho i Koty'
       },
       {
         name: 'Krajobraz 4:3 (SDXL)',
