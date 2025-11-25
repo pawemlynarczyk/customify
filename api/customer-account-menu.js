@@ -15,28 +15,6 @@ module.exports = async (req, res) => {
   const script = `(function() {
   'use strict';
 
-  // 🔄 PRZEKIEROWANIE PO LOGOWANIU - działa na account.lumly.pl
-  (function() {
-    console.log('🔧 [SCRIPT-TAG] Script loaded on:', window.location.href);
-    console.log('🔧 [SCRIPT-TAG] Hostname:', window.location.hostname);
-    
-    const urlParams = new URLSearchParams(window.location.search);
-    const newLogin = urlParams.get('new_login');
-    const isAccountDomain = window.location.hostname.includes('account.');
-    
-    console.log('🔧 [SCRIPT-TAG] new_login:', newLogin);
-    console.log('🔧 [SCRIPT-TAG] isAccountDomain:', isAccountDomain);
-    
-    if (isAccountDomain && newLogin === '1') {
-      console.log('🔄 [REDIRECT] Redirecting after login to /pages/my-generations');
-      // Użyj setTimeout żeby dać czas na załadowanie strony
-      setTimeout(function() {
-        window.location.replace('https://lumly.pl/pages/my-generations?country=PL');
-      }, 100);
-      return; // Nie wykonuj reszty kodu
-    }
-  })();
-
   // Funkcja dodająca link "Moje obrazy" do menu konta klienta
   function addMyImagesLink() {
     // Sprawdź czy jesteśmy na stronie konta klienta (Shopify Customer Account API)

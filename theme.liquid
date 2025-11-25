@@ -2768,8 +2768,8 @@
                     </svg>
                   </a>
                   <div class="user-links">
-                    <a href="{{ routes.account_login_url }}" class="user-text-link" onclick="localStorage.setItem('customify_just_logged_in', 'true');">Zaloguj</a>
-                    <a href="{{ routes.account_register_url }}" class="user-text-link" onclick="localStorage.setItem('customify_just_logged_in', 'true');">Zarejestruj</a>
+                    <a href="{{ routes.account_login_url }}" class="user-text-link">Zaloguj</a>
+                    <a href="{{ routes.account_register_url }}" class="user-text-link">Zarejestruj</a>
                   </div>
                 </div>
               {% endif %}
@@ -5356,28 +5356,6 @@
           }, 500); // Czekaj 500ms na załadowanie DOM
         }
       });
-    </script>
-
-    <!-- PRZEKIEROWANIE PO LOGOWANIU - używa localStorage do przekazania informacji -->
-    <script>
-      (function() {
-        {% if customer %}
-          // Sprawdź czy użytkownik właśnie się zalogował (flaga w localStorage)
-          const justLoggedIn = localStorage.getItem('customify_just_logged_in');
-          if (justLoggedIn === 'true') {
-            localStorage.removeItem('customify_just_logged_in');
-            console.log('🔄 [REDIRECT] User just logged in, redirecting to /pages/my-generations');
-            window.location.replace('/pages/my-generations?country=PL');
-          }
-        {% else %}
-          // Ustaw flagę przed logowaniem - działa na lumly.pl
-          if (window.location.pathname.includes('/account/login') || 
-              window.location.pathname.includes('/account/register')) {
-            localStorage.setItem('customify_just_logged_in', 'true');
-            console.log('💾 [REDIRECT] Set flag before login');
-          }
-        {% endif %}
-      })();
     </script>
 
   </body>
