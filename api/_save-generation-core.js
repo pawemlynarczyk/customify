@@ -454,38 +454,85 @@ async function saveGenerationHandler(req, res) {
       });
     }
 
-    // ✅ WYŚLIJ EMAIL BEZPOŚREDNIO PRZEZ SHOPIFY API (bez Shopify Flow)
-    // Shopify Flow nie ma triggera dla metafield updates - używamy bezpośredniego API
+    // ✅ USTAW METAFIELD I WYŚLIJ EMAIL PRZEZ SHOPIFY API
+    // 1. Najpierw ustaw metafield (dla Shopify Email template)
+    // 2. Potem wyślij email przez send_invite (fallback) lub Shopify Email API
     if (customerId && email && watermarkedImageUrl && process.env.SHOPIFY_ACCESS_TOKEN) {
       const shop = process.env.SHOP_DOMAIN || 'customify-ok.myshopify.com';
       const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
       
-      console.log('📧 [SAVE-GENERATION] Wysyłam email przez Shopify API:', {
+      console.log('📧 [SAVE-GENERATION] Ustawiam metafield i wysyłam email:', {
         customerId,
         email: email.substring(0, 10) + '...',
         hasWatermarkedUrl: !!watermarkedImageUrl
       });
       
-      // Mapuj style na czytelne nazwy
-      const styleNames = {
-        'pixar': 'Pixar',
-        'minimalistyczny': 'Minimalistyczny',
-        'realistyczny': 'Realistyczny',
-        'krol-krolewski': 'Król - Królewski',
-        'krolowa-krolewska': 'Królowa - Królewska',
-        'krolewski': 'Królewski',
-        'barokowy': 'Barokowy',
-        'renesansowy': 'Renesansowy',
-        'wiktorianski': 'Wiktoriański',
-        'wojenny': 'Wojenny',
-        'na-tronie': 'Na tronie'
-      };
+      // ✅ KROK 1: Ustaw metafield generation_ready (dla Shopify Email template)
+      try {
+        const metafieldData = {
+          imageUrl: watermarkedImageUrl,
+          style: style,
+          size: size || null,
+          productType: productType || 'other',
+          timestamp: new Date().toISOString(),
+          galleryUrl: 'https://lumly.pl/pages/my-generations'
+        };
+        
+        const metafieldResponse = await fetch(`https://${shop}/admin/api/2023-10/customers/${customerId}/metafields.json`, {
+          method: 'POST',
+          headers: {
+            'X-Shopify-Access-Token': accessToken,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            metafield: {
+              namespace: 'customify',
+              key: 'generation_ready',
+              value: JSON.stringify(metafieldData),
+              type: 'json'
+            }
+          })
+        });
+        
+        if (metafieldResponse.ok) {
+          console.log('✅ [SAVE-GENERATION] Metafield generation_ready ustawiony');
+        } else {
+          const error = await metafieldResponse.text();
+          console.warn('⚠️ [SAVE-GENERATION] Nie udało się ustawić metafield:', error);
+        }
+      } catch (metafieldError) {
+        console.error('❌ [SAVE-GENERATION] Błąd ustawiania metafield:', metafieldError);
+      }
       
-      const styleName = styleNames[style] || style;
-      const sizeText = size ? `Rozmiar: ${size}` : '';
+      // ✅ KROK 2: Email będzie wysłany przez Shopify Email template (nie przez send_invite)
+      // Metafield jest ustawiony - Shopify Email template użyje go do wyświetlenia obrazka
+      // Jeśli chcesz użyć send_invite jako fallback, odkomentuj kod poniżej
       
-      // Przygotuj treść emaila (Shopify send_invite obsługuje tylko tekst, nie HTML)
-      const emailMessage = `
+      console.log('✅ [SAVE-GENERATION] Metafield ustawiony - użyj Shopify Email template do wysłania emaila');
+      console.log('📧 [SAVE-GENERATION] Template powinien użyć: {{ customer.metafields.customify.generation_ready }}');
+      
+      // ⚠️ WYŁĄCZONE: send_invite (tekstowy) - używamy Shopify Email template zamiast tego
+      // Jeśli chcesz fallback do tekstowego emaila, odkomentuj poniższy kod:
+      /*
+      try {
+        const styleNames = {
+          'pixar': 'Pixar',
+          'minimalistyczny': 'Minimalistyczny',
+          'realistyczny': 'Realistyczny',
+          'krol-krolewski': 'Król - Królewski',
+          'krolowa-krolewska': 'Królowa - Królewska',
+          'krolewski': 'Królewski',
+          'barokowy': 'Barokowy',
+          'renesansowy': 'Renesansowy',
+          'wiktorianski': 'Wiktoriański',
+          'wojenny': 'Wojenny',
+          'na-tronie': 'Na tronie'
+        };
+        
+        const styleName = styleNames[style] || style;
+        const sizeText = size ? `Rozmiar: ${size}` : '';
+        
+        const emailMessage = `
 Cześć!
 
 Twoja generacja w stylu ${styleName} jest gotowa! 🎨
@@ -497,10 +544,8 @@ Zobacz wszystkie generacje: https://lumly.pl/pages/my-generations
 
 Pozdrawiamy,
 Zespół Lumly
-      `.trim();
-      
-      try {
-        // Shopify Customer Notification API (send_invite)
+        `.trim();
+        
         const emailResponse = await fetch(`https://${shop}/admin/api/2023-10/customers/${customerId}/send_invite.json`, {
           method: 'POST',
           headers: {
@@ -517,15 +562,12 @@ Zespół Lumly
         });
         
         if (emailResponse.ok) {
-          console.log('✅ [SAVE-GENERATION] Email wysłany przez Shopify API');
-        } else {
-          const error = await emailResponse.text();
-          console.warn('⚠️ [SAVE-GENERATION] Nie udało się wysłać emaila:', error);
+          console.log('✅ [SAVE-GENERATION] Email wysłany przez send_invite (fallback)');
         }
       } catch (error) {
-        console.error('❌ [SAVE-GENERATION] Błąd wysyłania emaila:', error);
-        // Nie blokuj - email to bonus, nie krytyczna funkcja
+        console.error('❌ [SAVE-GENERATION] Błąd wysyłania emaila przez send_invite:', error);
       }
+      */
     } else {
       if (!customerId) {
         console.log('📧 [SAVE-GENERATION] Pomijam email - brak customerId (niezalogowany)');
