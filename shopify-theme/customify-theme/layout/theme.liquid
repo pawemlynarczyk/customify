@@ -273,23 +273,40 @@
               }
             }
             
-            // WATERMARK WŁĄCZONY
-            try {
-              const watermarkedImage = await this.addWatermark(imageUrl);
-              if (this.resultImage) {
-                this.resultImage.src = watermarkedImage;
+            // ✅ PRIORYTET: Użyj watermarkedImageUrl z backendu (pełny rozmiar, 92% quality)
+            // ✅ FALLBACK: Jeśli brak backend watermarku, użyj frontend addWatermark() (50% rozmiaru, 70% quality)
+            let imageToShow = imageUrl; // Domyślnie oryginał
+            let watermarkedImageForCart = null;
+            
+            // Sprawdź czy mamy watermarkedImageUrl z backendu (z response transform.js)
+            // watermarkedImageUrl jest dostępny przez this.watermarkedImageUrl (ustawiony w transformImage)
+            if (this.watermarkedImageUrl) {
+              console.log('✅ [CUSTOMIFY] Używam backend watermarkedImageUrl (pełny rozmiar, 92% quality)');
+              imageToShow = this.watermarkedImageUrl;
+              watermarkedImageForCart = this.watermarkedImageUrl;
+            } else {
+              // FALLBACK: Frontend watermark (50% rozmiaru, 70% quality)
+              console.log('⚠️ [CUSTOMIFY] Brak backend watermarkedImageUrl - używam frontend watermark jako fallback');
+              try {
+                const watermarkedImage = await this.addWatermark(imageUrl);
+                imageToShow = watermarkedImage;
+                watermarkedImageForCart = watermarkedImage;
+                console.log('✅ [CUSTOMIFY] Frontend watermark wygenerowany (fallback)');
+              } catch (error) {
+                console.error('❌ [CUSTOMIFY] Frontend watermark error:', error);
+                // Jeśli nawet fallback się nie powiódł, użyj oryginału
+                imageToShow = imageUrl;
+                watermarkedImageForCart = null;
               }
-              
-              // ✅ ZAPISZ OBRAZEK Z WATERMARKIEM (do użycia w koszyku)
-              this.watermarkedImage = watermarkedImage;
-              console.log('🎨 [CUSTOMIFY] Watermark dodany do podglądu i zapisany');
-            } catch (error) {
-              console.error('❌ [CUSTOMIFY] Watermark error:', error);
-              if (this.resultImage) {
-                this.resultImage.src = imageUrl;
-              }
-              this.watermarkedImage = null;
             }
+            
+            if (this.resultImage) {
+              this.resultImage.src = imageToShow;
+            }
+            
+            // ✅ ZAPISZ OBRAZEK Z WATERMARKIEM (do użycia w koszyku)
+            this.watermarkedImage = watermarkedImageForCart;
+            console.log('🎨 [CUSTOMIFY] Obraz z watermarkiem ustawiony:', imageToShow?.substring(0, 100) + '...');
             
             this.resultArea.style.display = 'block';
             
@@ -522,7 +539,7 @@
                   // 🚨 ROLLBACK: END - Properties dla produktu cyfrowego
 
                   const hiddenProperties = {
-                    'Styl AI': this.selectedStyle  // ✅ Ukryty - tylko dla admina, nie pokazywany w koszyku
+                    // ✅ "Styl AI" usunięte - nie pokazywane w koszyku (użytkownik widzi tylko "Rodzaj wydruku")
                   };
 
                   if (result.orderId) {
@@ -4311,7 +4328,15 @@
                         console.log('✅ [CUSTOMIFY CART] Znaleziono URL z watermarkiem:', watermarkedUrl);
                       }
 
-                      if (propertyName.startsWith('_') || normalizedName.includes('ai_image_') || normalizedName.includes('styl ai') || propertyName === 'Styl AI') {
+                      // ✅ UKRYJ "Styl AI" i wszystkie ukryte properties
+                      if (propertyName.startsWith('_') || 
+                          normalizedName.includes('ai_image_') || 
+                          normalizedName.includes('styl ai') || 
+                          normalizedName === 'stylai' ||
+                          propertyName === 'Styl AI' ||
+                          propertyName.toLowerCase() === 'styl ai' ||
+                          propertyName.includes('Styl AI') ||
+                          propertyName.includes('styl ai')) {
                         dt.style.display = 'none';
                         prop.style.display = 'none';
                         console.log('🙈 [CUSTOMIFY CART] Ukryto property:', propertyName);

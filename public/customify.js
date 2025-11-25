@@ -2575,6 +2575,15 @@ class CustomifyEmbed {
           return;
         }
 
+        if (response.status === 403 && errorJson?.error === 'Image already used') {
+          console.warn('⚠️ [IMAGE-HASH] Image already used response from API:', errorJson);
+          const baseMessage = errorJson.message || 'To zdjęcie zostało już użyte, spróbuj inne zdjęcie lub inny produkt';
+          // Utwórz komunikat z linkiem do innych produktów
+          const messageWithLink = `${baseMessage} <a href="/collections/all" style="color: #0066cc; text-decoration: underline;">Zobacz inne produkty</a>`;
+          this.showErrorWithHTML(messageWithLink, 'transform');
+          return;
+        }
+
         throw new Error(`HTTP ${response.status}: ${errorText}`);
       }
 
@@ -2636,154 +2645,12 @@ class CustomifyEmbed {
         // ✅ UKRYJ PASEK POSTĘPU - obraz jest już widoczny, reszta działa w tle
         this.hideLoading();
         
-<<<<<<< Current (Your changes)
-        // 🎨 GENERUJ WATERMARK Z PRZETWORZONEGO OBRAZU (PO transformacji AI)
-        if (result.transformedImage && result.saveGenerationDebug?.generationId) {
-          try {
-            console.log('🎨 [TRANSFORM] ===== GENERUJĘ WATERMARK Z PRZETWORZONEGO OBRAZU =====');
-            console.log('🎨 [TRANSFORM] Transformed image type:', typeof result.transformedImage);
-            console.log('🎨 [TRANSFORM] Transformed image URL:', result.transformedImage?.substring(0, 150));
-            console.log('🎨 [TRANSFORM] Is URL?', result.transformedImage?.startsWith('http'));
-            console.log('🎨 [TRANSFORM] Is base64?', result.transformedImage?.startsWith('data:'));
-            console.log('🎨 [TRANSFORM] Generation ID:', result.saveGenerationDebug.generationId);
-            
-            // ✅ DODAJ WATERMARK DO PRZETWORZONEGO OBRAZU (nie do oryginalnego!)
-            console.log('🎨 [TRANSFORM] Wywołuję addWatermark()...');
-            const watermarkedImageBase64 = await this.addWatermark(result.transformedImage);
-            
-            if (!watermarkedImageBase64) {
-              throw new Error('addWatermark() zwróciło null/undefined');
-            }
-            
-            console.log('✅ [TRANSFORM] Watermark wygenerowany z przetworzonego obrazu');
-            console.log('✅ [TRANSFORM] Watermark długość:', watermarkedImageBase64.length, 'znaków');
-            console.log('✅ [TRANSFORM] Watermark preview:', watermarkedImageBase64.substring(0, 100));
-            console.log('✅ [TRANSFORM] Watermark is base64?', watermarkedImageBase64.startsWith('data:'));
-            
-            // ✅ WALIDACJA: Sprawdź czy generationId jest dostępne
-            const generationIdFromDebug = result.saveGenerationDebug?.generationId;
-            const generationIdFromRoot = result.generationId;
-            const generationId = generationIdFromDebug || generationIdFromRoot;
-            
-            console.log('🔍 [TRANSFORM] ===== SPRAWDZANIE generationId =====');
-            console.log('🔍 [TRANSFORM] result.saveGenerationDebug:', result.saveGenerationDebug);
-            console.log('🔍 [TRANSFORM] result.saveGenerationDebug?.generationId:', generationIdFromDebug);
-            console.log('🔍 [TRANSFORM] result.generationId:', generationIdFromRoot);
-            console.log('🔍 [TRANSFORM] Final generationId (do użycia):', generationId);
-            console.log('🔍 [TRANSFORM] result keys:', Object.keys(result));
-            
-            if (!generationId) {
-              console.error('❌ [TRANSFORM] ===== BRAK generationId - NIE MOŻNA ZAKTUALIZOWAĆ WATERMARKA =====');
-              console.error('❌ [TRANSFORM] result.saveGenerationDebug:', result.saveGenerationDebug);
-              console.error('❌ [TRANSFORM] result.generationId:', result.generationId);
-              console.error('❌ [TRANSFORM] result keys:', Object.keys(result));
-              throw new Error('generationId nie jest dostępne - zapis generacji nie powiódł się lub nie został zwrócony');
-            }
-            
-            console.log('✅ [TRANSFORM] GenerationId do aktualizacji watermarka:', generationId);
-            console.log('🔍 [TRANSFORM] ===== KONIEC SPRAWDZANIA generationId =====');
-            
-            // ✅ ZAPISZ DANE DO PENDING UPLOAD (na wypadek zmiany strony)
-            this.pendingWatermarkUpload = {
-              generationId: generationId,
-              watermarkedImage: watermarkedImageBase64,
-              customerId: customerInfo?.customerId || null,
-              email: (!customerInfo?.customerId) ? (email || null) : null
-            };
-            this.watermarkUploadInProgress = true;
-            
-            // ✅ WYŚLIJ WATERMARK DO BACKENDU - zaktualizuj istniejącą generację z RETRY LOGIC
-            // 🔄 RETRY: Poczekaj na zapis generacji (race condition - generacja może nie być jeszcze w Blob Storage)
-            console.log('📤 [TRANSFORM] Wysyłam watermark do /api/update-generation-watermark...');
-            console.log('🔍 [TRANSFORM] Używam generationId:', generationId);
-            
-            let updateSuccess = false;
-            let lastError = null;
-            
-            // 🔄 Retry 3 razy z opóźnieniem (3s przed pierwszą próbą, potem 2s)
-            // ⚠️ RACE CONDITION: Generacja może nie być jeszcze w Blob Storage - dajemy czas na propagację
-            // ✅ KOMPROMIS 3s: Mniej niż 4s (lepsze UX jeśli użytkownik zmieni stronę), ale więcej niż 2s (bezpieczniejsze)
-            // ✅ WIĘCEJ RETRY (3 zamiast 2): Więcej szans na sukces
-            // ✅ BEZPIECZNE DLA UX: Watermark upload dzieje się W TLE (po pokazaniu obrazu użytkownikowi)
-            // ✅ PAGE UNLOAD PROTECTION: Jeśli użytkownik zmieni stronę, watermark zostanie wysłany przez pagehide handler
-            console.log('⏳ [TRANSFORM] Czekam 3 sekundy przed pierwszą próbą (propagacja w Blob Storage)...');
-            await new Promise(resolve => setTimeout(resolve, 3000)); // 3s przed pierwszą próbą (kompromis między 2s a 4s)
-            
-            for (let attempt = 0; attempt < 3; attempt++) {
-              if (attempt > 0) {
-                const delay = 2000; // 2s (jedno retry zamiast 3)
-                  console.log(`🔄 [TRANSFORM] Retry attempt ${attempt + 1}/3 po ${delay}ms opóźnieniu...`);
-                await new Promise(resolve => setTimeout(resolve, delay));
-              }
-              
-              try {
-                const updateResponse = await fetch('https://customify-s56o.vercel.app/api/update-generation-watermark', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    generationId: generationId, // ✅ Użyj zmiennej z walidacją
-                    watermarkedImage: watermarkedImageBase64,
-                    customerId: customerInfo?.customerId || null,
-                    email: (!customerInfo?.customerId) ? (email || null) : null
-                  })
-                });
-                
-                console.log(`📥 [TRANSFORM] Response status (attempt ${attempt + 1}):`, updateResponse.status, updateResponse.statusText);
-                
-                if (updateResponse.ok) {
-                  const updateResult = await updateResponse.json();
-                  console.log('✅ [TRANSFORM] ===== WATERMARK ZAKTUALIZOWANY W GENERACJI =====');
-                  console.log('✅ [TRANSFORM] Watermarked image URL:', updateResult.watermarkedImageUrl?.substring(0, 100));
-                  console.log('✅ [TRANSFORM] Generation ID:', updateResult.generationId);
-                  updateSuccess = true;
-                  
-                  // ✅ WYCZYŚĆ PENDING UPLOAD - watermark został wysłany
-                  this.pendingWatermarkUpload = null;
-                  this.watermarkUploadInProgress = false;
-                  
-                  break; // Sukces - przerwij retry
-                } else {
-                  const errorText = await updateResponse.text();
-                  lastError = { status: updateResponse.status, error: errorText };
-                  console.warn(`⚠️ [TRANSFORM] Attempt ${attempt + 1} failed:`, updateResponse.status, errorText);
-                  
-                  // Jeśli to nie 404, nie próbuj ponownie
-                  if (updateResponse.status !== 404) {
-                    break;
-                  }
-                }
-              } catch (fetchError) {
-                lastError = { error: fetchError.message };
-                console.warn(`⚠️ [TRANSFORM] Attempt ${attempt + 1} error:`, fetchError.message);
-              }
-            }
-            
-            if (!updateSuccess) {
-              console.error('❌ [TRANSFORM] ===== BŁĄD AKTUALIZACJI WATERMARKU (wszystkie próby nieudane) =====');
-              console.error('❌ [TRANSFORM] Last error:', lastError);
-              console.warn('⚠️ [TRANSFORM] Watermark pozostaje w pending - zostanie wysłany przy zamknięciu strony (jeśli payload < 50KB)');
-              // NIE czyść pendingWatermarkUpload - zostanie wysłane przez pagehide handler
-              // Nie rzucaj błędu - kontynuuj bez watermarku
-            } else {
-              // ✅ WYCZYŚĆ PENDING UPLOAD - watermark został wysłany
-              this.pendingWatermarkUpload = null;
-              this.watermarkUploadInProgress = false;
-            }
-          } catch (watermarkError) {
-            console.error('❌ [TRANSFORM] ===== BŁĄD GENEROWANIA/AKTUALIZACJI WATERMARKU =====');
-            console.error('❌ [TRANSFORM] Error type:', watermarkError.name);
-            console.error('❌ [TRANSFORM] Error message:', watermarkError.message);
-            console.error('❌ [TRANSFORM] Error stack:', watermarkError.stack);
-            // Kontynuuj bez watermarku - nie blokuj dalszej pracy
-          }
-=======
         // ✅ BACKEND WATERMARK: Backend już generuje watermark i zwraca watermarkedImageUrl w response
         // ✅ Backend zapisuje watermarkedImageUrl w save-generation-v2 automatycznie
         // ✅ NIE WYSYŁAMY już frontend watermarku do /api/update-generation-watermark (stary system)
         if (result.watermarkedImageUrl) {
           console.log('✅ [TRANSFORM] Backend watermark dostępny:', result.watermarkedImageUrl.substring(0, 100));
           console.log('✅ [TRANSFORM] Backend watermark zapisany w save-generation automatycznie');
->>>>>>> Incoming (Background Agent changes)
         } else {
           console.warn('⚠️ [TRANSFORM] Backend watermark nie jest dostępny - frontend użyje fallback w showResult()');
         }
@@ -3705,6 +3572,40 @@ class CustomifyEmbed {
       // Fallback: pokaż w górze jeśli nie określono lokalizacji
       if (this.errorMessage) {
         this.errorMessage.textContent = message;
+        this.errorMessage.style.display = 'block';
+      }
+    }
+  }
+
+  showErrorWithHTML(message, location = 'top') {
+    // Ukryj wszystkie komunikaty błędów najpierw
+    if (this.errorMessage) {
+      this.errorMessage.style.display = 'none';
+    }
+    if (this.errorMessageTransform) {
+      this.errorMessageTransform.style.display = 'none';
+    }
+    if (this.errorMessageBottom) {
+      this.errorMessageBottom.style.display = 'none';
+    }
+    
+    // Pokaż błąd z HTML w odpowiednim miejscu
+    if (location === 'transform' && this.errorMessageTransform) {
+      // Błędy transformacji - nad przyciskiem "Zobacz Podgląd"
+      this.errorMessageTransform.innerHTML = message;
+      this.errorMessageTransform.style.display = 'block';
+    } else if (location === 'cart' && this.errorMessageBottom) {
+      // Błędy koszyka - nad przyciskiem "Dodaj do koszyka"
+      this.errorMessageBottom.innerHTML = message;
+      this.errorMessageBottom.style.display = 'block';
+    } else if (location === 'top' && this.errorMessage) {
+      // Błędy uploadu/walidacji pliku - na górze
+      this.errorMessage.innerHTML = message;
+      this.errorMessage.style.display = 'block';
+    } else {
+      // Fallback: pokaż w górze jeśli nie określono lokalizacji
+      if (this.errorMessage) {
+        this.errorMessage.innerHTML = message;
         this.errorMessage.style.display = 'block';
       }
     }
