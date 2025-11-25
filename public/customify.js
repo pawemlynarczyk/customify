@@ -495,22 +495,16 @@ class CustomifyEmbed {
       console.log('🔄 [CACHE] ProductType wywnioskowany z stylu:', productType);
     }
 
-    // ✅ PRIORYTET: watermarkedImageUrl (Vercel Blob z watermarkiem) > transformedImageUrl (bez watermarku)
-    const thumbnailUrl = watermarkedImageUrl || transformedImageUrl;
-    if (watermarkedImageUrl) {
-      console.log('✅ [CACHE] Using watermarkedImageUrl for thumbnail:', watermarkedImageUrl.substring(0, 50));
-    }
-
     const generation = {
       id: Date.now(),
       timestamp: new Date().toISOString(),
       originalImage: originalImage, // base64 lub URL (zachowaj)
       transformedImage: transformedImageUrl, // ZAWSZE URL (nie base64)
-      watermarkedImageUrl: watermarkedImageUrl || null, // ✅ ZAPISZ watermarkedImageUrl (Vercel Blob z watermarkiem)
+      watermarkedImageUrl: watermarkedImageUrl || null, // ✅ ZAPISZ watermarkedImageUrl (Vercel Blob z watermarkiem) - używany tylko w wyświetlaniu
       style: style,
       size: size,
       productType: productType, // ✅ DODAJ productType (boho, king, cats, etc) - dla skalowalności
-      thumbnail: thumbnailUrl // ✅ Użyj watermarkedImageUrl jeśli dostępny, w przeciwnym razie transformedImageUrl
+      thumbnail: transformedImageUrl // ✅ ZAWSZE transformedImageUrl (zachowaj oryginalną logikę)
     };
 
     // Pobierz istniejące generacje
