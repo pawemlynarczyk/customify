@@ -104,43 +104,10 @@ module.exports = async (req, res) => {
       </html>
     `;
 
-    // Wybierz metodę wysyłania
-    const sendMethod = method || 'resend';
+    // Używamy tylko Shopify (Resend wycofany)
+    const sendMethod = method || 'shopify';
 
-    if (sendMethod === 'resend') {
-      // OPCJA 1: Resend (jeśli jest skonfigurowany)
-      if (!process.env.RESEND_API_KEY) {
-        return res.status(500).json({ 
-          error: 'RESEND_API_KEY not configured',
-          hint: 'Set RESEND_API_KEY in Vercel Dashboard or use method=shopify'
-        });
-      }
-
-      const { Resend } = require('resend');
-      const resend = new Resend(process.env.RESEND_API_KEY);
-
-      const { data, error } = await resend.emails.send({
-        from: 'Lumly <noreply@lumly.pl>', // ⚠️ Musisz zweryfikować domenę w Resend
-        to: email,
-        subject: `🧪 TEST - Twoja generacja AI jest gotowa! 🎨`,
-        html: emailHTML,
-      });
-
-      if (error) {
-        console.error('❌ [TEST-SEND-EMAIL] Resend error:', error);
-        return res.status(500).json({ error: 'Failed to send email', details: error });
-      }
-
-      console.log('✅ [TEST-SEND-EMAIL] Email sent via Resend:', data?.id);
-
-      return res.status(200).json({
-        success: true,
-        method: 'resend',
-        messageId: data?.id,
-        message: 'Test email sent successfully via Resend'
-      });
-
-    } else if (sendMethod === 'shopify') {
+    if (sendMethod === 'shopify') {
       // OPCJA 2: Shopify Customer Notification API (jeśli mamy customerId)
       const { customerId } = req.body;
 
@@ -203,7 +170,8 @@ Link do galerii: https://lumly.pl/pages/my-generations
     } else {
       return res.status(400).json({ 
         error: 'Invalid method',
-        validMethods: ['resend', 'shopify']
+        validMethods: ['shopify'],
+        note: 'Only Shopify method is supported (Resend removed)'
       });
     }
 
