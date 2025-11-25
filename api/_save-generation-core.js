@@ -504,16 +504,9 @@ async function saveGenerationHandler(req, res) {
         console.error('❌ [SAVE-GENERATION] Błąd ustawiania metafield:', metafieldError);
       }
       
-      // ✅ KROK 2: Email będzie wysłany przez Shopify Email template (nie przez send_invite)
-      // Metafield jest ustawiony - Shopify Email template użyje go do wyświetlenia obrazka
-      // Jeśli chcesz użyć send_invite jako fallback, odkomentuj kod poniżej
+      // ✅ KROK 2: Wyślij email przez send_invite (tekstowy, ale działa automatycznie)
+      // Metafield jest też ustawiany (dla przyszłego użycia z Shopify Email template)
       
-      console.log('✅ [SAVE-GENERATION] Metafield ustawiony - użyj Shopify Email template do wysłania emaila');
-      console.log('📧 [SAVE-GENERATION] Template powinien użyć: {{ customer.metafields.customify.generation_ready }}');
-      
-      // ⚠️ WYŁĄCZONE: send_invite (tekstowy) - używamy Shopify Email template zamiast tego
-      // Jeśli chcesz fallback do tekstowego emaila, odkomentuj poniższy kod:
-      /*
       try {
         const styleNames = {
           'pixar': 'Pixar',
@@ -562,12 +555,15 @@ Zespół Lumly
         });
         
         if (emailResponse.ok) {
-          console.log('✅ [SAVE-GENERATION] Email wysłany przez send_invite (fallback)');
+          console.log('✅ [SAVE-GENERATION] Email wysłany przez send_invite');
+        } else {
+          const error = await emailResponse.text();
+          console.warn('⚠️ [SAVE-GENERATION] Nie udało się wysłać emaila:', error);
         }
       } catch (error) {
         console.error('❌ [SAVE-GENERATION] Błąd wysyłania emaila przez send_invite:', error);
+        // Nie blokuj - email to bonus, nie krytyczna funkcja
       }
-      */
     } else {
       if (!customerId) {
         console.log('📧 [SAVE-GENERATION] Pomijam email - brak customerId (niezalogowany)');
