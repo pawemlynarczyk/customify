@@ -2799,11 +2799,16 @@ module.exports = async (req, res) => {
     }
 
     // ✅ ZWRÓĆ DEBUG INFO Z SAVE-GENERATION (dla przeglądarki)
+    // ✅ FALLBACK: generationId powinien być dostępny w saveGenerationDebug.generationId LUB bezpośrednio w response
+    const generationIdFromDebug = saveGenerationDebug?.generationId || null;
+    
     const responseData = { 
       success: true, 
       transformedImage: imageUrl,
       deviceToken,
-      ipHash
+      ipHash,
+      // ✅ FALLBACK: Dodaj generationId bezpośrednio w response (jeśli dostępne)
+      generationId: generationIdFromDebug || null
     };
     
     // ✅ BARDZO WIDOCZNE LOGOWANIE - SPRAWDŹ CZY saveGenerationDebug JEST USTAWIONE
@@ -2811,6 +2816,7 @@ module.exports = async (req, res) => {
     console.log(`🔍 [TRANSFORM] saveGenerationDebug value:`, saveGenerationDebug);
     console.log(`🔍 [TRANSFORM] saveGenerationDebug type:`, typeof saveGenerationDebug);
     console.log(`🔍 [TRANSFORM] saveGenerationDebug !== null:`, saveGenerationDebug !== null);
+    console.log(`🔍 [TRANSFORM] generationId z debug:`, generationIdFromDebug);
     
     // ✅ ZAWSZE DODAJ DEBUG INFO - NAWET JEŚLI JEST NULL (dla debugowania)
     responseData.saveGenerationDebug = saveGenerationDebug;
@@ -2822,8 +2828,18 @@ module.exports = async (req, res) => {
       console.warn(`⚠️ [TRANSFORM] To może oznaczać, że save-generation-v2 nie został wywołany lub nie zwrócił debug info`);
     }
     
+    // ✅ WALIDACJA: Upewnij się że generationId jest dostępne (dla aktualizacji watermarka)
+    if (!responseData.generationId) {
+      console.error(`❌ [TRANSFORM] ===== UWAGA: generationId nie jest dostępne w response =====`);
+      console.error(`❌ [TRANSFORM] Frontend nie będzie mógł zaktualizować watermarka!`);
+      console.error(`❌ [TRANSFORM] saveGenerationDebug:`, saveGenerationDebug);
+    } else {
+      console.log(`✅ [TRANSFORM] generationId dostępne w response: ${responseData.generationId}`);
+    }
+    
     console.log(`🔍 [TRANSFORM] Final responseData keys:`, Object.keys(responseData));
     console.log(`🔍 [TRANSFORM] Final responseData.saveGenerationDebug:`, responseData.saveGenerationDebug);
+    console.log(`🔍 [TRANSFORM] Final responseData.generationId:`, responseData.generationId);
     console.log(`🔍🔍🔍 [TRANSFORM] ===== KONIEC SPRAWDZANIA saveGenerationDebug =====`);
     
     res.json(responseData);
