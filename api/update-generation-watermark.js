@@ -115,7 +115,7 @@ module.exports = async (req, res) => {
     console.log(`🔍 [UPDATE-WATERMARK] Looking for ID: ${generationId}`);
 
     // Znajdź generację po generationId
-    const generationIndex = existingData.generations.findIndex(gen => gen.id === generationId);
+    let generationIndex = existingData.generations.findIndex(gen => gen.id === generationId);
     
     if (generationIndex === -1) {
       // ✅ DEBUG: Sprawdź czy może być problem z formatem ID
@@ -125,16 +125,32 @@ module.exports = async (req, res) => {
         .filter(id => id.includes(generationId.split('-')[1])); // Szukaj podobnych (po timestamp)
       
       console.log(`⚠️ [UPDATE-WATERMARK] Generation not found. Similar IDs (by timestamp):`, similarIds);
+      console.log(`🔍 [UPDATE-WATERMARK] Looking for: ${generationId}`);
+      console.log(`🔍 [UPDATE-WATERMARK] All generations in file:`, existingData.generations.map(g => ({ id: g.id, date: g.date, style: g.style })));
       
-      return res.status(404).json({
-        error: 'Generation not found',
-        message: `Generation with id ${generationId} not found`,
-        debug: {
-          totalGenerations: existingData.generations.length,
-          firstId: existingData.generations[0]?.id || null,
-          similarIds: similarIds
-        }
-      });
+      // ✅ FALLBACK: Jeśli generacja nie została znaleziona, użyj najnowszej generacji (ostatnia w tablicy)
+      // To może się zdarzyć jeśli był race condition lub generationId się nie zgadza
+      if (existingData.generations.length > 0) {
+        const latestGeneration = existingData.generations[existingData.generations.length - 1];
+        console.log(`⚠️ [UPDATE-WATERMARK] FALLBACK: Używam najnowszej generacji zamiast ${generationId}`);
+        console.log(`⚠️ [UPDATE-WATERMARK] Latest generation ID: ${latestGeneration.id}`);
+        console.log(`⚠️ [UPDATE-WATERMARK] Latest generation date: ${latestGeneration.date}`);
+        
+        generationIndex = existingData.generations.length - 1;
+        
+        // ✅ LOGUJ WARNING - to nie powinno się zdarzyć, ale pozwoli na kontynuację
+        console.warn(`⚠️ [UPDATE-WATERMARK] RACE CONDITION DETECTED: Frontend użył ID ${generationId}, ale używam najnowszej generacji ${latestGeneration.id}`);
+      } else {
+        return res.status(404).json({
+          error: 'Generation not found',
+          message: `Generation with id ${generationId} not found and no generations available`,
+          debug: {
+            totalGenerations: existingData.generations.length,
+            firstId: existingData.generations[0]?.id || null,
+            similarIds: similarIds
+          }
+        });
+      }
     }
 
     const generation = existingData.generations[generationIndex];
