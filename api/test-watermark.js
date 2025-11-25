@@ -94,24 +94,35 @@ module.exports = async (req, res) => {
     const watermarkSize = Math.min(width, height) * 0.40;
     console.log(`📏 [TEST-WATERMARK] Watermark size: ${Math.round(watermarkSize)}px (40% of image, original: 2000x2000px)`);
     
-    const watermarkTile = await sharp(watermarkBuffer)
+    // KROK 4a: Zastosuj opacity 15% do watermarku PNG (jeśli PNG nie ma przezroczystości)
+    // Sharp composite używa alpha channel z PNG, ale możemy wymusić opacity przez composite
+    const watermarkWithOpacity = await sharp(watermarkBuffer)
       .resize(Math.round(watermarkSize), Math.round(watermarkSize), {
         fit: 'contain',
         background: { r: 0, g: 0, b: 0, alpha: 0 } // Transparent background
       })
+      .composite([
+        {
+          input: Buffer.from(`<svg width="${Math.round(watermarkSize)}" height="${Math.round(watermarkSize)}">
+            <rect width="100%" height="100%" fill="white" opacity="0.15"/>
+          </svg>`),
+          blend: 'dest-in' // Użyj jako maska alpha (15% opacity)
+        }
+      ])
+      .png() // Zachowaj alpha channel
       .toBuffer();
 
-    console.log('✅ [TEST-WATERMARK] Watermark tile resized:', watermarkTile.length, 'bytes');
+    console.log('✅ [TEST-WATERMARK] Watermark tile resized with 15% opacity:', watermarkWithOpacity.length, 'bytes');
 
     // KROK 5: Sharp composite - nakładaj watermark w siatce (tile: true)
-    // Watermark PNG jest już mały (400x400px), Sharp automatycznie powtórzy go w siatce
-    console.log('🎨 [TEST-WATERMARK] Applying watermark in tile grid (automatic spacing)...');
+    // Watermark PNG jest już mały (400x400px) z 15% opacity, Sharp automatycznie powtórzy go w siatce
+    console.log('🎨 [TEST-WATERMARK] Applying watermark in tile grid with 15% opacity (automatic spacing)...');
     
     const watermarkedBuffer = await sharp(testImageBuffer)
       .composite([
         {
-          input: watermarkTile,
-          blend: 'over',
+          input: watermarkWithOpacity,
+          blend: 'over', // Sharp użyje alpha channel z PNG (15% opacity)
           tile: true, // Sharp automatycznie powtarza watermark w siatce
           gravity: 'center'
         }
