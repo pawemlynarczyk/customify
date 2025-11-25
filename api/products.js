@@ -39,7 +39,8 @@ module.exports = async (req, res) => {
   const { 
     originalImage, 
     transformedImage, 
-    watermarkedImage, // ✅ Obrazek Z watermarkiem - do uploadu na Shopify (miniaturka)
+    watermarkedImage, // ✅ Obrazek Z watermarkiem (frontend fallback) - do uploadu na Shopify (miniaturka)
+    watermarkedImageUrl, // ✅ Obrazek Z watermarkiem (backend PNG) - PRIORYTET - do uploadu na Shopify (miniaturka)
     style, 
     size, 
     productType, // Rodzaj wydruku: plakat lub canvas
@@ -227,10 +228,17 @@ module.exports = async (req, res) => {
     // Product created successfully
 
     // KROK 2: Pobierz obrazek Z WATERMARKIEM (dla miniaturki w Shopify)
-    // ✅ Używamy watermarkedImage (Z watermarkiem) zamiast transformedImage (BEZ watermarku)
+    // ✅ Używamy watermarkedImageUrl (Z watermarkiem) zamiast transformedImage (BEZ watermarku)
     // ✅ Użytkownik widzi miniaturkę Z watermarkiem w koszyku i checkout
     let imageBuffer;
-    const imageToUpload = watermarkedImage || transformedImage; // Fallback jeśli brak watermarked
+    // Priorytet: watermarkedImageUrl z request body (backend PNG) > watermarkedImage (frontend Canvas) > transformedImage (bez watermarku)
+    const imageToUpload = watermarkedImageUrl || watermarkedImage || transformedImage;
+    console.log('📦 [PRODUCTS] Image to upload priority:', {
+      hasWatermarkedImageUrl: !!watermarkedImageUrl,
+      hasWatermarkedImage: !!watermarkedImage,
+      hasTransformedImage: !!transformedImage,
+      selected: watermarkedImageUrl ? 'watermarkedImageUrl (backend)' : watermarkedImage ? 'watermarkedImage (frontend)' : 'transformedImage (no watermark)'
+    });
     
     if (imageToUpload.startsWith('data:image')) {
       // Base64 format - convert directly
