@@ -2211,8 +2211,9 @@ module.exports = async (req, res) => {
     console.log(`🔍 [TRANSFORM] Warunek: imageUrl = ${!!imageUrl}`);
     console.log(`🔍 [TRANSFORM] productType: ${finalProductType}`);
     
-    // ✅ Inicjalizuj finalImageUrl - będzie ustawiony podczas przetwarzania obrazu
+    // ✅ Inicjalizuj finalImageUrl i watermarkedImageUrl - będą ustawione podczas przetwarzania obrazu
     let finalImageUrl = imageUrl; // Domyślnie użyj imageUrl (dla Replicate URLs)
+    let watermarkedImageUrl = null; // ✅ Z watermarkem (backend PNG) - dla podglądu/koszyka
     
     if (imageUrl) {
       console.log(`✅ [TRANSFORM] WARUNEK SPEŁNIONY - zapisuję generację`);
@@ -2223,11 +2224,7 @@ module.exports = async (req, res) => {
       try {
         // Sprawdź czy obraz jest już w Vercel Blob
         // finalImageUrl będzie ustawiony podczas przetwarzania (base64 → Vercel Blob URL)
-        
-        // ✅ Inicjalizuj watermarkedImageUrl (dodatkowa wersja z watermarkiem dla zalogowanych)
-        // 🎨 WATERMARK GENEROWANY PO TRANSFORMACJI AI w frontendzie (nie przed!)
-        // Watermark zostanie zaktualizowany przez /api/update-generation-watermark
-        let watermarkedImageUrl = null;
+        // watermarkedImageUrl będzie ustawiony podczas przetwarzania (z backend watermark PNG)
         
         // 🚨 FIX: Jeśli to base64 data URI (Segmind Caricature), uploaduj do Vercel Blob BEZPOŚREDNIO
         // Base64 przekracza limit Vercel 4.5MB w request body - użyj SDK zamiast API endpoint
@@ -2900,7 +2897,8 @@ module.exports = async (req, res) => {
     // ✅ ZWRÓĆ DEBUG INFO Z SAVE-GENERATION (dla przeglądarki)
     const responseData = { 
       success: true, 
-      transformedImage: imageUrl,
+      transformedImage: imageUrl, // Oryginał BEZ watermarku (do druku)
+      watermarkedImageUrl: watermarkedImageUrl || null, // Obraz Z watermarkem (backend PNG) - dla podglądu/koszyka
       deviceToken,
       ipHash
     };

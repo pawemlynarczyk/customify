@@ -67,9 +67,9 @@ module.exports = async (req, res) => {
 
     console.log('✅ [TEST-WATERMARK] Test image loaded:', testImageBuffer.length, 'bytes');
 
-    // KROK 2: Pobierz watermark PNG (mały plik do siatki z opacity)
+    // KROK 2: Pobierz watermark PNG (mały plik do siatki z opacity 22%)
     const watermarkUrl = 'https://customify-s56o.vercel.app/watermark_22.png';
-    console.log('📥 [TEST-WATERMARK] Fetching watermark PNG (with opacity):', watermarkUrl);
+    console.log('📥 [TEST-WATERMARK] Fetching watermark PNG (22% opacity):', watermarkUrl);
     
     const watermarkResponse = await fetch(watermarkUrl);
     if (!watermarkResponse.ok) {
@@ -77,7 +77,7 @@ module.exports = async (req, res) => {
       return res.status(404).json({
         error: 'Watermark PNG not found',
         message: `Watermark PNG not found at: ${watermarkUrl}`,
-        instruction: 'Please create public/watermark_22.png (400x400px, transparent with opacity, text "Lumly.pl" rotated -30°)'
+        instruction: 'Please create public/watermark_22.png (400x400px, transparent with 22% opacity, text "Lumly.pl" rotated -30°)'
       });
     }
 
