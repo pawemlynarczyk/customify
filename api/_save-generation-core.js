@@ -515,9 +515,20 @@ async function saveGenerationHandler(req, res) {
         console.error('❌ [SAVE-GENERATION] Błąd ustawiania metafield:', metafieldError);
       }
       
-      // ✅ KROK 2: Wyślij email przez send_invite (tekstowy, ale działa automatycznie)
-      // Metafield jest też ustawiany (dla przyszłego użycia z Shopify Email template)
+      // ✅ KROK 2: Email będzie wysłany przez Shopify Flow + Shopify Email template
+      // Metafield jest ustawiony - Shopify Flow wyśle email z template (z obrazkiem)
+      // NIE używamy send_invite (tekstowy) - używamy Shopify Email template
       
+      console.log('✅ [SAVE-GENERATION] Metafield ustawiony - Shopify Flow wyśle email z template');
+      console.log('📧 [SAVE-GENERATION] Upewnij się że Shopify Flow jest skonfigurowany:');
+      console.log('📧 [SAVE-GENERATION] 1. Shopify Admin → Settings → Automation → Flows');
+      console.log('📧 [SAVE-GENERATION] 2. Trigger: Customer updated');
+      console.log('📧 [SAVE-GENERATION] 3. Condition: customify.generation_ready is not empty');
+      console.log('📧 [SAVE-GENERATION] 4. Action: Send email → wybierz template z Custom Liquid');
+      
+      // ⚠️ WYŁĄCZONE: send_invite (tekstowy) - używamy Shopify Email template zamiast tego
+      // Jeśli chcesz fallback do tekstowego emaila, odkomentuj poniższy kod:
+      /*
       try {
         const styleNames = {
           'pixar': 'Pixar',
@@ -566,15 +577,12 @@ Zespół Lumly
         });
         
         if (emailResponse.ok) {
-          console.log('✅ [SAVE-GENERATION] Email wysłany przez send_invite');
-        } else {
-          const error = await emailResponse.text();
-          console.warn('⚠️ [SAVE-GENERATION] Nie udało się wysłać emaila:', error);
+          console.log('✅ [SAVE-GENERATION] Email wysłany przez send_invite (fallback)');
         }
       } catch (error) {
         console.error('❌ [SAVE-GENERATION] Błąd wysyłania emaila przez send_invite:', error);
-        // Nie blokuj - email to bonus, nie krytyczna funkcja
       }
+      */
     } else {
       // ✅ DEBUG: Pokaż dokładnie dlaczego email nie został wysłany
       console.log('⚠️ [SAVE-GENERATION] ===== EMAIL NIE ZOSTAŁ WYSŁANY - SPRAWDŹ WARUNKI =====');
