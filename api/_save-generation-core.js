@@ -126,7 +126,7 @@ async function saveGenerationHandler(req, res) {
       });
     }
 
-    const { customerId, email, ip: ipFromBody, ipHash: ipHashFromBody, deviceToken, imageUrl, watermarkedImageUrl, style, productType, originalImageUrl } = req.body;
+    const { customerId, email, ip: ipFromBody, ipHash: ipHashFromBody, deviceToken, imageUrl, watermarkedImageUrl, style, size, productType, originalImageUrl } = req.body;
     
     // ✅ Użyj IP z body jeśli podane, w przeciwnym razie użyj IP z request
     const finalIp = ipFromBody || ip;

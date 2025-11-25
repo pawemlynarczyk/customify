@@ -2413,6 +2413,7 @@ module.exports = async (req, res) => {
           imageUrl: finalImageUrl, // ✅ BEZ watermarku (do realizacji zamówienia)
           watermarkedImageUrl: watermarkedImageUrl || null, // ✅ Z watermarkem (backend PNG) - dla podglądu/koszyka
           style: prompt || 'unknown',
+          size: null, // ✅ Size nie jest dostępny w transform.js (użytkownik wybiera rozmiar później, po transformacji)
           productType: finalProductType,
           originalImageUrl: null // Opcjonalnie - można dodać później
         };
