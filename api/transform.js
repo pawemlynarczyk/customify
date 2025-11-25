@@ -2388,10 +2388,14 @@ module.exports = async (req, res) => {
         // ✅ Dla niezalogowanych używamy IP jako identyfikatora
         // ✅ Użyj email z GraphQL (customer?.email) jeśli dostępny, w przeciwnym razie z request body
         // customerEmailFromGraphQL jest zdefiniowany w sekcji sprawdzania limitów (linia ~1810)
-        const finalEmail = customerEmailFromGraphQL || email || null;
+        // Jeśli customerEmailFromGraphQL nie jest dostępny (poza blokiem if), użyj customer?.email bezpośrednio
+        const finalEmail = (typeof customerEmailFromGraphQL !== 'undefined' ? customerEmailFromGraphQL : null) || 
+                          (typeof customer !== 'undefined' && customer?.email ? customer.email : null) || 
+                          email || null;
         
         console.log(`📧 [TRANSFORM] Email do zapisu generacji:`, {
-          fromGraphQL: customerEmailFromGraphQL || null,
+          fromGraphQLVariable: typeof customerEmailFromGraphQL !== 'undefined' ? customerEmailFromGraphQL : 'undefined',
+          fromCustomerObject: typeof customer !== 'undefined' && customer?.email ? customer.email : 'undefined',
           fromRequestBody: email || null,
           final: finalEmail || null
         });
