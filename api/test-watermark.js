@@ -67,9 +67,9 @@ module.exports = async (req, res) => {
 
     console.log('✅ [TEST-WATERMARK] Test image loaded:', testImageBuffer.length, 'bytes');
 
-    // KROK 2: Pobierz watermark PNG
-    const watermarkUrl = 'https://customify-s56o.vercel.app/watermark.png';
-    console.log('📥 [TEST-WATERMARK] Fetching watermark PNG:', watermarkUrl);
+    // KROK 2: Pobierz watermark PNG (mały plik do siatki)
+    const watermarkUrl = 'https://customify-s56o.vercel.app/watermark_small.png';
+    console.log('📥 [TEST-WATERMARK] Fetching watermark PNG (small tile):', watermarkUrl);
     
     const watermarkResponse = await fetch(watermarkUrl);
     if (!watermarkResponse.ok) {
@@ -77,7 +77,7 @@ module.exports = async (req, res) => {
       return res.status(404).json({
         error: 'Watermark PNG not found',
         message: `Watermark PNG not found at: ${watermarkUrl}`,
-        instruction: 'Please create public/watermark.png (2000x2000px, transparent, text "Lumly.pl" rotated -30°)'
+        instruction: 'Please create public/watermark_small.png (400x400px, transparent, text "Lumly.pl" rotated -30°)'
       });
     }
 
@@ -103,22 +103,17 @@ module.exports = async (req, res) => {
 
     console.log('✅ [TEST-WATERMARK] Watermark tile resized:', watermarkTile.length, 'bytes');
 
-    // KROK 5: Sharp composite - nakładaj POJEDYNCZY watermark na środku (1:1, nie siatka!)
-    console.log('🎨 [TEST-WATERMARK] Applying SINGLE watermark in center (not tile!)...');
-    
-    // Obróć watermark -30° (diagonalnie)
-    const rotatedWatermark = await sharp(watermarkTile)
-      .rotate(-30, {
-        background: { r: 0, g: 0, b: 0, alpha: 0 } // Transparent background
-      })
-      .toBuffer();
+    // KROK 5: Sharp composite - nakładaj watermark w siatce (tile: true)
+    // Watermark PNG jest już mały (400x400px), Sharp automatycznie powtórzy go w siatce
+    console.log('🎨 [TEST-WATERMARK] Applying watermark in tile grid (automatic spacing)...');
     
     const watermarkedBuffer = await sharp(testImageBuffer)
       .composite([
         {
-          input: rotatedWatermark,
+          input: watermarkTile,
           blend: 'over',
-          gravity: 'center' // POJEDYNCZY watermark na środku, NIE tile!
+          tile: true, // Sharp automatycznie powtarza watermark w siatce
+          gravity: 'center'
         }
       ])
       .jpeg({ quality: 92 })
