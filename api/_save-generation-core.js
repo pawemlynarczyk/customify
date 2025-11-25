@@ -457,14 +457,25 @@ async function saveGenerationHandler(req, res) {
     // ✅ USTAW METAFIELD I WYŚLIJ EMAIL PRZEZ SHOPIFY API
     // 1. Najpierw ustaw metafield (dla Shopify Email template)
     // 2. Potem wyślij email przez send_invite (fallback) lub Shopify Email API
+    
+    // ✅ DEBUG: Sprawdź wszystkie warunki przed wysłaniem emaila
+    console.log('📧 [SAVE-GENERATION] ===== SPRAWDZAM WARUNKI WYSYŁANIA EMAILA =====');
+    console.log('📧 [SAVE-GENERATION] customerId:', customerId, typeof customerId);
+    console.log('📧 [SAVE-GENERATION] email:', email, typeof email);
+    console.log('📧 [SAVE-GENERATION] watermarkedImageUrl:', watermarkedImageUrl ? watermarkedImageUrl.substring(0, 50) + '...' : 'NULL');
+    console.log('📧 [SAVE-GENERATION] SHOPIFY_ACCESS_TOKEN exists:', !!process.env.SHOPIFY_ACCESS_TOKEN);
+    console.log('📧 [SAVE-GENERATION] Warunek (customerId && email && watermarkedImageUrl && token):', 
+      !!(customerId && email && watermarkedImageUrl && process.env.SHOPIFY_ACCESS_TOKEN));
+    
     if (customerId && email && watermarkedImageUrl && process.env.SHOPIFY_ACCESS_TOKEN) {
       const shop = process.env.SHOP_DOMAIN || 'customify-ok.myshopify.com';
       const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
       
-      console.log('📧 [SAVE-GENERATION] Ustawiam metafield i wysyłam email:', {
+      console.log('✅ [SAVE-GENERATION] Wszystkie warunki spełnione - wysyłam email:', {
         customerId,
         email: email.substring(0, 10) + '...',
-        hasWatermarkedUrl: !!watermarkedImageUrl
+        hasWatermarkedUrl: !!watermarkedImageUrl,
+        shop
       });
       
       // ✅ KROK 1: Ustaw metafield generation_ready (dla Shopify Email template)
@@ -565,12 +576,18 @@ Zespół Lumly
         // Nie blokuj - email to bonus, nie krytyczna funkcja
       }
     } else {
+      // ✅ DEBUG: Pokaż dokładnie dlaczego email nie został wysłany
+      console.log('⚠️ [SAVE-GENERATION] ===== EMAIL NIE ZOSTAŁ WYSŁANY - SPRAWDŹ WARUNKI =====');
       if (!customerId) {
-        console.log('📧 [SAVE-GENERATION] Pomijam email - brak customerId (niezalogowany)');
+        console.log('❌ [SAVE-GENERATION] Pomijam email - brak customerId (niezalogowany)');
       } else if (!email) {
-        console.log('📧 [SAVE-GENERATION] Pomijam email - brak emaila');
+        console.log('❌ [SAVE-GENERATION] Pomijam email - brak emaila (customerId:', customerId, 'ale email:', email);
       } else if (!watermarkedImageUrl) {
-        console.log('📧 [SAVE-GENERATION] Pomijam email - brak watermarkedImageUrl');
+        console.log('❌ [SAVE-GENERATION] Pomijam email - brak watermarkedImageUrl (customerId:', customerId, 'email:', email);
+      } else if (!process.env.SHOPIFY_ACCESS_TOKEN) {
+        console.log('❌ [SAVE-GENERATION] Pomijam email - brak SHOPIFY_ACCESS_TOKEN w env');
+      } else {
+        console.log('❌ [SAVE-GENERATION] Pomijam email - nieznany powód (sprawdź warunki)');
       }
     }
 
