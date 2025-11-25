@@ -2577,7 +2577,7 @@ class CustomifyEmbed {
 
         if (response.status === 403 && errorJson?.error === 'Image already used') {
           console.warn('⚠️ [IMAGE-HASH] Image already used response from API:', errorJson);
-          const baseMessage = errorJson.message || 'To zdjęcie zostało już użyte, spróbuj inne zdjęcie lub inny produkt';
+          const baseMessage = errorJson.message || 'Dla tego zdjęcia wynik jest gotowy, zobacz poniżej. Spróbuj inne zdjęcie, albo inne produkty';
           // Utwórz komunikat z linkiem do innych produktów
           const messageWithLink = `${baseMessage} <a href="/collections/all" style="color: #0066cc; text-decoration: underline;">Zobacz inne produkty</a>`;
           this.showErrorWithHTML(messageWithLink, 'transform');

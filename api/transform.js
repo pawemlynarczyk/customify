@@ -1417,7 +1417,7 @@ module.exports = async (req, res) => {
           });
           return res.status(403).json({
             error: 'Image already used',
-            message: `To zdjęcie zostało już użyte, spróbuj inne zdjęcie lub inny produkt`,
+            message: `Dla tego zdjęcia wynik jest gotowy, zobacz poniżej. Spróbuj inne zdjęcie, albo inne produkty`,
             showLoginModal: false,
             count: imageHashCheck.count,
             limit: imageHashCheck.limit,
