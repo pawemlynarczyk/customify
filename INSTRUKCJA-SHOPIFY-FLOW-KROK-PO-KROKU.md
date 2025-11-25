@@ -28,7 +28,9 @@ Wysyłać email z obrazkiem (Shopify Email template) zamiast tekstowego (`send_i
 2. **Condition** (warunek):
    - **If** `Customer tags` → `contains` → `generation-ready`
 
-**Uwaga**: Kod automatycznie dodaje tag `generation-ready` do customera po ustawieniu metafield. Flow reaguje na ten tag.
+**Uwaga**: Kod automatycznie dodaje tag `generation-ready` do customera po ustawieniu metafield. 
+- Jeśli tag **NIE istnieje** → kod dodaje tag (Flow się uruchomi)
+- Jeśli tag **już istnieje** → kod najpierw usuwa tag, czeka 500ms, potem dodaje ponownie (Flow się uruchomi za każdym razem)
 
 ---
 
@@ -58,7 +60,9 @@ Wysyłać email z obrazkiem (Shopify Email template) zamiast tekstowego (`send_i
 - Sprawdź czy metafield został ustawiony (Shopify Admin → Customers → [Customer] → Metafields)
 - Sprawdź czy tag `generation-ready` został dodany (Shopify Admin → Customers → [Customer] → Tags)
 - Sprawdź warunki w Flow (czy są poprawne - tag `generation-ready`)
-- Sprawdź logi Vercel: `📧 [SAVE-GENERATION] Tag "generation-ready" dodany do customera`
+- Sprawdź logi Vercel: 
+  - `✅ [SAVE-GENERATION] Tag "generation-ready" usunięty` (jeśli tag istniał)
+  - `✅ [SAVE-GENERATION] Tag "generation-ready" dodany` (lub "dodany ponownie")
 
 ### Problem: Email przychodzi bez obrazka
 - Sprawdź czy template ma kod z `SHOPIFY-EMAIL-CUSTOM-LIQUID.md`
@@ -74,6 +78,7 @@ Wysyłać email z obrazkiem (Shopify Email template) zamiast tekstowego (`send_i
 ## 📝 UWAGI
 
 - **Metafield jest ustawiany automatycznie** - kod już to robi
+- **Tag jest usuwany i dodawany w osobnych operacjach** - żeby Flow się uruchomił za każdym razem (nawet jeśli tag już istniał)
 - **Flow musi być skonfigurowany ręcznie** - nie da się tego zrobić przez API
 - **Template musi mieć kod Liquid** - z `SHOPIFY-EMAIL-CUSTOM-LIQUID.md`
 - **Email będzie z obrazkiem** - jeśli wszystko jest skonfigurowane poprawnie
