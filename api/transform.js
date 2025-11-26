@@ -1911,6 +1911,7 @@ module.exports = async (req, res) => {
       };
     } else if (config.apiType === 'nano-banana') {
       // Nano-banana model parameters - obsługuje 1 lub 2 obrazki
+      // ⚠️ KRYTYCZNE: Nano-banana wymaga URL, nie base64! Musimy uploadować do Vercel Blob
       
       // Domyślne parametry z config
       let aspectRatio = config.parameters.aspect_ratio;
@@ -1923,33 +1924,57 @@ module.exports = async (req, res) => {
       
       console.log(`🖼️ [NANO-BANANA] Using aspect_ratio: ${aspectRatio}, output_format: ${outputFormat}, guidance: ${guidance}`);
       
-      // Sprawdź czy to styl boho (1 obrazek) czy koty (2 obrazki)
-      if (finalProductType === 'boho') {
-        // Style boho - tylko obrazek użytkownika
-        // ✅ FIX: Dodaj negative_prompt do głównego promptu
+      // ✅ UPLOAD BASE64 DO VERCEL BLOB (nano-banana wymaga URL, nie base64)
+      console.log('📤 [NANO-BANANA] Uploading user image to Vercel Blob Storage (nano-banana requires URL, not base64)...');
+      const baseUrl = 'https://customify-s56o.vercel.app';
+      const uploadResponse = await fetch(`${baseUrl}/api/upload-temp-image`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          imageData: imageDataUri,
+          filename: `nano-banana-${Date.now()}.jpg`
+        })
+      });
+
+      if (!uploadResponse.ok) {
+        const errorText = await uploadResponse.text();
+        console.error('❌ [NANO-BANANA] Vercel Blob upload failed:', errorText);
+        throw new Error(`Vercel Blob upload failed: ${uploadResponse.status} - ${errorText}`);
+      }
+
+      const uploadResult = await uploadResponse.json();
+      const userImageUrl = uploadResult.imageUrl;
+      console.log('✅ [NANO-BANANA] User image uploaded to Vercel Blob:', userImageUrl);
+      
+      // Sprawdź czy to styl boho (1 obrazek) czy koty/zamkowy (2 obrazki lub 1 obrazek)
+      if (finalProductType === 'boho' || finalProductType === 'other') {
+        // Style boho/zamkowy - tylko obrazek użytkownika (jako URL)
+        // ✅ FIX: Dodaj negative_prompt do głównego promptu (tylko dla boho)
         let fullPrompt = config.prompt;
-        if (config.negative_prompt) {
+        if (config.negative_prompt && finalProductType === 'boho') {
           fullPrompt += ` [NEGATIVE PROMPT: ${config.negative_prompt}]`;
           console.log(`✅ [NANO-BANANA] Added negative prompt to boho style`);
         }
         
         inputParams = {
           prompt: fullPrompt,
-          image_input: [imageDataUri], // Tylko obrazek użytkownika
+          image_input: [userImageUrl], // URL z Vercel Blob, nie base64!
           aspect_ratio: aspectRatio,
           output_format: outputFormat,
           guidance: guidance
         };
         
-        console.log(`📸 [NANO-BANANA] Boho style - 1 obrazek (user): ${imageDataUri.substring(0, 50)}...`);
+        console.log(`📸 [NANO-BANANA] Boho/Zamkowy style - 1 obrazek (user URL): ${userImageUrl}`);
         console.log(`📸 [NANO-BANANA] image_input array length: ${inputParams.image_input.length}`);
       } else {
         // Style kotów - 2 obrazki (miniaturka + użytkownik)
         inputParams = {
           prompt: config.prompt,
           image_input: [
-            config.parameters.image_input[0], // Miniaturka stylu z parameters
-            imageDataUri // Obrazek użytkownika
+            config.parameters.image_input[0], // Miniaturka stylu z parameters (już URL)
+            userImageUrl // Obrazek użytkownika jako URL z Vercel Blob
           ],
           aspect_ratio: aspectRatio,
           output_format: outputFormat
@@ -1957,7 +1982,7 @@ module.exports = async (req, res) => {
         
         // Szczegółowe logowanie dla debugowania
         console.log(`📸 [NANO-BANANA] Cats style - Obraz 1 (miniaturka): ${config.parameters.image_input[0]}`);
-        console.log(`📸 [NANO-BANANA] Cats style - Obraz 2 (user): ${imageDataUri.substring(0, 50)}...`);
+        console.log(`📸 [NANO-BANANA] Cats style - Obraz 2 (user URL): ${userImageUrl}`);
         console.log(`📸 [NANO-BANANA] image_input array length: ${inputParams.image_input.length}`);
       }
     } else {
