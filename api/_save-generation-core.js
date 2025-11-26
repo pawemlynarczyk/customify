@@ -566,109 +566,7 @@ async function saveGenerationHandler(req, res) {
           console.log('✅ [SAVE-GENERATION] Metafield key:', metafieldResult.metafield?.key);
           console.log('✅ [SAVE-GENERATION] Metafield value preview:', JSON.stringify(metafieldResult.metafield?.value).substring(0, 100) + '...');
           
-          // ✅ KROK 1.5: Dodaj tag do customera (trigger dla Shopify Flow)
-          // Shopify Flow nie ma triggera "Customer updated", ale ma "Customer tags added"
-          // ⚠️ WAŻNE: Rozdzielamy na dwie operacje (usuń → poczekaj → dodaj) żeby Flow się uruchomił za każdym razem
-          try {
-            // Najpierw pobierz aktualne tagi customera
-            const customerResponse = await fetch(`https://${shop}/admin/api/2023-10/customers/${customerId}.json`, {
-              method: 'GET',
-              headers: {
-                'X-Shopify-Access-Token': accessToken,
-                'Content-Type': 'application/json'
-              }
-            });
-            
-            if (customerResponse.ok) {
-              const customerData = await customerResponse.json();
-              const currentTags = customerData.customer?.tags?.split(', ').filter(t => t && t.trim()) || [];
-              const tagExists = currentTags.includes('generation-ready');
-              
-              // ✅ OPCJA 2: Rozdzielamy na dwie operacje (usuń → poczekaj → dodaj)
-              if (tagExists) {
-                // KROK 1: Usuń tag (osobne PUT)
-                const tagsWithoutGenerationReady = currentTags.filter(t => t !== 'generation-ready');
-                const tagsToRemove = tagsWithoutGenerationReady.join(', ');
-                
-                const removeResponse = await fetch(`https://${shop}/admin/api/2023-10/customers/${customerId}.json`, {
-                  method: 'PUT',
-                  headers: {
-                    'X-Shopify-Access-Token': accessToken,
-                    'Content-Type': 'application/json'
-                  },
-                  body: JSON.stringify({
-                    customer: {
-                      id: customerId,
-                      tags: tagsToRemove
-                    }
-                  })
-                });
-                
-                if (removeResponse.ok) {
-                  console.log('✅ [SAVE-GENERATION] Tag "generation-ready" usunięty (przygotowanie do ponownego dodania)');
-                  
-                  // KROK 2: Poczekaj 500ms (żeby Shopify zarejestrował zmianę)
-                  await new Promise(resolve => setTimeout(resolve, 500));
-                  
-                  // KROK 3: Dodaj tag ponownie (osobne PUT)
-                  const tagsWithGenerationReady = [...tagsWithoutGenerationReady, 'generation-ready'].join(', ');
-                  
-                  const addResponse = await fetch(`https://${shop}/admin/api/2023-10/customers/${customerId}.json`, {
-                    method: 'PUT',
-                    headers: {
-                      'X-Shopify-Access-Token': accessToken,
-                      'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                      customer: {
-                        id: customerId,
-                        tags: tagsWithGenerationReady
-                      }
-                    })
-                  });
-                  
-                  if (addResponse.ok) {
-                    console.log('✅ [SAVE-GENERATION] Tag "generation-ready" dodany ponownie (trigger dla Shopify Flow)');
-                    console.log('📧 [SAVE-GENERATION] Flow powinien się uruchomić (tag został usunięty i dodany w osobnych operacjach)');
-                  } else {
-                    const error = await addResponse.text();
-                    console.warn('⚠️ [SAVE-GENERATION] Nie udało się dodać tagu po usunięciu:', error);
-                  }
-                } else {
-                  const error = await removeResponse.text();
-                  console.warn('⚠️ [SAVE-GENERATION] Nie udało się usunąć tagu:', error);
-                }
-              } else {
-                // Tag nie istnieje - po prostu dodaj (osobne PUT)
-                const tagsWithGenerationReady = [...currentTags, 'generation-ready'].join(', ');
-                
-                const addResponse = await fetch(`https://${shop}/admin/api/2023-10/customers/${customerId}.json`, {
-                  method: 'PUT',
-                  headers: {
-                    'X-Shopify-Access-Token': accessToken,
-                    'Content-Type': 'application/json'
-                  },
-                  body: JSON.stringify({
-                    customer: {
-                      id: customerId,
-                      tags: tagsWithGenerationReady
-                    }
-                  })
-                });
-                
-                if (addResponse.ok) {
-                  console.log('✅ [SAVE-GENERATION] Tag "generation-ready" dodany do customera (trigger dla Shopify Flow)');
-                  console.log('📧 [SAVE-GENERATION] Flow powinien się uruchomić (tag został dodany)');
-                } else {
-                  const error = await addResponse.text();
-                  console.warn('⚠️ [SAVE-GENERATION] Nie udało się dodać tagu:', error);
-                }
-              }
-            }
-          } catch (tagError) {
-            console.error('❌ [SAVE-GENERATION] Błąd dodawania/usuwania tagu:', tagError);
-            // Nie blokuj - tag to tylko trigger dla Flow
-          }
+          // ✅ Metafield zapisany - email zostanie wysłany przez /api/send-generation-email
         } else {
           const error = await metafieldResponse.text();
           console.error('❌ [SAVE-GENERATION] ===== BŁĄD SHOPIFY METAFIELD =====');
@@ -689,16 +587,8 @@ async function saveGenerationHandler(req, res) {
         console.error('❌ [SAVE-GENERATION] ==========================================');
       }
       
-      // ✅ KROK 2: Email będzie wysłany przez Shopify Flow + Shopify Email template
-      // Metafield jest ustawiony - Shopify Flow wyśle email z template (z obrazkiem)
-      // NIE używamy send_invite (tekstowy) - używamy Shopify Email template
-      
-      console.log('✅ [SAVE-GENERATION] Metafield ustawiony - Shopify Flow wyśle email z template');
-      console.log('📧 [SAVE-GENERATION] Upewnij się że Shopify Flow jest skonfigurowany:');
-      console.log('📧 [SAVE-GENERATION] 1. Shopify Admin → Settings → Automation → Flows');
-      console.log('📧 [SAVE-GENERATION] 2. Trigger: Customer updated');
-      console.log('📧 [SAVE-GENERATION] 3. Condition: customify.generation_ready is not empty');
-      console.log('📧 [SAVE-GENERATION] 4. Action: Send email → wybierz template z Custom Liquid');
+      // ✅ KROK 2: Email będzie wysłany przez /api/send-generation-email (Resend)
+      console.log('✅ [SAVE-GENERATION] Metafield ustawiony - gotowe do wysłania emaila');
       
       // ⚠️ WYŁĄCZONE: send_invite (tekstowy) - używamy Shopify Email template zamiast tego
       // Jeśli chcesz fallback do tekstowego emaila, odkomentuj poniższy kod:
