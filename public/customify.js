@@ -416,9 +416,32 @@ class CustomifyEmbed {
    * @returns {number} Liczba użyć
    */
   /**
-   * Mapuje styl na productType (zgodne z backend)
+   * Określa productType na podstawie STRONY (URL) - to jest najważniejsze!
+   * Strona = Produkt = Cena (król ma inną cenę niż boho)
    */
   getProductTypeFromStyle(style) {
+    // 🎯 PRIORYTET 1: Sprawdź URL strony (NAJWAŻNIEJSZE - określa cenę!)
+    const currentUrl = window.location.pathname.toLowerCase();
+    
+    console.log('🔍 [PRODUCT-TYPE] Sprawdzam URL:', currentUrl);
+    
+    // Mapuj URL → productType (określa który produkt Shopify = jaka cena)
+    if (currentUrl.includes('krol-portret') || currentUrl.includes('krol-personalizowany')) {
+      console.log('👑 [PRODUCT-TYPE] URL = Król → productType: king');
+      return 'king';
+    }
+    if (currentUrl.includes('koty-krolewskie') || currentUrl.includes('krolewskie-portrety-kotow')) {
+      console.log('🐱 [PRODUCT-TYPE] URL = Koty → productType: cats');
+      return 'cats';
+    }
+    if (currentUrl.includes('personalizowany-portret-w-stylu-boho')) {
+      console.log('🎨 [PRODUCT-TYPE] URL = Boho → productType: boho');
+      return 'boho';
+    }
+    
+    // 🔄 PRIORYTET 2: Fallback - sprawdź styl (tylko dla starych generacji bez URL)
+    console.log('⚠️ [PRODUCT-TYPE] Nie rozpoznano URL, sprawdzam styl:', style);
+    
     const styleToProductType = {
       'minimalistyczny': 'boho',
       'realistyczny': 'boho',
@@ -439,7 +462,10 @@ class CustomifyEmbed {
       'akwarela': 'watercolor'
     };
     
-    return styleToProductType[style] || 'other';
+    const productType = styleToProductType[style] || 'other';
+    console.log('🔄 [PRODUCT-TYPE] Styl:', style, '→ productType:', productType);
+    
+    return productType;
   }
 
   getLocalUsageCount(productType) {
