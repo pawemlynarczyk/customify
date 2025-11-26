@@ -2523,8 +2523,9 @@ class CustomifyEmbed {
         style: this.selectedStyle, // ✅ DODAJ STYL JAKO OSOBNE POLE - API użyje tego zamiast parsować prompt
         productType: productType, // Przekaż typ produktu do API
         customerId: customerInfo?.customerId || null,
-        // ✅ EMAIL: Tylko dla niezalogowanych - używany do powiązania generacji z użytkownikiem w save-generation
-        email: (!customerInfo?.customerId) ? (email || null) : null
+        // ✅ EMAIL: ZAWSZE wysyłaj email jeśli dostępny (dla zalogowanych i niezalogowanych)
+        // Backend użyje tego do ustawienia metafield generation_ready dla emaili Shopify Flow
+        email: customerInfo?.email || email || null
         // ❌ USUNIĘTO: watermarkedImage - watermark generujemy PO transformacji AI, nie przed!
       };
       
