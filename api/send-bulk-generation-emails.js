@@ -25,11 +25,7 @@ module.exports = async (req, res) => {
   try {
     const { customers, testEmail } = req.body;
 
-    if (!customers || !Array.isArray(customers)) {
-      return res.status(400).json({ error: 'customers array required' });
-    }
-
-    // Jeśli testEmail, wyślij tylko do niego
+    // Jeśli testEmail, wyślij tylko do niego (nie wymaga customers)
     if (testEmail) {
       console.log(`📧 [BULK-EMAIL] Wysyłam testowy email do: ${testEmail}`);
 
@@ -78,7 +74,10 @@ module.exports = async (req, res) => {
       });
     }
 
-    // Masowa wysyłka
+    // Masowa wysyłka - wymaga customers
+    if (!customers || !Array.isArray(customers)) {
+      return res.status(400).json({ error: 'customers array required for bulk send' });
+    }
     const results = {
       sent: [],
       failed: []
