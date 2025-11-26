@@ -512,17 +512,15 @@
                   if (result.orderId) {
                     hiddenProperties['_Order ID Full'] = result.orderId;
                   }
-                  // 🚨 CRITICAL FIX: NIE DODAWAJ BASE64 DO CART PROPERTIES - URL ZA DŁUGI!
-                  // Base64 (~1MB) przekracza limit URL (2048 znaków)
-                  // Obrazy są już zapisane w Shopify Admin (product.images) i Vercel Blob
-                  // if (result.vercelBlobUrl) {
-                  //   hiddenProperties['_AI_Image_Vercel'] = result.vercelBlobUrl;
-                  // } else if (result.permanentImageUrl) {
-                  //   hiddenProperties['_AI_Image_Vercel'] = result.permanentImageUrl;
-                  // }
-                  if (watermarkedImageUrl) {
-                    hiddenProperties['_AI_Image_Watermarked'] = watermarkedImageUrl;
+                  
+                  // ✅ TYLKO WATERMARKED URL (krótki ~100 znaków, nie base64!)
+                  // Używamy watermarkedImageUrl z Vercel Blob zamiast base64
+                  if (watermarkedImageUrl && !watermarkedImageUrl.startsWith('data:')) {
+                    hiddenProperties['_AI_Image_URL'] = watermarkedImageUrl; // Vercel Blob URL (~100 znaków)
+                  } else if (result.vercelBlobUrl && !result.vercelBlobUrl.startsWith('data:')) {
+                    hiddenProperties['_AI_Image_URL'] = result.vercelBlobUrl; // Fallback URL
                   }
+                  // NIE dodawaj base64 - przekracza limit URL!
 
                   const cartProperties = Object.assign({}, visibleProperties, hiddenProperties);
 
