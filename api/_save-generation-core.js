@@ -552,8 +552,19 @@ async function saveGenerationHandler(req, res) {
           });
         }
         
+        const metafieldResult = await metafieldResponse.json();
+        console.log('📋 [SAVE-GENERATION] ===== SHOPIFY METAFIELD RESPONSE =====');
+        console.log('📋 [SAVE-GENERATION] Status:', metafieldResponse.status);
+        console.log('📋 [SAVE-GENERATION] OK:', metafieldResponse.ok);
+        console.log('📋 [SAVE-GENERATION] Response body:', JSON.stringify(metafieldResult, null, 2));
+        console.log('📋 [SAVE-GENERATION] ==========================================');
+        
         if (metafieldResponse.ok) {
           console.log('✅ [SAVE-GENERATION] Metafield generation_ready ustawiony/aktualizowany');
+          console.log('✅ [SAVE-GENERATION] Metafield ID:', metafieldResult.metafield?.id);
+          console.log('✅ [SAVE-GENERATION] Metafield namespace:', metafieldResult.metafield?.namespace);
+          console.log('✅ [SAVE-GENERATION] Metafield key:', metafieldResult.metafield?.key);
+          console.log('✅ [SAVE-GENERATION] Metafield value preview:', JSON.stringify(metafieldResult.metafield?.value).substring(0, 100) + '...');
           
           // ✅ KROK 1.5: Dodaj tag do customera (trigger dla Shopify Flow)
           // Shopify Flow nie ma triggera "Customer updated", ale ma "Customer tags added"
@@ -660,10 +671,22 @@ async function saveGenerationHandler(req, res) {
           }
         } else {
           const error = await metafieldResponse.text();
-          console.warn('⚠️ [SAVE-GENERATION] Nie udało się ustawić metafield:', error);
+          console.error('❌ [SAVE-GENERATION] ===== BŁĄD SHOPIFY METAFIELD =====');
+          console.error('❌ [SAVE-GENERATION] Status:', metafieldResponse.status);
+          console.error('❌ [SAVE-GENERATION] Status text:', metafieldResponse.statusText);
+          console.error('❌ [SAVE-GENERATION] Error body:', error);
+          console.error('❌ [SAVE-GENERATION] Request data:', JSON.stringify(metafieldData, null, 2));
+          console.error('❌ [SAVE-GENERATION] CustomerId:', customerId);
+          console.error('❌ [SAVE-GENERATION] Shop:', shop);
+          console.error('❌ [SAVE-GENERATION] Method:', metafieldId ? 'PUT (update)' : 'POST (create)');
+          console.error('❌ [SAVE-GENERATION] ==========================================');
         }
       } catch (metafieldError) {
-        console.error('❌ [SAVE-GENERATION] Błąd ustawiania metafield:', metafieldError);
+        console.error('❌ [SAVE-GENERATION] ===== EXCEPTION PODCZAS USTAWIANIA METAFIELD =====');
+        console.error('❌ [SAVE-GENERATION] Error:', metafieldError);
+        console.error('❌ [SAVE-GENERATION] Error message:', metafieldError.message);
+        console.error('❌ [SAVE-GENERATION] Error stack:', metafieldError.stack);
+        console.error('❌ [SAVE-GENERATION] ==========================================');
       }
       
       // ✅ KROK 2: Email będzie wysłany przez Shopify Flow + Shopify Email template
