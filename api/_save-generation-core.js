@@ -566,34 +566,92 @@ async function saveGenerationHandler(req, res) {
           console.log('✅ [SAVE-GENERATION] Metafield key:', metafieldResult.metafield?.key);
           console.log('✅ [SAVE-GENERATION] Metafield value preview:', JSON.stringify(metafieldResult.metafield?.value).substring(0, 100) + '...');
           
-          // ✅ WYŚLIJ EMAIL przez Resend
+          // ✅ WYŚLIJ EMAIL przez Resend (bezpośrednio, bez dodatkowego endpointa)
           try {
             console.log('📧 [SAVE-GENERATION] Wysyłam email przez Resend...');
             
-            const emailResponse = await fetch(`${process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://customify-s56o.vercel.app'}/api/send-generation-email`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({
-                email,
-                imageUrl: finalImageUrlForEmail,
-                style: style || 'unknown',
-                size: size || 'a4',
-                customerId
-              })
-            });
-            
-            if (emailResponse.ok) {
-              const emailResult = await emailResponse.json();
-              console.log('✅ [SAVE-GENERATION] Email wysłany pomyślnie!');
-              console.log('✅ [SAVE-GENERATION] Email ID:', emailResult.emailId);
+            if (!process.env.RESEND_API_KEY) {
+              console.warn('⚠️ [SAVE-GENERATION] RESEND_API_KEY nie skonfigurowany - pomijam email');
             } else {
-              const emailError = await emailResponse.text();
-              console.error('❌ [SAVE-GENERATION] Błąd wysyłania emaila:', emailError);
+              const { Resend } = require('resend');
+              const resend = new Resend(process.env.RESEND_API_KEY);
+              
+              // Przygotuj nazwę stylu (czytelną)
+              const styleNames = {
+                'pixar': 'Pixar',
+                'minimalistyczny': 'Minimalistyczny',
+                'realistyczny': 'Realistyczny',
+                'akwarela': 'Akwarela',
+                'karykatura': 'Karykatura',
+                'krol-krolewski': 'Król - Królewski',
+                'krolewski': 'Królewski',
+                'barokowy': 'Barokowy',
+                'renesansowy': 'Renesansowy',
+                'wiktorianski': 'Wiktoriański',
+                'wojenny': 'Wojenny',
+                'na-tronie': 'Na tronie'
+              };
+              
+              const styleName = styleNames[style] || style || 'unknown';
+              
+              // Rozmiary czytelne
+              const sizeNames = {
+                'a5': 'A5 (20×30 cm)',
+                'a4': 'A4 (30×40 cm)',
+                'a3': 'A3 (40×60 cm)',
+                'a2': 'A2 (60×85 cm)'
+              };
+              const sizeName = sizeNames[size] || size || 'A4 (30×40 cm)';
+              
+              // HTML Email Template
+              const emailHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f5f5f5;">
+  <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 30px; text-align: center;">
+      <h1 style="color: white; margin: 0; font-size: 28px; font-weight: bold;">🎨 Twoja generacja AI jest gotowa!</h1>
+    </div>
+    <div style="padding: 40px 30px; background-color: #ffffff;">
+      <p style="font-size: 18px; color: #333; margin-bottom: 20px;">Cześć! 👋</p>
+      <p style="font-size: 16px; color: #555; line-height: 1.6; margin-bottom: 30px;">Twoja generacja w stylu <strong>${styleName}</strong> jest gotowa! Sprawdź efekt poniżej:</p>
+      <div style="text-align: center; margin: 30px 0;">
+        <img src="${finalImageUrlForEmail}" alt="Generacja ${styleName}" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
+      </div>
+      <div style="background-color: #f9f9f9; padding: 20px; border-radius: 8px; margin: 30px 0;">
+        <p style="margin: 0 0 10px 0; font-size: 14px; color: #666;"><strong style="color: #333;">Styl:</strong> ${styleName}</p>
+        <p style="margin: 0; font-size: 14px; color: #666;"><strong style="color: #333;">Rozmiar:</strong> ${sizeName}</p>
+      </div>
+      <div style="text-align: center; margin: 40px 0;">
+        <a href="https://lumly.pl/pages/my-generations" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 16px 40px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;">Zobacz wszystkie generacje →</a>
+      </div>
+      <p style="font-size: 14px; color: #999; margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; text-align: center;">Masz pytania? Odpowiedz na ten email lub skontaktuj się z nami.</p>
+    </div>
+    <div style="background-color: #f9f9f9; padding: 20px 30px; text-align: center; border-top: 1px solid #eee;">
+      <p style="margin: 0; font-size: 12px; color: #999;">© 2025 Lumly.pl - Personalizowane portrety AI</p>
+    </div>
+  </div>
+</body>
+</html>
+              `;
+              
+              const result = await resend.emails.send({
+                from: 'Lumly <noreply@notifications.lumly.pl>',
+                to: email,
+                subject: '🎨 Twoja generacja AI jest gotowa!',
+                html: emailHtml
+              });
+              
+              console.log('✅ [SAVE-GENERATION] Email wysłany pomyślnie!');
+              console.log('✅ [SAVE-GENERATION] Resend ID:', result.id);
             }
           } catch (emailError) {
             console.error('❌ [SAVE-GENERATION] Exception podczas wysyłania emaila:', emailError);
+            console.error('❌ [SAVE-GENERATION] Error message:', emailError.message);
             // Nie blokuj - email to nice-to-have, nie critical
           }
         } else {
