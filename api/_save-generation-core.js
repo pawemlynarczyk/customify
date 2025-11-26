@@ -463,11 +463,16 @@ async function saveGenerationHandler(req, res) {
     console.log('📧 [SAVE-GENERATION] customerId:', customerId, typeof customerId);
     console.log('📧 [SAVE-GENERATION] email:', email, typeof email);
     console.log('📧 [SAVE-GENERATION] watermarkedImageUrl:', watermarkedImageUrl ? watermarkedImageUrl.substring(0, 50) + '...' : 'NULL');
+    console.log('📧 [SAVE-GENERATION] imageUrl (fallback):', imageUrl ? imageUrl.substring(0, 50) + '...' : 'NULL');
     console.log('📧 [SAVE-GENERATION] SHOPIFY_ACCESS_TOKEN exists:', !!process.env.SHOPIFY_ACCESS_TOKEN);
-    console.log('📧 [SAVE-GENERATION] Warunek (customerId && email && watermarkedImageUrl && token):', 
-      !!(customerId && email && watermarkedImageUrl && process.env.SHOPIFY_ACCESS_TOKEN));
     
-    if (customerId && email && watermarkedImageUrl && process.env.SHOPIFY_ACCESS_TOKEN) {
+    // ✅ Użyj watermarkedImageUrl jeśli istnieje, w przeciwnym razie imageUrl (fallback)
+    const imageUrlForEmail = watermarkedImageUrl || imageUrl;
+    console.log('📧 [SAVE-GENERATION] imageUrlForEmail (dla emaila):', imageUrlForEmail ? imageUrlForEmail.substring(0, 50) + '...' : 'NULL');
+    console.log('📧 [SAVE-GENERATION] Warunek (customerId && email && imageUrlForEmail && token):', 
+      !!(customerId && email && imageUrlForEmail && process.env.SHOPIFY_ACCESS_TOKEN));
+    
+    if (customerId && email && imageUrlForEmail && process.env.SHOPIFY_ACCESS_TOKEN) {
       const shop = process.env.SHOP_DOMAIN || 'customify-ok.myshopify.com';
       const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
       
@@ -480,8 +485,11 @@ async function saveGenerationHandler(req, res) {
       
       // ✅ KROK 1: Ustaw metafield generation_ready (dla Shopify Email template)
       try {
+        // ✅ Użyj watermarkedImageUrl jeśli istnieje, w przeciwnym razie imageUrl (fallback)
+        const finalImageUrlForEmail = watermarkedImageUrl || imageUrl;
+        
         const metafieldData = {
-          imageUrl: watermarkedImageUrl,
+          imageUrl: finalImageUrlForEmail,
           style: style,
           size: size || null,
           productType: productType || 'other',
