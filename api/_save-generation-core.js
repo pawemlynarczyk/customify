@@ -489,24 +489,63 @@ async function saveGenerationHandler(req, res) {
           galleryUrl: 'https://lumly.pl/pages/my-generations'
         };
         
-        const metafieldResponse = await fetch(`https://${shop}/admin/api/2023-10/customers/${customerId}/metafields.json`, {
-          method: 'POST',
+        // ✅ Najpierw sprawdź czy metafield już istnieje
+        const checkMetafieldResponse = await fetch(`https://${shop}/admin/api/2023-10/customers/${customerId}/metafields.json?namespace=customify&key=generation_ready`, {
+          method: 'GET',
           headers: {
             'X-Shopify-Access-Token': accessToken,
             'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            metafield: {
-              namespace: 'customify',
-              key: 'generation_ready',
-              value: JSON.stringify(metafieldData),
-              type: 'json'
-            }
-          })
+          }
         });
         
+        let metafieldResponse;
+        let metafieldId = null;
+        
+        if (checkMetafieldResponse.ok) {
+          const checkData = await checkMetafieldResponse.json();
+          if (checkData.metafields && checkData.metafields.length > 0) {
+            metafieldId = checkData.metafields[0].id;
+            console.log('🔍 [SAVE-GENERATION] Metafield już istnieje, aktualizuję (PUT):', metafieldId);
+          }
+        }
+        
+        // ✅ Jeśli metafield istnieje - użyj PUT (aktualizacja), jeśli nie - użyj POST (tworzenie)
+        if (metafieldId) {
+          // Aktualizuj istniejący metafield
+          metafieldResponse = await fetch(`https://${shop}/admin/api/2023-10/customers/${customerId}/metafields/${metafieldId}.json`, {
+            method: 'PUT',
+            headers: {
+              'X-Shopify-Access-Token': accessToken,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              metafield: {
+                id: metafieldId,
+                value: JSON.stringify(metafieldData)
+              }
+            })
+          });
+        } else {
+          // Utwórz nowy metafield
+          metafieldResponse = await fetch(`https://${shop}/admin/api/2023-10/customers/${customerId}/metafields.json`, {
+            method: 'POST',
+            headers: {
+              'X-Shopify-Access-Token': accessToken,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              metafield: {
+                namespace: 'customify',
+                key: 'generation_ready',
+                value: JSON.stringify(metafieldData),
+                type: 'json'
+              }
+            })
+          });
+        }
+        
         if (metafieldResponse.ok) {
-          console.log('✅ [SAVE-GENERATION] Metafield generation_ready ustawiony');
+          console.log('✅ [SAVE-GENERATION] Metafield generation_ready ustawiony/aktualizowany');
           
           // ✅ KROK 1.5: Dodaj tag do customera (trigger dla Shopify Flow)
           // Shopify Flow nie ma triggera "Customer updated", ale ma "Customer tags added"
