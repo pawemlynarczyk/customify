@@ -625,7 +625,7 @@ async function saveGenerationHandler(req, res) {
       <div style="text-align: center; margin: 40px 0;">
         <a href="https://lumly.pl/pages/my-generations" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 16px 40px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;">Zobacz wszystkie generacje →</a>
       </div>
-      <p style="font-size: 14px; color: #999; margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; text-align: center;">Masz pytania? Skontaktuj się z nami: <a href="mailto:kontakt@lumly.pl" style="color: #667eea; text-decoration: none;">kontakt@lumly.pl</a></p>
+      <p style="font-size: 14px; color: #999; margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; text-align: center;">Masz pytania? Skontaktuj się z nami: <a href="mailto:biuro@lumly.pl" style="color: #667eea; text-decoration: none;">biuro@lumly.pl</a></p>
     </div>
     <div style="background-color: #f9f9f9; padding: 20px 30px; text-align: center; border-top: 1px solid #eee;">
       <p style="margin: 0; font-size: 12px; color: #999;">© 2025 Lumly.pl - Personalizowane portrety AI</p>
@@ -637,7 +637,7 @@ async function saveGenerationHandler(req, res) {
               
               const result = await resend.emails.send({
                 from: 'Lumly <noreply@notification.lumly.pl>',
-                reply_to: 'kontakt@lumly.pl', // ✅ Reply trafia do kontakt@lumly.pl
+                reply_to: 'biuro@lumly.pl', // ✅ Reply trafia do biuro@lumly.pl
                 to: email,
                 subject: '🎨 Twoja generacja AI jest gotowa!',
                 html: emailHtml
