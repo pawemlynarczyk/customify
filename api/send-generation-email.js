@@ -143,7 +143,7 @@ module.exports = async (req, res) => {
 
     // Wyślij email przez Resend
     const result = await resend.emails.send({
-      from: 'Lumly <noreply@lumly.pl>',
+      from: 'Lumly <noreply@notifications.lumly.pl>',
       to: email,
       subject: '🎨 Twoja generacja AI jest gotowa!',
       html: emailHtml
