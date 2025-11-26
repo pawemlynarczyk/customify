@@ -1041,6 +1041,19 @@ module.exports = async (req, res) => {
           guidance: 3.5
         }
       },
+      'krolewski': {
+        model: "google/nano-banana",
+        prompt: "Preserve the exact facial identity of the two people from the provided photo. Make a faceswap and keep the original hair style and colour. Faces must look exactly like the people in the input image, with realistic likeness. Dress the couple in full ceremonial royal attire inspired by European imperial royalty. The man wears a richly decorated royal ceremonial uniform with heavy gold embroidery, ornate patterns, medals, epaulettes, a dark tailored coat and a majestic golden crown. The woman wears an opulent royal gown in deep luxurious colours such as ruby or burgundy, with gold embellishments, velvet or fur-trimmed elements, elegant jewelry and a regal golden crown. Their outfits must look majestic, premium and noble — impressive, luxurious and ceremonial, but not theatrical or cartoonish. Both people should be holding elegant royal-style drinks, such as crystal goblets, premium cocktails or ceremonial glasses, in a celebratory pose. Frame the couple in a tight waist-up portrait. This is a close, zoomed-in portrait composition. Show them ONLY from the waist upward. Lower body parts do not exist. Do NOT show full bodies or anything below the waist. The framing must be tight so the faces appear large and clearly visible. Place them outdoors in front of a grand European ceremonial palace or castle on a sunny day. Use warm, golden sunlight to create an elegant, majestic royal atmosphere.",
+        apiType: "nano-banana",
+        productType: "other",
+        parameters: {
+          image_input: ["USER_IMAGE"],
+          prompt: "Preserve the exact facial identity of the two people from the provided photo. Make a faceswap and keep the original hair style and colour. Faces must look exactly like the people in the input image, with realistic likeness. Dress the couple in full ceremonial royal attire inspired by European imperial royalty. The man wears a richly decorated royal ceremonial uniform with heavy gold embroidery, ornate patterns, medals, epaulettes, a dark tailored coat and a majestic golden crown. The woman wears an opulent royal gown in deep luxurious colours such as ruby or burgundy, with gold embellishments, velvet or fur-trimmed elements, elegant jewelry and a regal golden crown. Their outfits must look majestic, premium and noble — impressive, luxurious and ceremonial, but not theatrical or cartoonish. Both people should be holding elegant royal-style drinks, such as crystal goblets, premium cocktails or ceremonial glasses, in a celebratory pose. Frame the couple in a tight waist-up portrait. This is a close, zoomed-in portrait composition. Show them ONLY from the waist upward. Lower body parts do not exist. Do NOT show full bodies or anything below the waist. The framing must be tight so the faces appear large and clearly visible. Place them outdoors in front of a grand European ceremonial palace or castle on a sunny day. Use warm, golden sunlight to create an elegant, majestic royal atmosphere.",
+          aspect_ratio: "9:16",
+          output_format: "jpg",
+          guidance: 3.5
+        }
+      },
       'pixar': {
         model: "swartype/sdxl-pixar:81f8bbd3463056c8521eb528feb10509cc1385e2fabef590747f159848589048",
         prompt: `Pixar-style 3D character, cinematic animation look, smooth glossy plastic-like skin, rounded soft facial features, expressive eyes, stylized proportions, vibrant color palette, warm cinematic lighting, subsurface scattering, cartoon realism, wholesome family atmosphere, detailed hair, ultra clean render, rendered in 3D, dynamic camera angle, looks like a frame from a Pixar movie, perfect anatomy, depth of field, bokeh background, high quality render. realistic Pixar cinematic render, detailed textures, global illumination`,
