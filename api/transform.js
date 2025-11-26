@@ -2903,7 +2903,7 @@ module.exports = async (req, res) => {
         if (isImageHashLimitEnabled() && req.imageHash) {
           const imageHashIncrementResult = await incrementImageHashLimit(req.imageHash);
           if (imageHashIncrementResult.success) {
-            console.log(`➕ [TRANSFORM] Image hash limit incremented: ${imageHashIncrementResult.newCount}/2`);
+            console.log(`➕ [TRANSFORM] Image hash limit incremented: ${imageHashIncrementResult.newCount}/4`);
           } else {
             console.warn(`⚠️ [TRANSFORM] Failed to increment image hash limit:`, imageHashIncrementResult.error);
           }
