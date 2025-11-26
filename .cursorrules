@@ -405,17 +405,80 @@ const shopifyRequest = async (endpoint, options = {}) => {
 - **BACKUP THEME FILE**: `theme.liquid` - kopia motywu w głównym katalogu
 - **THEME DEPLOYMENT**: Używamy endpointu `/api/update-theme-simple` do wdrażania zmian
 
-## Theme Editing Workflow
-1. **Edit**: Modify `customify-theme/layout/theme.liquid` (main file)
-2. **Deploy**: Use Node.js script to upload via `/api/update-theme-simple`
-3. **Test**: Check changes on:
+## 🚀 SHOPIFY DEPLOYMENT WORKFLOW - JAK WDRAŻAĆ ZMIANY
+
+### **🎯 KLUCZOWA ZASADA:**
+- **ZAWSZE używaj `npm run deploy`** - NIE twórz własnych skryptów deployment!
+- **`npm run deploy`** wdraża WSZYSTKO: `theme.liquid`, `customify.js`, `customify.css`, `base.css`, sekcje Liquid
+
+### **📋 WORKFLOW KROK PO KROKU:**
+
+1. **EDYTUJ pliki źródłowe**:
+   - `theme.liquid` - główny plik theme (HTML, Liquid, inline CSS/JS)
+   - `shopify-theme/customify-theme/assets/customify.js` - JavaScript aplikacji
+   - `shopify-theme/customify-theme/assets/customify.css` - Style CSS
+   - `shopify-theme/customify-theme/assets/base.css` - Base styles
+   - `shopify-theme/customify-theme/sections/*.liquid` - Sekcje Liquid
+
+2. **WDRÓŻ na Shopify**:
+   ```bash
+   npm run deploy
+   ```
+   - Automatycznie synchronizuje wszystkie pliki z `theme.liquid`
+   - Wdraża przez `/api/update-theme-simple` endpoint
+   - Uploaduje do Shopify CDN: `theme.liquid`, `customify.js`, `customify.css`, `base.css`, sekcje
+
+3. **TESTUJ na żywo**:
    - https://lumly.pl/products/personalizowany-portret-w-stylu-boho (Boho)
    - https://lumly.pl/products/krol-personalizowany-portret (Król)
    - https://lumly.pl/products/koty-krolewskie (Koty)
-4. **Backup**: Keep `theme.liquid` as backup copy
-- **IMPORTANT**: Always edit the main theme file, not the backup
-- **DEPLOYMENT**: Use our app's API endpoint (has write_themes permission)
-- **NO GIT PUSH**: Theme changes go directly to Shopify, not GitHub
+   - **Wyczyść cache przeglądarki**: Ctrl+Shift+R (hard refresh)
+   - **Jeśli cache blokuje**: Incognito mode (Ctrl+Shift+N)
+
+4. **COMMITUJ do GitHub**:
+   ```bash
+   git add .
+   git commit -m "opis zmian"
+   git push origin main
+   ```
+   - Vercel automatycznie wdraża backend (API endpoints)
+   - Shopify theme jest już wdrożony (krok 2)
+
+### **⚠️ CO WDRAŻA `npm run deploy`:**
+- ✅ `layout/theme.liquid` - główny theme
+- ✅ `assets/customify.js` - JavaScript aplikacji
+- ✅ `assets/customify.css` - Style CSS
+- ✅ `assets/base.css` - Base styles
+- ✅ `sections/product-information.liquid` - Sekcja produktu
+- ✅ `sections/product-recommendations.liquid` - Rekomendacje
+
+### **❌ CZEGO NIE ROBIĆ:**
+- ❌ **NIE twórz własnych skryptów deployment** (np. `deploy-customify-js.js`)
+- ❌ **NIE używaj `node deploy-optimized-theme.js`** bezpośrednio - użyj `npm run deploy`
+- ❌ **NIE edytuj plików w Shopify Admin** - zawsze przez deployment script
+- ❌ **NIE zapomnij o cache** - Shopify CDN cache'uje pliki JS/CSS agresywnie
+
+### **🔧 DEBUGGING DEPLOYMENT:**
+- **Sprawdź czy plik jest na CDN**: `curl -s "https://lumly.pl/cdn/shop/t/18/assets/customify.js" | grep "twoj_kod"`
+- **Sprawdź logi deployment**: `npm run deploy` pokazuje status każdego pliku
+- **Cache problem**: Hard refresh (Ctrl+Shift+R) lub incognito mode
+
+### **📝 PRZYKŁAD PEŁNEGO WORKFLOW:**
+```bash
+# 1. Edytuj plik
+vim shopify-theme/customify-theme/assets/customify.js
+
+# 2. Wdróż na Shopify
+npm run deploy
+
+# 3. Testuj (wyczyść cache!)
+# Otwórz https://lumly.pl/products/custom w incognito
+
+# 4. Commituj
+git add .
+git commit -m "Fix: Email w request body dla zalogowanych"
+git push origin main
+```
 
 ## Project Goal
 Customify is a Shopify app that allows customers to:
