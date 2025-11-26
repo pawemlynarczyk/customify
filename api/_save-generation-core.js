@@ -618,13 +618,9 @@ async function saveGenerationHandler(req, res) {
     </div>
     <div style="padding: 40px 30px; background-color: #ffffff;">
       <p style="font-size: 18px; color: #333; margin-bottom: 20px;">Cześć! 👋</p>
-      <p style="font-size: 16px; color: #555; line-height: 1.6; margin-bottom: 30px;">Twoja generacja w stylu <strong>${styleName}</strong> jest gotowa! Sprawdź efekt poniżej:</p>
+      <p style="font-size: 16px; color: #555; line-height: 1.6; margin-bottom: 30px;">Twój obraz został utworzony, zobacz efekt poniżej:</p>
       <div style="text-align: center; margin: 30px 0;">
-        <img src="${finalImageUrlForEmail}" alt="Generacja ${styleName}" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
-      </div>
-      <div style="background-color: #f9f9f9; padding: 20px; border-radius: 8px; margin: 30px 0;">
-        <p style="margin: 0 0 10px 0; font-size: 14px; color: #666;"><strong style="color: #333;">Styl:</strong> ${styleName}</p>
-        <p style="margin: 0; font-size: 14px; color: #666;"><strong style="color: #333;">Rozmiar:</strong> ${sizeName}</p>
+        <img src="${finalImageUrlForEmail}" alt="Twoja generacja AI" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
       </div>
       <div style="text-align: center; margin: 40px 0;">
         <a href="https://lumly.pl/pages/my-generations" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 16px 40px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;">Zobacz wszystkie generacje →</a>
