@@ -637,6 +637,7 @@ async function saveGenerationHandler(req, res) {
               
               const result = await resend.emails.send({
                 from: 'Lumly <noreply@notification.lumly.pl>',
+                reply_to: 'kontakt@lumly.pl', // ✅ Reply trafia do kontakt@lumly.pl
                 to: email,
                 subject: '🎨 Twoja generacja AI jest gotowa!',
                 html: emailHtml
