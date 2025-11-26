@@ -566,7 +566,36 @@ async function saveGenerationHandler(req, res) {
           console.log('✅ [SAVE-GENERATION] Metafield key:', metafieldResult.metafield?.key);
           console.log('✅ [SAVE-GENERATION] Metafield value preview:', JSON.stringify(metafieldResult.metafield?.value).substring(0, 100) + '...');
           
-          // ✅ Metafield zapisany - email zostanie wysłany przez /api/send-generation-email
+          // ✅ WYŚLIJ EMAIL przez Resend
+          try {
+            console.log('📧 [SAVE-GENERATION] Wysyłam email przez Resend...');
+            
+            const emailResponse = await fetch(`${process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://customify-s56o.vercel.app'}/api/send-generation-email`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                email,
+                imageUrl: finalImageUrlForEmail,
+                style: prompt || style || 'unknown',
+                size: size || 'a4',
+                customerId
+              })
+            });
+            
+            if (emailResponse.ok) {
+              const emailResult = await emailResponse.json();
+              console.log('✅ [SAVE-GENERATION] Email wysłany pomyślnie!');
+              console.log('✅ [SAVE-GENERATION] Email ID:', emailResult.emailId);
+            } else {
+              const emailError = await emailResponse.text();
+              console.error('❌ [SAVE-GENERATION] Błąd wysyłania emaila:', emailError);
+            }
+          } catch (emailError) {
+            console.error('❌ [SAVE-GENERATION] Exception podczas wysyłania emaila:', emailError);
+            // Nie blokuj - email to nice-to-have, nie critical
+          }
         } else {
           const error = await metafieldResponse.text();
           console.error('❌ [SAVE-GENERATION] ===== BŁĄD SHOPIFY METAFIELD =====');
