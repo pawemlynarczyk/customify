@@ -39,7 +39,7 @@ module.exports = async (req, res) => {
 <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f5f5f5;">
   <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
     <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 30px; text-align: center;">
-      <h1 style="color: white; margin: 0; font-size: 28px; font-weight: bold;">🎨 Twoje obrazy czekają!</h1>
+      <h1 style="color: white; margin: 0; font-size: 28px; font-weight: bold;">Twoje obrazy z Lumly.pl czekają!</h1>
     </div>
     <div style="padding: 40px 30px; background-color: #ffffff;">
       <p style="font-size: 18px; color: #333; margin-bottom: 30px; line-height: 1.6; text-align: center;">
@@ -105,7 +105,7 @@ module.exports = async (req, res) => {
 <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f5f5f5;">
   <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
     <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 30px; text-align: center;">
-      <h1 style="color: white; margin: 0; font-size: 28px; font-weight: bold;">🎨 Twoje obrazy czekają!</h1>
+      <h1 style="color: white; margin: 0; font-size: 28px; font-weight: bold;">Twoje obrazy z Lumly.pl czekają!</h1>
     </div>
     <div style="padding: 40px 30px; background-color: #ffffff;">
       <p style="font-size: 18px; color: #333; margin-bottom: 30px; line-height: 1.6; text-align: center;">
