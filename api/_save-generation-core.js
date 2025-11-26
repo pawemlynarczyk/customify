@@ -578,7 +578,7 @@ async function saveGenerationHandler(req, res) {
               body: JSON.stringify({
                 email,
                 imageUrl: finalImageUrlForEmail,
-                style: prompt || style || 'unknown',
+                style: style || 'unknown',
                 size: size || 'a4',
                 customerId
               })
