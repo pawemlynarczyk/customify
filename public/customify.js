@@ -969,6 +969,7 @@ class CustomifyEmbed {
     console.log('🔄 [GALLERY] transformedImage type:', typeof generation.transformedImage);
     console.log('🔄 [GALLERY] transformedImage length:', generation.transformedImage?.length);
     console.log('🔄 [GALLERY] transformedImage preview:', generation.transformedImage?.substring(0, 100));
+    console.log('🔄 [GALLERY] watermarkedImageUrl:', generation.watermarkedImageUrl?.substring(0, 100) || 'brak');
     
     // Pokaż wynik AI (transformedImage) w result area
     if (generation.transformedImage) {
@@ -979,6 +980,13 @@ class CustomifyEmbed {
       console.log('✅ [GALLERY] Set this.transformedImage for addToCart:', this.transformedImage?.substring(0, 100));
       console.log('✅ [GALLERY] this.transformedImage is base64?', this.transformedImage?.startsWith('data:'));
       console.log('✅ [GALLERY] this.transformedImage is URL?', this.transformedImage?.startsWith('http'));
+      
+      // ✅ KLUCZOWE: Ustaw this.watermarkedImageUrl z galerii (backend watermark)
+      this.watermarkedImageUrl = generation.watermarkedImageUrl || null;
+      console.log('✅ [GALLERY] Set this.watermarkedImageUrl from generation:', this.watermarkedImageUrl?.substring(0, 100) || 'brak');
+      if (!this.watermarkedImageUrl) {
+        console.warn('⚠️ [GALLERY] Stara generacja bez watermarkedImageUrl - showResult() pokaże bez watermarku');
+      }
       
       // ✅ KLUCZOWE: Ustaw this.originalImageFromGallery żeby addToCart() działało
       this.originalImageFromGallery = generation.originalImage;

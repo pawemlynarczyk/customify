@@ -105,3 +105,4 @@ Kod w `SHOPIFY-EMAIL-CUSTOM-LIQUID.md` jest poprawny - używa:
 **Data:** 2025-01-XX  
 **Autor:** AI Assistant
 
+

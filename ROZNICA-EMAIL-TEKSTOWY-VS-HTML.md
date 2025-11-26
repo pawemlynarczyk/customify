@@ -103,3 +103,4 @@ Shopify Flow wyśle email z template (z obrazkiem).
 **Data:** 2025-01-XX  
 **Autor:** AI Assistant
 
+

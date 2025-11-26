@@ -48,3 +48,4 @@ W logach frontendu nie ma logów z `[SAVE-GENERATION]` - to znaczy że:
 **Data:** 2025-01-XX  
 **Autor:** AI Assistant
 
+

@@ -112,3 +112,4 @@ Dla testów możesz ręcznie wysłać email:
 **Data:** 2025-01-XX
 **Autor:** AI Assistant
 
+
