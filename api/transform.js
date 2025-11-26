@@ -1924,49 +1924,61 @@ module.exports = async (req, res) => {
       
       console.log(`🖼️ [NANO-BANANA] Using aspect_ratio: ${aspectRatio}, output_format: ${outputFormat}, guidance: ${guidance}`);
       
-      // ✅ UPLOAD BASE64 DO VERCEL BLOB (nano-banana wymaga URL, nie base64)
-      console.log('📤 [NANO-BANANA] Uploading user image to Vercel Blob Storage (nano-banana requires URL, not base64)...');
-      const baseUrl = 'https://customify-s56o.vercel.app';
-      const uploadResponse = await fetch(`${baseUrl}/api/upload-temp-image`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          imageData: imageDataUri,
-          filename: `nano-banana-${Date.now()}.jpg`
-        })
-      });
-
-      if (!uploadResponse.ok) {
-        const errorText = await uploadResponse.text();
-        console.error('❌ [NANO-BANANA] Vercel Blob upload failed:', errorText);
-        throw new Error(`Vercel Blob upload failed: ${uploadResponse.status} - ${errorText}`);
-      }
-
-      const uploadResult = await uploadResponse.json();
-      const userImageUrl = uploadResult.imageUrl;
-      console.log('✅ [NANO-BANANA] User image uploaded to Vercel Blob:', userImageUrl);
-      
       // Sprawdź czy to styl boho (1 obrazek) czy koty/zamkowy (2 obrazki lub 1 obrazek)
-      if (finalProductType === 'boho' || finalProductType === 'other') {
-        // Style boho/zamkowy - tylko obrazek użytkownika (jako URL)
-        // ✅ FIX: Dodaj negative_prompt do głównego promptu (tylko dla boho)
+      if (finalProductType === 'boho') {
+        // Style boho - tylko obrazek użytkownika (base64 - działa dla boho)
+        // ✅ FIX: Dodaj negative_prompt do głównego promptu
         let fullPrompt = config.prompt;
-        if (config.negative_prompt && finalProductType === 'boho') {
+        if (config.negative_prompt) {
           fullPrompt += ` [NEGATIVE PROMPT: ${config.negative_prompt}]`;
           console.log(`✅ [NANO-BANANA] Added negative prompt to boho style`);
         }
         
         inputParams = {
           prompt: fullPrompt,
-          image_input: [userImageUrl], // URL z Vercel Blob, nie base64!
+          image_input: [imageDataUri], // Base64 dla boho (działa)
           aspect_ratio: aspectRatio,
           output_format: outputFormat,
           guidance: guidance
         };
         
-        console.log(`📸 [NANO-BANANA] Boho/Zamkowy style - 1 obrazek (user URL): ${userImageUrl}`);
+        console.log(`📸 [NANO-BANANA] Boho style - 1 obrazek (user base64): ${imageDataUri.substring(0, 50)}...`);
+        console.log(`📸 [NANO-BANANA] image_input array length: ${inputParams.image_input.length}`);
+      } else if (finalProductType === 'other') {
+        // Style zamkowy - tylko obrazek użytkownika (URL - nano-banana wymaga URL dla other)
+        // ✅ UPLOAD BASE64 DO VERCEL BLOB (nano-banana wymaga URL dla zamkowy)
+        console.log('📤 [NANO-BANANA] Uploading user image to Vercel Blob Storage (zamkowy requires URL, not base64)...');
+        const baseUrl = 'https://customify-s56o.vercel.app';
+        const uploadResponse = await fetch(`${baseUrl}/api/upload-temp-image`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            imageData: imageDataUri,
+            filename: `zamkowy-${Date.now()}.jpg`
+          })
+        });
+
+        if (!uploadResponse.ok) {
+          const errorText = await uploadResponse.text();
+          console.error('❌ [NANO-BANANA] Vercel Blob upload failed:', errorText);
+          throw new Error(`Vercel Blob upload failed: ${uploadResponse.status} - ${errorText}`);
+        }
+
+        const uploadResult = await uploadResponse.json();
+        const userImageUrl = uploadResult.imageUrl;
+        console.log('✅ [NANO-BANANA] User image uploaded to Vercel Blob:', userImageUrl);
+        
+        inputParams = {
+          prompt: config.prompt,
+          image_input: [userImageUrl], // URL z Vercel Blob dla zamkowy
+          aspect_ratio: aspectRatio,
+          output_format: outputFormat,
+          guidance: guidance
+        };
+        
+        console.log(`📸 [NANO-BANANA] Zamkowy style - 1 obrazek (user URL): ${userImageUrl}`);
         console.log(`📸 [NANO-BANANA] image_input array length: ${inputParams.image_input.length}`);
       } else {
         // Style kotów - 2 obrazki (miniaturka + użytkownik)
@@ -1974,7 +1986,7 @@ module.exports = async (req, res) => {
           prompt: config.prompt,
           image_input: [
             config.parameters.image_input[0], // Miniaturka stylu z parameters (już URL)
-            userImageUrl // Obrazek użytkownika jako URL z Vercel Blob
+            imageDataUri // Obrazek użytkownika (base64 - działa dla kotów)
           ],
           aspect_ratio: aspectRatio,
           output_format: outputFormat
@@ -1982,7 +1994,7 @@ module.exports = async (req, res) => {
         
         // Szczegółowe logowanie dla debugowania
         console.log(`📸 [NANO-BANANA] Cats style - Obraz 1 (miniaturka): ${config.parameters.image_input[0]}`);
-        console.log(`📸 [NANO-BANANA] Cats style - Obraz 2 (user URL): ${userImageUrl}`);
+        console.log(`📸 [NANO-BANANA] Cats style - Obraz 2 (user): ${imageDataUri.substring(0, 50)}...`);
         console.log(`📸 [NANO-BANANA] image_input array length: ${inputParams.image_input.length}`);
       }
     } else {
