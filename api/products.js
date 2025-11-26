@@ -481,11 +481,9 @@ module.exports = async (req, res) => {
       } else {
         const metafieldsError = await metafieldsResponse.text();
         console.error('⚠️ [PRODUCTS.JS] Failed to add metafields:', metafieldsError);
-        warnings.push('Metafields not saved - admin may not see order details');
       }
     } catch (metafieldsError) {
       console.error('⚠️ [PRODUCTS.JS] Metafields error:', metafieldsError.message);
-      warnings.push('Metafields not saved - admin may not see order details');
     }
 
     res.json({ 
@@ -499,7 +497,6 @@ module.exports = async (req, res) => {
       orderId: uniqueId,  // ✅ Unikalny identyfikator zamówienia
       shortOrderId: shortOrderId,  // ✅ Skrócony numer (tylko timestamp) - dla klienta
       message: 'Produkt został utworzony z obrazkiem AI!',
-      warnings: warnings.length > 0 ? warnings : undefined,  // ⚠️ Ostrzeżenie jeśli backup nie działa
       cartUrl: `https://${shop}/cart/add?id=${product.variants[0].id}&quantity=1`
     });
 
