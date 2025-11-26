@@ -2421,7 +2421,7 @@ module.exports = async (req, res) => {
           deviceToken,
           imageUrl: finalImageUrl, // ✅ BEZ watermarku (do realizacji zamówienia)
           watermarkedImageUrl: watermarkedImageUrl || null, // ✅ Z watermarkem (backend PNG) - dla podglądu/koszyka
-          style: prompt || 'unknown',
+          style: style || prompt || 'unknown', // ✅ UŻYJ CZYSTEGO STYLU (nie prompt) - dla emaili i wyświetlania
           size: 'a4', // ✅ Domyślny rozmiar A4 (30x40cm) - użytkownik może zmienić później
           productType: finalProductType,
           originalImageUrl: null // Opcjonalnie - można dodać później
