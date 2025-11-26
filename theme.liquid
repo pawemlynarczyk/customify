@@ -273,40 +273,26 @@
               }
             }
             
-            // ✅ PRIORYTET: Użyj watermarkedImageUrl z backendu (pełny rozmiar, 92% quality)
-            // ✅ FALLBACK: Jeśli brak backend watermarku, użyj frontend addWatermark() (50% rozmiaru, 70% quality)
-            let imageToShow = imageUrl; // Domyślnie oryginał
-            let watermarkedImageForCart = null;
+            // ✅ TYLKO BACKEND WATERMARK (PNG z Sharp) - BEZ CANVAS FALLBACK!
+            // Jeśli backend watermark nie istnieje = błąd transformacji (nie powinno się zdarzyć)
+            let imageToShow = imageUrl; // Domyślnie oryginał (bez watermarku - tylko do podglądu)
             
             // Sprawdź czy mamy watermarkedImageUrl z backendu (z response transform.js)
-            // watermarkedImageUrl jest dostępny przez this.watermarkedImageUrl (ustawiony w transformImage)
             if (this.watermarkedImageUrl) {
-              console.log('✅ [CUSTOMIFY] Używam backend watermarkedImageUrl (pełny rozmiar, 92% quality)');
+              console.log('✅ [CUSTOMIFY] Używam backend watermarkedImageUrl (Sharp PNG, 92% quality)');
               imageToShow = this.watermarkedImageUrl;
-              watermarkedImageForCart = this.watermarkedImageUrl;
             } else {
-              // FALLBACK: Frontend watermark (50% rozmiaru, 70% quality)
-              console.log('⚠️ [CUSTOMIFY] Brak backend watermarkedImageUrl - używam frontend watermark jako fallback');
-              try {
-                const watermarkedImage = await this.addWatermark(imageUrl);
-                imageToShow = watermarkedImage;
-                watermarkedImageForCart = watermarkedImage;
-                console.log('✅ [CUSTOMIFY] Frontend watermark wygenerowany (fallback)');
-              } catch (error) {
-                console.error('❌ [CUSTOMIFY] Frontend watermark error:', error);
-                // Jeśli nawet fallback się nie powiódł, użyj oryginału
-                imageToShow = imageUrl;
-                watermarkedImageForCart = null;
-              }
+              // ❌ BRAK BACKEND WATERMARK = BŁĄD (transformacja się nie powiodła)
+              console.error('❌ [CUSTOMIFY] Brak backend watermarkedImageUrl - transformacja failnęła!');
+              console.error('❌ [CUSTOMIFY] Pokazuję oryginał bez watermarku (tylko podgląd - NIE MOŻNA dodać do koszyka)');
+              imageToShow = imageUrl; // Pokazujemy oryginał bez watermarku (tylko podgląd)
             }
             
             if (this.resultImage) {
               this.resultImage.src = imageToShow;
             }
             
-            // ✅ ZAPISZ OBRAZEK Z WATERMARKIEM (do użycia w koszyku)
-            this.watermarkedImage = watermarkedImageForCart;
-            console.log('🎨 [CUSTOMIFY] Obraz z watermarkiem ustawiony:', imageToShow?.substring(0, 100) + '...');
+            console.log('🎨 [CUSTOMIFY] Obraz ustawiony:', imageToShow?.substring(0, 100) + '...');
             
             this.resultArea.style.display = 'block';
             
@@ -437,36 +423,17 @@
                 console.warn('⚠️ [CUSTOMIFY] No original image available, using transformed image as fallback');
               }
 
-              let watermarkedImageUrl = null;
-              if (this.watermarkedImage) {
-                console.log('📤 [CUSTOMIFY] Uploading watermarked image to Vercel Blob...');
-                try {
-                  const watermarkUploadResponse = await fetch('https://customify-s56o.vercel.app/api/upload-temp-image', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                      imageData: this.watermarkedImage,
-                      filename: `watermarked-${Date.now()}.jpg`
-                    })
-                  });
-
-                  console.log('📤 [CUSTOMIFY] Upload response status:', watermarkUploadResponse.status);
-                  const watermarkUploadResult = await watermarkUploadResponse.json();
-                  console.log('📤 [CUSTOMIFY] Upload result:', watermarkUploadResult);
-
-                  if (watermarkUploadResult.success) {
-                    watermarkedImageUrl = watermarkUploadResult.url;
-                    console.log('✅ [CUSTOMIFY] Watermarked image uploaded:', watermarkedImageUrl);
-                    console.log('✅ [CUSTOMIFY] URL length:', watermarkedImageUrl.length);
-                  } else {
-                    console.error('❌ [CUSTOMIFY] Failed to upload watermarked image:', watermarkUploadResult.error);
-                  }
-                } catch (error) {
-                  console.error('❌ [CUSTOMIFY] Error uploading watermarked image:', error);
-                }
-              } else {
-                console.warn('⚠️ [CUSTOMIFY] No watermarked image available - this.watermarkedImage is null/undefined');
+              // ✅ TYLKO BACKEND WATERMARK - już jest na Vercel Blob, nie trzeba uploadować ponownie!
+              let watermarkedImageUrl = this.watermarkedImageUrl || null;
+              
+              if (!watermarkedImageUrl) {
+                console.error('❌ [CUSTOMIFY] Brak backend watermarkedImageUrl - nie można dodać do koszyka!');
+                alert('Wystąpił błąd podczas generowania obrazu. Spróbuj wygenerować obraz ponownie klikając "Przekształć z AI".');
+                this.hideLoading();
+                return; // Blokada dodania do koszyka
               }
+              
+              console.log('✅ [CUSTOMIFY] Używam backend watermarkedImageUrl (już na Vercel Blob):', watermarkedImageUrl.substring(0, 100));
 
               const productData = {
                 originalImage: originalImage,
