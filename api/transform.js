@@ -2222,6 +2222,7 @@ module.exports = async (req, res) => {
     // ✅ Inicjalizuj finalImageUrl i watermarkedImageUrl - będą ustawione podczas przetwarzania obrazu
     let finalImageUrl = imageUrl; // Domyślnie użyj imageUrl (dla Replicate URLs)
     let watermarkedImageUrl = null; // ✅ Z watermarkem (backend PNG) - dla podglądu/koszyka
+    let watermarkedImageBase64 = null; // ✅ NOWE: Base64 watermarku (dla /api/products - BEZ PONOWNEGO DOWNLOADU)
     
     if (imageUrl) {
       console.log(`✅ [TRANSFORM] WARUNEK SPEŁNIONY - zapisuję generację`);
@@ -2268,6 +2269,10 @@ module.exports = async (req, res) => {
                 try {
                   console.log('🎨 [TRANSFORM] Applying required PNG watermark to base64 image...');
                   const watermarkedBuffer = await addWatermarkPNG(imageBuffer);
+                  
+                  // ✅ ZAPISZ BASE64 WATERMARKU (dla /api/products - BEZ PONOWNEGO DOWNLOADU)
+                  watermarkedImageBase64 = watermarkedBuffer.toString('base64');
+                  console.log(`✅ [TRANSFORM] Watermark base64 saved (${watermarkedImageBase64.length} chars) - no download needed in /api/products`);
                   
                   const watermarkedTimestamp = Date.now();
                   const watermarkedFilename = `customify/temp/generation-watermarked-${watermarkedTimestamp}.jpg`;
@@ -2329,6 +2334,10 @@ module.exports = async (req, res) => {
                 try {
                   console.log('🎨 [TRANSFORM] Applying required PNG watermark to Replicate image...');
                   const watermarkedBuffer = await addWatermarkPNG(buffer);
+                  
+                  // ✅ ZAPISZ BASE64 WATERMARKU (dla /api/products - BEZ PONOWNEGO DOWNLOADU)
+                  watermarkedImageBase64 = watermarkedBuffer.toString('base64');
+                  console.log(`✅ [TRANSFORM] Watermark base64 saved (${watermarkedImageBase64.length} chars) - no download needed in /api/products`);
                   
                   const watermarkedTimestamp = Date.now();
                   const watermarkedFilename = `customify/temp/generation-watermarked-${watermarkedTimestamp}.jpg`;
@@ -2918,6 +2927,7 @@ module.exports = async (req, res) => {
       success: true, 
       transformedImage: imageUrl, // Oryginał BEZ watermarku (do druku)
       watermarkedImageUrl: watermarkedImageUrl || null, // Obraz Z watermarkem (backend PNG) - dla podglądu/koszyka
+      watermarkedImageBase64: watermarkedImageBase64 || null, // ✅ NOWE: Base64 watermarku (dla /api/products - BEZ PONOWNEGO DOWNLOADU)
       deviceToken,
       ipHash
     };
