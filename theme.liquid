@@ -512,11 +512,14 @@
                   if (result.orderId) {
                     hiddenProperties['_Order ID Full'] = result.orderId;
                   }
-                  if (result.vercelBlobUrl) {
-                    hiddenProperties['_AI_Image_Vercel'] = result.vercelBlobUrl;
-                  } else if (result.permanentImageUrl) {
-                    hiddenProperties['_AI_Image_Vercel'] = result.permanentImageUrl;
-                  }
+                  // 🚨 CRITICAL FIX: NIE DODAWAJ BASE64 DO CART PROPERTIES - URL ZA DŁUGI!
+                  // Base64 (~1MB) przekracza limit URL (2048 znaków)
+                  // Obrazy są już zapisane w Shopify Admin (product.images) i Vercel Blob
+                  // if (result.vercelBlobUrl) {
+                  //   hiddenProperties['_AI_Image_Vercel'] = result.vercelBlobUrl;
+                  // } else if (result.permanentImageUrl) {
+                  //   hiddenProperties['_AI_Image_Vercel'] = result.permanentImageUrl;
+                  // }
                   if (watermarkedImageUrl) {
                     hiddenProperties['_AI_Image_Watermarked'] = watermarkedImageUrl;
                   }
