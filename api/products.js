@@ -443,7 +443,7 @@ module.exports = async (req, res) => {
         const blob = await put(uniqueFilename, imageBuffer, {
           access: 'public',
           contentType: 'image/jpeg',
-          token: process.env.BLOB_READ_WRITE_TOKEN,
+          token: process.env.customify_READ_WRITE_TOKEN || process.env.BLOB_READ_WRITE_TOKEN,
         });
         
         vercelBlobUrl = blob.url;
