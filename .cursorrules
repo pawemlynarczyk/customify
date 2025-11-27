@@ -1018,3 +1018,124 @@ git add . && git commit -m "CSS: opis zmian" && git push origin main
 - **`!important`** jest konieczne w `customify.css` i `base.css`
 - **Zawsze testuj** na https://lumly.pl/products/custom
 - **Commituj zmiany** po każdym działającym fixie
+
+## 🎨 MY GENERATIONS - FLOW I ZASADY
+
+### **📍 LOKALIZACJA:**
+- **Plik**: `shopify-theme/customify-theme/sections/main-my-generations.liquid`
+- **URL**: `/pages/my-generations`
+- **Dostęp**: Tylko dla zalogowanych użytkowników (`{% if customer %}`)
+
+### **🔄 FLOW "MY GENERATIONS":**
+
+#### **1. INICJALIZACJA:**
+- **Funkcja**: `initGallery()` - wywoływana raz (zabezpieczenie przed duplikacją)
+- **Flaga**: `initGalleryCalled = false` - zapobiega wielokrotnemu wywołaniu
+- **Timing**: `DOMContentLoaded` lub natychmiast (jeśli DOM już ready)
+
+#### **2. POBIERANIE GENERACJI:**
+- **Źródło 1**: `localStorage.getItem('customify_ai_generations')` - szybkie wyświetlenie
+- **Źródło 2**: `/api/get-customer-generations?customerId=...` - pełna historia z Vercel Blob
+- **Merge**: `mergeGenerations(apiGenerations, localStorageGenerations)` - łączy oba źródła
+
+#### **3. DEDUPLIKACJA:**
+- **Metoda**: Usuwanie duplikatów po URL obrazu (jeśli `id` nie są unikalne)
+- **Logika**: 
+  ```javascript
+  const seenUrls = new Set();
+  const uniqueGenerations = allGenerations.filter(gen => {
+    const imageUrl = gen.watermarkedImageUrl || gen.transformedImage;
+    if (seenUrls.has(imageUrl)) return false; // Duplikat - usuń
+    seenUrls.add(imageUrl);
+    return true;
+  });
+  ```
+- **Cel**: Każdy obraz wyświetlany tylko raz (nawet jeśli jest w API i localStorage)
+
+#### **4. RENDEROWANIE:**
+- **Funkcja**: `renderGeneration(generation, index, allGenerationsArray)`
+- **Obraz**: Priorytet `watermarkedImageUrl` > `transformedImage` (ZAWSZE z watermarkiem na froncie!)
+- **Format**: Grid 4 kolumny (desktop), 3 (tablet), 2 (mobile)
+- **Aspect ratio**: 3:4 (pionowy portret)
+
+#### **5. KLIKNIĘCIE W GENERACJĘ:**
+- **Event**: Kliknięcie w kartę lub przycisk "Zamów"
+- **Akcja 1**: Zapis do `localStorage.setItem('customify_selected_generation', ...)`
+- **Akcja 2**: Redirect do `/products/{productHandle}`
+- **Mapping**: `productType` → `productHandle` (np. `caricature` → `karykatura-z-twojego-zdjecia-obraz`)
+
+#### **6. REUSE GENERATION (na stronie produktu):**
+- **Funkcja**: `reuseGeneration()` w `customify.js`
+- **Źródło**: `localStorage.getItem('customify_selected_generation')`
+- **Akcja**: 
+  - Ustawia `this.transformedImage` (URL z Vercel Blob, NIE base64!)
+  - Ustawia `this.watermarkedImageUrl` (z watermarkiem)
+  - Ustawia `this.originalImageFromGallery` (oryginalne zdjęcie)
+  - Wywołuje `showResult()` - pokazuje obraz z watermarkiem
+
+### **🎯 KLUCZOWE ZASADY:**
+
+#### **✅ CO ZAWSZE ROBIĆ:**
+- ✅ **Zapobiegaj wielokrotnemu wywołaniu** `initGallery()` - użyj flagi
+- ✅ **Usuwaj duplikaty** po URL obrazu (nie po `id` - mogą być różne)
+- ✅ **Wyświetlaj ZAWSZE watermarkedImageUrl** na froncie (user NIE MOŻE widzieć bez watermarku!)
+- ✅ **Zapisuj URL z Vercel Blob** w localStorage (NIE base64 - przekracza limit!)
+- ✅ **Używaj `uniqueGenerations`** do renderowania (nie `allGenerations`)
+
+#### **❌ CZEGO NIE ROBIĆ:**
+- ❌ **NIE wyświetlaj** `cleanImageUrl` lub `transformedImage` bez watermarku na froncie
+- ❌ **NIE zapisuj base64** w localStorage (przekracza limit ~5MB)
+- ❌ **NIE renderuj** generacji bez deduplikacji (będą duplikaty)
+- ❌ **NIE wywołuj** `initGallery()` wielokrotnie (będą duplikaty)
+
+### **📦 STRUKTURA DANYCH W localStorage:**
+```javascript
+// customify_ai_generations (tablica generacji)
+[
+  {
+    id: 1764247337290,
+    timestamp: '2025-11-27T12:42:17.290Z',
+    originalImage: '/9j/4AAQ...', // Base64 (krótki - tylko dla reuse)
+    transformedImage: 'https://vzwqqb14qtsxe2wx.public.blob.vercel-storage.com/...', // ✅ URL z Vercel Blob (NIE base64!)
+    watermarkedImageUrl: 'https://vzwqqb14qtsxe2wx.public.blob.vercel-storage.com/...', // ✅ Z watermarkiem
+    watermarkedImageBase64: 'iVBORw0KGgo...', // Base64 watermarku (dla /api/products)
+    style: 'karykatura',
+    productType: 'caricature',
+    productHandle: 'karykatura-z-twojego-zdjecia-obraz',
+    size: 'a4',
+    // ...
+  }
+]
+
+// customify_selected_generation (wybrana generacja do reuse)
+{
+  index: 0,
+  generation: { /* pełny obiekt generacji */ },
+  selectedAt: '2025-11-27T12:42:17.290Z'
+}
+```
+
+### **🔗 MAPPING PRODUCT TYPE → PRODUCT HANDLE:**
+```javascript
+const productTypeToHandle = {
+  'boho': 'personalizowany-portret-w-stylu-boho',
+  'king': 'krol-portret-personalizowany',
+  'queen': 'krol-portret-personalizowany',
+  'cats': 'koty-krolewskie',
+  'caricature': 'karykatura-z-twojego-zdjecia-obraz',
+  'watercolor': 'personalizowany-portret-w-stylu-boho',
+  'other': 'personalizowany-portret-w-stylu-boho'
+};
+```
+
+### **🚨 CRITICAL: WATERMARK W MY GENERATIONS:**
+- **Frontend (My Generations)**: ZAWSZE `watermarkedImageUrl` (z watermarkiem)
+- **Admin (Zamówienie)**: ZAWSZE `_AI_Image_URL` (bez watermarku - z Vercel Blob)
+- **User NIE MOŻE widzieć** obrazu bez watermarku na froncie!
+- **Admin MUSI mieć** obraz bez watermarku w zamówieniu!
+
+### **🔧 DEBUGGING:**
+- **Console logs**: `🎨 [MY-GENERATIONS]`, `🔄 [GALLERY]`, `✅ [MY-GENERATIONS]`
+- **Sprawdź duplikaty**: `console.log('Total generations:', uniqueGenerations.length)`
+- **Sprawdź localStorage**: `localStorage.getItem('customify_ai_generations')`
+- **Sprawdź selected**: `localStorage.getItem('customify_selected_generation')`
