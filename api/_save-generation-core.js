@@ -444,6 +444,7 @@ async function saveGenerationHandler(req, res) {
       
       // ✅ SENTRY: Loguj błąd zapisu generacji
       Sentry.withScope((scope) => {
+        scope.setTag('customify', 'true');
         scope.setTag('error_type', 'save_generation_failed');
         scope.setTag('endpoint', 'save-generation');
         scope.setContext('generation', {

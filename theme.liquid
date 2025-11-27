@@ -48,35 +48,76 @@
     <!-- End Hotjar -->
 
     <!-- SENTRY ERROR TRACKING -->
-    <script src="https://browser.sentry-cdn.com/8.40.0/bundle.min.js" integrity="sha384-8kA4bpX1WYu0x+Nsb+QOPYyqy+7P2q3k/7kI10H7B5f2/0bJmv6O7pXU3oYxRwXq" crossorigin="anonymous"></script>
+    <script src="https://browser.sentry-cdn.com/8.40.0/bundle.min.js" crossorigin="anonymous"></script>
     <script>
-      {% if customer %}
-        Sentry.init({
-          dsn: "https://562a1a160e90a597f0236fd8c6b13301@o4510439439925248.ingest.de.sentry.io/4510439517257808",
-          environment: "production",
-          tracesSampleRate: 0.1, // 10% of transactions
-          beforeSend(event, hint) {
-            // Dodaj kontekst użytkownika
-            if (event.user) {
-              event.user.id = {{ customer.id | json }};
-              event.user.email = {{ customer.email | json }};
-            }
-            return event;
-          }
-        });
+      // ✅ Inicjalizuj Sentry po załadowaniu skryptu (synchronicznie)
+      (function() {
+        // Poczekaj aż Sentry będzie dostępny (max 5 sekund)
+        let attempts = 0;
+        const maxAttempts = 50; // 50 prób × 100ms = 5 sekund
         
-        // Ustaw użytkownika
-        Sentry.setUser({
-          id: {{ customer.id | json }},
-          email: {{ customer.email | json }}
-        });
-      {% else %}
-        Sentry.init({
-          dsn: "https://562a1a160e90a597f0236fd8c6b13301@o4510439439925248.ingest.de.sentry.io/4510439517257808",
-          environment: "production",
-          tracesSampleRate: 0.1
-        });
-      {% endif %}
+        function tryInit() {
+          attempts++;
+          
+          if (typeof Sentry !== 'undefined' && typeof Sentry.init === 'function') {
+            try {
+              {% if customer %}
+                Sentry.init({
+                  dsn: "https://562a1a160e90a597f0236fd8c6b13301@o4510439439925248.ingest.de.sentry.io/4510439517257808",
+                  environment: "production",
+                  tracesSampleRate: 0.1,
+                  beforeSend(event, hint) {
+                    // ✅ Dodaj tag customify do wszystkich błędów
+                    if (event.tags) {
+                      event.tags.customify = 'true';
+                    } else {
+                      event.tags = { customify: 'true' };
+                    }
+                    if (event.user) {
+                      event.user.id = {{ customer.id | json }};
+                      event.user.email = {{ customer.email | json }};
+                    }
+                    return event;
+                  }
+                });
+                
+                Sentry.setUser({
+                  id: {{ customer.id | json }},
+                  email: {{ customer.email | json }}
+                });
+              {% else %}
+                Sentry.init({
+                  dsn: "https://562a1a160e90a597f0236fd8c6b13301@o4510439439925248.ingest.de.sentry.io/4510439517257808",
+                  environment: "production",
+                  tracesSampleRate: 0.1,
+                  beforeSend(event, hint) {
+                    // ✅ Dodaj tag customify do wszystkich błędów
+                    if (event.tags) {
+                      event.tags.customify = 'true';
+                    } else {
+                      event.tags = { customify: 'true' };
+                    }
+                    return event;
+                  }
+                });
+              {% endif %}
+              
+              console.log('✅ [SENTRY] Initialized successfully');
+              window.__sentryInitialized = true;
+            } catch (error) {
+              console.error('❌ [SENTRY] Initialization error:', error);
+            }
+          } else if (attempts < maxAttempts) {
+            // Spróbuj ponownie za 100ms
+            setTimeout(tryInit, 100);
+          } else {
+            console.warn('⚠️ [SENTRY] Failed to load after ' + maxAttempts + ' attempts. Check Network tab for browser.sentry-cdn.com');
+          }
+        }
+        
+        // Rozpocznij próby inicjalizacji natychmiast
+        tryInit();
+      })();
     </script>
     <!-- End Sentry -->
 

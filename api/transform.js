@@ -3013,6 +3013,7 @@ module.exports = async (req, res) => {
     
     // ✅ SENTRY: Loguj błąd transformacji
     Sentry.withScope((scope) => {
+      scope.setTag('customify', 'true');
       scope.setTag('error_type', 'transform_failed');
       scope.setTag('endpoint', 'transform');
       scope.setContext('transform', {

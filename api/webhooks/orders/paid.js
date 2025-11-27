@@ -195,6 +195,7 @@ Zespół Customify
             
             // ✅ SENTRY: Loguj błąd wysyłki maila
             Sentry.withScope((scope) => {
+              scope.setTag('customify', 'true');
               scope.setTag('error_type', 'email_send_failed');
               scope.setTag('webhook', 'orders/paid');
               scope.setContext('email', {
