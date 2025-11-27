@@ -52,7 +52,7 @@
     <script>
       {% if customer %}
         Sentry.init({
-          dsn: "{{ settings.sentry_dsn | default: '' }}",
+          dsn: "https://562a1a160e90a597f0236fd8c6b13301@o4510439439925248.ingest.de.sentry.io/4510439517257808",
           environment: "production",
           tracesSampleRate: 0.1, // 10% of transactions
           beforeSend(event, hint) {
@@ -72,7 +72,7 @@
         });
       {% else %}
         Sentry.init({
-          dsn: "{{ settings.sentry_dsn | default: '' }}",
+          dsn: "https://562a1a160e90a597f0236fd8c6b13301@o4510439439925248.ingest.de.sentry.io/4510439517257808",
           environment: "production",
           tracesSampleRate: 0.1
         });
