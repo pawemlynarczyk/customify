@@ -231,6 +231,7 @@
       <input type="number" id="limitInput" placeholder="Limit" value="50" min="1" max="200">
       <button onclick="loadErrors()">Załaduj błędy</button>
       <button onclick="loadErrors()" style="background: #6c757d;">Odśwież</button>
+      <button onclick="testError()" style="background: #28a745;">🧪 Test błędu</button>
     </div>
     
     <div class="errors-list" id="errorsList">
@@ -316,6 +317,41 @@
       const div = document.createElement('div');
       div.textContent = text;
       return div.innerHTML;
+    }
+    
+    // Funkcja testowa - wywołuje testowy błąd
+    async function testError() {
+      try {
+        const response = await fetch(`${API_BASE}/log-error`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            errorType: 'test_error',
+            errorMessage: 'Test błędu z dashboardu - ' + new Date().toLocaleString('pl-PL'),
+            errorStack: new Error().stack,
+            context: {
+              test: true,
+              source: 'admin_dashboard',
+              timestamp: new Date().toISOString()
+            },
+            url: window.location.href,
+            userAgent: navigator.userAgent
+          })
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+          alert('✅ Testowy błąd został wysłany! Odśwież listę za 2 sekundy...');
+          setTimeout(loadErrors, 2000);
+        } else {
+          alert('❌ Błąd: ' + (result.error || 'Nieznany błąd'));
+        }
+      } catch (error) {
+        alert('❌ Błąd wysyłania: ' + error.message);
+        console.error('Test error failed:', error);
+      }
     }
     
     // Auto-refresh co 30 sekund
