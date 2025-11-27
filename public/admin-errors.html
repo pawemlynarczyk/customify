@@ -231,6 +231,7 @@
       <input type="number" id="limitInput" placeholder="Limit" value="50" min="1" max="200">
       <button onclick="loadErrors()">Załaduj błędy</button>
       <button onclick="loadErrors()" style="background: #6c757d;">Odśwież</button>
+      <button onclick="toggleAutoRefresh()" id="autoRefreshBtn" style="background: #28a745;">⏸️ Auto-refresh: WYŁ.</button>
       <button onclick="testError()" style="background: #28a745;">🧪 Test błędu</button>
     </div>
     
@@ -354,10 +355,33 @@
       }
     }
     
-    // Auto-refresh co 30 sekund
-    setInterval(loadErrors, 30000);
+    // Auto-refresh (domyślnie WYŁĄCZONY - żeby nie zaśmiecać logów Vercel)
+    let autoRefreshInterval = null;
+    let autoRefreshEnabled = false;
     
-    // Load on page load
+    function toggleAutoRefresh() {
+      autoRefreshEnabled = !autoRefreshEnabled;
+      const btn = document.getElementById('autoRefreshBtn');
+      
+      if (autoRefreshEnabled) {
+        // Włącz auto-refresh co 5 minut (300000ms)
+        autoRefreshInterval = setInterval(loadErrors, 300000);
+        btn.textContent = '▶️ Auto-refresh: WŁ. (5 min)';
+        btn.style.background = '#dc3545';
+        console.log('✅ Auto-refresh włączony (co 5 minut)');
+      } else {
+        // Wyłącz auto-refresh
+        if (autoRefreshInterval) {
+          clearInterval(autoRefreshInterval);
+          autoRefreshInterval = null;
+        }
+        btn.textContent = '⏸️ Auto-refresh: WYŁ.';
+        btn.style.background = '#28a745';
+        console.log('⏸️ Auto-refresh wyłączony');
+      }
+    }
+    
+    // Load on page load (tylko raz)
     loadErrors();
   </script>
 </body>
