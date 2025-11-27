@@ -576,15 +576,53 @@
                 productHandle = generation.productHandle;
                 console.log('✅ [MY-GENERATIONS] Użyto productHandle z generacji:', generation.productHandle);
               } else if (generation.productType && productTypeToHandle[generation.productType]) {
-                productHandle = productTypeToHandle[generation.productType];
+                // ✅ WALIDACJA: Sprawdź czy productType jest zgodny ze style (dla starych generacji z błędnym productType)
+                const styleKey = (generation.style || '').toLowerCase().replace(/transform this image in | style/g, '').trim();
+                let expectedProductType = null;
+                
+                // Określ oczekiwany productType na podstawie stylu
+                if (styleKey === 'pixar') {
+                  expectedProductType = 'pixar';
+                } else if (styleKey === 'akwarela' || styleKey.includes('watercolor')) {
+                  expectedProductType = 'watercolor';
+                } else if (styleKey.includes('krol-') || styleKey.includes('krolowa-')) {
+                  expectedProductType = styleKey.includes('krolowa') ? 'queen' : 'king';
+                } else if (styleKey.includes('krolewski') || styleKey.includes('na-tronie') || styleKey.includes('wojenny')) {
+                  expectedProductType = 'cats';
+                } else if (styleKey.includes('karykatura') || styleKey.includes('caricature')) {
+                  expectedProductType = 'caricature';
+                } else if (styleKey.includes('minimalistyczny') || styleKey.includes('realistyczny')) {
+                  expectedProductType = 'boho';
+                }
+                
+                // Jeśli productType jest niezgodny ze style, użyj style (priorytet)
+                if (expectedProductType && expectedProductType !== generation.productType) {
+                  console.warn('⚠️ [MY-GENERATIONS] productType niezgodny ze style:', {
+                    style: generation.style,
+                    productType: generation.productType,
+                    expectedProductType: expectedProductType
+                  });
+                  // Użyj expectedProductType zamiast generation.productType
+                  if (productTypeToHandle[expectedProductType]) {
+                    productHandle = productTypeToHandle[expectedProductType];
+                    console.log('✅ [MY-GENERATIONS] Użyto productType z stylu (zamiast błędnego productType):', expectedProductType, '→', productHandle);
+                  } else {
+                    // Fallback do generation.productType
+                    productHandle = productTypeToHandle[generation.productType];
+                    console.log('✅ [MY-GENERATIONS] Użyto productType z generacji (fallback):', generation.productType, '→', productHandle);
+                  }
+                } else {
+                  // productType jest zgodny ze style - użyj go
+                  productHandle = productTypeToHandle[generation.productType];
+                  console.log('✅ [MY-GENERATIONS] Użyto productType z generacji:', generation.productType, '→', productHandle);
+                }
+                
                 // ✅ DLA para_krolewska: Jeśli productHandle jest null (brak w cache), użyj productHandle z generacji jeśli dostępny
                 if (generation.productType === 'para_krolewska' && !productHandle && generation.productHandle) {
                   productHandle = generation.productHandle;
                   // Zapisz w cache dla przyszłości
                   localStorage.setItem('customify_product_handle_15548464693573', productHandle);
                   console.log('✅ [MY-GENERATIONS] Użyto productHandle z generacji dla para_krolewska i zapisano w cache:', productHandle);
-                } else if (productHandle) {
-                  console.log('✅ [MY-GENERATIONS] Użyto productType z generacji:', generation.productType, '→', productHandle);
                 }
               }
               
