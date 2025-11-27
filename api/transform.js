@@ -1036,7 +1036,7 @@ module.exports = async (req, res) => {
         parameters: {
           image_input: ["USER_IMAGE"],
           prompt: "Dress the couple in refined royal attire inspired by European monarchy. The man wears an elegant royal ceremonial outfit with ornate gold embroidery, a dark tailored coat, a decorative sash and subtle regal details. The woman wears a luxurious royal ball gown with flowing fabric, pearl or gold embellishments, and delicate majestic accents. Their outfits must look high-class, tasteful and historically inspired, but clean and premium — not theatrical or cartoonish. Frame the couple in a tight waist-up portrait. This is a close, zoomed-in portrait composition. Show them ONLY from the waist upward. Do NOT show full bodies. Do NOT show legs, hips or anything below the waist. Lower body parts do NOT exist in this image. The framing must be tight around the upper body so the faces appear large and clearly visible. Place them outdoors on a green garden lawn on a sunny day, with a large European-style palace or castle visible in the background.",
-          aspect_ratio: "9:16",
+          aspect_ratio: "2:3",
           output_format: "jpg",
           guidance: 3.5
         }
@@ -1049,7 +1049,7 @@ module.exports = async (req, res) => {
         parameters: {
           image_input: ["USER_IMAGE"],
           prompt: "Preserve the exact facial identity of the two people from the provided photo. Make a faceswap and keep the original hair style and colour. Faces must look exactly like the people in the input image, with realistic likeness. Dress the couple in full ceremonial royal attire inspired by European imperial royalty. The man wears a richly decorated royal ceremonial uniform with heavy gold embroidery, ornate patterns, medals, epaulettes, a dark tailored coat and a majestic golden crown. The woman wears an opulent royal gown in deep luxurious colours such as ruby or burgundy, with gold embellishments, velvet or fur-trimmed elements, elegant jewelry and a regal golden crown. Their outfits must look majestic, premium and noble — impressive, luxurious and ceremonial, but not theatrical or cartoonish. Both people should be holding elegant royal-style drinks, such as crystal goblets, premium cocktails or ceremonial glasses, in a celebratory pose. Frame the couple in a tight waist-up portrait. This is a close, zoomed-in portrait composition. Show them ONLY from the waist upward. Lower body parts do not exist. Do NOT show full bodies or anything below the waist. The framing must be tight so the faces appear large and clearly visible. Place them outdoors in front of a grand European ceremonial palace or castle on a sunny day. Use warm, golden sunlight to create an elegant, majestic royal atmosphere.",
-          aspect_ratio: "9:16",
+          aspect_ratio: "2:3",
           output_format: "jpg",
           guidance: 3.5
         }
