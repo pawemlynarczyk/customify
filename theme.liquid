@@ -513,12 +513,14 @@
                     hiddenProperties['_Order ID Full'] = result.orderId;
                   }
                   
-                  // ✅ TYLKO WATERMARKED URL (krótki ~100 znaków, nie base64!)
-                  // Używamy watermarkedImageUrl z Vercel Blob zamiast base64
-                  if (watermarkedImageUrl && !watermarkedImageUrl.startsWith('data:')) {
-                    hiddenProperties['_AI_Image_URL'] = watermarkedImageUrl; // Vercel Blob URL (~100 znaków)
-                  } else if (result.vercelBlobUrl && !result.vercelBlobUrl.startsWith('data:')) {
-                    hiddenProperties['_AI_Image_URL'] = result.vercelBlobUrl; // Fallback URL
+                  // ✅ BEZ WATERMARKU - dla admina do realizacji zamówienia (krótki ~100 znaków, nie base64!)
+                  // Priorytet: vercelBlobUrl (BEZ watermarku) > transformedImage (BEZ watermarku) > watermarkedImageUrl (Z watermarkiem - tylko fallback)
+                  if (result.vercelBlobUrl && !result.vercelBlobUrl.startsWith('data:')) {
+                    hiddenProperties['_AI_Image_URL'] = result.vercelBlobUrl; // BEZ watermarku - do realizacji
+                  } else if (this.transformedImage && !this.transformedImage.startsWith('data:') && this.transformedImage.startsWith('http')) {
+                    hiddenProperties['_AI_Image_URL'] = this.transformedImage; // BEZ watermarku - fallback
+                  } else if (watermarkedImageUrl && !watermarkedImageUrl.startsWith('data:')) {
+                    hiddenProperties['_AI_Image_URL'] = watermarkedImageUrl; // Z watermarkiem - tylko jako ostatni fallback
                   }
                   // NIE dodawaj base64 - przekracza limit URL!
 
