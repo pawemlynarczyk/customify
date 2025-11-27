@@ -364,8 +364,25 @@
               console.log('🎯 [MY-GENERATIONS] Selecting generation:', generationIndex);
               console.log('🎯 [MY-GENERATIONS] Full generation object:', gen);
               
-              // ✅ NOWE: Użyj URL parametru zamiast localStorage - generacja będzie pobrana z Vercel Blob Storage przez API
-              console.log('🔗 [MY-GENERATIONS] Using URL parameter instead of localStorage - generation will be loaded from Vercel Blob Storage');
+              // Zapisz wybraną generację w localStorage
+              try {
+                const dataToSave = {
+                  index: generationIndex,
+                  generation: gen,
+                  selectedAt: new Date().toISOString()
+                };
+                
+                console.log('💾 [MY-GENERATIONS] Saving to localStorage:', {
+                  index: dataToSave.index,
+                  generationId: dataToSave.generation.id,
+                  generationStyle: dataToSave.generation.style
+                });
+                
+                localStorage.setItem('customify_selected_generation', JSON.stringify(dataToSave));
+              } catch (error) {
+                console.error('❌ [MY-GENERATIONS] Error saving to localStorage:', error);
+                return;
+              }
               
               // Mapuj productType → productHandle
               const productTypeToHandle = {
@@ -400,9 +417,8 @@
                 productHandle = productTypeToHandle[detectedProductType] || productTypeToHandle['other'];
               }
               
-              console.log('🔗 [MY-GENERATIONS] Redirecting to:', productHandle, 'with generationId:', gen.id);
-              // ✅ NOWE: Przekieruj z generationId w URL - generacja będzie pobrana z Vercel Blob Storage przez API
-              window.location.href = `/products/${productHandle}?generationId=${gen.id}`;
+              console.log('🔗 [MY-GENERATIONS] Redirecting to:', productHandle);
+              window.location.href = `/products/${productHandle}`;
             }
             
             // Po kliknięciu na przycisk - zamów
@@ -441,9 +457,45 @@
                 transformedImagePreview: generation.transformedImage?.substring(0, 100)
               });
               
-              // ✅ NOWE: Użyj URL parametru zamiast localStorage - generacja będzie pobrana z Vercel Blob Storage przez API
-              // NIE zapisuj do localStorage - przekieruj z generationId w URL, a na stronie produktu pobierz z API
-              console.log('🔗 [MY-GENERATIONS] Using URL parameter instead of localStorage - generation will be loaded from Vercel Blob Storage');
+              // Zapisz wybraną generację w localStorage (customify.js użyje reuseGeneration() na stronie produktu)
+              try {
+                const dataToSave = {
+                  index: index,
+                  generation: generation, // Pełny obiekt generacji z wszystkimi danymi
+                  selectedAt: new Date().toISOString()
+                };
+                
+                console.log('💾 [MY-GENERATIONS] Saving to localStorage:', {
+                  index: dataToSave.index,
+                  generationId: dataToSave.generation.id,
+                  generationStyle: dataToSave.generation.style,
+                  dataSize: JSON.stringify(dataToSave).length
+                });
+                
+                localStorage.setItem('customify_selected_generation', JSON.stringify(dataToSave));
+                
+                // Weryfikacja zapisu
+                const verify = localStorage.getItem('customify_selected_generation');
+                if (verify) {
+                  const parsed = JSON.parse(verify);
+                  console.log('✅ [MY-GENERATIONS] Verification - saved successfully:', {
+                    index: parsed.index,
+                    generationId: parsed.generation?.id,
+                    generationStyle: parsed.generation?.style,
+                    hasTransformedImage: !!parsed.generation?.transformedImage
+                  });
+                } else {
+                  console.error('❌ [MY-GENERATIONS] Verification failed - data not found after save!');
+                }
+              } catch (error) {
+                console.error('❌ [MY-GENERATIONS] Error saving to localStorage:', error);
+                console.error('❌ [MY-GENERATIONS] Error details:', {
+                  message: error.message,
+                  name: error.name,
+                  stack: error.stack
+                });
+                return; // Nie przekierowuj jeśli błąd zapisu
+              }
               
               // ✅ SKALOWALNE ROZWIĄZANIE: Mapuj productType → productHandle (działa dla wszystkich stylów obecnych i przyszłych)
               const productTypeToHandle = {
@@ -509,11 +561,13 @@
                 finalProductHandle: productHandle,
                 productTypeToHandle: productTypeToHandle
               });
-              console.log('🔗 [MY-GENERATIONS] Redirecting to:', productHandle, 'with generationId:', generation.id);
+              console.log('🔗 [MY-GENERATIONS] Redirecting to:', productHandle);
               console.log('🔗 [MY-GENERATIONS] ================================');
               
-              // ✅ NOWE: Przekieruj z generationId w URL - generacja będzie pobrana z Vercel Blob Storage przez API
-              window.location.href = `/products/${productHandle}?generationId=${generation.id}`;
+              // ✅ TYMCZASOWO: Dodaj alert żeby zobaczyć co się dzieje (usuń po debugowaniu)
+              // alert(`Style: ${generation.style}\nProductType: ${generation.productType || 'brak'}\nRedirect: ${productHandle}`);
+              
+              window.location.href = `/products/${productHandle}`;
             });
             
             // Dodaj element do kontenera
