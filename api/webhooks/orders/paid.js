@@ -251,6 +251,7 @@ Zespół Customify
     
     // ✅ SENTRY: Loguj błąd webhooka
     Sentry.withScope((scope) => {
+      scope.setTag('customify', 'true');
       scope.setTag('error_type', 'webhook_failed');
       scope.setTag('webhook', 'orders/paid');
       scope.setContext('webhook', {
