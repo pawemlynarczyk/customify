@@ -985,46 +985,10 @@ module.exports = async (req, res) => {
     
     // Map styles to appropriate models and parameters
     const styleConfig = {
-      'van gogh': {
-        model: "stability-ai/stable-diffusion:db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf",
-        prompt: `in the style of Vincent van Gogh, ${prompt}, oil painting, thick brushstrokes, vibrant colors, post-impressionist`,
-        guidance_scale: 7.5,
-        num_inference_steps: 50,
-        strength: 0.8
-      },
-      'picasso': {
-        model: "stability-ai/stable-diffusion:db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf",
-        prompt: `in the style of Pablo Picasso, ${prompt}, cubist, abstract, geometric shapes, bold colors`,
-        guidance_scale: 7.5,
-        num_inference_steps: 50,
-        strength: 0.8
-      },
-      'monet': {
-        model: "stability-ai/stable-diffusion:db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf",
-        prompt: `in the style of Claude Monet, ${prompt}, impressionist, soft brushstrokes, light and color, water lilies style`,
-        guidance_scale: 7.5,
-        num_inference_steps: 50,
-        strength: 0.8
-      },
-      'anime': {
-        model: "aaronaftab/mirage-ghibli:166efd159b4138da932522bc5af40d39194033f587d9bdbab1e594119eae3e7f",
-        prompt: `GHIBLI anime style, ${prompt}`,
-        productType: "other", // Identyfikator typu produktu
-        go_fast: true,
-        guidance_scale: 10,
-        prompt_strength: 0.4,
-        num_inference_steps: 38
-      },
-      'cyberpunk': {
-        model: "stability-ai/stable-diffusion:db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf",
-        prompt: `cyberpunk style, ${prompt}, neon lights, futuristic, high tech, dark atmosphere, glowing effects`,
-        guidance_scale: 7.5,
-        num_inference_steps: 50,
-        strength: 0.8
-      },
       'watercolor': {
         model: "stability-ai/stable-diffusion:db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf",
         prompt: `watercolor painting, ${prompt}, soft colors, flowing brushstrokes, artistic, delicate`,
+        productType: "watercolor_stable", // ✅ Unikalny productType dla stylu Watercolor (Stable Diffusion) - różny od "akwarela" (Segmind)
         guidance_scale: 7.5,
         num_inference_steps: 50,
         strength: 0.8
@@ -1033,7 +997,7 @@ module.exports = async (req, res) => {
         model: "google/nano-banana",
         prompt: "Dress the couple in refined royal attire inspired by European monarchy. The man wears an elegant royal ceremonial outfit with ornate gold embroidery, a dark tailored coat, a decorative sash and subtle regal details. The woman wears a luxurious royal ball gown with flowing fabric, pearl or gold embellishments, and delicate majestic accents. Their outfits must look high-class, tasteful and historically inspired, but clean and premium — not theatrical or cartoonish. Frame the couple in a tight waist-up portrait. This is a close, zoomed-in portrait composition. Show them ONLY from the waist upward. Do NOT show full bodies. Do NOT show legs, hips or anything below the waist. Lower body parts do NOT exist in this image. The framing must be tight around the upper body so the faces appear large and clearly visible. Place them outdoors on a green garden lawn on a sunny day, with a large European-style palace or castle visible in the background.",
         apiType: "nano-banana",
-        productType: "other",
+        productType: "para_krolewska",
         parameters: {
           image_input: ["USER_IMAGE"],
           prompt: "Dress the couple in refined royal attire inspired by European monarchy. The man wears an elegant royal ceremonial outfit with ornate gold embroidery, a dark tailored coat, a decorative sash and subtle regal details. The woman wears a luxurious royal ball gown with flowing fabric, pearl or gold embellishments, and delicate majestic accents. Their outfits must look high-class, tasteful and historically inspired, but clean and premium — not theatrical or cartoonish. Frame the couple in a tight waist-up portrait. This is a close, zoomed-in portrait composition. Show them ONLY from the waist upward. Do NOT show full bodies. Do NOT show legs, hips or anything below the waist. Lower body parts do NOT exist in this image. The framing must be tight around the upper body so the faces appear large and clearly visible. Place them outdoors on a green garden lawn on a sunny day, with a large European-style palace or castle visible in the background.",
@@ -1046,7 +1010,7 @@ module.exports = async (req, res) => {
         model: "google/nano-banana",
         prompt: "Preserve the exact facial identity of the two people from the provided photo. Make a faceswap and keep the original hair style and colour. Faces must look exactly like the people in the input image, with realistic likeness. Dress the couple in full ceremonial royal attire inspired by European imperial royalty. The man wears a richly decorated royal ceremonial uniform with heavy gold embroidery, ornate patterns, medals, epaulettes, a dark tailored coat and a majestic golden crown. The woman wears an opulent royal gown in deep luxurious colours such as ruby or burgundy, with gold embellishments, velvet or fur-trimmed elements, elegant jewelry and a regal golden crown. Their outfits must look majestic, premium and noble — impressive, luxurious and ceremonial, but not theatrical or cartoonish. Both people should be holding elegant royal-style drinks, such as crystal goblets, premium cocktails or ceremonial glasses, in a celebratory pose. Frame the couple in a tight waist-up portrait. This is a close, zoomed-in portrait composition. Show them ONLY from the waist upward. Lower body parts do not exist. Do NOT show full bodies or anything below the waist. The framing must be tight so the faces appear large and clearly visible. Place them outdoors in front of a grand European ceremonial palace or castle on a sunny day. Use warm, golden sunlight to create an elegant, majestic royal atmosphere.",
         apiType: "nano-banana",
-        productType: "other",
+        productType: "para_krolewska",
         parameters: {
           image_input: ["USER_IMAGE"],
           prompt: "Preserve the exact facial identity of the two people from the provided photo. Make a faceswap and keep the original hair style and colour. Faces must look exactly like the people in the input image, with realistic likeness. Dress the couple in full ceremonial royal attire inspired by European imperial royalty. The man wears a richly decorated royal ceremonial uniform with heavy gold embroidery, ornate patterns, medals, epaulettes, a dark tailored coat and a majestic golden crown. The woman wears an opulent royal gown in deep luxurious colours such as ruby or burgundy, with gold embellishments, velvet or fur-trimmed elements, elegant jewelry and a regal golden crown. Their outfits must look majestic, premium and noble — impressive, luxurious and ceremonial, but not theatrical or cartoonish. Both people should be holding elegant royal-style drinks, such as crystal goblets, premium cocktails or ceremonial glasses, in a celebratory pose. Frame the couple in a tight waist-up portrait. This is a close, zoomed-in portrait composition. Show them ONLY from the waist upward. Lower body parts do not exist. Do NOT show full bodies or anything below the waist. The framing must be tight so the faces appear large and clearly visible. Place them outdoors in front of a grand European ceremonial palace or castle on a sunny day. Use warm, golden sunlight to create an elegant, majestic royal atmosphere.",
@@ -1059,7 +1023,7 @@ module.exports = async (req, res) => {
         model: "swartype/sdxl-pixar:81f8bbd3463056c8521eb528feb10509cc1385e2fabef590747f159848589048",
         prompt: `Pixar-style 3D character, cinematic animation look, smooth glossy plastic-like skin, rounded soft facial features, expressive eyes, stylized proportions, vibrant color palette, warm cinematic lighting, subsurface scattering, cartoon realism, wholesome family atmosphere, detailed hair, ultra clean render, rendered in 3D, dynamic camera angle, looks like a frame from a Pixar movie, perfect anatomy, depth of field, bokeh background, high quality render. realistic Pixar cinematic render, detailed textures, global illumination`,
         negative_prompt: "logo, brand, noisy, sloppy, messy, grainy, extra arms, extra legs, extra hands, extra fingers, mutated hands, malformed limbs, deformed body, disfigured, missing fingers, too many fingers, long fingers, extra limb, extra body parts, bad anatomy, fused fingers, disconnected limbs, broken limbs, distorted limbs, cloned body, duplicate body, extra head, ugly hands, bad hands, incorrect limb proportions, unnatural pose, low quality, lowres, blurry",
-        productType: "other", // Identyfikator typu produktu
+        productType: "pixar", // ✅ Unikalny productType dla stylu Pixar (zamiast "other")
         task: "img2img",
         scheduler: "KarrasDPM",
         guidance_scale: 9.01,
@@ -1958,10 +1922,10 @@ module.exports = async (req, res) => {
         
         console.log(`📸 [NANO-BANANA] Boho style - 1 obrazek (user base64): ${imageDataUri.substring(0, 50)}...`);
         console.log(`📸 [NANO-BANANA] image_input array length: ${inputParams.image_input.length}`);
-      } else if (finalProductType === 'other') {
-        // Style zamkowy - tylko obrazek użytkownika (URL - nano-banana wymaga URL dla other)
-        // ✅ UPLOAD BASE64 DO VERCEL BLOB (nano-banana wymaga URL dla zamkowy)
-        console.log('📤 [NANO-BANANA] Uploading user image to Vercel Blob Storage (zamkowy requires URL, not base64)...');
+      } else if (finalProductType === 'other' || finalProductType === 'para_krolewska') {
+        // Style zamkowy/krolewski-para - tylko obrazek użytkownika (URL - nano-banana wymaga URL)
+        // ✅ UPLOAD BASE64 DO VERCEL BLOB (nano-banana wymaga URL dla zamkowy/krolewski-para)
+        console.log('📤 [NANO-BANANA] Uploading user image to Vercel Blob Storage (zamkowy/krolewski-para requires URL, not base64)...');
         const baseUrl = 'https://customify-s56o.vercel.app';
         const uploadResponse = await fetch(`${baseUrl}/api/upload-temp-image`, {
           method: 'POST',
@@ -1970,7 +1934,7 @@ module.exports = async (req, res) => {
           },
           body: JSON.stringify({
             imageData: imageDataUri,
-            filename: `zamkowy-${Date.now()}.jpg`
+            filename: `${selectedStyle}-${Date.now()}.jpg`
           })
         });
 
@@ -1992,7 +1956,7 @@ module.exports = async (req, res) => {
           guidance: guidance
         };
         
-        console.log(`📸 [NANO-BANANA] Zamkowy style - 1 obrazek (user URL): ${userImageUrl}`);
+        console.log(`📸 [NANO-BANANA] Para krolewska style (${selectedStyle}) - 1 obrazek (user URL): ${userImageUrl}`);
         console.log(`📸 [NANO-BANANA] image_input array length: ${inputParams.image_input.length}`);
       } else {
         // Style kotów - 2 obrazki (miniaturka + użytkownik)

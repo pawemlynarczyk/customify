@@ -288,7 +288,16 @@
         return merged;
       }
       
+      let initGalleryCalled = false; // ✅ Zapobiegaj wielokrotnemu wywołaniu
+      
       async function initGallery() {
+        // ✅ Zapobiegaj wielokrotnemu wywołaniu
+        if (initGalleryCalled) {
+          console.warn('⚠️ [MY-GENERATIONS] initGallery already called, skipping...');
+          return;
+        }
+        initGalleryCalled = true;
+        
         const customerId = getCustomerId();
         console.log('👤 [MY-GENERATIONS] Customer ID:', customerId);
         
@@ -303,11 +312,25 @@
           console.log('📊 [MY-GENERATIONS] Found in API:', apiGenerations.length);
         }
         
-        // Połącz generacje (API + localStorage)
+        // Połącz generacje (API + localStorage) - usuń duplikaty po URL obrazu
         const allGenerations = mergeGenerations(apiGenerations, localStorageGenerations);
-        console.log('📊 [MY-GENERATIONS] Total generations:', allGenerations.length);
         
-        if (allGenerations.length === 0) {
+        // ✅ DODATKOWA WERYFIKACJA: Usuń duplikaty po URL obrazu (jeśli id nie są unikalne)
+        const seenUrls = new Set();
+        const uniqueGenerations = allGenerations.filter(gen => {
+          const imageUrl = gen.watermarkedImageUrl || gen.transformedImage;
+          if (!imageUrl) return true; // Zostaw generacje bez URL
+          if (seenUrls.has(imageUrl)) {
+            console.warn('⚠️ [MY-GENERATIONS] Duplicate generation found (same image URL), skipping:', imageUrl.substring(0, 80));
+            return false;
+          }
+          seenUrls.add(imageUrl);
+          return true;
+        });
+        
+        console.log('📊 [MY-GENERATIONS] Total generations (after deduplication):', uniqueGenerations.length);
+        
+        if (uniqueGenerations.length === 0) {
           container.innerHTML = '<div class="generations-empty"><p>Nie masz jeszcze żadnych generacji. Stwórz pierwszą!</p></div>';
           return;
         }
@@ -317,14 +340,15 @@
         
         // ✅ UPROSZCZONA LOGIKA: Wszystkie watermarki są zapisywane na Vercel Blob
         // Bezpośrednio wyświetlaj obrazy z Vercel Blob (bez sprawdzania i dodawania watermarku on-the-fly)
-        function renderGeneration(generation, index) {
+        function renderGeneration(generation, index, allGenerationsArray) {
           try {
             const item = document.createElement('div');
           item.className = 'generation-card';
           item.style.cursor = 'pointer';
           
           // ✅ PRIORYTET: watermarkedImageUrl (Vercel Blob z watermarkiem) > transformedImage (fallback)
-          const imageUrl = generation.cleanImageUrl || generation.watermarkedImageUrl || generation.transformedImage;
+          const imageUrl = generation.watermarkedImageUrl || generation.transformedImage;
+          const cleanImageUrl = generation.cleanImageUrl || null;
           
           if (!imageUrl) {
             // Brak URL obrazu - pokaż placeholder
@@ -362,16 +386,19 @@
             
             // Funkcja obsługująca zamówienie
             function handleOrder(generationIndex) {
-              const gen = allGenerations[generationIndex];
+              const gen = allGenerationsArray[generationIndex];
               console.log('🎯 [MY-GENERATIONS] ===== KLIKNIĘCIE W GENERACJĘ =====');
               console.log('🎯 [MY-GENERATIONS] Selecting generation:', generationIndex);
               console.log('🎯 [MY-GENERATIONS] Full generation object:', gen);
               
               // Zapisz wybraną generację w localStorage
               try {
+                const generationForStorage = Object.assign({}, gen, {
+                  cleanImageUrl: cleanImageUrl || null
+                });
                 const dataToSave = {
                   index: generationIndex,
-                  generation: gen,
+                  generation: generationForStorage,
                   selectedAt: new Date().toISOString()
                 };
                 
@@ -395,7 +422,9 @@
                 'cats': 'koty-krolewskie',
                 'caricature': 'karykatura-z-twojego-zdjecia-obraz',
                 'watercolor': 'personalizowany-portret-w-stylu-boho',
-                'other': 'personalizowany-portret-w-stylu-boho'
+                'para_krolewska': localStorage.getItem('customify_product_handle_15548464693573') || null, // ✅ NOWE: Para krolewska (zamkowy/krolewski-para)
+                'pixar': 'zabawne-style', // ✅ Unikalny productType dla stylu Pixar (produkt ID: 15306975215941)
+                'other': 'personalizowany-portret-w-stylu-boho' // Fallback dla nieznanych stylów
               };
               
               let productHandle = null;
@@ -403,11 +432,19 @@
                 productHandle = gen.productHandle;
               } else if (gen.productType && productTypeToHandle[gen.productType]) {
                 productHandle = productTypeToHandle[gen.productType];
+                // ✅ DLA para_krolewska: Jeśli productHandle jest null (brak w cache), użyj productHandle z generacji jeśli dostępny
+                if (gen.productType === 'para_krolewska' && !productHandle && gen.productHandle) {
+                  productHandle = gen.productHandle;
+                  localStorage.setItem('customify_product_handle_15548464693573', productHandle);
+                }
               } else {
                 let styleKey = (gen.style || '').toLowerCase().replace(/transform this image in | style/g, '').trim();
                 let detectedProductType = 'other';
                 
-                if (styleKey.startsWith('krol-') || styleKey.startsWith('krolowa-') || styleKey.includes('king') || styleKey.includes('queen')) {
+                // ✅ ROZPOZNAJ zamkowy i krolewski-para (dla starych generacji)
+                if (styleKey === 'zamkowy' || styleKey === 'krolewski-para') {
+                  detectedProductType = 'para_krolewska';
+                } else if (styleKey.startsWith('krol-') || styleKey.startsWith('krolowa-') || styleKey.includes('king') || styleKey.includes('queen')) {
                   detectedProductType = 'king';
                 } else if (styleKey.includes('krolewski') || styleKey.includes('na-tronie') || styleKey.includes('wojenny') || styleKey.includes('wiktorianski') || styleKey.includes('renesansowy')) {
                   detectedProductType = 'cats';
@@ -419,7 +456,20 @@
                   detectedProductType = 'watercolor';
                 }
                 
-                productHandle = productTypeToHandle[detectedProductType] || productTypeToHandle['other'];
+                productHandle = productTypeToHandle[detectedProductType];
+                // ✅ DLA para_krolewska: Jeśli productHandle jest null (brak w cache), użyj fallback
+                if (detectedProductType === 'para_krolewska' && !productHandle) {
+                  // Sprawdź czy jest w generation
+                  if (gen.productHandle) {
+                    productHandle = gen.productHandle;
+                    localStorage.setItem('customify_product_handle_15548464693573', productHandle);
+                  } else {
+                    // Fallback do boho
+                    productHandle = productTypeToHandle['other'];
+                  }
+                } else {
+                  productHandle = productHandle || productTypeToHandle['other'];
+                }
               }
               
               console.log('🔗 [MY-GENERATIONS] Redirecting to:', productHandle);
@@ -464,9 +514,12 @@
               
               // Zapisz wybraną generację w localStorage (customify.js użyje reuseGeneration() na stronie produktu)
               try {
+                const generationForStorage = Object.assign({}, generation, {
+                  cleanImageUrl: cleanImageUrl || null
+                });
                 const dataToSave = {
                   index: index,
-                  generation: generation, // Pełny obiekt generacji z wszystkimi danymi
+                  generation: generationForStorage, // Pełny obiekt generacji z wszystkimi danymi
                   selectedAt: new Date().toISOString()
                 };
                 
@@ -509,14 +562,18 @@
                 'queen': 'krol-portret-personalizowany', // ✅ POPRAWNY HANDLE: krol-portret-personalizowany
                 'cats': 'koty-krolewskie',
                 'caricature': 'karykatura-z-twojego-zdjecia-obraz',
-                'watercolor': 'personalizowany-portret-w-stylu-boho',
+                'watercolor': 'personalizowany-portret-w-stylu-boho', // Segmind Become-Image (akwarela)
+                'watercolor_stable': 'watercolor', // ✅ Unikalny productType dla stylu Watercolor (Stable Diffusion)
+                'para_krolewska': localStorage.getItem('customify_product_handle_15548464693573') || null, // ✅ NOWE: Para krolewska (zamkowy/krolewski-para) - użyj cache lub productHandle z generacji
+                'pixar': 'zabawne-style', // ✅ Unikalny productType dla stylu Pixar (produkt ID: 15306975215941)
                 'other': 'personalizowany-portret-w-stylu-boho' // Fallback dla nieznanych stylów
               };
               
-              // ✅ PRIORYTET 1: Użyj productType z generacji (jeśli jest dostępny - dla nowych generacji)
+              // ✅ PRIORYTET 1: Użyj productHandle z generacji (jeśli jest dostępny - dla nowych generacji)
               console.log('🔍 [MY-GENERATIONS] ===== PARSOWANIE PRODUCT TYPE =====');
               console.log('🔍 [MY-GENERATIONS] generation.productType:', generation.productType);
               console.log('🔍 [MY-GENERATIONS] generation.style:', generation.style);
+              console.log('🔍 [MY-GENERATIONS] generation.productHandle:', generation.productHandle);
               
               let productHandle = null;
               if (generation.productHandle) {
@@ -524,42 +581,71 @@
                 console.log('✅ [MY-GENERATIONS] Użyto productHandle z generacji:', generation.productHandle);
               } else if (generation.productType && productTypeToHandle[generation.productType]) {
                 productHandle = productTypeToHandle[generation.productType];
-                console.log('✅ [MY-GENERATIONS] Użyto productType z generacji:', generation.productType, '→', productHandle);
-              } else {
-                // ✅ PRIORYTET 2: Parsuj styl i rozpoznaj productType na podstawie wzorców (dla starych generacji)
+                // ✅ DLA para_krolewska: Jeśli productHandle jest null (brak w cache), użyj productHandle z generacji jeśli dostępny
+                if (generation.productType === 'para_krolewska' && !productHandle && generation.productHandle) {
+                  productHandle = generation.productHandle;
+                  // Zapisz w cache dla przyszłości
+                  localStorage.setItem('customify_product_handle_15548464693573', productHandle);
+                  console.log('✅ [MY-GENERATIONS] Użyto productHandle z generacji dla para_krolewska i zapisano w cache:', productHandle);
+                } else if (productHandle) {
+                  console.log('✅ [MY-GENERATIONS] Użyto productType z generacji:', generation.productType, '→', productHandle);
+                }
+              }
+              
+              // ✅ PRIORYTET 2: Parsuj styl i rozpoznaj productHandle na podstawie wzorców (dla starych generacji)
+              if (!productHandle) {
                 let styleKey = (generation.style || '').toLowerCase().replace(/transform this image in | style/g, '').trim();
                 console.log('🔍 [MY-GENERATIONS] Parsowany styleKey:', styleKey);
                 
-                // Rozpoznaj productType na podstawie wzorców stylu (skalowalne - działa dla wszystkich stylów)
-                let detectedProductType = 'other'; // Domyślny fallback
-                
-                console.log('🔍 [MY-GENERATIONS] Sprawdzam wzorce:');
-                console.log('🔍 [MY-GENERATIONS] - startsWith("krol-"):', styleKey.startsWith('krol-'));
-                console.log('🔍 [MY-GENERATIONS] - startsWith("krolowa-"):', styleKey.startsWith('krolowa-'));
-                console.log('🔍 [MY-GENERATIONS] - includes("king"):', styleKey.includes('king'));
-                console.log('🔍 [MY-GENERATIONS] - includes("queen"):', styleKey.includes('queen'));
-                
-                if (styleKey.startsWith('krol-') || styleKey.startsWith('krolowa-') || styleKey.includes('king') || styleKey.includes('queen')) {
-                  detectedProductType = 'king';
-                  console.log('👑 [MY-GENERATIONS] ✅ Rozpoznano styl króla/królowej:', styleKey, '→', detectedProductType);
-                } else if (styleKey.includes('krolewski') || styleKey.includes('na-tronie') || styleKey.includes('wojenny') || styleKey.includes('wiktorianski') || styleKey.includes('renesansowy')) {
-                  detectedProductType = 'cats';
-                  console.log('🐱 [MY-GENERATIONS] ✅ Rozpoznano styl kota:', styleKey, '→', detectedProductType);
-                } else if (styleKey.includes('minimalistyczny') || styleKey.includes('realistyczny') || styleKey.includes('pixar') || styleKey.includes('boho')) {
-                  detectedProductType = 'boho';
-                  console.log('🎨 [MY-GENERATIONS] ✅ Rozpoznano styl boho:', styleKey, '→', detectedProductType);
-                } else if (styleKey.includes('karykatura') || styleKey.includes('caricature')) {
-                  detectedProductType = 'caricature';
-                  console.log('🎭 [MY-GENERATIONS] ✅ Rozpoznano styl karykatury:', styleKey, '→', detectedProductType);
-                } else if (styleKey.includes('akwarela') || styleKey.includes('watercolor')) {
-                  detectedProductType = 'watercolor';
-                  console.log('💧 [MY-GENERATIONS] ✅ Rozpoznano styl akwareli:', styleKey, '→', detectedProductType);
+                // ✅ ROZPOZNAJ zamkowy i krolewski-para (dla starych generacji które mogą mieć productType: 'other')
+                if (styleKey === 'zamkowy' || styleKey === 'krolewski-para') {
+                  // Dla starych generacji - użyj cache lub productHandle z generacji
+                  const cachedHandle = localStorage.getItem('customify_product_handle_15548464693573');
+                  if (cachedHandle) {
+                    productHandle = cachedHandle;
+                    console.log('✅ [MY-GENERATIONS] Użyto productHandle dla zamkowy/krolewski-para z cache (stara generacja):', productHandle);
+                  } else if (generation.productHandle) {
+                    productHandle = generation.productHandle;
+                    localStorage.setItem('customify_product_handle_15548464693573', productHandle);
+                    console.log('✅ [MY-GENERATIONS] Użyto productHandle z generacji dla zamkowy/krolewski-para (stara generacja):', productHandle);
+                  } else {
+                    console.warn('⚠️ [MY-GENERATIONS] Styl zamkowy/krolewski-para (stara generacja) - brak productHandle w cache i generacji!');
+                    // FALLBACK: Użyj productTypeToHandle['other'] (boho) jako ostatnia deska ratunku
+                    productHandle = productTypeToHandle['other'];
+                    console.warn('⚠️ [MY-GENERATIONS] Używam fallback do boho (productTypeToHandle["other"])');
+                  }
                 } else {
-                  console.log('⚠️ [MY-GENERATIONS] Nie rozpoznano stylu, używam fallback:', detectedProductType);
+                  // Rozpoznaj productType na podstawie wzorców stylu (skalowalne - działa dla wszystkich stylów)
+                  let detectedProductType = 'other'; // Domyślny fallback
+                  
+                  console.log('🔍 [MY-GENERATIONS] Sprawdzam wzorce:');
+                  console.log('🔍 [MY-GENERATIONS] - startsWith("krol-"):', styleKey.startsWith('krol-'));
+                  console.log('🔍 [MY-GENERATIONS] - startsWith("krolowa-"):', styleKey.startsWith('krolowa-'));
+                  console.log('🔍 [MY-GENERATIONS] - includes("king"):', styleKey.includes('king'));
+                  console.log('🔍 [MY-GENERATIONS] - includes("queen"):', styleKey.includes('queen'));
+                  
+                  if (styleKey.startsWith('krol-') || styleKey.startsWith('krolowa-') || styleKey.includes('king') || styleKey.includes('queen')) {
+                    detectedProductType = 'king';
+                    console.log('👑 [MY-GENERATIONS] ✅ Rozpoznano styl króla/królowej:', styleKey, '→', detectedProductType);
+                  } else if (styleKey.includes('krolewski') || styleKey.includes('na-tronie') || styleKey.includes('wojenny') || styleKey.includes('wiktorianski') || styleKey.includes('renesansowy')) {
+                    detectedProductType = 'cats';
+                    console.log('🐱 [MY-GENERATIONS] ✅ Rozpoznano styl kota:', styleKey, '→', detectedProductType);
+                  } else if (styleKey.includes('minimalistyczny') || styleKey.includes('realistyczny') || styleKey.includes('pixar') || styleKey.includes('boho')) {
+                    detectedProductType = 'boho';
+                    console.log('🎨 [MY-GENERATIONS] ✅ Rozpoznano styl boho:', styleKey, '→', detectedProductType);
+                  } else if (styleKey.includes('karykatura') || styleKey.includes('caricature')) {
+                    detectedProductType = 'caricature';
+                    console.log('🎭 [MY-GENERATIONS] ✅ Rozpoznano styl karykatury:', styleKey, '→', detectedProductType);
+                  } else if (styleKey.includes('akwarela') || styleKey.includes('watercolor')) {
+                    detectedProductType = 'watercolor';
+                    console.log('💧 [MY-GENERATIONS] ✅ Rozpoznano styl akwareli:', styleKey, '→', detectedProductType);
+                  } else {
+                    console.log('⚠️ [MY-GENERATIONS] Nie rozpoznano stylu, używam fallback:', detectedProductType);
+                  }
+                  
+                  productHandle = productTypeToHandle[detectedProductType] || productTypeToHandle['other'];
+                  console.log('🔄 [MY-GENERATIONS] Wywnioskowano productType z stylu:', detectedProductType, '→', productHandle);
                 }
-                
-                productHandle = productTypeToHandle[detectedProductType] || productTypeToHandle['other'];
-                console.log('🔄 [MY-GENERATIONS] Wywnioskowano productType z stylu:', detectedProductType, '→', productHandle);
               }
               
               console.log('🔗 [MY-GENERATIONS] ===== FINALNE PARSOWANIE =====');
@@ -571,6 +657,14 @@
               });
               console.log('🔗 [MY-GENERATIONS] Redirecting to:', productHandle);
               console.log('🔗 [MY-GENERATIONS] ================================');
+              
+              // ✅ WALIDACJA: Sprawdź czy productHandle jest dostępny przed redirectem
+              if (!productHandle) {
+                console.error('❌ [MY-GENERATIONS] Brak productHandle - nie można przekierować!');
+                console.error('❌ [MY-GENERATIONS] Generation:', generation);
+                alert('Błąd: Nie można znaleźć produktu dla tego stylu. Skontaktuj się z obsługą.');
+                return; // Nie przekierowuj jeśli brak productHandle
+              }
               
               // ✅ TYMCZASOWO: Dodaj alert żeby zobaczyć co się dzieje (usuń po debugowaniu)
               // alert(`Style: ${generation.style}\nProductType: ${generation.productType || 'brak'}\nRedirect: ${productHandle}`);
@@ -585,8 +679,8 @@
           }
         }
         
-        // Renderuj wszystkie generacje
-        allGenerations.forEach((gen, idx) => renderGeneration(gen, idx));
+        // Renderuj wszystkie generacje (używaj uniqueGenerations zamiast allGenerations)
+        uniqueGenerations.forEach((gen, idx) => renderGeneration(gen, idx, uniqueGenerations));
       }
       
       // Start gdy DOM ready
