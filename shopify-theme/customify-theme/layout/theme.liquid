@@ -464,6 +464,39 @@
               const result = await response.json();
               console.log('🛒 [CUSTOMIFY] API response:', result);
 
+              // 🔍 Pobierz URL bez watermarku z historii generacji (Vercel Blob)
+              let cleanImageUrl = null;
+              try {
+                const debugInfo = result.saveGenerationDebug;
+                if (debugInfo && debugInfo.blobPath && debugInfo.generationId) {
+                  const blobBaseUrl = 'https://vzwqqb14qtsxe2wx.public.blob.vercel-storage.com';
+                  const normalizedPath = debugInfo.blobPath.startsWith('/')
+                    ? debugInfo.blobPath.slice(1)
+                    : debugInfo.blobPath;
+                  const blobUrl = `${blobBaseUrl}/${normalizedPath}`;
+                  console.log('🔍 [CUSTOMIFY] Fetching generation JSON for clean image:', blobUrl);
+
+                  const generationResponse = await fetch(blobUrl);
+                  if (generationResponse.ok) {
+                    const generationData = await generationResponse.json();
+                    const generationsArray = generationData?.generations || [];
+                    const matchedGeneration = generationsArray.find((gen) => gen.id === debugInfo.generationId);
+                    const candidateUrl = matchedGeneration?.imageUrl || matchedGeneration?.transformedImage || null;
+
+                    if (candidateUrl && typeof candidateUrl === 'string' && candidateUrl.startsWith('http')) {
+                      cleanImageUrl = candidateUrl;
+                      console.log('✅ [CUSTOMIFY] Clean image URL found:', cleanImageUrl.substring(0, 120) + '...');
+                    } else {
+                      console.warn('⚠️ [CUSTOMIFY] Clean image URL not found in generation JSON for generationId:', debugInfo.generationId);
+                    }
+                  } else {
+                    console.warn('⚠️ [CUSTOMIFY] Failed to fetch generation JSON:', generationResponse.status, generationResponse.statusText);
+                  }
+                }
+              } catch (cleanUrlError) {
+                console.error('⚠️ [CUSTOMIFY] Error while resolving clean image URL:', cleanUrlError);
+              }
+
               if (result.success) {
                 this.showSuccess('✅ ' + (result.message || 'Produkt został utworzony!'));
                 console.log('✅ [CUSTOMIFY] Product created:', result.product);
@@ -512,14 +545,21 @@
                   if (result.orderId) {
                     hiddenProperties['_Order ID Full'] = result.orderId;
                   }
-                  if (result.vercelBlobUrl) {
-                    hiddenProperties['_AI_Image_Vercel'] = result.vercelBlobUrl;
-                  } else if (result.permanentImageUrl) {
-                    hiddenProperties['_AI_Image_Vercel'] = result.permanentImageUrl;
+                  
+                  // ✅ BEZ WATERMARKU - dla admina do realizacji zamówienia (krótki ~100 znaków, nie base64!)
+                  // Priorytet: vercelBlobUrl (BEZ watermarku) > transformedImage (BEZ watermarku) > watermarkedImageUrl (Z watermarkiem - tylko fallback)
+                  if (result.vercelBlobUrl && !result.vercelBlobUrl.startsWith('data:')) {
+                    hiddenProperties['_AI_Image_URL'] = result.vercelBlobUrl; // BEZ watermarku - do realizacji
+                  } else if (this.transformedImage && !this.transformedImage.startsWith('data:') && this.transformedImage.startsWith('http')) {
+                    hiddenProperties['_AI_Image_URL'] = this.transformedImage; // BEZ watermarku - fallback
+                  } else if (watermarkedImageUrl && !watermarkedImageUrl.startsWith('data:')) {
+                    hiddenProperties['_AI_Image_URL'] = watermarkedImageUrl; // Z watermarkiem - tylko jako ostatni fallback
                   }
-                  if (watermarkedImageUrl) {
-                    hiddenProperties['_AI_Image_Watermarked'] = watermarkedImageUrl;
+
+                  if (cleanImageUrl && cleanImageUrl.startsWith('http')) {
+                    hiddenProperties['_AI_Image_Clean_URL'] = cleanImageUrl; // Dodatkowy link BEZ watermarku
                   }
+                  // NIE dodawaj base64 - przekracza limit URL!
 
                   const cartProperties = Object.assign({}, visibleProperties, hiddenProperties);
 
@@ -3130,6 +3170,20 @@
                     <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/akwarela/watercolor-style.png'); background-size: cover; background-position: center;"></div>
                     <div class="style-info">
                       <div class="style-name">Akwarela</div>
+                    </div>
+                  </div>
+                {% elsif product.id == 15548464693573 %}
+                  {% comment %} STYLE ZAMKOWY I KRÓLEWSKI dla produktu (ID: 15548464693573) {% endcomment %}
+                  <div class="customify-style-card" data-style="zamkowy">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/zamkowy/zamkowy-styl.png'); background-size: cover; background-position: center;"></div>
+                    <div class="style-info">
+                      <div class="style-name">Zamkowy</div>
+                    </div>
+                  </div>
+                  <div class="customify-style-card" data-style="krolewski-para">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/krolewski/krolewski-styl.png'); background-size: cover; background-position: center;"></div>
+                    <div class="style-info">
+                      <div class="style-name">Królewski</div>
                     </div>
                   </div>
                 {% else %}

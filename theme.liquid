@@ -464,6 +464,39 @@
               const result = await response.json();
               console.log('🛒 [CUSTOMIFY] API response:', result);
 
+              // 🔍 Pobierz URL bez watermarku z historii generacji (Vercel Blob)
+              let cleanImageUrl = null;
+              try {
+                const debugInfo = result.saveGenerationDebug;
+                if (debugInfo && debugInfo.blobPath && debugInfo.generationId) {
+                  const blobBaseUrl = 'https://vzwqqb14qtsxe2wx.public.blob.vercel-storage.com';
+                  const normalizedPath = debugInfo.blobPath.startsWith('/')
+                    ? debugInfo.blobPath.slice(1)
+                    : debugInfo.blobPath;
+                  const blobUrl = `${blobBaseUrl}/${normalizedPath}`;
+                  console.log('🔍 [CUSTOMIFY] Fetching generation JSON for clean image:', blobUrl);
+
+                  const generationResponse = await fetch(blobUrl);
+                  if (generationResponse.ok) {
+                    const generationData = await generationResponse.json();
+                    const generationsArray = generationData?.generations || [];
+                    const matchedGeneration = generationsArray.find((gen) => gen.id === debugInfo.generationId);
+                    const candidateUrl = matchedGeneration?.imageUrl || matchedGeneration?.transformedImage || null;
+
+                    if (candidateUrl && typeof candidateUrl === 'string' && candidateUrl.startsWith('http')) {
+                      cleanImageUrl = candidateUrl;
+                      console.log('✅ [CUSTOMIFY] Clean image URL found:', cleanImageUrl.substring(0, 120) + '...');
+                    } else {
+                      console.warn('⚠️ [CUSTOMIFY] Clean image URL not found in generation JSON for generationId:', debugInfo.generationId);
+                    }
+                  } else {
+                    console.warn('⚠️ [CUSTOMIFY] Failed to fetch generation JSON:', generationResponse.status, generationResponse.statusText);
+                  }
+                }
+              } catch (cleanUrlError) {
+                console.error('⚠️ [CUSTOMIFY] Error while resolving clean image URL:', cleanUrlError);
+              }
+
               if (result.success) {
                 this.showSuccess('✅ ' + (result.message || 'Produkt został utworzony!'));
                 console.log('✅ [CUSTOMIFY] Product created:', result.product);
@@ -521,6 +554,10 @@
                     hiddenProperties['_AI_Image_URL'] = this.transformedImage; // BEZ watermarku - fallback
                   } else if (watermarkedImageUrl && !watermarkedImageUrl.startsWith('data:')) {
                     hiddenProperties['_AI_Image_URL'] = watermarkedImageUrl; // Z watermarkiem - tylko jako ostatni fallback
+                  }
+
+                  if (cleanImageUrl && cleanImageUrl.startsWith('http')) {
+                    hiddenProperties['_AI_Image_Clean_URL'] = cleanImageUrl; // Dodatkowy link BEZ watermarku
                   }
                   // NIE dodawaj base64 - przekracza limit URL!
 
