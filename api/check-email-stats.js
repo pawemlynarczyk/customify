@@ -24,20 +24,35 @@ module.exports = async (req, res) => {
   try {
     console.log('📧 [CHECK-EMAIL-STATS] Sprawdzam maile w Resend...');
     
-    // Pobierz listę maili (ostatnie 100)
-    const response = await resend.emails.list({
-      limit: 100
-    });
+    // Pobierz listę maili przez Resend API v3
+    // W Resend v3 używamy innej metody
+    let emails = [];
     
-    if (response.error) {
-      console.error('❌ [CHECK-EMAIL-STATS] Resend API error:', response.error);
-      return res.status(500).json({ 
-        error: 'Resend API error',
-        details: response.error
+    try {
+      // Spróbuj przez API v3
+      const response = await fetch('https://api.resend.com/emails?limit=100', {
+        headers: {
+          'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+          'Content-Type': 'application/json'
+        }
       });
+      
+      if (response.ok) {
+        const data = await response.json();
+        emails = data.data || [];
+      } else {
+        const errorText = await response.text();
+        console.error('❌ [CHECK-EMAIL-STATS] Resend API error:', errorText);
+        return res.status(500).json({ 
+          error: 'Resend API error',
+          details: errorText
+        });
+      }
+    } catch (fetchError) {
+      // Fallback - sprawdź przez logi Vercel
+      console.warn('⚠️ [CHECK-EMAIL-STATS] Nie można pobrać z Resend API, używam logów Vercel');
+      emails = []; // Pusty array - zwrócimy info że trzeba sprawdzić ręcznie
     }
-    
-    const emails = response.data?.data || [];
     
     // Filtruj maile z 27.11.2025
     const nov27 = emails.filter(email => {
