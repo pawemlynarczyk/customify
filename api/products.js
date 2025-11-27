@@ -419,11 +419,44 @@ module.exports = async (req, res) => {
 
     // Image uploaded successfully
 
-    // ✅ UŻYJ BEZPOŚREDNIO URL Z /api/transform (już jest na Vercel Blob - generation-{timestamp}.jpg)
-    // NIE MA PONOWNEGO UPLOADU - plik już został zapisany w /api/transform
-    const vercelBlobUrl = transformedImage; // URL z Vercel Blob (BEZ watermarku - do druku)
-    console.log('✅ [PRODUCTS] Using existing Vercel Blob URL from /api/transform (no duplicate upload)');
-    console.log('📍 [PRODUCTS] Vercel Blob URL:', vercelBlobUrl?.substring(0, 80) + '...');
+    // ✅ SPRAWDŹ CZY transformedImage TO URL CZY BASE64
+    // Jeśli to base64 (z galerii), uploaduj do Vercel Blob przed użyciem
+    let vercelBlobUrl = null;
+    
+    if (transformedImage && transformedImage.startsWith('http')) {
+      // ✅ TO JEST URL - użyj bezpośrednio (już jest na Vercel Blob)
+      vercelBlobUrl = transformedImage;
+      console.log('✅ [PRODUCTS] Using existing Vercel Blob URL from /api/transform (no duplicate upload)');
+      console.log('📍 [PRODUCTS] Vercel Blob URL:', vercelBlobUrl?.substring(0, 80) + '...');
+    } else if (transformedImage && transformedImage.startsWith('data:')) {
+      // ❌ TO JEST BASE64 - uploaduj do Vercel Blob (z galerii - stara generacja)
+      console.log('⚠️ [PRODUCTS] transformedImage is base64 - uploading to Vercel Blob...');
+      
+      try {
+        const base64Data = transformedImage.replace(/^data:image\/[a-z]+;base64,/, '');
+        const imageBuffer = Buffer.from(base64Data, 'base64');
+        console.log(`📦 [PRODUCTS] Base64 buffer size: ${imageBuffer.length} bytes (${(imageBuffer.length / 1024 / 1024).toFixed(2)} MB)`);
+        
+        const timestamp = Date.now();
+        const uniqueFilename = `customify/temp/generation-${timestamp}.jpg`;
+        
+        const blob = await put(uniqueFilename, imageBuffer, {
+          access: 'public',
+          contentType: 'image/jpeg',
+          token: process.env.BLOB_READ_WRITE_TOKEN,
+        });
+        
+        vercelBlobUrl = blob.url;
+        console.log(`✅ [PRODUCTS] Base64 uploaded to Vercel Blob: ${vercelBlobUrl.substring(0, 80)}...`);
+      } catch (uploadError) {
+        console.error('❌ [PRODUCTS] Failed to upload base64 to Vercel Blob:', uploadError);
+        // Fallback: użyj transformedImage (base64) - ale to nie zadziała dla _AI_Image_URL
+        vercelBlobUrl = null;
+      }
+    } else {
+      console.warn('⚠️ [PRODUCTS] transformedImage is neither URL nor base64:', typeof transformedImage);
+      vercelBlobUrl = null;
+    }
 
     // ✅ permanentImageUrl ZAWSZE używa Vercel Blob jako głównego źródła (backup)
     // Shopify CDN jest tylko dla produktu w Shopify, ale może zniknąć
