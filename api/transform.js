@@ -2992,6 +2992,8 @@ module.exports = async (req, res) => {
       success: true, 
       transformedImage: finalImageUrl || imageUrl, // Preferuj zapisany URL z Vercel Blob
       transformedImageBase64: imageUrl && typeof imageUrl === 'string' && imageUrl.startsWith('data:') ? imageUrl : null,
+      vercelBlobUrl: finalImageUrl || null, // ✅ BEZ WATERMARKU - URL z Vercel Blob (dla admina do realizacji zamówienia)
+      permanentImageUrl: finalImageUrl || null, // ✅ BEZ WATERMARKU - alias dla vercelBlobUrl (backward compatibility)
       watermarkedImageUrl: watermarkedImageUrl || null, // Obraz Z watermarkem (backend PNG) - dla podglądu/koszyka
       watermarkedImageBase64: watermarkedImageBase64 || null, // ✅ NOWE: Base64 watermarku (dla /api/products - BEZ PONOWNEGO DOWNLOADU)
       deviceToken,
