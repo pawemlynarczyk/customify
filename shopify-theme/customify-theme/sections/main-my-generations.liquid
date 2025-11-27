@@ -75,15 +75,11 @@
     }
 
     .generation-style {
-      font-weight: bold;
-      font-size: 0.95rem;
-      margin-bottom: 0.5rem;
+      display: none !important; /* ✅ Ukryj podpisy stylów */
     }
 
     .generation-date {
-      font-size: 0.85rem;
-      color: #666;
-      margin-bottom: 0.5rem;
+      display: none !important; /* ✅ Ukryj daty */
     }
 
     .generation-status {
@@ -373,7 +369,7 @@
             item.innerHTML = `
               <img 
                 src="${imageUrl}" 
-                alt="Generacja ${generation.style}" 
+                alt="" 
                 class="generation-image"
                 loading="lazy"
                 onerror="this.parentElement.innerHTML='<div class=\\'generation-image\\' style=\\'background: #f0f0f0; aspect-ratio: 3/4; display: flex; align-items: center; justify-content: center; flex-direction: column; color: #999;\\'><p style=\\'font-size: 2rem; margin: 0;\\'>📷</p><p style=\\'font-size: 0.9rem; margin: 0.5rem 0 0 0;\\'>Obraz niedostępny</p></div><div class=\\'generation-info\\'><button class=\\'btn-order-now\\' data-generation-index=\\'${index}\\' disabled style=\\'opacity: 0.5; cursor: not-allowed;\\'>Niedostępne</button></div>'"
