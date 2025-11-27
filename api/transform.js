@@ -2,6 +2,7 @@ const Replicate = require('replicate');
 const crypto = require('crypto');
 const { getClientIP } = require('../utils/vercelRateLimiter');
 const { checkIPLimit, incrementIPLimit, checkDeviceTokenLimit, incrementDeviceTokenLimit, isKVConfigured, isImageHashLimitEnabled, calculateImageHash, checkImageHashLimit, incrementImageHashLimit, checkDeviceTokenCrossAccount, addCustomerToDeviceToken } = require('../utils/vercelKVLimiter');
+const Sentry = require('../utils/sentry');
 const { put } = require('@vercel/blob');
 
 // 🚫 Lista IP zablokowanych całkowicie (tymczasowe banowanie nadużyć)
@@ -3009,6 +3010,19 @@ module.exports = async (req, res) => {
       errorMessage = 'AI service temporarily unavailable due to billing limits. Please try again later or contact support.';
       statusCode = 402;
     }
+    
+    // ✅ SENTRY: Loguj błąd transformacji
+    Sentry.withScope((scope) => {
+      scope.setTag('error_type', 'transform_failed');
+      scope.setTag('endpoint', 'transform');
+      scope.setContext('transform', {
+        customerId: req.body?.customerId || null,
+        style: req.body?.style || null,
+        productType: req.body?.productType || null,
+        statusCode: statusCode
+      });
+      Sentry.captureException(error);
+    });
     
     res.status(statusCode).json({ error: errorMessage });
   }

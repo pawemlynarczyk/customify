@@ -1,3 +1,5 @@
+const Sentry = require('../../utils/sentry');
+
 module.exports = async (req, res) => {
   console.log('🛒 [ORDER-PAID-WEBHOOK] Order paid webhook received');
   
@@ -190,6 +192,20 @@ Zespół Customify
             }
           } catch (emailError) {
             console.error('❌ [ORDER-PAID-WEBHOOK] Error sending digital product email:', emailError);
+            
+            // ✅ SENTRY: Loguj błąd wysyłki maila
+            Sentry.withScope((scope) => {
+              scope.setTag('error_type', 'email_send_failed');
+              scope.setTag('webhook', 'orders/paid');
+              scope.setContext('email', {
+                orderId: order.id,
+                customerEmail: order.email,
+                productId: item.product_id,
+                variantId: item.variant_id
+              });
+              Sentry.captureException(emailError);
+            });
+            
             // Nie przerywaj procesu - kontynuuj ukrywanie produktu
           }
         }
@@ -231,6 +247,17 @@ Zespół Customify
     
   } catch (error) {
     console.error('❌ [ORDER-PAID-WEBHOOK] Error:', error);
+    
+    // ✅ SENTRY: Loguj błąd webhooka
+    Sentry.withScope((scope) => {
+      scope.setTag('error_type', 'webhook_failed');
+      scope.setTag('webhook', 'orders/paid');
+      scope.setContext('webhook', {
+        orderId: req.body?.id || null,
+        orderEmail: req.body?.email || null
+      });
+      Sentry.captureException(error);
+    });
     res.status(500).json({ error: 'Webhook processing failed' });
   }
 };

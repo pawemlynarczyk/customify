@@ -6,6 +6,7 @@
 
 const { put, head, get } = require('@vercel/blob');
 const { checkRateLimit, getClientIP } = require('../utils/vercelRateLimiter');
+const Sentry = require('../utils/sentry');
 
 const toSafeString = (value) => {
   if (value === null || value === undefined) {
@@ -440,6 +441,19 @@ async function saveGenerationHandler(req, res) {
       }
     } catch (blobError) {
       console.error('❌ [SAVE-GENERATION] Error writing to Blob:', blobError);
+      
+      // ✅ SENTRY: Loguj błąd zapisu generacji
+      Sentry.withScope((scope) => {
+        scope.setTag('error_type', 'save_generation_failed');
+        scope.setTag('endpoint', 'save-generation');
+        scope.setContext('generation', {
+          customerId: customerId || null,
+          email: email || null,
+          identifier: identifier || null
+        });
+        Sentry.captureException(blobError);
+      });
+      
       // Nie blokuj - zwróć sukces ale z warningiem
       return res.json({
         success: true,
@@ -650,6 +664,18 @@ async function saveGenerationHandler(req, res) {
           } catch (emailError) {
             console.error('❌ [SAVE-GENERATION] Exception podczas wysyłania emaila:', emailError);
             console.error('❌ [SAVE-GENERATION] Error message:', emailError.message);
+            
+            // ✅ SENTRY: Loguj błąd wysyłki maila
+            Sentry.withScope((scope) => {
+              scope.setTag('error_type', 'email_send_failed');
+              scope.setTag('endpoint', 'save-generation');
+              scope.setContext('email', {
+                customerId: customerId || null,
+                email: email || null,
+                hasImageUrl: !!imageUrlForEmail
+              });
+              Sentry.captureException(emailError);
+            });
             // Nie blokuj - email to nice-to-have, nie critical
           }
         } else {

@@ -27,6 +27,24 @@
           "value": "Content-Type, X-Requested-With, Authorization"
         }
       ]
+    },
+    {
+      "source": "/api/get-errors",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, no-cache, must-revalidate, private"
+        }
+      ]
+    },
+    {
+      "source": "/api/log-error",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, no-cache, must-revalidate, private"
+        }
+      ]
     }
   ]
 }
