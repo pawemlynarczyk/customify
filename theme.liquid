@@ -547,13 +547,20 @@
                   }
                   
                   // ✅ BEZ WATERMARKU - dla admina do realizacji zamówienia (krótki ~100 znaków, nie base64!)
-                  // Priorytet: vercelBlobUrl (BEZ watermarku) > transformedImage (BEZ watermarku) > watermarkedImageUrl (Z watermarkiem - tylko fallback)
-                  if (result.vercelBlobUrl && !result.vercelBlobUrl.startsWith('data:')) {
-                    hiddenProperties['_AI_Image_URL'] = result.vercelBlobUrl; // BEZ watermarku - do realizacji
+                  // Priorytet: cleanImageUrl (BEZ watermarku z historii) > vercelBlobUrl (BEZ watermarku) > transformedImage (BEZ watermarku) > watermarkedImageUrl (fallback)
+                  let finalAdminUrl = null;
+                  if (cleanImageUrl && cleanImageUrl.startsWith('http')) {
+                    finalAdminUrl = cleanImageUrl;
+                  } else if (result.vercelBlobUrl && !result.vercelBlobUrl.startsWith('data:')) {
+                    finalAdminUrl = result.vercelBlobUrl;
                   } else if (this.transformedImage && !this.transformedImage.startsWith('data:') && this.transformedImage.startsWith('http')) {
-                    hiddenProperties['_AI_Image_URL'] = this.transformedImage; // BEZ watermarku - fallback
+                    finalAdminUrl = this.transformedImage;
                   } else if (watermarkedImageUrl && !watermarkedImageUrl.startsWith('data:')) {
-                    hiddenProperties['_AI_Image_URL'] = watermarkedImageUrl; // Z watermarkiem - tylko jako ostatni fallback
+                    finalAdminUrl = watermarkedImageUrl; // Fallback – tylko gdy innych nie ma
+                  }
+
+                  if (finalAdminUrl) {
+                    hiddenProperties['_AI_Image_URL'] = finalAdminUrl;
                   }
 
                   if (cleanImageUrl && cleanImageUrl.startsWith('http')) {
