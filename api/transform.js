@@ -919,7 +919,7 @@ module.exports = async (req, res) => {
   let customerEmailFromGraphQL = null;
 
   try {
-    const { imageData, prompt, style, productType, customerId, email } = req.body;
+    const { imageData, prompt, style, productType, customerId, email, productHandle } = req.body;
     // ✅ EMAIL: Tylko dla niezalogowanych - używany do powiązania generacji z użytkownikiem w save-generation
     // ❌ USUNIĘTO: customerAccessToken - nie jest używany, API używa SHOPIFY_ACCESS_TOKEN z env
     // ❌ USUNIĘTO: watermarkedImage - watermark jest generowany PO transformacji AI w frontendzie
@@ -934,6 +934,7 @@ module.exports = async (req, res) => {
     console.log('📥 [API] style === null:', style === null);
     console.log('📥 [API] productType:', productType);
     console.log('📥 [API] customerId:', customerId || 'niezalogowany');
+    console.log('📥 [API] productHandle:', productHandle || 'not provided');
     console.log('📥 [API] ===================================');
 
     if (!imageData || !prompt) {
@@ -2487,7 +2488,8 @@ module.exports = async (req, res) => {
           style: style || prompt || 'unknown', // ✅ UŻYJ CZYSTEGO STYLU (nie prompt) - dla emaili i wyświetlania
           size: 'a4', // ✅ Domyślny rozmiar A4 (30x40cm) - użytkownik może zmienić później
           productType: finalProductType,
-          originalImageUrl: null // Opcjonalnie - można dodać później
+        originalImageUrl: null, // Opcjonalnie - można dodać później
+        productHandle: productHandle || null
         };
         
         // ✅ WALIDACJA: Upewnij się że finalImageUrl jest ustawiony przed zapisem
@@ -2988,11 +2990,13 @@ module.exports = async (req, res) => {
     // ✅ ZWRÓĆ DEBUG INFO Z SAVE-GENERATION (dla przeglądarki)
     const responseData = { 
       success: true, 
-      transformedImage: imageUrl, // Oryginał BEZ watermarku (do druku)
+      transformedImage: finalImageUrl || imageUrl, // Preferuj zapisany URL z Vercel Blob
+      transformedImageBase64: imageUrl && typeof imageUrl === 'string' && imageUrl.startsWith('data:') ? imageUrl : null,
       watermarkedImageUrl: watermarkedImageUrl || null, // Obraz Z watermarkem (backend PNG) - dla podglądu/koszyka
       watermarkedImageBase64: watermarkedImageBase64 || null, // ✅ NOWE: Base64 watermarku (dla /api/products - BEZ PONOWNEGO DOWNLOADU)
       deviceToken,
-      ipHash
+      ipHash,
+      productHandle: productHandle || null
     };
     
     // ✅ BARDZO WIDOCZNE LOGOWANIE - SPRAWDŹ CZY saveGenerationDebug JEST USTAWIONE

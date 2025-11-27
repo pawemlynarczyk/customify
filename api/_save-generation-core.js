@@ -126,7 +126,7 @@ async function saveGenerationHandler(req, res) {
       });
     }
 
-    const { customerId, email, ip: ipFromBody, ipHash: ipHashFromBody, deviceToken, imageUrl, watermarkedImageUrl, style, size, productType, originalImageUrl } = req.body;
+    const { customerId, email, ip: ipFromBody, ipHash: ipHashFromBody, deviceToken, imageUrl, watermarkedImageUrl, style, size, productType, originalImageUrl, productHandle } = req.body;
     
     // ✅ Użyj IP z body jeśli podane, w przeciwnym razie użyj IP z request
     const finalIp = ipFromBody || ip;
@@ -251,6 +251,7 @@ async function saveGenerationHandler(req, res) {
       style: style || 'unknown',
       productType: productType || 'other',
       originalImageUrl: originalImageUrl || null,
+      productHandle: productHandle || null,
       date: new Date().toISOString(),
       purchased: false,
       orderId: null,
@@ -958,6 +959,7 @@ Zespół Lumly
         style: dataToSave.generations[0].style,
         imageUrlPreview: dataToSave.generations[0].imageUrl?.substring(0, 50) + '...'
       } : null,
+      productHandle: productHandle || null,
       metafieldUpdateAttempted: metafieldUpdateAttempted,
       metafieldUpdateSuccess: metafieldUpdateSuccess,
       metafieldUpdateError: metafieldUpdateError,

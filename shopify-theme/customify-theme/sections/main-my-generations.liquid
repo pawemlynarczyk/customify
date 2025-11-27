@@ -247,12 +247,15 @@
               style: gen.style || gen.productType || 'unknown',
               productType: gen.productType || 'other',
               transformedImage: gen.imageUrl || gen.transformedImageUrl,
+              cleanImageUrl: gen.cleanImageUrl || gen.imageUrl || null,
               watermarkedImageUrl: gen.watermarkedImageUrl,
               originalImage: gen.originalImageUrl,
               timestamp: gen.date || gen.createdAt || new Date().toISOString(),
               size: gen.size || 'medium',
               orderId: gen.orderId || null,
-              purchased: gen.purchased || false
+              purchased: gen.purchased || false,
+              productHandle: gen.productHandle || null,
+              saveGenerationDebug: gen.saveGenerationDebug || null
             }));
           }
           
@@ -321,7 +324,7 @@
           item.style.cursor = 'pointer';
           
           // ✅ PRIORYTET: watermarkedImageUrl (Vercel Blob z watermarkiem) > transformedImage (fallback)
-          const imageUrl = generation.watermarkedImageUrl || generation.transformedImage;
+          const imageUrl = generation.cleanImageUrl || generation.watermarkedImageUrl || generation.transformedImage;
           
           if (!imageUrl) {
             // Brak URL obrazu - pokaż placeholder
@@ -390,13 +393,15 @@
                 'king': 'krol-portret-personalizowany',
                 'queen': 'krol-portret-personalizowany',
                 'cats': 'koty-krolewskie',
-                'caricature': 'personalizowany-portret-w-stylu-boho',
+                'caricature': 'karykatura-z-twojego-zdjecia-obraz',
                 'watercolor': 'personalizowany-portret-w-stylu-boho',
                 'other': 'personalizowany-portret-w-stylu-boho'
               };
               
               let productHandle = null;
-              if (gen.productType && productTypeToHandle[gen.productType]) {
+              if (gen.productHandle) {
+                productHandle = gen.productHandle;
+              } else if (gen.productType && productTypeToHandle[gen.productType]) {
                 productHandle = productTypeToHandle[gen.productType];
               } else {
                 let styleKey = (gen.style || '').toLowerCase().replace(/transform this image in | style/g, '').trim();
@@ -503,7 +508,7 @@
                 'king': 'krol-portret-personalizowany', // ✅ POPRAWNY HANDLE: krol-portret-personalizowany
                 'queen': 'krol-portret-personalizowany', // ✅ POPRAWNY HANDLE: krol-portret-personalizowany
                 'cats': 'koty-krolewskie',
-                'caricature': 'personalizowany-portret-w-stylu-boho',
+                'caricature': 'karykatura-z-twojego-zdjecia-obraz',
                 'watercolor': 'personalizowany-portret-w-stylu-boho',
                 'other': 'personalizowany-portret-w-stylu-boho' // Fallback dla nieznanych stylów
               };
@@ -514,7 +519,10 @@
               console.log('🔍 [MY-GENERATIONS] generation.style:', generation.style);
               
               let productHandle = null;
-              if (generation.productType && productTypeToHandle[generation.productType]) {
+              if (generation.productHandle) {
+                productHandle = generation.productHandle;
+                console.log('✅ [MY-GENERATIONS] Użyto productHandle z generacji:', generation.productHandle);
+              } else if (generation.productType && productTypeToHandle[generation.productType]) {
                 productHandle = productTypeToHandle[generation.productType];
                 console.log('✅ [MY-GENERATIONS] Użyto productType z generacji:', generation.productType, '→', productHandle);
               } else {
