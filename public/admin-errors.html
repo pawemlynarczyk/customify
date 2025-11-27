@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customify - Error Dashboard</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
+      color: #333;
+    }
+    
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    
+    h1 {
+      margin-bottom: 20px;
+      color: #1a1a1a;
+    }
+    
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+    
+    .stat-card {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .stat-label {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 8px;
+    }
+    
+    .stat-value {
+      font-size: 32px;
+      font-weight: bold;
+      color: #1a1a1a;
+    }
+    
+    .filters {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    
+    .filters select, .filters input {
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      margin-right: 10px;
+      font-size: 14px;
+    }
+    
+    .filters button {
+      padding: 8px 16px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    
+    .filters button:hover {
+      background: #0056b3;
+    }
+    
+    .errors-list {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+    
+    .error-item {
+      padding: 20px;
+      border-bottom: 1px solid #eee;
+      transition: background 0.2s;
+    }
+    
+    .error-item:hover {
+      background: #f9f9f9;
+    }
+    
+    .error-item:last-child {
+      border-bottom: none;
+    }
+    
+    .error-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      margin-bottom: 10px;
+    }
+    
+    .error-type {
+      font-weight: bold;
+      color: #dc3545;
+      font-size: 16px;
+    }
+    
+    .error-time {
+      color: #666;
+      font-size: 12px;
+    }
+    
+    .error-message {
+      color: #333;
+      margin: 10px 0;
+      font-size: 14px;
+    }
+    
+    .error-context {
+      background: #f8f9fa;
+      padding: 10px;
+      border-radius: 4px;
+      margin-top: 10px;
+      font-size: 12px;
+      font-family: monospace;
+      white-space: pre-wrap;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    
+    .error-stack {
+      background: #fff3cd;
+      padding: 10px;
+      border-radius: 4px;
+      margin-top: 10px;
+      font-size: 11px;
+      font-family: monospace;
+      white-space: pre-wrap;
+      max-height: 150px;
+      overflow-y: auto;
+      display: none;
+    }
+    
+    .error-stack.show {
+      display: block;
+    }
+    
+    .toggle-stack {
+      color: #007bff;
+      cursor: pointer;
+      font-size: 12px;
+      margin-top: 5px;
+      text-decoration: underline;
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+    }
+    
+    .empty {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+    }
+    
+    .refresh-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 12px 24px;
+      background: #28a745;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      font-size: 14px;
+    }
+    
+    .refresh-btn:hover {
+      background: #218838;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔍 Customify Error Dashboard</h1>
+    
+    <div class="stats" id="stats">
+      <div class="stat-card">
+        <div class="stat-label">Total Errors</div>
+        <div class="stat-value" id="totalErrors">-</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Transform Failed</div>
+        <div class="stat-value" id="transformErrors">-</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Cart Add Failed</div>
+        <div class="stat-value" id="cartErrors">-</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Product Creation Failed</div>
+        <div class="stat-value" id="productErrors">-</div>
+      </div>
+    </div>
+    
+    <div class="filters">
+      <select id="errorTypeFilter">
+        <option value="">Wszystkie typy</option>
+        <option value="transform_failed">Transform Failed</option>
+        <option value="cart_add_failed">Cart Add Failed</option>
+        <option value="product_creation_failed">Product Creation Failed</option>
+        <option value="upload_failed">Upload Failed</option>
+      </select>
+      <input type="number" id="limitInput" placeholder="Limit" value="50" min="1" max="200">
+      <button onclick="loadErrors()">Załaduj błędy</button>
+      <button onclick="loadErrors()" style="background: #6c757d;">Odśwież</button>
+    </div>
+    
+    <div class="errors-list" id="errorsList">
+      <div class="loading">Ładowanie błędów...</div>
+    </div>
+  </div>
+  
+  <button class="refresh-btn" onclick="loadErrors()">🔄 Odśwież</button>
+  
+  <script>
+    const API_BASE = 'https://customify-s56o.vercel.app/api';
+    const ADMIN_TOKEN = prompt('Wprowadź ADMIN_STATS_TOKEN:');
+    
+    if (!ADMIN_TOKEN) {
+      alert('Token wymagany!');
+      window.location.reload();
+    }
+    
+    async function loadErrors() {
+      const errorType = document.getElementById('errorTypeFilter').value;
+      const limit = document.getElementById('limitInput').value || 50;
+      
+      const errorsList = document.getElementById('errorsList');
+      errorsList.innerHTML = '<div class="loading">Ładowanie błędów...</div>';
+      
+      try {
+        const url = `${API_BASE}/get-errors?limit=${limit}${errorType ? '&errorType=' + errorType : ''}`;
+        const response = await fetch(url, {
+          headers: {
+            'Authorization': `Bearer ${ADMIN_TOKEN}`
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+        }
+        
+        const data = await response.json();
+        
+        // Update stats
+        document.getElementById('totalErrors').textContent = data.total || 0;
+        document.getElementById('transformErrors').textContent = data.stats?.transform_failed || 0;
+        document.getElementById('cartErrors').textContent = data.stats?.cart_add_failed || 0;
+        document.getElementById('productErrors').textContent = data.stats?.product_creation_failed || 0;
+        
+        // Render errors
+        if (data.errors && data.errors.length > 0) {
+          errorsList.innerHTML = data.errors.map(error => `
+            <div class="error-item">
+              <div class="error-header">
+                <div>
+                  <div class="error-type">${error.errorType || 'unknown'}</div>
+                  <div class="error-time">${new Date(error.timestamp).toLocaleString('pl-PL')}</div>
+                </div>
+              </div>
+              <div class="error-message">${escapeHtml(error.errorMessage || 'No message')}</div>
+              ${error.context && Object.keys(error.context).length > 0 ? `
+                <div class="error-context">${JSON.stringify(error.context, null, 2)}</div>
+              ` : ''}
+              ${error.errorStack ? `
+                <div class="toggle-stack" onclick="toggleStack(this)">Pokaż stack trace</div>
+                <div class="error-stack">${escapeHtml(error.errorStack)}</div>
+              ` : ''}
+              ${error.url ? `<div style="margin-top: 5px; font-size: 11px; color: #666;">URL: ${error.url}</div>` : ''}
+            </div>
+          `).join('');
+        } else {
+          errorsList.innerHTML = '<div class="empty">Brak błędów</div>';
+        }
+      } catch (error) {
+        errorsList.innerHTML = `<div class="empty" style="color: #dc3545;">Błąd: ${error.message}</div>`;
+        console.error('Error loading errors:', error);
+      }
+    }
+    
+    function toggleStack(button) {
+      const stack = button.nextElementSibling;
+      stack.classList.toggle('show');
+      button.textContent = stack.classList.contains('show') ? 'Ukryj stack trace' : 'Pokaż stack trace';
+    }
+    
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+    
+    // Auto-refresh co 30 sekund
+    setInterval(loadErrors, 30000);
+    
+    // Load on page load
+    loadErrors();
+  </script>
+</body>
+</html>
+

@@ -47,6 +47,39 @@
     </script>
     <!-- End Hotjar -->
 
+    <!-- SENTRY ERROR TRACKING -->
+    <script src="https://browser.sentry-cdn.com/8.40.0/bundle.min.js" integrity="sha384-8kA4bpX1WYu0x+Nsb+QOPYyqy+7P2q3k/7kI10H7B5f2/0bJmv6O7pXU3oYxRwXq" crossorigin="anonymous"></script>
+    <script>
+      {% if customer %}
+        Sentry.init({
+          dsn: "{{ settings.sentry_dsn | default: '' }}",
+          environment: "production",
+          tracesSampleRate: 0.1, // 10% of transactions
+          beforeSend(event, hint) {
+            // Dodaj kontekst użytkownika
+            if (event.user) {
+              event.user.id = {{ customer.id | json }};
+              event.user.email = {{ customer.email | json }};
+            }
+            return event;
+          }
+        });
+        
+        // Ustaw użytkownika
+        Sentry.setUser({
+          id: {{ customer.id | json }},
+          email: {{ customer.email | json }}
+        });
+      {% else %}
+        Sentry.init({
+          dsn: "{{ settings.sentry_dsn | default: '' }}",
+          environment: "production",
+          tracesSampleRate: 0.1
+        });
+      {% endif %}
+    </script>
+    <!-- End Sentry -->
+
     <!-- CUSTOMIFY INTEGRATION -->
     <link rel="stylesheet" href="{{ 'customify.css' | asset_url }}">
     
@@ -127,12 +160,12 @@
             try {
               const isDigitalProduct = this.selectedProductType === 'digital';
               
-              // Dla produktu cyfrowego: ZAWSZE 69 zł, NIE sumuj z ceną bazową
+              // Dla produktu cyfrowego: ZAWSZE 49 zł, NIE sumuj z ceną bazową
               if (isDigitalProduct) {
-                const digitalProductPrice = 69.00; // 🚨 ROLLBACK: Stała cena produktu cyfrowego
+                const digitalProductPrice = 49.00; // 🚨 ROLLBACK: Stała cena produktu cyfrowego
                 this.applyProductPriceDisplay(digitalProductPrice);
                 this.schedulePriceConsistency(digitalProductPrice);
-                console.log('💰 [PRICE] Digital product - fixed price: 69.00 zł (ignoring base price)');
+                console.log('💰 [PRICE] Digital product - fixed price: 49.00 zł (ignoring base price)');
                 return;
               }
               
@@ -193,14 +226,14 @@
             try {
               const isDigitalProduct = this.selectedProductType === 'digital';
               
-              // Dla produktu cyfrowego: ZAWSZE 69 zł, NIE sumuj z ceną bazową
+              // Dla produktu cyfrowego: ZAWSZE 49 zł, NIE sumuj z ceną bazową
               if (isDigitalProduct) {
-                const digitalProductPrice = 69.00; // 🚨 ROLLBACK: Stała cena produktu cyfrowego
+                const digitalProductPrice = 49.00; // 🚨 ROLLBACK: Stała cena produktu cyfrowego
                 const cartPriceElement = document.getElementById('cartPriceValue');
                 
                 if (cartPriceElement) {
                   cartPriceElement.textContent = `${digitalProductPrice.toFixed(2)} zł`;
-                  console.log('✅ [CART-PRICE] Digital product - fixed price: 69.00 zł (ignoring base price)');
+                  console.log('✅ [CART-PRICE] Digital product - fixed price: 49.00 zł (ignoring base price)');
                   this.showCartPrice();
                 } else {
                   console.warn('⚠️ [CART-PRICE] Cart price element not found');
@@ -350,15 +383,15 @@
             }
             // 🚨 ROLLBACK: END - Pomijaj rozmiar dla produktu cyfrowego
 
-            // 🚨 ROLLBACK: START - Cena dla produktu cyfrowego (STAŁA 69 zł, NIE sumuje się z ceną bazową)
+            // 🚨 ROLLBACK: START - Cena dla produktu cyfrowego (STAŁA 49 zł, NIE sumuje się z ceną bazową)
             const isDigitalProductForPrice = this.selectedProductType === 'digital';
-            const digitalProductPrice = 69.00; // 🚨 ROLLBACK: Stała cena produktu cyfrowego
+            const digitalProductPrice = 49.00; // 🚨 ROLLBACK: Stała cena produktu cyfrowego
             
             let finalPrice;
             if (isDigitalProductForPrice) {
-              // Produkt cyfrowy: ZAWSZE 69 zł, NIE zależy od ceny bazowej produktu
+              // Produkt cyfrowy: ZAWSZE 49 zł, NIE zależy od ceny bazowej produktu
               finalPrice = digitalProductPrice;
-              console.log('💰 [CUSTOMIFY] Digital product - using fixed price: 69.00 zł (ignoring base price)');
+              console.log('💰 [CUSTOMIFY] Digital product - using fixed price: 49.00 zł (ignoring base price)');
             } else {
               // Produkt fizyczny: cena bazowa + rozmiar + ramka
               const basePrice = this.originalBasePrice || 49.00;

@@ -463,6 +463,11 @@
               console.log('🛒 [CUSTOMIFY] API response status:', response.status);
               const result = await response.json();
               console.log('🛒 [CUSTOMIFY] API response:', result);
+              console.log('🔍 [CUSTOMIFY] result.vercelBlobUrl:', result.vercelBlobUrl);
+              console.log('🔍 [CUSTOMIFY] result.vercelBlobUrl type:', typeof result.vercelBlobUrl);
+              console.log('🔍 [CUSTOMIFY] result.vercelBlobUrl startsWith http?', result.vercelBlobUrl?.startsWith('http'));
+              console.log('🔍 [CUSTOMIFY] result.permanentImageUrl:', result.permanentImageUrl);
+              console.log('🔍 [CUSTOMIFY] this.transformedImage:', this.transformedImage);
 
               // 🔍 Pobierz URL bez watermarku z historii generacji (Vercel Blob)
               let cleanImageUrl = null;
@@ -547,17 +552,19 @@
                   }
                   
                   // ✅ BEZ WATERMARKU - dla admina do realizacji zamówienia (krótki ~100 znaków, nie base64!)
-                  // Priorytet: cleanImageUrl (BEZ watermarku z historii) > vercelBlobUrl (BEZ watermarku) > transformedImage (BEZ watermarku) > watermarkedImageUrl (fallback)
+                  // Priorytet: cleanImageUrl (BEZ watermarku z historii) > vercelBlobUrl/permanentImageUrl (BEZ watermarku) > this.transformedImage (BEZ watermarku)
+                  // ❌ NIE UŻYWAJ watermarkedImageUrl - to jest Z watermarkiem!
                   let finalAdminUrl = null;
                   if (cleanImageUrl && cleanImageUrl.startsWith('http')) {
                     finalAdminUrl = cleanImageUrl;
-                  } else if (result.vercelBlobUrl && !result.vercelBlobUrl.startsWith('data:')) {
-                    finalAdminUrl = result.vercelBlobUrl;
-                  } else if (this.transformedImage && !this.transformedImage.startsWith('data:') && this.transformedImage.startsWith('http')) {
-                    finalAdminUrl = this.transformedImage;
-                  } else if (watermarkedImageUrl && !watermarkedImageUrl.startsWith('data:')) {
-                    finalAdminUrl = watermarkedImageUrl; // Fallback – tylko gdy innych nie ma
+                  } else if (result.vercelBlobUrl && result.vercelBlobUrl.startsWith('http')) {
+                    finalAdminUrl = result.vercelBlobUrl; // ✅ BEZ watermarku (z /api/products response)
+                  } else if (result.permanentImageUrl && result.permanentImageUrl.startsWith('http')) {
+                    finalAdminUrl = result.permanentImageUrl; // ✅ BEZ watermarku (z /api/products response)
+                  } else if (this.transformedImage && this.transformedImage.startsWith('http')) {
+                    finalAdminUrl = this.transformedImage; // ✅ BEZ watermarku (z localStorage lub transformacji)
                   }
+                  // ❌ NIE MA FALLBACK DO watermarkedImageUrl - admin MUSI mieć obraz BEZ watermarku!
 
                   if (finalAdminUrl) {
                     hiddenProperties['_AI_Image_URL'] = finalAdminUrl;
@@ -3195,36 +3202,6 @@
                   </div>
                 {% else %}
                   {% comment %} WSZYSTKIE STYLE NORMALNE dla innych produktów {% endcomment %}
-                  <div class="customify-style-card" data-style="van gogh">
-                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/Screenshot%202025-09-29%20at%2022.17.01.png'); background-size: cover; background-position: center;"></div>
-                    <div class="style-info">
-                      <div class="style-name">Van Gogh</div>
-                    </div>
-                  </div>
-                  <div class="customify-style-card" data-style="picasso">
-                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/Screenshot%202025-09-29%20at%2022.17.14.png'); background-size: cover; background-position: center;"></div>
-                    <div class="style-info">
-                      <div class="style-name">Picasso</div>
-                    </div>
-                  </div>
-                  <div class="customify-style-card" data-style="monet">
-                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/pixar/pixar-styl.jpg'); background-size: cover; background-position: center;"></div>
-                    <div class="style-info">
-                      <div class="style-name">Monet</div>
-                    </div>
-                  </div>
-                  <div class="customify-style-card" data-style="anime">
-                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/Screenshot%202025-09-29%20at%2022.17.52.png'); background-size: cover; background-position: center;"></div>
-                    <div class="style-info">
-                      <div class="style-name">Anime</div>
-                    </div>
-                  </div>
-                  <div class="customify-style-card" data-style="cyberpunk">
-                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/Screenshot%202025-09-29%20at%2022.17.01.png'); background-size: cover; background-position: center;"></div>
-                    <div class="style-info">
-                      <div class="style-name">Cyberpunk</div>
-                    </div>
-                  </div>
                   <div class="customify-style-card" data-style="watercolor">
                     <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/Screenshot%202025-09-29%20at%2022.17.14.png'); background-size: cover; background-position: center;"></div>
                     <div class="style-info">

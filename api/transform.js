@@ -2901,7 +2901,7 @@ module.exports = async (req, res) => {
         } else if (!customerId && deviceToken) {
           const deviceIncrementResult = await incrementDeviceTokenLimit(deviceToken);
           if (deviceIncrementResult.success) {
-            console.log(`➕ [TRANSFORM] Device token limit incremented: ${deviceIncrementResult.newCount}/3`);
+            console.log(`➕ [TRANSFORM] Device token limit incremented: ${deviceIncrementResult.newCount}/2`);
           } else {
             console.warn(`⚠️ [TRANSFORM] Failed to increment device token limit:`, deviceIncrementResult.error);
           }

@@ -8,6 +8,8 @@
   "buildCommand": "echo 'Force rebuild v7 - analytics system'",
   "outputDirectory": "public",
   "installCommand": "echo 'Force install'",
+  "cleanUrls": false,
+  "trailingSlash": false,
   "headers": [
     {
       "source": "/api/(.*)",

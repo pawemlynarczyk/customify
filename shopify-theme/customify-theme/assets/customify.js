@@ -555,6 +555,82 @@ class CustomifyEmbed {
   }
 
   /**
+   * Loguje błąd do backendu (dla monitoringu) + Sentry
+   */
+  async logError(errorType, errorMessage, errorStack = null, context = {}) {
+    try {
+      const customerInfo = this.getCustomerInfo();
+      
+      const errorData = {
+        errorType,
+        errorMessage,
+        errorStack: errorStack || (new Error().stack),
+        context: {
+          ...context,
+          customerId: customerInfo?.customerId || null,
+          email: customerInfo?.email || null,
+          style: this.selectedStyle || null,
+          size: this.selectedSize || null,
+          productType: this.productType || null,
+          url: window.location.href
+        },
+        url: window.location.href,
+        userAgent: navigator.userAgent
+      };
+
+      // ✅ SENTRY: Loguj błąd do Sentry (jeśli dostępne)
+      if (typeof Sentry !== 'undefined' && Sentry.captureException) {
+        try {
+          Sentry.withScope((scope) => {
+            // Dodaj kontekst użytkownika
+            if (customerInfo?.customerId) {
+              scope.setUser({
+                id: customerInfo.customerId,
+                email: customerInfo.email || undefined
+              });
+            }
+            
+            // Dodaj dodatkowy kontekst
+            scope.setTag('error_type', errorType);
+            scope.setContext('customify', {
+              style: this.selectedStyle,
+              size: this.selectedSize,
+              productType: this.productType,
+              url: window.location.href
+            });
+            
+            // Utwórz błąd z wiadomością
+            const error = new Error(errorMessage);
+            if (errorStack) {
+              error.stack = errorStack;
+            }
+            
+            Sentry.captureException(error);
+            console.log('✅ [SENTRY] Error logged to Sentry:', errorType);
+          });
+        } catch (sentryError) {
+          console.warn('⚠️ [SENTRY] Failed to log to Sentry:', sentryError);
+        }
+      }
+
+      // ✅ BACKUP: Wyślij do własnego endpointu (backup)
+      fetch('https://customify-s56o.vercel.app/api/log-error', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(errorData)
+      }).catch(err => {
+        // Ignoruj błędy logowania (nie blokuj użytkownika)
+        console.warn('⚠️ [ERROR-TRACKING] Failed to log error:', err);
+      });
+    } catch (logError) {
+      // Ignoruj błędy logowania (nie blokuj użytkownika)
+      console.warn('⚠️ [ERROR-TRACKING] Error logging failed:', logError);
+    }
+  }
+
+  /**
    * Pobiera zapisane generacje AI
    */
   getAIGenerations() {
@@ -2758,6 +2834,14 @@ class CustomifyEmbed {
     } catch (error) {
       console.error('📱 [MOBILE] Transform error:', error);
       
+      // ✅ ERROR TRACKING: Loguj błąd transformacji
+      this.logError(
+        'transform_failed',
+        error.message || 'Unknown transform error',
+        error.stack,
+        { retryCount, selectedStyle: this.selectedStyle, productType: this.productType }
+      );
+      
       // Retry logic for network errors
       if (retryCount < 3 && (
         error.name === 'AbortError' || 
@@ -3220,11 +3304,29 @@ class CustomifyEmbed {
         }
       } else {
         console.error('❌ [CUSTOMIFY] Product creation failed:', result);
+        
+        // ✅ ERROR TRACKING: Loguj błąd tworzenia produktu
+        this.logError(
+          'product_creation_failed',
+          result.error || 'Unknown product creation error',
+          null,
+          { style: this.selectedStyle, size: this.selectedSize, productType: this.productType, apiResponse: result }
+        );
+        
         this.hideCartLoading();
         this.showError('❌ Błąd podczas tworzenia produktu: ' + (result.error || 'Nieznany błąd'), 'cart');
       }
     } catch (error) {
       console.error('❌ [CUSTOMIFY] Add to cart error:', error);
+      
+      // ✅ ERROR TRACKING: Loguj błąd dodawania do koszyka
+      this.logError(
+        'cart_add_failed',
+        error.message || 'Unknown cart add error',
+        error.stack,
+        { style: this.selectedStyle, size: this.selectedSize, productType: this.productType }
+      );
+      
       this.hideCartLoading();
       
       let errorMessage = '❌ Błąd połączenia z serwerem';
