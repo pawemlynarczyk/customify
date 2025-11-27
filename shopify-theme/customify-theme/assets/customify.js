@@ -506,7 +506,7 @@ class CustomifyEmbed {
   /**
    * Zapisuje generację AI w localStorage
    */
-  async saveAIGeneration(originalImage, transformedImage, style, size, productType = null, watermarkedImageUrl = null) {
+  async saveAIGeneration(originalImage, transformedImage, style, size, productType = null, watermarkedImageUrl = null, watermarkedImageBase64 = null) {
     console.log('💾 [CACHE] Saving AI generation to localStorage...');
     
     // ⚠️ NIE zapisuj ponownie do Vercel Blob - już jest zapisane w transform.js jako generation-{timestamp}.jpg
@@ -527,6 +527,7 @@ class CustomifyEmbed {
       originalImage: originalImage, // base64 lub URL (zachowaj)
       transformedImage: transformedImageUrl, // ZAWSZE URL (nie base64)
       watermarkedImageUrl: watermarkedImageUrl || null, // ✅ ZAPISZ watermarkedImageUrl (Vercel Blob z watermarkiem) - używany tylko w wyświetlaniu
+      watermarkedImageBase64: watermarkedImageBase64 || null, // ✅ NOWE: Base64 watermarku (dla /api/products - BEZ PONOWNEGO DOWNLOADU)
       style: style,
       size: size,
       productType: productType, // ✅ DODAJ productType (boho, king, cats, etc) - dla skalowalności
@@ -1013,6 +1014,10 @@ class CustomifyEmbed {
       if (!this.watermarkedImageUrl) {
         console.warn('⚠️ [GALLERY] Stara generacja bez watermarkedImageUrl - showResult() pokaże bez watermarku');
       }
+      
+      // ✅ NOWE: Ustaw this.watermarkedImageBase64 z galerii (dla /api/products - BEZ PONOWNEGO DOWNLOADU)
+      this.watermarkedImageBase64 = generation.watermarkedImageBase64 || null;
+      console.log('✅ [GALLERY] Set this.watermarkedImageBase64 from generation:', this.watermarkedImageBase64 ? `${this.watermarkedImageBase64.length} chars` : 'brak');
       
       // ✅ KLUCZOWE: Ustaw this.originalImageFromGallery żeby addToCart() działało
       this.originalImageFromGallery = generation.originalImage;
@@ -2682,6 +2687,9 @@ class CustomifyEmbed {
         // ✅ ZAPISZ watermarkedImageUrl z backendu (jeśli dostępny)
         this.watermarkedImageUrl = result.watermarkedImageUrl || null;
         console.log('✅ [TRANSFORM] watermarkedImageUrl z backendu:', this.watermarkedImageUrl?.substring(0, 100) || 'brak');
+        // ✅ NOWE: ZAPISZ watermarkedImageBase64 z backendu (dla /api/products - BEZ PONOWNEGO DOWNLOADU)
+        this.watermarkedImageBase64 = result.watermarkedImageBase64 || null;
+        console.log('✅ [TRANSFORM] watermarkedImageBase64 z backendu:', this.watermarkedImageBase64 ? `${this.watermarkedImageBase64.length} chars` : 'brak');
         this.hideError(); // Ukryj komunikat błędu po udanej transformacji
         
         // ✅ AWAIT: Czekaj aż wynik zostanie pokazany
@@ -2715,7 +2723,8 @@ class CustomifyEmbed {
           this.selectedStyle,         // Styl (pixar, boho, etc)
           this.selectedSize,         // Rozmiar (a4, a3, etc)
           productType,                // ✅ ProductType (boho, king, cats, etc)
-          result.watermarkedImageUrl || this.watermarkedImageUrl || null // ✅ ZAPISZ watermarkedImageUrl (Vercel Blob z watermarkiem)
+          result.watermarkedImageUrl || this.watermarkedImageUrl || null, // ✅ ZAPISZ watermarkedImageUrl (Vercel Blob z watermarkiem)
+          result.watermarkedImageBase64 || this.watermarkedImageBase64 || null // ✅ NOWE: Base64 watermarku (dla /api/products - BEZ PONOWNEGO DOWNLOADU)
         ).then(() => {
           console.log('✅ [CACHE] AI generation saved with base64 cache');
           
@@ -3074,6 +3083,7 @@ class CustomifyEmbed {
         transformedImage: this.transformedImage,
         watermarkedImage: watermarkedImageUrl, // ✅ URL obrazka z watermarkiem (fallback dla starych wersji)
         watermarkedImageUrl: watermarkedImageUrl, // ✅ URL obrazka z watermarkiem (backend PNG - PRIORYTET)
+        watermarkedImageBase64: this.watermarkedImageBase64 || null, // ✅ NOWE: Base64 watermarku (dla /api/products - BEZ PONOWNEGO DOWNLOADU)
         style: this.selectedStyle,
         size: this.selectedSize,
         productType: this.selectedProductType || 'canvas', // Rodzaj wydruku: plakat lub canvas
