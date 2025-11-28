@@ -21,8 +21,15 @@ function hashSensitiveData(data) {
 async function saveUserFlowEvent(event) {
   // ⚠️ NIE BLOKUJ - jeśli błąd, po prostu loguj i kontynuuj
   try {
+    // Sprawdź czy token jest dostępny
+    if (!process.env.customify_READ_WRITE_TOKEN) {
+      console.warn('⚠️ [USER-FLOW] customify_READ_WRITE_TOKEN nie jest ustawiony - pomijam zapis');
+      return;
+    }
+    
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
     const blobPath = `customify/stats/user-flow/${today}.json`;
+    console.log(`📊 [USER-FLOW] Zapisuję event do: ${blobPath}`);
     
     // Pobierz istniejący plik (jeśli istnieje)
     let existingData = { date: today, events: [] };
@@ -85,6 +92,7 @@ async function saveUserFlowEvent(event) {
  */
 function trackError(errorType, userStatus, deviceToken, ip, details = {}) {
   // ⚠️ ASYNCHRONICZNIE - nie czekaj na odpowiedź
+  console.log(`📊 [USER-FLOW] trackError wywołany: ${errorType}, user: ${userStatus}, device: ${deviceToken ? deviceToken.substring(0, 8) + '...' : 'null'}`);
   saveUserFlowEvent({
     type: 'error',
     error_type: errorType,
@@ -94,6 +102,7 @@ function trackError(errorType, userStatus, deviceToken, ip, details = {}) {
     details: details
   }).catch(err => {
     console.error('❌ [USER-FLOW] Błąd trackError (ignoruję):', err.message);
+    console.error('❌ [USER-FLOW] Stack:', err.stack);
   });
 }
 
