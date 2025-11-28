@@ -47,6 +47,80 @@
     </script>
     <!-- End Hotjar -->
 
+    <!-- SENTRY ERROR TRACKING -->
+    <script src="https://browser.sentry-cdn.com/8.40.0/bundle.min.js" crossorigin="anonymous"></script>
+    <script>
+      // ✅ Inicjalizuj Sentry po załadowaniu skryptu (synchronicznie)
+      (function() {
+        // Poczekaj aż Sentry będzie dostępny (max 5 sekund)
+        let attempts = 0;
+        const maxAttempts = 50; // 50 prób × 100ms = 5 sekund
+        
+        function tryInit() {
+          attempts++;
+          
+          if (typeof Sentry !== 'undefined' && typeof Sentry.init === 'function') {
+            try {
+              {% if customer %}
+                Sentry.init({
+                  dsn: "https://562a1a160e90a597f0236fd8c6b13301@o4510439439925248.ingest.de.sentry.io/4510439517257808",
+                  environment: "production",
+                  tracesSampleRate: 0.1,
+                  beforeSend(event, hint) {
+                    // ✅ Dodaj tag customify do wszystkich błędów
+                    if (event.tags) {
+                      event.tags.customify = 'true';
+                    } else {
+                      event.tags = { customify: 'true' };
+                    }
+                    if (event.user) {
+                      event.user.id = {{ customer.id | json }};
+                      event.user.email = {{ customer.email | json }};
+                    }
+                    return event;
+                  }
+                });
+                
+                Sentry.setUser({
+                  id: {{ customer.id | json }},
+                  email: {{ customer.email | json }}
+                });
+              {% else %}
+                Sentry.init({
+                  dsn: "https://562a1a160e90a597f0236fd8c6b13301@o4510439439925248.ingest.de.sentry.io/4510439517257808",
+                  environment: "production",
+                  tracesSampleRate: 0.1,
+                  beforeSend(event, hint) {
+                    // ✅ Dodaj tag customify do wszystkich błędów
+                    if (event.tags) {
+                      event.tags.customify = 'true';
+                    } else {
+                      event.tags = { customify: 'true' };
+                    }
+                    return event;
+                  }
+                });
+              {% endif %}
+              
+              console.log('✅ [SENTRY] Initialized successfully');
+              window.__sentryInitialized = true;
+            } catch (error) {
+              console.error('❌ [SENTRY] Initialization error:', error);
+            }
+          } else if (attempts < maxAttempts) {
+            // Spróbuj ponownie za 100ms
+            setTimeout(tryInit, 100);
+          } else {
+            console.warn('⚠️ [SENTRY] Failed to load after ' + maxAttempts + ' attempts. Check Network tab for browser.sentry-cdn.com');
+          }
+        }
+        
+        // Rozpocznij próby inicjalizacji natychmiast
+        tryInit();
+      })();
+    </script>
+    <!-- End Sentry -->
+
     <!-- CUSTOMIFY INTEGRATION -->
     <link rel="stylesheet" href="{{ 'customify.css' | asset_url }}">
     
@@ -127,12 +201,12 @@
             try {
               const isDigitalProduct = this.selectedProductType === 'digital';
               
-              // Dla produktu cyfrowego: ZAWSZE 69 zł, NIE sumuj z ceną bazową
+              // Dla produktu cyfrowego: ZAWSZE 49 zł, NIE sumuj z ceną bazową
               if (isDigitalProduct) {
-                const digitalProductPrice = 69.00; // 🚨 ROLLBACK: Stała cena produktu cyfrowego
+                const digitalProductPrice = 49.00; // 🚨 ROLLBACK: Stała cena produktu cyfrowego
                 this.applyProductPriceDisplay(digitalProductPrice);
                 this.schedulePriceConsistency(digitalProductPrice);
-                console.log('💰 [PRICE] Digital product - fixed price: 69.00 zł (ignoring base price)');
+                console.log('💰 [PRICE] Digital product - fixed price: 49.00 zł (ignoring base price)');
                 return;
               }
               
@@ -193,14 +267,14 @@
             try {
               const isDigitalProduct = this.selectedProductType === 'digital';
               
-              // Dla produktu cyfrowego: ZAWSZE 69 zł, NIE sumuj z ceną bazową
+              // Dla produktu cyfrowego: ZAWSZE 49 zł, NIE sumuj z ceną bazową
               if (isDigitalProduct) {
-                const digitalProductPrice = 69.00; // 🚨 ROLLBACK: Stała cena produktu cyfrowego
+                const digitalProductPrice = 49.00; // 🚨 ROLLBACK: Stała cena produktu cyfrowego
                 const cartPriceElement = document.getElementById('cartPriceValue');
                 
                 if (cartPriceElement) {
                   cartPriceElement.textContent = `${digitalProductPrice.toFixed(2)} zł`;
-                  console.log('✅ [CART-PRICE] Digital product - fixed price: 69.00 zł (ignoring base price)');
+                  console.log('✅ [CART-PRICE] Digital product - fixed price: 49.00 zł (ignoring base price)');
                   this.showCartPrice();
                 } else {
                   console.warn('⚠️ [CART-PRICE] Cart price element not found');
@@ -350,15 +424,15 @@
             }
             // 🚨 ROLLBACK: END - Pomijaj rozmiar dla produktu cyfrowego
 
-            // 🚨 ROLLBACK: START - Cena dla produktu cyfrowego (STAŁA 69 zł, NIE sumuje się z ceną bazową)
+            // 🚨 ROLLBACK: START - Cena dla produktu cyfrowego (STAŁA 49 zł, NIE sumuje się z ceną bazową)
             const isDigitalProductForPrice = this.selectedProductType === 'digital';
-            const digitalProductPrice = 69.00; // 🚨 ROLLBACK: Stała cena produktu cyfrowego
+            const digitalProductPrice = 49.00; // 🚨 ROLLBACK: Stała cena produktu cyfrowego
             
             let finalPrice;
             if (isDigitalProductForPrice) {
-              // Produkt cyfrowy: ZAWSZE 69 zł, NIE zależy od ceny bazowej produktu
+              // Produkt cyfrowy: ZAWSZE 49 zł, NIE zależy od ceny bazowej produktu
               finalPrice = digitalProductPrice;
-              console.log('💰 [CUSTOMIFY] Digital product - using fixed price: 69.00 zł (ignoring base price)');
+              console.log('💰 [CUSTOMIFY] Digital product - using fixed price: 49.00 zł (ignoring base price)');
             } else {
               // Produkt fizyczny: cena bazowa + rozmiar + ramka
               const basePrice = this.originalBasePrice || 49.00;

@@ -82,10 +82,10 @@ module.exports = async (req, res) => {
     // 🚨 ROLLBACK: START - Cena dla produktu cyfrowego (STAŁA 69 zł, NIE zależy od ceny bazowej)
     let totalPrice = 99.00; // Domyślna cena fallback
     
-    // Dla produktu cyfrowy: ZAWSZE 69 zł, niezależnie od ceny bazowej produktu
+    // Dla produktu cyfrowy: ZAWSZE 49 zł, niezależnie od ceny bazowej produktu
     if (isDigitalProduct) {
-      totalPrice = 69.00; // 🚨 ROLLBACK: Stała cena produktu cyfrowego
-      console.log('💰 [PRODUCTS.JS] Digital product - using fixed price: 69.00 zł (ignoring base price)');
+      totalPrice = 49.00; // 🚨 ROLLBACK: Stała cena produktu cyfrowego
+      console.log('💰 [PRODUCTS.JS] Digital product - using fixed price: 49.00 zł (ignoring base price)');
     } else if (finalPrice && finalPrice > 0) {
       // Produkt fizyczny: użyj ceny z frontendu (już obliczonej z rozmiarem)
       totalPrice = finalPrice;
