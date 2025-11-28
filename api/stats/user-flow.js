@@ -22,15 +22,29 @@ module.exports = async (req, res) => {
 
   try {
     // Pobierz datę z query (domyślnie dzisiaj)
-    const dateParam = req.query.date || new Date().toISOString().split('T')[0];
+    // Użyj UTC żeby uniknąć problemów z timezone
+    const today = new Date();
+    const dateParam = req.query.date || today.toISOString().split('T')[0];
     const blobPath = `customify/stats/user-flow/${dateParam}.json`;
+    
+    console.log(`📊 [STATS] Pobieram statystyki dla daty: ${dateParam}, ścieżka: ${blobPath}`);
 
+    // Sprawdź czy token jest dostępny
+    if (!process.env.customify_READ_WRITE_TOKEN) {
+      console.warn('⚠️ [STATS] customify_READ_WRITE_TOKEN nie jest ustawiony');
+      return res.status(500).json({
+        error: 'Blob token not configured',
+        date: dateParam
+      });
+    }
+    
     // Sprawdź czy plik istnieje
     const blob = await head(blobPath, {
       token: process.env.customify_READ_WRITE_TOKEN
     }).catch(() => null);
 
     if (!blob || !blob.url) {
+      console.log(`📊 [STATS] Plik nie istnieje: ${blobPath}`);
       return res.status(200).json({
         date: dateParam,
         events: [],
@@ -42,6 +56,8 @@ module.exports = async (req, res) => {
         }
       });
     }
+    
+    console.log(`📊 [STATS] Plik istnieje: ${blob.url}`);
 
     // Pobierz dane
     const response = await fetch(blob.url);
