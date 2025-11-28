@@ -480,15 +480,14 @@ async function saveGenerationHandler(req, res) {
     console.log('📧 [SAVE-GENERATION] email:', email, typeof email);
     console.log('📧 [SAVE-GENERATION] watermarkedImageUrl:', watermarkedImageUrl ? watermarkedImageUrl.substring(0, 50) + '...' : 'NULL');
     console.log('📧 [SAVE-GENERATION] imageUrl (fallback):', imageUrl ? imageUrl.substring(0, 50) + '...' : 'NULL');
-    console.log('📧 [SAVE-GENERATION] SHOPIFY_ACCESS_TOKEN exists:', !!process.env.SHOPIFY_ACCESS_TOKEN);
     
     // ✅ Użyj watermarkedImageUrl jeśli istnieje, w przeciwnym razie imageUrl (fallback)
     const imageUrlForEmail = watermarkedImageUrl || imageUrl;
     console.log('📧 [SAVE-GENERATION] imageUrlForEmail (dla emaila):', imageUrlForEmail ? imageUrlForEmail.substring(0, 50) + '...' : 'NULL');
-    console.log('📧 [SAVE-GENERATION] Warunek (customerId && email && imageUrlForEmail && token):', 
-      !!(customerId && email && imageUrlForEmail && process.env.SHOPIFY_ACCESS_TOKEN));
+    console.log('📧 [SAVE-GENERATION] Warunek (customerId && email && imageUrlForEmail):', 
+      !!(customerId && email && imageUrlForEmail));
     
-    if (customerId && email && imageUrlForEmail && process.env.SHOPIFY_ACCESS_TOKEN) {
+    if (customerId && email && imageUrlForEmail) {
       const shop = process.env.SHOP_DOMAIN || 'customify-ok.myshopify.com';
       const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
       
@@ -767,10 +766,8 @@ Zespół Lumly
         console.log('❌ [SAVE-GENERATION] Pomijam email - brak customerId (niezalogowany)');
       } else if (!email) {
         console.log('❌ [SAVE-GENERATION] Pomijam email - brak emaila (customerId:', customerId, 'ale email:', email);
-      } else if (!watermarkedImageUrl) {
-        console.log('❌ [SAVE-GENERATION] Pomijam email - brak watermarkedImageUrl (customerId:', customerId, 'email:', email);
-      } else if (!process.env.SHOPIFY_ACCESS_TOKEN) {
-        console.log('❌ [SAVE-GENERATION] Pomijam email - brak SHOPIFY_ACCESS_TOKEN w env');
+      } else if (!imageUrlForEmail) {
+        console.log('❌ [SAVE-GENERATION] Pomijam email - brak imageUrlForEmail (customerId:', customerId, 'email:', email);
       } else {
         console.log('❌ [SAVE-GENERATION] Pomijam email - nieznany powód (sprawdź warunki)');
       }

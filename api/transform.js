@@ -4,6 +4,7 @@ const { getClientIP } = require('../utils/vercelRateLimiter');
 const { checkIPLimit, incrementIPLimit, checkDeviceTokenLimit, incrementDeviceTokenLimit, isKVConfigured, isImageHashLimitEnabled, calculateImageHash, checkImageHashLimit, incrementImageHashLimit, checkDeviceTokenCrossAccount, addCustomerToDeviceToken } = require('../utils/vercelKVLimiter');
 const Sentry = require('../utils/sentry');
 const { put } = require('@vercel/blob');
+const { trackError, trackAction, getRecentError } = require('../utils/userFlowTracker');
 
 // 🚫 Lista IP zablokowanych całkowicie (tymczasowe banowanie nadużyć)
 const BLOCKED_IPS = new Set([
@@ -826,6 +827,14 @@ module.exports = async (req, res) => {
     const ipLimitCheck = await checkIPLimit(ip);
     if (!ipLimitCheck.allowed) {
       console.log(`❌ [TRANSFORM] Daily IP limit exceeded: ${ip} (${ipLimitCheck.count}/${ipLimitCheck.limit})`);
+      
+      // ✅ TRACKING: Zapisuj błąd (asynchronicznie, nie blokuje)
+      const userStatus = customerId ? 'logged_in' : 'not_logged_in';
+      trackError('ip_limit', userStatus, deviceToken, ip, {
+        count: ipLimitCheck.count,
+        limit: ipLimitCheck.limit
+      });
+      
       return res.status(403).json({
         error: 'Usage limit exceeded',
         message: `Wykorzystałeś limit generacji (${ipLimitCheck.count}/${ipLimitCheck.limit}). Spróbuj jutro.`,
@@ -1325,6 +1334,13 @@ module.exports = async (req, res) => {
           limit: deviceLimitCheck.limit,
           reason: deviceLimitCheck.reason
         });
+        
+        // ✅ TRACKING: Zapisuj błąd (asynchronicznie, nie blokuje)
+        trackError('device_token_limit', 'not_logged_in', deviceToken, ip, {
+          count: deviceLimitCheck.count,
+          limit: deviceLimitCheck.limit
+        });
+        
         return res.status(403).json({
           error: 'Usage limit exceeded',
           message: `Wykorzystałeś wszystkie darmowe generacje (${deviceLimitCheck.count}/${deviceLimitCheck.limit}). Zaloguj się po więcej.`,
@@ -1366,6 +1382,14 @@ module.exports = async (req, res) => {
           limit: crossAccountCheck.limit,
           reason: crossAccountCheck.reason
         });
+        
+        // ✅ TRACKING: Zapisuj błąd (asynchronicznie, nie blokuje)
+        trackError('cross_account', 'logged_in', deviceToken, ip, {
+          customer_id: customerId,
+          existing_customers: crossAccountCheck.customerIds.length,
+          limit: crossAccountCheck.limit
+        });
+        
         return res.status(403).json({
           error: 'Multiple accounts detected',
           message: `Wykryto nadużycie: to urządzenie jest już używane przez ${crossAccountCheck.limit} różne konta. Skontaktuj się z supportem jeśli to pomyłka.`,
@@ -1404,6 +1428,28 @@ module.exports = async (req, res) => {
         
         const imageHashCheck = await checkImageHashLimit(imageHash);
         
+        // ✅ TRACKING: Sprawdź czy to retry po błędzie (asynchronicznie, tylko jeśli limit OK)
+        if (imageHashCheck.allowed && deviceToken) {
+          getRecentError(deviceToken, 2).then(recentError => {
+            if (recentError) {
+              const timeSinceError = Math.floor((Date.now() - new Date(recentError.timestamp).getTime()) / 1000);
+              const userStatus = customerId ? 'logged_in' : 'not_logged_in';
+              // Sprawdź czy używa tego samego obrazka (porównaj hash)
+              const currentImageHash = imageHash.substring(0, 16) + '...';
+              const isSameImage = recentError.details?.image_hash === currentImageHash;
+              const action = isSameImage ? 'retry_same_image' : 'retry_different_image';
+              
+              trackAction(action, userStatus, deviceToken, ip, {
+                error_type: recentError.error_type,
+                time_since_error_seconds: timeSinceError,
+                same_image: isSameImage
+              });
+            }
+          }).catch(err => {
+            // Ignoruj błędy - to nie może zepsuć flow
+          });
+        }
+        
         if (!imageHashCheck.allowed) {
           console.warn(`❌ [IMAGE-HASH] LIMIT EXCEEDED:`, {
             imageHash: imageHash.substring(0, 16) + '...',
@@ -1411,6 +1457,15 @@ module.exports = async (req, res) => {
             limit: imageHashCheck.limit,
             reason: imageHashCheck.reason
           });
+          
+          // ✅ TRACKING: Zapisuj błąd (asynchronicznie, nie blokuje)
+          const userStatus = customerId ? 'logged_in' : 'not_logged_in';
+          trackError('image_hash_limit', userStatus, deviceToken, ip, {
+            count: imageHashCheck.count,
+            limit: imageHashCheck.limit,
+            image_hash: imageHash.substring(0, 16) + '...'
+          });
+          
           return res.status(403).json({
             error: 'Image already used',
             message: `Dla tego zdjęcia wynik jest gotowy, zobacz poniżej. Spróbuj inne zdjęcie, albo inne produkty`,
@@ -1447,6 +1502,22 @@ module.exports = async (req, res) => {
     if (customerId && accessToken) {
       // Zalogowany użytkownik - sprawdź Shopify Metafields
       console.log(`🔍 [TRANSFORM] Sprawdzam limity dla zalogowanego użytkownika (${finalProductType})...`);
+      
+      // ✅ TRACKING: Sprawdź czy użytkownik zalogował się po błędzie (asynchronicznie)
+      if (deviceToken) {
+        getRecentError(deviceToken, 2).then(recentError => {
+          if (recentError) {
+            const timeSinceError = Math.floor((Date.now() - new Date(recentError.timestamp).getTime()) / 1000);
+            trackAction('login_after_error', 'logged_in', deviceToken, ip, {
+              error_type: recentError.error_type,
+              time_since_error_seconds: timeSinceError,
+              customer_id: customerId
+            });
+          }
+        }).catch(err => {
+          // Ignoruj błędy - to nie może zepsuć flow
+        });
+      }
       
       try {
         const metafieldQuery = `
@@ -1825,6 +1896,15 @@ module.exports = async (req, res) => {
             totalUsed: totalUsed,
             totalLimit: totalLimit
           });
+          
+          // ✅ TRACKING: Zapisuj błąd (asynchronicznie, nie blokuje)
+          trackError('shopify_metafield_limit', 'logged_in', deviceToken, ip, {
+            customer_id: customerId,
+            total_used: totalUsed,
+            total_limit: totalLimit,
+            product_type: finalProductType
+          });
+          
           return res.status(403).json({
             error: 'Usage limit exceeded',
             message: `Wykorzystałeś wszystkie dostępne transformacje (${totalUsed}/${totalLimit}). Skontaktuj się z nami dla więcej.`,
@@ -2902,7 +2982,7 @@ module.exports = async (req, res) => {
         } else if (!customerId && deviceToken) {
           const deviceIncrementResult = await incrementDeviceTokenLimit(deviceToken);
           if (deviceIncrementResult.success) {
-            console.log(`➕ [TRANSFORM] Device token limit incremented: ${deviceIncrementResult.newCount}/2`);
+            console.log(`➕ [TRANSFORM] Device token limit incremented: ${deviceIncrementResult.newCount}/3`);
           } else {
             console.warn(`⚠️ [TRANSFORM] Failed to increment device token limit:`, deviceIncrementResult.error);
           }
@@ -2933,7 +3013,7 @@ module.exports = async (req, res) => {
         if (isImageHashLimitEnabled() && req.imageHash) {
           const imageHashIncrementResult = await incrementImageHashLimit(req.imageHash);
           if (imageHashIncrementResult.success) {
-            console.log(`➕ [TRANSFORM] Image hash limit incremented: ${imageHashIncrementResult.newCount}/4`);
+            console.log(`➕ [TRANSFORM] Image hash limit incremented: ${imageHashIncrementResult.newCount}/2`);
           } else {
             console.warn(`⚠️ [TRANSFORM] Failed to increment image hash limit:`, imageHashIncrementResult.error);
           }

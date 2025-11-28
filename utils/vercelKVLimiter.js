@@ -76,20 +76,20 @@ async function incrementIPLimit(ip) {
 }
 
 /**
- * Sprawdza Device Token limit (TOTAL - 2 generacje dla wszystkich stylów)
+ * Sprawdza Device Token limit (TOTAL - 3 generacje dla wszystkich stylów)
  * @param {string} deviceToken - Device token
  * @returns {Promise<{allowed: boolean, count: number, limit: number}>}
  */
 async function checkDeviceTokenLimit(deviceToken) {
   if (!deviceToken) {
     console.warn('⚠️ [KV-LIMITER] No device token provided');
-    return { allowed: false, count: 0, limit: 2, reason: 'No device token' };
+    return { allowed: false, count: 0, limit: 3, reason: 'No device token' };
   }
 
   try {
     const key = `device:${deviceToken}:generations`;
     const count = await kv.get(key) || 0;
-    const limit = 2; // 2 generacje TOTAL dla niezalogowanych
+    const limit = 3; // 3 generacje TOTAL dla niezalogowanych
     const allowed = count < limit;
 
     console.log(`🔍 [KV-LIMITER] Device token limit check:`, {
@@ -103,7 +103,7 @@ async function checkDeviceTokenLimit(deviceToken) {
   } catch (error) {
     console.error('❌ [KV-LIMITER] Error checking device token limit:', error);
     // ⚠️ KRYTYCZNE: Jeśli błąd KV, BLOKUJ dla bezpieczeństwa
-    return { allowed: false, count: 0, limit: 2, reason: 'KV error', error: error.message };
+    return { allowed: false, count: 0, limit: 3, reason: 'KV error', error: error.message };
   }
 }
 
@@ -184,20 +184,20 @@ function calculateImageHash(imageData) {
 }
 
 /**
- * Sprawdza Image Hash limit (4 generacje per obrazek)
+ * Sprawdza Image Hash limit (2 generacje per obrazek)
  * @param {string} imageHash - SHA-256 hash obrazka
  * @returns {Promise<{allowed: boolean, count: number, limit: number}>}
  */
 async function checkImageHashLimit(imageHash) {
   if (!imageHash) {
     console.warn('⚠️ [KV-LIMITER] No image hash provided');
-    return { allowed: false, count: 0, limit: 4, reason: 'No image hash' };
+    return { allowed: false, count: 0, limit: 2, reason: 'No image hash' };
   }
 
   try {
     const key = `image:${imageHash}:generations`;
     const count = await kv.get(key) || 0;
-    const limit = 4; // 4 generacje per obrazek (permanentne)
+    const limit = 2; // 2 generacje per obrazek (permanentne)
     const allowed = count < limit;
 
     console.log(`🔍 [KV-LIMITER] Image hash limit check:`, {
@@ -211,7 +211,7 @@ async function checkImageHashLimit(imageHash) {
   } catch (error) {
     console.error('❌ [KV-LIMITER] Error checking image hash limit:', error);
     // ⚠️ KRYTYCZNE: Jeśli błąd KV, BLOKUJ dla bezpieczeństwa
-    return { allowed: false, count: 0, limit: 4, reason: 'KV error', error: error.message };
+    return { allowed: false, count: 0, limit: 2, reason: 'KV error', error: error.message };
   }
 }
 
