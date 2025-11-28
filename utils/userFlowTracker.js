@@ -93,17 +93,25 @@ async function saveUserFlowEvent(event) {
 function trackError(errorType, userStatus, deviceToken, ip, details = {}) {
   // ⚠️ ASYNCHRONICZNIE - nie czekaj na odpowiedź
   console.log(`📊 [USER-FLOW] trackError wywołany: ${errorType}, user: ${userStatus}, device: ${deviceToken ? deviceToken.substring(0, 8) + '...' : 'null'}`);
-  saveUserFlowEvent({
+  console.log(`📊 [USER-FLOW] Token check: ${process.env.customify_READ_WRITE_TOKEN ? 'OK (ustawiony)' : 'BRAK (nie ustawiony)'}`);
+  
+  // Wywołaj asynchronicznie - nie czekaj
+  const promise = saveUserFlowEvent({
     type: 'error',
     error_type: errorType,
     user_status: userStatus,
     device_token: deviceToken,
     ip: ip,
     details: details
-  }).catch(err => {
+  });
+  
+  promise.catch(err => {
     console.error('❌ [USER-FLOW] Błąd trackError (ignoruję):', err.message);
     console.error('❌ [USER-FLOW] Stack:', err.stack);
   });
+  
+  // Log że funkcja została wywołana
+  console.log(`✅ [USER-FLOW] trackError promise utworzony (asynchronicznie)`);
 }
 
 /**
