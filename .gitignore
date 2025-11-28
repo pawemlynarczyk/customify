@@ -83,3 +83,10 @@ jspm_packages/
 ehthumbs.db
 Thumbs.db
 .vercel
+
+# Customer data (RODO/GDPR) - NIE COMMITUJ!
+bulk-email-results.json
+customers-with-generations.json
+customers-without-generations.json
+*-results.json
+customers-*.json
