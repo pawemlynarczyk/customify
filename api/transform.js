@@ -1336,10 +1336,16 @@ module.exports = async (req, res) => {
         });
         
         // ✅ TRACKING: Zapisuj błąd (asynchronicznie, nie blokuje)
-        trackError('device_token_limit', 'not_logged_in', deviceToken, ip, {
-          count: deviceLimitCheck.count,
-          limit: deviceLimitCheck.limit
-        });
+        console.log(`🔍 [TRACKING] Przed wywołaniem trackError dla device_token_limit`);
+        try {
+          trackError('device_token_limit', 'not_logged_in', deviceToken, ip, {
+            count: deviceLimitCheck.count,
+            limit: deviceLimitCheck.limit
+          });
+          console.log(`✅ [TRACKING] trackError wywołane (asynchronicznie)`);
+        } catch (trackErr) {
+          console.error(`❌ [TRACKING] Błąd wywołania trackError:`, trackErr);
+        }
         
         return res.status(403).json({
           error: 'Usage limit exceeded',
@@ -1460,11 +1466,17 @@ module.exports = async (req, res) => {
           
           // ✅ TRACKING: Zapisuj błąd (asynchronicznie, nie blokuje)
           const userStatus = customerId ? 'logged_in' : 'not_logged_in';
-          trackError('image_hash_limit', userStatus, deviceToken, ip, {
-            count: imageHashCheck.count,
-            limit: imageHashCheck.limit,
-            image_hash: imageHash.substring(0, 16) + '...'
-          });
+          console.log(`🔍 [TRACKING] Przed wywołaniem trackError dla image_hash_limit`);
+          try {
+            trackError('image_hash_limit', userStatus, deviceToken, ip, {
+              count: imageHashCheck.count,
+              limit: imageHashCheck.limit,
+              image_hash: imageHash.substring(0, 16) + '...'
+            });
+            console.log(`✅ [TRACKING] trackError wywołane (asynchronicznie) dla image_hash_limit`);
+          } catch (trackErr) {
+            console.error(`❌ [TRACKING] Błąd wywołania trackError:`, trackErr);
+          }
           
           return res.status(403).json({
             error: 'Image already used',
