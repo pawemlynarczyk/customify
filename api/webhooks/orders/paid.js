@@ -1,4 +1,5 @@
-const Sentry = require('../../utils/sentry');
+// Poprawiona ścieżka: z api/webhooks/orders/ do utils/ trzeba 3 poziomy w górę (../../../)
+const Sentry = require('../../../utils/sentry');
 
 module.exports = async (req, res) => {
   console.log('🛒 [ORDER-PAID-WEBHOOK] Order paid webhook received');
