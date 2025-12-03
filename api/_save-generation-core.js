@@ -635,7 +635,9 @@ async function saveGenerationHandler(req, res) {
       <p style="font-size: 18px; color: #333; margin-bottom: 20px;">Cześć! 👋</p>
       <p style="font-size: 16px; color: #555; line-height: 1.6; margin-bottom: 30px;">Twój obraz został utworzony, zobacz efekt poniżej:</p>
       <div style="text-align: center; margin: 30px 0;">
-        <img src="${finalImageUrlForEmail}" alt="Twoja generacja AI" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
+        <a href="https://lumly.pl/pages/my-generations" style="text-decoration: none;">
+          <img src="${finalImageUrlForEmail}" alt="Twoja generacja AI" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); cursor: pointer;" />
+        </a>
       </div>
       <div style="text-align: center; margin: 40px 0;">
         <a href="https://lumly.pl/pages/my-generations" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 16px 40px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;">Zobacz swoje obrazy</a>
