@@ -629,7 +629,7 @@ async function saveGenerationHandler(req, res) {
 <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f5f5f5;">
   <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
     <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 30px; text-align: center;">
-      <h1 style="color: white; margin: 0; font-size: 28px; font-weight: bold;">🎨 Twoja generacja AI jest gotowa!</h1>
+      <h1 style="color: white; margin: 0; font-size: 28px; font-weight: bold;">🎨 Twój obraz jest gotowy</h1>
     </div>
     <div style="padding: 40px 30px; background-color: #ffffff;">
       <p style="font-size: 18px; color: #333; margin-bottom: 20px;">Cześć! 👋</p>
@@ -638,7 +638,7 @@ async function saveGenerationHandler(req, res) {
         <img src="${finalImageUrlForEmail}" alt="Twoja generacja AI" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
       </div>
       <div style="text-align: center; margin: 40px 0;">
-        <a href="https://lumly.pl/pages/my-generations" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 16px 40px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;">Zobacz wszystkie generacje →</a>
+        <a href="https://lumly.pl/pages/my-generations" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 16px 40px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;">Zobacz swoje obrazy</a>
       </div>
       <p style="font-size: 14px; color: #666; margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; text-align: center;">Jeśli masz do nas jakieś pytania lub chcesz coś zmienić w obrazku, napisz do nas: <a href="mailto:biuro@lumly.pl" style="color: #667eea; text-decoration: none; font-weight: bold;">biuro@lumly.pl</a></p>
     </div>
@@ -654,7 +654,7 @@ async function saveGenerationHandler(req, res) {
                 from: 'Lumly <noreply@notification.lumly.pl>',
                 reply_to: 'biuro@lumly.pl', // ✅ Reply trafia do biuro@lumly.pl
                 to: email,
-                subject: '🎨 Twoja generacja AI jest gotowa!',
+                subject: '🎨 Twój obraz jest gotowy',
                 html: emailHtml
               });
               
