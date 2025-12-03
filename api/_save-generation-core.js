@@ -656,7 +656,7 @@ async function saveGenerationHandler(req, res) {
                 from: 'Lumly <noreply@notification.lumly.pl>',
                 reply_to: 'biuro@lumly.pl', // ✅ Reply trafia do biuro@lumly.pl
                 to: email,
-                subject: '🎨 Twój obraz jest gotowy',
+                subject: 'Twój projekt jest gotowy!',
                 html: emailHtml
               });
               
