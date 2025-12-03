@@ -658,8 +658,23 @@ async function saveGenerationHandler(req, res) {
                 html: emailHtml
               });
               
+              // ✅ SPRAWDŹ CZY JEST BŁĄD W RESPONSE (Resend nie rzuca exception!)
+              console.log('🔍 [SAVE-GENERATION] Resend result (PEŁNY):', JSON.stringify(result, null, 2));
+              
+              if (result.error) {
+                console.error('❌ [SAVE-GENERATION] Resend zwrócił błąd:', result.error);
+                throw new Error(`Resend error: ${result.error.message || JSON.stringify(result.error)}`);
+              }
+              
+              const resendId = result.data?.id || result.id;
+              
+              if (!resendId) {
+                console.error('❌ [SAVE-GENERATION] Brak Resend ID w response! Result:', result);
+                throw new Error('Resend nie zwrócił ID - email nie został wysłany');
+              }
+              
               console.log('✅ [SAVE-GENERATION] Email wysłany pomyślnie!');
-              console.log('✅ [SAVE-GENERATION] Resend ID:', result.id);
+              console.log('✅ [SAVE-GENERATION] Resend ID:', resendId);
             }
           } catch (emailError) {
             console.error('❌ [SAVE-GENERATION] Exception podczas wysyłania emaila:', emailError);
