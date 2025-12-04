@@ -2981,12 +2981,13 @@ class CustomifyEmbed {
   }
 
   // NAPRAWIONA FUNKCJA: STWÓRZ NOWY PRODUKT Z OBRAZKIEM AI (UKRYTY W KATALOGU)
-  async addToCart() {
+  async addToCart(retryCount = 0) {
     console.log('🛒 [CUSTOMIFY] addToCart called with:', {
       transformedImage: !!this.transformedImage,
       selectedStyle: this.selectedStyle,
       selectedSize: this.selectedSize,
-      selectedProductType: this.selectedProductType
+      selectedProductType: this.selectedProductType,
+      retryCount: retryCount
     });
     
     // ✅ SPRAWDŹ ROZMIAR NAJPIERW - to jest wymagane dla ceny
@@ -3102,11 +3103,18 @@ class CustomifyEmbed {
       console.log('🛒 [CUSTOMIFY] transformedImage preview:', this.transformedImage?.substring(0, 200));
       
       // Stwórz nowy produkt z obrazkiem AI jako głównym obrazem
+      // ✅ DODANO: Timeout i retry logic dla network errors
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 sekund timeout
+      
       const response = await fetch('https://customify-s56o.vercel.app/api/products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(productData)
+        body: JSON.stringify(productData),
+        signal: controller.signal
       });
+      
+      clearTimeout(timeoutId);
 
       console.log('🛒 [CUSTOMIFY] API response status:', response.status);
       const result = await response.json();
@@ -3225,15 +3233,33 @@ class CustomifyEmbed {
       }
     } catch (error) {
       console.error('❌ [CUSTOMIFY] Add to cart error:', error);
+      
+      // ✅ RETRY LOGIC: Ponów próbę dla network errors (max 3 próby)
+      if (retryCount < 3 && (
+        error.name === 'AbortError' || 
+        error.message.includes('Failed to fetch') || 
+        error.message.includes('NetworkError') ||
+        error.message.includes('Load failed')
+      )) {
+        const retryDelay = (retryCount + 1) * 2000; // 2s, 4s, 6s
+        console.log(`🔄 [CUSTOMIFY] Retrying addToCart in ${retryDelay}ms... (attempt ${retryCount + 1}/3)`);
+        this.showError(`🔄 Błąd sieci - ponawiam próbę ${retryCount + 1}/3...`, 'cart');
+        
+        setTimeout(() => {
+          this.addToCart(retryCount + 1);
+        }, retryDelay);
+        return;
+      }
+      
       this.hideCartLoading();
       
       let errorMessage = '❌ Błąd połączenia z serwerem';
       
       if (error.name === 'AbortError') {
-        errorMessage = '❌ Przekroczono limit czasu. Spróbuj ponownie.';
+        errorMessage = '❌ Przekroczono limit czasu (30 sekund). Spróbuj ponownie.';
       } else if (error.message.includes('Failed to fetch')) {
-        errorMessage = '❌ Błąd sieci. Sprawdź połączenie internetowe.';
-      } else if (error.message.includes('NetworkError')) {
+        errorMessage = '❌ Błąd sieci. Sprawdź połączenie internetowe i spróbuj ponownie.';
+      } else if (error.message.includes('NetworkError') || error.message.includes('Load failed')) {
         errorMessage = '❌ Błąd sieci. Spróbuj ponownie za chwilę.';
       } else {
         errorMessage = '❌ Błąd: ' + error.message;
