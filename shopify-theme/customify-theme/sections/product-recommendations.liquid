@@ -1,8 +1,7 @@
-<script
-  src="{{ 'product-recommendations.js' | asset_url }}"
-  type="module"
-  fetchpriority="low"
-></script>
+{% comment %}
+  ✅ USUNIĘTY: product-recommendations.js - niepotrzebny, powodował błędy
+  Sekcja wyświetla produkty statycznie z Liquid (bez API), więc JavaScript nie jest potrzebny
+{% endcomment %}
 
 {% liquid
   case section.settings.layout_type
@@ -24,15 +23,11 @@
   endcapture
 %}
 
-<product-recommendations
+<div
   id="product-recommendations-{{ section.id }}"
   class="product-recommendations"
-  data-url="{{ routes.product_recommendations_url }}?limit={{ section.settings.max_products }}"
   data-section-id="{{ section.id }}"
-  data-product-id="{{ section.settings.product.id | default: product.id }}"
-  data-intent="{{ section.settings.recommendation_type }}"
   data-testid="product-recommendations-section"
-  data-recommendations-performed="{{ recommendations.performed }}"
   {{ section.shopify_attributes }}
 >
   <div class="section-background color-{{ section.settings.color_scheme }}"></div>
@@ -188,7 +183,7 @@
       </div>
     {%- endif -%}
   </div>
-</product-recommendations>
+</div>
 
 {% stylesheet %}
   .product-recommendations__skeleton-item {
