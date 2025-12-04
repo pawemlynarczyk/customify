@@ -475,7 +475,9 @@ async function segmindFaceswap(targetImageUrl, swapImageBase64) {
         controller.abort();
       }, 90000); // 90 second timeout (3 próby × 90s + retry delays = ~285s max, poniżej limitu 300s)
 
+      const requestStartTime = Date.now();
       console.log(`🔄 [SEGMIND] Attempt ${attempt}/${maxRetries}...`);
+      console.log(`⏱️ [SEGMIND] Request started at: ${new Date().toISOString()}`);
       
       const response = await fetch('https://api.segmind.com/v1/faceswap-v4', {
         method: 'POST',
@@ -487,10 +489,17 @@ async function segmindFaceswap(targetImageUrl, swapImageBase64) {
         signal: controller.signal
       });
       
+      const requestDuration = Date.now() - requestStartTime;
       clearTimeout(timeoutId);
 
+      console.log('📡 [SEGMIND] Response received after:', requestDuration, 'ms');
       console.log('📡 [SEGMIND] Response status:', response.status);
       console.log('📡 [SEGMIND] Response headers:', Object.fromEntries(response.headers.entries()));
+      
+      // Log warning if response took too long
+      if (requestDuration > 60000) {
+        console.warn(`⚠️ [SEGMIND] Slow response detected: ${requestDuration}ms (${(requestDuration/1000).toFixed(1)}s)`);
+      }
 
       if (response.ok) {
         // Clear global timeout on success
@@ -515,28 +524,36 @@ async function segmindFaceswap(targetImageUrl, swapImageBase64) {
         const errorText = await response.text();
         const status = response.status;
         
+        console.error(`❌ [SEGMIND] API returned error status: ${status}`);
+        console.error(`❌ [SEGMIND] Error response (first 500 chars):`, errorText.substring(0, 500));
+        console.error(`❌ [SEGMIND] Request took: ${requestDuration}ms before error`);
+        
         // Retry only for server errors (5xx) and 502 Bad Gateway
         const isRetryable = status >= 500 || status === 502;
         
         if (isRetryable && attempt < maxRetries) {
-          const delay = retryDelay * Math.pow(2, attempt - 1); // Exponential backoff: 2s, 4s, 8s
+          const delay = retryDelay * Math.pow(2, attempt - 1); // Exponential backoff: 1s, 2s, 4s
           console.warn(`⚠️ [SEGMIND] Server error ${status} (attempt ${attempt}/${maxRetries}) - retrying in ${delay}ms...`);
-          console.warn(`⚠️ [SEGMIND] Error details:`, errorText.substring(0, 200));
-          lastError = new Error(`Segmind face-swap failed: ${status} - ${errorText}`);
+          console.warn(`⚠️ [SEGMIND] This indicates Segmind API has issues (${status} = server-side problem)`);
+          lastError = new Error(`Segmind face-swap failed: ${status} - ${errorText.substring(0, 200)}`);
           await new Promise(resolve => setTimeout(resolve, delay));
           continue; // Retry
         } else {
           // Non-retryable error or max retries reached
-          console.error('❌ [SEGMIND] Face-swap failed:', status, errorText);
-          throw new Error(`Segmind face-swap failed: ${status} - ${errorText}`);
+          console.error('❌ [SEGMIND] Face-swap failed after all retries:', status, errorText.substring(0, 200));
+          throw new Error(`Segmind face-swap failed: ${status} - ${errorText.substring(0, 200)}`);
         }
       }
     } catch (error) {
+      const errorDuration = Date.now() - requestStartTime;
+      console.error(`❌ [SEGMIND] Exception caught after ${errorDuration}ms:`, error.name, error.message?.substring(0, 200));
+      
       // Network errors or aborted requests - retry if not max attempts
       if (error.name === 'AbortError' || (error.message && error.message.includes('fetch'))) {
         if (attempt < maxRetries) {
           const delay = retryDelay * Math.pow(2, attempt - 1); // 1s, 2s, 4s
           console.warn(`⚠️ [SEGMIND] Network error (attempt ${attempt}/${maxRetries}) - retrying in ${delay}ms...`);
+          console.warn(`⚠️ [SEGMIND] Error type: ${error.name}, Duration: ${errorDuration}ms (${error.name === 'AbortError' ? 'TIMEOUT - Segmind API did not respond in 90s' : 'NETWORK ERROR'})`);
           lastError = error;
           await new Promise(resolve => setTimeout(resolve, delay));
           continue; // Retry
