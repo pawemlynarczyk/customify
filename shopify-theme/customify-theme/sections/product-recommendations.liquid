@@ -51,7 +51,8 @@
     </div>
 
     {% comment %}
-      Get products from specific collection (ID: 664065507653)
+      ✅ POKAZUJ PRODUKTY Z KONKRETNEJ KOLEKCJI (ID: 664065507653)
+      Bez filtrowania - po prostu pokaż produkty z tej kolekcji
     {% endcomment %}
     {% assign current_product_id = product.id %}
     
@@ -62,24 +63,15 @@
       {% endif %}
     {% endfor %}
     
-    {% comment %} Use target collection or fallback to collections.all {% endcomment %}
-    {% if target_collection %}
+    {% comment %} Tylko produkty z tej kolekcji - bez fallback {% endcomment %}
+    {% if target_collection and target_collection.products.size > 0 %}
       {% assign all_products = target_collection.products %}
-    {% else %}
-      {% assign all_products = collections.all.products %}
-    {% endif %}
-    
-    {% if all_products.size > 0 %}
+      
       {% capture list_items %}
         {% assign count = 0 %}
         {% for p in all_products %}
-          {% comment %} Filter: Skip AI-generated products (with "rozmiar", "spersonalizowany" or "cyfrowy" in handle) {% endcomment %}
-          {% assign skip_product = false %}
-          {% if p.handle contains 'rozmiar' or p.handle contains 'spersonalizowany' or p.handle contains 'cyfrowy' %}
-            {% assign skip_product = true %}
-          {% endif %}
-          
-          {% if p.id != current_product_id and skip_product == false and count < section.settings.max_products %}
+          {% comment %} Pomiń aktualny produkt (jeśli jest w kolekcji) {% endcomment %}
+          {% if p.id != current_product_id and count < section.settings.max_products %}
             {% assign count = count | plus: 1 %}
             {% assign product = p %}
           <div class="resource-list__item">
