@@ -3076,6 +3076,17 @@ module.exports = async (req, res) => {
     
     console.log(`🔍 [TRANSFORM] Final responseData keys:`, Object.keys(responseData));
     console.log(`🔍 [TRANSFORM] Final responseData.saveGenerationDebug:`, responseData.saveGenerationDebug);
+    
+    // ✅ LOGOWANIE: Sprawdź czy watermarkedImageUrl jest null (błąd!)
+    if (!watermarkedImageUrl) {
+      console.error('❌ [TRANSFORM] ⚠️⚠️⚠️ WATERMARK URL IS NULL - USER WILL NOT BE ABLE TO ADD TO CART ⚠️⚠️⚠️');
+      console.error('❌ [TRANSFORM] watermarkedImageUrl:', watermarkedImageUrl);
+      console.error('❌ [TRANSFORM] finalImageUrl:', finalImageUrl);
+      console.error('❌ [TRANSFORM] imageUrl:', imageUrl);
+    } else {
+      console.log(`✅ [TRANSFORM] watermarkedImageUrl OK: ${watermarkedImageUrl.substring(0, 100)}...`);
+    }
+    
     console.log(`🔍🔍🔍 [TRANSFORM] ===== KONIEC SPRAWDZANIA saveGenerationDebug =====`);
     
     res.json(responseData);
