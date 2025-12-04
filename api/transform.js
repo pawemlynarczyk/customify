@@ -493,6 +493,9 @@ async function segmindFaceswap(targetImageUrl, swapImageBase64) {
       console.log('📡 [SEGMIND] Response headers:', Object.fromEntries(response.headers.entries()));
 
       if (response.ok) {
+        // Clear global timeout on success
+        clearTimeout(globalTimeout);
+        
         // Segmind zwraca JSON z kluczem "image"
         const resultJson = await response.json();
         console.log(`✅ [SEGMIND] Face-swap completed! Response:`, Object.keys(resultJson), `(attempt ${attempt})`);
