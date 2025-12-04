@@ -457,17 +457,23 @@ async function segmindFaceswap(targetImageUrl, swapImageBase64) {
   console.log('📋 [SEGMIND] Request body keys:', Object.keys(requestBody));
 
   const maxRetries = 3;
-  const retryDelay = 2000; // 2 sekundy bazowego opóźnienia
+  const retryDelay = 1000; // 1 sekunda bazowego opóźnienia (zmniejszone dla szybszych retry)
   let lastError;
+  
+  // Global timeout dla całej operacji (280 sekund - poniżej limitu Vercel 300s)
+  const globalTimeout = setTimeout(() => {
+    console.error('❌ [SEGMIND] Global timeout after 280 seconds - aborting all attempts');
+    throw new Error('Segmind API request exceeded maximum time limit (280 seconds)');
+  }, 280000);
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      // Add timeout to prevent 504 errors
+      // Add timeout to prevent 504 errors - zmniejszony do 90s żeby zmieścić 3 próby w limicie 300s
       const controller = new AbortController();
       const timeoutId = setTimeout(() => {
-        console.log(`⏰ [SEGMIND] Request timeout after 240 seconds (attempt ${attempt}/${maxRetries}) - aborting`);
+        console.log(`⏰ [SEGMIND] Request timeout after 90 seconds (attempt ${attempt}/${maxRetries}) - aborting`);
         controller.abort();
-      }, 240000); // 240 second timeout (Vercel Pro limit is 300s)
+      }, 90000); // 90 second timeout (3 próby × 90s + retry delays = ~285s max, poniżej limitu 300s)
 
       console.log(`🔄 [SEGMIND] Attempt ${attempt}/${maxRetries}...`);
       
@@ -526,7 +532,7 @@ async function segmindFaceswap(targetImageUrl, swapImageBase64) {
       // Network errors or aborted requests - retry if not max attempts
       if (error.name === 'AbortError' || (error.message && error.message.includes('fetch'))) {
         if (attempt < maxRetries) {
-          const delay = retryDelay * Math.pow(2, attempt - 1);
+          const delay = retryDelay * Math.pow(2, attempt - 1); // 1s, 2s, 4s
           console.warn(`⚠️ [SEGMIND] Network error (attempt ${attempt}/${maxRetries}) - retrying in ${delay}ms...`);
           lastError = error;
           await new Promise(resolve => setTimeout(resolve, delay));
@@ -536,6 +542,7 @@ async function segmindFaceswap(targetImageUrl, swapImageBase64) {
       
       // If it's the last attempt or non-retryable error, throw
       if (attempt === maxRetries) {
+        clearTimeout(globalTimeout);
         console.error('❌ [SEGMIND] Face-swap failed after all retries:', error);
         throw lastError || error;
       }
@@ -543,6 +550,9 @@ async function segmindFaceswap(targetImageUrl, swapImageBase64) {
       lastError = error;
     }
   }
+  
+  // Clear global timeout if successful
+  clearTimeout(globalTimeout);
 
   // Should never reach here, but just in case
   throw lastError || new Error('Segmind face-swap failed after all retries');
