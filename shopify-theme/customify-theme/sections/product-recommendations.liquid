@@ -73,9 +73,9 @@
       {% capture list_items %}
         {% assign count = 0 %}
         {% for p in all_products %}
-          {% comment %} Filter: Skip AI-generated products (with "rozmiar" or "spersonalizowany" in handle) {% endcomment %}
+          {% comment %} Filter: Skip AI-generated products (with "rozmiar", "spersonalizowany" or "cyfrowy" in handle) {% endcomment %}
           {% assign skip_product = false %}
-          {% if p.handle contains 'rozmiar' or p.handle contains 'spersonalizowany' %}
+          {% if p.handle contains 'rozmiar' or p.handle contains 'spersonalizowany' or p.handle contains 'cyfrowy' %}
             {% assign skip_product = true %}
           {% endif %}
           
