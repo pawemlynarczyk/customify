@@ -523,9 +523,6 @@ async function segmindFaceswap(targetImageUrl, swapImageBase64) {
         }
       }
     } catch (error) {
-      const errorDuration = Date.now() - requestStartTime;
-      console.error(`❌ [SEGMIND] Exception caught after ${errorDuration}ms:`, error.name, error.message?.substring(0, 200));
-      
       // Network errors or aborted requests - retry if not max attempts
       if (error.name === 'AbortError' || (error.message && error.message.includes('fetch'))) {
         if (attempt < maxRetries) {
