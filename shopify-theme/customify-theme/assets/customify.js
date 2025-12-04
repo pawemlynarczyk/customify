@@ -2695,7 +2695,7 @@ class CustomifyEmbed {
         // ✅ AWAIT: Czekaj aż wynik zostanie pokazany
         // showResult() użyje watermarkedImageUrl jeśli dostępny, w przeciwnym razie transformedImage
         await this.showResult(result.transformedImage);
-        this.showSuccess('Wybierz rozmiar i Zamów swój projekt!');
+        this.showSuccess('Projekt poprawny możesz wybrać rozmiar i zamówić wydruk');
         
         // ✅ UKRYJ PASEK POSTĘPU - obraz jest już widoczny, reszta działa w tle
         this.hideLoading();
