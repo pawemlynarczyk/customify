@@ -457,27 +457,19 @@ async function segmindFaceswap(targetImageUrl, swapImageBase64) {
   console.log('📋 [SEGMIND] Request body keys:', Object.keys(requestBody));
 
   const maxRetries = 3;
-  const retryDelay = 1000; // 1 sekunda bazowego opóźnienia (zmniejszone dla szybszych retry)
+  const retryDelay = 2000; // 2 sekundy bazowego opóźnienia
   let lastError;
-  
-  // Global timeout dla całej operacji (280 sekund - poniżej limitu Vercel 300s)
-  const globalTimeout = setTimeout(() => {
-    console.error('❌ [SEGMIND] Global timeout after 280 seconds - aborting all attempts');
-    throw new Error('Segmind API request exceeded maximum time limit (280 seconds)');
-  }, 280000);
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      // Add timeout to prevent 504 errors - zmniejszony do 90s żeby zmieścić 3 próby w limicie 300s
+      // Add timeout to prevent 504 errors
       const controller = new AbortController();
       const timeoutId = setTimeout(() => {
-        console.log(`⏰ [SEGMIND] Request timeout after 90 seconds (attempt ${attempt}/${maxRetries}) - aborting`);
+        console.log(`⏰ [SEGMIND] Request timeout after 240 seconds (attempt ${attempt}/${maxRetries}) - aborting`);
         controller.abort();
-      }, 90000); // 90 second timeout (3 próby × 90s + retry delays = ~285s max, poniżej limitu 300s)
+      }, 240000); // 240 second timeout (Vercel Pro limit is 300s)
 
-      const requestStartTime = Date.now();
       console.log(`🔄 [SEGMIND] Attempt ${attempt}/${maxRetries}...`);
-      console.log(`⏱️ [SEGMIND] Request started at: ${new Date().toISOString()}`);
       
       const response = await fetch('https://api.segmind.com/v1/faceswap-v4', {
         method: 'POST',
@@ -489,22 +481,12 @@ async function segmindFaceswap(targetImageUrl, swapImageBase64) {
         signal: controller.signal
       });
       
-      const requestDuration = Date.now() - requestStartTime;
       clearTimeout(timeoutId);
 
-      console.log('📡 [SEGMIND] Response received after:', requestDuration, 'ms');
       console.log('📡 [SEGMIND] Response status:', response.status);
       console.log('📡 [SEGMIND] Response headers:', Object.fromEntries(response.headers.entries()));
-      
-      // Log warning if response took too long
-      if (requestDuration > 60000) {
-        console.warn(`⚠️ [SEGMIND] Slow response detected: ${requestDuration}ms (${(requestDuration/1000).toFixed(1)}s)`);
-      }
 
       if (response.ok) {
-        // Clear global timeout on success
-        clearTimeout(globalTimeout);
-        
         // Segmind zwraca JSON z kluczem "image"
         const resultJson = await response.json();
         console.log(`✅ [SEGMIND] Face-swap completed! Response:`, Object.keys(resultJson), `(attempt ${attempt})`);
@@ -524,24 +506,20 @@ async function segmindFaceswap(targetImageUrl, swapImageBase64) {
         const errorText = await response.text();
         const status = response.status;
         
-        console.error(`❌ [SEGMIND] API returned error status: ${status}`);
-        console.error(`❌ [SEGMIND] Error response (first 500 chars):`, errorText.substring(0, 500));
-        console.error(`❌ [SEGMIND] Request took: ${requestDuration}ms before error`);
-        
         // Retry only for server errors (5xx) and 502 Bad Gateway
         const isRetryable = status >= 500 || status === 502;
         
         if (isRetryable && attempt < maxRetries) {
-          const delay = retryDelay * Math.pow(2, attempt - 1); // Exponential backoff: 1s, 2s, 4s
+          const delay = retryDelay * Math.pow(2, attempt - 1); // Exponential backoff: 2s, 4s, 8s
           console.warn(`⚠️ [SEGMIND] Server error ${status} (attempt ${attempt}/${maxRetries}) - retrying in ${delay}ms...`);
-          console.warn(`⚠️ [SEGMIND] This indicates Segmind API has issues (${status} = server-side problem)`);
-          lastError = new Error(`Segmind face-swap failed: ${status} - ${errorText.substring(0, 200)}`);
+          console.warn(`⚠️ [SEGMIND] Error details:`, errorText.substring(0, 200));
+          lastError = new Error(`Segmind face-swap failed: ${status} - ${errorText}`);
           await new Promise(resolve => setTimeout(resolve, delay));
           continue; // Retry
         } else {
           // Non-retryable error or max retries reached
-          console.error('❌ [SEGMIND] Face-swap failed after all retries:', status, errorText.substring(0, 200));
-          throw new Error(`Segmind face-swap failed: ${status} - ${errorText.substring(0, 200)}`);
+          console.error('❌ [SEGMIND] Face-swap failed:', status, errorText);
+          throw new Error(`Segmind face-swap failed: ${status} - ${errorText}`);
         }
       }
     } catch (error) {
@@ -551,9 +529,8 @@ async function segmindFaceswap(targetImageUrl, swapImageBase64) {
       // Network errors or aborted requests - retry if not max attempts
       if (error.name === 'AbortError' || (error.message && error.message.includes('fetch'))) {
         if (attempt < maxRetries) {
-          const delay = retryDelay * Math.pow(2, attempt - 1); // 1s, 2s, 4s
+          const delay = retryDelay * Math.pow(2, attempt - 1);
           console.warn(`⚠️ [SEGMIND] Network error (attempt ${attempt}/${maxRetries}) - retrying in ${delay}ms...`);
-          console.warn(`⚠️ [SEGMIND] Error type: ${error.name}, Duration: ${errorDuration}ms (${error.name === 'AbortError' ? 'TIMEOUT - Segmind API did not respond in 90s' : 'NETWORK ERROR'})`);
           lastError = error;
           await new Promise(resolve => setTimeout(resolve, delay));
           continue; // Retry
@@ -562,7 +539,6 @@ async function segmindFaceswap(targetImageUrl, swapImageBase64) {
       
       // If it's the last attempt or non-retryable error, throw
       if (attempt === maxRetries) {
-        clearTimeout(globalTimeout);
         console.error('❌ [SEGMIND] Face-swap failed after all retries:', error);
         throw lastError || error;
       }
@@ -570,9 +546,6 @@ async function segmindFaceswap(targetImageUrl, swapImageBase64) {
       lastError = error;
     }
   }
-  
-  // Clear global timeout if successful
-  clearTimeout(globalTimeout);
 
   // Should never reach here, but just in case
   throw lastError || new Error('Segmind face-swap failed after all retries');
