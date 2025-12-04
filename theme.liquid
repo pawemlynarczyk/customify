@@ -248,14 +248,18 @@
               const frameSelected = (this.selectedProductType === 'plakat') && (window.CustomifyFrame && window.CustomifyFrame.color && window.CustomifyFrame.color !== 'none');
               const frameSurcharge = frameSelected && this.selectedSize ? (this.framePricing[this.selectedSize] || 29) : 0;
               
-              // Oblicz końcową cenę (oryginalna cena + rozmiar + ramka)
-              const finalPrice = this.originalBasePrice + sizePrice + frameSurcharge;
+              // 🆕 Dopłata za podstawkę (tylko szkło i wybrany typ != none)
+              const standSelected = (this.selectedProductType === 'szklo') && (window.CustomifyStand && window.CustomifyStand.type && window.CustomifyStand.type !== 'none');
+              const standSurcharge = standSelected ? (this.standPricing[window.CustomifyStand.type] || 0) : 0;
+              
+              // Oblicz końcową cenę (oryginalna cena + rozmiar + ramka + podstawka)
+              const finalPrice = this.originalBasePrice + sizePrice + frameSurcharge + standSurcharge;
               
               // Aktualizuj cenę na stronie
               this.applyProductPriceDisplay(finalPrice);
               this.schedulePriceConsistency(finalPrice);
               
-              console.log(`💰 [PRICE] Updated: base ${this.originalBasePrice} + size ${sizePrice} + frame ${frameSurcharge} = ${finalPrice} zł`);
+              console.log(`💰 [PRICE] Updated: base ${this.originalBasePrice} + size ${sizePrice} + frame ${frameSurcharge} + stand ${standSurcharge} = ${finalPrice} zł`);
             } catch (error) {
               console.error('❌ [PRICE] Error updating product price:', error);
             }
@@ -303,8 +307,12 @@
               const frameSelected = (this.selectedProductType === 'plakat') && (window.CustomifyFrame && window.CustomifyFrame.color && window.CustomifyFrame.color !== 'none');
               const frameSurcharge = frameSelected && this.selectedSize ? (this.framePricing[this.selectedSize] || 29) : 0;
               
-              // Oblicz końcową cenę (bazowa + rozmiar + ramka)
-              const finalPrice = this.originalBasePrice + sizePrice + frameSurcharge;
+              // 🆕 Dopłata za podstawkę (tylko szkło i wybrany typ != none)
+              const standSelected = (this.selectedProductType === 'szklo') && (window.CustomifyStand && window.CustomifyStand.type && window.CustomifyStand.type !== 'none');
+              const standSurcharge = standSelected ? (this.standPricing[window.CustomifyStand.type] || 0) : 0;
+              
+              // Oblicz końcową cenę (bazowa + rozmiar + ramka + podstawka)
+              const finalPrice = this.originalBasePrice + sizePrice + frameSurcharge + standSurcharge;
 
               // Znajdź element ceny w koszyku
               const cartPriceElement = document.getElementById('cartPriceValue');
@@ -317,7 +325,10 @@
                   sizePrice,
                   frameSelected,
                   frame: window.CustomifyFrame?.color || 'none',
-                  frameSurcharge
+                  frameSurcharge,
+                  standSelected,
+                  stand: window.CustomifyStand?.type || 'none',
+                  standSurcharge
                 });
 
                 // Pokaż element ceny
@@ -434,7 +445,7 @@
               finalPrice = digitalProductPrice;
               console.log('💰 [CUSTOMIFY] Digital product - using fixed price: 49.00 zł (ignoring base price)');
             } else {
-              // Produkt fizyczny: cena bazowa + rozmiar + ramka
+              // Produkt fizyczny: cena bazowa + rozmiar + ramka + podstawka
               const basePrice = this.originalBasePrice || 49.00;
               const sizePrice = this.getSizePrice(this.selectedSize);
               const frameSelected = (this.selectedProductType === 'plakat') && (window.CustomifyFrame && window.CustomifyFrame.color && window.CustomifyFrame.color !== 'none');
@@ -445,8 +456,13 @@
                 framePricingValue: this.framePricing?.[this.selectedSize]
               });
               const frameSurcharge = frameSelected && this.selectedSize ? (this.framePricing?.[this.selectedSize] || 29) : 0;
-              finalPrice = basePrice + sizePrice + frameSurcharge;
-              console.log('💰 [CUSTOMIFY] Physical product - price calculation:', { basePrice, sizePrice, frameSurcharge, finalPrice });
+              
+              // 🆕 Dopłata za podstawkę (tylko szkło i wybrany typ != none)
+              const standSelected = (this.selectedProductType === 'szklo') && (window.CustomifyStand && window.CustomifyStand.type && window.CustomifyStand.type !== 'none');
+              const standSurcharge = standSelected ? (this.standPricing[window.CustomifyStand.type] || 0) : 0;
+              
+              finalPrice = basePrice + sizePrice + frameSurcharge + standSurcharge;
+              console.log('💰 [CUSTOMIFY] Physical product - price calculation:', { basePrice, sizePrice, frameSurcharge, standSurcharge, finalPrice });
             }
             // 🚨 ROLLBACK: END - Cena dla produktu cyfrowego
 
@@ -509,6 +525,20 @@
               
               console.log('✅ [CUSTOMIFY] Używam backend watermarkedImageUrl (już na Vercel Blob):', watermarkedImageUrl.substring(0, 100));
 
+              // 🖼️ Pobierz informacje o ramce (plakat)
+              const selectedFrame = (this.selectedProductType === 'plakat' && window.CustomifyFrame && window.CustomifyFrame.color)
+                ? window.CustomifyFrame.color
+                : 'none';
+              const frameSelected = selectedFrame !== 'none';
+              const frameSurcharge = frameSelected && this.selectedSize ? (this.framePricing?.[this.selectedSize] || 29) : 0;
+              
+              // 🆕 Pobierz informacje o podstawce (szkło)
+              const selectedStand = (this.selectedProductType === 'szklo' && window.CustomifyStand && window.CustomifyStand.type)
+                ? window.CustomifyStand.type
+                : 'none';
+              const standSelected = selectedStand !== 'none';
+              const standSurcharge = standSelected ? (this.standPricing[selectedStand] || 0) : 0;
+
               const productData = {
                 originalImage: originalImage,
                 transformedImage: this.transformedImage,
@@ -518,7 +548,11 @@
                 productType: this.selectedProductType || 'canvas',
                 originalProductTitle: document.querySelector('h1, .product-title, .view-product-title')?.textContent?.trim() || 'Produkt',
                 originalProductId: productId,
-                finalPrice: finalPrice
+                finalPrice: finalPrice,
+                frameColor: selectedFrame,       // ✅ Ramka (plakat)
+                frameSurcharge: frameSurcharge,  // ✅ Dopłata za ramkę
+                standType: selectedStand,        // 🆕 Podstawka (szkło)
+                standSurcharge: standSurcharge   // 🆕 Dopłata za podstawkę
               };
 
               console.log('🛒 [CUSTOMIFY] Creating product with data:', productData);
@@ -589,21 +623,30 @@
                   // 🚨 ROLLBACK: START - Nazwa typu produktu z obsługą cyfrowego
                   const productTypeName = this.selectedProductType === 'plakat' 
                     ? 'Plakat' 
-                    : this.selectedProductType === 'digital'
-                      ? 'Produkt cyfrowy'
-                      : 'Obraz na płótnie';
+                    : this.selectedProductType === 'szklo'
+                      ? 'Nadruk na szkle'  // 🆕 Szkło
+                      : this.selectedProductType === 'digital'
+                        ? 'Produkt cyfrowy'
+                        : 'Obraz na płótnie';
                   // 🚨 ROLLBACK: END - Nazwa typu produktu
                   const selectedFrame = (this.selectedProductType === 'plakat' && window.CustomifyFrame && window.CustomifyFrame.color)
                     ? window.CustomifyFrame.color
                     : 'none';
                   const frameLabelMap = { none: 'brak', black: 'czarna', white: 'biała', wood: 'drewno' };
                   const frameLabel = frameLabelMap[selectedFrame] || 'brak';
+                  
+                  // 🆕 Mapowanie dla podstawki (szkło)
+                  const standLabelMap = { none: 'brak', wood: 'podstawka drewniana', led: 'podstawka drewniana z LED' };
+                  const standLabel = standLabelMap[selectedStand] || 'brak';
 
                   console.log('🖼️ [CUSTOMIFY FRAME DEBUG]:', {
                     selectedProductType: this.selectedProductType,
                     'window.CustomifyFrame': window.CustomifyFrame,
                     selectedFrame: selectedFrame,
-                    frameLabel: frameLabel
+                    frameLabel: frameLabel,
+                    'window.CustomifyStand': window.CustomifyStand,
+                    selectedStand: selectedStand,
+                    standLabel: standLabel
                   });
 
                   const shortOrderId = result.shortOrderId || (result.orderId ? result.orderId.split('-').pop() : Date.now().toString());
@@ -612,7 +655,7 @@
                   const visibleProperties = {
                     'Rozmiar': isDigitalProduct ? 'Plik do pobrania' : this.getSizeDimension(this.selectedSize),
                     'Rodzaj wydruku': productTypeName,
-                    'Ramka': isDigitalProduct ? 'brak' : `ramka - ${frameLabel}`,
+                    'Ramka': isDigitalProduct ? 'brak' : (this.selectedProductType === 'szklo' ? `podstawka - ${standLabel}` : `ramka - ${frameLabel}`),
                     'Order ID': shortOrderId
                   };
                   // 🚨 ROLLBACK: END - Properties dla produktu cyfrowego
@@ -3067,6 +3110,10 @@
             <div class="customify-product-type-btn" data-product-type="canvas">
               Obraz na płótnie
             </div>
+            <!-- 🆕 NOWY TYP: Nadruk na szkle -->
+            <div class="customify-product-type-btn" data-product-type="szklo">
+              Nadruk na szkle (dodaj podstawkę)
+            </div>
             <!-- 🚨 ROLLBACK: START - Opcja produktu cyfrowego -->
             <div class="customify-product-type-btn" data-product-type="digital">
               Produkt cyfrowy
@@ -3086,12 +3133,34 @@
               <div class="frame-option" data-frame="wood">Drewno</div>
             </div>
           </div>
+          
+          <!-- 🆕 Wysuwane menu wyboru podstawki (tylko dla opcji szkło) -->
+          <div class="stand-selector" id="standSelector" aria-expanded="false" style="display: none;">
+            <button type="button" class="stand-toggle" id="standToggle">
+              Podstawka: <span id="standCurrentLabel">Brak podstawki</span>
+              <span class="stand-caret">▼</span>
+            </button>
+            <div class="stand-options" id="standOptions" style="display: none;">
+              <div class="stand-option" data-stand="none" aria-selected="true">
+                <span class="stand-option-text">Brak podstawki</span>
+              </div>
+              <div class="stand-option" data-stand="wood">
+                <img src="https://customify-s56o.vercel.app/akryl/podstawka.png" alt="Podstawka drewniana" class="stand-option-image">
+                <span class="stand-option-text">Podstawka drewniana</span>
+              </div>
+              <div class="stand-option" data-stand="led">
+                <img src="https://customify-s56o.vercel.app/akryl/podstawka_led.png" alt="Podstawka z LED" class="stand-option-image">
+                <span class="stand-option-text">Podstawka drewniana z LED</span>
+              </div>
+            </div>
+          </div>
         </div>
         
         <!-- Rozmiary - POD sekcją rodzaju wydruku -->
         <div class="customify-size-selector" id="sizeArea" style="display: block; margin-bottom: 10px;">
           <h4 style="text-align: left;">Rozmiar (cm):</h4>
           <div class="customify-size-buttons">
+                <div class="customify-size-btn" data-size="a5" data-for-szklo="true">15×21</div>
                 <div class="customify-size-btn" data-size="a4">20×30</div>
                 <div class="customify-size-btn" data-size="a3">30×45</div>
                 <div class="customify-size-btn" data-size="a2">40×60</div>
@@ -3589,6 +3658,60 @@
           opacity: 0.5;
           pointer-events: none;
         }
+        
+        /* 🆕 Wysuwane menu podstawki (szkło) */
+        .stand-selector {
+          margin-top: 8px;
+          max-width: 450px;
+        }
+        .stand-toggle {
+          width: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 8px;
+          padding: 6px 10px;
+          border: 1px solid #666666 !important;
+          background: #ffffff;
+          color: #333;
+          font-size: 0.85rem;
+          cursor: pointer;
+        }
+        .stand-caret { font-size: 0.8rem; color: #666; }
+        .stand-options {
+          border: 1px solid #e0e0e0;
+          border-top: none;
+          background: #fff;
+        }
+        .stand-option {
+          padding: 8px 10px;
+          cursor: pointer;
+          font-size: 0.85rem;
+          border-top: 1px solid #f2f2f2;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+        .stand-option:hover { background: #e3f2fd; }
+        .stand-option[aria-selected="true"] {
+          background: #bbdefb;
+          color: #1565c0;
+        }
+        .stand-option-image {
+          width: 50px;
+          height: 50px;
+          object-fit: cover;
+          border-radius: 4px;
+          border: 1px solid #e0e0e0;
+        }
+        .stand-option-text {
+          flex: 1;
+        }
+        .stand-selector.disabled {
+          opacity: 0.5;
+          pointer-events: none;
+        }
+        
         /* Marginesy po przeniesieniu sekcji typu i rozmiaru nad cenę */
         #type-size-inline-slot > .customify-product-type-selector,
         #type-size-inline-slot > .customify-size-selector {
@@ -4093,17 +4216,123 @@
             
             if (frameSelector) {
               if (enabled) {
+                frameSelector.style.display = 'block';      // ✅ Pokazuje ramkę
                 frameSelector.classList.remove('disabled');
               } else {
+                frameSelector.style.display = 'none';       // ✅ Całkowicie ukrywa ramkę
                 frameSelector.classList.add('disabled');
                 closeOptions();
               }
             }
           }
 
-          // Inicjalizacja UI ramki
+          // ============ 🆕 LOGIKA PODSTAWKI (SZKŁO) ============
+          window.CustomifyStand = window.CustomifyStand || { type: 'none' };
+          
+          var standSelector = document.getElementById('standSelector');
+          var standToggle = document.getElementById('standToggle');
+          var standOptions = document.getElementById('standOptions');
+          var standCurrentLabel = document.getElementById('standCurrentLabel');
+          
+          function isSzkloSelected() {
+            var active = productTypeArea && productTypeArea.querySelector('.customify-product-type-btn.active');
+            return active && active.getAttribute('data-product-type') === 'szklo';
+          }
+          
+          function setStand(type) {
+            window.CustomifyStand.type = type;
+            // Aktualizuj UI
+            if (standCurrentLabel) {
+              standCurrentLabel.textContent =
+                type === 'wood' ? 'Podstawka drewniana (+29 zł)' :
+                type === 'led' ? 'Podstawka drewniana z LED (+44.90 zł)' :
+                'Brak podstawki';
+            }
+            if (standOptions) {
+              var opts = standOptions.querySelectorAll('.stand-option');
+              opts.forEach(function(opt){
+                opt.setAttribute('aria-selected', opt.getAttribute('data-stand') === type ? 'true' : 'false');
+              });
+            }
+            
+            // Aktualizuj ceny po zmianie podstawki
+            if (window.__customify) {
+              window.__customify.updateProductPrice();
+              window.__customify.updateCartPrice();
+            }
+          }
+          
+          function toggleStandOptions() {
+            if (!standOptions) return;
+            var isOpen = standOptions.style.display !== 'none';
+            standOptions.style.display = isOpen ? 'none' : 'block';
+            if (standSelector) standSelector.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
+          }
+          
+          function closeStandOptions() {
+            if (standOptions) {
+              standOptions.style.display = 'none';
+              if (standSelector) standSelector.setAttribute('aria-expanded', 'false');
+            }
+          }
+          
+          function updateStandAvailability() {
+            var enabled = isSzkloSelected();
+            
+            if (standSelector) {
+              if (enabled) {
+                standSelector.style.display = 'block';
+                standSelector.classList.remove('disabled');
+              } else {
+                standSelector.style.display = 'none';
+                standSelector.classList.add('disabled');
+                closeStandOptions();
+              }
+            }
+          }
+          
+          function updateSizeAvailability() {
+            var isSzklo = isSzkloSelected();
+            var sizeButtons = document.querySelectorAll('.customify-size-btn');
+            
+            sizeButtons.forEach(function(btn) {
+              var size = btn.getAttribute('data-size');
+              if (isSzklo) {
+                // Dla szkła: tylko A5 i A4 widoczne
+                if (size === 'a5' || size === 'a4') {
+                  btn.style.display = 'block';
+                } else {
+                  btn.style.display = 'none';
+                }
+              } else {
+                // Dla plakat/canvas: A4, A3, A2, A0, A1 widoczne (bez A5)
+                if (size === 'a5') {
+                  btn.style.display = 'none';
+                } else {
+                  btn.style.display = 'block';
+                }
+              }
+            });
+            
+            // Jeśli aktualnie wybrany rozmiar jest ukryty, wybierz pierwszy widoczny
+            if (window.__customify && window.__customify.selectedSize) {
+              var currentBtn = document.querySelector('.customify-size-btn[data-size="' + window.__customify.selectedSize + '"]');
+              if (currentBtn && currentBtn.style.display === 'none') {
+                // Wybierz pierwszy widoczny rozmiar
+                var firstVisible = Array.from(sizeButtons).find(function(b) { return b.style.display !== 'none'; });
+                if (firstVisible) {
+                  firstVisible.click();
+                }
+              }
+            }
+          }
+
+          // Inicjalizacja UI ramki i podstawki
           setFrame(window.CustomifyFrame.color || 'none');
+          setStand(window.CustomifyStand.type || 'none');
           updateFrameAvailability();
+          updateStandAvailability();
+          updateSizeAvailability();
           // 🚨 ROLLBACK: START - Inicjalizacja UI produktu cyfrowego
           updateDigitalProductUI();
           // 🚨 ROLLBACK: END - Inicjalizacja UI produktu cyfrowego
@@ -4135,14 +4364,38 @@
             if (!frameSelector) return;
             if (!frameSelector.contains(e.target)) closeOptions();
           });
+          
+          // 🆕 Event listenery dla podstawki (szkło)
+          if (standToggle) {
+            standToggle.addEventListener('click', function(e){
+              if (standSelector && standSelector.classList.contains('disabled')) return;
+              toggleStandOptions();
+            });
+          }
+          if (standOptions) {
+            standOptions.addEventListener('click', function(e){
+              var target = e.target.closest('.stand-option');
+              if (!target) return;
+              if (standSelector && standSelector.classList.contains('disabled')) return;
+              var type = target.getAttribute('data-stand');
+              setStand(type);
+              closeStandOptions();
+            });
+          }
+          document.addEventListener('click', function(e){
+            if (!standSelector) return;
+            if (!standSelector.contains(e.target)) closeStandOptions();
+          });
 
-          // Nasłuchiwanie na zmianę typu produktu (Plakat/Canvas/Digital)
+          // Nasłuchiwanie na zmianę typu produktu (Plakat/Canvas/Szkło/Digital)
           var typeBtns = productTypeArea ? productTypeArea.querySelectorAll('.customify-product-type-btn') : [];
           typeBtns.forEach(function(btn){
             btn.addEventListener('click', function(){
               // Daj czas istniejącym handlerom na ustawienie .active
               setTimeout(function(){
                 updateFrameAvailability();
+                updateStandAvailability(); // 🆕 Aktualizuj dostępność podstawki
+                updateSizeAvailability();  // 🆕 Aktualizuj widoczność rozmiarów
                 // 🚨 ROLLBACK: START - Aktualizuj UI produktu cyfrowego
                 updateDigitalProductUI();
                 // 🚨 ROLLBACK: END - Aktualizuj UI produktu cyfrowego

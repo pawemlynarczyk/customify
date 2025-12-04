@@ -44,18 +44,22 @@ module.exports = async (req, res) => {
     watermarkedImageBase64, // ✅ NOWE: Base64 obrazka z watermarkiem (z /api/transform) - BEZPOŚREDNI UPLOAD BEZ DOWNLOADU
     style, 
     size, 
-    productType, // Rodzaj wydruku: plakat lub canvas
+    productType, // Rodzaj wydruku: plakat, canvas lub szklo
     originalProductTitle,
     originalProductId,
     finalPrice, // ✅ Dodano finalPrice z frontendu
-    frameColor, // ✅ Informacja o ramce
-    frameSurcharge // ✅ Dopłata za ramkę
+    frameColor, // ✅ Informacja o ramce (plakat)
+    frameSurcharge, // ✅ Dopłata za ramkę (plakat)
+    standType, // 🆕 Informacja o podstawce (szkło)
+    standSurcharge // 🆕 Dopłata za podstawkę (szkło)
   } = req.body;
 
   console.log('💰 [PRODUCTS.JS] Price data received:', {
     finalPrice,
     frameColor,
     frameSurcharge,
+    standType,
+    standSurcharge,
     productType,
     size
   });
@@ -136,19 +140,23 @@ module.exports = async (req, res) => {
       sizeName = 'Plik do pobrania';
     } else {
       // Produkt fizyczny - normalna logika
-      productTypeName = productType === 'plakat' ? 'Plakat' : 'Obraz na płótnie';
-      sizeName = size === 'a4'
-        ? '20×30 cm'
-        : size === 'a3'
-          ? '30×45 cm'
-          : size === 'a2'
-            ? '40×60 cm'
-            : size === 'a0'
-              ? '50×75 cm'
-              : size === 'a1'
-                ? '60×90 cm'
-                : size === 'a5'
-                  ? '15×20 cm'
+      productTypeName = productType === 'plakat' 
+        ? 'Plakat' 
+        : productType === 'szklo' 
+          ? 'Nadruk na szkle'  // 🆕 Szkło
+          : 'Obraz na płótnie'; // Canvas
+      sizeName = size === 'a5'
+        ? '15×21 cm'  // 🆕 A5 dla szkła
+        : size === 'a4'
+          ? '20×30 cm'
+          : size === 'a3'
+            ? '30×45 cm'
+            : size === 'a2'
+              ? '40×60 cm'
+              : size === 'a0'
+                ? '50×75 cm'
+                : size === 'a1'
+                  ? '60×90 cm'
                   : size?.toUpperCase() || 'standard';
     }
     // 🚨 ROLLBACK: END - Obsługa produktu cyfrowego w nazwach

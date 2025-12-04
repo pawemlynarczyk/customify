@@ -90,3 +90,8 @@ customers-with-generations.json
 customers-without-generations.json
 *-results.json
 customers-*.json
+
+# Sentry reports (zawierają dane o błędach)
+sentry-reports/
+sentry-errors-*.json
+.env*.local

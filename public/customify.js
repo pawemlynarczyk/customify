@@ -45,6 +45,10 @@ class CustomifyEmbed {
         a2: 149,
         a0: 170,  // Nowy rozmiar 50×75 cm
         a1: 199
+      },
+      szklo: {               // 🆕 NOWY TYP: Nadruk na szkle
+        a5: 0,               // Domyślny rozmiar - bez dopłaty (A5 = ~15×21 cm)
+        a4: 30               // A4 dodaje 30 zł
       }
     };
     
@@ -55,6 +59,13 @@ class CustomifyEmbed {
       a2: 65,
       a0: 75,  // Nowy rozmiar 50×75 cm
       a1: 85
+    };
+    
+    // 🆕 Ceny podstawek (tylko dla szkła) - jedna cena dla wszystkich rozmiarów
+    this.standPricing = {
+      none: 0,             // Brak podstawki
+      wood: 29,            // Podstawka drewniana/metalowa
+      led: 44.90           // Podstawka z LED
     };
     
     this.init();
@@ -2333,10 +2344,11 @@ class CustomifyEmbed {
    */
   getSizeDimension(size) {
     const dimensions = {
+      'a5': '15×21 cm',  // 🆕 Nowy rozmiar dla szkła
       'a4': '20×30 cm',
       'a3': '30×45 cm', 
       'a2': '40×60 cm',
-      'a0': '50×75 cm',  // Nowy rozmiar
+      'a0': '50×75 cm',
       'a1': '60×90 cm'
     };
     return dimensions[size] || size;
