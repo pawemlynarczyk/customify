@@ -709,8 +709,8 @@ async function segmindBecomeImage(imageUrl, styleImageUrl, styleParameters = {})
   throw lastError || new Error('Segmind become-image failed after all retries');
 }
 
-// Function to handle OpenAI GPT-Image-1 Edits API (img2img)
-async function openaiImageEdit(imageBuffer, prompt, parameters = {}) {
+// Function to handle OpenAI DALL-E 3 API
+async function openaiImageGeneration(prompt, parameters = {}) {
   const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
   
   console.log('🔑 [OPENAI] Checking API key...', OPENAI_API_KEY ? `Key present (${OPENAI_API_KEY.substring(0, 10)}...)` : 'KEY MISSING!');
@@ -728,12 +728,26 @@ async function openaiImageEdit(imageBuffer, prompt, parameters = {}) {
   const {
     model = 'gpt-image-1',
     size = '1024x1536', // Portrait (pionowy portret)
+    quality = 'auto', // Auto quality
+    style = 'vivid',
+    output_format = 'jpg', // JPG format
+    background = 'opaque', // Nieprzezroczyste tło
+    fidelity = 'low', // Niska wierność (szybsze generowanie)
     n = 1
   } = parameters;
 
   console.log('🎨 [OPENAI] Starting GPT-Image-1 image generation...');
   console.log('🎨 [OPENAI] Prompt:', prompt.substring(0, 100) + '...');
-  console.log('🛠️ [OPENAI] Parameters:', { model, size, n });
+      console.log('🛠️ [OPENAI] Parameters:', {
+        model,
+        size,
+        quality,
+        style,
+        output_format,
+        background,
+        fidelity,
+        n
+      });
 
   const maxRetries = 3;
   const retryDelay = 2000; // 2 sekundy bazowego opóźnienia
@@ -750,52 +764,26 @@ async function openaiImageEdit(imageBuffer, prompt, parameters = {}) {
 
       console.log(`🔄 [OPENAI] Attempt ${attempt}/${maxRetries}...`);
 
-      // GPT-Image-1 Edits API - minimalny, zgodny payload
-      const editParams = {
+      const response = await openai.images.generate({
         model: model,
-        image: imageBuffer, // Buffer z obrazem użytkownika (ma ustawione .name)
         prompt: prompt,
         n: n,
         size: size,
-        response_format: 'b64_json' // GPT-Image-1 zwraca base64, nie URL
-      };
-      
-      // ✅ LOGOWANIE PEŁNEGO ZAPYTANIA DO OPENAI API
-      console.log('📤 [OPENAI] ===== PEŁNE ZAPYTANIE DO OPENAI API =====');
-      console.log('📤 [OPENAI] Endpoint: POST https://api.openai.com/v1/images/edits');
-      console.log('📤 [OPENAI] Model:', editParams.model);
-      console.log('📤 [OPENAI] Image buffer:', {
-        size: imageBuffer.length,
-        type: imageBuffer.constructor.name,
-        hasName: !!imageBuffer.name,
-        name: imageBuffer.name || 'NO NAME (może być problem!)'
+        quality: quality,
+        style: style,
+        output_format: output_format, // JPG format
+        background: background, // Opaque background
+        fidelity: fidelity, // Low fidelity (faster generation)
+        response_format: 'url' // Zwracamy URL, nie base64
       });
-      console.log('📤 [OPENAI] Prompt length:', prompt.length, 'characters');
-      console.log('📤 [OPENAI] Prompt (first 200 chars):', prompt.substring(0, 200) + '...');
-      console.log('📤 [OPENAI] Parameters:', {
-        n: editParams.n,
-        size: editParams.size,
-        response_format: editParams.response_format
-      });
-      console.log('📤 [OPENAI] ===========================================');
-      
-      const response = await openai.images.edit(editParams);
 
       clearTimeout(timeoutId);
 
       if (response && response.data && response.data.length > 0) {
-        // GPT-Image-1 zwraca base64, nie URL
-        const base64Image = response.data[0].b64_json;
-        if (!base64Image) {
-          throw new Error('No base64 image in OpenAI response');
-        }
-        
-        // Konwertuj base64 na data URI
-        const dataUri = `data:image/jpeg;base64,${base64Image}`; // OpenAI returns jpeg for edits
-        
+        const imageUrl = response.data[0].url;
         console.log(`✅ [OPENAI] Image generated successfully (attempt ${attempt})`);
-        console.log(`📸 [OPENAI] Base64 image length: ${base64Image.length} characters`);
-        return { image: dataUri, output: dataUri, url: dataUri };
+        console.log(`📸 [OPENAI] Image URL: ${imageUrl.substring(0, 50)}...`);
+        return { image: imageUrl, output: imageUrl, url: imageUrl };
       } else {
         throw new Error('No image in OpenAI response');
       }
@@ -1380,11 +1368,26 @@ module.exports = async (req, res) => {
         parameters: {
           model: "gpt-image-1",
           size: "1024x1536", // Portrait (pionowy portret)
-          quality: "auto", // Auto quality (opcjonalne)
-          output_format: "jpeg", // JPEG format (nie 'jpg'!)
-          background: "opaque", // Nieprzezroczyste tło (opcjonalne)
+          quality: "auto", // Auto quality
+          style: "vivid", // Żywe kolory
+          output_format: "jpg", // JPG format
+          background: "opaque", // Nieprzezroczyste tło
+          fidelity: "low", // Niska wierność (szybsze generowanie)
           n: 1
-          // input_fidelity i style NIE są obsługiwane przez Edits API
+        }
+      },
+      // Nowy styl IMG2IMG z OpenAI GPT-Image-1 (caricature from input photo)
+      'caricature-new': {
+        model: "gpt-image-1",
+        prompt: "Create a soft, flattering caricature while keeping the people clearly recognizable.\n\nSTYLE:\n\n• Smooth, clean colors with a soft marker-and-colored-pencil look.\n\n• Natural, balanced skin tones (no yellow or sepia filter).\n\n• Gentle outlines and soft shading with mild exaggeration of expressive features.\n\nFACE & BEAUTY:\n\n• Preserve facial structure and identity.\n\n• Slightly enhance beauty: smooth skin, reduce wrinkles or harsh details.\n\n• Keep eyes natural and expressive.\n\nBACKGROUND:\n\n• Keep the original background, but softly stylize it to match the caricature style.\n\n• Do NOT remove or replace the background.\n\nEXAGGERATION:\n\n• Larger heads and slightly smaller bodies, but still natural and flattering.\n\n• Exaggerate only smiles, eyebrows, and cheeks — no distortion of identity.\n\nRESULT:\n\nA natural-color, soft, flattering caricature with preserved background and strong likeness.",
+        apiType: "openai-caricature",
+        productType: "caricature-new",
+        parameters: {
+          model: "gpt-image-1",
+          size: "1024x1024", // kwadrat zgodnie z wymaganiem
+          output_format: "b64_json", // otrzymujemy base64
+          background: "opaque",
+          n: 1
         }
       }
     };
@@ -2369,73 +2372,74 @@ module.exports = async (req, res) => {
         throw error;
       }
     }
-    // ✅ STYLE OPENAI - UŻYWAJ GPT-IMAGE-1 EDITS (img2img)
-    else if (config.apiType === 'openai') {
-      console.log('🤖 [OPENAI] Detected OpenAI style - using GPT-Image-1 Edits API (img2img)');
-      
+    // ✅ NOWY STYL OPENAI IMG2IMG (caricature-new) - UŻYWAJ GPT-IMAGE-1 EDITS
+    else if (config.apiType === 'openai-caricature') {
+      console.log('🤖 [OPENAI] Detected OpenAI caricature-new style - using GPT-Image-1 Edits API (img2img)');
       try {
-        // OpenAI GPT-Image-1 Edits wymaga obrazu jako input + prompt
-        // Upload obrazu użytkownika do Vercel Blob Storage żeby uzyskać stały URL
-        console.log('📤 [VERCEL-BLOB] Uploading user image to Vercel Blob Storage for OpenAI...');
-        
-        const baseUrl = 'https://customify-s56o.vercel.app';
-        const uploadResponse = await fetch(`${baseUrl}/api/upload-temp-image`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            imageData: imageDataUri,
-            filename: `openai-input-${Date.now()}.jpg`
-          })
-        });
-
-        if (!uploadResponse.ok) {
-          const errorText = await uploadResponse.text();
-          console.error('❌ [VERCEL-BLOB] Upload failed:', errorText);
-          throw new Error(`Vercel Blob upload failed: ${uploadResponse.status} - ${errorText}`);
+        if (!imageDataUri) {
+          throw new Error('Missing imageData for OpenAI caricature');
         }
 
-        const uploadResult = await uploadResponse.json();
-        const userImageUrl = uploadResult.imageUrl;
-        console.log('✅ [VERCEL-BLOB] User image uploaded:', userImageUrl);
-        
-        // Pobierz obraz jako buffer dla OpenAI API
-        const imageResponse = await fetch(userImageUrl);
-        if (!imageResponse.ok) {
-          throw new Error(`Failed to fetch uploaded image: ${imageResponse.status}`);
-        }
-        const imageArrayBuffer = await imageResponse.arrayBuffer();
-        
-        // Konwertuj ArrayBuffer na Buffer (wymagane przez OpenAI SDK)
-        const imageBuffer = Buffer.from(imageArrayBuffer);
-        
-        // ✅ OpenAI SDK wymaga właściwości 'name' na Buffer dla images.edit
-        // Określ format na podstawie URL lub użyj domyślnego JPEG
-        const imageFormat = userImageUrl.toLowerCase().includes('.png') ? 'png' : 'jpg';
-        imageBuffer.name = `image.${imageFormat}`;
-        
-        console.log('📸 [OPENAI] Image buffer prepared:', {
-          size: imageBuffer.length,
-          format: imageFormat,
-          name: imageBuffer.name
-        });
-        
-        // ✅ UŻYJ TYLKO PROMPTA Z KONFIGURACJI (jak dla innych stylów - król, koty, etc.)
+        // Wyciągnij base64 z data URL
+        const base64Data = imageDataUri.split(',')[1] || imageDataUri;
+        const imageBuffer = Buffer.from(base64Data, 'base64');
+        imageBuffer.name = 'image.jpg'; // wymagane przez SDK
+
         const openaiPrompt = config.prompt;
         if (!openaiPrompt) {
           throw new Error('Missing prompt in style configuration');
         }
-        console.log('🎨 [OPENAI] Transforming image with GPT-Image-1 Edits...');
-        console.log('🎨 [OPENAI] Prompt from config:', openaiPrompt.substring(0, 100) + '...');
+
+        console.log('📤 [OPENAI] Preparing images.edit payload (caricature-new)...');
+        const response = await openai.images.edit({
+          model: config.parameters.model,
+          image: [imageBuffer],
+          prompt: openaiPrompt,
+          size: config.parameters.size || '1024x1024',
+          output_format: config.parameters.output_format || 'b64_json',
+          background: config.parameters.background || 'opaque',
+          n: config.parameters.n || 1,
+        });
+
+        if (response && response.data && response.data.length > 0) {
+          const base64Image = response.data[0].b64_json;
+          if (!base64Image) {
+            throw new Error('No base64 image in OpenAI response');
+          }
+          imageUrl = `data:image/jpeg;base64,${base64Image}`;
+          console.log('✅ [OPENAI] Caricature-new generated successfully');
+        } else {
+          throw new Error('No image returned from OpenAI Edits API');
+        }
+      } catch (error) {
+        console.error('❌ [OPENAI] Caricature-new generation failed:', error);
+        if (error.name === 'AbortError') {
+          return res.status(504).json({
+            error: 'Request timeout - OpenAI API took too long to respond',
+            details: 'Please try again with a different style'
+          });
+        }
+        return res.status(500).json({
+          error: 'OpenAI generation failed',
+          details: error.message
+        });
+      }
+    }
+    // ✅ STYLE OPENAI - UŻYWAJ GPT-IMAGE-1
+    else if (config.apiType === 'openai') {
+      console.log('🤖 [OPENAI] Detected OpenAI style - using GPT-Image-1 API');
+      
+      try {
+        // OpenAI GPT-Image-1 wymaga tylko prompta (nie przyjmuje obrazu jako input)
+        // Musimy stworzyć prompt opisujący transformację na podstawie zdjęcia użytkownika
+        const openaiPrompt = config.prompt || prompt;
         
-        // Wywołaj OpenAI Edits API (img2img)
-        const result = await openaiImageEdit(
-          imageBuffer,
-          openaiPrompt,
-          config.parameters || {}
-        );
-        console.log('✅ [OPENAI] Image transformation completed successfully');
+        console.log('🎨 [OPENAI] Generating image with GPT-Image-1...');
+        console.log('🎨 [OPENAI] Prompt:', openaiPrompt.substring(0, 100) + '...');
+        
+        // Wywołaj OpenAI API
+        const result = await openaiImageGeneration(openaiPrompt, config.parameters || {});
+        console.log('✅ [OPENAI] Image generation completed successfully');
         
         // Zwróć URL do wygenerowanego obrazu
         imageUrl = result.image || result.output || result.url;
@@ -2444,7 +2448,7 @@ module.exports = async (req, res) => {
         }
         
       } catch (error) {
-        console.error('❌ [OPENAI] Image transformation failed:', error);
+        console.error('❌ [OPENAI] Image generation failed:', error);
         
         if (error.name === 'AbortError') {
           return res.status(504).json({
@@ -2454,7 +2458,7 @@ module.exports = async (req, res) => {
         }
         
         return res.status(500).json({
-          error: 'OpenAI transformation failed',
+          error: 'OpenAI generation failed',
           details: error.message
         });
       }
