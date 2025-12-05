@@ -709,8 +709,8 @@ async function segmindBecomeImage(imageUrl, styleImageUrl, styleParameters = {})
   throw lastError || new Error('Segmind become-image failed after all retries');
 }
 
-// Function to handle OpenAI DALL-E 3 API
-async function openaiImageGeneration(prompt, parameters = {}) {
+// Function to handle OpenAI GPT-Image-1 Edits API (img2img)
+async function openaiImageEdit(imageBuffer, prompt, parameters = {}) {
   const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
   
   console.log('🔑 [OPENAI] Checking API key...', OPENAI_API_KEY ? `Key present (${OPENAI_API_KEY.substring(0, 10)}...)` : 'KEY MISSING!');
@@ -782,7 +782,19 @@ async function openaiImageGeneration(prompt, parameters = {}) {
         apiParams.style = style; // vivid lub natural
       }
       
-      const response = await openai.images.generate(apiParams);
+      // GPT-Image-1 Edits API - wymaga obrazu jako input
+      const response = await openai.images.edit({
+        model: model,
+        image: imageBuffer, // Buffer z obrazem użytkownika
+        prompt: prompt,
+        n: n,
+        size: size,
+        quality: quality,
+        output_format: output_format, // JPEG format
+        background: background, // Opaque background
+        input_fidelity: input_fidelity, // Low fidelity (faster generation)
+        response_format: 'url' // Zwracamy URL, nie base64
+      });
 
       clearTimeout(timeoutId);
 
@@ -2365,21 +2377,55 @@ module.exports = async (req, res) => {
         throw error;
       }
     }
-    // ✅ STYLE OPENAI - UŻYWAJ GPT-IMAGE-1
+    // ✅ STYLE OPENAI - UŻYWAJ GPT-IMAGE-1 EDITS (img2img)
     else if (config.apiType === 'openai') {
-      console.log('🤖 [OPENAI] Detected OpenAI style - using GPT-Image-1 API');
+      console.log('🤖 [OPENAI] Detected OpenAI style - using GPT-Image-1 Edits API (img2img)');
       
       try {
-        // OpenAI GPT-Image-1 wymaga tylko prompta (nie przyjmuje obrazu jako input)
-        // Musimy stworzyć prompt opisujący transformację na podstawie zdjęcia użytkownika
-        const openaiPrompt = config.prompt || prompt;
+        // OpenAI GPT-Image-1 Edits wymaga obrazu jako input + prompt
+        // Upload obrazu użytkownika do Vercel Blob Storage żeby uzyskać stały URL
+        console.log('📤 [VERCEL-BLOB] Uploading user image to Vercel Blob Storage for OpenAI...');
         
-        console.log('🎨 [OPENAI] Generating image with GPT-Image-1...');
+        const baseUrl = 'https://customify-s56o.vercel.app';
+        const uploadResponse = await fetch(`${baseUrl}/api/upload-temp-image`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            imageData: imageDataUri,
+            filename: `openai-input-${Date.now()}.jpg`
+          })
+        });
+
+        if (!uploadResponse.ok) {
+          const errorText = await uploadResponse.text();
+          console.error('❌ [VERCEL-BLOB] Upload failed:', errorText);
+          throw new Error(`Vercel Blob upload failed: ${uploadResponse.status} - ${errorText}`);
+        }
+
+        const uploadResult = await uploadResponse.json();
+        const userImageUrl = uploadResult.imageUrl;
+        console.log('✅ [VERCEL-BLOB] User image uploaded:', userImageUrl);
+        
+        // Pobierz obraz jako buffer dla OpenAI API
+        const imageResponse = await fetch(userImageUrl);
+        if (!imageResponse.ok) {
+          throw new Error(`Failed to fetch uploaded image: ${imageResponse.status}`);
+        }
+        const imageBuffer = await imageResponse.arrayBuffer();
+        
+        const openaiPrompt = config.prompt || prompt;
+        console.log('🎨 [OPENAI] Transforming image with GPT-Image-1 Edits...');
         console.log('🎨 [OPENAI] Prompt:', openaiPrompt.substring(0, 100) + '...');
         
-        // Wywołaj OpenAI API
-        const result = await openaiImageGeneration(openaiPrompt, config.parameters || {});
-        console.log('✅ [OPENAI] Image generation completed successfully');
+        // Wywołaj OpenAI Edits API (img2img)
+        const result = await openaiImageEdit(
+          Buffer.from(imageBuffer),
+          openaiPrompt,
+          config.parameters || {}
+        );
+        console.log('✅ [OPENAI] Image transformation completed successfully');
         
         // Zwróć URL do wygenerowanego obrazu
         imageUrl = result.image || result.output || result.url;
@@ -2388,7 +2434,7 @@ module.exports = async (req, res) => {
         }
         
       } catch (error) {
-        console.error('❌ [OPENAI] Image generation failed:', error);
+        console.error('❌ [OPENAI] Image transformation failed:', error);
         
         if (error.name === 'AbortError') {
           return res.status(504).json({
@@ -2398,7 +2444,7 @@ module.exports = async (req, res) => {
         }
         
         return res.status(500).json({
-          error: 'OpenAI generation failed',
+          error: 'OpenAI transformation failed',
           details: error.message
         });
       }
