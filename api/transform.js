@@ -728,13 +728,13 @@ async function openaiImageEdit(imageBuffer, prompt, parameters = {}) {
   const {
     model = 'gpt-image-1',
     size = '1024x1536', // Portrait (pionowy portret)
-    quality = 'auto', // Auto quality
-    style = 'vivid', // vivid lub natural
+    quality = 'auto', // Auto quality (opcjonalne dla Edits API)
     output_format = 'jpeg', // JPEG format (nie 'jpg'!)
-    background = 'opaque', // Nieprzezroczyste tło
-    input_fidelity = 'low', // Niska wierność (szybsze generowanie) - POPRAWNA NAZWA!
+    background = 'opaque', // Nieprzezroczyste tło (opcjonalne dla Edits API)
     n = 1
   } = parameters;
+  
+  // input_fidelity i style NIE są obsługiwane przez Edits API - usuwamy
 
   console.log('🎨 [OPENAI] Starting GPT-Image-1 image generation...');
   console.log('🎨 [OPENAI] Prompt:', prompt.substring(0, 100) + '...');
@@ -742,10 +742,8 @@ async function openaiImageEdit(imageBuffer, prompt, parameters = {}) {
         model,
         size,
         quality,
-        style,
         output_format,
         background,
-        input_fidelity,
         n
       });
 
@@ -783,18 +781,26 @@ async function openaiImageEdit(imageBuffer, prompt, parameters = {}) {
       }
       
       // GPT-Image-1 Edits API - wymaga obrazu jako input
-      const response = await openai.images.edit({
+      // Edits API ma inne parametry niż generate API
+      const editParams = {
         model: model,
         image: imageBuffer, // Buffer z obrazem użytkownika
         prompt: prompt,
         n: n,
         size: size,
-        quality: quality,
-        output_format: output_format, // JPEG format
-        background: background, // Opaque background
-        input_fidelity: input_fidelity, // Low fidelity (faster generation)
-        response_format: 'url' // Zwracamy URL, nie base64
-      });
+        output_format: output_format // JPEG format
+      };
+      
+      // Dodaj opcjonalne parametry tylko jeśli są obsługiwane
+      if (quality) {
+        editParams.quality = quality;
+      }
+      if (background) {
+        editParams.background = background;
+      }
+      // input_fidelity NIE jest obsługiwany przez Edits API - usuwamy
+      
+      const response = await openai.images.edit(editParams);
 
       clearTimeout(timeoutId);
 
@@ -1387,12 +1393,11 @@ module.exports = async (req, res) => {
         parameters: {
           model: "gpt-image-1",
           size: "1024x1536", // Portrait (pionowy portret)
-          quality: "auto", // Auto quality
-          style: "vivid", // Żywe kolory (vivid lub natural)
+          quality: "auto", // Auto quality (opcjonalne)
           output_format: "jpeg", // JPEG format (nie 'jpg'!)
-          background: "opaque", // Nieprzezroczyste tło
-          input_fidelity: "low", // Niska wierność (szybsze generowanie) - POPRAWNA NAZWA!
+          background: "opaque", // Nieprzezroczyste tło (opcjonalne)
           n: 1
+          // input_fidelity i style NIE są obsługiwane przez Edits API
         }
       }
     };
