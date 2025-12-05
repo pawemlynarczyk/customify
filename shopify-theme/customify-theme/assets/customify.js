@@ -2517,8 +2517,8 @@ class CustomifyEmbed {
       
       const requestBody = {
         imageData: base64,
-        prompt: `Transform this image in ${this.selectedStyle} style`,
-        style: this.selectedStyle, // ✅ DODAJ STYL JAKO OSOBNE POLE - API użyje tego zamiast parsować prompt
+        // ❌ USUNIĘTO: prompt - backend używa config.prompt z konfiguracji stylu (jak dla króla, kotów, etc.)
+        style: this.selectedStyle, // ✅ STYL - API użyje tego do identyfikacji stylu i pobrania prompta z config
         productType: productType, // Przekaż typ produktu do API
         customerId: customerInfo?.customerId || null,
         // ✅ EMAIL: ZAWSZE wysyłaj email jeśli dostępny (dla zalogowanych i niezalogowanych)
@@ -2545,8 +2545,8 @@ class CustomifyEmbed {
       });
       
       console.log('🔍 [FRONTEND] Request Body (bez imageData):', {
-        prompt: requestBody.prompt,
-        style: requestBody.style, // ✅ POKAŻ STYL W REQUEST BODY
+        // ❌ USUNIĘTO: prompt - backend używa config.prompt
+        style: requestBody.style, // ✅ STYL - API użyje tego do identyfikacji stylu
         selectedStyle: this.selectedStyle, // ✅ DEBUG: Dodaj selectedStyle
         productType: requestBody.productType,
         customerId: requestBody.customerId,
