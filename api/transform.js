@@ -2386,7 +2386,18 @@ module.exports = async (req, res) => {
         const extension = mimeMatch && mimeMatch[2] ? mimeMatch[2].toLowerCase() : 'jpg';
         const base64Data = imageDataUri.split(',')[1] || imageDataUri;
         const imageBuffer = Buffer.from(base64Data, 'base64');
-        const imageFile = await toFile(imageBuffer, `image.${extension}`, { contentType: mimeType });
+        const imageFile = (typeof File !== 'undefined')
+          ? new File([imageBuffer], `image.${extension}`, { type: mimeType })
+          : await toFile(imageBuffer, `image.${extension}`, { contentType: mimeType });
+
+        console.log('📤 [OPENAI] Image payload debug:', {
+          mimeType,
+          extension,
+          bufferLength: imageBuffer.length,
+          fileType: imageFile?.type,
+          fileName: imageFile?.name,
+          fileSize: imageFile?.size
+        });
 
         const openaiPrompt = config.prompt;
         if (!openaiPrompt) {
