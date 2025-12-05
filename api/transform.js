@@ -1384,7 +1384,7 @@ module.exports = async (req, res) => {
         productType: "caricature-new",
         parameters: {
           model: "gpt-image-1",
-          size: "1024x1024", // kwadrat zgodnie z wymaganiem
+          size: "1024x1536", // pionowy portret 2:3
           output_format: "jpeg", // dozwolony format wyjściowy
           background: "opaque",
           n: 1
@@ -2412,7 +2412,7 @@ module.exports = async (req, res) => {
           model: config.parameters.model,
           image: imageFile,
           prompt: openaiPrompt,
-          size: config.parameters.size || '1024x1024',
+          size: config.parameters.size || '1024x1536',
           output_format: config.parameters.output_format || 'jpeg',
           background: config.parameters.background || 'opaque',
           n: config.parameters.n || 1,
