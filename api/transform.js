@@ -2385,8 +2385,10 @@ module.exports = async (req, res) => {
         const mimeType = mimeMatch ? mimeMatch[1].toLowerCase() : 'image/jpeg';
         const extension = mimeMatch && mimeMatch[2] ? mimeMatch[2].toLowerCase() : 'jpg';
         const base64Data = imageDataUri.split(',')[1] || imageDataUri;
-        const imageBuffer = Buffer.from(base64Data, 'base64');
-        const imageFile = await toFile(imageBuffer, `image.${extension}`, { contentType: mimeType });
+        const dataUri = imageDataUri.startsWith('data:')
+          ? imageDataUri
+          : `data:${mimeType};base64,${base64Data}`;
+        const imageFile = await toFile(dataUri, `image.${extension}`);
 
         const openaiPrompt = config.prompt;
         if (!openaiPrompt) {
