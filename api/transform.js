@@ -1,4 +1,5 @@
 const Replicate = require('replicate');
+const OpenAI = require('openai');
 const crypto = require('crypto');
 const { getClientIP } = require('../utils/vercelRateLimiter');
 const { checkIPLimit, incrementIPLimit, checkDeviceTokenLimit, incrementDeviceTokenLimit, isKVConfigured, isImageHashLimitEnabled, calculateImageHash, checkImageHashLimit, incrementImageHashLimit, checkDeviceTokenCrossAccount, addCustomerToDeviceToken } = require('../utils/vercelKVLimiter');
@@ -708,6 +709,118 @@ async function segmindBecomeImage(imageUrl, styleImageUrl, styleParameters = {})
   throw lastError || new Error('Segmind become-image failed after all retries');
 }
 
+// Function to handle OpenAI DALL-E 3 API
+async function openaiImageGeneration(prompt, parameters = {}) {
+  const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+  
+  console.log('🔑 [OPENAI] Checking API key...', OPENAI_API_KEY ? `Key present (${OPENAI_API_KEY.substring(0, 10)}...)` : 'KEY MISSING!');
+  
+  if (!OPENAI_API_KEY) {
+    console.error('❌ [OPENAI] OPENAI_API_KEY not found in environment variables!');
+    throw new Error('OPENAI_API_KEY not configured - please add it to Vercel environment variables');
+  }
+
+  // Initialize OpenAI client
+  const openai = new OpenAI({
+    apiKey: OPENAI_API_KEY,
+  });
+
+  const {
+    model = 'gpt-image-1',
+    size = '1024x1536', // Portrait (pionowy portret)
+    quality = 'auto', // Auto quality
+    style = 'vivid',
+    output_format = 'jpg', // JPG format
+    background = 'opaque', // Nieprzezroczyste tło
+    fidelity = 'low', // Niska wierność (szybsze generowanie)
+    n = 1
+  } = parameters;
+
+  console.log('🎨 [OPENAI] Starting GPT-Image-1 image generation...');
+  console.log('🎨 [OPENAI] Prompt:', prompt.substring(0, 100) + '...');
+      console.log('🛠️ [OPENAI] Parameters:', {
+        model,
+        size,
+        quality,
+        style,
+        output_format,
+        background,
+        fidelity,
+        n
+      });
+
+  const maxRetries = 3;
+  const retryDelay = 2000; // 2 sekundy bazowego opóźnienia
+  let lastError;
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      // Add timeout to prevent hanging requests
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => {
+        console.log(`⏰ [OPENAI] Request timeout after 60 seconds (attempt ${attempt}/${maxRetries}) - aborting`);
+        controller.abort();
+      }, 60000); // 60 second timeout
+
+      console.log(`🔄 [OPENAI] Attempt ${attempt}/${maxRetries}...`);
+
+      const response = await openai.images.generate({
+        model: model,
+        prompt: prompt,
+        n: n,
+        size: size,
+        quality: quality,
+        style: style,
+        output_format: output_format, // JPG format
+        background: background, // Opaque background
+        fidelity: fidelity, // Low fidelity (faster generation)
+        response_format: 'url' // Zwracamy URL, nie base64
+      });
+
+      clearTimeout(timeoutId);
+
+      if (response && response.data && response.data.length > 0) {
+        const imageUrl = response.data[0].url;
+        console.log(`✅ [OPENAI] Image generated successfully (attempt ${attempt})`);
+        console.log(`📸 [OPENAI] Image URL: ${imageUrl.substring(0, 50)}...`);
+        return { image: imageUrl, output: imageUrl, url: imageUrl };
+      } else {
+        throw new Error('No image in OpenAI response');
+      }
+    } catch (error) {
+      // Check if error is retryable (5xx server errors or rate limits)
+      const isRetryable = 
+        (error.status >= 500) ||
+        (error.status === 429) || // Rate limit
+        (error.message && (
+          error.message.includes('500') ||
+          error.message.includes('502') ||
+          error.message.includes('503') ||
+          error.message.includes('504') ||
+          error.message.includes('rate limit') ||
+          error.message.includes('timeout')
+        ));
+
+      if (isRetryable && attempt < maxRetries) {
+        const delay = retryDelay * Math.pow(2, attempt - 1); // Exponential backoff: 2s, 4s, 8s
+        console.warn(`⚠️ [OPENAI] Server error (attempt ${attempt}/${maxRetries}) - retrying in ${delay}ms...`);
+        console.warn(`⚠️ [OPENAI] Error details:`, error.message?.substring(0, 200) || error.toString());
+        lastError = error;
+        await new Promise(resolve => setTimeout(resolve, delay));
+        continue; // Retry
+      } else {
+        // Non-retryable error or max retries reached
+        console.error('❌ [OPENAI] API Error:', error.status || error.code);
+        console.error('❌ [OPENAI] Error details:', error.message);
+        throw error;
+      }
+    }
+  }
+
+  // Should never reach here, but just in case
+  throw lastError || new Error('OpenAI image generation failed after all retries');
+}
+
 // Function to compress and resize images for SDXL models
 async function compressImage(imageData, maxWidth = 1152, maxHeight = 1152, quality = 85) {
   if (!sharp) {
@@ -1244,6 +1357,23 @@ module.exports = async (req, res) => {
           image_to_become_noise: 0.3,
           control_depth_strength: 0.93,
           disable_safety_checker: true
+        }
+      },
+      // Nowy styl z OpenAI GPT-Image-1
+      'openai-art': {
+        model: "gpt-image-1",
+        prompt: "Create a soft, flattering caricature while keeping the people clearly recognizable.\n\nSTYLE:\n\n• Smooth, clean colors with a soft marker-and-colored-pencil look.\n\n• Natural, balanced skin tones (no yellow or sepia filter).\n\n• Gentle outlines and soft shading with mild exaggeration of expressive features.\n\nFACE & BEAUTY:\n\n• Preserve facial structure and identity.\n\n• Slightly enhance beauty: smooth skin, reduce wrinkles or harsh details.\n\n• Keep eyes natural and expressive.\n\nBACKGROUND:\n\n• Keep the original background, but softly stylize it to match the caricature style.\n\n• Do NOT remove or replace the background.\n\nEXAGGERATION:\n\n• Larger heads and slightly smaller bodies, but still natural and flattering.\n\n• Exaggerate only smiles, eyebrows, and cheeks — no distortion of identity.\n\nRESULT:\n\nA natural-color, soft, flattering caricature with preserved background and strong likeness.",
+        apiType: "openai",
+        productType: "openai-art", // Identyfikator typu produktu
+        parameters: {
+          model: "gpt-image-1",
+          size: "1024x1536", // Portrait (pionowy portret)
+          quality: "auto", // Auto quality
+          style: "vivid", // Żywe kolory
+          output_format: "jpg", // JPG format
+          background: "opaque", // Nieprzezroczyste tło
+          fidelity: "low", // Niska wierność (szybsze generowanie)
+          n: 1
         }
       }
     };
@@ -2226,6 +2356,44 @@ module.exports = async (req, res) => {
       } catch (error) {
         console.error('❌ [SEGMIND] Watercolor generation failed:', error);
         throw error;
+      }
+    }
+    // ✅ STYLE OPENAI - UŻYWAJ GPT-IMAGE-1
+    else if (config.apiType === 'openai') {
+      console.log('🤖 [OPENAI] Detected OpenAI style - using GPT-Image-1 API');
+      
+      try {
+        // OpenAI GPT-Image-1 wymaga tylko prompta (nie przyjmuje obrazu jako input)
+        // Musimy stworzyć prompt opisujący transformację na podstawie zdjęcia użytkownika
+        const openaiPrompt = config.prompt || prompt;
+        
+        console.log('🎨 [OPENAI] Generating image with GPT-Image-1...');
+        console.log('🎨 [OPENAI] Prompt:', openaiPrompt.substring(0, 100) + '...');
+        
+        // Wywołaj OpenAI API
+        const result = await openaiImageGeneration(openaiPrompt, config.parameters || {});
+        console.log('✅ [OPENAI] Image generation completed successfully');
+        
+        // Zwróć URL do wygenerowanego obrazu
+        imageUrl = result.image || result.output || result.url;
+        if (!imageUrl) {
+          throw new Error('No image URL returned from OpenAI API');
+        }
+        
+      } catch (error) {
+        console.error('❌ [OPENAI] Image generation failed:', error);
+        
+        if (error.name === 'AbortError') {
+          return res.status(504).json({
+            error: 'Request timeout - OpenAI API took too long to respond',
+            details: 'Please try again with a different style'
+          });
+        }
+        
+        return res.status(500).json({
+          error: 'OpenAI generation failed',
+          details: error.message
+        });
       }
     } else {
       // ✅ INNE STYLE - UŻYWAJ REPLICATE

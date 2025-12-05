@@ -455,7 +455,8 @@ class CustomifyEmbed {
       'wiktorianski': 'cats',
       'renesansowy': 'cats',
       'karykatura': 'caricature',
-      'akwarela': 'watercolor'
+      'akwarela': 'watercolor',
+      'openai-art': 'openai-art' // OpenAI GPT-Image-1 style
     };
     
     const productType = styleToProductType[style] || 'other';

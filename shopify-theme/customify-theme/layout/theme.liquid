@@ -3202,6 +3202,7 @@
               <h4>Wybierz styl</h4>
               <div class="customify-style-grid">
                 {% comment %} LOGIKA SERVER-SIDE: Filtruj style per produkt {% endcomment %}
+                {% comment %} DEBUG: Product handle = {{ product.handle }}, ID = {{ product.id }} {% endcomment %}
                                 {% if product.handle == 'karykatura-z-twojego-zdjecia-obraz' %}
                   {% comment %} TYLKO STYLE KARYKATURY dla produktu karykatura - używa Segmind API {% endcomment %}                                                   
                   <div class="customify-style-card" data-style="karykatura">
@@ -3343,6 +3344,16 @@
                       <div class="style-name">Królewski</div>
                     </div>
                   </div>
+                {% elsif product.handle == 'test-karikat' or product.handle contains 'test-karikat' %}
+                  {% comment %} TYLKO STYL OPENAI ART dla produktu test-karikat - używa OpenAI GPT-Image-1 API {% endcomment %}
+                  {% comment %} DEBUG: Warunek spełniony! Handle = {{ product.handle }} {% endcomment %}
+                  <div class="customify-style-card" data-style="openai-art" style="display: block !important;">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/openai/openai-art-style.png'); background-size: cover; background-position: center;"></div>
+                    <div class="style-info">
+                      <div class="style-name">AI Art</div>
+                    </div>
+                  </div>
+                  {% comment %} DEBUG: Koniec sekcji test-karikat {% endcomment %}
                 {% else %}
                   {% comment %} WSZYSTKIE STYLE NORMALNE dla innych produktów {% endcomment %}
                   <div class="customify-style-card" data-style="watercolor">

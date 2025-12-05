@@ -65,10 +65,6 @@ module.exports = async (req, res) => {
 
     const result = await updateResponse.json();
     console.log('✅ Theme updated successfully');
-    console.log('📝 Shopify API response:', JSON.stringify(result, null, 2));
-    console.log('📝 Shopify API response keys:', Object.keys(result));
-    console.log('📝 Shopify API asset key:', result.asset?.key);
-    console.log('📝 Shopify API asset value length:', result.asset?.value?.length || 0);
     
     // Sprawdź czy Shopify zwrócił błąd w JSON
     if (result.errors) {
@@ -76,11 +72,12 @@ module.exports = async (req, res) => {
       return res.status(500).json({ error: 'Shopify API returned errors', details: result.errors });
     }
     
-    // Sprawdź czy plik został faktycznie zaktualizowany (Shopify zwraca asset.value w odpowiedzi)
+    // Shopify czasami zwraca pełną zawartość pliku w odpowiedzi, czasami tylko potwierdzenie
+    // To nie jest błąd - jeśli updateResponse.ok, plik został zaktualizowany
     if (result.asset && result.asset.value) {
-      console.log('✅ Shopify zwrócił zaktualizowany plik w odpowiedzi (długość:', result.asset.value.length, 'znaków)');
+      console.log('ℹ️ Shopify zwrócił pełną zawartość pliku w odpowiedzi (długość:', result.asset.value.length, 'znaków)');
     } else {
-      console.warn('⚠️ Shopify NIE zwrócił zaktualizowanego pliku w odpowiedzi - może być problem z aktualizacją');
+      console.log('ℹ️ Shopify zwrócił tylko potwierdzenie aktualizacji (to normalne - plik został zaktualizowany)');
     }
 
     res.json({ 
