@@ -803,6 +803,23 @@ async function openaiImageEdit(imageBuffer, prompt, parameters = {}) {
       // GPT-Image-1 Edits API zwraca base64 (b64_json), nie URL
       editParams.response_format = 'b64_json';
       
+      // ✅ LOGOWANIE PEŁNEGO ZAPYTANIA DO OPENAI API
+      console.log('📤 [OPENAI] ===== PEŁNE ZAPYTANIE DO OPENAI API =====');
+      console.log('📤 [OPENAI] Endpoint: POST https://api.openai.com/v1/images/edits');
+      console.log('📤 [OPENAI] Model:', editParams.model);
+      console.log('📤 [OPENAI] Image buffer size:', imageBuffer.byteLength, 'bytes');
+      console.log('📤 [OPENAI] Prompt length:', prompt.length, 'characters');
+      console.log('📤 [OPENAI] Prompt (first 200 chars):', prompt.substring(0, 200) + '...');
+      console.log('📤 [OPENAI] Parameters:', {
+        n: editParams.n,
+        size: editParams.size,
+        output_format: editParams.output_format,
+        quality: editParams.quality || 'not set',
+        background: editParams.background || 'not set',
+        response_format: editParams.response_format
+      });
+      console.log('📤 [OPENAI] ===========================================');
+      
       const response = await openai.images.edit(editParams);
 
       clearTimeout(timeoutId);
