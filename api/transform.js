@@ -2395,7 +2395,7 @@ module.exports = async (req, res) => {
         }
         const response = await openai.images.edit({
           model: config.parameters.model,
-          image: [imageBuffer],
+          image: imageBuffer,
           prompt: openaiPrompt,
           size: config.parameters.size || '1024x1024',
           output_format: config.parameters.output_format || 'b64_json',
