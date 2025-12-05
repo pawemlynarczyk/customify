@@ -729,10 +729,10 @@ async function openaiImageGeneration(prompt, parameters = {}) {
     model = 'gpt-image-1',
     size = '1024x1536', // Portrait (pionowy portret)
     quality = 'auto', // Auto quality
-    style = 'vivid',
-    output_format = 'jpg', // JPG format
+    style = 'vivid', // vivid lub natural
+    output_format = 'jpeg', // JPEG format (nie 'jpg'!)
     background = 'opaque', // Nieprzezroczyste tło
-    fidelity = 'low', // Niska wierność (szybsze generowanie)
+    input_fidelity = 'low', // Niska wierność (szybsze generowanie) - POPRAWNA NAZWA!
     n = 1
   } = parameters;
 
@@ -745,7 +745,7 @@ async function openaiImageGeneration(prompt, parameters = {}) {
         style,
         output_format,
         background,
-        fidelity,
+        input_fidelity,
         n
       });
 
@@ -764,18 +764,25 @@ async function openaiImageGeneration(prompt, parameters = {}) {
 
       console.log(`🔄 [OPENAI] Attempt ${attempt}/${maxRetries}...`);
 
-      const response = await openai.images.generate({
+      // GPT-Image-1 API parameters
+      const apiParams = {
         model: model,
         prompt: prompt,
         n: n,
         size: size,
         quality: quality,
-        style: style,
-        output_format: output_format, // JPG format
+        output_format: output_format, // JPEG format
         background: background, // Opaque background
-        fidelity: fidelity, // Low fidelity (faster generation)
+        input_fidelity: input_fidelity, // Low fidelity (faster generation) - POPRAWNA NAZWA!
         response_format: 'url' // Zwracamy URL, nie base64
-      });
+      };
+      
+      // Style parameter - tylko jeśli jest obsługiwany przez model
+      if (style) {
+        apiParams.style = style; // vivid lub natural
+      }
+      
+      const response = await openai.images.generate(apiParams);
 
       clearTimeout(timeoutId);
 
@@ -1369,10 +1376,10 @@ module.exports = async (req, res) => {
           model: "gpt-image-1",
           size: "1024x1536", // Portrait (pionowy portret)
           quality: "auto", // Auto quality
-          style: "vivid", // Żywe kolory
-          output_format: "jpg", // JPG format
+          style: "vivid", // Żywe kolory (vivid lub natural)
+          output_format: "jpeg", // JPEG format (nie 'jpg'!)
           background: "opaque", // Nieprzezroczyste tło
-          fidelity: "low", // Niska wierność (szybsze generowanie)
+          input_fidelity: "low", // Niska wierność (szybsze generowanie) - POPRAWNA NAZWA!
           n: 1
         }
       }
