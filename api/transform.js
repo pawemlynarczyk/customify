@@ -1385,7 +1385,7 @@ module.exports = async (req, res) => {
         parameters: {
           model: "gpt-image-1",
           size: "1024x1024", // kwadrat zgodnie z wymaganiem
-          output_format: "b64_json", // otrzymujemy base64
+          response_format: "b64_json", // otrzymujemy base64
           background: "opaque",
           n: 1
         }
@@ -2413,7 +2413,7 @@ module.exports = async (req, res) => {
           image: imageFile,
           prompt: openaiPrompt,
           size: config.parameters.size || '1024x1024',
-          output_format: config.parameters.output_format || 'b64_json',
+          response_format: config.parameters.response_format || 'b64_json',
           background: config.parameters.background || 'opaque',
           n: config.parameters.n || 1,
         });
