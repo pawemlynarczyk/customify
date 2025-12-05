@@ -2431,9 +2431,13 @@ module.exports = async (req, res) => {
         }
         const imageBuffer = await imageResponse.arrayBuffer();
         
-        const openaiPrompt = config.prompt || prompt;
+        // ✅ UŻYJ TYLKO PROMPTA Z KONFIGURACJI (jak dla innych stylów - król, koty, etc.)
+        const openaiPrompt = config.prompt;
+        if (!openaiPrompt) {
+          throw new Error('Missing prompt in style configuration');
+        }
         console.log('🎨 [OPENAI] Transforming image with GPT-Image-1 Edits...');
-        console.log('🎨 [OPENAI] Prompt:', openaiPrompt.substring(0, 100) + '...');
+        console.log('🎨 [OPENAI] Prompt from config:', openaiPrompt.substring(0, 100) + '...');
         
         // Wywołaj OpenAI Edits API (img2img)
         const result = await openaiImageEdit(
