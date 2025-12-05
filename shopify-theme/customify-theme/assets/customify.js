@@ -2571,8 +2571,8 @@ class CustomifyEmbed {
       console.log('🔍🔍🔍 [FRONTEND-DEBUG] selectedStyle przed wysłaniem:', {
         selectedStyle: this.selectedStyle,
         selectedStyleType: typeof this.selectedStyle,
-        promptContainsStyle: requestBody.prompt.includes(this.selectedStyle || ''),
         styleCard: document.querySelector(`[data-style="${this.selectedStyle}"]`) ? 'found' : 'NOT FOUND'
+        // ❌ USUNIĘTO: promptContainsStyle - prompt nie jest już w request body
       });
       
       const response = await fetch('https://customify-s56o.vercel.app/api/transform', {
