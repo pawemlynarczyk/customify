@@ -25,7 +25,7 @@ class CustomifyEmbed {
     this.uploadedFile = null;
     this.selectedStyle = null;
     this.selectedSize = null;
-    this.selectedProductType = 'canvas'; // Domyślny wybór: Obraz na płótnie
+    this.selectedProductType = 'plakat'; // Domyślny wybór: Plakat
     this.transformedImage = null;
     
     // ✅ PENDING WATERMARK UPLOAD: Dane do wysłania jeśli użytkownik zmieni stronę
@@ -149,27 +149,12 @@ class CustomifyEmbed {
     this.initializeDefaultPrice();
 
     // 🎯 SYNC: Zsynchronizuj początkowy typ produktu i rozmiar z aktywnymi przyciskami w DOM
-    // ✅ FIX: Dla produktu Boho domyślnie ustaw "canvas" zamiast "plakat"
     try {
-      const isBohoProduct = window.location.pathname.includes('personalizowany-portret-w-stylu-boho');
-      
-      if (isBohoProduct) {
-        // Dla produktu Boho: domyślnie "canvas" (zgodnie z dokumentacją)
-        this.selectedProductType = 'canvas';
-        // Zaktualizuj DOM - usuń active z "plakat", dodaj do "canvas"
-        const plakatBtn = document.querySelector('.customify-product-type-btn[data-product-type="plakat"]');
-        const canvasBtn = document.querySelector('.customify-product-type-btn[data-product-type="canvas"]');
-        if (plakatBtn) plakatBtn.classList.remove('active');
-        if (canvasBtn) {
-          canvasBtn.classList.add('active');
-          console.log('🎨 [INIT] Boho product detected - set default productType to canvas');
-        }
-      } else {
-        const activeTypeBtn = document.querySelector('.customify-product-type-btn.active');
-        if (activeTypeBtn && activeTypeBtn.dataset.productType) {
-          this.selectedProductType = activeTypeBtn.dataset.productType;
-          console.log('🔄 [INIT] Synced selectedProductType from DOM:', this.selectedProductType);
-        }
+      // ✅ Dla WSZYSTKICH produktów: użyj domyślnego z HTML (Plakat)
+      const activeTypeBtn = document.querySelector('.customify-product-type-btn.active');
+      if (activeTypeBtn && activeTypeBtn.dataset.productType) {
+        this.selectedProductType = activeTypeBtn.dataset.productType;
+        console.log('🔄 [INIT] Synced selectedProductType from DOM:', this.selectedProductType);
       }
       const activeSizeBtn = document.querySelector('.customify-size-btn.active');
       if (activeSizeBtn && activeSizeBtn.dataset.size) {
