@@ -64,6 +64,14 @@ if (process.env.REPLICATE_API_TOKEN && process.env.REPLICATE_API_TOKEN !== 'leav
   });
 }
 
+// Initialize OpenAI (shared)
+let openai = null;
+if (process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY !== 'leave_empty_for_now') {
+  openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  });
+}
+
 // Function to add watermark to image buffer using Sharp
 async function addWatermarkToImage(imageBuffer) {
   if (!sharp) {
@@ -711,19 +719,10 @@ async function segmindBecomeImage(imageUrl, styleImageUrl, styleParameters = {})
 
 // Function to handle OpenAI DALL-E 3 API
 async function openaiImageGeneration(prompt, parameters = {}) {
-  const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-  
-  console.log('🔑 [OPENAI] Checking API key...', OPENAI_API_KEY ? `Key present (${OPENAI_API_KEY.substring(0, 10)}...)` : 'KEY MISSING!');
-  
-  if (!OPENAI_API_KEY) {
-    console.error('❌ [OPENAI] OPENAI_API_KEY not found in environment variables!');
+  if (!openai) {
+    console.error('❌ [OPENAI] OpenAI not initialized - missing OPENAI_API_KEY');
     throw new Error('OPENAI_API_KEY not configured - please add it to Vercel environment variables');
   }
-
-  // Initialize OpenAI client
-  const openai = new OpenAI({
-    apiKey: OPENAI_API_KEY,
-  });
 
   const {
     model = 'gpt-image-1',
@@ -2391,6 +2390,9 @@ module.exports = async (req, res) => {
         }
 
         console.log('📤 [OPENAI] Preparing images.edit payload (caricature-new)...');
+        if (!openai) {
+          throw new Error('OpenAI client not initialized');
+        }
         const response = await openai.images.edit({
           model: config.parameters.model,
           image: [imageBuffer],
