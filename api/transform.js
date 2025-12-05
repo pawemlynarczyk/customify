@@ -1,5 +1,6 @@
 const Replicate = require('replicate');
 const OpenAI = require('openai');
+const { toFile } = require('openai');
 const crypto = require('crypto');
 const { getClientIP } = require('../utils/vercelRateLimiter');
 const { checkIPLimit, incrementIPLimit, checkDeviceTokenLimit, incrementDeviceTokenLimit, isKVConfigured, isImageHashLimitEnabled, calculateImageHash, checkImageHashLimit, incrementImageHashLimit, checkDeviceTokenCrossAccount, addCustomerToDeviceToken } = require('../utils/vercelKVLimiter');
@@ -2379,10 +2380,10 @@ module.exports = async (req, res) => {
           throw new Error('Missing imageData for OpenAI caricature');
         }
 
-        // Wyciągnij base64 z data URL
+        // Wyciągnij base64 z data URL i zamień na plik (toFile dodaje name)
         const base64Data = imageDataUri.split(',')[1] || imageDataUri;
         const imageBuffer = Buffer.from(base64Data, 'base64');
-        imageBuffer.name = 'image.jpg'; // wymagane przez SDK
+        const imageFile = await toFile(imageBuffer, 'image.jpg');
 
         const openaiPrompt = config.prompt;
         if (!openaiPrompt) {
@@ -2395,7 +2396,7 @@ module.exports = async (req, res) => {
         }
         const response = await openai.images.edit({
           model: config.parameters.model,
-          image: imageBuffer,
+          image: imageFile,
           prompt: openaiPrompt,
           size: config.parameters.size || '1024x1024',
           output_format: config.parameters.output_format || 'b64_json',
