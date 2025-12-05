@@ -791,7 +791,7 @@ async function openaiImageEdit(imageBuffer, prompt, parameters = {}) {
         }
         
         // Konwertuj base64 na data URI
-        const dataUri = `data:image/${output_format === 'jpeg' ? 'jpeg' : 'png'};base64,${base64Image}`;
+        const dataUri = `data:image/jpeg;base64,${base64Image}`; // OpenAI returns jpeg for edits
         
         console.log(`✅ [OPENAI] Image generated successfully (attempt ${attempt})`);
         console.log(`📸 [OPENAI] Base64 image length: ${base64Image.length} characters`);
