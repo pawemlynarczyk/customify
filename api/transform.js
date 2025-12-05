@@ -807,7 +807,12 @@ async function openaiImageEdit(imageBuffer, prompt, parameters = {}) {
       console.log('📤 [OPENAI] ===== PEŁNE ZAPYTANIE DO OPENAI API =====');
       console.log('📤 [OPENAI] Endpoint: POST https://api.openai.com/v1/images/edits');
       console.log('📤 [OPENAI] Model:', editParams.model);
-      console.log('📤 [OPENAI] Image buffer size:', imageBuffer.byteLength, 'bytes');
+      console.log('📤 [OPENAI] Image buffer:', {
+        size: imageBuffer.length, 'bytes',
+        type: imageBuffer.constructor.name,
+        hasName: !!imageBuffer.name,
+        name: imageBuffer.name || 'NO NAME (może być problem!)'
+      });
       console.log('📤 [OPENAI] Prompt length:', prompt.length, 'characters');
       console.log('📤 [OPENAI] Prompt (first 200 chars):', prompt.substring(0, 200) + '...');
       console.log('📤 [OPENAI] Parameters:', {
@@ -818,6 +823,17 @@ async function openaiImageEdit(imageBuffer, prompt, parameters = {}) {
         background: editParams.background || 'not set',
         response_format: editParams.response_format
       });
+      console.log('📤 [OPENAI] Full editParams object:', JSON.stringify({
+        model: editParams.model,
+        prompt: editParams.prompt.substring(0, 50) + '...',
+        n: editParams.n,
+        size: editParams.size,
+        output_format: editParams.output_format,
+        quality: editParams.quality,
+        background: editParams.background,
+        response_format: editParams.response_format,
+        image: `[Buffer: ${imageBuffer.length} bytes, name: ${imageBuffer.name || 'NO NAME'}]`
+      }, null, 2));
       console.log('📤 [OPENAI] ===========================================');
       
       const response = await openai.images.edit(editParams);
