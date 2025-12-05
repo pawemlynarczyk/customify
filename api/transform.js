@@ -2446,7 +2446,21 @@ module.exports = async (req, res) => {
         if (!imageResponse.ok) {
           throw new Error(`Failed to fetch uploaded image: ${imageResponse.status}`);
         }
-        const imageBuffer = await imageResponse.arrayBuffer();
+        const imageArrayBuffer = await imageResponse.arrayBuffer();
+        
+        // Konwertuj ArrayBuffer na Buffer (wymagane przez OpenAI SDK)
+        const imageBuffer = Buffer.from(imageArrayBuffer);
+        
+        // ✅ OpenAI SDK wymaga właściwości 'name' na Buffer dla images.edit
+        // Określ format na podstawie URL lub użyj domyślnego JPEG
+        const imageFormat = userImageUrl.toLowerCase().includes('.png') ? 'png' : 'jpg';
+        imageBuffer.name = `image.${imageFormat}`;
+        
+        console.log('📸 [OPENAI] Image buffer prepared:', {
+          size: imageBuffer.length,
+          format: imageFormat,
+          name: imageBuffer.name
+        });
         
         // ✅ UŻYJ TYLKO PROMPTA Z KONFIGURACJI (jak dla innych stylów - król, koty, etc.)
         const openaiPrompt = config.prompt;
@@ -2458,7 +2472,7 @@ module.exports = async (req, res) => {
         
         // Wywołaj OpenAI Edits API (img2img)
         const result = await openaiImageEdit(
-          Buffer.from(imageBuffer),
+          imageBuffer,
           openaiPrompt,
           config.parameters || {}
         );
