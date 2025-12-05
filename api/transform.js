@@ -1385,7 +1385,7 @@ module.exports = async (req, res) => {
         parameters: {
           model: "gpt-image-1",
           size: "1024x1024", // kwadrat zgodnie z wymaganiem
-          response_format: "b64_json", // otrzymujemy base64
+          output_format: "jpeg", // dozwolony format wyjściowy
           background: "opaque",
           n: 1
         }
@@ -2388,7 +2388,7 @@ module.exports = async (req, res) => {
         const imageBuffer = Buffer.from(base64Data, 'base64');
         const imageFile = (typeof File !== 'undefined')
           ? new File([imageBuffer], `image.${extension}`, { type: mimeType })
-          : await toFile(imageBuffer, `image.${extension}`, { contentType: mimeType });
+          : await toFile(imageBuffer, `image.${extension}`, { type: mimeType });
 
         console.log('📤 [OPENAI] Image payload debug:', {
           mimeType,
@@ -2413,7 +2413,7 @@ module.exports = async (req, res) => {
           image: imageFile,
           prompt: openaiPrompt,
           size: config.parameters.size || '1024x1024',
-          response_format: config.parameters.response_format || 'b64_json',
+          output_format: config.parameters.output_format || 'jpeg',
           background: config.parameters.background || 'opaque',
           n: config.parameters.n || 1,
         });
