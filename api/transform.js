@@ -728,24 +728,12 @@ async function openaiImageEdit(imageBuffer, prompt, parameters = {}) {
   const {
     model = 'gpt-image-1',
     size = '1024x1536', // Portrait (pionowy portret)
-    quality = 'auto', // Auto quality (opcjonalne dla Edits API)
-    output_format = 'jpeg', // JPEG format (nie 'jpg'!)
-    background = 'opaque', // Nieprzezroczyste tło (opcjonalne dla Edits API)
     n = 1
   } = parameters;
-  
-  // input_fidelity i style NIE są obsługiwane przez Edits API - usuwamy
 
   console.log('🎨 [OPENAI] Starting GPT-Image-1 image generation...');
   console.log('🎨 [OPENAI] Prompt:', prompt.substring(0, 100) + '...');
-      console.log('🛠️ [OPENAI] Parameters:', {
-        model,
-        size,
-        quality,
-        output_format,
-        background,
-        n
-      });
+  console.log('🛠️ [OPENAI] Parameters:', { model, size, n });
 
   const maxRetries = 3;
   const retryDelay = 2000; // 2 sekundy bazowego opóźnienia
@@ -762,53 +750,22 @@ async function openaiImageEdit(imageBuffer, prompt, parameters = {}) {
 
       console.log(`🔄 [OPENAI] Attempt ${attempt}/${maxRetries}...`);
 
-      // GPT-Image-1 API parameters
-      const apiParams = {
-        model: model,
-        prompt: prompt,
-        n: n,
-        size: size,
-        quality: quality,
-        output_format: output_format, // JPEG format
-        background: background, // Opaque background
-        input_fidelity: input_fidelity, // Low fidelity (faster generation) - POPRAWNA NAZWA!
-        response_format: 'url' // Zwracamy URL, nie base64
-      };
-      
-      // Style parameter - tylko jeśli jest obsługiwany przez model
-      if (style) {
-        apiParams.style = style; // vivid lub natural
-      }
-      
-      // GPT-Image-1 Edits API - wymaga obrazu jako input
-      // Edits API ma inne parametry niż generate API
+      // GPT-Image-1 Edits API - minimalny, zgodny payload
       const editParams = {
         model: model,
-        image: imageBuffer, // Buffer z obrazem użytkownika
+        image: imageBuffer, // Buffer z obrazem użytkownika (ma ustawione .name)
         prompt: prompt,
         n: n,
         size: size,
-        output_format: output_format // JPEG format
+        response_format: 'b64_json' // GPT-Image-1 zwraca base64, nie URL
       };
-      
-      // Dodaj opcjonalne parametry tylko jeśli są obsługiwane
-      if (quality) {
-        editParams.quality = quality;
-      }
-      if (background) {
-        editParams.background = background;
-      }
-      // input_fidelity NIE jest obsługiwany przez Edits API - usuwamy
-      
-      // GPT-Image-1 Edits API zwraca base64 (b64_json), nie URL
-      editParams.response_format = 'b64_json';
       
       // ✅ LOGOWANIE PEŁNEGO ZAPYTANIA DO OPENAI API
       console.log('📤 [OPENAI] ===== PEŁNE ZAPYTANIE DO OPENAI API =====');
       console.log('📤 [OPENAI] Endpoint: POST https://api.openai.com/v1/images/edits');
       console.log('📤 [OPENAI] Model:', editParams.model);
       console.log('📤 [OPENAI] Image buffer:', {
-        size: imageBuffer.length, 'bytes',
+        size: imageBuffer.length,
         type: imageBuffer.constructor.name,
         hasName: !!imageBuffer.name,
         name: imageBuffer.name || 'NO NAME (może być problem!)'
@@ -818,22 +775,8 @@ async function openaiImageEdit(imageBuffer, prompt, parameters = {}) {
       console.log('📤 [OPENAI] Parameters:', {
         n: editParams.n,
         size: editParams.size,
-        output_format: editParams.output_format,
-        quality: editParams.quality || 'not set',
-        background: editParams.background || 'not set',
         response_format: editParams.response_format
       });
-      console.log('📤 [OPENAI] Full editParams object:', JSON.stringify({
-        model: editParams.model,
-        prompt: editParams.prompt.substring(0, 50) + '...',
-        n: editParams.n,
-        size: editParams.size,
-        output_format: editParams.output_format,
-        quality: editParams.quality,
-        background: editParams.background,
-        response_format: editParams.response_format,
-        image: `[Buffer: ${imageBuffer.length} bytes, name: ${imageBuffer.name || 'NO NAME'}]`
-      }, null, 2));
       console.log('📤 [OPENAI] ===========================================');
       
       const response = await openai.images.edit(editParams);
