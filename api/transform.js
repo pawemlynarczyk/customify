@@ -800,15 +800,26 @@ async function openaiImageEdit(imageBuffer, prompt, parameters = {}) {
       }
       // input_fidelity NIE jest obsługiwany przez Edits API - usuwamy
       
+      // GPT-Image-1 Edits API zwraca base64 (b64_json), nie URL
+      editParams.response_format = 'b64_json';
+      
       const response = await openai.images.edit(editParams);
 
       clearTimeout(timeoutId);
 
       if (response && response.data && response.data.length > 0) {
-        const imageUrl = response.data[0].url;
+        // GPT-Image-1 zwraca base64, nie URL
+        const base64Image = response.data[0].b64_json;
+        if (!base64Image) {
+          throw new Error('No base64 image in OpenAI response');
+        }
+        
+        // Konwertuj base64 na data URI
+        const dataUri = `data:image/${output_format === 'jpeg' ? 'jpeg' : 'png'};base64,${base64Image}`;
+        
         console.log(`✅ [OPENAI] Image generated successfully (attempt ${attempt})`);
-        console.log(`📸 [OPENAI] Image URL: ${imageUrl.substring(0, 50)}...`);
-        return { image: imageUrl, output: imageUrl, url: imageUrl };
+        console.log(`📸 [OPENAI] Base64 image length: ${base64Image.length} characters`);
+        return { image: dataUri, output: dataUri, url: dataUri };
       } else {
         throw new Error('No image in OpenAI response');
       }
