@@ -1060,8 +1060,9 @@ module.exports = async (req, res) => {
     console.log('📥 [API] productHandle:', productHandle || 'not provided');
     console.log('📥 [API] ===================================');
 
-    if (!imageData || !prompt) {
-      return res.status(400).json({ error: 'Image data and prompt are required' });
+    // 🔄 Prompt może być pusty w body – używamy promptu z konfiguracji stylu
+    if (!imageData) {
+      return res.status(400).json({ error: 'Image data is required' });
     }
     
     // 🧪 BYPASS: Sprawdź czy użytkownik jest na liście testowej (przed wszystkimi limitami)
@@ -1070,7 +1071,7 @@ module.exports = async (req, res) => {
     let isTest = isTestUser(email || null, ip);
     
     console.log(`🎯 [TRANSFORM] Product type: ${productType || 'not specified'}`);
-    console.log(`🎯 [TRANSFORM] Style: ${prompt}`);
+    console.log(`🎯 [TRANSFORM] Style: ${style || prompt || 'not specified'}`);
     console.log(`👤 [TRANSFORM] Customer ID: ${customerId || 'not logged in'}`);
     if (isTest) {
       console.log(`🧪 [TEST-BYPASS] Test user detected - wszystkie limity pomijane`);
