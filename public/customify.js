@@ -35,10 +35,10 @@ class CustomifyEmbed {
     this.textOverlayEnabled = this.isTextOverlayProduct();
     this.textOverlayState = {
       text: '',
-      preset: 'classic',
-      color: 'white',
-      font: 'sans',
-      size: 'medium',
+      preset: null,
+      color: null,
+      font: null,
+      size: null,
       applied: false,
       previewUrl: null
     };
@@ -958,10 +958,10 @@ class CustomifyEmbed {
     }
 
     const options = {
-      preset: this.textOverlayState.preset,
-      color: this.textOverlayState.color,
-      font: this.textOverlayState.font,
-      size: this.textOverlayState.size
+      preset: this.textOverlayState.preset || 'classic',
+      color: this.textOverlayState.color || 'white',
+      font: this.textOverlayState.font || 'sans',
+      size: this.textOverlayState.size || 'medium'
     };
 
     // Canvas render z napisem
@@ -1004,10 +1004,10 @@ class CustomifyEmbed {
     }
 
     const options = {
-      preset: this.textOverlayState.preset,
-      color: this.textOverlayState.color,
-      font: this.textOverlayState.font,
-      size: this.textOverlayState.size
+      preset: this.textOverlayState.preset || 'classic',
+      color: this.textOverlayState.color || 'white',
+      font: this.textOverlayState.font || 'sans',
+      size: this.textOverlayState.size || 'medium'
     };
 
     const baseUrl = this.textOverlayBaseImage || this.transformedImage;
@@ -2266,10 +2266,10 @@ class CustomifyEmbed {
 
     this.textOverlayState = {
       ...this.textOverlayState,
-      preset: this.textOverlayPresetSelect?.value || 'classic',
-      color: this.textOverlayColorSelect?.value || 'white',
-      font: this.textOverlayFontSelect?.value || 'sans',
-      size: this.textOverlaySizeSelect?.value || 'medium'
+      preset: this.textOverlayPresetSelect?.value || null,
+      color: this.textOverlayColorSelect?.value || null,
+      font: this.textOverlayFontSelect?.value || null,
+      size: this.textOverlaySizeSelect?.value || null
     };
 
     if (this.textOverlayPanel) {
