@@ -32,6 +32,7 @@ class CustomifyEmbed {
     this.textOverlayColorSelect = document.getElementById('textOverlayColorSelect');
     this.textOverlayFontSelect = document.getElementById('textOverlayFontSelect');
     this.textOverlaySizeSelect = document.getElementById('textOverlaySizeSelect');
+    this.textOverlayToggleBtn = document.getElementById('textOverlayToggleBtn');
     this.textOverlayEnabled = this.isTextOverlayProduct();
     this.textOverlayState = {
       text: '',
@@ -964,7 +965,7 @@ class CustomifyEmbed {
       size: this.textOverlayState.size || 'medium'
     };
 
-    // Canvas render z napisem
+    // Canvas render z napisem (jedna linia, auto-shrink)
     const baseUrl = this.textOverlayBaseImage || this.transformedImage;
     const base64WithText = await this.renderTextOverlay(baseUrl, text, options);
 
@@ -1028,6 +1029,14 @@ class CustomifyEmbed {
     this.textOverlayWatermarkedUrl = watermarkedUrl;
     this.textOverlayState = { ...this.textOverlayState, text, applied: true, previewUrl: null };
     this.updateTextOverlayHint('Napis zapisany – dodasz go do zamówienia');
+
+    // Zamknij panel po zapisie
+    const toggleBtn = this.textOverlayToggleBtn;
+    if (this.textOverlayPanel && toggleBtn) {
+      this.textOverlayPanel.style.display = 'none';
+      toggleBtn.classList.remove('active');
+      toggleBtn.setAttribute('data-overlay-open', 'false');
+    }
 
     if (this.resultImage) {
       this.resultImage.src = watermarkedUrl || overlayUrl;
@@ -2254,6 +2263,21 @@ class CustomifyEmbed {
     bindSelect(this.textOverlayColorSelect, 'color');
     bindSelect(this.textOverlayFontSelect, 'font');
     bindSelect(this.textOverlaySizeSelect, 'size');
+
+    if (this.textOverlayToggleBtn && this.textOverlayPanel) {
+      this.textOverlayToggleBtn.addEventListener('click', () => {
+        const isOpen = this.textOverlayPanel.style.display !== 'none';
+        if (isOpen) {
+          this.textOverlayPanel.style.display = 'none';
+          this.textOverlayToggleBtn.classList.remove('active');
+          this.textOverlayToggleBtn.setAttribute('data-overlay-open', 'false');
+        } else {
+          this.textOverlayPanel.style.display = 'block';
+          this.textOverlayToggleBtn.classList.add('active');
+          this.textOverlayToggleBtn.setAttribute('data-overlay-open', 'true');
+        }
+      });
+    }
 
     if (this.textOverlaySaveBtn) {
       this.textOverlaySaveBtn.addEventListener('click', () => {
