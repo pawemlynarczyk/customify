@@ -1034,7 +1034,6 @@ class CustomifyEmbed {
     const toggleBtn = this.textOverlayToggleBtn;
     if (this.textOverlayPanel && toggleBtn) {
       this.textOverlayPanel.style.display = 'none';
-      toggleBtn.classList.remove('active');
       toggleBtn.setAttribute('data-overlay-open', 'false');
     }
 
@@ -2269,11 +2268,9 @@ class CustomifyEmbed {
         const isOpen = this.textOverlayPanel.style.display !== 'none';
         if (isOpen) {
           this.textOverlayPanel.style.display = 'none';
-          this.textOverlayToggleBtn.classList.remove('active');
           this.textOverlayToggleBtn.setAttribute('data-overlay-open', 'false');
         } else {
           this.textOverlayPanel.style.display = 'block';
-          this.textOverlayToggleBtn.classList.add('active');
           this.textOverlayToggleBtn.setAttribute('data-overlay-open', 'true');
         }
       });
