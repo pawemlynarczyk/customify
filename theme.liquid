@@ -1316,34 +1316,6 @@
           height: auto !important;
         }
 
-        /* Toggle przycisku "Dodaj napis" */
-        .customify-text-overlay-toggle {
-          text-align: center;
-          margin-top: 12px;
-        }
-        .customify-text-overlay-toggle-btn {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          padding: 12px 18px;
-          border: 1px solid #111 !important;
-          background: #fff !important;
-          color: #111 !important;
-          font-weight: 600;
-          font-size: 0.95rem;
-          text-decoration: none;
-          cursor: pointer;
-          min-width: 200px;
-          box-sizing: border-box;
-          width: auto;
-        }
-        .customify-text-overlay-toggle-btn:hover,
-        .customify-text-overlay-toggle-btn:focus {
-          background: #f7f7f7 !important;
-          border-color: #111 !important;
-          color: #111 !important;
-        }
-
         /* Tekst na obrazie (pilotaż) */
         .customify-text-overlay-panel {
           margin-top: 16px;
@@ -3555,10 +3527,10 @@
               <div class="customify-success" id="successMessage"></div>
               
               {% if product.id == 15306975215941 %}
-              <div class="customify-text-overlay-toggle">
-                <button class="customify-text-overlay-toggle-btn" id="textOverlayToggleBtn" data-overlay-open="false" type="button">
+              <div class="customify-text-overlay-toggle customify-product-type-buttons" style="margin-top:12px; display:flex; justify-content:center;">
+                <div class="customify-product-type-btn" id="textOverlayToggleBtn" data-overlay-open="false" style="border:1px solid #111; background:#fff; color:#111;">
                   Dodaj napis
-                </button>
+                </div>
               </div>
               <div class="customify-text-overlay-panel" id="textOverlayPanel" style="display: none;">
                 <div class="text-overlay-row">
