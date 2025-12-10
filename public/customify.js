@@ -978,7 +978,6 @@ class CustomifyEmbed {
     }
 
     this.textOverlayState = { ...this.textOverlayState, previewUrl: base64WithText };
-    this.updateTextOverlayHint('Podgląd z napisem (nie zapisano)');
 
     if (this.resultImage) {
       this.resultImage.src = previewWithWatermark || base64WithText;
