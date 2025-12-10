@@ -21,7 +21,32 @@ class CustomifyEmbed {
     this.errorMessageBottom = document.getElementById('errorMessageBottom');
     this.errorMessageTransform = document.getElementById('errorMessageTransform');
     this.successMessage = document.getElementById('successMessage');
-    
+
+    // 🆕 Tekst na obrazie (pilotaż)
+    this.textOverlayPanel = document.getElementById('textOverlayPanel');
+    this.textOverlayInput = document.getElementById('textOverlayInput');
+    this.textOverlayCounter = document.getElementById('textOverlayCounter');
+    this.textOverlayPreviewBtn = document.getElementById('textOverlayPreviewBtn');
+    this.textOverlaySaveBtn = document.getElementById('textOverlaySaveBtn');
+    this.textOverlayHint = document.getElementById('textOverlayHint');
+    this.textOverlayPresetSelect = document.getElementById('textOverlayPresetSelect');
+    this.textOverlayColorSelect = document.getElementById('textOverlayColorSelect');
+    this.textOverlayFontSelect = document.getElementById('textOverlayFontSelect');
+    this.textOverlaySizeSelect = document.getElementById('textOverlaySizeSelect');
+    this.textOverlayEnabled = this.isTextOverlayProduct();
+    this.textOverlayState = {
+      text: '',
+      preset: 'classic',
+      color: 'white',
+      font: 'sans',
+      size: 'medium',
+      applied: false,
+      previewUrl: null
+    };
+    this.textOverlayBaseImage = null; // Oryginał bez tekstu (URL z Blob)
+    this.textOverlayWatermarkedUrl = null;
+    this.textOverlayOriginalWatermarked = null;
+
     this.uploadedFile = null;
     this.selectedStyle = null;
     this.selectedSize = null;
@@ -119,6 +144,26 @@ class CustomifyEmbed {
     });
   }
 
+  /**
+   * Sprawdza czy funkcja napisów jest dostępna (pilotaż na jednym produkcie)
+   */
+  isTextOverlayProduct() {
+    try {
+      const productId = window.ShopifyAnalytics?.meta?.product?.id || window.meta?.product?.id;
+      const handle = (window.ShopifyAnalytics?.meta?.product?.handle || window.meta?.product?.handle || window.location.pathname || '').toString();
+      if (productId && Number(productId) === 15306975215941) {
+        return true;
+      }
+      if (handle.includes('zdjecie-w-stylu-anime-personalizowane-z-twojego-zdjecia-obraz') || handle.includes('zdjecie-w-stylu-anime')) {
+        return true;
+      }
+      return false;
+    } catch (e) {
+      console.warn('⚠️ [TEXT-OVERLAY] Nie udało się wykryć produktu pilota:', e);
+      return false;
+    }
+  }
+
   init() {
     if (!document.getElementById('uploadArea')) {
       return; // Jeśli nie ma elementów, nie rób nic
@@ -171,6 +216,9 @@ class CustomifyEmbed {
     // Po synchronizacji wymuś przeliczenie cen (uwzględnia ramkę, jeśli plakat)
     this.updateProductPrice();
     this.updateCartPrice();
+
+    // 🆕 Inicjalizacja napisów (pilotaż)
+    this.setupTextOverlayUI();
   }
   
 
@@ -888,6 +936,227 @@ class CustomifyEmbed {
   }
 
   /**
+   * Nakłada napis na obraz i zapisuje na Vercel Blob (pilotaż)
+   */
+  async previewTextOverlay() {
+    if (!this.textOverlayEnabled) return;
+    if (!this.transformedImage) {
+      this.showError('Brak obrazu do podglądu napisu', 'cart');
+      return;
+    }
+
+    const text = (this.textOverlayInput?.value || '').trim();
+    this.textOverlayState = { ...this.textOverlayState, text };
+
+    // Jeśli tekst pusty – wróć do oryginału
+    if (!text) {
+      this.textOverlayState = { ...this.textOverlayState, text: '', previewUrl: null };
+      this.updateTextOverlayHint('Pole jest puste');
+      if (this.resultImage && this.watermarkedImageUrl) {
+        this.resultImage.src = this.watermarkedImageUrl;
+      }
+      return;
+    }
+
+    const options = {
+      preset: this.textOverlayState.preset,
+      color: this.textOverlayState.color,
+      font: this.textOverlayState.font,
+      size: this.textOverlayState.size
+    };
+
+    // Canvas render z napisem
+    const baseUrl = this.textOverlayBaseImage || this.transformedImage;
+    const base64WithText = await this.renderTextOverlay(baseUrl, text, options);
+
+    // Podgląd lokalny (bez uploadu) – z watermarkiem na froncie
+    let previewWithWatermark = null;
+    try {
+      previewWithWatermark = await this.addWatermark(base64WithText);
+    } catch (e) {
+      console.warn('⚠️ [TEXT-OVERLAY] addWatermark preview failed, using plain overlay:', e);
+      previewWithWatermark = base64WithText;
+    }
+
+    this.textOverlayState = { ...this.textOverlayState, previewUrl: base64WithText };
+    this.updateTextOverlayHint('Podgląd z napisem (nie zapisano)');
+
+    if (this.resultImage) {
+      this.resultImage.src = previewWithWatermark || base64WithText;
+    }
+  }
+
+  /**
+   * Zapisuje napis na Vercel Blob (po zatwierdzeniu)
+   */
+  async saveTextOverlay() {
+    if (!this.textOverlayEnabled) return;
+    if (!this.transformedImage) {
+      this.showError('Brak obrazu do zapisania napisu', 'cart');
+      return;
+    }
+
+    const text = (this.textOverlayInput?.value || '').trim();
+    this.textOverlayState = { ...this.textOverlayState, text };
+
+    if (!text) {
+      this.showError('Wpisz tekst przed zapisem', 'cart');
+      return;
+    }
+
+    const options = {
+      preset: this.textOverlayState.preset,
+      color: this.textOverlayState.color,
+      font: this.textOverlayState.font,
+      size: this.textOverlayState.size
+    };
+
+    const baseUrl = this.textOverlayBaseImage || this.transformedImage;
+    const base64WithText = await this.renderTextOverlay(baseUrl, text, options);
+
+    // Upload wersji z napisem
+    const filename = `text-overlay-${Date.now()}.jpg`;
+    const overlayUrl = await this.saveToVercelBlob(base64WithText, filename);
+
+    // Watermark na wersji z tekstem
+    const watermarkedBase64 = await this.addWatermark(base64WithText);
+    const watermarkedUrl = await this.saveToVercelBlob(watermarkedBase64, `text-overlay-watermarked-${Date.now()}.jpg`);
+
+    // Aktualizuj stan (dopiero po zapisie)
+    this.transformedImage = overlayUrl;
+    this.watermarkedImageUrl = watermarkedUrl;
+    this.watermarkedImageBase64 = watermarkedBase64;
+    this.textOverlayWatermarkedUrl = watermarkedUrl;
+    this.textOverlayState = { ...this.textOverlayState, text, applied: true, previewUrl: null };
+    this.updateTextOverlayHint('Napis zapisany – dodasz go do zamówienia');
+
+    if (this.resultImage) {
+      this.resultImage.src = watermarkedUrl || overlayUrl;
+    }
+
+    // Zaktualizuj najnowszą generację w localStorage
+    try {
+      const generations = this.getAIGenerations();
+      if (generations.length > 0) {
+        generations[0] = {
+          ...generations[0],
+          transformedImage: overlayUrl,
+          watermarkedImageUrl: watermarkedUrl,
+          watermarkedImageBase64: watermarkedBase64,
+          textOverlay: {
+            text,
+            ...options
+          }
+        };
+        localStorage.setItem('customify_ai_generations', JSON.stringify(generations.slice(0, 8)));
+        console.log('✅ [TEXT-OVERLAY] Zapisano overlay w localStorage');
+      }
+    } catch (err) {
+      console.warn('⚠️ [TEXT-OVERLAY] Nie udało się zaktualizować localStorage:', err);
+    }
+  }
+
+  /**
+   * Renderuje napis na kanwie
+   */
+  async renderTextOverlay(imageUrl, text, options) {
+    return new Promise((resolve, reject) => {
+      try {
+        const img = new Image();
+        if (imageUrl && !imageUrl.startsWith('data:')) {
+          img.crossOrigin = 'anonymous';
+        }
+        img.onload = () => {
+          try {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d');
+
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+            const padding = canvas.width * 0.06;
+            const areaHeight = canvas.height * 0.22;
+            const baseY = canvas.height - areaHeight * 0.35;
+            const maxWidth = canvas.width - padding * 2;
+
+            const sizeMap = { small: 0.045, medium: 0.06, large: 0.075 };
+            const fontSize = Math.max(28, canvas.height * (sizeMap[options.size] || sizeMap.medium));
+
+            const fontMap = {
+              serif: `700 ${fontSize}px "Times New Roman", "Georgia", serif`,
+              sans: `700 ${fontSize}px "Inter", "Helvetica Neue", Arial, sans-serif`,
+              script: `700 ${fontSize}px "Brush Script MT", "Segoe Script", cursive`
+            };
+            const font = fontMap[options.font] || fontMap.sans;
+
+            const colorMap = {
+              white: '#ffffff',
+              black: '#111111',
+              gold: '#d6b36a'
+            };
+            const fillColor = colorMap[options.color] || '#ffffff';
+
+            ctx.font = font;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            const words = text.split(' ');
+            const lines = [];
+            let current = '';
+            words.forEach(word => {
+              const testLine = current ? `${current} ${word}` : word;
+              const { width } = ctx.measureText(testLine);
+              if (width > maxWidth && current) {
+                lines.push(current);
+                current = word;
+              } else {
+                current = testLine;
+              }
+            });
+            if (current) lines.push(current);
+            const limitedLines = lines.slice(0, 2);
+
+            if (options.preset === 'banner') {
+              const bannerHeight = fontSize * (limitedLines.length === 2 ? 2.1 : 1.4);
+              const bannerY = baseY - bannerHeight / 2;
+              ctx.fillStyle = 'rgba(0,0,0,0.35)';
+              ctx.fillRect(padding, bannerY - fontSize * 0.3, canvas.width - padding * 2, bannerHeight);
+            }
+
+            limitedLines.forEach((line, idx) => {
+              const lineY = baseY + (idx - (limitedLines.length - 1) / 2) * (fontSize * 1.2);
+
+              if (options.preset === '3d') {
+                ctx.fillStyle = 'rgba(0,0,0,0.35)';
+                ctx.fillText(line, canvas.width / 2 + 3, lineY + 3);
+              }
+
+              if (options.preset === 'outline' || options.preset === '3d') {
+                ctx.strokeStyle = 'rgba(0,0,0,0.65)';
+                ctx.lineWidth = Math.max(2, fontSize * 0.08);
+                ctx.strokeText(line, canvas.width / 2, lineY);
+              }
+
+              ctx.fillStyle = fillColor;
+              ctx.fillText(line, canvas.width / 2, lineY);
+            });
+
+            const result = canvas.toDataURL('image/jpeg', 0.92);
+            resolve(result);
+          } catch (err) {
+            reject(err);
+          }
+        };
+        img.onerror = (err) => reject(err);
+        img.src = imageUrl;
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+
+  /**
    * Sprawdza czy URL do obrazu działa
    */
   async checkImageUrl(url) {
@@ -1015,6 +1284,34 @@ class CustomifyEmbed {
       // ✅ NOWE: Ustaw this.watermarkedImageBase64 z galerii (dla /api/products - BEZ PONOWNEGO DOWNLOADU)
       this.watermarkedImageBase64 = generation.watermarkedImageBase64 || null;
       console.log('✅ [GALLERY] Set this.watermarkedImageBase64 from generation:', this.watermarkedImageBase64 ? `${this.watermarkedImageBase64.length} chars` : 'brak');
+
+      // 🆕 Tekst na obrazie - odtwórz stan z generacji (tylko produkt pilota)
+      if (this.textOverlayEnabled) {
+        this.textOverlayBaseImage = generation.transformedImage;
+        this.textOverlayOriginalWatermarked = generation.watermarkedImageUrl || null;
+        const textOverlay = generation.textOverlay || null;
+        if (this.textOverlayInput) {
+          this.textOverlayInput.value = textOverlay?.text || '';
+          this.updateTextOverlayCounter();
+        }
+        this.textOverlayState = {
+          ...this.textOverlayState,
+          text: textOverlay?.text || '',
+          preset: textOverlay?.preset || 'classic',
+          color: textOverlay?.color || 'white',
+          font: textOverlay?.font || 'sans',
+          size: textOverlay?.size || 'medium',
+          applied: !!textOverlay
+        };
+        if (this.textOverlayPanel) {
+          this.textOverlayPanel.style.display = 'block';
+        }
+        if (textOverlay?.text) {
+          this.updateTextOverlayHint('Napis dodany. Możesz go zmienić i ponownie zastosować.');
+        } else {
+          this.updateTextOverlayHint('');
+        }
+      }
       
       // ✅ KLUCZOWE: Ustaw this.originalImageFromGallery żeby addToCart() działało
       this.originalImageFromGallery = generation.originalImage;
@@ -1912,6 +2209,98 @@ class CustomifyEmbed {
     document.getElementById('tryAgainBtn').addEventListener('click', () => this.tryAgain());
   }
 
+  /**
+   * Inicjalizacja UI napisów (tylko produkt pilota)
+   */
+  setupTextOverlayUI() {
+    if (!this.textOverlayEnabled) {
+      if (this.textOverlayPanel) {
+        this.textOverlayPanel.style.display = 'none';
+      }
+      return;
+    }
+
+    if (this.textOverlayInput && this.textOverlayCounter) {
+      this.textOverlayInput.addEventListener('input', () => {
+        this.updateTextOverlayCounter();
+        this.textOverlayState.applied = false;
+        this.updateTextOverlayHint('Kliknij „Zapisz”, aby dodać napis do zamówienia');
+      });
+      this.updateTextOverlayCounter();
+    }
+
+    const bindSelect = (selectEl, key) => {
+      if (!selectEl) return;
+      selectEl.addEventListener('change', () => {
+        this.textOverlayState[key] = selectEl.value;
+        this.textOverlayState.applied = false;
+        this.updateTextOverlayHint('Kliknij „Zapisz”, aby dodać napis do zamówienia');
+      });
+    };
+
+    bindSelect(this.textOverlayPresetSelect, 'preset');
+    bindSelect(this.textOverlayColorSelect, 'color');
+    bindSelect(this.textOverlayFontSelect, 'font');
+    bindSelect(this.textOverlaySizeSelect, 'size');
+
+    if (this.textOverlayPreviewBtn) {
+      this.textOverlayPreviewBtn.addEventListener('click', () => {
+        this.previewTextOverlay().catch(err => {
+          console.error('❌ [TEXT-OVERLAY] preview error:', err);
+          this.showError('Nie udało się pokazać podglądu napisu. Spróbuj ponownie.', 'cart');
+        });
+      });
+    }
+    if (this.textOverlaySaveBtn) {
+      this.textOverlaySaveBtn.addEventListener('click', () => {
+        this.saveTextOverlay().catch(err => {
+          console.error('❌ [TEXT-OVERLAY] save error:', err);
+          this.showError('Nie udało się zapisać napisu. Spróbuj ponownie.', 'cart');
+        });
+      });
+    }
+
+    this.textOverlayState = {
+      ...this.textOverlayState,
+      preset: this.textOverlayPresetSelect?.value || 'classic',
+      color: this.textOverlayColorSelect?.value || 'white',
+      font: this.textOverlayFontSelect?.value || 'sans',
+      size: this.textOverlaySizeSelect?.value || 'medium'
+    };
+
+    if (this.textOverlayPanel) {
+      this.textOverlayPanel.style.display = 'none';
+    }
+  }
+
+  updateTextOverlayCounter() {
+    if (!this.textOverlayInput || !this.textOverlayCounter) return;
+    const current = this.textOverlayInput.value.length;
+    const max = this.textOverlayInput.maxLength || 80;
+    this.textOverlayCounter.textContent = `${current}/${max}`;
+  }
+
+  updateTextOverlayHint(message = '') {
+    if (!this.textOverlayHint) return;
+    if (message) {
+      this.textOverlayHint.textContent = message;
+      this.textOverlayHint.style.display = 'block';
+    } else {
+      this.textOverlayHint.style.display = 'none';
+    }
+  }
+
+  getTextOverlayPayload() {
+    if (!this.textOverlayEnabled || !this.textOverlayState.applied) return null;
+    return {
+      text: (this.textOverlayState.text || '').trim(),
+      preset: this.textOverlayState.preset,
+      color: this.textOverlayState.color,
+      font: this.textOverlayState.font,
+      size: this.textOverlayState.size
+    };
+  }
+
   handleFileSelect(file) {
     if (!file) return;
     if (!file.type.startsWith('image/')) {
@@ -2697,6 +3086,19 @@ class CustomifyEmbed {
         
         // ✅ UKRYJ PASEK POSTĘPU - obraz jest już widoczny, reszta działa w tle
         this.hideLoading();
+
+        // 🆕 Tekst na obrazie – pokaż panel dopiero po generacji (tylko produkt pilota)
+        if (this.textOverlayEnabled && this.textOverlayPanel) {
+          this.textOverlayBaseImage = result.transformedImage || null;
+          this.textOverlayOriginalWatermarked = result.watermarkedImageUrl || null;
+          this.textOverlayState = { ...this.textOverlayState, text: '', applied: false };
+          if (this.textOverlayInput) {
+            this.textOverlayInput.value = '';
+            this.updateTextOverlayCounter();
+          }
+          this.textOverlayPanel.style.display = 'block';
+          this.updateTextOverlayHint('Dodaj napis przed dodaniem do koszyka (opcjonalnie)');
+        }
         
         // ✅ BACKEND WATERMARK: Backend już generuje watermark i zwraca watermarkedImageUrl w response
         // ✅ Backend zapisuje watermarkedImageUrl w save-generation-v2 automatycznie
@@ -3028,6 +3430,17 @@ class CustomifyEmbed {
       return;
     }
 
+    // 🆕 Tekst na obrazie: jeśli użytkownik wpisał tekst, musi kliknąć „Zastosuj napis”
+    let textOverlayPayload = null;
+    if (this.textOverlayEnabled) {
+      const draftText = (this.textOverlayInput?.value || '').trim();
+      if (draftText && !this.textOverlayState.applied) {
+        this.showError('Kliknij „Zapisz”, aby dodać napis do zamówienia', 'cart');
+        return;
+      }
+      textOverlayPayload = this.getTextOverlayPayload();
+    }
+
     console.log('🛒 [CUSTOMIFY] Starting addToCart process...');
     this.hideError();
 
@@ -3090,7 +3503,8 @@ class CustomifyEmbed {
         originalProductId: productId, // ✅ Dodano ID produktu do pobrania ceny z Shopify
         finalPrice: finalPrice, // ✅ Przekaż obliczoną cenę do API
         frameColor: window.CustomifyFrame?.color || 'none', // ✅ Informacja o ramce dla debugowania
-        frameSurcharge: frameSurcharge // ✅ Dopłata za ramkę dla weryfikacji
+        frameSurcharge: frameSurcharge, // ✅ Dopłata za ramkę dla weryfikacji
+        textOverlay: textOverlayPayload
       };
 
       console.log('🛒 [CUSTOMIFY] Creating product with data:', productData);
@@ -3155,6 +3569,9 @@ class CustomifyEmbed {
             'Ramka': `ramka - ${frameLabel}`,  // ✅ Informacja o wybranej ramce (tylko dla plakatu)
             'Order ID': shortOrderId  // ✅ Skrócony ID zamówienia widoczny dla klienta
           };
+          if (textOverlayPayload?.text) {
+            properties['Napis na obrazie'] = textOverlayPayload.text;
+          }
           
           const noteAttributes = {};
           
@@ -3170,6 +3587,9 @@ class CustomifyEmbed {
           }
           if (result.vercelBlobUrl) {
             noteAttributes['AI Image Vercel'] = result.vercelBlobUrl;
+          }
+          if (textOverlayPayload) {
+            noteAttributes['AI Text Overlay'] = JSON.stringify(textOverlayPayload);
           }
           
           console.log('🛒 [CUSTOMIFY CART PROPERTIES VISIBLE]:', properties);
@@ -3416,6 +3836,17 @@ class CustomifyEmbed {
     this.selectedStyle = null;
     this.selectedSize = null;
     this.transformedImage = null;
+    this.textOverlayBaseImage = null;
+    this.textOverlayWatermarkedUrl = null;
+    this.textOverlayOriginalWatermarked = null;
+    this.textOverlayState = { ...this.textOverlayState, text: '', applied: false };
+    if (this.textOverlayInput) {
+      this.textOverlayInput.value = '';
+      this.updateTextOverlayCounter();
+    }
+    if (this.textOverlayPanel) {
+      this.textOverlayPanel.style.display = this.textOverlayEnabled ? 'none' : 'none';
+    }
     
     this.fileInput.value = '';
     this.uploadArea.style.display = 'block'; // Pokaż pole upload z powrotem
@@ -3461,6 +3892,17 @@ class CustomifyEmbed {
     this.selectedStyle = null;
     this.selectedSize = null;
     this.transformedImage = null;
+    this.textOverlayBaseImage = null;
+    this.textOverlayWatermarkedUrl = null;
+    this.textOverlayOriginalWatermarked = null;
+    this.textOverlayState = { ...this.textOverlayState, text: '', applied: false };
+    if (this.textOverlayInput) {
+      this.textOverlayInput.value = '';
+      this.updateTextOverlayCounter();
+    }
+    if (this.textOverlayPanel) {
+      this.textOverlayPanel.style.display = this.textOverlayEnabled ? 'none' : 'none';
+    }
     
     // Usuń aktywne style
     this.stylesArea.querySelectorAll('.customify-style-card').forEach(card => card.classList.remove('active'));

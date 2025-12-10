@@ -1311,6 +1311,71 @@
           width: 100% !important;
           height: auto !important;
         }
+
+        /* Tekst na obrazie (pilotaż) */
+        .customify-text-overlay-panel {
+          margin-top: 16px;
+          padding: 14px;
+          border: 1px solid #e9ecef;
+          border-radius: 10px;
+          background: #f9fafb;
+        }
+        .customify-text-overlay-panel h5 {
+          margin: 0 0 10px 0;
+          font-size: 1rem;
+        }
+        .text-overlay-row {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 10px;
+        }
+        .text-overlay-counter {
+          font-size: 0.8rem;
+          color: #6b7280;
+        }
+        .text-overlay-group {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          margin-bottom: 10px;
+        }
+        .text-overlay-hint {
+          font-size: 0.85rem;
+          color: #6b7280;
+          margin: 6px 0 0 0;
+        }
+        .text-overlay-input {
+          border: 1px solid #d1d5db;
+          border-radius: 8px;
+          padding: 10px;
+          font-size: 0.95rem;
+          width: 100%;
+          background: #fff;
+          color: #111;
+          box-sizing: border-box;
+          outline: none;
+        }
+        .text-overlay-select {
+          width: 100%;
+          padding: 10px;
+          border: 1px solid #d1d5db;
+          border-radius: 8px;
+          background: #fff;
+          font-size: 0.95rem;
+          color: #111;
+          box-sizing: border-box;
+          outline: none;
+        }
+        .text-overlay-actions {
+          display: flex;
+          gap: 10px;
+        }
+        .text-overlay-actions button {
+          flex: 1 1 0;
+          min-width: 0;
+          text-align: center;
+        }
         
         /* Cena - wyrównanie do lewej */
         .customify-cart-price {
@@ -3211,12 +3276,24 @@
                       <div class="style-name">Karykatura</div>
                     </div>
                   </div>
+                  <div class="customify-style-card" data-style="caricature-new" style="display: block !important;">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/karykat/karykat_nowoczesna.png'); background-size: cover; background-position: center;"></div>
+                    <div class="style-info">
+                      <div class="style-name">Nowoczesna</div>
+                    </div>
+                  </div>
                 {% elsif product.handle == 'karykatura-prezent-na-rocznice-prezent-ze-zdjecia' %}
                   {% comment %} TYLKO STYLE KARYKATURY dla produktu karykatura-prezent - używa Segmind API {% endcomment %}                                                   
                   <div class="customify-style-card" data-style="karykatura">
                     <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/karykat/caricature_2.png'); background-size: cover; background-position: center;"></div>                                                
                     <div class="style-info">
                       <div class="style-name">Karykatura</div>
+                    </div>
+                  </div>
+                  <div class="customify-style-card" data-style="caricature-new" style="display: block !important;">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/karykat/nowoczesna_2.png'); background-size: cover; background-position: center;"></div>
+                    <div class="style-info">
+                      <div class="style-name">Nowoczesna</div>
                     </div>
                   </div>
                 {% elsif product.handle == 'personalizowany-portret-w-stylu-boho' %}
@@ -3354,7 +3431,7 @@
                     </div>
                   </div>
                   <div class="customify-style-card" data-style="caricature-new" style="display: block !important;">
-                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/openai/openai-art-style.png'); background-size: cover; background-position: center;"></div>
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/karykat/karykat_nowoczesna.png'); background-size: cover; background-position: center;"></div>
                     <div class="style-info">
                       <div class="style-name">Caricature New</div>
                     </div>
@@ -3415,6 +3492,54 @@
               <!-- Komunikat sukcesu -->
               <div class="customify-success" id="successMessage"></div>
               
+              {% if product.id == 15306975215941 %}
+              <div class="customify-text-overlay-panel" id="textOverlayPanel" style="display: none;">
+                <h5>Dodaj napis (opcjonalnie)</h5>
+                <div class="text-overlay-row">
+                  <input class="text-overlay-input" type="text" id="textOverlayInput" maxlength="80" placeholder="Twój napis (max 80 znaków)">
+                  <span class="text-overlay-counter" id="textOverlayCounter">0/80</span>
+                </div>
+                <div class="text-overlay-group">
+                  <select class="text-overlay-select" id="textOverlayPresetSelect">
+                    <option value="classic" selected>Classic</option>
+                    <option value="3d">3D Soft</option>
+                    <option value="outline">Outline</option>
+                    <option value="banner">Banner</option>
+                  </select>
+                </div>
+                <div class="text-overlay-group">
+                  <select class="text-overlay-select" id="textOverlayColorSelect">
+                    <option value="white" selected>Biały</option>
+                    <option value="black">Czarny</option>
+                    <option value="gold">Złoty</option>
+                  </select>
+                </div>
+                <div class="text-overlay-group">
+                  <select class="text-overlay-select" id="textOverlayFontSelect">
+                    <option value="serif">Elegant Serif</option>
+                    <option value="sans" selected>Clean Sans</option>
+                    <option value="script">Script</option>
+                  </select>
+                </div>
+                <div class="text-overlay-group">
+                  <select class="text-overlay-select" id="textOverlaySizeSelect">
+                    <option value="small">Mały</option>
+                    <option value="medium" selected>Średni</option>
+                    <option value="large">Duży</option>
+                  </select>
+                </div>
+                <div class="text-overlay-actions">
+                  <button class="customify-btn customify-btn-secondary" id="textOverlayPreviewBtn" type="button">
+                    Zobacz
+                  </button>
+                  <button class="customify-btn customify-btn-primary" id="textOverlaySaveBtn" type="button">
+                    Zapisz
+                  </button>
+                </div>
+                <div class="text-overlay-hint" id="textOverlayHint" style="display: none;"></div>
+              </div>
+              {% endif %}
+
               <!-- Slot do przeniesienia sekcji typu i rozmiaru nad cenę -->
               <div id="type-size-inline-slot"></div>
               
