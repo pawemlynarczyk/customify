@@ -1082,11 +1082,11 @@ class CustomifyEmbed {
     const sizeMap = { small: 0.05, medium: 0.075, large: 0.11 };
     const fontSize = Math.max(32, canvas.height * (sizeMap[options.size] || sizeMap.medium));
 
-            const fontMap = {
-              serif: `700 ${fontSize}px "Times New Roman", "Georgia", serif`,
-              sans: `700 ${fontSize}px "Inter", "Helvetica Neue", Arial, sans-serif`,
-              script: `700 ${fontSize}px "Brush Script MT", "Segoe Script", cursive`
-            };
+    const fontMap = {
+      serif: `700 ${fontSize}px "Times New Roman", "Georgia", serif`,
+      sans: `700 ${fontSize}px "Montserrat", "Poppins", "Inter", Arial, sans-serif`,
+      script: `700 ${fontSize}px "Dancing Script", "Pacifico", cursive`
+    };
             const font = fontMap[options.font] || fontMap.sans;
 
     const colorMap = {
