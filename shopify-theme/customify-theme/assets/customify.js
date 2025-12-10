@@ -28,7 +28,6 @@ class CustomifyEmbed {
     this.textOverlayCounter = document.getElementById('textOverlayCounter');
     this.textOverlaySaveBtn = document.getElementById('textOverlaySaveBtn');
     this.textOverlayHint = document.getElementById('textOverlayHint');
-    this.textOverlayPresetSelect = document.getElementById('textOverlayPresetSelect');
     this.textOverlayColorSelect = document.getElementById('textOverlayColorSelect');
     this.textOverlayFontSelect = document.getElementById('textOverlayFontSelect');
     this.textOverlaySizeSelect = document.getElementById('textOverlaySizeSelect');
@@ -36,7 +35,7 @@ class CustomifyEmbed {
     this.textOverlayEnabled = this.isTextOverlayProduct();
     this.textOverlayState = {
       text: '',
-      preset: null,
+      preset: 'classic',
       color: null,
       font: null,
       size: null,
@@ -959,7 +958,7 @@ class CustomifyEmbed {
     }
 
     const options = {
-      preset: this.textOverlayState.preset || 'classic',
+      preset: 'classic',
       color: this.textOverlayState.color || 'white',
       font: this.textOverlayState.font || 'sans',
       size: this.textOverlayState.size || 'medium'
@@ -1005,7 +1004,7 @@ class CustomifyEmbed {
     }
 
     const options = {
-      preset: this.textOverlayState.preset || 'classic',
+      preset: 'classic',
       color: this.textOverlayState.color || 'white',
       font: this.textOverlayState.font || 'sans',
       size: this.textOverlayState.size || 'medium'
@@ -1093,7 +1092,10 @@ class CustomifyEmbed {
     const fontMap = {
       serif: `700 ${fontSize}px "Times New Roman", "Georgia", serif`,
       sans: `700 ${fontSize}px "Montserrat", "Poppins", "Inter", Arial, sans-serif`,
-      script: `700 ${fontSize}px "Dancing Script", "Pacifico", cursive`
+      script: `700 ${fontSize}px "Dancing Script", "Pacifico", cursive`,
+      script2: `700 ${fontSize}px "Pacifico", "Dancing Script", cursive`,
+      script3: `700 ${fontSize}px "Satisfy", "Dancing Script", cursive`,
+      script4: `700 ${fontSize}px "Great Vibes", "Satisfy", cursive`
     };
             const font = fontMap[options.font] || fontMap.sans;
 
@@ -2258,7 +2260,6 @@ class CustomifyEmbed {
       });
     };
 
-    bindSelect(this.textOverlayPresetSelect, 'preset');
     bindSelect(this.textOverlayColorSelect, 'color');
     bindSelect(this.textOverlayFontSelect, 'font');
     bindSelect(this.textOverlaySizeSelect, 'size');
