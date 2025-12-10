@@ -26,7 +26,6 @@ class CustomifyEmbed {
     this.textOverlayPanel = document.getElementById('textOverlayPanel');
     this.textOverlayInput = document.getElementById('textOverlayInput');
     this.textOverlayCounter = document.getElementById('textOverlayCounter');
-    this.textOverlayPreviewBtn = document.getElementById('textOverlayPreviewBtn');
     this.textOverlaySaveBtn = document.getElementById('textOverlaySaveBtn');
     this.textOverlayHint = document.getElementById('textOverlayHint');
     this.textOverlayPresetSelect = document.getElementById('textOverlayPresetSelect');
@@ -2225,6 +2224,9 @@ class CustomifyEmbed {
         this.updateTextOverlayCounter();
         this.textOverlayState.applied = false;
         this.updateTextOverlayHint('Kliknij „Zapisz”, aby dodać napis do zamówienia');
+        this.previewTextOverlay().catch(err => {
+          console.error('❌ [TEXT-OVERLAY] auto-preview error:', err);
+        });
       });
       this.updateTextOverlayCounter();
     }
@@ -2235,6 +2237,9 @@ class CustomifyEmbed {
         this.textOverlayState[key] = selectEl.value;
         this.textOverlayState.applied = false;
         this.updateTextOverlayHint('Kliknij „Zapisz”, aby dodać napis do zamówienia');
+        this.previewTextOverlay().catch(err => {
+          console.error('❌ [TEXT-OVERLAY] auto-preview error:', err);
+        });
       });
     };
 
@@ -2243,14 +2248,6 @@ class CustomifyEmbed {
     bindSelect(this.textOverlayFontSelect, 'font');
     bindSelect(this.textOverlaySizeSelect, 'size');
 
-    if (this.textOverlayPreviewBtn) {
-      this.textOverlayPreviewBtn.addEventListener('click', () => {
-        this.previewTextOverlay().catch(err => {
-          console.error('❌ [TEXT-OVERLAY] preview error:', err);
-          this.showError('Nie udało się pokazać podglądu napisu. Spróbuj ponownie.', 'cart');
-        });
-      });
-    }
     if (this.textOverlaySaveBtn) {
       this.textOverlaySaveBtn.addEventListener('click', () => {
         this.saveTextOverlay().catch(err => {
