@@ -2288,7 +2288,7 @@ class CustomifyEmbed {
 
     this.textOverlayState = {
       ...this.textOverlayState,
-      preset: this.textOverlayPresetSelect?.value || null,
+      preset: 'classic',
       color: this.textOverlayColorSelect?.value || null,
       font: this.textOverlayFontSelect?.value || null,
       size: this.textOverlaySizeSelect?.value || null
