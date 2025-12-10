@@ -1349,6 +1349,28 @@
           color: #6b7280;
           margin: 6px 0 0 0;
         }
+        /* Toggle "Dodaj napis" – spójny z product-type, ale bez hover/podświetlenia */
+        #textOverlayToggleBtn {
+          min-width: 220px;
+          padding: 14px 20px;
+          border: 1px solid #111 !important;
+          background: #fff !important;
+          color: #111 !important;
+          text-align: center;
+          display: inline-flex;
+          justify-content: center;
+          align-items: center;
+          font-weight: 600;
+          font-size: 0.95rem;
+        }
+        #textOverlayToggleBtn:hover,
+        #textOverlayToggleBtn:focus,
+        #textOverlayToggleBtn:active {
+          border: 1px solid #111 !important;
+          background: #fff !important;
+          color: #111 !important;
+          box-shadow: none !important;
+        }
         .customify-text-overlay-panel .text-overlay-input-wrapper {
           border: 1px solid #cfd4dc !important;
           border-radius: 8px !important;
@@ -3528,7 +3550,7 @@
               
               {% if product.id == 15306975215941 %}
               <div class="customify-text-overlay-toggle customify-product-type-buttons" style="margin-top:12px; display:flex; justify-content:center;">
-                <div class="customify-product-type-btn" id="textOverlayToggleBtn" data-overlay-open="false" style="border:1px solid #111; background:#fff; color:#111;">
+                <div class="customify-product-type-btn" id="textOverlayToggleBtn" data-overlay-open="false">
                   Dodaj napis
                 </div>
               </div>
