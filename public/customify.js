@@ -2214,6 +2214,9 @@ class CustomifyEmbed {
 
     // Event listener dla wyboru typu produktu (Plakat vs Canvas)
     document.addEventListener('click', (e) => {
+      if (e.target.id === 'textOverlayToggleBtn') {
+        return; // nie traktuj toggle jako wyboru typu produktu
+      }
       if (e.target.classList.contains('customify-product-type-btn')) {
         this.selectProductType(e.target);
       }
