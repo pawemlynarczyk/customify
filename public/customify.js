@@ -2241,7 +2241,6 @@ class CustomifyEmbed {
       this.textOverlayInput.addEventListener('input', () => {
         this.updateTextOverlayCounter();
         this.textOverlayState.applied = false;
-        this.updateTextOverlayHint('Kliknij „Zapisz”, aby dodać napis do zamówienia');
         this.previewTextOverlay().catch(err => {
           console.error('❌ [TEXT-OVERLAY] auto-preview error:', err);
         });
@@ -2254,7 +2253,6 @@ class CustomifyEmbed {
       selectEl.addEventListener('change', () => {
         this.textOverlayState[key] = selectEl.value;
         this.textOverlayState.applied = false;
-        this.updateTextOverlayHint('Kliknij „Zapisz”, aby dodać napis do zamówienia');
         this.previewTextOverlay().catch(err => {
           console.error('❌ [TEXT-OVERLAY] auto-preview error:', err);
         });

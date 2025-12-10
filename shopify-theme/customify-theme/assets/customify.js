@@ -1320,7 +1320,8 @@ class CustomifyEmbed {
           applied: !!textOverlay
         };
         if (this.textOverlayPanel) {
-          this.textOverlayPanel.style.display = 'block';
+          this.textOverlayPanel.style.display = 'none';
+          this.textOverlayToggleBtn?.setAttribute('data-overlay-open', 'false');
         }
         if (textOverlay?.text) {
           this.updateTextOverlayHint('Napis dodany. Możesz go zmienić i ponownie zastosować.');
@@ -2240,7 +2241,6 @@ class CustomifyEmbed {
       this.textOverlayInput.addEventListener('input', () => {
         this.updateTextOverlayCounter();
         this.textOverlayState.applied = false;
-        this.updateTextOverlayHint('Kliknij „Zapisz”, aby dodać napis do zamówienia');
         this.previewTextOverlay().catch(err => {
           console.error('❌ [TEXT-OVERLAY] auto-preview error:', err);
         });
@@ -2253,7 +2253,6 @@ class CustomifyEmbed {
       selectEl.addEventListener('change', () => {
         this.textOverlayState[key] = selectEl.value;
         this.textOverlayState.applied = false;
-        this.updateTextOverlayHint('Kliknij „Zapisz”, aby dodać napis do zamówienia');
         this.previewTextOverlay().catch(err => {
           console.error('❌ [TEXT-OVERLAY] auto-preview error:', err);
         });
@@ -3122,8 +3121,9 @@ class CustomifyEmbed {
             this.textOverlayInput.value = '';
             this.updateTextOverlayCounter();
           }
-          this.textOverlayPanel.style.display = 'block';
-          this.updateTextOverlayHint('Dodaj napis przed dodaniem do koszyka (opcjonalnie)');
+          this.textOverlayPanel.style.display = 'none';
+          this.textOverlayToggleBtn?.setAttribute('data-overlay-open', 'false');
+          this.updateTextOverlayHint('');
         }
         
         // ✅ BACKEND WATERMARK: Backend już generuje watermark i zwraca watermarkedImageUrl w response
