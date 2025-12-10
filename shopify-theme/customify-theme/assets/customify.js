@@ -3230,9 +3230,8 @@ class CustomifyEmbed {
             // ===== WZÓR DIAGONALNY - "LUMLY.PL" i "PODGLAD" NA PRZEMIAN =====
             ctx.save();
             
-            // ✅ DOSTOSOWANY FONT SIZE: Przy 50% canvas, zwiększamy procent żeby zachować podobną widoczność
-            // Watermark na zmniejszonym obrazie (50%) - font powinien być proporcjonalnie większy
-            const fontSize = Math.max(20, Math.min(canvas.width, canvas.height) * 0.08); // Min 20px (bo canvas jest 50%), 8% canvas (zwiększone z 6% dla lepszej widoczności)
+            // ✅ DOSTOSOWANY FONT SIZE: Przy 50% canvas, zwiększamy procent żeby zachować widoczność
+            const fontSize = Math.max(20, Math.min(canvas.width, canvas.height) * 0.09); // 9% canvas
             console.log('📏 [WATERMARK DEBUG] fontSize:', fontSize);
             
             // 🔧 POZIOM 2: Użyj systemowych fontów z fallbackami + UPPERCASE bez polskich znaków
@@ -3240,10 +3239,10 @@ class CustomifyEmbed {
             ctx.font = `bold ${fontSize}px ${fontFamily}`;
             console.log('🔤 [WATERMARK DEBUG] Font ustawiony:', ctx.font);
             
-            // ✅ ZMNIEJSZONA OPACITY - subtelniejszy znak wodny (było 0.7/0.5, teraz 0.35/0.25)
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.35)'; // Biały tekst z 35% opacity (było 70%)
-            ctx.strokeStyle = 'rgba(0, 0, 0, 0.25)'; // Czarna obwódka z 25% opacity (było 50%)
-            ctx.lineWidth = 1; // Cieńsza obwódka (było 2px)
+            // 🔒 Watermark podglądu: lekko słabszy, ale większa czcionka
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.50)';
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.35)';
+            ctx.lineWidth = 2;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             
