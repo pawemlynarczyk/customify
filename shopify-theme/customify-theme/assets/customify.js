@@ -147,20 +147,7 @@ class CustomifyEmbed {
    * Sprawdza czy funkcja napisów jest dostępna (pilotaż na jednym produkcie)
    */
   isTextOverlayProduct() {
-    try {
-      const productId = window.ShopifyAnalytics?.meta?.product?.id || window.meta?.product?.id;
-      const handle = (window.ShopifyAnalytics?.meta?.product?.handle || window.meta?.product?.handle || window.location.pathname || '').toString();
-      if (productId && Number(productId) === 15306975215941) {
-        return true;
-      }
-      if (handle.includes('zdjecie-w-stylu-anime-personalizowane-z-twojego-zdjecia-obraz') || handle.includes('zdjecie-w-stylu-anime')) {
-        return true;
-      }
-      return false;
-    } catch (e) {
-      console.warn('⚠️ [TEXT-OVERLAY] Nie udało się wykryć produktu pilota:', e);
-      return false;
-    }
+    return true; // włączone globalnie na wszystkich produktach
   }
 
   init() {
@@ -2214,6 +2201,9 @@ class CustomifyEmbed {
 
     // Event listener dla wyboru typu produktu (Plakat vs Canvas)
     document.addEventListener('click', (e) => {
+      if (e.target.id === 'textOverlayToggleBtn') {
+        return; // nie traktuj toggle jako wyboru typu produktu
+      }
       if (e.target.classList.contains('customify-product-type-btn')) {
         this.selectProductType(e.target);
       }
