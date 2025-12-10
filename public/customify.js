@@ -1079,8 +1079,8 @@ class CustomifyEmbed {
             const baseY = canvas.height - areaHeight * 0.35;
             const maxWidth = canvas.width - padding * 2;
 
-            const sizeMap = { small: 0.045, medium: 0.06, large: 0.075 };
-            const fontSize = Math.max(28, canvas.height * (sizeMap[options.size] || sizeMap.medium));
+    const sizeMap = { small: 0.05, medium: 0.075, large: 0.11 };
+    const fontSize = Math.max(32, canvas.height * (sizeMap[options.size] || sizeMap.medium));
 
             const fontMap = {
               serif: `700 ${fontSize}px "Times New Roman", "Georgia", serif`,
@@ -1089,12 +1089,12 @@ class CustomifyEmbed {
             };
             const font = fontMap[options.font] || fontMap.sans;
 
-            const colorMap = {
-              white: '#ffffff',
-              black: '#111111',
-              gold: '#d6b36a'
-            };
-            const fillColor = colorMap[options.color] || '#ffffff';
+    const colorMap = {
+      white: '#ffffff',
+      black: '#111111',
+      gold: '#d6b36a'
+    };
+    const fillColor = colorMap[options.color] || '#ffffff';
 
             ctx.font = font;
             ctx.textAlign = 'center';
@@ -1116,7 +1116,7 @@ class CustomifyEmbed {
             if (current) lines.push(current);
             const limitedLines = lines.slice(0, 2);
 
-            if (options.preset === 'banner') {
+    if (options.preset === 'banner') {
               const bannerHeight = fontSize * (limitedLines.length === 2 ? 2.1 : 1.4);
               const bannerY = baseY - bannerHeight / 2;
               ctx.fillStyle = 'rgba(0,0,0,0.35)';
@@ -1126,16 +1126,17 @@ class CustomifyEmbed {
             limitedLines.forEach((line, idx) => {
               const lineY = baseY + (idx - (limitedLines.length - 1) / 2) * (fontSize * 1.2);
 
-              if (options.preset === '3d') {
-                ctx.fillStyle = 'rgba(0,0,0,0.35)';
-                ctx.fillText(line, canvas.width / 2 + 3, lineY + 3);
-              }
+      if (options.preset === '3d') {
+        ctx.fillStyle = 'rgba(0,0,0,0.45)';
+        ctx.fillText(line, canvas.width / 2 + Math.max(2, fontSize * 0.04), lineY + Math.max(2, fontSize * 0.04));
+      }
 
-              if (options.preset === 'outline' || options.preset === '3d') {
-                ctx.strokeStyle = 'rgba(0,0,0,0.65)';
-                ctx.lineWidth = Math.max(2, fontSize * 0.08);
-                ctx.strokeText(line, canvas.width / 2, lineY);
-              }
+      if (options.preset === 'outline' || options.preset === '3d') {
+        const strokeColor = options.color === 'gold' ? 'rgba(95, 70, 30, 0.75)' : 'rgba(0, 0, 0, 0.65)';
+        ctx.strokeStyle = strokeColor;
+        ctx.lineWidth = Math.max(2.5, fontSize * 0.09);
+        ctx.strokeText(line, canvas.width / 2, lineY);
+      }
 
               ctx.fillStyle = fillColor;
               ctx.fillText(line, canvas.width / 2, lineY);
