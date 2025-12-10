@@ -3228,8 +3228,8 @@ class CustomifyEmbed {
             // ===== WZÓR DIAGONALNY - "LUMLY.PL" i "PODGLAD" NA PRZEMIAN =====
             ctx.save();
             
-            // ✅ DOSTOSOWANY FONT SIZE: Przy 50% canvas, zwiększamy procent żeby zachować widoczność
-            const fontSize = Math.max(20, Math.min(canvas.width, canvas.height) * 0.09); // 9% canvas
+            // ✅ DOSTOSOWANY FONT SIZE: większy dla lepszej widoczności
+            const fontSize = Math.max(20, Math.min(canvas.width, canvas.height) * 0.11); // 11% canvas
             console.log('📏 [WATERMARK DEBUG] fontSize:', fontSize);
             
             // 🔧 POZIOM 2: Użyj systemowych fontów z fallbackami + UPPERCASE bez polskich znaków
@@ -3237,9 +3237,9 @@ class CustomifyEmbed {
             ctx.font = `bold ${fontSize}px ${fontFamily}`;
             console.log('🔤 [WATERMARK DEBUG] Font ustawiony:', ctx.font);
             
-            // 🔒 Watermark podglądu: lekko słabszy, ale większa czcionka
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.50)';
-            ctx.strokeStyle = 'rgba(0, 0, 0, 0.35)';
+            // 🔒 Watermark podglądu: lekko bardziej transparentny, ale większa czcionka
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.25)';
             ctx.lineWidth = 2;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
@@ -3277,11 +3277,11 @@ class CustomifyEmbed {
             const testDataUrl = testCanvas.toDataURL();
             console.log('🧪 [WATERMARK DEBUG] Test canvas rendering:', testDataUrl.substring(0, 100) + '...');
             
-            // Obróć canvas
+            // Obróć canvas w przeciwną stronę niż backend (ok. +30°)
             ctx.translate(canvas.width/2, canvas.height/2);
-            ctx.rotate(-30 * Math.PI / 180);
+            ctx.rotate(30 * Math.PI / 180);
             ctx.translate(-canvas.width/2, -canvas.height/2);
-            console.log('🔄 [WATERMARK DEBUG] Canvas rotated -30°');
+            console.log('🔄 [WATERMARK DEBUG] Canvas rotated +30°');
             
             // 🔧 TEKST WATERMARKU - tylko "Lumly.pl"
             const texts = ['Lumly.pl'];
