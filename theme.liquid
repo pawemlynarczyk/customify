@@ -1350,18 +1350,18 @@
           margin: 6px 0 0 0;
         }
         .customify-text-overlay-panel .text-overlay-input {
-          border: 1px solid #d1d5db !important;
-          border-radius: 8px !important;
-          padding: 10px !important;
+          border: none !important;
+          border-radius: 0 !important;
+          padding: 0 !important;
           font-size: 0.95rem !important;
           font-family: 'Montserrat', 'Poppins', 'Inter', Arial, sans-serif !important;
           width: 100% !important;
-          background: #fff !important;
+          background: transparent !important;
           color: #111 !important;
           box-sizing: border-box !important;
           outline: none !important;
           display: block !important;
-          min-height: 42px !important;
+          min-height: 26px !important;
         }
         .customify-text-overlay-panel .text-overlay-select {
           width: 100% !important;
@@ -3517,7 +3517,9 @@
               <div class="customify-text-overlay-panel" id="textOverlayPanel" style="display: none;">
                 <h5>Dodaj napis (opcjonalnie)</h5>
                 <div class="text-overlay-row">
-                  <input class="text-overlay-input" type="text" id="textOverlayInput" maxlength="80" placeholder="Wpisz tekst" style="border:1px solid #d1d5db; border-radius:8px; padding:10px; font-size:0.95rem; width:100%; background:#f5f5f5; color:#111; box-sizing:border-box; min-height:42px;">
+                  <div class="text-overlay-input-wrapper" style="border:1px solid #d1d5db; border-radius:8px; padding:8px 10px; background:#f5f5f5; box-shadow: 0 0 0 1px rgba(0,0,0,0.03);">
+                    <input class="text-overlay-input" type="text" id="textOverlayInput" maxlength="80" placeholder="Wpisz tekst" style="border:none; outline:none; background:transparent; width:100%; font-size:0.95rem; color:#111; box-sizing:border-box; min-height:26px;">
+                  </div>
                   <span class="text-overlay-counter" id="textOverlayCounter">0/80</span>
                 </div>
                 <div class="text-overlay-group">
