@@ -1127,16 +1127,22 @@ class CustomifyEmbed {
               const lineY = baseY + (idx - (limitedLines.length - 1) / 2) * (fontSize * 1.2);
 
       if (options.preset === '3d') {
-        ctx.fillStyle = 'rgba(0,0,0,0.45)';
+        const shadowColor =
+          options.color === 'white' ? 'rgba(0,0,0,0.45)' :
+          options.color === 'black' ? 'rgba(255,255,255,0.45)' :
+          'rgba(95, 70, 30, 0.55)'; // gold → brownish
+        ctx.fillStyle = shadowColor;
         ctx.fillText(line, canvas.width / 2 + Math.max(2, fontSize * 0.04), lineY + Math.max(2, fontSize * 0.04));
       }
 
-      if (options.preset === 'outline' || options.preset === '3d') {
-        const strokeColor = options.color === 'gold' ? 'rgba(95, 70, 30, 0.75)' : 'rgba(0, 0, 0, 0.65)';
-        ctx.strokeStyle = strokeColor;
-        ctx.lineWidth = Math.max(2.5, fontSize * 0.09);
-        ctx.strokeText(line, canvas.width / 2, lineY);
-      }
+      // Stroke for better contrast per color
+      const strokeColor =
+        options.color === 'white' ? 'rgba(0,0,0,0.65)' :
+        options.color === 'black' ? 'rgba(255,255,255,0.65)' :
+        'rgba(95, 70, 30, 0.75)'; // gold
+      ctx.strokeStyle = strokeColor;
+      ctx.lineWidth = Math.max(2.5, fontSize * 0.09);
+      ctx.strokeText(line, canvas.width / 2, lineY);
 
               ctx.fillStyle = fillColor;
               ctx.fillText(line, canvas.width / 2, lineY);
