@@ -1156,6 +1156,19 @@ module.exports = async (req, res) => {
           guidance: 3.5
         }
       },
+      'swieta': {
+        model: "google/nano-banana",
+        prompt: "Create a soft, realistic illustration based on the people in the uploaded photo. Keep their faces highly accurate and recognizable — same facial features, proportions, hair, and expressions. The illustration should remain close to a real photo, with only gentle artistic softness — NOT cartoon-like.\n\nDress all people in cozy Christmas clothing: knitted holiday sweaters, warm winter scarves, and soft woolen hats in festive colors (red, white, beige, green). Clothing should look natural and textured.\n\nPlace the family inside a transparent glass Christmas bauble hanging visibly from a branch of a decorated Christmas tree. Ensure the hanging string and attachment at the top are clearly visible. The bauble should have realistic reflections, delicate golden glitter, and subtle snowflake decorations on the glass. Add some snow inside the ornament and a small layer of white snow under their feet.\n\nAdd the text “Wesołych Świąt” in an elegant, festive font, placed either on the bauble or gently above/below it, well-integrated into the composition.\n\nLighting: warm golden Christmas glow. Background: blurred tree lights (bokeh), cozy and festive.\n\nStyle: realistic illustration, natural colors, detailed textures, warm holiday atmosphere, strong likeness to the original faces. Avoid cartoon or Pixar stylization.\n\nHigh resolution, clean, elegant, detailed.",
+        apiType: "nano-banana",
+        productType: "caricature-new",
+        parameters: {
+          image_input: ["USER_IMAGE"],
+          prompt: "Create a soft, realistic illustration based on the people in the uploaded photo. Keep their faces highly accurate and recognizable — same facial features, proportions, hair, and expressions. The illustration should remain close to a real photo, with only gentle artistic softness — NOT cartoon-like.\n\nDress all people in cozy Christmas clothing: knitted holiday sweaters, warm winter scarves, and soft woolen hats in festive colors (red, white, beige, green). Clothing should look natural and textured.\n\nPlace the family inside a transparent glass Christmas bauble hanging visibly from a branch of a decorated Christmas tree. Ensure the hanging string and attachment at the top are clearly visible. The bauble should have realistic reflections, delicate golden glitter, and subtle snowflake decorations on the glass. Add some snow inside the ornament and a small layer of white snow under their feet.\n\nAdd the text “Wesołych Świąt” in an elegant, festive font, placed either on the bauble or gently above/below it, well-integrated into the composition.\n\nLighting: warm golden Christmas glow. Background: blurred tree lights (bokeh), cozy and festive.\n\nStyle: realistic illustration, natural colors, detailed textures, warm holiday atmosphere, strong likeness to the original faces. Avoid cartoon or Pixar stylization.\n\nHigh resolution, clean, elegant, detailed.",
+          aspect_ratio: "2:3",
+          output_format: "jpg",
+          guidance: 3.5
+        }
+      },
       'pixar': {
         model: "swartype/sdxl-pixar:81f8bbd3463056c8521eb528feb10509cc1385e2fabef590747f159848589048",
         prompt: `Pixar-style 3D character, cinematic animation look, smooth glossy plastic-like skin, rounded soft facial features, expressive eyes, stylized proportions, vibrant color palette, warm cinematic lighting, subsurface scattering, cartoon realism, wholesome family atmosphere, detailed hair, ultra clean render, rendered in 3D, dynamic camera angle, looks like a frame from a Pixar movie, perfect anatomy, depth of field, bokeh background, high quality render. realistic Pixar cinematic render, detailed textures, global illumination`,
