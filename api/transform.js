@@ -1143,6 +1143,19 @@ module.exports = async (req, res) => {
           guidance: 3.5
         }
       },
+      'watercolor_ok': {
+        model: "google/nano-banana",
+        prompt: " Transform the uploaded photo into a vibrant watercolor illustration. Preserve dynamic poses and expressive gestures, but render them with visible watercolor splashes, paint stains, and flowing drips. Use a bright, harmonious color palette with soft blending and translucent layers. Create a background with larger, irregular watercolor blobs and patches, giving the composition a lively, fluid, and painterly feel. Keep characters recognizable but stylized with soft outlines and artistic splashes",
+        apiType: "nano-banana",
+        productType: "caricature-new",
+        parameters: {
+          image_input: ["USER_IMAGE"],
+          prompt: " Transform the uploaded photo into a vibrant watercolor illustration. Preserve dynamic poses and expressive gestures, but render them with visible watercolor splashes, paint stains, and flowing drips. Use a bright, harmonious color palette with soft blending and translucent layers. Create a background with larger, irregular watercolor blobs and patches, giving the composition a lively, fluid, and painterly feel. Keep characters recognizable but stylized with soft outlines and artistic splashes",
+          aspect_ratio: "2:3",
+          output_format: "jpg",
+          guidance: 3.5
+        }
+      },
       'pixar': {
         model: "swartype/sdxl-pixar:81f8bbd3463056c8521eb528feb10509cc1385e2fabef590747f159848589048",
         prompt: `Pixar-style 3D character, cinematic animation look, smooth glossy plastic-like skin, rounded soft facial features, expressive eyes, stylized proportions, vibrant color palette, warm cinematic lighting, subsurface scattering, cartoon realism, wholesome family atmosphere, detailed hair, ultra clean render, rendered in 3D, dynamic camera angle, looks like a frame from a Pixar movie, perfect anatomy, depth of field, bokeh background, high quality render. realistic Pixar cinematic render, detailed textures, global illumination`,
