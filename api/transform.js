@@ -2186,10 +2186,10 @@ module.exports = async (req, res) => {
         
         console.log(`📸 [NANO-BANANA] Boho style - 1 obrazek (user base64): ${imageDataUri.substring(0, 50)}...`);
         console.log(`📸 [NANO-BANANA] image_input array length: ${inputParams.image_input.length}`);
-      } else if (finalProductType === 'other' || finalProductType === 'para_krolewska') {
-        // Style zamkowy/krolewski-para - tylko obrazek użytkownika (URL - nano-banana wymaga URL)
-        // ✅ UPLOAD BASE64 DO VERCEL BLOB (nano-banana wymaga URL dla zamkowy/krolewski-para)
-        console.log('📤 [NANO-BANANA] Uploading user image to Vercel Blob Storage (zamkowy/krolewski-para requires URL, not base64)...');
+      } else if (finalProductType === 'other' || finalProductType === 'para_krolewska' || finalProductType === 'caricature-new' || (config.parameters?.image_input?.length === 1 && config.parameters.image_input[0] === "USER_IMAGE")) {
+        // Style na 1 obrazek usera (zamkowy/krolewski-para/caricature-new i inne single-image)
+        // ✅ UPLOAD BASE64 DO VERCEL BLOB (nano-banana wymaga URL)
+        console.log('📤 [NANO-BANANA] Uploading user image to Vercel Blob Storage (single-image nano-banana requires URL, not base64)...');
         const baseUrl = 'https://customify-s56o.vercel.app';
         const uploadResponse = await fetch(`${baseUrl}/api/upload-temp-image`, {
           method: 'POST',
@@ -2220,7 +2220,7 @@ module.exports = async (req, res) => {
           guidance: guidance
         };
         
-        console.log(`📸 [NANO-BANANA] Para krolewska style (${selectedStyle}) - 1 obrazek (user URL): ${userImageUrl}`);
+        console.log(`📸 [NANO-BANANA] Single-image nano-banana style (${selectedStyle}) - 1 obrazek (user URL): ${userImageUrl}`);
         console.log(`📸 [NANO-BANANA] image_input array length: ${inputParams.image_input.length}`);
       } else {
         // Style kotów - 2 obrazki (miniaturka + użytkownik)
