@@ -3507,7 +3507,7 @@
                   </div>
                 {% elsif product.handle == 'obraz-ze-zdjecia-akwarela' %}
                   {% comment %} STYLOWANIE AKWARELA + WATERCOLOUR OK - BEZ DODATKOWYCH WARUNKÓW {% endcomment %}
-                  <div class="customify-style-card" data-style="akwarela">
+                  <div class="customify-style-card" data-style="akwarela" style="display: block !important;">
                     <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/akwarela/watercolor-style.png'); background-size: cover; background-position: center;"></div>
                     <div class="style-info">
                       <div class="style-name">Akwarela</div>
@@ -3519,6 +3519,17 @@
                       <div class="style-name">Watercolor OK</div>
                     </div>
                   </div>
+                  <script>
+                    // Fallback: upewnij się, że oba style są widoczne na akwarela
+                    document.addEventListener('DOMContentLoaded', function() {
+                      if (window.location.pathname.includes('obraz-ze-zdjecia-akwarela')) {
+                        ['akwarela', 'watercolor_ok'].forEach(function(style) {
+                          const el = document.querySelector('.customify-style-card[data-style="' + style + '"]');
+                          if (el) { el.style.display = 'block'; el.style.setProperty('display', 'block', 'important'); }
+                        });
+                      }
+                    });
+                  </script>
                 {% elsif product.id == 15475649675589 or product.handle contains 'akwarela' %}
                   {% comment %} TYLKO STYL AKWARELE dla produktu akwarela - używa Segmind Become-Image API {% endcomment %}
                   <div class="customify-style-card" data-style="akwarela">
