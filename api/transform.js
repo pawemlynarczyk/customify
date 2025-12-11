@@ -1169,6 +1169,19 @@ module.exports = async (req, res) => {
           guidance: 3.5
         }
       },
+      'swieta_2': {
+        model: "google/nano-banana",
+        prompt: "christmass cheer. keep all person on photo, keep faces recognizable. add them christmas sweaters, scurfs, hats, snow on the ground nad everywhere and lights. Add the text “Wesołych Świąt” in an elegant, festive font, placed gently above/below it, well-integrated into the composition.\n\nLighting: warm golden Christmas glow. Background: blurred tree lights (bokeh), cozy and festive.",
+        apiType: "nano-banana",
+        productType: "caricature-new",
+        parameters: {
+          image_input: ["USER_IMAGE"],
+          prompt: "christmass cheer. keep all person on photo, keep faces recognizable. add them christmas sweaters, scurfs, hats, snow on the ground nad everywhere and lights. Add the text “Wesołych Świąt” in an elegant, festive font, placed gently above/below it, well-integrated into the composition.\n\nLighting: warm golden Christmas glow. Background: blurred tree lights (bokeh), cozy and festive.",
+          aspect_ratio: "2:3",
+          output_format: "jpg",
+          guidance: 3.5
+        }
+      },
       'pixar': {
         model: "swartype/sdxl-pixar:81f8bbd3463056c8521eb528feb10509cc1385e2fabef590747f159848589048",
         prompt: `Pixar-style 3D character, cinematic animation look, smooth glossy plastic-like skin, rounded soft facial features, expressive eyes, stylized proportions, vibrant color palette, warm cinematic lighting, subsurface scattering, cartoon realism, wholesome family atmosphere, detailed hair, ultra clean render, rendered in 3D, dynamic camera angle, looks like a frame from a Pixar movie, perfect anatomy, depth of field, bokeh background, high quality render. realistic Pixar cinematic render, detailed textures, global illumination`,

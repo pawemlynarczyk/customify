@@ -497,6 +497,7 @@ class CustomifyEmbed {
       'karykatura-olowek': 'caricature-new',
       'watercolor_ok': 'caricature-new',
       'swieta': 'caricature-new',
+      'swieta_2': 'caricature-new',
       'akwarela': 'watercolor',
       'openai-art': 'openai-art' // OpenAI GPT-Image-1 style
     };
