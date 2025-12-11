@@ -9,6 +9,7 @@
 - 🚨 **Testuj WSZYSTKIE style (boho, pixar, koty, król) przed wdrożeniem**
 - 🚨 **Jeśli dodajesz nowy styl - NIE ZMIENIAJ logiki dla istniejących stylów**
 - 🚨 **Pytanie: "Czy ta zmiana zepsuje coś co już działa?" - jeśli TAK, NIE RÓB TEGO**
+- 🚨 **NOWE STYLE = JEDEN SLUG W TRZECH MIEJSCACH**: ten sam `data-style`/slug musi być w `theme.liquid` (karta), w `api/transform.js` (`styleConfig` klucz), oraz w `public/customify.js` (mapowanie styl→productType/URL). Jeśli slug nie jest w `styleConfig`, backend zwróci błąd „Styl X nie istnieje w config”.
 
 ### **🚨 CRITICAL: ZAWSZE ZMIENIAJ KOD ŹRÓDŁOWY - NIE TWÓRZ SKRYPTÓW FRONTOWYCH!**
 - 🚨 **ZAWSZE edytuj kod źródłowy** (Liquid, HTML, CSS) zamiast tworzyć skrypty JavaScript które modyfikują DOM
