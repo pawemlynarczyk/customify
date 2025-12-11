@@ -3506,24 +3506,18 @@
                     </div>
                   </div>
                 {% elsif product.handle == 'obraz-ze-zdjecia-akwarela' %}
-                  {% comment %} STYLOWANIE AKWARELA + WATERCOLOUR OK - BEZ DODATKOWYCH WARUNKÓW {% endcomment %}
-                  <div class="customify-style-card" data-style="akwarela" style="display: block !important;">
-                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/akwarela/watercolor-style.png'); background-size: cover; background-position: center;"></div>
-                    <div class="style-info">
-                      <div class="style-name">Akwarela</div>
-                    </div>
-                  </div>
+                  {% comment %} STYLOWANIE WATERCOLOUR OK - BEZ DODATKOWYCH WARUNKÓW {% endcomment %}
                   <div class="customify-style-card" data-style="watercolor_ok" style="display: block !important;">
                     <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/akwarela/watercolor_ok.png'); background-size: cover; background-position: center;"></div>
                     <div class="style-info">
-                      <div class="style-name">Watercolor OK</div>
+                      <div class="style-name">Watercolor</div>
                     </div>
                   </div>
                   <script>
                     // Fallback: upewnij się, że oba style są widoczne na akwarela
                     document.addEventListener('DOMContentLoaded', function() {
                       if (window.location.pathname.includes('obraz-ze-zdjecia-akwarela')) {
-                        ['akwarela', 'watercolor_ok'].forEach(function(style) {
+                        ['watercolor_ok'].forEach(function(style) {
                           const el = document.querySelector('.customify-style-card[data-style="' + style + '"]');
                           if (el) { el.style.display = 'block'; el.style.setProperty('display', 'block', 'important'); }
                         });
