@@ -3511,6 +3511,14 @@
                       <div class="style-name">Pixar</div>
                     </div>
                   </div>
+                {% elsif product.handle == 'obraz-ze-zdjecia-swiateczny-nastroj' %}
+                  {% comment %} TYLKO STYL ŚWIĄTECZNY (swieta) dla produktu Świąteczny Nastrój {% endcomment %}
+                  <div class="customify-style-card" data-style="swieta" style="display: block !important;">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/swieta/banka_ok.png'); background-size: cover; background-position: center;"></div>
+                    <div class="style-info">
+                      <div class="style-name">Banka</div>
+                    </div>
+                  </div>
                 {% elsif product.handle == 'obraz-ze-zdjecia-akwarela' %}
                   {% comment %} STYLOWANIE WATERCOLOUR OK - BEZ DODATKOWYCH WARUNKÓW {% endcomment %}
                   <div class="customify-style-card" data-style="watercolor_ok" style="display: block !important;">
