@@ -468,6 +468,10 @@ class CustomifyEmbed {
       console.log('🎨 [PRODUCT-TYPE] URL = Boho → productType: boho');
       return 'boho';
     }
+    if (currentUrl.includes('plakat-ze-zdjecia-w-stylu-komiks')) {
+      console.log('🖍️ [PRODUCT-TYPE] URL = Komiks (test) → productType: caricature-new');
+      return 'caricature-new';
+    }
     
     // 🔄 PRIORYTET 2: Fallback - sprawdź styl (tylko dla starych generacji bez URL)
     console.log('⚠️ [PRODUCT-TYPE] Nie rozpoznano URL, sprawdzam styl:', style);
@@ -489,6 +493,8 @@ class CustomifyEmbed {
       'wiktorianski': 'cats',
       'renesansowy': 'cats',
       'karykatura': 'caricature',
+      'caricature-new': 'caricature-new',
+      'karykatura-olowek': 'caricature-new',
       'akwarela': 'watercolor',
       'openai-art': 'openai-art' // OpenAI GPT-Image-1 style
     };

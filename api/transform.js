@@ -1390,6 +1390,19 @@ module.exports = async (req, res) => {
           background: "opaque",
           n: 1
         }
+      },
+      'karykatura-olowek': {
+        model: "gpt-image-1",
+        prompt: "keep faces of the persons recognizable. Generate a premium caricature portrait with exaggerated proportions:\n\nlarge expressive head, small body, elegant ink illustration style.\n\nProportions should clearly look like caricature but still artistic and refined.\n\nKeep facial likeness high. Clean white background.",
+        apiType: "openai-caricature",
+        productType: "caricature-new",
+        parameters: {
+          model: "gpt-image-1",
+          size: "1024x1536", // pionowy portret 2:3
+          output_format: "jpeg", // dozwolony format wyjściowy
+          background: "opaque",
+          n: 1
+        }
       }
     };
 
