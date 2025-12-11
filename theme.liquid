@@ -3505,8 +3505,8 @@
                       <div class="style-name">Pixar</div>
                     </div>
                   </div>
-                {% elsif product.id == 15475649675589 or product.handle contains 'akwarela' %}
-                  {% comment %} TYLKO STYL AKWARELE dla produktu akwarela - używa Segmind Become-Image API {% endcomment %}
+                {% elsif product.handle == 'obraz-ze-zdjecia-akwarela' %}
+                  {% comment %} STYLOWANIE AKWARELA + WATERCOLOUR OK - BEZ DODATKOWYCH WARUNKÓW {% endcomment %}
                   <div class="customify-style-card" data-style="akwarela">
                     <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/akwarela/watercolor-style.png'); background-size: cover; background-position: center;"></div>
                     <div class="style-info">
@@ -3517,6 +3517,14 @@
                     <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/akwarela/watercolor_ok.png'); background-size: cover; background-position: center;"></div>
                     <div class="style-info">
                       <div class="style-name">Watercolor OK</div>
+                    </div>
+                  </div>
+                {% elsif product.id == 15475649675589 or product.handle contains 'akwarela' %}
+                  {% comment %} TYLKO STYL AKWARELE dla produktu akwarela - używa Segmind Become-Image API {% endcomment %}
+                  <div class="customify-style-card" data-style="akwarela">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/akwarela/watercolor-style.png'); background-size: cover; background-position: center;"></div>
+                    <div class="style-info">
+                      <div class="style-name">Akwarela</div>
                     </div>
                   </div>
                 {% elsif product.id == 15548464693573 %}
