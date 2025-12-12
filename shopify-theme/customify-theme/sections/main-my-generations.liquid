@@ -420,6 +420,7 @@
                 'watercolor': 'obraz-ze-zdjecia-akwarela', // ✅ Segmind Become-Image (akwarela) - produkt ID: 15475649675589
                 'para_krolewska': localStorage.getItem('customify_product_handle_15548464693573') || null, // ✅ NOWE: Para krolewska (zamkowy/krolewski-para)
                 'pixar': 'zdjecie-w-stylu-anime-personalizowane-z-twojego-zdjecia-obraz', // ✅ Unikalny productType dla stylu Pixar (produkt ID: 15306975215941)
+                'superhero': 'portret-ze-zdjecia-superbohater-prezent-dla-chlopca',
                 'other': 'personalizowany-portret-w-stylu-boho' // Fallback dla nieznanych stylów
               };
               
@@ -446,6 +447,8 @@
                   detectedProductType = 'cats';
                 } else if (styleKey.includes('minimalistyczny') || styleKey.includes('realistyczny') || styleKey.includes('pixar') || styleKey.includes('boho')) {
                   detectedProductType = 'boho';
+                } else if (styleKey.includes('superhero') || styleKey.includes('superbohater')) {
+                  detectedProductType = 'superhero';
                 } else if (styleKey.includes('karykatura') || styleKey.includes('caricature')) {
                   detectedProductType = 'caricature';
                 } else if (styleKey.includes('akwarela') || styleKey.includes('watercolor')) {
@@ -562,6 +565,7 @@
                 'watercolor_stable': 'watercolor', // ✅ Unikalny productType dla stylu Watercolor (Stable Diffusion)
                 'para_krolewska': localStorage.getItem('customify_product_handle_15548464693573') || null, // ✅ NOWE: Para krolewska (zamkowy/krolewski-para) - użyj cache lub productHandle z generacji
                 'pixar': 'zdjecie-w-stylu-anime-personalizowane-z-twojego-zdjecia-obraz', // ✅ Unikalny productType dla stylu Pixar (produkt ID: 15306975215941)
+                'superhero': 'portret-ze-zdjecia-superbohater-prezent-dla-chlopca',
                 'other': 'personalizowany-portret-w-stylu-boho' // Fallback dla nieznanych stylów
               };
               
@@ -589,6 +593,8 @@
                   expectedProductType = styleKey.includes('krolowa') ? 'queen' : 'king';
                 } else if (styleKey.includes('krolewski') || styleKey.includes('na-tronie') || styleKey.includes('wojenny')) {
                   expectedProductType = 'cats';
+                } else if (styleKey.includes('superhero') || styleKey.includes('superbohater')) {
+                  expectedProductType = 'superhero';
                 } else if (styleKey.includes('karykatura') || styleKey.includes('caricature')) {
                   expectedProductType = 'caricature';
                 } else if (styleKey.includes('minimalistyczny') || styleKey.includes('realistyczny')) {
@@ -667,6 +673,9 @@
                   } else if (styleKey.includes('minimalistyczny') || styleKey.includes('realistyczny') || styleKey.includes('pixar') || styleKey.includes('boho')) {
                     detectedProductType = 'boho';
                     console.log('🎨 [MY-GENERATIONS] ✅ Rozpoznano styl boho:', styleKey, '→', detectedProductType);
+                  } else if (styleKey.includes('superhero') || styleKey.includes('superbohater')) {
+                    detectedProductType = 'superhero';
+                    console.log('🦸 [MY-GENERATIONS] ✅ Rozpoznano styl superbohatera:', styleKey, '→', detectedProductType);
                   } else if (styleKey.includes('karykatura') || styleKey.includes('caricature')) {
                     detectedProductType = 'caricature';
                     console.log('🎭 [MY-GENERATIONS] ✅ Rozpoznano styl karykatury:', styleKey, '→', detectedProductType);

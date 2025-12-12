@@ -1365,6 +1365,15 @@ module.exports = async (req, res) => {
           swap_image: "USER_IMAGE"
         }
       },
+      'superhero_kid': {
+        model: "segmind/faceswap-v4",
+        apiType: "segmind-faceswap",
+        productType: "superhero",
+        parameters: {
+          target_image: "https://customify-s56o.vercel.app/superbohater/superhero_ok_1.jpg",
+          swap_image: "USER_IMAGE"
+        }
+      },
       // Style karykatury - używają Segmind API
       'karykatura': {
         model: "segmind/caricature-style",
@@ -2105,6 +2114,24 @@ module.exports = async (req, res) => {
             totalUsed: totalUsed,
             totalLimit: totalLimit
           });
+
+          // 🕒 Zapisz do KV info o osiągniętym limicie (kolejka do automatycznego resetu/mailingu)
+          if (customerId && isKVConfigured()) {
+            try {
+              const key = `limit-reached:${customerId}`;
+              const payload = {
+                timestamp: new Date().toISOString(),
+                totalUsed,
+                totalLimit
+              };
+              await kv.set(key, JSON.stringify(payload), { ex: 60 * 60 * 48 }); // 48h TTL
+              console.log('🕒 [LIMIT-QUEUE] Zapisano osiągnięty limit w KV:', { key, payload });
+            } catch (kvErr) {
+              console.error('⚠️ [LIMIT-QUEUE] Nie udało się zapisać do KV:', kvErr);
+            }
+          } else {
+            console.warn('⚠️ [LIMIT-QUEUE] Pomijam zapis do KV (brak customerId lub KV nie skonfigurowany)');
+          }
           
           // ✅ TRACKING: Zapisuj błąd (asynchronicznie, nie blokuje)
           trackError('shopify_metafield_limit', 'logged_in', deviceToken, ip, {
