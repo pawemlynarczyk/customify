@@ -66,12 +66,17 @@
     {% comment %} Tylko produkty z tej kolekcji - bez fallback {% endcomment %}
     {% if target_collection and target_collection.products.size > 0 %}
       {% assign all_products = target_collection.products %}
+      {% assign desired_max_products = 20 %}
+      {% assign max_products_setting = section.settings.max_products | default: desired_max_products %}
+      {% if max_products_setting < desired_max_products %}
+        {% assign max_products_setting = desired_max_products %}
+      {% endif %}
       
       {% capture list_items %}
         {% assign count = 0 %}
         {% for p in all_products %}
           {% comment %} Pomiń aktualny produkt (jeśli jest w kolekcji) {% endcomment %}
-          {% if p.id != current_product_id and count < section.settings.max_products %}
+          {% if p.id != current_product_id and count < max_products_setting %}
             {% assign count = count | plus: 1 %}
             {% assign product = p %}
           <div class="resource-list__item">
