@@ -275,7 +275,7 @@
       "settings": {
         "recommendation_type": "related",
         "layout_type": "grid",
-        "max_products": 8,
+        "max_products": 20,
         "columns": 4,
         "mobile_columns": "2",
         "columns_gap": 12,
