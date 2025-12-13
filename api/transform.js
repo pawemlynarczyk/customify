@@ -2075,7 +2075,7 @@ module.exports = async (req, res) => {
           }
         }
 
-        const totalLimit = 4; // 4 darmowe generacje TOTAL dla zalogowanych
+        const totalLimit = 8; // Tymczasowo 8 darmowych generacji TOTAL dla zalogowanych
         
         // Sprawdź TOTAL (bez per productType)
         const totalUsed = usageData.total || 0;
