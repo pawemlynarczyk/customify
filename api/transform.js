@@ -918,6 +918,16 @@ module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
   res.setHeader('Access-Control-Max-Age', '86400');
 
+  // Preflight dla CORS – zwróć 200 zanim wykonamy limity itp.
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
+  // Zmienna do identyfikacji użytkownika ustawiana później z body/GraphQL
+  let customerId = null;
+  // Device token z cookies (ustawiany niżej) – potrzebny też w early-returnach
+  let deviceToken = null;
+
   // RATE LIMITING - Sprawdź limit dla kosztownych operacji AI
   const rawIp = getClientIP(req);
   const ip = rawIp ? rawIp.split(',')[0].trim() : '';
@@ -978,7 +988,7 @@ module.exports = async (req, res) => {
 
   const DEVICE_COOKIE_NAME = 'customify_device_token';
   const cookies = parseCookies(req.headers.cookie || '');
-  let deviceToken = cookies[DEVICE_COOKIE_NAME];
+  deviceToken = cookies[DEVICE_COOKIE_NAME];
   
   console.log(`🍪 [TRANSFORM] Device token check:`, {
     hasCookie: !!deviceToken,
@@ -1042,7 +1052,10 @@ module.exports = async (req, res) => {
   let customerEmailFromGraphQL = null;
 
   try {
-    const { imageData, prompt, style, productType, customerId, email, productHandle } = req.body;
+    const { imageData, prompt, style, productType, customerId: bodyCustomerId, email, productHandle } = req.body;
+    if (bodyCustomerId !== undefined && bodyCustomerId !== null) {
+      customerId = bodyCustomerId;
+    }
     // ✅ EMAIL: Tylko dla niezalogowanych - używany do powiązania generacji z użytkownikiem w save-generation
     // ❌ USUNIĘTO: customerAccessToken - nie jest używany, API używa SHOPIFY_ACCESS_TOKEN z env
     // ❌ USUNIĘTO: watermarkedImage - watermark jest generowany PO transformacji AI w frontendzie
@@ -2075,7 +2088,7 @@ module.exports = async (req, res) => {
           }
         }
 
-        const totalLimit = 8; // Tymczasowo 8 darmowych generacji TOTAL dla zalogowanych
+        const totalLimit = 4; // 4 darmowe generacje TOTAL dla zalogowanych
         
         // Sprawdź TOTAL (bez per productType)
         const totalUsed = usageData.total || 0;
