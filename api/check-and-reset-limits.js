@@ -181,9 +181,21 @@ async function getUsageData(shopDomain, accessToken, customerId) {
   return data?.data?.customer;
 }
 
-async function updateUsageToZero(shopDomain, accessToken, customerId, metafieldId) {
-  const usageJson = { total: 0 };
-  const value = JSON.stringify(usageJson);
+async function updateUsageToZero(shopDomain, accessToken, customerId, metafieldId, currentType) {
+  // ✅ OBSŁUGA DWÓCH TYPÓW: number_integer (stary) i json (nowy)
+  let value, type;
+  
+  if (currentType === 'number_integer') {
+    // STARY FORMAT: Shopify nie pozwala zmienić typu - użyj number_integer
+    value = '0'; // String zero dla number_integer
+    type = 'number_integer';
+    console.log(`🔄 [RESET-LIMITS] Reset STARY FORMAT (number_integer) dla ${customerId}`);
+  } else {
+    // NOWY FORMAT: JSON
+    value = JSON.stringify({ total: 0 });
+    type = 'json';
+    console.log(`🔄 [RESET-LIMITS] Reset NOWY FORMAT (json) dla ${customerId}`);
+  }
 
   const mutation = `
     mutation updateCustomerUsage($input: CustomerInput!) {
@@ -210,8 +222,8 @@ async function updateUsageToZero(shopDomain, accessToken, customerId, metafieldI
               id: metafieldId || undefined,
               namespace: 'customify',
               key: 'usage_count',
-              type: 'json',
-              value
+              type: type,
+              value: value
             }
           ]
         }
@@ -222,8 +234,11 @@ async function updateUsageToZero(shopDomain, accessToken, customerId, metafieldI
   const data = await resp.json();
   const errors = data?.data?.customerUpdate?.userErrors;
   if (errors && errors.length > 0) {
+    console.error(`❌ [RESET-LIMITS] Błąd resetu dla ${customerId}:`, errors);
     throw new Error(JSON.stringify(errors));
   }
+  
+  console.log(`✅ [RESET-LIMITS] Reset pomyślny dla ${customerId} (typ: ${type})`);
 }
 
 module.exports = async (req, res) => {
@@ -282,9 +297,10 @@ module.exports = async (req, res) => {
         const customer = await getUsageData(shopDomain, accessToken, customerId);
         const email = customer?.email;
         const metafieldId = customer?.metafield?.id || null;
+        const currentType = customer?.metafield?.type || 'json'; // Domyślnie json dla nowych
 
-        // Reset usage_count -> total:0
-        await updateUsageToZero(shopDomain, accessToken, customerId, metafieldId);
+        // Reset usage_count -> 0 (z odpowiednim typem)
+        await updateUsageToZero(shopDomain, accessToken, customerId, metafieldId, currentType);
 
         // Email (tylko jeśli jest email)
         if (email) {
