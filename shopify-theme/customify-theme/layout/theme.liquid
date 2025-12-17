@@ -3255,21 +3255,30 @@
         <div class="customify-product-type-selector" id="productTypeArea" style="display: block; margin-bottom: 10px;">
           <h4 style="text-align: left; font-size: 0.95rem; font-weight: 600;">Rodzaj wydruku:</h4>
           <div class="customify-product-type-buttons">
-            <div class="customify-product-type-btn active" data-product-type="plakat">
-              Plakat (dodaj ramkę)
-            </div>
-            <div class="customify-product-type-btn" data-product-type="canvas">
-              Obraz na płótnie
-            </div>
-            <!-- 🆕 NOWY TYP: Nadruk na szkle -->
-            <div class="customify-product-type-btn" data-product-type="szklo">
-              Nadruk na szkle (dodaj podstawkę)
-            </div>
-            <!-- 🚨 ROLLBACK: START - Opcja produktu cyfrowego -->
-            <div class="customify-product-type-btn" data-product-type="digital">
-              Produkt cyfrowy
-            </div>
-            <!-- 🚨 ROLLBACK: END - Opcja produktu cyfrowego -->
+            {% comment %} FILTRUJ RODZAJE WYDRUKU PER PRODUKT {% endcomment %}
+            {% if product.handle == 'karykatura-na-zamowienie-druk-na-szkle-akrylowym-ramka-z-podswietleniem' %}
+              {% comment %} TYLKO SZKŁO dla produktu karykatura na szkle {% endcomment %}
+              <div class="customify-product-type-btn active" data-product-type="szklo">
+                Nadruk na szkle (dodaj podstawkę)
+              </div>
+            {% else %}
+              {% comment %} STANDARDOWE OPCJE dla innych produktów {% endcomment %}
+              <div class="customify-product-type-btn active" data-product-type="plakat">
+                Plakat (dodaj ramkę)
+              </div>
+              <div class="customify-product-type-btn" data-product-type="canvas">
+                Obraz na płótnie
+              </div>
+              <!-- 🆕 NOWY TYP: Nadruk na szkle -->
+              <div class="customify-product-type-btn" data-product-type="szklo">
+                Nadruk na szkle (dodaj podstawkę)
+              </div>
+              <!-- 🚨 ROLLBACK: START - Opcja produktu cyfrowego -->
+              <div class="customify-product-type-btn" data-product-type="digital">
+                Produkt cyfrowy
+              </div>
+              <!-- 🚨 ROLLBACK: END - Opcja produktu cyfrowego -->
+            {% endif %}
           </div>
           <!-- Wysuwane menu wyboru koloru ramki (tylko dla opcji plakat) -->
           <div class="frame-color-selector" id="frameSelector" aria-expanded="false">
@@ -3388,6 +3397,26 @@
                       <div class="style-name">Szkic ołówkiem</div>
                     </div>
                   </div>
+                {% elsif product.handle == 'karykatura-na-zamowienie-druk-na-szkle-akrylowym-ramka-z-podswietleniem' %}
+                  {% comment %} TYLKO STYLE KARYKATURY dla produktu karykatura-na-zamowienie - używa Segmind API {% endcomment %}
+                  <div class="customify-style-card" data-style="karykatura">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/karykat/caricature.png'); background-size: cover; background-position: center;"></div>
+                    <div class="style-info">
+                      <div class="style-name">Karykatura</div>
+                    </div>
+                  </div>
+                  <div class="customify-style-card" data-style="caricature-new" style="display: block !important;">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/karykat/karykat_nowoczesna.png'); background-size: cover; background-position: center;"></div>
+                    <div class="style-info">
+                      <div class="style-name">Nowoczesna</div>
+                    </div>
+                  </div>
+                  <div class="customify-style-card" data-style="karykatura-olowek" style="display: block !important;">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/karykat/olowek.png'); background-size: cover; background-position: center;"></div>
+                    <div class="style-info">
+                      <div class="style-name">Szkic ołówkiem</div>
+                    </div>
+                  </div>
                 {% elsif product.handle == 'plakat-ze-zdjecia-w-stylu-komiks' %}
                   {% comment %} TEST: Styl karykatury szkic ołówkiem tylko dla produktu komiks {% endcomment %}
                   <div class="customify-style-card" data-style="karykatura-olowek" style="display: block !important;">
@@ -3469,6 +3498,14 @@
                     <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/krolowa/krolowa_sitting.png'); background-size: cover; background-position: center;"></div>
                     <div class="style-info">
                       <div class="style-name">Królowa - Sitting</div>
+                    </div>
+                  </div>
+                {% elsif product.handle contains 'superbohater' %}
+                  {% comment %} TYLKO STYL SUPERBOHATER dla produktu superbohater {% endcomment %}
+                  <div class="customify-style-card" data-style="superhero_kid">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/superbohater/superhero_ok_1.jpg'); background-size: cover; background-position: center;"></div>
+                    <div class="style-info">
+                      <div class="style-name">Superbohater</div>
                     </div>
                   </div>
                 {% elsif product.handle == 'koty-krolewskie-zwierzeta-w-koronach' %}
@@ -3793,7 +3830,7 @@
                 </div>
                 <div class="accordion-content">
                   <ul>
-                    <li><strong>⚡ Szybka realizacja:</strong> 3-5 dni roboczych od akceptacji projektu</li>
+                    <li><strong>⚡ Szybka realizacja:</strong> natychmiast po zleceniu projektu</li>
                     <li><strong>📦 Bezpieczne opakowanie:</strong> Karton wzmocniony + folia bąbelkowa - gwarancja bezpiecznej dostawy</li>
                     <li><strong>🇵🇱 Wysyłka:</strong> InPost Paczkomaty, InPost Kurier</li>
                     <li><strong>📍 Śledzenie przesyłki:</strong> Numer trackingowy wysyłany mailem - zawsze wiesz gdzie jest Twoja przesyłka</li>
@@ -4690,6 +4727,20 @@
               }, 0);
             });
           });
+          
+          // 🆕 AUTO-INICJALIZACJA dla produktu ze szkłem
+          var currentUrl = window.location.pathname.toLowerCase();
+          if (currentUrl.includes('karykatura-na-zamowienie-druk-na-szkle-akrylowym-ramka-z-podswietleniem')) {
+            console.log('🔍 [SZKLO] Produkt ze szkłem wykryty - automatyczne filtrowanie rozmiarów');
+            // Ustaw szkło jako wybrany typ
+            if (window.__customify) {
+              window.__customify.selectedProductType = 'szklo';
+            }
+            // Wywoła updateSizeAvailability() żeby pokazać tylko A5 i A4
+            updateStandAvailability();
+            updateSizeAvailability();
+            console.log('✅ [SZKLO] Automatycznie pokazano tylko rozmiary dla szkła (A5, A4)');
+          }
         });
       </script>
     {% endif %}

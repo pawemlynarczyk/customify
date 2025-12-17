@@ -468,6 +468,10 @@ class CustomifyEmbed {
       console.log('🎨 [PRODUCT-TYPE] URL = Boho → productType: boho');
       return 'boho';
     }
+    if (currentUrl.includes('superbohater') || currentUrl.includes('portret-ze-zdjecia-superbohater-prezent-dla-chlopca')) {
+      console.log('🦸 [PRODUCT-TYPE] URL = Superbohater → productType: superhero');
+      return 'superhero';
+    }
     if (currentUrl.includes('plakat-ze-zdjecia-w-stylu-komiks')) {
       console.log('🖍️ [PRODUCT-TYPE] URL = Komiks (test) → productType: caricature-new');
       return 'caricature-new';
@@ -492,6 +496,7 @@ class CustomifyEmbed {
       'wojenny': 'cats',
       'wiktorianski': 'cats',
       'renesansowy': 'cats',
+      'superhero_kid': 'superhero',
       'karykatura': 'caricature',
       'caricature-new': 'caricature-new',
       'karykatura-olowek': 'caricature-new',

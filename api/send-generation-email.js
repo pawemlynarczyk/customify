@@ -143,18 +143,31 @@ module.exports = async (req, res) => {
 
     // Wyślij email przez Resend
     const result = await resend.emails.send({
-      from: 'Lumly <noreply@notifications.lumly.pl>',
+      // ✅ Użyj zweryfikowanej domeny (bez "s"): notification.lumly.pl
+      from: 'Lumly <noreply@notification.lumly.pl>',
       to: email,
       subject: '🎨 Twoja generacja AI jest gotowa!',
       html: emailHtml
     });
 
+    // Resend zwraca { data: { id }, error }
+    if (result.error) {
+      console.error('❌ [SEND-EMAIL] Resend error:', result.error);
+      return res.status(500).json({
+        error: 'Failed to send email via Resend',
+        details: result.error
+      });
+    }
+
+    const emailId = result.data?.id || result.id || null;
+
     console.log('✅ [SEND-EMAIL] Email wysłany pomyślnie!');
-    console.log('✅ [SEND-EMAIL] Resend ID:', result.id);
+    console.log('✅ [SEND-EMAIL] Resend ID:', emailId);
+    console.log('✅ [SEND-EMAIL] Resend raw response:', JSON.stringify(result));
 
     return res.status(200).json({
       success: true,
-      emailId: result.id,
+      emailId,
       to: email
     });
 

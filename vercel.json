@@ -5,6 +5,12 @@
       "maxDuration": 300
     }
   },
+  "crons": [
+    {
+      "path": "/api/check-and-reset-limits",
+      "schedule": "*/20 * * * *"
+    }
+  ],
   "buildCommand": "echo 'Force rebuild v7 - analytics system'",
   "outputDirectory": "public",
   "installCommand": "echo 'Force install'",
