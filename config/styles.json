@@ -1,0 +1,114 @@
+{
+  "version": 1,
+  "productTypes": {
+    "caricature": {
+      "handles": ["karykatura-z-twojego-zdjecia-obraz"]
+    },
+    "caricature-new": {
+      "handles": ["karykatura-z-twojego-zdjecia-obraz"]
+    },
+    "queen": {
+      "handles": ["krol-portret-personalizowany"]
+    },
+    "para_krolewska": {
+      "handles": ["portret-pary-z-okazji-rocznicy-z-twojego-zdjecia"]
+    }
+  },
+  "styles": [
+    {
+      "slug": "karykatura",
+      "name": "Karykatura klasyczna",
+      "productType": "caricature",
+      "apiType": "segmind-caricature",
+      "model": "segmind/caricature-style",
+      "assets": {
+        "thumbnail": null,
+        "targetImage": null
+      },
+      "parameters": {
+        "size": "1024x1536",
+        "quality": "medium",
+        "background": "opaque",
+        "output_format": "jpeg",
+        "output_compression": 85
+      },
+      "active": true,
+      "products": ["karykatura-z-twojego-zdjecia-obraz"]
+    },
+    {
+      "slug": "caricature-new",
+      "name": "Karykatura nowoczesna",
+      "productType": "caricature-new",
+      "apiType": "openai-caricature",
+      "model": "gpt-image-1",
+      "assets": {
+        "thumbnail": null,
+        "targetImage": null
+      },
+      "parameters": {
+        "size": "1024x1536",
+        "output_format": "jpeg",
+        "background": "opaque",
+        "n": 1
+      },
+      "active": true,
+      "products": ["karykatura-z-twojego-zdjecia-obraz"]
+    },
+    {
+      "slug": "karykatura-olowek",
+      "name": "Karykatura ołówek",
+      "productType": "caricature-new",
+      "apiType": "openai-caricature",
+      "model": "gpt-image-1",
+      "assets": {
+        "thumbnail": null,
+        "targetImage": null
+      },
+      "parameters": {
+        "size": "1024x1536",
+        "output_format": "jpeg",
+        "background": "opaque",
+        "n": 1
+      },
+      "active": true,
+      "products": ["karykatura-z-twojego-zdjecia-obraz"]
+    },
+    {
+      "slug": "krolowa-styl-1",
+      "name": "Królowa (Segmind)",
+      "productType": "queen",
+      "apiType": "segmind-faceswap",
+      "model": "segmind/faceswap-v4",
+      "assets": {
+        "thumbnail": "https://customify-s56o.vercel.app/krolowa/krolowa-styl-1.jpg",
+        "targetImage": "https://customify-s56o.vercel.app/krolowa/krolowa-styl-1.jpg"
+      },
+      "parameters": {
+        "swap_image": "USER_IMAGE",
+        "target_image": "https://customify-s56o.vercel.app/krolowa/krolowa-styl-1.jpg"
+      },
+      "active": true,
+      "products": ["krol-portret-personalizowany"]
+    },
+    {
+      "slug": "zamkowy",
+      "name": "Para królewska (Nano Banana)",
+      "productType": "para_krolewska",
+      "apiType": "nano-banana",
+      "model": "google/nano-banana",
+      "assets": {
+        "thumbnail": "https://customify-s56o.vercel.app/zamkowy/zamkowy-styl.png",
+        "targetImage": null
+      },
+      "parameters": {
+        "prompt": "Dress the couple in refined royal attire inspired by European monarchy. The man wears an elegant royal ceremonial outfit with ornate gold embroidery, a dark tailored coat, a decorative sash and subtle regal details. The woman wears a luxurious royal ball gown with flowing fabric, pearl or gold embellishments, and delicate majestic accents. Their outfits must look high-class, tasteful and historically inspired, but clean and premium — not theatrical or cartoonish. Frame the couple in a tight waist-up portrait. This is a close, zoomed-in portrait composition. Show them ONLY from the waist upward. Do NOT show full bodies. Do NOT show legs, hips or anything below the waist. Lower body parts do NOT exist in this image. The framing must be tight around the upper body so the faces appear large and clearly visible. Place them outdoors on a green garden lawn on a sunny day, with a large European-style palace or castle visible in the background.",
+        "aspect_ratio": "2:3",
+        "output_format": "jpg",
+        "guidance": 3.5
+      },
+      "active": true,
+      "products": ["portret-pary-z-okazji-rocznicy-z-twojego-zdjecia"]
+    }
+  ],
+  "singleStyle": {}
+}

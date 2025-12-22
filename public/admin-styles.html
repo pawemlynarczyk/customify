@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Styles Panel</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 960px; margin: 32px auto; padding: 0 16px; background: #fafafa; }
+    h1 { font-size: 22px; margin-bottom: 12px; }
+    section { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+    label { display: block; margin: 6px 0 2px; font-weight: 600; }
+    input, textarea, select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; }
+    button { padding: 10px 14px; background: #111827; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
+    .row { display: flex; gap: 12px; flex-wrap: wrap; }
+    .row .col { flex: 1 1 240px; }
+    pre { background: #0b1021; color: #e5e7eb; padding: 12px; border-radius: 8px; overflow: auto; font-size: 13px; }
+    small { color: #6b7280; }
+  </style>
+</head>
+<body>
+  <h1>Panel stylów (admin)</h1>
+
+  <section id="login-section">
+    <h3>Logowanie</h3>
+    <label for="token">Hasło (ADMIN_STATS_TOKEN)</label>
+    <input id="token" type="password" placeholder="wklej ADMIN_STATS_TOKEN" />
+    <small>Token trzymany w localStorage. Wymagany dostęp do panelu.</small>
+    <div style="margin-top:12px;">
+      <button id="loginBtn">Zaloguj</button>
+    </div>
+  </section>
+
+  <div id="app" style="display:none;">
+  <section>
+    <div class="row">
+      <div class="col">
+        <label for="endpoint">Endpoint (tylko podgląd, stały)</label>
+        <input id="endpoint" value="https://customify-s56o.vercel.app/api/admin-styles" readonly />
+      </div>
+      <div class="col" style="align-self:flex-end;">
+        <button id="loadBtn">Pobierz config</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Sekcja toggle i single-style ukryta na razie -->
+  <section style="display:none">
+    <h3>Włącz / wyłącz styl (toggleStyle)</h3>
+    <div class="row">
+      <div class="col">
+        <label for="toggleSlug">Slug</label>
+        <select id="toggleSlug"></select>
+      </div>
+      <div class="col">
+        <label for="toggleActive">Aktywny? (puste = przełącz)</label>
+        <select id="toggleActive">
+          <option value="">(przełącz)</option>
+          <option value="true">true</option>
+          <option value="false">false</option>
+        </select>
+      </div>
+    </div>
+    <button id="toggleBtn">Wyślij toggle</button>
+  </section>
+
+  <section style="display:none">
+    <h3>Zmień typ produktu: single / multi styl</h3>
+    <div class="row">
+      <div class="col">
+        <label for="ssHandle">productHandle / URL produktu</label>
+        <input id="ssHandle" placeholder="np. portret-pary-z-okazji-rocznicy-z-twojego-zdjecia lub pełny URL" />
+      </div>
+      <div class="col">
+        <label for="ssProductType">productType</label>
+        <input id="ssProductType" placeholder="np. para_krolewska" />
+      </div>
+      <div class="col">
+        <label for="ssSlug">defaultStyleSlug</label>
+        <input id="ssSlug" placeholder="np. zamkowy" />
+      </div>
+      <div class="col">
+        <label for="ssEnabled">enabled (true/false)</label>
+        <select id="ssEnabled">
+          <option value="true">true</option>
+          <option value="false">false</option>
+        </select>
+      </div>
+    </div>
+    <small>Możesz wkleić pełny URL produktu – uchwycimy handle automatycznie.</small>
+    <button id="ssBtn">Zapisz single-style</button>
+  </section>
+
+  <section>
+    <h3>Utwórz/Edytuj styl</h3>
+    <div class="row">
+      <div class="col">
+        <label for="usSlug">nazwa stylu - systemowa</label>
+        <input id="usSlug" placeholder="np. karykatura" />
+      </div>
+      <div class="col">
+        <label for="usName">Nazwa wyświetlana</label>
+        <input id="usName" placeholder="np. Karykatura klasyczna" />
+      </div>
+      <div class="col">
+        <label for="usActive">active</label>
+        <select id="usActive">
+          <option value="true">true</option>
+          <option value="false">false</option>
+        </select>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col">
+        <label for="usModel">model (wybór ustala apiType i productType)</label>
+        <select id="usModel">
+          <option value="google/nano-banana">google/nano-banana (para_krolewska / nano-banana)</option>
+          <option value="segmind/faceswap-v4">segmind/faceswap-v4 (queen / segmind-faceswap)</option>
+          <option value="segmind/caricature-style">segmind/caricature-style (caricature / segmind-caricature)</option>
+          <option value="gpt-image-1">gpt-image-1 (caricature-new / openai-caricature)</option>
+        </select>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col">
+        <label for="usThumb">thumbnail URL</label>
+        <input id="usThumb" placeholder="https://..." />
+      </div>
+      <div class="col">
+        <label for="usTarget">targetImage URL</label>
+        <input id="usTarget" placeholder="https://... (opcjonalne)" />
+      </div>
+      <div class="col">
+        <label>Produkty i miniatury (opcjonalnie)</label>
+        <div id="productsContainer" style="display:flex; flex-direction:column; gap:6px;"></div>
+        <button type="button" id="addProductRow" style="margin-top:6px; padding:6px 10px;">Dodaj produkt</button>
+        <small>Możesz dodać wiele produktów; miniaturka/target (override) są opcjonalne.</small>
+        <div id="productsListInfo" style="margin-top:6px; font-size:12px; color:#374151;">Produkty zawierające styl: brak</div>
+        <div id="productsConfigInfo" style="margin-top:4px; font-size:12px; color:#111827; font-weight:600;">Produkty zapisane w configu: brak</div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col">
+        <label for="usParams">parameters (JSON)</label>
+        <textarea id="usParams" rows="4" placeholder='{"size":"1024x1536"}'></textarea>
+        <small>Wpisz poprawny JSON zgodny z modelem.</small>
+      </div>
+    </div>
+    <button id="usBtn">Zapisz styl (upsert)</button>
+  </section>
+
+  <section>
+    <h3>Lista styli (podgląd)</h3>
+    <div id="stylesList" style="overflow:auto; max-height:320px; border:1px solid #ddd; border-radius:8px; padding:8px; background:#fff;"></div>
+  </section>
+
+  <section>
+    <h3>Komunikaty</h3>
+    <pre id="messages" style="max-height:200px; overflow:auto; background:#0b1021; color:#e5e7eb; padding:10px; border-radius:8px; font-size:12px;">Brak komunikatów.</pre>
+  </section>
+
+  <script>
+    const tokenInput = document.getElementById('token');
+    const endpointInput = document.getElementById('endpoint');
+    const ENDPOINT = 'https://customify-s56o.vercel.app/api/admin-styles';
+
+    const toggleSlug = document.getElementById('toggleSlug');
+    const toggleActive = document.getElementById('toggleActive');
+
+    const ssHandle = document.getElementById('ssHandle');
+    const ssProductType = document.getElementById('ssProductType');
+    const ssSlug = document.getElementById('ssSlug');
+    const ssEnabled = document.getElementById('ssEnabled');
+
+    const usSlug = document.getElementById('usSlug');
+    const usName = document.getElementById('usName');
+    const usActive = document.getElementById('usActive');
+    const usModel = document.getElementById('usModel');
+    const usThumb = document.getElementById('usThumb');
+    const usTarget = document.getElementById('usTarget');
+    const productsContainer = document.getElementById('productsContainer');
+    const addProductRowBtn = document.getElementById('addProductRow');
+    const usParams = document.getElementById('usParams');
+    const usBtn = document.getElementById('usBtn');
+
+    const loadBtn = document.getElementById('loadBtn');
+    const toggleBtn = document.getElementById('toggleBtn');
+    const ssBtn = document.getElementById('ssBtn');
+    const loginBtn = document.getElementById('loginBtn');
+    const app = document.getElementById('app');
+    const loginSection = document.getElementById('login-section');
+    const stylesList = document.getElementById('stylesList');
+    const messages = document.getElementById('messages');
+    let stylesCache = [];
+    let productRows = [];
+    const productsListInfo = document.getElementById('productsListInfo');
+    const productsConfigInfo = document.getElementById('productsConfigInfo');
+
+    const lsKey = 'adminStylesToken';
+    const saved = localStorage.getItem(lsKey);
+    if (saved) tokenInput.value = saved;
+
+    function setLoading(el, isLoading) {
+      el.disabled = isLoading;
+      el.textContent = isLoading ? 'Pracuję...' : el.dataset.label || el.textContent;
+    }
+
+    function authHeaders() {
+      const token = tokenInput.value.trim();
+      if (token) localStorage.setItem(lsKey, token);
+      return {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      };
+    }
+
+    function fillSelect(select, options, placeholder) {
+      select.innerHTML = '';
+      if (placeholder) {
+        const opt = document.createElement('option');
+        opt.value = '';
+        opt.textContent = placeholder;
+        select.appendChild(opt);
+      }
+      options.forEach((o) => {
+        const opt = document.createElement('option');
+        opt.value = o.value;
+        opt.textContent = o.label || o.value;
+        select.appendChild(opt);
+      });
+    }
+
+    function populateFromConfig(cfg) {
+      const styles = cfg?.config?.styles || cfg.styles || [];
+      stylesCache = styles;
+      fillSelect(toggleSlug, styles.map(s => ({ value: s.slug })), '(wybierz slug)');
+      renderStylesList(styles);
+    }
+
+    const MODEL_PRESETS = {
+      'google/nano-banana': {
+        prompt: "Dress the couple in refined royal attire inspired by European monarchy. The man wears an elegant royal ceremonial outfit with ornate gold embroidery, a dark tailored coat, a decorative sash and subtle regal details. The woman wears a luxurious royal ball gown with flowing fabric, pearl or gold embellishments, and delicate majestic accents. Their outfits must look high-class, tasteful and historically inspired, but clean and premium — not theatrical or cartoonish. Frame the couple in a tight waist-up portrait. This is a close, zoomed-in portrait composition. Show them ONLY from the waist upward. Do NOT show full bodies. Do NOT show legs, hips or anything below the waist. Lower body parts do NOT exist in this image. The framing must be tight around the upper body so the faces appear large and clearly visible. Place them outdoors on a green garden lawn on a sunny day, with a large European-style palace or castle visible in the background.",
+        aspect_ratio: "2:3",
+        output_format: "jpg",
+        guidance: 3.5
+      },
+      'segmind/faceswap-v4': {
+        swap_image: "USER_IMAGE",
+        target_image: "https://customify-s56o.vercel.app/krolowa/krolowa-styl-1.jpg"
+      },
+      'segmind/caricature-style': {
+        size: "1024x1536",
+        quality: "medium",
+        background: "opaque",
+        output_format: "jpeg",
+        output_compression: 85
+      },
+      'gpt-image-1': {
+        size: "1024x1536",
+        output_format: "jpeg",
+        background: "opaque",
+        n: 1
+      }
+    };
+
+    function applyPresetForModel(model) {
+      const preset = MODEL_PRESETS[model];
+      if (preset) {
+        try {
+          usParams.value = JSON.stringify(preset, null, 2);
+          logMessage(`Ustawiono parametry z presetu dla ${model}`);
+        } catch (e) {
+          logMessage(`❌ Błąd ustawiania presetu: ${e.message}`);
+        }
+      }
+    }
+
+
+    function renderProductRows() {
+      productsContainer.innerHTML = '';
+      if (productRows.length === 0) {
+        addProductRow();
+        return;
+      }
+      productRows.forEach((row, idx) => {
+        const wrap = document.createElement('div');
+        wrap.style.display = 'grid';
+        wrap.style.gridTemplateColumns = '2fr 1fr 1fr 80px';
+        wrap.style.gap = '6px';
+        wrap.style.alignItems = 'center';
+        wrap.style.padding = '4px';
+        wrap.style.background = '#f8fafc';
+        wrap.style.border = '1px solid #e5e7eb';
+        wrap.style.borderRadius = '6px';
+        wrap.innerHTML = `
+          <input data-idx="${idx}" data-field="handle" placeholder="productHandle" value="${row.handle || ''}" />
+          <input data-idx="${idx}" data-field="thumbnail" placeholder="thumbnail URL (opc.)" value="${row.thumbnail || ''}" />
+          <input data-idx="${idx}" data-field="targetImage" placeholder="targetImage URL (opc.)" value="${row.targetImage || ''}" />
+          <button type="button" data-idx="${idx}" class="removeProductRow" style="padding:6px 8px;">Usuń</button>
+        `;
+        productsContainer.appendChild(wrap);
+      });
+      updateProductsInfo();
+    }
+
+    function addProductRow() {
+      productRows.push({ handle: '', thumbnail: '', targetImage: '' });
+      renderProductRows();
+    }
+
+    function removeProductRow(idx) {
+      productRows.splice(idx, 1);
+      renderProductRows();
+    }
+
+    function syncProductRowsFromInputs() {
+      const inputs = productsContainer.querySelectorAll('input[data-idx]');
+      inputs.forEach((inp) => {
+        const idx = parseInt(inp.dataset.idx, 10);
+        const field = inp.dataset.field;
+        productRows[idx][field] = inp.value.trim();
+      });
+      updateProductsInfo();
+    }
+
+    function updateProductsInfo() {
+      const handles = productRows.map(r => r.handle).filter(Boolean);
+      productsListInfo.textContent = `Produkty zawierające styl: ${handles.length ? handles.join(', ') : 'brak'}`;
+    }
+
+    function renderStylesList(styles) {
+      if (!styles || styles.length === 0) {
+        stylesList.innerHTML = '<small>Brak styli w configu.</small>';
+        return;
+      }
+      const rows = styles.map(s => `
+        <tr>
+          <td><strong>${s.slug}</strong></td>
+          <td>${s.name || ''}</td>
+          <td>${s.model || ''}</td>
+          <td>${Array.isArray(s.products) ? s.products.join(', ') : ''}</td>
+          <td>${s.active ? '✓' : '✕'}</td>
+          <td style="display:flex; gap:6px;">
+            <button data-slug="${s.slug}" class="edit-style" style="padding:4px 8px;">Edytuj</button>
+            <button data-slug="${s.slug}" class="delete-style" style="padding:4px 8px; background:#b91c1c;">Usuń</button>
+          </td>
+        </tr>
+      `).join('');
+      stylesList.innerHTML = `
+        <table style="width:100%; border-collapse: collapse; font-size:13px;">
+          <thead>
+            <tr>
+              <th style="text-align:left; border-bottom:1px solid #ddd; padding:4px;">Slug</th>
+              <th style="text-align:left; border-bottom:1px solid #ddd; padding:4px;">Nazwa</th>
+              <th style="text-align:left; border-bottom:1px solid #ddd; padding:4px;">Model</th>
+              <th style="text-align:left; border-bottom:1px solid #ddd; padding:4px;">Produkty</th>
+              <th style="text-align:left; border-bottom:1px solid #ddd; padding:4px;">Active</th>
+              <th style="text-align:left; border-bottom:1px solid #ddd; padding:4px;">Akcje</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      `;
+    }
+
+    function logMessage(msg, obj) {
+      const time = new Date().toLocaleTimeString();
+      let line = `[${time}] ${msg}`;
+      if (obj !== undefined) {
+        try {
+          line += '\n' + JSON.stringify(obj, null, 2);
+        } catch (_) {}
+      }
+      messages.textContent = line + '\n\n' + messages.textContent;
+    }
+
+    function fillFormFromStyle(slug) {
+      const s = stylesCache.find(x => x.slug === slug);
+      if (!s) {
+        logMessage(`❌ Styl ${slug} nie znaleziony`);
+        return;
+      }
+      usSlug.value = s.slug || '';
+      usName.value = s.name || '';
+      usActive.value = s.active ? 'true' : 'false';
+      if (s.model) {
+        usModel.value = s.model;
+        applyPresetForModel(s.model);
+      }
+      usThumb.value = s.assets?.thumbnail || '';
+      usTarget.value = s.assets?.targetImage || '';
+      productRows = [];
+      if (Array.isArray(s.products)) {
+        s.products.forEach((p) => {
+          if (typeof p === 'string') {
+            productRows.push({ handle: p, thumbnail: '', targetImage: '' });
+          } else if (p && typeof p === 'object') {
+            productRows.push({
+              handle: p.handle || '',
+              thumbnail: p.thumbnail || '',
+              targetImage: p.targetImage || ''
+            });
+          }
+        });
+      } else if (typeof s.products === 'string') {
+        s.products.split(',').map(x => x.trim()).filter(Boolean).forEach(h => {
+          productRows.push({ handle: h, thumbnail: '', targetImage: '' });
+        });
+      }
+      if (productRows.length === 0) {
+        productRows.push({ handle: '', thumbnail: '', targetImage: '' });
+      }
+      renderProductRows();
+      const handlesFromConfig = Array.isArray(s.products)
+        ? s.products.map(p => typeof p === 'string' ? p : p?.handle).filter(Boolean)
+        : (typeof s.products === 'string'
+          ? s.products.split(',').map(x => x.trim()).filter(Boolean)
+          : []);
+      productsConfigInfo.textContent = `Produkty zapisane w configu: ${handlesFromConfig.length ? handlesFromConfig.join(', ') : 'brak'}`;
+      try {
+        usParams.value = s.parameters ? JSON.stringify(s.parameters, null, 2) : '';
+      } catch (_) {
+        usParams.value = '';
+      }
+      logMessage(`✏️ Załadowano styl do edycji: ${slug}`);
+    }
+
+    async function toggleStyleFromList(slug) {
+      logMessage('❌ Toggle usunięty z UI');
+    }
+
+    async function deleteStyleFromList(slug) {
+      const ok = window.confirm(`Usunąć styl "${slug}"?`);
+      if (!ok) return;
+      setLoading(usBtn, true);
+      try {
+        const res = await fetch(ENDPOINT, {
+          method: 'POST',
+          headers: authHeaders(),
+          body: JSON.stringify({ action: 'deleteStyle', slug })
+        });
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(`HTTP ${res.status} ${text}`);
+        }
+        await res.json();
+        logMessage(`✅ Usunięto styl ${slug}`);
+        fetchConfig(true);
+      } catch (e) {
+        logMessage(`❌ ${e.message}`);
+      } finally {
+        setLoading(usBtn, false);
+      }
+    }
+
+    async function fetchConfig(auto = false) {
+      if (!auto) setLoading(loadBtn, true);
+      try {
+        const res = await fetch(ENDPOINT, {
+          method: 'GET',
+          headers: authHeaders()
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        populateFromConfig(data);
+        logMessage('✅ Załadowano config', { styles: data.styles?.length || data.config?.styles?.length });
+      } catch (e) {
+        logMessage(`❌ ${e.message}`);
+      } finally {
+        if (!auto) setLoading(loadBtn, false);
+      }
+    }
+
+    async function loginAndInit() {
+      const token = tokenInput.value.trim();
+      if (!token) {
+        logMessage('❌ Wklej token');
+        return;
+      }
+      setLoading(loginBtn, true);
+      try {
+        const res = await fetch(ENDPOINT, {
+          method: 'GET',
+          headers: authHeaders()
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        populateFromConfig(data);
+        loginSection.style.display = 'none';
+        app.style.display = 'block';
+        logMessage('✅ Zalogowano i załadowano config');
+      } catch (e) {
+        logMessage(`❌ Brak dostępu: ${e.message}`);
+      } finally {
+        setLoading(loginBtn, false);
+      }
+    }
+
+    async function upsertStyle() {
+      setLoading(usBtn, true);
+      try {
+        const MODEL_MAP = {
+          'google/nano-banana': { apiType: 'nano-banana', productType: 'para_krolewska' },
+          'segmind/faceswap-v4': { apiType: 'segmind-faceswap', productType: 'queen' },
+          'segmind/caricature-style': { apiType: 'segmind-caricature', productType: 'caricature' },
+          'gpt-image-1': { apiType: 'openai-caricature', productType: 'caricature-new' }
+        };
+
+        syncProductRowsFromInputs();
+        let paramsObj = {};
+        const rawParams = usParams.value.trim();
+        if (rawParams) {
+          try {
+            paramsObj = JSON.parse(rawParams);
+          } catch (e) {
+            alert(`❌ parameters JSON error: ${e.message}`);
+            return;
+          }
+        }
+        let products = productRows
+          .map(p => {
+            if (!p.handle) return null;
+            if (p.thumbnail || p.targetImage) {
+              return {
+                handle: p.handle,
+                thumbnail: p.thumbnail || null,
+                targetImage: p.targetImage || null
+              };
+            }
+            return p.handle;
+          })
+          .filter(Boolean);
+        const model = usModel.value.trim();
+        const mapping = MODEL_MAP[model];
+        if (!mapping) {
+          alert('❌ Nieobsługiwany model (brak mapy apiType/productType)');
+          return;
+        }
+        // products może być puste (test stylu bez przypisania)
+
+        const style = {
+          slug: usSlug.value.trim(),
+          name: usName.value.trim(),
+          productType: mapping.productType,
+          apiType: mapping.apiType,
+          model,
+          assets: {
+            thumbnail: usThumb.value.trim() || null,
+            targetImage: usTarget.value.trim() || null
+          },
+          parameters: paramsObj,
+          active: usActive.value === 'true',
+          products
+        };
+
+        const res = await fetch(ENDPOINT, {
+          method: 'POST',
+          headers: authHeaders(),
+          body: JSON.stringify({ action: 'upsertStyle', style })
+        });
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(`HTTP ${res.status} ${text}`);
+        }
+        const data = await res.json();
+        logMessage('✅ Zapisano styl', { slug: style.slug });
+        populateFromConfig(data);
+        fetchConfig(true);
+      } catch (e) {
+        logMessage(`❌ ${e.message}`);
+      } finally {
+        setLoading(usBtn, false);
+      }
+    }
+
+    async function toggleStyle() {
+      setLoading(toggleBtn, true);
+      try {
+        const activeVal = toggleActive.value.trim();
+        const active = activeVal === '' ? undefined : activeVal === 'true';
+        const payload = {
+          action: 'toggleStyle',
+          slug: toggleSlug.value.trim(),
+          active
+        };
+        const res = await fetch(ENDPOINT, {
+          method: 'POST',
+          headers: authHeaders(),
+          body: JSON.stringify(payload)
+        });
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(`HTTP ${res.status} ${text}`);
+        }
+        await res.json();
+        logMessage('✅ Zmieniono status stylu', { slug: payload.slug, active });
+        fetchConfig(true);
+      } catch (e) {
+        logMessage(`❌ ${e.message}`);
+      } finally {
+        setLoading(toggleBtn, false);
+      }
+    }
+
+    function normalizeHandle(input) {
+      const trimmed = (input || '').trim();
+      if (!trimmed) return '';
+      // Jeśli pełny URL, wyciągnij ostatni segment po /products/
+      try {
+        if (trimmed.startsWith('http')) {
+          const u = new URL(trimmed);
+          const parts = u.pathname.split('/').filter(Boolean);
+          const idx = parts.findIndex(p => p === 'products');
+          if (idx !== -1 && parts[idx + 1]) {
+            return parts[idx + 1];
+          }
+          return parts[parts.length - 1] || trimmed;
+        }
+      } catch (_) {
+        // ignore parse errors
+      }
+      return trimmed;
+    }
+
+    async function setSingleStyle() {
+      setLoading(ssBtn, true);
+      try {
+        const handle = normalizeHandle(ssHandle.value);
+        const payload = {
+          action: 'setSingleStyle',
+          singleStyle: {
+            productHandle: handle,
+            productType: ssProductType.value.trim(),
+            defaultStyleSlug: ssSlug.value.trim(),
+            enabled: ssEnabled.value.trim() === 'false' ? false : true
+          }
+        };
+        const res = await fetch(ENDPOINT, {
+          method: 'POST',
+          headers: authHeaders(),
+          body: JSON.stringify(payload)
+        });
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(`HTTP ${res.status} ${text}`);
+        }
+        await res.json();
+        logMessage('✅ Zapisano single-style', payload.singleStyle);
+        fetchConfig(true);
+      } catch (e) {
+        logMessage(`❌ ${e.message}`);
+      } finally {
+        setLoading(ssBtn, false);
+      }
+    }
+
+    loadBtn.dataset.label = 'Pobierz config';
+    toggleBtn.dataset.label = 'Wyślij toggle';
+    ssBtn.dataset.label = 'Zapisz single-style';
+    usBtn.dataset.label = 'Zapisz styl (upsert)';
+    loginBtn.dataset.label = 'Zaloguj';
+
+    loadBtn.addEventListener('click', () => fetchConfig(false));
+    // toggleBtn/ssBtn pozostają ukryte – nie przypinamy do UI
+    usBtn.addEventListener('click', upsertStyle);
+    usModel.addEventListener('change', (e) => applyPresetForModel(e.target.value));
+    addProductRowBtn.addEventListener('click', () => {
+      syncProductRowsFromInputs();
+      addProductRow();
+    });
+    productsContainer.addEventListener('click', (e) => {
+      const btn = e.target.closest('.removeProductRow');
+      if (btn) {
+        syncProductRowsFromInputs();
+        const idx = parseInt(btn.dataset.idx, 10);
+        removeProductRow(idx);
+      }
+    });
+    productsContainer.addEventListener('input', () => {
+      syncProductRowsFromInputs();
+    });
+    loginBtn.addEventListener('click', loginAndInit);
+    stylesList.addEventListener('click', (e) => {
+      const editBtn = e.target.closest('.edit-style');
+      if (editBtn?.dataset.slug) {
+        fillFormFromStyle(editBtn.dataset.slug);
+        return;
+      }
+      const deleteBtn = e.target.closest('.delete-style');
+      if (deleteBtn?.dataset.slug) {
+        deleteStyleFromList(deleteBtn.dataset.slug);
+      }
+    });
+
+    // Auto-login, jeśli token jest w localStorage
+    window.addEventListener('load', () => {
+      if (tokenInput.value.trim()) {
+        loginAndInit();
+      } else {
+        applyPresetForModel(usModel.value);
+        productRows = [{ handle: '', thumbnail: '', targetImage: '' }];
+        renderProductRows();
+      }
+    });
+  </script>
+</body>
+</html>

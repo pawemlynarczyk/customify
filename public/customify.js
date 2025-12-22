@@ -476,6 +476,10 @@ class CustomifyEmbed {
       console.log('🖍️ [PRODUCT-TYPE] URL = Komiks (test) → productType: caricature-new');
       return 'caricature-new';
     }
+    if (currentUrl.includes('portret-pary-z-okazji-rocznicy-z-twojego-zdjecia')) {
+      console.log('🤴👸 [PRODUCT-TYPE] URL = Para królewska → productType: para_krolewska');
+      return 'para_krolewska';
+    }
     
     // 🔄 PRIORYTET 2: Fallback - sprawdź styl (tylko dla starych generacji bez URL)
     console.log('⚠️ [PRODUCT-TYPE] Nie rozpoznano URL, sprawdzam styl:', style);
@@ -496,6 +500,8 @@ class CustomifyEmbed {
       'wojenny': 'cats',
       'wiktorianski': 'cats',
       'renesansowy': 'cats',
+      'zamkowy': 'para_krolewska',
+      'krolewski-para': 'para_krolewska',
       'superhero_kid': 'superhero',
       'karykatura': 'caricature',
       'caricature-new': 'caricature-new',
