@@ -299,6 +299,24 @@ async function uploadToCloudinary(imageDataUri) {
   }
 }
 
+// Helper function to check if error is moderation blocked
+function isModerationBlocked(errorText) {
+  if (!errorText) return false;
+  const errorLower = errorText.toLowerCase();
+  return errorLower.includes('moderation_blocked') || 
+         errorLower.includes('safety_violations') ||
+         errorLower.includes('rejected by the safety system');
+}
+
+// Helper function to create user-friendly moderation error
+function createModerationError(originalError) {
+  const error = new Error('Zdjęcie zostało odrzucone przez system bezpieczeństwa. Spróbuj użyć innego zdjęcia portretowego.');
+  error.code = 'MODERATION_BLOCKED';
+  error.userMessage = 'Zdjęcie zostało odrzucone przez system bezpieczeństwa. Spróbuj użyć innego zdjęcia portretowego.';
+  error.originalError = originalError;
+  return error;
+}
+
 // Function to handle Segmind Caricature API
 async function segmindCaricature(imageUrl) {
   const SEGMIND_API_KEY = process.env.SEGMIND_API_KEY;
@@ -360,6 +378,13 @@ async function segmindCaricature(imageUrl) {
       } else {
         const errorText = await response.text();
         const status = response.status;
+        
+        // Check if error is moderation blocked
+        if (isModerationBlocked(errorText)) {
+          console.warn('⚠️ [SEGMIND] Moderation blocked - image rejected by safety system');
+          console.warn('⚠️ [SEGMIND] Error details:', errorText.substring(0, 500));
+          throw createModerationError(`Segmind API error: ${status} - ${errorText}`);
+        }
         
         // Retry only for server errors (5xx) and 502 Bad Gateway
         const isRetryable = status >= 500 || status === 502;
@@ -515,6 +540,13 @@ async function segmindFaceswap(targetImageUrl, swapImageBase64) {
       } else {
         const errorText = await response.text();
         const status = response.status;
+        
+        // Check if error is moderation blocked
+        if (isModerationBlocked(errorText)) {
+          console.warn('⚠️ [SEGMIND] Moderation blocked - image rejected by safety system');
+          console.warn('⚠️ [SEGMIND] Error details:', errorText.substring(0, 500));
+          throw createModerationError(`Segmind face-swap failed: ${status} - ${errorText}`);
+        }
         
         // Retry only for server errors (5xx) and 502 Bad Gateway
         const isRetryable = status >= 500 || status === 502;
@@ -674,6 +706,13 @@ async function segmindBecomeImage(imageUrl, styleImageUrl, styleParameters = {})
       } else {
         const errorText = await response.text();
         const status = response.status;
+        
+        // Check if error is moderation blocked
+        if (isModerationBlocked(errorText)) {
+          console.warn('⚠️ [SEGMIND] Moderation blocked - image rejected by safety system');
+          console.warn('⚠️ [SEGMIND] Error details:', errorText.substring(0, 500));
+          throw createModerationError(`Segmind API error: ${status} - ${errorText}`);
+        }
         
         // Retry only for server errors (5xx) and 502 Bad Gateway
         const isRetryable = status >= 500 || status === 502;
@@ -3442,7 +3481,11 @@ module.exports = async (req, res) => {
     let errorMessage = 'AI transformation failed';
     let statusCode = 500;
     
-    if (error.message.includes('NSFW') || error.message.includes('content detected')) {
+    // Check if error has user-friendly message (e.g., moderation blocked)
+    if (error.code === 'MODERATION_BLOCKED' || error.userMessage) {
+      errorMessage = error.userMessage || 'Zdjęcie zostało odrzucone przez system bezpieczeństwa. Spróbuj użyć innego zdjęcia portretowego.';
+      statusCode = 400;
+    } else if (error.message.includes('NSFW') || error.message.includes('content detected')) {
       errorMessage = 'Obraz został odrzucony przez filtr bezpieczeństwa. Spróbuj użyć innego zdjęcia lub stylu. Upewnij się, że zdjęcie jest odpowiednie dla wszystkich widzów.';
       statusCode = 400;
     } else if (error.message.includes('CUDA out of memory')) {
