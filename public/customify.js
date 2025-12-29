@@ -3197,8 +3197,8 @@ class CustomifyEmbed {
       // Retry logic for network errors
       if (retryCount < 3 && (
         error.name === 'AbortError' || 
-        error.message.includes('Failed to fetch') || 
-        error.message.includes('NetworkError')
+        (error?.message && error.message.includes('Failed to fetch')) || 
+        (error?.message && error.message.includes('NetworkError'))
       )) {
         console.log(`🔄 [MOBILE] Retrying in 2 seconds... (attempt ${retryCount + 1}/3)`);
         alert(`🔄 Ponawiam próbę ${retryCount + 1}/3...`);
@@ -3212,12 +3212,16 @@ class CustomifyEmbed {
       
       if (error.name === 'AbortError') {
         errorMessage = 'Przekroczono limit czasu (5 minut). Spróbuj ponownie.';
-      } else if (error.message.includes('Failed to fetch')) {
+      } else if (error?.message && error.message.includes('Failed to fetch')) {
         errorMessage = 'Błąd sieci. Sprawdź połączenie internetowe.';
-      } else if (error.message.includes('NetworkError')) {
+      } else if (error?.message && error.message.includes('NetworkError')) {
         errorMessage = 'Błąd sieci. Spróbuj ponownie za chwilę.';
-      } else if (error.message.includes('TypeError')) {
+      } else if (error?.message && error.message.includes('TypeError')) {
         errorMessage = 'Błąd przetwarzania. Spróbuj ponownie.';
+      } else if (error?.message) {
+        errorMessage = 'Błąd: ' + error.message;
+      } else if (typeof error === 'string') {
+        errorMessage = 'Błąd: ' + error;
       }
       
       this.showError(errorMessage, 'transform');
@@ -3690,9 +3694,9 @@ class CustomifyEmbed {
       // ✅ RETRY LOGIC: Ponów próbę dla network errors (max 3 próby)
       if (retryCount < 3 && (
         error.name === 'AbortError' || 
-        error.message.includes('Failed to fetch') || 
-        error.message.includes('NetworkError') ||
-        error.message.includes('Load failed')
+        (error?.message && error.message.includes('Failed to fetch')) || 
+        (error?.message && error.message.includes('NetworkError')) ||
+        (error?.message && error.message.includes('Load failed'))
       )) {
         const retryDelay = (retryCount + 1) * 2000; // 2s, 4s, 6s
         console.log(`🔄 [CUSTOMIFY] Retrying addToCart in ${retryDelay}ms... (attempt ${retryCount + 1}/3)`);
@@ -3710,12 +3714,14 @@ class CustomifyEmbed {
       
       if (error.name === 'AbortError') {
         errorMessage = '❌ Przekroczono limit czasu (30 sekund). Spróbuj ponownie.';
-      } else if (error.message.includes('Failed to fetch')) {
+      } else if (error?.message && error.message.includes('Failed to fetch')) {
         errorMessage = '❌ Błąd sieci. Sprawdź połączenie internetowe i spróbuj ponownie.';
-      } else if (error.message.includes('NetworkError') || error.message.includes('Load failed')) {
+      } else if (error?.message && (error.message.includes('NetworkError') || error.message.includes('Load failed'))) {
         errorMessage = '❌ Błąd sieci. Spróbuj ponownie za chwilę.';
-      } else {
+      } else if (error?.message) {
         errorMessage = '❌ Błąd: ' + error.message;
+      } else if (typeof error === 'string') {
+        errorMessage = '❌ Błąd: ' + error;
       }
       
       this.showError(errorMessage, 'cart');
