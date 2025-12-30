@@ -5,6 +5,7 @@
 
 const { kv } = require('@vercel/kv');
 const { Resend } = require('resend');
+const { isKVConfigured } = require('../utils/vercelKVLimiter');
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -304,7 +305,26 @@ module.exports = async (req, res) => {
 
         // Email (tylko jeśli jest email)
         if (email) {
-          await sendCreditEmail(email);
+          const emailResult = await sendCreditEmail(email);
+          
+          // Zapisz informację o wysłanym mailu do KV (dla statystyk)
+          if (emailResult.success && isKVConfigured()) {
+            try {
+              const emailKey = `credit-email-sent:${customerId}`;
+              const emailPayload = {
+                email: email,
+                customerId: customerId,
+                sentAt: new Date().toISOString(),
+                emailId: emailResult.emailId || null,
+                usageCount: payload.totalUsed || null,
+                totalLimit: payload.totalLimit || 4
+              };
+              await kv.set(emailKey, JSON.stringify(emailPayload), { ex: 60 * 60 * 24 * 90 }); // 90 dni TTL
+              console.log('📧 [RESET-LIMITS] Zapisano informację o wysłanym mailu do KV:', { emailKey });
+            } catch (kvErr) {
+              console.warn('⚠️ [RESET-LIMITS] Nie udało się zapisać informacji o mailu do KV:', kvErr);
+            }
+          }
         } else {
           console.warn('⚠️ [RESET-LIMITS] Brak emaila, pomijam wysyłkę', { customerId });
         }

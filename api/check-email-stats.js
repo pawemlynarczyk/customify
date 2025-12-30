@@ -1,7 +1,8 @@
 // api/check-email-stats.js
-// Sprawdza statystyki maili przez Resend API
+// Sprawdza statystyki maili kredytowych z Vercel KV
+// (Resend API key jest ograniczony tylko do wysyłania, nie można pobierać statystyk)
 
-const { Resend } = require('resend');
+const { kv } = require('@vercel/kv');
 
 module.exports = async (req, res) => {
   // CORS
@@ -12,110 +13,83 @@ module.exports = async (req, res) => {
     return res.status(405).json({ error: 'Method not allowed' });
   }
   
-  if (!process.env.RESEND_API_KEY) {
-    return res.status(500).json({ 
-      error: 'RESEND_API_KEY not configured',
-      message: 'Sprawdź Vercel Environment Variables'
-    });
-  }
-
-  const resend = new Resend(process.env.RESEND_API_KEY);
-  
   try {
-    console.log('📧 [CHECK-EMAIL-STATS] Sprawdzam maile w Resend...');
+    console.log('📧 [CHECK-EMAIL-STATS] Sprawdzam maile kredytowe w Vercel KV...');
     
-    // Pobierz listę maili przez Resend API v3
-    // W Resend v3 używamy innej metody
-    let emails = [];
+    // Pobierz wszystkie klucze credit-email-sent:*
+    const keys = await kv.keys('credit-email-sent:*');
+    console.log(`📋 [CHECK-EMAIL-STATS] Znaleziono ${keys.length} wpisów o wysłanych mailach`);
     
-    try {
-      // Spróbuj przez API v3
-      const response = await fetch('https://api.resend.com/emails?limit=100', {
-        headers: {
-          'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        emails = data.data || [];
-      } else {
-        const errorText = await response.text();
-        console.error('❌ [CHECK-EMAIL-STATS] Resend API error:', errorText);
-        return res.status(500).json({ 
-          error: 'Resend API error',
-          details: errorText
+    const emails = [];
+    for (const key of keys) {
+      const data = await kv.get(key);
+      if (data) {
+        const payload = typeof data === 'string' ? JSON.parse(data) : data;
+        emails.push({
+          customerId: key.replace('credit-email-sent:', ''),
+          email: payload.email || 'N/A',
+          sentAt: payload.sentAt || payload.timestamp,
+          emailId: payload.emailId || null,
+          usageCount: payload.usageCount || null
         });
       }
-    } catch (fetchError) {
-      // Fallback - sprawdź przez logi Vercel
-      console.warn('⚠️ [CHECK-EMAIL-STATS] Nie można pobrać z Resend API, używam logów Vercel');
-      emails = []; // Pusty array - zwrócimy info że trzeba sprawdzić ręcznie
     }
     
-    // Filtruj maile z 27.11.2025
-    const nov27 = emails.filter(email => {
-      if (!email.created_at) return false;
-      const date = new Date(email.created_at);
-      return date.toISOString().startsWith('2025-11-27');
-    });
+    // Sortuj po dacie (najnowsze pierwsze)
+    emails.sort((a, b) => new Date(b.sentAt) - new Date(a.sentAt));
     
     // Filtruj maile z dzisiaj
     const today = new Date();
     const todayStr = today.toISOString().split('T')[0];
     const todayEmails = emails.filter(email => {
-      if (!email.created_at) return false;
-      const date = new Date(email.created_at);
+      if (!email.sentAt) return false;
+      const date = new Date(email.sentAt);
       return date.toISOString().startsWith(todayStr);
     });
     
-    // Filtruj tylko maile z tematem "Twoja generacja AI"
-    const generationEmails = emails.filter(email => 
-      email.subject && email.subject.includes('generacja AI')
-    );
+    // Filtruj maile z ostatnich 7 dni
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    const weekEmails = emails.filter(email => {
+      if (!email.sentAt) return false;
+      return new Date(email.sentAt) >= weekAgo;
+    });
     
-    const nov27Generation = nov27.filter(email => 
-      email.subject && email.subject.includes('generacja AI')
-    );
-    
-    const todayGeneration = todayEmails.filter(email => 
-      email.subject && email.subject.includes('generacja AI')
-    );
+    // Filtruj maile z ostatnich 30 dni
+    const monthAgo = new Date();
+    monthAgo.setDate(monthAgo.getDate() - 30);
+    const monthEmails = emails.filter(email => {
+      if (!email.sentAt) return false;
+      return new Date(email.sentAt) >= monthAgo;
+    });
     
     const stats = {
+      total: emails.length,
       today: {
-        total: todayEmails.length,
-        generation: todayGeneration.length,
-        emails: todayGeneration.map(e => ({
-          id: e.id,
-          to: e.to,
-          subject: e.subject,
-          status: e.last_event,
-          createdAt: e.created_at
-        }))
+        count: todayEmails.length,
+        emails: todayEmails.slice(0, 50) // Max 50 najnowszych
       },
-      nov27: {
-        total: nov27.length,
-        generation: nov27Generation.length,
-        emails: nov27Generation.map(e => ({
-          id: e.id,
-          to: e.to,
-          subject: e.subject,
-          status: e.last_event,
-          createdAt: e.created_at
-        }))
+      last7Days: {
+        count: weekEmails.length,
+        emails: weekEmails.slice(0, 50)
       },
-      all: {
-        total: emails.length,
-        generation: generationEmails.length
-      }
+      last30Days: {
+        count: monthEmails.length,
+        emails: monthEmails.slice(0, 50)
+      },
+      all: emails.slice(0, 100) // Max 100 najnowszych
     };
     
-    console.log('✅ [CHECK-EMAIL-STATS] Statystyki:', stats);
+    console.log('✅ [CHECK-EMAIL-STATS] Statystyki:', {
+      total: stats.total,
+      today: stats.today.count,
+      last7Days: stats.last7Days.count,
+      last30Days: stats.last30Days.count
+    });
     
     return res.status(200).json({
       success: true,
+      note: 'Statystyki z Vercel KV (Resend API key jest ograniczony tylko do wysyłania)',
       stats
     });
     
