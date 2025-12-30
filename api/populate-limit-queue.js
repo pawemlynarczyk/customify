@@ -30,50 +30,74 @@ module.exports = async (req, res) => {
 
     console.log('🔄 [POPULATE-QUEUE] Pobieranie użytkowników z limitem...');
 
-    // GraphQL query - pobierz użytkowników z usage_count >= 4
-    const query = `
-      query getCustomersUsage {
-        customers(first: 100) {
-          edges {
-            node {
-              id
-              email
-              metafield(namespace: "customify", key: "usage_count") {
+    // Paginacja - pobierz wszystkich użytkowników
+    const allCustomers = [];
+    let hasNextPage = true;
+    let cursor = null;
+    let pageCount = 0;
+    const maxPages = 100; // Limit bezpieczeństwa (max 2500 klientów)
+
+    while (hasNextPage && pageCount < maxPages) {
+      const query = `
+        query getCustomersUsage($first: Int!, $after: String) {
+          customers(first: $first, after: $after) {
+            pageInfo {
+              hasNextPage
+              endCursor
+            }
+            edges {
+              node {
                 id
-                value
-                type
+                email
+                metafield(namespace: "customify", key: "usage_count") {
+                  id
+                  value
+                  type
+                }
               }
             }
           }
         }
+      `;
+
+      const variables = {
+        first: 100, // Shopify limit per page
+        after: cursor
+      };
+
+      const response = await fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Shopify-Access-Token': accessToken
+        },
+        body: JSON.stringify({ query, variables })
+      });
+
+      const data = await response.json();
+      
+      if (data.errors) {
+        console.error('❌ [POPULATE-QUEUE] GraphQL errors:', data.errors);
+        return res.status(500).json({ error: 'GraphQL error', details: data.errors });
       }
-    `;
 
-    const response = await fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Shopify-Access-Token': accessToken
-      },
-      body: JSON.stringify({ query })
-    });
-
-    const data = await response.json();
-    
-    if (data.errors) {
-      console.error('❌ [POPULATE-QUEUE] GraphQL errors:', data.errors);
-      return res.status(500).json({ error: 'GraphQL error', details: data.errors });
+      const customersPage = data?.data?.customers?.edges || [];
+      allCustomers.push(...customersPage);
+      
+      hasNextPage = data?.data?.customers?.pageInfo?.hasNextPage || false;
+      cursor = data?.data?.customers?.pageInfo?.endCursor || null;
+      pageCount++;
+      
+      console.log(`📋 [POPULATE-QUEUE] Pobrano stronę ${pageCount}: ${customersPage.length} klientów (łącznie: ${allCustomers.length})`);
     }
-
-    const customers = data?.data?.customers?.edges || [];
     
-    console.log(`📋 [POPULATE-QUEUE] Znaleziono ${customers.length} klientów`);
+    console.log(`📋 [POPULATE-QUEUE] Znaleziono łącznie ${allCustomers.length} klientów`);
 
     let addedCount = 0;
     let skippedCount = 0;
     const results = [];
 
-    for (const edge of customers) {
+    for (const edge of allCustomers) {
       const customer = edge.node;
       const metafield = customer.metafield;
       
@@ -145,9 +169,10 @@ module.exports = async (req, res) => {
     return res.status(200).json({
       success: true,
       summary: {
-        totalCustomers: customers.length,
+        totalCustomers: allCustomers.length,
         addedToQueue: addedCount,
-        skipped: skippedCount
+        skipped: skippedCount,
+        pagesProcessed: pageCount
       },
       results: results,
       nextSteps: [
