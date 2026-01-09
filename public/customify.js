@@ -1140,15 +1140,23 @@ class CustomifyEmbed {
             const maxAllowedY = canvas.height * 0.90;
             const shiftY = Math.max(0, Math.max(...lineYs) - maxAllowedY);
 
+            // Skorygowane pozycje linii
+            const correctedLineYs = lineYs.map(y => y - shiftY);
+
             if (options.preset === 'banner') {
-              const bannerHeight = fontSize * (limitedLines.length === 2 ? 2.2 : 1.6);
-              const bannerY = (baseY - shiftY) - bannerHeight / 2;
+              // Oblicz banner na podstawie faktycznych pozycji linii
+              const topLineY = Math.min(...correctedLineYs);
+              const bottomLineY = Math.max(...correctedLineYs);
+              const bannerPadding = fontSize * 0.5;
+              const bannerTop = topLineY - fontSize * 0.6 - bannerPadding;
+              const bannerBottom = bottomLineY + fontSize * 0.6 + bannerPadding;
+              const bannerHeight = bannerBottom - bannerTop;
               ctx.fillStyle = 'rgba(0,0,0,0.55)';
-              ctx.fillRect(padding * 0.9, bannerY - fontSize * 0.35, canvas.width - padding * 1.8, bannerHeight);
+              ctx.fillRect(padding * 0.9, bannerTop, canvas.width - padding * 1.8, bannerHeight);
             }
 
             limitedLines.forEach((line, idx) => {
-              const lineY = lineYs[idx] - shiftY;
+              const lineY = correctedLineYs[idx];
 
       if (options.preset === '3d') {
         const shadowColor =
