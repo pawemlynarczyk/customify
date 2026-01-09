@@ -64,9 +64,13 @@ module.exports = async (req, res) => {
     const maxFetch = 20000; // Maksymalnie 20k plików (bezpieczeństwo)
     
     // Pobieraj wszystkie strony (pagination)
+    // ✅ ZAWSZE używaj prefix 'customify/' żeby pobierać tylko nasze pliki
+    const effectivePrefix = prefix || 'customify/';
+    console.log(`📊 [LIST-BLOB-IMAGES] Using prefix: "${effectivePrefix}"`);
+    
     do {
       const blobsBatch = await list({
-        prefix: prefix || undefined,
+        prefix: effectivePrefix,
         limit: 1000, // Pobieraj po 1000 na raz
         cursor: nextCursor,
         token: process.env.customify_READ_WRITE_TOKEN
