@@ -1151,7 +1151,9 @@ class CustomifyEmbed {
               const bannerTop = topLineY - fontSize * 0.6 - bannerPadding;
               const bannerBottom = bottomLineY + fontSize * 0.6 + bannerPadding;
               const bannerHeight = bannerBottom - bannerTop;
-              ctx.fillStyle = 'rgba(0,0,0,0.55)';
+              // Kolor tła zależy od koloru tekstu: biały tekst → czarne tło, czarny tekst → białe tło
+              const bannerBg = options.color === 'black' ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)';
+              ctx.fillStyle = bannerBg;
               ctx.fillRect(padding * 0.9, bannerTop, canvas.width - padding * 1.8, bannerHeight);
             }
 
