@@ -225,6 +225,23 @@ module.exports = async (req, res) => {
     
     console.log(`📊 [LIST-BLOB-IMAGES] Category stats:`, stats);
     console.log(`📊 [LIST-BLOB-IMAGES] After filtering by category "${category || 'all'}": ${categorizedBlobs.length} blobs`);
+    
+    // Debug: pokaż 5 najnowszych wygenerowanych (po timestamp z nazwy pliku)
+    const wygenerowane = allCategorizedBlobs.filter(b => b.category === 'wygenerowane');
+    const sortedByTimestamp = wygenerowane.sort((a, b) => {
+      const getTs = (blob) => {
+        const match = (blob.pathname || '').match(/\d{13}/);
+        return match ? parseInt(match[0]) : 0;
+      };
+      return getTs(b) - getTs(a);
+    });
+    console.log(`📊 [LIST-BLOB-IMAGES] Najnowsze 5 wygenerowanych:`, sortedByTimestamp.slice(0, 5).map(b => ({
+      pathname: b.pathname,
+      timestamp: (() => {
+        const match = (b.pathname || '').match(/\d{13}/);
+        return match ? new Date(parseInt(match[0])).toISOString() : 'brak';
+      })()
+    })));
 
     // ═══════════════════════════════════════════════════════════════════════
     // NORMALIZACJA I MAPOWANIE OBRAZKÓW (z normalizacją daty)
