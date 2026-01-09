@@ -763,7 +763,11 @@
       let filteredImages = allImages;
       
       // 1. Filtruj po kategorii NAJPIERW
-      if (category !== 'all') {
+      if (category === 'all') {
+        // W "Wszystkie" - ukryj statystyki (JSON) żeby nie zaśmiecały widoku
+        filteredImages = filteredImages.filter(img => img.category !== 'statystyki');
+        console.log(`🔍 [DISPLAY] Category "all" (bez statystyk): ${allImages.length} → ${filteredImages.length}`);
+      } else {
         const beforeCategoryFilter = filteredImages.length;
         
         // Debug: sprawdź kategorie przed filtrowaniem
@@ -774,27 +778,8 @@
         });
         console.log(`🔍 [CATEGORY-FILTER] Category counts before filter:`, categoryCounts);
         
-        filteredImages = filteredImages.filter(img => {
-          const matches = img.category === category;
-          // Debug dla obrazków które powinny pasować ale nie pasują
-          if (category === 'wygenerowane' && img.pathname && img.pathname.includes('temp/') && (img.pathname.includes('caricature') || img.pathname.includes('generation') || img.pathname.includes('ai-'))) {
-            console.log(`⚠️ [CATEGORY-FILTER] Should match "wygenerowane": ${img.pathname}, category="${img.category}", matches=${matches}`);
-          }
-          return matches;
-        });
+        filteredImages = filteredImages.filter(img => img.category === category);
         console.log(`🔍 [DISPLAY] Category filter "${category}": ${beforeCategoryFilter} → ${filteredImages.length}`);
-        
-        // Jeśli 0 obrazków, pokaż przykładowe które powinny pasować
-        if (filteredImages.length === 0 && category === 'wygenerowane') {
-          const shouldMatch = allImages.filter(img => 
-            img.pathname && img.pathname.includes('temp/') && 
-            (img.pathname.includes('caricature') || img.pathname.includes('generation') || img.pathname.includes('ai-'))
-          );
-          console.log(`⚠️ [CATEGORY-FILTER] Found ${shouldMatch.length} images that SHOULD match "wygenerowane":`, shouldMatch.slice(0, 5).map(img => ({
-            pathname: img.pathname,
-            category: img.category
-          })));
-        }
       }
       
       // 2. Filtruj po datach PO kategorii
@@ -923,8 +908,11 @@
       const category = document.getElementById('categoryFilter').value;
       const filteredImages = filterByDate(allImages);
       
-      let count = filteredImages.length;
-      if (category !== 'all') {
+      let count;
+      if (category === 'all') {
+        // W "Wszystkie" - nie licz statystyk
+        count = filteredImages.filter(img => img.category !== 'statystyki').length;
+      } else {
         count = filteredImages.filter(img => img.category === category).length;
       }
       
