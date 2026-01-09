@@ -148,101 +148,41 @@ module.exports = async (req, res) => {
       }
       
       // ────────────────────────────────────────────────────────────────────────
-      // 2. KOSZYKI - zawiera "watermark" w ścieżce LUB nazwie (najwyższy priorytet)
+      // 2. WYGENEROWANE (NAJWYŻSZY PRIORYTET!) - pliki generation-* lub ai-*
+      //    Sprawdzane PRZED watermark, bo generation-watermarked-* to też wygenerowane!
+      // ────────────────────────────────────────────────────────────────────────
+      if (filename.startsWith('generation-') || filename.startsWith('ai-')) {
+        console.log(`✅ [CATEGORIZE] ${pathname}: AI generated file → wygenerowane`);
+        return 'wygenerowane';
+      }
+      
+      // ────────────────────────────────────────────────────────────────────────
+      // 3. KOSZYKI - zawiera "watermark" w ścieżce (ale nie generation-*)
       // ────────────────────────────────────────────────────────────────────────
       if (path.includes('watermark')) {
         return 'koszyki';
       }
       
       // ────────────────────────────────────────────────────────────────────────
-      // 3. ORDERS - prefix customify/orders/ (bez watermark)
+      // 4. ORDERS - prefix customify/orders/
       // ────────────────────────────────────────────────────────────────────────
       if (path.startsWith('customify/orders/')) {
         return 'orders';
       }
       
       // ────────────────────────────────────────────────────────────────────────
-      // 4. WYGENEROWANE vs UPLOAD - obrazy w customify/temp/
+      // 5. UPLOAD - oryginalne zdjęcia użytkownika w customify/temp/
       // ────────────────────────────────────────────────────────────────────────
       if (path.startsWith('customify/temp/')) {
-        // ═══════════════════════════════════════════════════════════════════════
-        // WYGENEROWANE - obrazy AI (wynik transformacji)
-        // ═══════════════════════════════════════════════════════════════════════
-        // Format: ai-{numer}.jpg.jpg (z podwójnym rozszerzeniem - błąd w nazwie)
-        // Format: generation-{numer}.jpg (Replicate, Segmind base64 - WYNIK transformacji)
-        // ═══════════════════════════════════════════════════════════════════════
-        
-        // WYGENEROWANE: Zaczyna się od "ai-" (nawet z podwójnym rozszerzeniem!)
-        if (filename.startsWith('ai-')) {
-          console.log(`✅ [CATEGORIZE] ${pathname}: Starts with "ai-" → wygenerowane`);
-          return 'wygenerowane';
-        }
-        
-        // WYGENEROWANE: Zaczyna się od "generation-" (WYNIK transformacji)
-        if (filename.startsWith('generation-')) {
-          console.log(`✅ [CATEGORIZE] ${pathname}: AI generation file → wygenerowane`);
-          return 'wygenerowane';
-        }
-        
-        // ═══════════════════════════════════════════════════════════════════════
-        // UPLOAD - oryginalne zdjęcia użytkownika (przed transformacją)
-        // ═══════════════════════════════════════════════════════════════════════
-        // Format: image-{numer}.jpg (domyślna nazwa z upload-temp-image.js)
-        // Format: caricature-{numer}.jpg (oryginalne zdjęcie przed Segmind caricature)
-        // Format: {dowolna-nazwa}.jpg.jpg (podwójne rozszerzenie BEZ prefiksu "ai-")
-        // ═══════════════════════════════════════════════════════════════════════
-        
-        // UPLOAD: Zaczyna się od "image-" (domyślna nazwa z upload-temp-image.js)
-        if (filename.startsWith('image-')) {
-          console.log(`📤 [CATEGORIZE] ${pathname}: Starts with "image-" → upload`);
-          return 'upload';
-        }
-        
-        // UPLOAD: Zaczyna się od "caricature-" (oryginalne zdjęcie przed transformacją Segmind)
-        if (filename.startsWith('caricature-')) {
-          console.log(`📤 [CATEGORIZE] ${pathname}: Starts with "caricature-" → upload (original image)`);
-          return 'upload';
-        }
-        
-        // UPLOAD: Zaczyna się od "watercolor-" (oryginalne zdjęcie przed transformacją Segmind Become-Image)
-        if (filename.startsWith('watercolor-')) {
-          console.log(`📤 [CATEGORIZE] ${pathname}: Starts with "watercolor-" → upload (original image)`);
-          return 'upload';
-        }
-        
-        // UPLOAD: Zawiera "styl-" w nazwie (np. styl-minimalistyczny, styl-realistyczny)
-        if (filename.includes('styl-')) {
-          console.log(`📤 [CATEGORIZE] ${pathname}: Contains "styl-" → upload (original image)`);
-          return 'upload';
-        }
-        
-        // UPLOAD: Podwójne rozszerzenie .jpg.jpg BEZ prefiksu "ai-" (błąd w nazwie uploadu)
-        if (filename.includes('.jpg.jpg') && !filename.startsWith('ai-')) {
-          console.log(`📤 [CATEGORIZE] ${pathname}: Double extension without "ai-" prefix → upload`);
-          return 'upload';
-        }
-        
-        // Fallback → upload (nieznany format = prawdopodobnie oryginalne zdjęcie użytkownika)
-        // UWAGA: Jeśli nie ma żadnego z prefiksów AI (ai-, generation-), 
-        // to prawdopodobnie jest to oryginalne zdjęcie użytkownika (upload)
-        console.log(`📤 [CATEGORIZE] ${pathname}: Unknown format (no AI prefix) → upload (fallback)`);
+        // Wszystko w temp/ co nie jest generation-* lub ai-* to UPLOAD
+        // (oryginalne zdjęcia przed transformacją)
+        console.log(`📤 [CATEGORIZE] ${pathname}: temp/ file (not AI) → upload`);
         return 'upload';
       }
       
       // ────────────────────────────────────────────────────────────────────────
-      // 5. WYGENEROWANE - obrazy AI poza temp/ (z prefiksami AI)
+      // 6. FALLBACK - wszystko inne → upload
       // ────────────────────────────────────────────────────────────────────────
-      // Sprawdź czy zaczyna się od prefiksów AI (generation-, ai-)
-      // UWAGA: caricature- i watercolor- to UPLOAD (oryginalne zdjęcia przed transformacją), nie wygenerowane!
-      if (filename.startsWith('generation-') || filename.startsWith('ai-')) {
-        return 'wygenerowane';
-      }
-      
-      // ────────────────────────────────────────────────────────────────────────
-      // 6. FALLBACK - wszystko inne → upload (prawdopodobnie oryginalne zdjęcie)
-      // ────────────────────────────────────────────────────────────────────────
-      // UWAGA: Jeśli nie ma żadnego z prefiksów AI, to prawdopodobnie jest to upload
-      // (oryginalne zdjęcie użytkownika przed transformacją)
       return 'upload';
     };
 
