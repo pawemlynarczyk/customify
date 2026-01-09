@@ -1133,19 +1133,19 @@ class CustomifyEmbed {
             if (current) lines.push(current);
             const limitedLines = lines.slice(0, 2);
 
-    if (options.preset === 'banner') {
-              const bannerHeight = fontSize * (limitedLines.length === 2 ? 2.1 : 1.4);
-              const bannerY = baseY - bannerHeight / 2;
-              ctx.fillStyle = 'rgba(0,0,0,0.35)';
-              ctx.fillRect(padding, bannerY - fontSize * 0.3, canvas.width - padding * 2, bannerHeight);
-            }
-
             // 🛟 Safety: nie pozwól spaść niżej niż 10% od dołu
             const lineYs = limitedLines.map((_, idx) =>
               baseY + (idx - (limitedLines.length - 1) / 2) * (fontSize * 1.2)
             );
             const maxAllowedY = canvas.height * 0.90;
             const shiftY = Math.max(0, Math.max(...lineYs) - maxAllowedY);
+
+            if (options.preset === 'banner') {
+              const bannerHeight = fontSize * (limitedLines.length === 2 ? 2.2 : 1.6);
+              const bannerY = (baseY - shiftY) - bannerHeight / 2;
+              ctx.fillStyle = 'rgba(0,0,0,0.55)';
+              ctx.fillRect(padding * 0.9, bannerY - fontSize * 0.35, canvas.width - padding * 1.8, bannerHeight);
+            }
 
             limitedLines.forEach((line, idx) => {
               const lineY = lineYs[idx] - shiftY;
