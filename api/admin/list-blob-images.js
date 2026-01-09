@@ -148,10 +148,15 @@ module.exports = async (req, res) => {
       }
       
       // ────────────────────────────────────────────────────────────────────────
-      // 2. WYGENEROWANE (NAJWYŻSZY PRIORYTET!) - pliki generation-* lub ai-*
+      // 2. WYGENEROWANE (NAJWYŻSZY PRIORYTET!) - pliki z prefiksami AI
       //    Sprawdzane PRZED watermark, bo generation-watermarked-* to też wygenerowane!
+      //    Prefiksy: generation-*, ai-*, text-overlay-*
       // ────────────────────────────────────────────────────────────────────────
-      if (filename.startsWith('generation-') || filename.startsWith('ai-')) {
+      if (
+        filename.startsWith('generation-') || 
+        filename.startsWith('ai-') ||
+        filename.startsWith('text-overlay-')
+      ) {
         console.log(`✅ [CATEGORIZE] ${pathname}: AI generated file → wygenerowane`);
         return 'wygenerowane';
       }
