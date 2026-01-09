@@ -27,7 +27,8 @@ module.exports = async (req, res) => {
     }
 
     // Parametry
-    const { daysOld = 30, dryRun = true, maxDelete = 1000 } = req.query;
+    // Domyślnie czyścimy pliki starsze niż 14 dni (bezpieczny kompromis)
+    const { daysOld = 14, dryRun = true, maxDelete = 1000 } = req.query;
     const daysOldNum = parseInt(daysOld);
     const requestedMaxDeleteNum = parseInt(maxDelete);
     const isDryRun = dryRun === 'true' || dryRun === true;
