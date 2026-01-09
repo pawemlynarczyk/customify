@@ -97,6 +97,17 @@ module.exports = async (req, res) => {
     });
     console.log(`📊 [LIST-BLOB-IMAGES] AI blobs (generation/ai/text-overlay): ${aiBlobs.length}`);
     
+    // Debug: sprawdź czy konkretne pliki są w liście
+    const testFiles = [
+      'text-overlay-1767966781915.jpg',
+      'text-overlay-1767962921529.jpg', 
+      'generation-1767949280207.jpg'
+    ];
+    testFiles.forEach(testFile => {
+      const found = blobs.blobs.find(b => (b.pathname || '').includes(testFile));
+      console.log(`🔍 [LIST-BLOB-IMAGES] Test file "${testFile}": ${found ? 'ZNALEZIONY ✅' : 'NIE ZNALEZIONY ❌'}`);
+    });
+    
     // Sortuj AI bloby po timestamp z nazwy pliku
     const sortedAiBlobs = aiBlobs.sort((a, b) => {
       const getTs = (blob) => {
