@@ -17,6 +17,11 @@ module.exports = async (req, res) => {
     // Autoryzacja
     const authHeader = req.headers.authorization;
     const expectedToken = process.env.ADMIN_STATS_TOKEN;
+    if (!expectedToken) {
+      return res.status(500).json({
+        error: 'Admin token not configured'
+      });
+    }
     if (authHeader !== `Bearer ${expectedToken}`) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
@@ -24,15 +29,21 @@ module.exports = async (req, res) => {
     // Parametry
     const { daysOld = 30, dryRun = true, maxDelete = 1000 } = req.query;
     const daysOldNum = parseInt(daysOld);
-    const maxDeleteNum = parseInt(maxDelete);
+    const requestedMaxDeleteNum = parseInt(maxDelete);
     const isDryRun = dryRun === 'true' || dryRun === true;
+
+    // Hard cap żeby request nie wisiał na Vercel (kasuj w turach)
+    const HARD_MAX_DELETE = 300;
+    const maxDeleteNum = Number.isFinite(requestedMaxDeleteNum)
+      ? Math.min(Math.max(requestedMaxDeleteNum, 1), HARD_MAX_DELETE)
+      : Math.min(1000, HARD_MAX_DELETE);
     
     const cutoffDate = Date.now() - (daysOldNum * 24 * 60 * 60 * 1000);
     
     console.log(`🧹 [CLEANUP] Starting cleanup...`);
     console.log(`🧹 [CLEANUP] Delete files older than: ${daysOldNum} days (${new Date(cutoffDate).toISOString()})`);
     console.log(`🧹 [CLEANUP] Dry run: ${isDryRun}`);
-    console.log(`🧹 [CLEANUP] Max delete: ${maxDeleteNum}`);
+    console.log(`🧹 [CLEANUP] Max delete requested: ${requestedMaxDeleteNum}, effective: ${maxDeleteNum} (hard cap)`);
 
     // Pobierz wszystkie bloby
     const allBlobs = [];
@@ -109,7 +120,7 @@ module.exports = async (req, res) => {
             return match ? new Date(parseInt(match[0])).toISOString() : 'unknown';
           })()
         })),
-        instruction: `Aby usunąć, wywołaj z dryRun=false: /api/admin/cleanup-old-blobs?daysOld=${daysOldNum}&dryRun=false&maxDelete=${maxDeleteNum}`
+        instruction: `Aby usunąć, wywołuj w turach (hard cap ${HARD_MAX_DELETE}): /api/admin/cleanup-old-blobs?daysOld=${daysOldNum}&dryRun=false&maxDelete=${HARD_MAX_DELETE}`
       });
     }
 
@@ -118,19 +129,28 @@ module.exports = async (req, res) => {
     let errorCount = 0;
     const errors = [];
 
-    for (const blob of toDelete) {
-      try {
-        await del(blob.url, { token: process.env.customify_READ_WRITE_TOKEN });
-        deletedCount++;
-        
-        if (deletedCount % 100 === 0) {
-          console.log(`🧹 [CLEANUP] Deleted ${deletedCount}/${toDelete.length}...`);
+    // Kasowanie w małych batchach z ograniczoną równoległością
+    const BATCH_SIZE = 25;
+    for (let i = 0; i < toDelete.length; i += BATCH_SIZE) {
+      const batch = toDelete.slice(i, i + BATCH_SIZE);
+      const results = await Promise.allSettled(
+        batch.map(blob => del(blob.url, { token: process.env.customify_READ_WRITE_TOKEN }))
+      );
+      results.forEach((r, idx) => {
+        if (r.status === 'fulfilled') {
+          deletedCount++;
+        } else {
+          errorCount++;
+          if (errors.length < 5) {
+            errors.push({
+              pathname: batch[idx]?.pathname,
+              error: r.reason?.message || String(r.reason)
+            });
+          }
         }
-      } catch (err) {
-        errorCount++;
-        if (errors.length < 5) {
-          errors.push({ pathname: blob.pathname, error: err.message });
-        }
+      });
+      if (deletedCount > 0 && deletedCount % 100 === 0) {
+        console.log(`🧹 [CLEANUP] Deleted ${deletedCount}/${toDelete.length}...`);
       }
     }
 
