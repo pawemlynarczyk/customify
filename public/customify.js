@@ -965,7 +965,7 @@ class CustomifyEmbed {
     }
 
     const options = {
-      preset: 'classic',
+      preset: this.textOverlayState.preset || 'classic',
       color: this.textOverlayState.color || 'white',
       font: this.textOverlayState.font || 'sans',
       size: this.textOverlayState.size || 'medium'
@@ -1010,7 +1010,7 @@ class CustomifyEmbed {
     }
 
     const options = {
-      preset: 'classic',
+      preset: this.textOverlayState.preset || 'classic',
       color: this.textOverlayState.color || 'white',
       font: this.textOverlayState.font || 'sans',
       size: this.textOverlayState.size || 'medium'
@@ -1140,8 +1140,15 @@ class CustomifyEmbed {
               ctx.fillRect(padding, bannerY - fontSize * 0.3, canvas.width - padding * 2, bannerHeight);
             }
 
+            // 🛟 Safety: nie pozwól spaść niżej niż 10% od dołu
+            const lineYs = limitedLines.map((_, idx) =>
+              baseY + (idx - (limitedLines.length - 1) / 2) * (fontSize * 1.2)
+            );
+            const maxAllowedY = canvas.height * 0.90;
+            const shiftY = Math.max(0, Math.max(...lineYs) - maxAllowedY);
+
             limitedLines.forEach((line, idx) => {
-              const lineY = baseY + (idx - (limitedLines.length - 1) / 2) * (fontSize * 1.2);
+              const lineY = lineYs[idx] - shiftY;
 
       if (options.preset === '3d') {
         const shadowColor =
@@ -2261,7 +2268,16 @@ class CustomifyEmbed {
     const bindSelect = (selectEl, key) => {
       if (!selectEl) return;
       selectEl.addEventListener('change', () => {
-        this.textOverlayState[key] = selectEl.value;
+        // Specjalna logika dla kolorów: opcje z "-banner" wymuszają tło
+        if (selectEl === this.textOverlayColorSelect) {
+          const value = selectEl.value;
+          const isBanner = value?.endsWith('-banner');
+          const baseColor = isBanner ? value.replace('-banner', '') : value;
+          this.textOverlayState.color = baseColor;
+          this.textOverlayState.preset = isBanner ? 'banner' : 'classic';
+        } else {
+          this.textOverlayState[key] = selectEl.value;
+        }
         this.textOverlayState.applied = false;
         this.previewTextOverlay().catch(err => {
           console.error('❌ [TEXT-OVERLAY] auto-preview error:', err);

@@ -11,9 +11,33 @@ async function deployOptimizedTheme() {
     
     // Wczytaj plik theme.liquid
     const themePath = path.join(__dirname, 'theme.liquid');
-    const themeContent = fs.readFileSync(themePath, 'utf8');
+    let themeContent = fs.readFileSync(themePath, 'utf8');
     
     console.log('📁 Wczytano theme.liquid:', themeContent.length, 'znaków');
+    
+    // ✅ OPTYMALIZACJA: Usuń komentarze HTML (oszczędność ~2-3 KB)
+    // Zachowaj tylko komentarze Liquid ({% comment %})
+    const originalSize = themeContent.length;
+    themeContent = themeContent.replace(/<!--(?!\s*\{%)[\s\S]*?-->/g, '');
+    
+    // ✅ OPTYMALIZACJA: Usuń nadmiarowe białe znaki (oszczędność ~1-2 KB)
+    // Zachowaj tylko pojedyncze spacje między słowami, usuń wielokrotne spacje/taby
+    themeContent = themeContent.replace(/[ \t]+/g, ' ');
+    themeContent = themeContent.replace(/\n\s*\n\s*\n/g, '\n\n');
+    
+    const optimizedSize = themeContent.length;
+    const saved = originalSize - optimizedSize;
+    console.log('📊 Po optymalizacji:', optimizedSize, 'znaków');
+    console.log('💾 Oszczędność:', saved, 'znaków (', (saved / 1024).toFixed(2), 'KB)');
+    
+    // Sprawdź czy nadal przekracza limit
+    if (optimizedSize > 256 * 1024) {
+      const overLimit = ((optimizedSize - 256 * 1024) / 1024).toFixed(2);
+      console.warn(`⚠️ UWAGA: Plik nadal przekracza limit o ${overLimit} KB`);
+      console.warn('⚠️ Rozważ przeniesienie części kodu do snippets lub dalszą optymalizację');
+    } else {
+      console.log('✅ Plik mieści się w limicie 256 KB');
+    }
     
     // Wczytaj plik customify.css
     const cssPath = path.join(__dirname, 'shopify-theme/customify-theme/assets/customify.css');

@@ -50,21 +50,6 @@ class CustomifyEmbed {
     this.selectedStyle = null;
     this.selectedSize = null;
     this.selectedProductType = 'plakat'; // Domyślny wybór: Plakat
-    this.isPhoneCaseProduct = (window.ShopifyProduct?.handle === 'personalizowane-etui-na-telefon-z-twoim-zdjeciem-karykatura');
-    this.selectedPhoneBrand = null;
-    this.selectedPhoneModel = null;
-    this.phoneBrandOptions = [
-      { value: 'iphone', label: 'iPhone' },
-      { value: 'samsung', label: 'Samsung' }
-    ];
-    this.phoneModelsByBrand = {
-      iphone: [
-        { value: 'iphone-13', label: 'iPhone 13' }
-      ],
-      samsung: [
-        { value: 'galaxy-s23', label: 'Samsung Galaxy S23' }
-      ]
-    };
     this.transformedImage = null;
     
     // ✅ PENDING WATERMARK UPLOAD: Dane do wysłania jeśli użytkownik zmieni stronę
@@ -172,7 +157,6 @@ class CustomifyEmbed {
     this.setupEventListeners();
     this.positionApp();
     this.showStyles(); // Pokaż style od razu
-    this.setupPhoneCaseUI(); // Konfiguracja etui (marka/model) tylko dla produktu etui
     // filterStylesForProduct() USUNIĘTE - logika przeniesiona na server-side (Shopify Liquid)
     
     // Setup expandable description USUNIĘTE - opisy produktów są teraz pełne
@@ -981,7 +965,7 @@ class CustomifyEmbed {
     }
 
     const options = {
-      preset: 'classic',
+      preset: this.textOverlayState.preset || 'classic',
       color: this.textOverlayState.color || 'white',
       font: this.textOverlayState.font || 'sans',
       size: this.textOverlayState.size || 'medium'
@@ -1026,7 +1010,7 @@ class CustomifyEmbed {
     }
 
     const options = {
-      preset: 'classic',
+      preset: this.textOverlayState.preset || 'classic',
       color: this.textOverlayState.color || 'white',
       font: this.textOverlayState.font || 'sans',
       size: this.textOverlayState.size || 'medium'
@@ -1156,8 +1140,15 @@ class CustomifyEmbed {
               ctx.fillRect(padding, bannerY - fontSize * 0.3, canvas.width - padding * 2, bannerHeight);
             }
 
+            // 🛟 Safety: nie pozwól spaść niżej niż 10% od dołu
+            const lineYs = limitedLines.map((_, idx) =>
+              baseY + (idx - (limitedLines.length - 1) / 2) * (fontSize * 1.2)
+            );
+            const maxAllowedY = canvas.height * 0.90;
+            const shiftY = Math.max(0, Math.max(...lineYs) - maxAllowedY);
+
             limitedLines.forEach((line, idx) => {
-              const lineY = baseY + (idx - (limitedLines.length - 1) / 2) * (fontSize * 1.2);
+              const lineY = lineYs[idx] - shiftY;
 
       if (options.preset === '3d') {
         const shadowColor =
@@ -2277,7 +2268,16 @@ class CustomifyEmbed {
     const bindSelect = (selectEl, key) => {
       if (!selectEl) return;
       selectEl.addEventListener('change', () => {
-        this.textOverlayState[key] = selectEl.value;
+        // Specjalna logika dla kolorów: opcje z "-banner" wymuszają tło
+        if (selectEl === this.textOverlayColorSelect) {
+          const value = selectEl.value;
+          const isBanner = value?.endsWith('-banner');
+          const baseColor = isBanner ? value.replace('-banner', '') : value;
+          this.textOverlayState.color = baseColor;
+          this.textOverlayState.preset = isBanner ? 'banner' : 'classic';
+        } else {
+          this.textOverlayState[key] = selectEl.value;
+        }
         this.textOverlayState.applied = false;
         this.previewTextOverlay().catch(err => {
           console.error('❌ [TEXT-OVERLAY] auto-preview error:', err);
@@ -2444,123 +2444,6 @@ class CustomifyEmbed {
       addToCartBtnMain.style.display = 'inline-block';
     }
     
-  }
-
-  setupPhoneCaseUI() {
-    if (!this.isPhoneCaseProduct) {
-      return;
-    }
-
-    console.log('📱 [PHONE] Inicjalizacja UI etui (marka/model)');
-    const brandSelect = document.getElementById('phoneBrandSelect');
-    const modelSelect = document.getElementById('phoneModelSelect');
-    const frameSelector = document.getElementById('frameSelector');
-    const standSelector = document.getElementById('standSelector');
-
-    // Ukryj niewykorzystywane sekcje (typ wydruku, rozmiary, ramki, podstawki)
-    if (this.productTypeArea) {
-      this.productTypeArea.style.display = 'none';
-    }
-    if (this.sizeArea) {
-      this.sizeArea.style.display = 'none';
-    }
-    if (frameSelector) {
-      frameSelector.style.display = 'none';
-      frameSelector.classList.add('disabled');
-    }
-    if (standSelector) {
-      standSelector.style.display = 'none';
-      standSelector.classList.add('disabled');
-    }
-
-    // Ustaw domyślne wartości wymagane przez logikę koszyka
-    this.selectedProductType = 'plakat';
-    this.selectedSize = this.selectedSize || 'a4';
-    this.syncActiveSizeButton();
-    this.updateProductPrice();
-    this.updateCartPrice();
-
-    // Wypełnij marki
-    if (brandSelect && brandSelect.options.length <= 1) {
-      this.phoneBrandOptions.forEach(opt => {
-        const option = document.createElement('option');
-        option.value = opt.value;
-        option.textContent = opt.label;
-        brandSelect.appendChild(option);
-      });
-    }
-
-    const populateModels = (brand) => {
-      if (!modelSelect) return;
-      modelSelect.innerHTML = '';
-
-      const models = this.phoneModelsByBrand[brand] || [];
-      if (!brand || models.length === 0) {
-        const placeholder = document.createElement('option');
-        placeholder.value = '';
-        placeholder.textContent = 'Najpierw wybierz markę';
-        modelSelect.appendChild(placeholder);
-        modelSelect.disabled = true;
-        this.selectedPhoneModel = null;
-        return;
-      }
-
-      const defaultOption = document.createElement('option');
-      defaultOption.value = '';
-      defaultOption.textContent = 'Wybierz model';
-      modelSelect.appendChild(defaultOption);
-
-      models.forEach(model => {
-        const option = document.createElement('option');
-        option.value = model.value;
-        option.textContent = model.label;
-        modelSelect.appendChild(option);
-      });
-      modelSelect.disabled = false;
-    };
-
-    if (brandSelect) {
-      brandSelect.addEventListener('change', () => {
-        this.selectedPhoneBrand = brandSelect.value || null;
-        this.selectedPhoneModel = null;
-        populateModels(this.selectedPhoneBrand);
-        this.hideError();
-      });
-    }
-
-    if (modelSelect) {
-      modelSelect.addEventListener('change', () => {
-        this.selectedPhoneModel = modelSelect.value || null;
-        if (this.selectedPhoneModel) {
-          this.hideError();
-        }
-      });
-    }
-
-    // Ustaw stan początkowy modeli (placeholder)
-    populateModels(this.selectedPhoneBrand);
-  }
-
-  getPhoneBrandLabel() {
-    if (!this.selectedPhoneBrand) return null;
-    const match = this.phoneBrandOptions.find(opt => opt.value === this.selectedPhoneBrand);
-    return match ? match.label : this.selectedPhoneBrand;
-  }
-
-  getPhoneModelLabel() {
-    if (!this.selectedPhoneBrand || !this.selectedPhoneModel) return null;
-    const models = this.phoneModelsByBrand[this.selectedPhoneBrand] || [];
-    const match = models.find(m => m.value === this.selectedPhoneModel);
-    return match ? match.label : this.selectedPhoneModel;
-  }
-
-  validatePhoneCaseSelection(errorContext = 'cart') {
-    if (!this.isPhoneCaseProduct) return true;
-    if (!this.selectedPhoneBrand || !this.selectedPhoneModel) {
-      this.showError('Wybierz markę i model telefonu', errorContext === 'transform' ? 'transform' : 'cart');
-      return false;
-    }
-    return true;
   }
 
   selectStyle(styleCard) {
@@ -3013,10 +2896,6 @@ class CustomifyEmbed {
         selectedStyle: this.selectedStyle
       });
       this.showError('Wgraj zdjęcie i wybierz styl', 'transform');
-      return;
-    }
-
-    if (!this.validatePhoneCaseSelection('transform')) {
       return;
     }
 
@@ -3566,10 +3445,6 @@ class CustomifyEmbed {
       retryCount: retryCount
     });
     
-    if (!this.validatePhoneCaseSelection('cart')) {
-      return;
-    }
-
     // ✅ SPRAWDŹ ROZMIAR NAJPIERW - to jest wymagane dla ceny
     console.log('🔍 [CUSTOMIFY] Checking selectedSize:', this.selectedSize);
     if (!this.selectedSize) {
@@ -3725,14 +3600,12 @@ class CustomifyEmbed {
           console.log('🛒 [CUSTOMIFY] Variant ID length:', result.variantId.toString().length);
           
           // NAPRAWIONA METODA: Użyj bezpośredniego przekierowania zamiast formularza
-          const productTypeName = this.isPhoneCaseProduct
-            ? 'Etui na telefon'
-            : (this.selectedProductType === 'plakat' ? 'Plakat' : 'Obraz na płótnie');
+          const productTypeName = this.selectedProductType === 'plakat' ? 'Plakat' : 'Obraz na płótnie';
           
           // ✅ Wylicz opis ramki do właściwości koszyka
-          const selectedFrame = (this.isPhoneCaseProduct || this.selectedProductType !== 'plakat')
-            ? 'none'
-            : ((window.CustomifyFrame && window.CustomifyFrame.color) ? window.CustomifyFrame.color : 'none');
+          const selectedFrame = (this.selectedProductType === 'plakat' && window.CustomifyFrame && window.CustomifyFrame.color)
+            ? window.CustomifyFrame.color
+            : 'none';
           const frameLabelMap = { none: 'brak', black: 'czarna', white: 'biała', wood: 'drewno' };
           const frameLabel = frameLabelMap[selectedFrame] || 'brak';
           
@@ -3746,21 +3619,11 @@ class CustomifyEmbed {
           const shortOrderId = result.shortOrderId || (result.orderId ? result.orderId.split('-').pop() : Date.now().toString());
           
           const properties = {
-            'Rozmiar': this.isPhoneCaseProduct ? 'Etui (bez rozmiaru)' : this.getSizeDimension(this.selectedSize),  // ✅ Przekaż wymiar (np. "20×30 cm") zamiast kodu (np. "a4")
+            'Rozmiar': this.getSizeDimension(this.selectedSize),  // ✅ Przekaż wymiar (np. "20×30 cm") zamiast kodu (np. "a4")
             'Rodzaj wydruku': productTypeName,  // ✅ Dodano rodzaj wydruku
             'Ramka': `ramka - ${frameLabel}`,  // ✅ Informacja o wybranej ramce (tylko dla plakatu)
             'Order ID': shortOrderId  // ✅ Skrócony ID zamówienia widoczny dla klienta
           };
-          if (this.isPhoneCaseProduct) {
-            const brandLabel = this.getPhoneBrandLabel();
-            const modelLabel = this.getPhoneModelLabel();
-            if (brandLabel) {
-              properties['Marka telefonu'] = brandLabel;
-            }
-            if (modelLabel) {
-              properties['Model telefonu'] = modelLabel;
-            }
-          }
           if (textOverlayPayload?.text) {
             properties['Napis na obrazie'] = textOverlayPayload.text;
           }

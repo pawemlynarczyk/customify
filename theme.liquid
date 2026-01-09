@@ -1428,6 +1428,15 @@
         .customify-text-overlay-panel .text-overlay-input::placeholder {
           color: rgba(17, 17, 17, 0.45) !important;
         }
+        /* Desktop: mocniejsze obramowanie i kontrast dla pola i selectów */
+        @media (min-width: 769px) {
+          .customify-text-overlay-panel .text-overlay-input-wrapper,
+          .customify-text-overlay-panel .text-overlay-select {
+            border: 1.5px solid #b4bcc8 !important;
+            box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08) !important;
+            background: #f7f7f8 !important;
+          }
+        }
         .customify-text-overlay-panel .text-overlay-select {
           width: 100% !important;
           padding: 10px !important;
@@ -3251,8 +3260,24 @@
       </script>
       
       <div id="customify-app-container" class="customify-shopify-container">
+        {% if product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem-karykatura' %}
+          <div class="customify-phone-selectors" id="phoneSelectors">
+            <div class="customify-phone-field">
+              <label for="phoneBrandSelect">Marka telefonu</label>
+              <select id="phoneBrandSelect" class="customify-phone-select">
+                <option value="" selected>Wybierz markę</option>
+              </select>
+            </div>
+            <div class="customify-phone-field">
+              <label for="phoneModelSelect">Model telefonu</label>
+              <select id="phoneModelSelect" class="customify-phone-select" disabled>
+                <option value="">Najpierw wybierz markę</option>
+              </select>
+            </div>
+          </div>
+        {% endif %}
         <!-- Wybór rodzaju wydruku - NAD sekcją rozmiarów -->
-        <div class="customify-product-type-selector" id="productTypeArea" style="display: block; margin-bottom: 10px;">
+        <div class="customify-product-type-selector" id="productTypeArea" style="{% if product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem-karykatura' %}display: none;{% else %}display: block; margin-bottom: 10px;{% endif %}">
           <h4 style="text-align: left; font-size: 0.95rem; font-weight: 600;">Rodzaj wydruku:</h4>
           <div class="customify-product-type-buttons">
             {% comment %} FILTRUJ RODZAJE WYDRUKU PER PRODUKT {% endcomment %}
@@ -3317,7 +3342,7 @@
         </div>
         
         <!-- Rozmiary - POD sekcją rodzaju wydruku -->
-        <div class="customify-size-selector" id="sizeArea" style="display: block; margin-bottom: 10px;">
+        <div class="customify-size-selector" id="sizeArea" style="{% if product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem-karykatura' %}display: none;{% else %}display: block; margin-bottom: 10px;{% endif %}">
           <h4 style="text-align: left;">Rozmiar (cm):</h4>
           <div class="customify-size-buttons">
                 <div class="customify-size-btn" data-size="a5" data-for-szklo="true">15×21</div>
@@ -3363,7 +3388,27 @@
               <div class="customify-style-grid">
                 {% comment %} LOGIKA SERVER-SIDE: Filtruj style per produkt {% endcomment %}
                 {% comment %} DEBUG: Product handle = {{ product.handle }}, ID = {{ product.id }} {% endcomment %}
-                                {% if product.handle == 'karykatura-z-twojego-zdjecia-obraz' %}
+                {% if product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem-karykatura' %}
+                  {% comment %} TYLKO STYLE KARYKATURY dla etui: klasyczna, nowoczesna, rysunkowa {% endcomment %}
+                  <div class="customify-style-card" data-style="karykatura">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/karykat/caricature.png'); background-size: cover; background-position: center;"></div>                                                
+                    <div class="style-info">
+                      <div class="style-name">Klasyczna</div>
+                    </div>
+                  </div>
+                  <div class="customify-style-card" data-style="caricature-new" style="display: block !important;">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/karykat/karykat_nowoczesna.png'); background-size: cover; background-position: center;"></div>
+                    <div class="style-info">
+                      <div class="style-name">Nowoczesna</div>
+                    </div>
+                  </div>
+                  <div class="customify-style-card" data-style="karykatura-olowek" style="display: block !important;">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/karykat/olowek.png'); background-size: cover; background-position: center;"></div>
+                    <div class="style-info">
+                      <div class="style-name">Rysunkowa</div>
+                    </div>
+                  </div>
+                {% elsif product.handle == 'karykatura-z-twojego-zdjecia-obraz' %}
                   {% comment %} TYLKO STYLE KARYKATURY dla produktu karykatura - używa Segmind API {% endcomment %}                                                   
                   <div class="customify-style-card" data-style="karykatura">
                     <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/karykat/caricature.png'); background-size: cover; background-position: center;"></div>                                                
@@ -3692,6 +3737,8 @@
                     <option value="white">Biały</option>
                     <option value="black">Czarny</option>
                     <option value="gold">Złoty</option>
+                    <option value="white-banner">Biały na tle</option>
+                    <option value="black-banner">Czarny na tle</option>
                   </select>
                 </div>
                 <div class="text-overlay-group">
@@ -4360,6 +4407,34 @@
           }
         }
         /* 🚨 ROLLBACK: END - Responsive dla 3 przycisków */
+
+        /* 📱 Telefon – marka/model (tylko dla etui) */
+        .customify-phone-selectors {
+          display: grid;
+          gap: 8px;
+          margin-bottom: 12px;
+          max-width: 480px;
+        }
+        .customify-phone-field label {
+          display: block;
+          font-weight: 600;
+          font-size: 0.95rem;
+          margin-bottom: 4px;
+        }
+        .customify-phone-select {
+          width: 100%;
+          padding: 8px 10px;
+          border: 1px solid #d0d0d0;
+          border-radius: 6px;
+          background: #fff;
+          font-size: 0.95rem;
+          color: #111;
+        }
+        .customify-phone-select:disabled {
+          background: #f5f5f5;
+          color: #9a9a9a;
+          cursor: not-allowed;
+        }
 
         /* Style dla ceny produktu - NAPRAWIONY SELEKTOR */
         product-price > div,
