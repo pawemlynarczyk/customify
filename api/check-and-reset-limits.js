@@ -284,10 +284,16 @@ module.exports = async (req, res) => {
 
   const now = Date.now();
   const cooldownMs = 60 * 60 * 1000; // 1h
+  
+  // Parametr force=1 ignoruje cooldown (do ręcznego wymuszenia wysyłki)
+  const forceMode = req.query?.force === '1' || req.query?.force === 'true';
+  if (forceMode) {
+    console.log('⚡ [RESET-LIMITS] FORCE MODE - ignoruję cooldown 1h');
+  }
 
   try {
     const keys = await kv.keys('limit-reached:*');
-    console.log('🔍 [RESET-LIMITS] Sprawdzam wpisy KV:', keys.length);
+    console.log('🔍 [RESET-LIMITS] Sprawdzam wpisy KV:', keys.length, forceMode ? '(FORCE MODE)' : '');
 
     let processed = 0;
     let resetCount = 0;
@@ -313,8 +319,8 @@ module.exports = async (req, res) => {
           await kv.del(key);
           continue;
         }
-        if (now - ts < cooldownMs) {
-          continue; // jeszcze nie minęła godzina
+        if (!forceMode && now - ts < cooldownMs) {
+          continue; // jeszcze nie minęła godzina (chyba że force mode)
         }
 
         const customerId = key.replace('limit-reached:', '');
