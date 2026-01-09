@@ -331,10 +331,16 @@
       <button onclick="loadImages()">🔄 Odśwież</button>
       <button class="success" onclick="selectAll()">✓ Zaznacz wszystkie</button>
       <button class="danger" onclick="deleteSelected()" id="deleteBtn" disabled>🗑️ Usuń zaznaczone (<span id="selectedCount">0</span>)</button>
+      <button class="danger" onclick="runAutoCleanupOldFiles()" id="cleanupBtn" title="Usuwa pliki z customify/temp/ starsze niż 14 dni (w turach, bez timeoutów)">🧹 Wyczyść stare (14 dni)</button>
     </div>
     
     <div class="mass-actions hidden" id="massActions">
       <span id="selectedCountText">0 obrazków zaznaczonych</span>
+    </div>
+    
+    <div class="mass-actions hidden" id="cleanupStatus" style="justify-content: space-between;">
+      <span id="cleanupStatusText">Czyszczenie...</span>
+      <button onclick="cancelAutoCleanup()" style="background:#666;">Przerwij</button>
     </div>
     
     <div class="stats" id="stats">
@@ -982,6 +988,8 @@
     }
     
     let isLoadingMore = false;
+    let cleanupCancelled = false;
+    let cleanupInProgress = false;
     
     function loadMore() {
       if (isLoadingMore || !currentCursor) return;
@@ -1057,6 +1065,84 @@
     });
     
     // Login jest sprawdzany w checkLogin() przy DOMContentLoaded
+
+    async function runAutoCleanupOldFiles() {
+      if (!AUTH_TOKEN) {
+        alert('Brak tokena autoryzacji');
+        return;
+      }
+      if (cleanupInProgress) {
+        return;
+      }
+      
+      cleanupCancelled = false;
+      cleanupInProgress = true;
+      
+      const cleanupBtn = document.getElementById('cleanupBtn');
+      const cleanupStatus = document.getElementById('cleanupStatus');
+      const cleanupStatusText = document.getElementById('cleanupStatusText');
+      cleanupBtn.disabled = true;
+      cleanupStatus.classList.remove('hidden');
+      
+      const MAX_ROUNDS = 25; // 25 * 300 = 7500 plików max na jedno kliknięcie
+      const BATCH_SIZE = 300; // endpoint ma hard cap 300
+      
+      let totalDeleted = 0;
+      let lastDeleted = 0;
+      
+      try {
+        for (let round = 1; round <= MAX_ROUNDS; round++) {
+          if (cleanupCancelled) {
+            cleanupStatusText.textContent = `⏹️ Przerwano. Usunięto łącznie: ${totalDeleted}`;
+            break;
+          }
+          
+          cleanupStatusText.textContent = `🧹 Czyszczenie starych plików (>14 dni)… tura ${round}/${MAX_ROUNDS} (łącznie usunięto: ${totalDeleted})`;
+          
+          const url = `${API_BASE}/cleanup-old-blobs?dryRun=false&maxDelete=${BATCH_SIZE}`;
+          const resp = await fetch(url, {
+            headers: { 'Authorization': `Bearer ${AUTH_TOKEN}` }
+          });
+          
+          if (!resp.ok) {
+            const text = await resp.text().catch(() => '');
+            throw new Error(`HTTP ${resp.status}: ${text || resp.statusText}`);
+          }
+          
+          const data = await resp.json();
+          if (!data || !data.success) {
+            throw new Error(data?.error || 'Cleanup failed');
+          }
+          
+          lastDeleted = data?.stats?.deleted || 0;
+          totalDeleted += lastDeleted;
+          
+          // Jeśli nic już nie usuwa, kończymy
+          if (lastDeleted === 0) {
+            cleanupStatusText.textContent = `✅ Gotowe. Brak kolejnych starych plików do usunięcia. Usunięto łącznie: ${totalDeleted}`;
+            break;
+          }
+          
+          // Mała przerwa, żeby nie dobijać API
+          await new Promise(r => setTimeout(r, 400));
+        }
+      } catch (e) {
+        console.error('❌ [CLEANUP] Error:', e);
+        cleanupStatusText.textContent = `❌ Błąd czyszczenia: ${e.message}`;
+      } finally {
+        cleanupInProgress = false;
+        cleanupBtn.disabled = false;
+        
+        // Odśwież listę obrazków po sprzątaniu (żeby pokazać nowsze)
+        try {
+          await loadImages(true);
+        } catch (_) {}
+      }
+    }
+    
+    function cancelAutoCleanup() {
+      cleanupCancelled = true;
+    }
   </script>
 </body>
 </html>
