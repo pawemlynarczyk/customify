@@ -128,7 +128,10 @@ function buildEmailHtml() {
 `;
 }
 
-async function sendCreditEmail(to) {
+// Helper: sleep for throttling
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+async function sendCreditEmail(to, retryCount = 0) {
   if (!process.env.RESEND_API_KEY) {
     console.warn('⚠️ [RESET-LIMITS] Brak RESEND_API_KEY - pomijam email');
     return { success: false, error: 'RESEND_API_KEY missing' };
@@ -142,10 +145,30 @@ async function sendCreditEmail(to) {
       html: buildEmailHtml()
     });
 
+    // Resend może zwrócić error w result zamiast rzucić exception
+    if (result.error) {
+      // Rate limit - retry z backoff
+      if (result.error.statusCode === 429 && retryCount < 3) {
+        const waitTime = (retryCount + 1) * 1000; // 1s, 2s, 3s
+        console.warn(`⚠️ [RESET-LIMITS] Rate limit 429, retry ${retryCount + 1}/3 za ${waitTime}ms...`);
+        await sleep(waitTime);
+        return sendCreditEmail(to, retryCount + 1);
+      }
+      console.error('❌ [RESET-LIMITS] Resend error:', result.error);
+      return { success: false, error: result.error.message || JSON.stringify(result.error) };
+    }
+
     const emailId = result.data?.id || result.id || null;
     console.log('✅ [RESET-LIMITS] Email wysłany:', { to, emailId });
     return { success: true, emailId };
   } catch (error) {
+    // Rate limit w exception - retry z backoff
+    if (error.statusCode === 429 && retryCount < 3) {
+      const waitTime = (retryCount + 1) * 1000;
+      console.warn(`⚠️ [RESET-LIMITS] Rate limit 429 (exception), retry ${retryCount + 1}/3 za ${waitTime}ms...`);
+      await sleep(waitTime);
+      return sendCreditEmail(to, retryCount + 1);
+    }
     console.error('❌ [RESET-LIMITS] Błąd wysyłania emaila:', error);
     return { success: false, error: error.message };
   }
@@ -304,35 +327,51 @@ module.exports = async (req, res) => {
         await updateUsageToZero(shopDomain, accessToken, customerId, metafieldId, currentType);
 
         // Email (tylko jeśli jest email)
+        let emailSent = false;
         if (email) {
+          // Throttle: 600ms między mailami (Resend limit: 2/s)
+          await sleep(600);
           const emailResult = await sendCreditEmail(email);
           
-          // Zapisz informację o wysłanym mailu do KV (dla statystyk)
-          if (emailResult.success && isKVConfigured()) {
-            try {
-              const emailKey = `credit-email-sent:${customerId}`;
-              const emailPayload = {
-                email: email,
-                customerId: customerId,
-                sentAt: new Date().toISOString(),
-                emailId: emailResult.emailId || null,
-                usageCount: payload.totalUsed || null,
-                totalLimit: payload.totalLimit || 4
-              };
-              await kv.set(emailKey, JSON.stringify(emailPayload), { ex: 60 * 60 * 24 * 90 }); // 90 dni TTL
-              console.log('📧 [RESET-LIMITS] Zapisano informację o wysłanym mailu do KV:', { emailKey });
-            } catch (kvErr) {
-              console.warn('⚠️ [RESET-LIMITS] Nie udało się zapisać informacji o mailu do KV:', kvErr);
+          if (emailResult.success) {
+            emailSent = true;
+            
+            // Zapisz informację o wysłanym mailu do KV (dla statystyk)
+            if (isKVConfigured()) {
+              try {
+                const emailKey = `credit-email-sent:${customerId}`;
+                const emailPayload = {
+                  email: email,
+                  customerId: customerId,
+                  sentAt: new Date().toISOString(),
+                  emailId: emailResult.emailId || null,
+                  usageCount: payload.totalUsed || null,
+                  totalLimit: payload.totalLimit || 4
+                };
+                await kv.set(emailKey, JSON.stringify(emailPayload), { ex: 60 * 60 * 24 * 90 }); // 90 dni TTL
+                console.log('📧 [RESET-LIMITS] Zapisano informację o wysłanym mailu do KV:', { emailKey });
+              } catch (kvErr) {
+                console.warn('⚠️ [RESET-LIMITS] Nie udało się zapisać informacji o mailu do KV:', kvErr);
+              }
             }
+          } else {
+            // ❌ Email się nie wysłał - NIE usuwaj wpisu, spróbuj ponownie później
+            console.error('❌ [RESET-LIMITS] Email NIE wysłany, zostawiam wpis w kolejce:', { customerId, email, error: emailResult.error });
+            errors.push({ key, error: `Email failed: ${emailResult.error}` });
+            continue; // Przejdź do następnego wpisu, nie usuwaj tego
           }
         } else {
+          // Brak emaila - traktuj jako "sukces" (nie ma komu wysłać)
+          emailSent = true;
           console.warn('⚠️ [RESET-LIMITS] Brak emaila, pomijam wysyłkę', { customerId });
         }
 
-        // Usuń wpis z kolejki
-        await kv.del(key);
-        resetCount += 1;
-        console.log('✅ [RESET-LIMITS] Zresetowano limity i wysłano (lub pominięto) email:', { customerId, email });
+        // Usuń wpis z kolejki TYLKO jeśli email się wysłał lub nie ma emaila
+        if (emailSent) {
+          await kv.del(key);
+          resetCount += 1;
+          console.log('✅ [RESET-LIMITS] Zresetowano limity i wysłano email:', { customerId, email });
+        }
       } catch (errItem) {
         errors.push({ key, error: errItem.message });
         console.error('❌ [RESET-LIMITS] Błąd dla wpisu:', key, errItem);
