@@ -3290,6 +3290,17 @@ module.exports = async (req, res) => {
         } else {
           const savedValue = updateData.data.customerUpdate.customer.metafield.value;
           const savedType = updateData.data.customerUpdate.customer.metafield.type;
+          const savedTotal =
+            updateType === 'number_integer'
+              ? parseInt(savedValue, 10)
+              : (() => {
+                  try {
+                    const parsed = JSON.parse(savedValue);
+                    return parsed?.total || 0;
+                  } catch {
+                    return 0;
+                  }
+                })();
           
           console.log(`✅ [METAFIELD-INCREMENT] Licznik zaktualizowany pomyślnie:`, {
             productType: finalProductType,
@@ -3299,6 +3310,22 @@ module.exports = async (req, res) => {
             updateType: updateType,
             metafieldId: updateData.data.customerUpdate.customer.metafield.id || null
           });
+          
+          // ✅ Dodaj do kolejki limit-reached natychmiast po osiągnięciu limitu (bez czekania na 5. próbę)
+          if (!isTest && customerId && isKVConfigured() && savedTotal >= 4) {
+            try {
+              const key = `limit-reached:${customerId}`;
+              const payload = {
+                timestamp: new Date().toISOString(),
+                totalUsed: savedTotal,
+                totalLimit
+              };
+              await kv.set(key, JSON.stringify(payload), { ex: 60 * 60 * 48 }); // 48h TTL
+              console.log('🕒 [LIMIT-QUEUE] Dodano po inkrementacji (reached limit):', { key, payload });
+            } catch (kvErr) {
+              console.error('⚠️ [LIMIT-QUEUE] Nie udało się zapisać do KV po inkrementacji:', kvErr);
+            }
+          }
           
           // Weryfikacja zapisanej wartości
           if (isOldFormatType) {
