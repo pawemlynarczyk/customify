@@ -89,10 +89,31 @@ module.exports = async (req, res) => {
 
     console.log(`📊 [LIST-BLOB-IMAGES] Found ${blobs.blobs.length} blobs from Vercel Blob API`);
     console.log(`📊 [LIST-BLOB-IMAGES] Has cursor (more pages): ${!!blobs.cursor}`);
-    if (blobs.blobs.length > 0) {
-      console.log(`📊 [LIST-BLOB-IMAGES] First blob: ${blobs.blobs[0].pathname || blobs.blobs[0].path}`);
-      console.log(`📊 [LIST-BLOB-IMAGES] Last blob: ${blobs.blobs[blobs.blobs.length - 1].pathname || blobs.blobs[blobs.blobs.length - 1].path}`);
-    }
+    
+    // Debug: sprawdź wszystkie bloby z generation- lub text-overlay- i ich timestampy
+    const aiBlobs = blobs.blobs.filter(b => {
+      const filename = (b.pathname || '').split('/').pop().toLowerCase();
+      return filename.startsWith('generation-') || filename.startsWith('ai-') || filename.startsWith('text-overlay-');
+    });
+    console.log(`📊 [LIST-BLOB-IMAGES] AI blobs (generation/ai/text-overlay): ${aiBlobs.length}`);
+    
+    // Sortuj AI bloby po timestamp z nazwy pliku
+    const sortedAiBlobs = aiBlobs.sort((a, b) => {
+      const getTs = (blob) => {
+        const match = (blob.pathname || '').match(/\d{13}/);
+        return match ? parseInt(match[0]) : 0;
+      };
+      return getTs(b) - getTs(a);
+    });
+    
+    // Pokaż 10 najnowszych AI blobów
+    console.log(`📊 [LIST-BLOB-IMAGES] 10 najnowszych AI blobów:`, sortedAiBlobs.slice(0, 10).map(b => {
+      const match = (b.pathname || '').match(/\d{13}/);
+      return {
+        path: b.pathname,
+        ts: match ? new Date(parseInt(match[0])).toISOString() : 'brak'
+      };
+    }));
 
     // ═══════════════════════════════════════════════════════════════════════════
     // KATEGORYZACJA OBRAZKÓW - KOMPLETNA LOGIKA
