@@ -3281,8 +3281,8 @@
           <h4 style="text-align: left; font-size: 0.95rem; font-weight: 600;">Rodzaj wydruku:</h4>
           <div class="customify-product-type-buttons">
             {% comment %} FILTRUJ RODZAJE WYDRUKU PER PRODUKT {% endcomment %}
-            {% if product.handle == 'karykatura-na-zamowienie-druk-na-szkle-akrylowym-ramka-z-podswietleniem' %}
-              {% comment %} TYLKO SZKŁO dla produktu karykatura na szkle {% endcomment %}
+            {% if product.handle == 'karykatura-na-zamowienie-druk-na-szkle-akrylowym-ramka-z-podswietleniem' or product.handle == 'prezent-dla-babci-i-dziadka-portret-na-na-szkle-akrylowym-ze-zdjecia-karykatura' %}
+              {% comment %} TYLKO SZKŁO dla produktów na szkle akrylowym {% endcomment %}
               <div class="customify-product-type-btn active" data-product-type="szklo">
                 Nadruk na szkle (dodaj podstawkę)
               </div>
@@ -3664,6 +3664,26 @@
                     </div>
                   </div>
                   {% comment %} DEBUG: Koniec sekcji test-karikat {% endcomment %}
+                {% elsif product.handle == 'prezent-dla-babci-i-dziadka-portret-na-na-szkle-akrylowym-ze-zdjecia-karykatura' %}
+                  {% comment %} STYLE KARYKATURY dla produktu Prezent dla Babci i Dziadka {% endcomment %}
+                  <div class="customify-style-card" data-style="karykatura">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/karykat/dziadki_2.jpeg'); background-size: cover; background-position: center;"></div>
+                    <div class="style-info">
+                      <div class="style-name">Klasyczna</div>
+                    </div>
+                  </div>
+                  <div class="customify-style-card" data-style="caricature-new" style="display: block !important;">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/karykat/dziadkowie.jpg'); background-size: cover; background-position: center;"></div>
+                    <div class="style-info">
+                      <div class="style-name">Nowoczesna</div>
+                    </div>
+                  </div>
+                  <div class="customify-style-card" data-style="karykatura-olowek" style="display: block !important;">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/karykat/olowek.png'); background-size: cover; background-position: center;"></div>
+                    <div class="style-info">
+                      <div class="style-name">Szkic</div>
+                    </div>
+                  </div>
                 {% else %}
                   {% comment %} WSZYSTKIE STYLE NORMALNE dla innych produktów {% endcomment %}
                   <div class="customify-style-card" data-style="watercolor">
@@ -4804,9 +4824,12 @@
             });
           });
           
-          // 🆕 AUTO-INICJALIZACJA dla produktu ze szkłem
+          // 🆕 AUTO-INICJALIZACJA dla produktów ze szkłem
           var currentUrl = window.location.pathname.toLowerCase();
-          if (currentUrl.includes('karykatura-na-zamowienie-druk-na-szkle-akrylowym-ramka-z-podswietleniem')) {
+          var isSzkloProduct = currentUrl.includes('karykatura-na-zamowienie-druk-na-szkle-akrylowym-ramka-z-podswietleniem') || 
+                              currentUrl.includes('prezent-dla-babci-i-dziadka-portret-na-na-szkle-akrylowym-ze-zdjecia-karykatura');
+          
+          if (isSzkloProduct) {
             console.log('🔍 [SZKLO] Produkt ze szkłem wykryty - automatyczne filtrowanie rozmiarów');
             // Ustaw szkło jako wybrany typ
             if (window.__customify) {
@@ -4815,6 +4838,16 @@
             // Wywoła updateSizeAvailability() żeby pokazać tylko A5 i A4
             updateStandAvailability();
             updateSizeAvailability();
+            
+            // 🆕 AUTO-ZAZNACZ ROZMIAR A5 jako domyślny dla szkła
+            setTimeout(function() {
+              var a5Btn = document.querySelector('.customify-size-btn[data-size="a5"]');
+              if (a5Btn && !document.querySelector('.customify-size-btn.active')) {
+                a5Btn.click();
+                console.log('✅ [SZKLO] Automatycznie zaznaczono rozmiar A5');
+              }
+            }, 100);
+            
             console.log('✅ [SZKLO] Automatycznie pokazano tylko rozmiary dla szkła (A5, A4)');
           }
         });
