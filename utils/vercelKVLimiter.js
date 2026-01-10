@@ -140,7 +140,16 @@ async function incrementDeviceTokenLimit(deviceToken) {
  * @returns {boolean}
  */
 function isKVConfigured() {
-  return !!(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN);
+  // Vercel KV (Upstash Redis) by @vercel/kv standard envs:
+  // - KV_REST_API_URL, KV_REST_API_TOKEN
+  //
+  // W praktyce na różnych środowiskach / integracjach mogą pojawić się też inne nazwy.
+  // Nie blokuj funkcji (kolejka limitów, cross-account) tylko dlatego, że env ma inne klucze,
+  // skoro sam klient `@vercel/kv` działa.
+  const hasVercelKV = !!(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN);
+  const hasAltKV = !!(process.env.KV_URL && process.env.KV_TOKEN);
+  const hasUpstash = !!(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
+  return hasVercelKV || hasAltKV || hasUpstash;
 }
 
 // ============================================================================

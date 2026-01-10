@@ -2168,7 +2168,7 @@ module.exports = async (req, res) => {
           });
 
           // 🕒 Zapisz do KV info o osiągniętym limicie (kolejka do automatycznego resetu/mailingu)
-          if (customerId && isKVConfigured()) {
+          if (customerId) {
             try {
               const key = `limit-reached:${customerId}`;
               const payload = {
@@ -2176,8 +2176,24 @@ module.exports = async (req, res) => {
                 totalUsed,
                 totalLimit
               };
-              await kv.set(key, JSON.stringify(payload), { ex: 60 * 60 * 48 }); // 48h TTL
-              console.log('🕒 [LIMIT-QUEUE] Zapisano osiągnięty limit w KV:', { key, payload });
+              // ✅ Nie nadpisuj istniejącego wpisu - inaczej kolejne próby resetują timestamp
+              // i cron nigdy nie spełni warunku "minęła 1h".
+              const existing = await kv.get(key);
+              if (!existing) {
+                await kv.set(key, JSON.stringify(payload), { ex: 60 * 60 * 48 }); // 48h TTL
+                console.log('🕒 [LIMIT-QUEUE] Zapisano osiągnięty limit w KV (NEW):', { key, payload });
+              } else {
+                let existingPayload = null;
+                try {
+                  existingPayload = typeof existing === 'string' ? JSON.parse(existing) : existing;
+                } catch {
+                  existingPayload = existing;
+                }
+                console.log('🕒 [LIMIT-QUEUE] Wpis już istnieje - nie nadpisuję (KEEP TIMESTAMP):', {
+                  key,
+                  existingTimestamp: existingPayload?.timestamp || null
+                });
+              }
             } catch (kvErr) {
               console.error('⚠️ [LIMIT-QUEUE] Nie udało się zapisać do KV:', kvErr);
             }
@@ -3312,7 +3328,7 @@ module.exports = async (req, res) => {
           });
           
           // ✅ Dodaj do kolejki limit-reached natychmiast po osiągnięciu limitu (bez czekania na 5. próbę)
-          if (!isTest && customerId && isKVConfigured() && savedTotal >= 4) {
+          if (!isTest && customerId && savedTotal >= 4) {
             try {
               const key = `limit-reached:${customerId}`;
               const payload = {
@@ -3320,8 +3336,23 @@ module.exports = async (req, res) => {
                 totalUsed: savedTotal,
                 totalLimit
               };
-              await kv.set(key, JSON.stringify(payload), { ex: 60 * 60 * 48 }); // 48h TTL
-              console.log('🕒 [LIMIT-QUEUE] Dodano po inkrementacji (reached limit):', { key, payload });
+              // ✅ Idempotentnie: nie nadpisuj jeśli już jest w kolejce (żeby nie resetować timestamp)
+              const existing = await kv.get(key);
+              if (!existing) {
+                await kv.set(key, JSON.stringify(payload), { ex: 60 * 60 * 48 }); // 48h TTL
+                console.log('🕒 [LIMIT-QUEUE] Dodano po inkrementacji (NEW reached limit):', { key, payload });
+              } else {
+                let existingPayload = null;
+                try {
+                  existingPayload = typeof existing === 'string' ? JSON.parse(existing) : existing;
+                } catch {
+                  existingPayload = existing;
+                }
+                console.log('🕒 [LIMIT-QUEUE] Już w kolejce po inkrementacji - nie nadpisuję (KEEP TIMESTAMP):', {
+                  key,
+                  existingTimestamp: existingPayload?.timestamp || null
+                });
+              }
             } catch (kvErr) {
               console.error('⚠️ [LIMIT-QUEUE] Nie udało się zapisać do KV po inkrementacji:', kvErr);
             }
