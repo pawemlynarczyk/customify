@@ -769,11 +769,7 @@
       let filteredImages = allImages;
       
       // 1. Filtruj po kategorii NAJPIERW
-      if (category === 'all') {
-        // W "Wszystkie" - ukryj statystyki (JSON) żeby nie zaśmiecały widoku
-        filteredImages = filteredImages.filter(img => img.category !== 'statystyki');
-        console.log(`🔍 [DISPLAY] Category "all" (bez statystyk): ${allImages.length} → ${filteredImages.length}`);
-      } else {
+      if (category !== 'all') {
         const beforeCategoryFilter = filteredImages.length;
         
         // Debug: sprawdź kategorie przed filtrowaniem
@@ -914,11 +910,8 @@
       const category = document.getElementById('categoryFilter').value;
       const filteredImages = filterByDate(allImages);
       
-      let count;
-      if (category === 'all') {
-        // W "Wszystkie" - nie licz statystyk
-        count = filteredImages.filter(img => img.category !== 'statystyki').length;
-      } else {
+      let count = filteredImages.length;
+      if (category !== 'all') {
         count = filteredImages.filter(img => img.category === category).length;
       }
       
