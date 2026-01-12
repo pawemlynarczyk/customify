@@ -3330,6 +3330,7 @@ module.exports = async (req, res) => {
           // ✅ Dodaj do kolejki limit-reached natychmiast po osiągnięciu limitu (bez czekania na 5. próbę)
           if (!isTest && customerId && savedTotal >= 4) {
             try {
+              const totalLimit = 4; // 4 darmowe generacje TOTAL dla zalogowanych
               const key = `limit-reached:${customerId}`;
               const payload = {
                 timestamp: new Date().toISOString(),
