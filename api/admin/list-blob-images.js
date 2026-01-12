@@ -94,28 +94,7 @@ module.exports = async (req, res) => {
     console.log(`📊 [LIST-BLOB-IMAGES] Found ${blobs.blobs.length} blobs from Vercel Blob API`);
     console.log(`📊 [LIST-BLOB-IMAGES] Has cursor (more pages): ${!!blobs.cursor}`);
     
-    // ✅ TEST: Filtruj tylko pliki z ostatnich 5 dni (po timestamp w nazwie)
-    const fiveDaysAgo = Date.now() - (5 * 24 * 60 * 60 * 1000);
-    console.log(`📊 [LIST-BLOB-IMAGES] Filtering files newer than: ${new Date(fiveDaysAgo).toISOString()}`);
-    
-    const recentBlobs = blobs.blobs.filter(b => {
-      const pathname = b.pathname || '';
-      const timestampMatch = pathname.match(/\d{13}/);
-      if (timestampMatch) {
-        const fileTimestamp = parseInt(timestampMatch[0]);
-        return fileTimestamp >= fiveDaysAgo;
-      }
-      // Jeśli brak timestamp w nazwie, użyj uploadedAt
-      if (b.uploadedAt) {
-        return new Date(b.uploadedAt).getTime() >= fiveDaysAgo;
-      }
-      return false; // Ukryj pliki bez daty
-    });
-    
-    console.log(`📊 [LIST-BLOB-IMAGES] Files from last 5 days: ${recentBlobs.length} / ${blobs.blobs.length}`);
-    
-    // Zastąp blobs tylko plikami z ostatnich 5 dni
-    blobs.blobs = recentBlobs;
+    // (nie filtrujemy po dacie po stronie API – panel ma mieć pełny widok)
     
     // Debug: sprawdź wszystkie bloby z generation- lub text-overlay- i ich timestampy
     const aiBlobs = blobs.blobs.filter(b => {
