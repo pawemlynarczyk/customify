@@ -398,6 +398,9 @@
         document.getElementById('loginForm').style.display = 'none';
         document.getElementById('mainContent').style.display = 'block';
         document.getElementById('logoutBtn').style.display = 'block';
+        
+        // Domyślnie pokaż ostatnie 5 dni (tylko jeśli user nie ustawił własnych dat)
+        setDefaultLastDaysIfEmpty(5);
         loadImages(true);
       } else {
         document.getElementById('loginForm').style.display = 'block';
@@ -758,6 +761,32 @@
       document.getElementById('dateFrom').value = '';
       document.getElementById('dateTo').value = '';
       loadImages(true);
+    }
+
+    // Domyślny zakres dat: ostatnie N dni (włącznie z dzisiaj), ale tylko jeśli pola są puste
+    function setDefaultLastDaysIfEmpty(days) {
+      const dateFromEl = document.getElementById('dateFrom');
+      const dateToEl = document.getElementById('dateTo');
+      if (!dateFromEl || !dateToEl) return;
+      
+      // Jeśli user już ma ustawione daty (albo przeglądarka je przywróciła) - nie nadpisuj
+      if (dateFromEl.value || dateToEl.value) return;
+      
+      const today = new Date();
+      const from = new Date(today);
+      from.setDate(today.getDate() - (Math.max(1, days) - 1)); // np. 5 dni: dziś-4
+      
+      const formatLocalDate = (date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      };
+      
+      dateFromEl.value = formatLocalDate(from);
+      dateToEl.value = formatLocalDate(today);
+      
+      console.log(`🔍 [DEFAULT-DATE] Ustawiam domyślnie ostatnie ${days} dni: ${dateFromEl.value} → ${dateToEl.value}`);
     }
     
     function displayImages() {
