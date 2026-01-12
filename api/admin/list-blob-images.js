@@ -61,7 +61,8 @@ module.exports = async (req, res) => {
     const allBlobs = [];
     let nextCursor = cursor || undefined;
     let fetchedCount = 0;
-    const maxFetch = 20000; // Maksymalnie 20k plików (bezpieczeństwo)
+    const maxFetch = 20000; // Trzymamy w pamięci max 20k, ale nie urywamy paginacji (żeby dojść do najnowszych)
+    let truncatedToLastN = false;
     
     // Pobieraj wszystkie strony (pagination)
     // ✅ ZAWSZE używaj prefix 'customify/' żeby pobierać tylko nasze pliki
@@ -82,10 +83,15 @@ module.exports = async (req, res) => {
       
       console.log(`📊 [LIST-BLOB-IMAGES] Fetched ${fetchedCount} blobs so far, has more: ${!!nextCursor}`);
       
-      // Bezpieczeństwo: zatrzymaj jeśli za dużo
-      if (fetchedCount >= maxFetch) {
-        console.warn(`⚠️ [LIST-BLOB-IMAGES] Reached max fetch limit: ${maxFetch}`);
-        break;
+      // Jeśli jest bardzo dużo plików, NIE przerywaj (bo najnowsze są na końcu alfabetycznej listy),
+      // tylko utrzymuj bufor ostatnich maxFetch elementów.
+      if (allBlobs.length > maxFetch) {
+        const toDrop = allBlobs.length - maxFetch;
+        allBlobs.splice(0, toDrop);
+        truncatedToLastN = true;
+        if (fetchedCount >= maxFetch && fetchedCount - blobsBatch.blobs.length < maxFetch) {
+          console.warn(`⚠️ [LIST-BLOB-IMAGES] Buffering last ${maxFetch} blobs (repo has more than ${maxFetch}).`);
+        }
       }
     } while (nextCursor);
     
@@ -358,7 +364,8 @@ module.exports = async (req, res) => {
       cursor: blobs.cursor,
       hasMore: !!blobs.cursor,
       stats: stats,
-      filteredCount: categorizedBlobs.length
+      filteredCount: categorizedBlobs.length,
+      truncated: truncatedToLastN ? true : undefined
     });
 
   } catch (error) {
