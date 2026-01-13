@@ -2,6 +2,7 @@ const Replicate = require('replicate');
 const OpenAI = require('openai');
 const { toFile } = require('openai');
 const crypto = require('crypto');
+const { kv } = require('@vercel/kv');
 const { getClientIP } = require('../utils/vercelRateLimiter');
 const { checkIPLimit, incrementIPLimit, checkDeviceTokenLimit, incrementDeviceTokenLimit, isKVConfigured, isImageHashLimitEnabled, calculateImageHash, checkImageHashLimit, incrementImageHashLimit, checkDeviceTokenCrossAccount, addCustomerToDeviceToken } = require('../utils/vercelKVLimiter');
 const Sentry = require('../utils/sentry');
