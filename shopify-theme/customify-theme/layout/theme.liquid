@@ -3281,7 +3281,7 @@
           <h4 style="text-align: left; font-size: 0.95rem; font-weight: 600;">Rodzaj wydruku:</h4>
           <div class="customify-product-type-buttons">
             {% comment %} FILTRUJ RODZAJE WYDRUKU PER PRODUKT {% endcomment %}
-            {% if product.handle == 'karykatura-na-zamowienie-druk-na-szkle-akrylowym-ramka-z-podswietleniem' or product.handle == 'prezent-dla-babci-i-dziadka-portret-na-na-szkle-akrylowym-ze-zdjecia-karykatura' %}
+            {% if product.handle == 'karykatura-na-zamowienie-druk-na-szkle-akrylowym-ramka-z-podswietleniem' or product.handle == 'prezent-dla-babci-i-dziadka-portret-na-na-szkle-akrylowym-ze-zdjecia-karykatura' or product.handle == 'dziadkowie-krolowie-nadruk-na-szkle' %}
               {% comment %} TYLKO SZKŁO dla produktów na szkle akrylowym {% endcomment %}
               <div class="customify-product-type-btn active" data-product-type="szklo">
                 Nadruk na szkle (dodaj podstawkę)
@@ -3634,7 +3634,7 @@
                       <div class="style-name">Akwarela</div>
                     </div>
                   </div>
-                {% elsif product.id == 15548464693573 %}
+                {% elsif product.id == 15548464693573 or product.handle == 'dziadkowie-krolowie-nadruk-na-szkle' %}
                   {% comment %} STYLE ZAMKOWY I KRÓLEWSKI dla produktu (ID: 15548464693573) {% endcomment %}
                   <div class="customify-style-card" data-style="zamkowy">
                     <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/zamkowy/zamkowy-styl.png'); background-size: cover; background-position: center;"></div>
@@ -4827,7 +4827,8 @@
           // 🆕 AUTO-INICJALIZACJA dla produktów ze szkłem
           var currentUrl = window.location.pathname.toLowerCase();
           var isSzkloProduct = currentUrl.includes('karykatura-na-zamowienie-druk-na-szkle-akrylowym-ramka-z-podswietleniem') || 
-                              currentUrl.includes('prezent-dla-babci-i-dziadka-portret-na-na-szkle-akrylowym-ze-zdjecia-karykatura');
+                              currentUrl.includes('prezent-dla-babci-i-dziadka-portret-na-na-szkle-akrylowym-ze-zdjecia-karykatura') ||
+                              currentUrl.includes('dziadkowie-krolowie-nadruk-na-szkle');
           
           if (isSzkloProduct) {
             console.log('🔍 [SZKLO] Produkt ze szkłem wykryty - automatyczne filtrowanie rozmiarów');
