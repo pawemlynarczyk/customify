@@ -4843,7 +4843,9 @@
             // 🆕 AUTO-ZAZNACZ ROZMIAR A5 jako domyślny dla szkła
             setTimeout(function() {
               var a5Btn = document.querySelector('.customify-size-btn[data-size="a5"]');
-              if (a5Btn && !document.querySelector('.customify-size-btn.active')) {
+              var activeBtn = document.querySelector('.customify-size-btn.active');
+              var activeSize = activeBtn ? activeBtn.getAttribute('data-size') : null;
+              if (a5Btn && activeSize !== 'a5') {
                 a5Btn.click();
                 console.log('✅ [SZKLO] Automatycznie zaznaczono rozmiar A5');
               }
