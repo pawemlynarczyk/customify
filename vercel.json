@@ -13,6 +13,10 @@
     {
       "path": "/api/cron-populate-limit-queue",
       "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/cleanup-old-blobs",
+      "schedule": "15 3 * * *"
     }
   ],
   "buildCommand": "echo 'Force rebuild v7 - analytics system'",
