@@ -32,16 +32,23 @@ module.exports = async (req, res) => {
   }
 
   // Autoryzacja:
-  // - Preferowane: Vercel Cron header (jeśli Vercel go dodaje)
-  // - Fallback: Bearer ADMIN_STATS_TOKEN (ręczne uruchomienie)
+  // - Crony Vercel nie wysyłają naszego Bearer tokena, więc musimy rozpoznać request crona po nagłówkach.
+  // - Dodatkowo zostawiamy fallback: Bearer ADMIN_STATS_TOKEN (ręczne uruchomienie).
   const expectedToken = process.env.ADMIN_STATS_TOKEN;
   const authHeader = req.headers.authorization;
   const vercelCronHeader = req.headers['x-vercel-cron'];
+  const userAgent = req.headers['user-agent'] || '';
+  const vercelId = req.headers['x-vercel-id'];
 
-  const isAuthorizedByCronHeader = vercelCronHeader === '1' || vercelCronHeader === 'true';
+  // W praktyce Vercel może ustawiać x-vercel-cron (różne wartości), a zawsze ustawia x-vercel-id.
+  // Dla bezpieczeństwa wymagamy: (x-vercel-cron obecny) LUB (User-Agent zawiera "Vercel" i "Cron") oraz x-vercel-id.
+  const isProbablyVercelCron =
+    (Boolean(vercelCronHeader) && Boolean(vercelId)) ||
+    (/vercel/i.test(userAgent) && /cron/i.test(userAgent) && Boolean(vercelId));
+
   const isAuthorizedByToken = expectedToken && authHeader === `Bearer ${expectedToken}`;
 
-  if (!isAuthorizedByCronHeader && !isAuthorizedByToken) {
+  if (!isProbablyVercelCron && !isAuthorizedByToken) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
