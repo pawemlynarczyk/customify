@@ -283,6 +283,60 @@
         
         return merged;
       }
+
+      function getGenerationImageUrl(generation) {
+        return generation.watermarkedImageUrl || generation.transformedImage || null;
+      }
+
+      function checkImageUrl(url, timeoutMs = 4000) {
+        return new Promise(resolve => {
+          if (!url) {
+            resolve(false);
+            return;
+          }
+
+          const img = new Image();
+          let settled = false;
+          const timeoutId = setTimeout(() => {
+            if (settled) return;
+            settled = true;
+            resolve(false);
+          }, timeoutMs);
+
+          const finalize = (result) => {
+            if (settled) return;
+            settled = true;
+            clearTimeout(timeoutId);
+            resolve(result);
+          };
+
+          img.onload = () => finalize(true);
+          img.onerror = () => finalize(false);
+          img.src = url;
+        });
+      }
+
+      async function filterAvailableGenerations(generations) {
+        const checks = generations.map(async (gen) => {
+          const imageUrl = getGenerationImageUrl(gen);
+          if (!imageUrl) {
+            return null;
+          }
+          const isAvailable = await checkImageUrl(imageUrl);
+          return isAvailable ? gen : null;
+        });
+
+        const results = await Promise.all(checks);
+        return results.filter(Boolean);
+      }
+
+      function updateEmptyStateIfNeeded() {
+        if (!container) return;
+        const remainingCards = container.querySelectorAll('.generation-card');
+        if (remainingCards.length === 0) {
+          container.innerHTML = '<div class="generations-empty"><p>Brak dostępnych obrazów. Część linków mogła wygasnąć.</p></div>';
+        }
+      }
       
       let initGalleryCalled = false; // ✅ Zapobiegaj wielokrotnemu wywołaniu
       
@@ -325,9 +379,17 @@
         });
         
         console.log('📊 [MY-GENERATIONS] Total generations (after deduplication):', uniqueGenerations.length);
-        
+
         if (uniqueGenerations.length === 0) {
           container.innerHTML = '<div class="generations-empty"><p>Nie masz jeszcze żadnych generacji. Stwórz pierwszą!</p></div>';
+          return;
+        }
+
+        const availableGenerations = await filterAvailableGenerations(uniqueGenerations);
+        console.log('📊 [MY-GENERATIONS] Available generations (after image check):', availableGenerations.length);
+
+        if (availableGenerations.length === 0) {
+          container.innerHTML = '<div class="generations-empty"><p>Brak dostępnych obrazów. Część linków mogła wygasnąć.</p></div>';
           return;
         }
         
@@ -343,7 +405,7 @@
           item.style.cursor = 'pointer';
           
           // ✅ PRIORYTET: watermarkedImageUrl (Vercel Blob z watermarkiem) > transformedImage (fallback)
-          const imageUrl = generation.watermarkedImageUrl || generation.transformedImage;
+          const imageUrl = getGenerationImageUrl(generation);
           const cleanImageUrl = generation.cleanImageUrl || null;
           
           if (!imageUrl) {
@@ -372,7 +434,6 @@
                 alt="" 
                 class="generation-image"
                 loading="lazy"
-                onerror="this.parentElement.innerHTML='<div class=\\'generation-image\\' style=\\'background: #f0f0f0; aspect-ratio: 3/4; display: flex; align-items: center; justify-content: center; flex-direction: column; color: #999;\\'><p style=\\'font-size: 2rem; margin: 0;\\'>📷</p><p style=\\'font-size: 0.9rem; margin: 0.5rem 0 0 0;\\'>Obraz niedostępny</p></div><div class=\\'generation-info\\'><button class=\\'btn-order-now\\' data-generation-index=\\'${index}\\' disabled style=\\'opacity: 0.5; cursor: not-allowed;\\'>Niedostępne</button></div>'"
               />
               <div class="generation-info">
                 <button class="btn-order-now" data-generation-index="${index}">Zamów</button>
@@ -481,6 +542,14 @@
               orderButton.addEventListener('click', function(e) {
                 e.stopPropagation();
                 handleOrder(index);
+              });
+            }
+
+            const imageElement = item.querySelector('.generation-image');
+            if (imageElement) {
+              imageElement.addEventListener('error', () => {
+                item.remove();
+                updateEmptyStateIfNeeded();
               });
             }
             
@@ -723,7 +792,7 @@
         }
         
         // Renderuj wszystkie generacje (używaj uniqueGenerations zamiast allGenerations)
-        uniqueGenerations.forEach((gen, idx) => renderGeneration(gen, idx, uniqueGenerations));
+        availableGenerations.forEach((gen, idx) => renderGeneration(gen, idx, availableGenerations));
       }
       
       // Start gdy DOM ready
