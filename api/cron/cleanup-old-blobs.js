@@ -1,5 +1,5 @@
 // api/cron/cleanup-old-blobs.js
-// Cron: automatyczne czyszczenie Vercel Blob (customify/temp/) starszych niż 14 dni
+  // Cron: automatyczne czyszczenie Vercel Blob (customify/temp/ + customify/system/stats/generations/) starszych niż 14 dni
 //
 // UWAGA: Vercel Blob `list()` zwraca alfabetycznie; nie polegamy na tym, tylko filtrujemy po timestampie w nazwie.
 // Usuwanie robimy w batchach, żeby nie wisieć/nie timeoutować.
@@ -70,25 +70,29 @@ module.exports = async (req, res) => {
 
   try {
     for (let round = 1; round <= MAX_ROUNDS; round++) {
-      // 1) Pobierz listę blobów (customify/temp/)
-      const allBlobs = [];
-      let nextCursor = undefined;
-      let pageCount = 0;
+      const listAllFromPrefix = async (prefix) => {
+        const blobs = [];
+        let nextCursor = undefined;
+        let pageCount = 0;
+        do {
+          pageCount++;
+          const result = await list({
+            prefix,
+            limit: 1000,
+            cursor: nextCursor,
+            token: process.env.customify_READ_WRITE_TOKEN,
+          });
+          blobs.push(...result.blobs);
+          nextCursor = result.cursor;
+          if (pageCount >= 60) break; // max ~60k rekordów / prefix / round
+        } while (nextCursor);
+        return blobs;
+      };
 
-      do {
-        pageCount++;
-        const result = await list({
-          prefix: 'customify/temp/',
-          limit: 1000,
-          cursor: nextCursor,
-          token: process.env.customify_READ_WRITE_TOKEN,
-        });
-        allBlobs.push(...result.blobs);
-        nextCursor = result.cursor;
-
-        // Bezpieczeństwo: nie skanuj nieskończoność w jednym roundzie
-        if (pageCount >= 60) break; // max ~60k rekordów
-      } while (nextCursor);
+      // 1) Pobierz listę blobów (customify/temp/ + stats JSON)
+      const tempBlobs = await listAllFromPrefix('customify/temp/');
+      const statsBlobs = await listAllFromPrefix('customify/system/stats/generations/');
+      const allBlobs = [...tempBlobs, ...statsBlobs];
 
       // 2) Wyznacz stare
       const oldBlobs = allBlobs
@@ -98,8 +102,9 @@ module.exports = async (req, res) => {
           if (match) {
             return parseInt(match[0], 10) < cutoffDate;
           }
-          if (b.uploadedAt) {
-            return new Date(b.uploadedAt).getTime() < cutoffDate;
+          const blobDate = b.uploadedAt || b.createdAt;
+          if (blobDate) {
+            return new Date(blobDate).getTime() < cutoffDate;
           }
           return false;
         })

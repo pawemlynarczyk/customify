@@ -46,30 +46,40 @@ module.exports = async (req, res) => {
     console.log(`🧹 [CLEANUP] Dry run: ${isDryRun}`);
     console.log(`🧹 [CLEANUP] Max delete requested: ${requestedMaxDeleteNum}, effective: ${maxDeleteNum} (hard cap)`);
 
-    // Pobierz wszystkie bloby
-    const allBlobs = [];
-    let nextCursor = undefined;
-    let pageCount = 0;
-    
-    do {
-      pageCount++;
-      const result = await list({
-        prefix: 'customify/temp/',
-        limit: 1000,
-        cursor: nextCursor,
-        token: process.env.customify_READ_WRITE_TOKEN
-      });
-      
-      allBlobs.push(...result.blobs);
-      nextCursor = result.cursor;
-      
-      // Limit bezpieczeństwa
-      if (allBlobs.length >= 50000) break;
-    } while (nextCursor && pageCount < 100);
-    
-    console.log(`🧹 [CLEANUP] Found ${allBlobs.length} blobs in customify/temp/`);
+    if (!process.env.customify_READ_WRITE_TOKEN) {
+      return res.status(500).json({ error: 'Blob token not configured' });
+    }
+
+    // Pobierz bloby z temp/ oraz statystyki (generations/*.json)
+    const listAllFromPrefix = async (prefix) => {
+      const blobs = [];
+      let next = undefined;
+      let pages = 0;
+      do {
+        pages++;
+        const result = await list({
+          prefix,
+          limit: 1000,
+          cursor: next,
+          token: process.env.customify_READ_WRITE_TOKEN,
+        });
+        blobs.push(...result.blobs);
+        next = result.cursor;
+        // Limit bezpieczeństwa per prefix
+        if (blobs.length >= 50000) break;
+      } while (next && pages < 100);
+      return blobs;
+    };
+
+    const tempBlobs = await listAllFromPrefix('customify/temp/');
+    const statsBlobs = await listAllFromPrefix('customify/system/stats/generations/');
+
+    const allBlobs = [...tempBlobs, ...statsBlobs];
+    console.log(`🧹 [CLEANUP] Found ${tempBlobs.length} blobs in customify/temp/`);
+    console.log(`🧹 [CLEANUP] Found ${statsBlobs.length} blobs in customify/system/stats/generations/`);
 
     // Znajdź stare pliki (po timestamp w nazwie lub uploadedAt)
+    // Dla stats JSON (device-*.json/customer-*.json) nie ma timestampu w nazwie → używamy uploadedAt/createdAt z Blob.
     const oldBlobs = allBlobs.filter(b => {
       const pathname = b.pathname || '';
       const timestampMatch = pathname.match(/\d{13}/);
@@ -79,8 +89,9 @@ module.exports = async (req, res) => {
         return fileTimestamp < cutoffDate;
       }
       
-      if (b.uploadedAt) {
-        return new Date(b.uploadedAt).getTime() < cutoffDate;
+      const blobDate = b.uploadedAt || b.createdAt;
+      if (blobDate) {
+        return new Date(blobDate).getTime() < cutoffDate;
       }
       
       return false;
