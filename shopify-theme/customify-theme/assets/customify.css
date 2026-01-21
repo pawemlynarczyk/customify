@@ -1813,6 +1813,15 @@ main {
   box-shadow: 0 8px 24px rgba(0,0,0,0.15);
   margin: 0 auto;
   display: block;
+}
+
+/* Spotify frame - nadpisuje globalne style */
+.spotify-frame-inner img,
+.spotify-frame-result img,
+.spotify-frame-preview img {
+  max-height: none !important;
+  width: 902px !important;
+  height: 902px !important;
   border: 3px solid white;
 }
 
