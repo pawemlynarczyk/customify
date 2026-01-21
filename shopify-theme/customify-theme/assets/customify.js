@@ -3634,6 +3634,13 @@ class CustomifyEmbed {
     if (this.isSpotifyProduct() && this.previewArea) {
       this.previewArea.style.display = 'none';
       console.log('🎯 [CUSTOMIFY] previewArea hidden after generation (spotify only)');
+      // Ukryj ponownie po 200ms - na wypadek gdyby coś później ustawiło block
+      setTimeout(() => {
+        if (this.previewArea) {
+          this.previewArea.style.display = 'none';
+          console.log('🎯 [CUSTOMIFY] previewArea hidden again (delayed)');
+        }
+      }, 200);
     }
     
     if (this.isSpotifyProduct() && this.spotifyFieldsPanel) {
