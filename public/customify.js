@@ -2400,11 +2400,12 @@ class CustomifyEmbed {
     }
   }
 
-  updateSpotifyFrameScale() {
+  updateSpotifyFrameScale(retryCount = 0) {
     if (!this.isSpotifyProduct()) return;
     const containers = document.querySelectorAll('.spotify-frame-preview, .spotify-frame-result');
     if (!containers.length) return;
 
+    let needsRetry = false;
     containers.forEach(container => {
       const inner = container.querySelector('.spotify-frame-inner');
       if (!inner) return;
@@ -2412,10 +2413,22 @@ class CustomifyEmbed {
       const padX = parseFloat(styles.paddingLeft || '0') + parseFloat(styles.paddingRight || '0');
       const padY = parseFloat(styles.paddingTop || '0') + parseFloat(styles.paddingBottom || '0');
       const availableWidth = Math.max(0, container.clientWidth - padX);
+      
+      // Jeśli container nie ma jeszcze wymiarów, zaplanuj retry
+      if (availableWidth <= 0) {
+        needsRetry = true;
+        return;
+      }
+      
       const scale = availableWidth / 1024;
       inner.style.transform = `scale(${scale})`;
       container.style.height = `${1536 * scale + padY}px`;
     });
+    
+    // Retry max 10 razy co 50ms jeśli container nie ma wymiarów
+    if (needsRetry && retryCount < 10) {
+      setTimeout(() => this.updateSpotifyFrameScale(retryCount + 1), 50);
+    }
   }
 
   getTextOverlayPayload() {
