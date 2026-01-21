@@ -2575,6 +2575,9 @@ class CustomifyEmbed {
         this.previewArea.style.display = 'block';
         console.log(`✅ [IMAGE] Rozdzielczość OK (min ${minWidth}×${minHeight}px)`);
         
+        // 🎵 Spotify frame: przelicz skalę po pokazaniu preview (z opóźnieniem na layout)
+        setTimeout(() => this.updateSpotifyFrameScale(), 50);
+        
         // Ukryj "Dodaj do koszyka" i pokaż "Wgraj inne zdjęcie" po wgraniu zdjęcia
         const addToCartBtnMain = document.getElementById('addToCartBtnMain');
         const resetBtn = document.getElementById('resetBtn');

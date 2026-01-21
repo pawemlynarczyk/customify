@@ -2791,29 +2791,10 @@ module.exports = async (req, res) => {
       }
     }
 
-    // ✅ WSPÓLNA LOGIKA - imageUrl jest już ustawione (z PiAPI lub Replicate)
+    // ✅ SPOTIFY FRAME: Kompozycja robiona na FRONTENDZIE (canvas w przeglądarce)
+    // Backend zwraca tylko obraz z usuniętym tłem - frontend nakłada maskę i tekst
     if (finalProductType === 'spotify_frame') {
-      const spotifyTitleRaw = typeof req.body?.spotifyTitle === 'string' ? req.body.spotifyTitle : '';
-      const spotifyArtistRaw = typeof req.body?.spotifyArtist === 'string' ? req.body.spotifyArtist : '';
-      const spotifyTitle = spotifyTitleRaw.trim().slice(0, 60);
-      const spotifyArtist = spotifyArtistRaw.trim().slice(0, 60);
-      const overlayUrl = 'https://customify-s56o.vercel.app/spotify-frame/overlay.png';
-
-      console.log('🎵 [SPOTIFY] Compositing Spotify frame...', {
-        title: spotifyTitle,
-        artist: spotifyArtist,
-        overlayUrl
-      });
-
-      const baseBuffer = await getImageBufferFromUrlOrData(imageUrl);
-      const composedBuffer = await composeSpotifyFrame(baseBuffer, {
-        title: spotifyTitle,
-        artist: spotifyArtist,
-        overlayUrl
-      });
-
-      imageUrl = `data:image/png;base64,${composedBuffer.toString('base64')}`;
-      console.log('✅ [SPOTIFY] Spotify frame composed');
+      console.log('🎵 [SPOTIFY] Image ready for frontend composition (no backend canvas)');
     }
 
     // ✅ WATERMARK DLA REPLICATE URL-I - USUNIĘTY (problemy z Sharp w Vercel)
