@@ -8,7 +8,6 @@ const { checkIPLimit, incrementIPLimit, checkDeviceTokenLimit, incrementDeviceTo
 const Sentry = require('../utils/sentry');
 const { put } = require('@vercel/blob');
 const { trackError, trackAction, getRecentError } = require('../utils/userFlowTracker');
-const { composeSpotifyFrame } = require('./spotify-canvas-composer');
 
 // 🚫 Lista IP zablokowanych całkowicie (tymczasowe banowanie nadużyć)
 const BLOCKED_IPS = new Set([
@@ -276,21 +275,6 @@ async function uploadImageToVercel(imageDataUri) {
   }
 }
 
-async function getImageBufferFromUrlOrData(imageUrl) {
-  if (!imageUrl) {
-    throw new Error('Missing imageUrl for buffer conversion');
-  }
-  if (imageUrl.startsWith('data:image')) {
-    const base64Data = imageUrl.replace(/^data:image\/[a-z0-9.+-]+;base64,/i, '');
-    return Buffer.from(base64Data, 'base64');
-  }
-  const response = await fetch(imageUrl);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch image: ${response.status}`);
-  }
-  const arrayBuffer = await response.arrayBuffer();
-  return Buffer.from(arrayBuffer);
-}
 
 // Function to upload image to Cloudinary and return URL
 async function uploadToCloudinary(imageDataUri) {
@@ -2748,27 +2732,7 @@ module.exports = async (req, res) => {
 
     // ✅ WSPÓLNA LOGIKA - imageUrl jest już ustawione (z PiAPI lub Replicate)
     if (finalProductType === 'spotify_frame') {
-      const spotifyTitleRaw = typeof req.body?.spotifyTitle === 'string' ? req.body.spotifyTitle : '';
-      const spotifyArtistRaw = typeof req.body?.spotifyArtist === 'string' ? req.body.spotifyArtist : '';
-      const spotifyTitle = spotifyTitleRaw.trim().slice(0, 60);
-      const spotifyArtist = spotifyArtistRaw.trim().slice(0, 60);
-      const overlayUrl = 'https://customify-s56o.vercel.app/spotify-frame/overlay.png';
-
-      console.log('🎵 [SPOTIFY] Compositing Spotify frame...', {
-        title: spotifyTitle,
-        artist: spotifyArtist,
-        overlayUrl
-      });
-
-      const baseBuffer = await getImageBufferFromUrlOrData(imageUrl);
-      const composedBuffer = await composeSpotifyFrame(baseBuffer, {
-        title: spotifyTitle,
-        artist: spotifyArtist,
-        overlayUrl
-      });
-
-      imageUrl = `data:image/png;base64,${composedBuffer.toString('base64')}`;
-      console.log('✅ [SPOTIFY] Spotify frame composed');
+      console.log('🎵 [SPOTIFY] Kompozycja ramki jest po stronie frontendu (preview)');
     }
 
     // ✅ WATERMARK DLA REPLICATE URL-I - USUNIĘTY (problemy z Sharp w Vercel)
