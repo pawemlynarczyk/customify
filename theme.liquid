@@ -3337,7 +3337,7 @@
           </div>
         {% endif %}
         <!-- Wybór rodzaju wydruku - NAD sekcją rozmiarów -->
-        <div class="customify-product-type-selector" id="productTypeArea" style="{% if product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem-karykatura' %}display: none;{% else %}display: block; margin-bottom: 10px;{% endif %}">
+        <div class="customify-product-type-selector" id="productTypeArea" style="{% if product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem-karykatura' or product.handle == 'ramka-spotify' %}display: none;{% else %}display: block; margin-bottom: 10px;{% endif %}">
           <h4 style="text-align: left; font-size: 0.95rem; font-weight: 600;">Rodzaj wydruku:</h4>
           <div class="customify-product-type-buttons">
             {% comment %} FILTRUJ RODZAJE WYDRUKU PER PRODUKT {% endcomment %}
@@ -3440,7 +3440,13 @@
 
             <div class="customify-preview" id="previewArea">
               <h4>Twoje zdjęcie:</h4>
-              <img id="previewImage" alt="Podgląd zdjęcia">
+              {% if product.handle == 'ramka-spotify' %}
+                <div class="spotify-frame-preview">
+                  <img id="previewImage" alt="Podgląd zdjęcia">
+                </div>
+              {% else %}
+                <img id="previewImage" alt="Podgląd zdjęcia">
+              {% endif %}
             </div>
 
             <div class="customify-styles" id="stylesArea" style="display: block;">
@@ -3667,6 +3673,14 @@
                       <div class="style-name">Święta</div>
                     </div>
                   </div>
+                {% elsif product.handle == 'ramka-spotify' %}
+                  {% comment %} STYLE SPOTIFY FRAME {% endcomment %}
+                  <div class="customify-style-card" data-style="minimalistyczny">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/boho/minimal.png'); background-size: cover; background-position: center;"></div>
+                    <div class="style-info">
+                      <div class="style-name">Minimalistyczny</div>
+                    </div>
+                  </div>
                 {% elsif product.handle == 'obraz-ze-zdjecia-akwarela' %}
                   {% comment %} STYLOWANIE WATERCOLOUR OK - BEZ DODATKOWYCH WARUNKÓW {% endcomment %}
                   <div class="customify-style-card" data-style="watercolor_ok" style="display: block !important;">
@@ -3761,6 +3775,18 @@
                 {% endif %}
               </div>
         </div>
+
+            {% if product.handle == 'ramka-spotify' %}
+              <div id="spotifyFieldsPanel" class="customify-spotify-panel" style="display: none; margin: 12px 0 8px 0;">
+                <h4 style="margin-bottom: 6px;">Tekst na ramce</h4>
+                <div style="display: grid; gap: 8px;">
+                  <label for="spotifyTitle" style="font-size: 0.9rem;">Tytuł utworu</label>
+                  <input type="text" id="spotifyTitle" maxlength="60" placeholder="np. Only you" style="padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px;">
+                  <label for="spotifyArtist" style="font-size: 0.9rem;">Artysta</label>
+                  <input type="text" id="spotifyArtist" maxlength="60" placeholder="np. Wiktoria i Oskar" style="padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px;">
+                </div>
+              </div>
+            {% endif %}
 
 
             <!-- Komunikat błędu - tuż nad przyciskiem "Zobacz Podgląd" -->
@@ -4163,6 +4189,34 @@
           opacity: 0.5;
           pointer-events: none;
         }
+
+        {% if product.handle == 'ramka-spotify' %}
+        /* Spotify frame preview - tylko dla ramka-spotify */
+        #customify-app-container .spotify-frame-preview {
+          position: relative;
+          width: 100%;
+          max-width: 420px;
+          margin: 0 auto;
+          aspect-ratio: 2 / 3;
+          background: #2b2b2b;
+        }
+        #customify-app-container .spotify-frame-preview img {
+          position: absolute;
+          left: 11%;
+          top: 12%;
+          width: 78%;
+          height: 52%;
+          object-fit: cover;
+          border-radius: 8px;
+        }
+        #customify-app-container .spotify-frame-preview::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: url('https://customify-s56o.vercel.app/spotify-frame/overlay.png') center/contain no-repeat;
+          pointer-events: none;
+        }
+        {% endif %}
         
         /* Marginesy po przeniesieniu sekcji typu i rozmiaru nad cenę */
         #type-size-inline-slot > .customify-product-type-selector,

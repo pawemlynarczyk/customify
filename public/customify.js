@@ -46,6 +46,11 @@ class CustomifyEmbed {
     this.textOverlayWatermarkedUrl = null;
     this.textOverlayOriginalWatermarked = null;
 
+    // 🎵 Spotify frame fields
+    this.spotifyFieldsPanel = document.getElementById('spotifyFieldsPanel');
+    this.spotifyTitleInput = document.getElementById('spotifyTitle');
+    this.spotifyArtistInput = document.getElementById('spotifyArtist');
+
     this.uploadedFile = null;
     this.selectedStyle = null;
     this.selectedSize = null;
@@ -73,6 +78,13 @@ class CustomifyEmbed {
       szklo: {               // 🆕 NOWY TYP: Nadruk na szkle
         a5: 0,               // Domyślny rozmiar - bez dopłaty (A5 = ~15×21 cm)
         a4: 30               // A4 dodaje 30 zł
+      },
+      spotify_frame: {
+        a4: 0,   // Domyślny rozmiar - bez dopłaty
+        a3: 9,
+        a2: 30,
+        a0: 45,
+        a1: 60
       }
     };
     
@@ -150,6 +162,11 @@ class CustomifyEmbed {
     return true; // włączone globalnie na wszystkich produktach
   }
 
+  isSpotifyProduct() {
+    const currentUrl = window.location.pathname.toLowerCase();
+    return currentUrl.includes('ramka-spotify');
+  }
+
   init() {
     if (!document.getElementById('uploadArea')) {
       return; // Jeśli nie ma elementów, nie rób nic
@@ -194,6 +211,11 @@ class CustomifyEmbed {
       }
     } catch(e) {
       console.warn('⚠️ [INIT] Failed to sync initial selections from DOM:', e);
+    }
+
+    if (this.isSpotifyProduct()) {
+      this.selectedProductType = 'spotify_frame';
+      console.log('🎵 [SPOTIFY] Ustawiam selectedProductType = spotify_frame');
     }
 
     // Zaktualizuj dostępność rozmiarów po początkowej synchronizacji
@@ -479,6 +501,10 @@ class CustomifyEmbed {
     if (currentUrl.includes('portret-pary-z-okazji-rocznicy-z-twojego-zdjecia')) {
       console.log('🤴👸 [PRODUCT-TYPE] URL = Para królewska → productType: para_krolewska');
       return 'para_krolewska';
+    }
+    if (currentUrl.includes('ramka-spotify')) {
+      console.log('🎵 [PRODUCT-TYPE] URL = Ramka Spotify → productType: spotify_frame');
+      return 'spotify_frame';
     }
     
     // 🔄 PRIORYTET 2: Fallback - sprawdź styl (tylko dla starych generacji bez URL)
@@ -2911,6 +2937,13 @@ class CustomifyEmbed {
       return;
     }
 
+    let spotifyPayload = null;
+    if (this.isSpotifyProduct()) {
+      const spotifyTitle = (this.spotifyTitleInput?.value || '').trim().slice(0, 60);
+      const spotifyArtist = (this.spotifyArtistInput?.value || '').trim().slice(0, 60);
+      spotifyPayload = { title: spotifyTitle, artist: spotifyArtist };
+    }
+
     // ✅ DEBUG: Sprawdź selectedStyle przed checkUsageLimit
     console.log(`🔍 [TRANSFORM] Przed checkUsageLimit:`, {
       selectedStyle: this.selectedStyle,
@@ -2978,6 +3011,11 @@ class CustomifyEmbed {
         email: customerInfo?.email || email || null
         // ❌ USUNIĘTO: watermarkedImage - watermark generujemy PO transformacji AI, nie przed!
       };
+      
+      if (spotifyPayload) {
+        requestBody.spotifyTitle = spotifyPayload.title;
+        requestBody.spotifyArtist = spotifyPayload.artist;
+      }
       
       console.log('📱 [MOBILE] Request body size:', JSON.stringify(requestBody).length, 'bytes');
       console.log('👤 [MOBILE] Customer info:', customerInfo ? 'zalogowany' : 'niezalogowany');
@@ -3443,6 +3481,10 @@ class CustomifyEmbed {
     this.uploadArea.style.display = 'none';
     console.log('🎯 [CUSTOMIFY] uploadArea hidden:', this.uploadArea.style.display);
     
+    if (this.isSpotifyProduct() && this.spotifyFieldsPanel) {
+      this.spotifyFieldsPanel.style.display = 'block';
+    }
+    
     // ✅ POKAŻ CENĘ NAD PRZYCISKIEM po wygenerowaniu AI
     this.updateCartPrice();
   }
@@ -3612,7 +3654,15 @@ class CustomifyEmbed {
           console.log('🛒 [CUSTOMIFY] Variant ID length:', result.variantId.toString().length);
           
           // NAPRAWIONA METODA: Użyj bezpośredniego przekierowania zamiast formularza
-          const productTypeName = this.selectedProductType === 'plakat' ? 'Plakat' : 'Obraz na płótnie';
+          const productTypeName = this.selectedProductType === 'plakat'
+            ? 'Plakat'
+            : this.selectedProductType === 'szklo'
+              ? 'Nadruk na szkle'
+              : this.selectedProductType === 'digital'
+                ? 'Produkt cyfrowy'
+                : this.selectedProductType === 'spotify_frame'
+                  ? 'Ramka Spotify'
+                  : 'Obraz na płótnie';
           
           // ✅ Wylicz opis ramki do właściwości koszyka
           const selectedFrame = (this.selectedProductType === 'plakat' && window.CustomifyFrame && window.CustomifyFrame.color)
@@ -3630,12 +3680,19 @@ class CustomifyEmbed {
           
           const shortOrderId = result.shortOrderId || (result.orderId ? result.orderId.split('-').pop() : Date.now().toString());
           
+          const spotifyTitle = (this.spotifyTitleInput?.value || '').trim().slice(0, 60);
+          const spotifyArtist = (this.spotifyArtistInput?.value || '').trim().slice(0, 60);
+
           const properties = {
             'Rozmiar': this.getSizeDimension(this.selectedSize),  // ✅ Przekaż wymiar (np. "20×30 cm") zamiast kodu (np. "a4")
             'Rodzaj wydruku': productTypeName,  // ✅ Dodano rodzaj wydruku
             'Ramka': `ramka - ${frameLabel}`,  // ✅ Informacja o wybranej ramce (tylko dla plakatu)
             'Order ID': shortOrderId  // ✅ Skrócony ID zamówienia widoczny dla klienta
           };
+          if (this.isSpotifyProduct()) {
+            if (spotifyTitle) properties['Tytuł utworu'] = spotifyTitle;
+            if (spotifyArtist) properties['Artysta'] = spotifyArtist;
+          }
           if (textOverlayPayload?.text) {
             properties['Napis na obrazie'] = textOverlayPayload.text;
           }
@@ -3916,6 +3973,9 @@ class CustomifyEmbed {
     if (this.textOverlayPanel) {
       this.textOverlayPanel.style.display = this.textOverlayEnabled ? 'none' : 'none';
     }
+    if (this.spotifyFieldsPanel) {
+      this.spotifyFieldsPanel.style.display = 'none';
+    }
     
     this.fileInput.value = '';
     this.uploadArea.style.display = 'block'; // Pokaż pole upload z powrotem
@@ -3971,6 +4031,9 @@ class CustomifyEmbed {
     }
     if (this.textOverlayPanel) {
       this.textOverlayPanel.style.display = this.textOverlayEnabled ? 'none' : 'none';
+    }
+    if (this.spotifyFieldsPanel) {
+      this.spotifyFieldsPanel.style.display = 'none';
     }
     
     // Usuń aktywne style

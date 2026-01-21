@@ -144,7 +144,9 @@ module.exports = async (req, res) => {
         ? 'Plakat' 
         : productType === 'szklo' 
           ? 'Nadruk na szkle'  // 🆕 Szkło
-          : 'Obraz na płótnie'; // Canvas
+          : productType === 'spotify_frame'
+            ? 'Ramka Spotify'
+            : 'Obraz na płótnie'; // Canvas
       sizeName = size === 'a5'
         ? '15×21 cm'  // 🆕 A5 dla szkła
         : size === 'a4'

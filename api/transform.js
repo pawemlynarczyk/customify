@@ -8,6 +8,7 @@ const { checkIPLimit, incrementIPLimit, checkDeviceTokenLimit, incrementDeviceTo
 const Sentry = require('../utils/sentry');
 const { put } = require('@vercel/blob');
 const { trackError, trackAction, getRecentError } = require('../utils/userFlowTracker');
+const { composeSpotifyFrame } = require('./spotify-canvas-composer');
 
 // 🚫 Lista IP zablokowanych całkowicie (tymczasowe banowanie nadużyć)
 const BLOCKED_IPS = new Set([
@@ -154,7 +155,7 @@ async function addWatermarkToImage(imageBuffer) {
 }
 
 // Function to add watermark to image using PNG watermark (REQUIRED - no fallback)
-async function addWatermarkPNG(imageBuffer) {
+async function addWatermarkPNG(imageBuffer, options = {}) {
   if (!sharp) {
     throw new Error('Sharp not available - watermark is required');
   }
@@ -194,7 +195,8 @@ async function addWatermarkPNG(imageBuffer) {
     console.log('✅ [WATERMARK-PNG] Watermark tile resized:', watermarkTile.length, 'bytes');
     
     // Zastosuj watermark w siatce
-    const watermarkedBuffer = await sharp(imageBuffer)
+    const outputFormat = options.outputFormat || 'jpeg';
+    const pipeline = sharp(imageBuffer)
       .composite([
         {
           input: watermarkTile,
@@ -202,9 +204,10 @@ async function addWatermarkPNG(imageBuffer) {
           tile: true, // Sharp automatycznie powtarza watermark w siatce
           gravity: 'center'
         }
-      ])
-      .jpeg({ quality: 92 })
-      .toBuffer();
+      ]);
+    const watermarkedBuffer = outputFormat === 'png'
+      ? await pipeline.png().toBuffer()
+      : await pipeline.jpeg({ quality: 92 }).toBuffer();
     
     console.log(`✅ [WATERMARK-PNG] Watermark applied successfully: ${watermarkedBuffer.length} bytes`);
     return watermarkedBuffer;
@@ -271,6 +274,22 @@ async function uploadImageToVercel(imageDataUri) {
     console.error('❌ [UPLOAD] Failed to upload image to Vercel:', error);
     throw error;
   }
+}
+
+async function getImageBufferFromUrlOrData(imageUrl) {
+  if (!imageUrl) {
+    throw new Error('Missing imageUrl for buffer conversion');
+  }
+  if (imageUrl.startsWith('data:image')) {
+    const base64Data = imageUrl.replace(/^data:image\/[a-z0-9.+-]+;base64,/i, '');
+    return Buffer.from(base64Data, 'base64');
+  }
+  const response = await fetch(imageUrl);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch image: ${response.status}`);
+  }
+  const arrayBuffer = await response.arrayBuffer();
+  return Buffer.from(arrayBuffer);
 }
 
 // Function to upload image to Cloudinary and return URL
@@ -1504,7 +1523,8 @@ module.exports = async (req, res) => {
           background: "opaque",
           n: 1
         }
-      }
+      },
+      // 🎵 Spotify frame używa istniejących stylów (bez nowych slugów)
     };
 
     // ✅ KRYTYCZNE: Brak fallbacków - jeśli styl nie istnieje, zwróć błąd
@@ -1550,17 +1570,20 @@ module.exports = async (req, res) => {
     console.log(`✅ [STYLE-DEBUG] Using style: "${selectedStyle}"`);
     
     // ✅ DEBUG: Sprawdź config
-    const config = styleConfig[selectedStyle];
+    const selectedConfig = styleConfig[selectedStyle];
+    const config = selectedConfig;
     console.log(`🔍 [STYLE-DEBUG] ===== CONFIG DLA STYLU "${selectedStyle}" =====`);
     console.log(`🔍 [STYLE-DEBUG] model:`, config.model);
     console.log(`🔍 [STYLE-DEBUG] apiType:`, config.apiType);
-    console.log(`🔍 [STYLE-DEBUG] productType:`, config.productType);
+    console.log(`🔍 [STYLE-DEBUG] productType:`, selectedConfig.productType);
     if (config.apiType === 'segmind-faceswap' && config.parameters?.target_image) {
       console.log(`🔍 [STYLE-DEBUG] target_image URL:`, config.parameters.target_image);
     }
     console.log(`🔍 [STYLE-DEBUG] ==========================================`);
-    // ✅ Użyj productType z config (bezpieczne, użytkownik nie może zmienić)
-    const finalProductType = config.productType || productType || 'other';
+    // ✅ Użyj productType z config, ale pozwól na spotify_frame z requestu
+    const finalProductType = productType === 'spotify_frame'
+      ? 'spotify_frame'
+      : (selectedConfig.productType || productType || 'other');
 
     console.log(`Using style: ${selectedStyle}, model: ${config.model}`);
     console.log(`🎯 [TRANSFORM] Final productType: ${finalProductType} (z config: ${config.productType}, z body: ${productType})`);
@@ -2724,6 +2747,29 @@ module.exports = async (req, res) => {
     }
 
     // ✅ WSPÓLNA LOGIKA - imageUrl jest już ustawione (z PiAPI lub Replicate)
+    if (finalProductType === 'spotify_frame') {
+      const spotifyTitleRaw = typeof req.body?.spotifyTitle === 'string' ? req.body.spotifyTitle : '';
+      const spotifyArtistRaw = typeof req.body?.spotifyArtist === 'string' ? req.body.spotifyArtist : '';
+      const spotifyTitle = spotifyTitleRaw.trim().slice(0, 60);
+      const spotifyArtist = spotifyArtistRaw.trim().slice(0, 60);
+      const overlayUrl = 'https://customify-s56o.vercel.app/spotify-frame/overlay.png';
+
+      console.log('🎵 [SPOTIFY] Compositing Spotify frame...', {
+        title: spotifyTitle,
+        artist: spotifyArtist,
+        overlayUrl
+      });
+
+      const baseBuffer = await getImageBufferFromUrlOrData(imageUrl);
+      const composedBuffer = await composeSpotifyFrame(baseBuffer, {
+        title: spotifyTitle,
+        artist: spotifyArtist,
+        overlayUrl
+      });
+
+      imageUrl = `data:image/png;base64,${composedBuffer.toString('base64')}`;
+      console.log('✅ [SPOTIFY] Spotify frame composed');
+    }
 
     // ✅ WATERMARK DLA REPLICATE URL-I - USUNIĘTY (problemy z Sharp w Vercel)
     // TODO: Przywrócić po rozwiązaniu problemów z Sharp
@@ -2770,17 +2816,20 @@ module.exports = async (req, res) => {
             }
             
             // Konwertuj data URI na buffer
-            const base64Data = imageUrl.replace(/^data:image\/[a-z]+;base64,/, '');
+            const mimeMatch = imageUrl.match(/^data:(image\/[a-z0-9.+-]+);base64,/i);
+            const contentType = mimeMatch ? mimeMatch[1].toLowerCase() : 'image/jpeg';
+            const extension = contentType === 'image/png' ? 'png' : 'jpg';
+            const base64Data = imageUrl.replace(/^data:image\/[a-z0-9.+-]+;base64,/i, '');
             const imageBuffer = Buffer.from(base64Data, 'base64');
             console.log(`📦 [TRANSFORM] Base64 buffer size: ${imageBuffer.length} bytes (${(imageBuffer.length / 1024 / 1024).toFixed(2)} MB)`);
             
             // ✅ ZAPISZ OBRAZEK BEZ WATERMARKU (do realizacji zamówienia)
             const timestamp = Date.now();
-            const uniqueFilename = `customify/temp/generation-${timestamp}.jpg`;
+            const uniqueFilename = `customify/temp/generation-${timestamp}.${extension}`;
             
             const blob = await put(uniqueFilename, imageBuffer, {
               access: 'public',
-              contentType: 'image/jpeg',
+              contentType: contentType,
               token: process.env.customify_READ_WRITE_TOKEN,
             });
             
@@ -2790,18 +2839,22 @@ module.exports = async (req, res) => {
                 // ✅ WATERMARK WYMAGANY - zastosuj backend watermark PNG
                 try {
                   console.log('🎨 [TRANSFORM] Applying required PNG watermark to base64 image...');
-                  const watermarkedBuffer = await addWatermarkPNG(imageBuffer);
+                  const watermarkOutputFormat = finalProductType === 'spotify_frame' ? 'png' : 'jpeg';
+                  const watermarkedBuffer = await addWatermarkPNG(imageBuffer, { outputFormat: watermarkOutputFormat });
                   
                   // ✅ ZAPISZ BASE64 WATERMARKU (dla /api/products - BEZ PONOWNEGO DOWNLOADU)
-                  watermarkedImageBase64 = watermarkedBuffer.toString('base64');
+                  watermarkedImageBase64 = watermarkOutputFormat === 'png'
+                    ? `data:image/png;base64,${watermarkedBuffer.toString('base64')}`
+                    : watermarkedBuffer.toString('base64');
                   console.log(`✅ [TRANSFORM] Watermark base64 saved (${watermarkedImageBase64.length} chars) - no download needed in /api/products`);
                   
                   const watermarkedTimestamp = Date.now();
-                  const watermarkedFilename = `customify/temp/generation-watermarked-${watermarkedTimestamp}.jpg`;
+                  const watermarkExt = watermarkOutputFormat === 'png' ? 'png' : 'jpg';
+                  const watermarkedFilename = `customify/temp/generation-watermarked-${watermarkedTimestamp}.${watermarkExt}`;
                   
                   const watermarkedBlob = await put(watermarkedFilename, watermarkedBuffer, {
                     access: 'public',
-                    contentType: 'image/jpeg',
+                    contentType: watermarkOutputFormat === 'png' ? 'image/png' : 'image/jpeg',
                     token: process.env.customify_READ_WRITE_TOKEN,
                   });
                   
@@ -2855,18 +2908,22 @@ module.exports = async (req, res) => {
                 // ✅ WATERMARK WYMAGANY - zastosuj backend watermark PNG
                 try {
                   console.log('🎨 [TRANSFORM] Applying required PNG watermark to Replicate image...');
-                  const watermarkedBuffer = await addWatermarkPNG(buffer);
+                  const watermarkOutputFormat = finalProductType === 'spotify_frame' ? 'png' : 'jpeg';
+                  const watermarkedBuffer = await addWatermarkPNG(buffer, { outputFormat: watermarkOutputFormat });
                   
                   // ✅ ZAPISZ BASE64 WATERMARKU (dla /api/products - BEZ PONOWNEGO DOWNLOADU)
-                  watermarkedImageBase64 = watermarkedBuffer.toString('base64');
+                  watermarkedImageBase64 = watermarkOutputFormat === 'png'
+                    ? `data:image/png;base64,${watermarkedBuffer.toString('base64')}`
+                    : watermarkedBuffer.toString('base64');
                   console.log(`✅ [TRANSFORM] Watermark base64 saved (${watermarkedImageBase64.length} chars) - no download needed in /api/products`);
                   
                   const watermarkedTimestamp = Date.now();
-                  const watermarkedFilename = `customify/temp/generation-watermarked-${watermarkedTimestamp}.jpg`;
+                  const watermarkExt = watermarkOutputFormat === 'png' ? 'png' : 'jpg';
+                  const watermarkedFilename = `customify/temp/generation-watermarked-${watermarkedTimestamp}.${watermarkExt}`;
                   
                   const watermarkedBlob = await put(watermarkedFilename, watermarkedBuffer, {
                     access: 'public',
-                    contentType: 'image/jpeg',
+                    contentType: watermarkOutputFormat === 'png' ? 'image/png' : 'image/jpeg',
                     token: process.env.customify_READ_WRITE_TOKEN,
                   });
                   

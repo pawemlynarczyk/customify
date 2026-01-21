@@ -3172,6 +3172,61 @@
     >
       {{ content_for_layout }}
 
+      {% if template contains 'article' and article %}
+        {% assign related_collection_handle = '' %}
+        {% for tag in article.tags %}
+          {% if tag contains 'kolekcja:' %}
+            {% assign related_collection_handle = tag | split: ':' | last | strip | downcase %}
+          {% endif %}
+        {% endfor %}
+
+        {% if related_collection_handle != '' and collections[related_collection_handle] %}
+          {% assign related_collection = collections[related_collection_handle] %}
+          {% if related_collection.products_count > 0 %}
+            <section class="customify-article-collection">
+              <div class="customify-article-collection__header">
+                <h2 class="customify-article-collection__title">Powiazane produkty</h2>
+                <a class="customify-article-collection__link" href="{{ related_collection.url }}">Zobacz cala kolekcje</a>
+              </div>
+              <div class="customify-article-collection__grid">
+                {% for product in related_collection.products limit: 8 %}
+                  <a class="customify-article-collection__card" href="{{ product.url }}">
+                    <div class="customify-article-collection__image">
+                      {% if product.featured_image %}
+                        <img src="{{ product.featured_image | image_url: width: 600 }}" alt="{{ product.title }}">
+                      {% endif %}
+                    </div>
+                    <div class="customify-article-collection__meta">
+                      <div class="customify-article-collection__name">{{ product.title }}</div>
+                      {% if product.price %}
+                        <div class="customify-article-collection__price">{{ product.price | money }}</div>
+                      {% endif %}
+                    </div>
+                  </a>
+                {% endfor %}
+              </div>
+            </section>
+            <style>
+              .customify-article-collection { max-width: 1200px; margin: 40px auto 20px; padding: 0 20px; }
+              .customify-article-collection__header { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
+              .customify-article-collection__title { font-size: 1.6rem; margin: 0; }
+              .customify-article-collection__link { font-size: .95rem; text-decoration: none; color: #111; }
+              .customify-article-collection__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+              .customify-article-collection__card { display: block; border: 1px solid #e5e5e5; border-radius: 8px; overflow: hidden; background: #fff; text-decoration: none; color: inherit; transition: box-shadow .2s ease, transform .2s ease; }
+              .customify-article-collection__card:hover { box-shadow: 0 6px 18px rgba(0,0,0,.08); transform: translateY(-2px); }
+              .customify-article-collection__image { aspect-ratio: 1 / 1; background: #f8f9fa; display: flex; align-items: center; justify-content: center; }
+              .customify-article-collection__image img { width: 100%; height: 100%; object-fit: cover; }
+              .customify-article-collection__meta { padding: 10px 12px; }
+              .customify-article-collection__name { font-weight: 600; font-size: .95rem; margin-bottom: 6px; }
+              .customify-article-collection__price { color: #000000; font-weight: 700; }
+              @media (max-width: 768px) {
+                .customify-article-collection__header { flex-direction: column; align-items: flex-start; }
+              }
+            </style>
+          {% endif %}
+        {% endif %}
+      {% endif %}
+
       {% if template contains 'collection' %}
         <div class="custom-collection-wrapper">
           <h1 class="custom-collection-title">{{ collection.title }}</h1>
@@ -3282,11 +3337,11 @@
           </div>
         {% endif %}
         <!-- Wybór rodzaju wydruku - NAD sekcją rozmiarów -->
-        <div class="customify-product-type-selector" id="productTypeArea" style="{% if product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem-karykatura' %}display: none;{% else %}display: block; margin-bottom: 10px;{% endif %}">
+        <div class="customify-product-type-selector" id="productTypeArea" style="{% if product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem-karykatura' or product.handle == 'ramka-spotify' %}display: none;{% else %}display: block; margin-bottom: 10px;{% endif %}">
           <h4 style="text-align: left; font-size: 0.95rem; font-weight: 600;">Rodzaj wydruku:</h4>
           <div class="customify-product-type-buttons">
             {% comment %} FILTRUJ RODZAJE WYDRUKU PER PRODUKT {% endcomment %}
-            {% if product.handle == 'karykatura-na-zamowienie-druk-na-szkle-akrylowym-ramka-z-podswietleniem' or product.handle == 'prezent-dla-babci-i-dziadka-portret-na-na-szkle-akrylowym-ze-zdjecia-karykatura' or product.handle == 'dziadkowie-krolowie-nadruk-na-szkle' %}
+            {% if product.handle == 'karykatura-na-zamowienie-druk-na-szkle-akrylowym-ramka-z-podswietleniem' or product.handle == 'prezent-dla-babci-i-dziadka-portret-na-na-szkle-akrylowym-ze-zdjecia-karykatura' or product.handle == 'dziadkowie-krolowie-nadruk-na-szkle' or product.handle == 'portret-pary-personalizowany-obraz-na-szkle-akrylowym' %}
               {% comment %} TYLKO SZKŁO dla produktów na szkle akrylowym {% endcomment %}
               <div class="customify-product-type-btn active" data-product-type="szklo">
                 Nadruk na szkle (dodaj podstawkę)
@@ -3385,7 +3440,13 @@
 
             <div class="customify-preview" id="previewArea">
               <h4>Twoje zdjęcie:</h4>
-              <img id="previewImage" alt="Podgląd zdjęcia">
+              {% if product.handle == 'ramka-spotify' %}
+                <div class="spotify-frame-preview">
+                  <img id="previewImage" alt="Podgląd zdjęcia">
+                </div>
+              {% else %}
+                <img id="previewImage" alt="Podgląd zdjęcia">
+              {% endif %}
             </div>
 
             <div class="customify-styles" id="stylesArea" style="display: block;">
@@ -3427,7 +3488,7 @@
                       <div class="style-name">Nowoczesna</div>
                     </div>
                   </div>
-                {% elsif product.handle == 'karykatura-prezent-na-rocznice-prezent-ze-zdjecia' %}
+                {% elsif product.handle == 'karykatura-prezent-na-rocznice-prezent-ze-zdjecia' or product.handle == 'portret-pary-personalizowany-obraz-na-szkle-akrylowym' %}
                   {% comment %} TYLKO STYLE KARYKATURY dla produktu karykatura-prezent - używa Segmind API {% endcomment %}                                                   
                   <div class="customify-style-card" data-style="karykatura">
                     <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/karykat/caricature_2.png'); background-size: cover; background-position: center;"></div>                                                
@@ -3612,6 +3673,14 @@
                       <div class="style-name">Święta</div>
                     </div>
                   </div>
+                {% elsif product.handle == 'ramka-spotify' %}
+                  {% comment %} STYLE SPOTIFY FRAME {% endcomment %}
+                  <div class="customify-style-card" data-style="minimalistyczny">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/boho/minimal.png'); background-size: cover; background-position: center;"></div>
+                    <div class="style-info">
+                      <div class="style-name">Minimalistyczny</div>
+                    </div>
+                  </div>
                 {% elsif product.handle == 'obraz-ze-zdjecia-akwarela' %}
                   {% comment %} STYLOWANIE WATERCOLOUR OK - BEZ DODATKOWYCH WARUNKÓW {% endcomment %}
                   <div class="customify-style-card" data-style="watercolor_ok" style="display: block !important;">
@@ -3706,6 +3775,18 @@
                 {% endif %}
               </div>
         </div>
+
+            {% if product.handle == 'ramka-spotify' %}
+              <div id="spotifyFieldsPanel" class="customify-spotify-panel" style="display: none; margin: 12px 0 8px 0;">
+                <h4 style="margin-bottom: 6px;">Tekst na ramce</h4>
+                <div style="display: grid; gap: 8px;">
+                  <label for="spotifyTitle" style="font-size: 0.9rem;">Tytuł utworu</label>
+                  <input type="text" id="spotifyTitle" maxlength="60" placeholder="np. Only you" style="padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px;">
+                  <label for="spotifyArtist" style="font-size: 0.9rem;">Artysta</label>
+                  <input type="text" id="spotifyArtist" maxlength="60" placeholder="np. Wiktoria i Oskar" style="padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px;">
+                </div>
+              </div>
+            {% endif %}
 
 
             <!-- Komunikat błędu - tuż nad przyciskiem "Zobacz Podgląd" -->
@@ -4108,6 +4189,34 @@
           opacity: 0.5;
           pointer-events: none;
         }
+
+        {% if product.handle == 'ramka-spotify' %}
+        /* Spotify frame preview - tylko dla ramka-spotify */
+        #customify-app-container .spotify-frame-preview {
+          position: relative;
+          width: 100%;
+          max-width: 420px;
+          margin: 0 auto;
+          aspect-ratio: 2 / 3;
+          background: #2b2b2b;
+        }
+        #customify-app-container .spotify-frame-preview img {
+          position: absolute;
+          left: 11%;
+          top: 12%;
+          width: 78%;
+          height: 52%;
+          object-fit: cover;
+          border-radius: 8px;
+        }
+        #customify-app-container .spotify-frame-preview::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: url('https://customify-s56o.vercel.app/spotify-frame/overlay.png') center/contain no-repeat;
+          pointer-events: none;
+        }
+        {% endif %}
         
         /* Marginesy po przeniesieniu sekcji typu i rozmiaru nad cenę */
         #type-size-inline-slot > .customify-product-type-selector,
@@ -4833,7 +4942,8 @@
           var currentUrl = window.location.pathname.toLowerCase();
           var isSzkloProduct = currentUrl.includes('karykatura-na-zamowienie-druk-na-szkle-akrylowym-ramka-z-podswietleniem') || 
                               currentUrl.includes('prezent-dla-babci-i-dziadka-portret-na-na-szkle-akrylowym-ze-zdjecia-karykatura') ||
-                              currentUrl.includes('dziadkowie-krolowie-nadruk-na-szkle');
+                              currentUrl.includes('dziadkowie-krolowie-nadruk-na-szkle') ||
+                              currentUrl.includes('portret-pary-personalizowany-obraz-na-szkle-akrylowym');
           
           if (isSzkloProduct) {
             console.log('🔍 [SZKLO] Produkt ze szkłem wykryty - automatyczne filtrowanie rozmiarów');
@@ -5435,6 +5545,7 @@
         font-size: 1.2rem !important;
         margin-right: 2px !important;
         display: inline-block !important;
+        font-family: "Segoe UI Symbol", "Apple Color Emoji", "Noto Color Emoji", "Noto Sans Symbols", "Noto Sans Symbols2", "Arial Unicode MS", "DejaVu Sans", sans-serif !important;
         text-shadow: none !important;
         background: none !important;
         border: none !important;
@@ -5962,6 +6073,15 @@
     </script>
     {% endif %}
     <!-- KONIEC ACCORDION FAQ NA STRONIE KOSZYKA -->
+
+    <div class="customify-footer-poradnik">
+      <a href="/blogs/poradnik" class="customify-footer-poradnik__link">Poradnik</a>
+    </div>
+    <style>
+      .customify-footer-poradnik { padding: 12px 20px; text-align: center; background: #f7f7f7; }
+      .customify-footer-poradnik__link { color: #111; text-decoration: none; font-weight: 600; letter-spacing: .2px; }
+      .customify-footer-poradnik__link:hover { text-decoration: underline; }
+    </style>
 
     {% sections 'footer-group' %}
 
