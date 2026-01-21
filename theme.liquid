@@ -4238,6 +4238,7 @@
           padding: 20px;
           background: #f4f4f4;
           box-sizing: border-box;
+          overflow: visible;
         }
         @media (max-width: 768px) {
           #customify-app-container .spotify-frame-preview,
@@ -4250,8 +4251,9 @@
         #customify-app-container .spotify-frame-inner,
         #customify-app-container #resultArea .spotify-frame-inner {
           position: relative;
-          width: 100%;
-          aspect-ratio: 2 / 3;
+          width: 1024px;
+          height: 1536px;
+          transform-origin: top left;
         }
         #customify-app-container .spotify-frame-inner::before {
           content: '';
