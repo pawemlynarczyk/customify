@@ -1508,6 +1508,18 @@ module.exports = async (req, res) => {
           n: 1
         }
       },
+      // Usuwanie tła (Replicate)
+      'usun-tlo': {
+        model: "851-labs/background-remover:a029dff38972b5fda4ec5d75d7d1cd25aeff621d2cf4946a41055d7db66b80bc",
+        apiType: "replicate-bg-remove",
+        productType: "spotify_frame",
+        parameters: {
+          format: "png",
+          reverse: false,
+          threshold: 0,
+          background_type: "rgba"
+        }
+      },
       // 🎵 Spotify frame używa istniejących stylów (bez nowych slugów)
     };
 
@@ -2368,6 +2380,36 @@ module.exports = async (req, res) => {
         console.log(`📸 [NANO-BANANA] Cats style - Obraz 2 (user): ${imageDataUri.substring(0, 50)}...`);
         console.log(`📸 [NANO-BANANA] image_input array length: ${inputParams.image_input.length}`);
       }
+    } else if (config.apiType === 'replicate-bg-remove') {
+      // Background remover - użyj URL z Vercel Blob (model wymaga URL)
+      console.log('🧼 [BG-REMOVE] Uploading image to Vercel Blob Storage...');
+      const baseUrl = 'https://customify-s56o.vercel.app';
+      const uploadResponse = await fetch(`${baseUrl}/api/upload-temp-image`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageData: imageDataUri,
+          filename: `bg-remove-${Date.now()}.png`
+        })
+      });
+
+      if (!uploadResponse.ok) {
+        const errorText = await uploadResponse.text();
+        console.error('❌ [BG-REMOVE] Vercel Blob upload failed:', errorText);
+        throw new Error(`Vercel Blob upload failed: ${uploadResponse.status} - ${errorText}`);
+      }
+
+      const uploadResult = await uploadResponse.json();
+      const userImageUrl = uploadResult.imageUrl;
+      console.log('✅ [BG-REMOVE] User image uploaded:', userImageUrl);
+
+      inputParams = {
+        image: userImageUrl,
+        format: config.parameters?.format || 'png',
+        reverse: config.parameters?.reverse || false,
+        threshold: config.parameters?.threshold ?? 0,
+        background_type: config.parameters?.background_type || 'rgba'
+      };
     } else {
       // Stable Diffusion model parameters (default)
       inputParams = {

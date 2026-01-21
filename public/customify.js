@@ -548,7 +548,8 @@ class CustomifyEmbed {
       'swieta': 'caricature-new',
       'swieta_2': 'caricature-new',
       'akwarela': 'watercolor',
-      'openai-art': 'openai-art' // OpenAI GPT-Image-1 style
+      'openai-art': 'openai-art', // OpenAI GPT-Image-1 style
+      'usun-tlo': 'spotify_frame'
     };
     
     const productType = styleToProductType[style] || 'other';
