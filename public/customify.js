@@ -3617,8 +3617,10 @@ class CustomifyEmbed {
     this.uploadArea.style.display = 'none';
     console.log('🎯 [CUSTOMIFY] uploadArea hidden:', this.uploadArea.style.display);
 
-    if (this.isSpotifyProduct() && this.previewArea) {
+    // Ukryj previewArea po generacji (dla wszystkich produktów)
+    if (this.previewArea) {
       this.previewArea.style.display = 'none';
+      console.log('🎯 [CUSTOMIFY] previewArea hidden after generation');
     }
     
     if (this.isSpotifyProduct() && this.spotifyFieldsPanel) {

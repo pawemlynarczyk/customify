@@ -3627,7 +3627,12 @@ class CustomifyEmbed {
     
     // ✅ POKAŻ CENĘ NAD PRZYCISKIEM po wygenerowaniu AI
     this.updateCartPrice();
-    this.updateSpotifyFrameScale();
+    
+    // 🎵 Spotify frame: przelicz skalę z opóźnieniem (czekaj na layout + załadowanie obrazka)
+    setTimeout(() => this.updateSpotifyFrameScale(), 100);
+    this.resultImage.onload = () => {
+      setTimeout(() => this.updateSpotifyFrameScale(), 50);
+    };
   }
 
   // NAPRAWIONA FUNKCJA: STWÓRZ NOWY PRODUKT Z OBRAZKIEM AI (UKRYTY W KATALOGU)
