@@ -2379,6 +2379,11 @@ class CustomifyEmbed {
     }
   }
 
+  updateSpotifyFrameScale() {
+    // CSS aspect-ratio: 2/3 handles scaling automatically - no JS needed
+    return;
+  }
+
   getTextOverlayPayload() {
     if (!this.textOverlayEnabled || !this.textOverlayState.applied) return null;
     return {
@@ -3480,6 +3485,17 @@ class CustomifyEmbed {
     // UKRYJ pole upload po przekształceniu
     this.uploadArea.style.display = 'none';
     console.log('🎯 [CUSTOMIFY] uploadArea hidden:', this.uploadArea.style.display);
+
+    // UKRYJ previewArea po generacji - przez klasę CSS (bardziej niezawodne)
+    const container = document.getElementById('customify-app-container');
+    if (container) {
+      container.classList.add('has-result');
+      console.log('🎯 [CUSTOMIFY] Added has-result class to container');
+    }
+    // Dodatkowo ukryj przez JS (backup)
+    if (this.previewArea) {
+      this.previewArea.style.display = 'none';
+    }
     
     if (this.isSpotifyProduct() && this.spotifyFieldsPanel) {
       this.spotifyFieldsPanel.style.display = 'block';
@@ -3981,6 +3997,12 @@ class CustomifyEmbed {
     this.uploadArea.style.display = 'block'; // Pokaż pole upload z powrotem
     this.previewArea.style.display = 'none';
     this.stylesArea.style.display = 'none';
+    
+    // Usuń klasę has-result żeby previewArea mogło być widoczne po wgraniu nowego zdjęcia
+    const container = document.getElementById('customify-app-container');
+    if (container) {
+      container.classList.remove('has-result');
+    }
     this.sizeArea.style.display = 'block'; // ✅ ZAWSZE WIDOCZNE - nie ukrywaj rozmiarów
     this.actionsArea.style.display = 'none';
     this.resultArea.style.display = 'none';

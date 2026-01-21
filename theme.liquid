@@ -3819,7 +3819,13 @@
 
             <div class="customify-result" id="resultArea">
               <h4>Twój obraz:</h4>
-              <img id="resultImage" alt="Wynik AI">
+              {% if product.handle == 'ramka-spotify' %}
+                <div class="spotify-frame-result">
+                  <img id="resultImage" alt="Wynik AI">
+                </div>
+              {% else %}
+                <img id="resultImage" alt="Wynik AI">
+              {% endif %}
               <p style="font-size: 0.85rem; color: #666; text-align: center; margin: 8px 0 0 0; font-style: italic;">Znaków wodnych nie będzie na końcowym produkcie</p>
               
               <!-- Komunikat sukcesu -->
@@ -4191,22 +4197,49 @@
         }
 
         {% if product.handle == 'ramka-spotify' %}
-        /* Spotify frame preview - tylko dla ramka-spotify */
-        #customify-app-container .spotify-frame-preview {
+        /* Spotify frame - proste rozwiązanie bez warstwy inner */
+        #customify-app-container .spotify-frame-preview,
+        #customify-app-container .spotify-frame-result {
           position: relative;
           width: 100%;
           max-width: 420px;
           margin: 0 auto;
           aspect-ratio: 2 / 3;
+          background: #f4f4f4;
         }
-        #customify-app-container .spotify-frame-preview img {
+        @media (max-width: 768px) {
+          #customify-app-container .spotify-frame-preview,
+          #customify-app-container .spotify-frame-result {
+            max-width: 100%;
+          }
+        }
+        /* Maska overlay na wierzchu */
+        #customify-app-container .spotify-frame-preview::after,
+        #customify-app-container .spotify-frame-result::after {
+          content: '';
           position: absolute;
-          left: 11%;
-          top: 12%;
-          width: 78%;
-          height: 52%;
-          object-fit: cover;
-          border-radius: 8px;
+          inset: 0;
+          background: url('https://customify-s56o.vercel.app/spotify/spotify-frame.png') center/contain no-repeat;
+          pointer-events: none;
+          z-index: 2;
+        }
+        /* Obrazek - procenty względem kontenera - !important bo .customify-result img nadpisuje */
+        #customify-app-container .spotify-frame-preview img,
+        #customify-app-container .spotify-frame-result img {
+          position: absolute !important;
+          left: 6% !important;
+          top: 4% !important;
+          width: 88% !important;
+          height: auto !important;
+          max-width: none !important;
+          max-height: none !important;
+          border-radius: 8px !important;
+          z-index: 1;
+        }
+        /* Ukryj previewArea gdy resultArea jest widoczny (po generacji) */
+        #customify-app-container #resultArea[style*="display: block"] ~ #previewArea,
+        #customify-app-container.has-result #previewArea {
+          display: none !important;
         }
         #customify-app-container .spotify-frame-preview::after {
           content: '';
@@ -4215,6 +4248,40 @@
           background: url('https://customify-s56o.vercel.app/spotify/spotify-frame.png') center/contain no-repeat;
           pointer-events: none;
         }
+        {% endif %}
+        
+        {% if product.handle == 'ramka-spotify' %}
+        </style>
+        <script>
+        // Ukryj previewArea gdy resultArea jest widoczny (inline script - niezależny od customify.js)
+        (function() {
+          function hidePreviewWhenResultVisible() {
+            var resultArea = document.getElementById('resultArea');
+            var previewArea = document.getElementById('previewArea');
+            if (resultArea && previewArea) {
+              var resultStyle = window.getComputedStyle(resultArea);
+              if (resultStyle.display !== 'none') {
+                previewArea.style.display = 'none';
+                console.log('🎵 [SPOTIFY INLINE] previewArea ukryty (resultArea widoczny)');
+              }
+            }
+          }
+          
+          // Obserwuj zmiany w resultArea
+          var observer = new MutationObserver(function(mutations) {
+            hidePreviewWhenResultVisible();
+          });
+          
+          document.addEventListener('DOMContentLoaded', function() {
+            var resultArea = document.getElementById('resultArea');
+            if (resultArea) {
+              observer.observe(resultArea, { attributes: true, attributeFilter: ['style'] });
+              console.log('🎵 [SPOTIFY INLINE] MutationObserver uruchomiony');
+            }
+          });
+        })();
+        </script>
+        <style>
         {% endif %}
         
         /* Marginesy po przeniesieniu sekcji typu i rozmiaru nad cenę */
