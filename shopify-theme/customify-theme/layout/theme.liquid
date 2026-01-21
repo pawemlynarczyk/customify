@@ -4197,7 +4197,7 @@
         }
 
         {% if product.handle == 'ramka-spotify' %}
-        /* Spotify frame - proste rozwiązanie bez warstwy inner */
+        /* Spotify frame - stały rozmiar 1024x1536 + skalowanie JS */
         #customify-app-container .spotify-frame-preview,
         #customify-app-container .spotify-frame-result {
           position: relative;
@@ -4206,6 +4206,8 @@
           margin: 0 auto;
           aspect-ratio: 2 / 3;
           background: #f4f4f4;
+          box-sizing: border-box;
+          overflow: visible;
         }
         @media (max-width: 768px) {
           #customify-app-container .spotify-frame-preview,
@@ -4213,9 +4215,14 @@
             max-width: 100%;
           }
         }
-        /* Maska overlay na wierzchu */
-        #customify-app-container .spotify-frame-preview::after,
-        #customify-app-container .spotify-frame-result::after {
+        #customify-app-container .spotify-frame-inner,
+        #customify-app-container #resultArea .spotify-frame-inner {
+          position: relative;
+          width: 1024px;
+          height: 1536px;
+          transform-origin: top left;
+        }
+        #customify-app-container .spotify-frame-inner::before {
           content: '';
           position: absolute;
           inset: 0;
@@ -4248,40 +4255,56 @@
           background: url('https://customify-s56o.vercel.app/spotify/spotify-frame.png') center/contain no-repeat;
           pointer-events: none;
         }
-        {% endif %}
-        
-        {% if product.handle == 'ramka-spotify' %}
-        </style>
-        <script>
-        // Ukryj previewArea gdy resultArea jest widoczny (inline script - niezależny od customify.js)
-        (function() {
-          function hidePreviewWhenResultVisible() {
-            var resultArea = document.getElementById('resultArea');
-            var previewArea = document.getElementById('previewArea');
-            if (resultArea && previewArea) {
-              var resultStyle = window.getComputedStyle(resultArea);
-              if (resultStyle.display !== 'none') {
-                previewArea.style.display = 'none';
-                console.log('🎵 [SPOTIFY INLINE] previewArea ukryty (resultArea widoczny)');
-              }
-            }
-          }
-          
-          // Obserwuj zmiany w resultArea
-          var observer = new MutationObserver(function(mutations) {
-            hidePreviewWhenResultVisible();
-          });
-          
-          document.addEventListener('DOMContentLoaded', function() {
-            var resultArea = document.getElementById('resultArea');
-            if (resultArea) {
-              observer.observe(resultArea, { attributes: true, attributeFilter: ['style'] });
-              console.log('🎵 [SPOTIFY INLINE] MutationObserver uruchomiony');
-            }
-          });
-        })();
-        </script>
-        <style>
+        #customify-app-container .spotify-frame-inner img {
+          position: absolute;
+          left: 61px;
+          top: 61px;
+          width: 902px;
+          height: 799px;
+          object-fit: cover;
+          border-radius: 8px;
+        }
+
+        /* Crop modal */
+        .spotify-crop-modal {
+          position: fixed;
+          inset: 0;
+          background: rgba(0, 0, 0, 0.6);
+          display: none;
+          align-items: center;
+          justify-content: center;
+          z-index: 999999;
+          padding: 16px;
+          box-sizing: border-box;
+        }
+        .spotify-crop-modal.is-open {
+          display: flex;
+        }
+        .spotify-crop-dialog {
+          width: 100%;
+          max-width: 520px;
+          background: #ffffff;
+          border-radius: 12px;
+          padding: 16px;
+          box-sizing: border-box;
+        }
+        .spotify-crop-canvas {
+          width: 100%;
+          max-height: 70vh;
+          overflow: hidden;
+          border-radius: 8px;
+          background: #f4f4f4;
+          margin: 12px 0;
+        }
+        .spotify-crop-canvas img {
+          max-width: 100%;
+          display: block;
+        }
+        .spotify-crop-actions {
+          display: flex;
+          gap: 10px;
+          justify-content: flex-end;
+        }
         {% endif %}
         
         /* Marginesy po przeniesieniu sekcji typu i rozmiaru nad cenę */
