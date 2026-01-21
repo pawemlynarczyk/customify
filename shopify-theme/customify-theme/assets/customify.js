@@ -50,6 +50,13 @@ class CustomifyEmbed {
     this.spotifyFieldsPanel = document.getElementById('spotifyFieldsPanel');
     this.spotifyTitleInput = document.getElementById('spotifyTitle');
     this.spotifyArtistInput = document.getElementById('spotifyArtist');
+    this.spotifyCropModal = document.getElementById('spotifyCropModal');
+    this.spotifyCropImage = document.getElementById('spotifyCropImage');
+    this.spotifyCropConfirmBtn = document.getElementById('spotifyCropConfirmBtn');
+    this.spotifyCropCancelBtn = document.getElementById('spotifyCropCancelBtn');
+    this.spotifyCropper = null;
+    this.spotifyCropSourceUrl = null;
+    this.spotifyCropConfirmed = false;
 
     this.uploadedFile = null;
     this.selectedStyle = null;
@@ -214,8 +221,13 @@ class CustomifyEmbed {
     }
 
     if (this.isSpotifyProduct()) {
-      this.selectedProductType = 'spotify_frame';
-      console.log('🎵 [SPOTIFY] Ustawiam selectedProductType = spotify_frame');
+      const szkloBtn = document.querySelector('.customify-product-type-btn[data-product-type="szklo"]');
+      if (szkloBtn) {
+        this.productTypeArea?.querySelectorAll('.customify-product-type-btn').forEach(btn => btn.classList.remove('active'));
+        szkloBtn.classList.add('active');
+        this.selectedProductType = 'szklo';
+        console.log('🎵 [SPOTIFY] Ustawiam selectedProductType = szklo');
+      }
     }
 
     // Zaktualizuj dostępność rozmiarów po początkowej synchronizacji
@@ -2279,6 +2291,13 @@ class CustomifyEmbed {
     document.getElementById('addToCartBtn').addEventListener('click', () => this.addToCart());
     document.getElementById('addToCartBtnMain').addEventListener('click', () => this.addToCart());
     document.getElementById('tryAgainBtn').addEventListener('click', () => this.tryAgain());
+
+    if (this.spotifyCropConfirmBtn) {
+      this.spotifyCropConfirmBtn.addEventListener('click', () => this.confirmSpotifyCrop());
+    }
+    if (this.spotifyCropCancelBtn) {
+      this.spotifyCropCancelBtn.addEventListener('click', () => this.cancelSpotifyCrop());
+    }
   }
 
   /**
@@ -2390,6 +2409,88 @@ class CustomifyEmbed {
     };
   }
 
+  openSpotifyCropper(file) {
+    if (!this.spotifyCropModal || !this.spotifyCropImage) {
+      this.showPreview(file);
+      return;
+    }
+    if (typeof Cropper === 'undefined') {
+      console.warn('⚠️ [SPOTIFY] CropperJS not loaded, fallback to normal preview');
+      this.showPreview(file);
+      return;
+    }
+
+    this.spotifyCropConfirmed = false;
+    if (this.spotifyCropper) {
+      this.spotifyCropper.destroy();
+      this.spotifyCropper = null;
+    }
+    if (this.spotifyCropSourceUrl) {
+      URL.revokeObjectURL(this.spotifyCropSourceUrl);
+      this.spotifyCropSourceUrl = null;
+    }
+
+    this.spotifyCropSourceUrl = URL.createObjectURL(file);
+    this.spotifyCropImage.src = this.spotifyCropSourceUrl;
+    this.spotifyCropModal.classList.add('is-open');
+    this.spotifyCropModal.setAttribute('aria-hidden', 'false');
+
+    this.spotifyCropper = new Cropper(this.spotifyCropImage, {
+      aspectRatio: 1,
+      viewMode: 1,
+      autoCropArea: 1,
+      responsive: true,
+      movable: true,
+      zoomable: true,
+      background: false
+    });
+  }
+
+  closeSpotifyCropper() {
+    if (this.spotifyCropper) {
+      this.spotifyCropper.destroy();
+      this.spotifyCropper = null;
+    }
+    if (this.spotifyCropSourceUrl) {
+      URL.revokeObjectURL(this.spotifyCropSourceUrl);
+      this.spotifyCropSourceUrl = null;
+    }
+    if (this.spotifyCropModal) {
+      this.spotifyCropModal.classList.remove('is-open');
+      this.spotifyCropModal.setAttribute('aria-hidden', 'true');
+    }
+  }
+
+  confirmSpotifyCrop() {
+    if (!this.spotifyCropper) return;
+    const canvas = this.spotifyCropper.getCroppedCanvas({
+      width: 1024,
+      height: 1024,
+      imageSmoothingQuality: 'high'
+    });
+    canvas.toBlob((blob) => {
+      if (!blob) {
+        this.showError('Nie udało się przyciąć zdjęcia', 'transform');
+        return;
+      }
+      const croppedFile = new File([blob], `spotify-crop-${Date.now()}.jpg`, { type: 'image/jpeg' });
+      this.uploadedFile = croppedFile;
+      this.spotifyCropConfirmed = true;
+      this.closeSpotifyCropper();
+      this.showPreview(croppedFile);
+      this.hideError();
+    }, 'image/jpeg', 0.9);
+  }
+
+  cancelSpotifyCrop() {
+    this.uploadedFile = null;
+    this.spotifyCropConfirmed = false;
+    if (this.fileInput) {
+      this.fileInput.value = '';
+    }
+    this.closeSpotifyCropper();
+  }
+
   handleFileSelect(file) {
     if (!file) return;
     if (!file.type.startsWith('image/')) {
@@ -2401,9 +2502,14 @@ class CustomifyEmbed {
       return;
     }
 
+    this.hideError();
+    if (this.isSpotifyProduct()) {
+      this.spotifyCropConfirmed = false;
+      this.openSpotifyCropper(file);
+      return;
+    }
     this.uploadedFile = file;
     this.showPreview(file);
-    this.hideError();
 
     // ✅ Google Ads Conversion Tracking - Image Upload Event
     if (typeof gtag !== 'undefined') {
@@ -2934,6 +3040,11 @@ class CustomifyEmbed {
         selectedStyle: this.selectedStyle
       });
       this.showError('Wgraj zdjęcie i wybierz styl', 'transform');
+      return;
+    }
+
+    if (this.isSpotifyProduct() && !this.spotifyCropConfirmed) {
+      this.showError('Najpierw wykadruj zdjęcie', 'transform');
       return;
     }
 
@@ -3480,6 +3591,10 @@ class CustomifyEmbed {
     // UKRYJ pole upload po przekształceniu
     this.uploadArea.style.display = 'none';
     console.log('🎯 [CUSTOMIFY] uploadArea hidden:', this.uploadArea.style.display);
+
+    if (this.isSpotifyProduct() && this.previewArea) {
+      this.previewArea.style.display = 'none';
+    }
     
     if (this.isSpotifyProduct() && this.spotifyFieldsPanel) {
       this.spotifyFieldsPanel.style.display = 'block';
@@ -3966,6 +4081,8 @@ class CustomifyEmbed {
     this.textOverlayWatermarkedUrl = null;
     this.textOverlayOriginalWatermarked = null;
     this.textOverlayState = { ...this.textOverlayState, text: '', applied: false };
+    this.spotifyCropConfirmed = false;
+    this.closeSpotifyCropper();
     if (this.textOverlayInput) {
       this.textOverlayInput.value = '';
       this.updateTextOverlayCounter();
@@ -4025,6 +4142,8 @@ class CustomifyEmbed {
     this.textOverlayWatermarkedUrl = null;
     this.textOverlayOriginalWatermarked = null;
     this.textOverlayState = { ...this.textOverlayState, text: '', applied: false };
+    this.spotifyCropConfirmed = false;
+    this.closeSpotifyCropper();
     if (this.textOverlayInput) {
       this.textOverlayInput.value = '';
       this.updateTextOverlayCounter();
