@@ -1095,7 +1095,11 @@ module.exports = async (req, res) => {
   let customerEmailFromGraphQL = null;
 
   try {
-    const { imageData, prompt, style, productType, customerId: bodyCustomerId, email, productHandle } = req.body;
+    let { imageData, prompt, style, productType, customerId: bodyCustomerId, email, productHandle } = req.body;
+    // ✅ Normalize imageData: accept base64 or data URI
+    if (typeof imageData === 'string' && imageData.startsWith('data:image')) {
+      imageData = imageData.split(',')[1];
+    }
     if (bodyCustomerId !== undefined && bodyCustomerId !== null) {
       customerId = bodyCustomerId;
     }
