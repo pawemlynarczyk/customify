@@ -50,14 +50,6 @@ class CustomifyEmbed {
     this.spotifyFieldsPanel = document.getElementById('spotifyFieldsPanel');
     this.spotifyTitleInput = document.getElementById('spotifyTitle');
     this.spotifyArtistInput = document.getElementById('spotifyArtist');
-    this.spotifyCropModal = document.getElementById('spotifyCropModal');
-    this.spotifyCropImage = document.getElementById('spotifyCropImage');
-    this.spotifyCropConfirmBtn = document.getElementById('spotifyCropConfirmBtn');
-    this.spotifyCropCancelBtn = document.getElementById('spotifyCropCancelBtn');
-    this.spotifyCropper = null;
-    this.spotifyCropSourceUrl = null;
-    this.spotifyCropConfirmed = false;
-    this.spotifyCropDataUrl = null;
 
     this.uploadedFile = null;
     this.selectedStyle = null;
@@ -222,16 +214,9 @@ class CustomifyEmbed {
     }
 
     if (this.isSpotifyProduct()) {
-      const szkloBtn = document.querySelector('.customify-product-type-btn[data-product-type="szklo"]');
-      if (szkloBtn) {
-        this.productTypeArea?.querySelectorAll('.customify-product-type-btn').forEach(btn => btn.classList.remove('active'));
-        szkloBtn.classList.add('active');
-        this.selectedProductType = 'szklo';
-        console.log('🎵 [SPOTIFY] Ustawiam selectedProductType = szklo');
-      }
+      this.selectedProductType = 'spotify_frame';
+      console.log('🎵 [SPOTIFY] Ustawiam selectedProductType = spotify_frame');
     }
-    this.updateSpotifyFrameScale();
-    window.addEventListener('resize', () => this.updateSpotifyFrameScale());
 
     // Zaktualizuj dostępność rozmiarów po początkowej synchronizacji
     this.updateSizeAvailability();
@@ -551,8 +536,7 @@ class CustomifyEmbed {
       'swieta': 'caricature-new',
       'swieta_2': 'caricature-new',
       'akwarela': 'watercolor',
-      'openai-art': 'openai-art', // OpenAI GPT-Image-1 style
-      'usun-tlo': 'spotify_frame'
+      'openai-art': 'openai-art' // OpenAI GPT-Image-1 style
     };
     
     const productType = styleToProductType[style] || 'other';
@@ -2295,13 +2279,6 @@ class CustomifyEmbed {
     document.getElementById('addToCartBtn').addEventListener('click', () => this.addToCart());
     document.getElementById('addToCartBtnMain').addEventListener('click', () => this.addToCart());
     document.getElementById('tryAgainBtn').addEventListener('click', () => this.tryAgain());
-
-    if (this.spotifyCropConfirmBtn) {
-      this.spotifyCropConfirmBtn.addEventListener('click', () => this.confirmSpotifyCrop());
-    }
-    if (this.spotifyCropCancelBtn) {
-      this.spotifyCropCancelBtn.addEventListener('click', () => this.cancelSpotifyCrop());
-    }
   }
 
   /**
@@ -2402,24 +2379,6 @@ class CustomifyEmbed {
     }
   }
 
-  updateSpotifyFrameScale() {
-    if (!this.isSpotifyProduct()) return;
-    const containers = document.querySelectorAll('.spotify-frame-preview, .spotify-frame-result');
-    if (!containers.length) return;
-
-    containers.forEach(container => {
-      const inner = container.querySelector('.spotify-frame-inner');
-      if (!inner) return;
-      const styles = window.getComputedStyle(container);
-      const padX = parseFloat(styles.paddingLeft || '0') + parseFloat(styles.paddingRight || '0');
-      const padY = parseFloat(styles.paddingTop || '0') + parseFloat(styles.paddingBottom || '0');
-      const availableWidth = Math.max(0, container.clientWidth - padX);
-      const scale = availableWidth / 1024;
-      inner.style.transform = `scale(${scale})`;
-      container.style.height = `${1536 * scale + padY}px`;
-    });
-  }
-
   getTextOverlayPayload() {
     if (!this.textOverlayEnabled || !this.textOverlayState.applied) return null;
     return {
@@ -2429,90 +2388,6 @@ class CustomifyEmbed {
       font: this.textOverlayState.font,
       size: this.textOverlayState.size
     };
-  }
-
-  openSpotifyCropper(file) {
-    if (!this.spotifyCropModal || !this.spotifyCropImage) {
-      this.showPreview(file);
-      return;
-    }
-    if (typeof Cropper === 'undefined') {
-      console.warn('⚠️ [SPOTIFY] CropperJS not loaded, fallback to normal preview');
-      this.showPreview(file);
-      return;
-    }
-
-    this.spotifyCropConfirmed = false;
-    if (this.spotifyCropper) {
-      this.spotifyCropper.destroy();
-      this.spotifyCropper = null;
-    }
-    if (this.spotifyCropSourceUrl) {
-      URL.revokeObjectURL(this.spotifyCropSourceUrl);
-      this.spotifyCropSourceUrl = null;
-    }
-
-    this.spotifyCropSourceUrl = URL.createObjectURL(file);
-    this.spotifyCropImage.src = this.spotifyCropSourceUrl;
-    this.spotifyCropModal.classList.add('is-open');
-    this.spotifyCropModal.setAttribute('aria-hidden', 'false');
-
-    this.spotifyCropper = new Cropper(this.spotifyCropImage, {
-      aspectRatio: 1,
-      viewMode: 1,
-      autoCropArea: 1,
-      responsive: true,
-      movable: true,
-      zoomable: true,
-      background: false
-    });
-  }
-
-  closeSpotifyCropper() {
-    if (this.spotifyCropper) {
-      this.spotifyCropper.destroy();
-      this.spotifyCropper = null;
-    }
-    if (this.spotifyCropSourceUrl) {
-      URL.revokeObjectURL(this.spotifyCropSourceUrl);
-      this.spotifyCropSourceUrl = null;
-    }
-    if (this.spotifyCropModal) {
-      this.spotifyCropModal.classList.remove('is-open');
-      this.spotifyCropModal.setAttribute('aria-hidden', 'true');
-    }
-  }
-
-  confirmSpotifyCrop() {
-    if (!this.spotifyCropper) return;
-    const canvas = this.spotifyCropper.getCroppedCanvas({
-      width: 1024,
-      height: 1024,
-      imageSmoothingQuality: 'high'
-    });
-    canvas.toBlob((blob) => {
-      if (!blob) {
-        this.showError('Nie udało się przyciąć zdjęcia', 'transform');
-        return;
-      }
-      const croppedFile = new File([blob], `spotify-crop-${Date.now()}.jpg`, { type: 'image/jpeg' });
-      this.uploadedFile = croppedFile;
-      this.spotifyCropDataUrl = canvas.toDataURL('image/jpeg', 0.9);
-      this.spotifyCropConfirmed = true;
-      this.closeSpotifyCropper();
-      this.showPreview(croppedFile);
-      this.hideError();
-    }, 'image/jpeg', 0.9);
-  }
-
-  cancelSpotifyCrop() {
-    this.uploadedFile = null;
-    this.spotifyCropConfirmed = false;
-    this.spotifyCropDataUrl = null;
-    if (this.fileInput) {
-      this.fileInput.value = '';
-    }
-    this.closeSpotifyCropper();
   }
 
   handleFileSelect(file) {
@@ -2526,14 +2401,9 @@ class CustomifyEmbed {
       return;
     }
 
-    this.hideError();
-    if (this.isSpotifyProduct()) {
-      this.spotifyCropConfirmed = false;
-      this.openSpotifyCropper(file);
-      return;
-    }
     this.uploadedFile = file;
     this.showPreview(file);
+    this.hideError();
 
     // ✅ Google Ads Conversion Tracking - Image Upload Event
     if (typeof gtag !== 'undefined') {
@@ -3067,11 +2937,6 @@ class CustomifyEmbed {
       return;
     }
 
-    if (this.isSpotifyProduct() && !this.spotifyCropConfirmed) {
-      this.showError('Najpierw wykadruj zdjęcie', 'transform');
-      return;
-    }
-
     let spotifyPayload = null;
     if (this.isSpotifyProduct()) {
       const spotifyTitle = (this.spotifyTitleInput?.value || '').trim().slice(0, 60);
@@ -3115,9 +2980,7 @@ class CustomifyEmbed {
     }
 
     try {
-      const base64 = (this.isSpotifyProduct() && this.spotifyCropConfirmed && this.spotifyCropDataUrl)
-        ? this.spotifyCropDataUrl
-        : await this.fileToBase64(this.uploadedFile);
+      const base64 = await this.fileToBase64(this.uploadedFile);
       console.log('📱 [MOBILE] Starting transform request...');
       
       // Create AbortController for timeout
@@ -3617,10 +3480,6 @@ class CustomifyEmbed {
     // UKRYJ pole upload po przekształceniu
     this.uploadArea.style.display = 'none';
     console.log('🎯 [CUSTOMIFY] uploadArea hidden:', this.uploadArea.style.display);
-
-    if (this.isSpotifyProduct() && this.previewArea) {
-      this.previewArea.style.display = 'none';
-    }
     
     if (this.isSpotifyProduct() && this.spotifyFieldsPanel) {
       this.spotifyFieldsPanel.style.display = 'block';
@@ -3628,7 +3487,6 @@ class CustomifyEmbed {
     
     // ✅ POKAŻ CENĘ NAD PRZYCISKIEM po wygenerowaniu AI
     this.updateCartPrice();
-    this.updateSpotifyFrameScale();
   }
 
   // NAPRAWIONA FUNKCJA: STWÓRZ NOWY PRODUKT Z OBRAZKIEM AI (UKRYTY W KATALOGU)
@@ -4108,9 +3966,6 @@ class CustomifyEmbed {
     this.textOverlayWatermarkedUrl = null;
     this.textOverlayOriginalWatermarked = null;
     this.textOverlayState = { ...this.textOverlayState, text: '', applied: false };
-    this.spotifyCropConfirmed = false;
-    this.spotifyCropDataUrl = null;
-    this.closeSpotifyCropper();
     if (this.textOverlayInput) {
       this.textOverlayInput.value = '';
       this.updateTextOverlayCounter();
@@ -4170,9 +4025,6 @@ class CustomifyEmbed {
     this.textOverlayWatermarkedUrl = null;
     this.textOverlayOriginalWatermarked = null;
     this.textOverlayState = { ...this.textOverlayState, text: '', applied: false };
-    this.spotifyCropConfirmed = false;
-    this.spotifyCropDataUrl = null;
-    this.closeSpotifyCropper();
     if (this.textOverlayInput) {
       this.textOverlayInput.value = '';
       this.updateTextOverlayCounter();

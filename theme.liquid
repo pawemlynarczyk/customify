@@ -127,9 +127,6 @@
 
     <!-- CUSTOMIFY INTEGRATION -->
     <link rel="stylesheet" href="{{ 'customify.css' | asset_url }}">
-    {% if product and product.handle == 'ramka-spotify' %}
-      <link rel="stylesheet" href="https://unpkg.com/cropperjs@1.6.2/dist/cropper.min.css">
-    {% endif %}
     
     <!-- FIX: Preload obrazków produktu - eliminuje skakanie -->
     {% if template contains 'product' %}
@@ -164,9 +161,6 @@
     </script>
     
     <script src="{{ 'customify.js' | asset_url }}" defer></script>
-    {% if product and product.handle == 'ramka-spotify' %}
-      <script src="https://unpkg.com/cropperjs@1.6.2/dist/cropper.min.js" defer></script>
-    {% endif %}
     <script>
       (function() {
         function applyCustomifyCartOverride() {
@@ -3343,17 +3337,12 @@
           </div>
         {% endif %}
         <!-- Wybór rodzaju wydruku - NAD sekcją rozmiarów -->
-        <div class="customify-product-type-selector" id="productTypeArea" style="{% if product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem-karykatura' %}display: none;{% else %}display: block; margin-bottom: 10px;{% endif %}">
+        <div class="customify-product-type-selector" id="productTypeArea" style="{% if product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem-karykatura' or product.handle == 'ramka-spotify' %}display: none;{% else %}display: block; margin-bottom: 10px;{% endif %}">
           <h4 style="text-align: left; font-size: 0.95rem; font-weight: 600;">Rodzaj wydruku:</h4>
           <div class="customify-product-type-buttons">
             {% comment %} FILTRUJ RODZAJE WYDRUKU PER PRODUKT {% endcomment %}
             {% if product.handle == 'karykatura-na-zamowienie-druk-na-szkle-akrylowym-ramka-z-podswietleniem' or product.handle == 'prezent-dla-babci-i-dziadka-portret-na-na-szkle-akrylowym-ze-zdjecia-karykatura' or product.handle == 'dziadkowie-krolowie-nadruk-na-szkle' or product.handle == 'portret-pary-personalizowany-obraz-na-szkle-akrylowym' %}
               {% comment %} TYLKO SZKŁO dla produktów na szkle akrylowym {% endcomment %}
-              <div class="customify-product-type-btn active" data-product-type="szklo">
-                Nadruk na szkle (dodaj podstawkę)
-              </div>
-            {% elsif product.handle == 'ramka-spotify' %}
-              {% comment %} TYLKO SZKŁO dla ramka-spotify {% endcomment %}
               <div class="customify-product-type-btn active" data-product-type="szklo">
                 Nadruk na szkle (dodaj podstawkę)
               </div>
@@ -3453,29 +3442,12 @@
               <h4>Twoje zdjęcie:</h4>
               {% if product.handle == 'ramka-spotify' %}
                 <div class="spotify-frame-preview">
-                  <div class="spotify-frame-inner">
-                    <img id="previewImage" alt="Podgląd zdjęcia">
-                  </div>
+                  <img id="previewImage" alt="Podgląd zdjęcia">
                 </div>
               {% else %}
                 <img id="previewImage" alt="Podgląd zdjęcia">
               {% endif %}
             </div>
-
-            {% if product.handle == 'ramka-spotify' %}
-              <div id="spotifyCropModal" class="spotify-crop-modal" aria-hidden="true">
-                <div class="spotify-crop-dialog">
-                  <h4>Ustaw kadr zdjęcia</h4>
-                  <div class="spotify-crop-canvas">
-                    <img id="spotifyCropImage" alt="Kadrowanie zdjęcia">
-                  </div>
-                  <div class="spotify-crop-actions">
-                    <button type="button" class="customify-btn customify-btn-secondary" id="spotifyCropCancelBtn">Anuluj</button>
-                    <button type="button" class="customify-btn customify-btn-primary" id="spotifyCropConfirmBtn">Zapisz kadr</button>
-                  </div>
-                </div>
-              </div>
-            {% endif %}
 
             <div class="customify-styles" id="stylesArea" style="display: block;">
               <h4>Wybierz styl</h4>
@@ -3709,18 +3681,6 @@
                       <div class="style-name">Minimalistyczny</div>
                     </div>
                   </div>
-                  <div class="customify-style-card" data-style="usun-tlo">
-                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/boho/detail.png'); background-size: cover; background-position: center;"></div>
-                    <div class="style-info">
-                      <div class="style-name">Usuń tło</div>
-                    </div>
-                  </div>
-                  <div class="customify-style-card" data-style="karykatura">
-                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/karykat/caricature.png'); background-size: cover; background-position: center;"></div>
-                    <div class="style-info">
-                      <div class="style-name">Karykatura</div>
-                    </div>
-                  </div>
                 {% elsif product.handle == 'obraz-ze-zdjecia-akwarela' %}
                   {% comment %} STYLOWANIE WATERCOLOUR OK - BEZ DODATKOWYCH WARUNKÓW {% endcomment %}
                   <div class="customify-style-card" data-style="watercolor_ok" style="display: block !important;">
@@ -3859,15 +3819,7 @@
 
             <div class="customify-result" id="resultArea">
               <h4>Twój obraz:</h4>
-              {% if product.handle == 'ramka-spotify' %}
-                <div class="spotify-frame-result">
-                  <div class="spotify-frame-inner">
-                    <img id="resultImage" alt="Wynik AI">
-                  </div>
-                </div>
-              {% else %}
-                <img id="resultImage" alt="Wynik AI">
-              {% endif %}
+              <img id="resultImage" alt="Wynik AI">
               <p style="font-size: 0.85rem; color: #666; text-align: center; margin: 8px 0 0 0; font-style: italic;">Znaków wodnych nie będzie na końcowym produkcie</p>
               
               <!-- Komunikat sukcesu -->
@@ -4239,98 +4191,29 @@
         }
 
         {% if product.handle == 'ramka-spotify' %}
-        /* Spotify frame - stały rozmiar 1024x1536 + skalowanie JS */
-        #customify-app-container .spotify-frame-preview,
-        #customify-app-container .spotify-frame-result,
-        #customify-app-container #resultArea .spotify-frame-result {
+        /* Spotify frame preview - tylko dla ramka-spotify */
+        #customify-app-container .spotify-frame-preview {
           position: relative;
           width: 100%;
-          max-width: 460px;
+          max-width: 420px;
           margin: 0 auto;
-          padding: 20px;
-          background: #f4f4f4;
-          box-sizing: border-box;
-          overflow: visible;
+          aspect-ratio: 2 / 3;
         }
-        @media (max-width: 768px) {
-          #customify-app-container .spotify-frame-preview,
-          #customify-app-container .spotify-frame-result,
-          #customify-app-container #resultArea .spotify-frame-result {
-            max-width: 100%;
-            padding: 12px;
-          }
-        }
-        #customify-app-container .spotify-frame-inner,
-        #customify-app-container #resultArea .spotify-frame-inner {
-          position: relative;
-          width: 1024px;
-          height: 1536px;
-          transform-origin: top left;
-        }
-        #customify-app-container .spotify-frame-inner::before {
-          content: '';
+        #customify-app-container .spotify-frame-preview img {
           position: absolute;
-          inset: 0;
-          border: 1px solid #ffffff;
-          box-sizing: border-box;
-          pointer-events: none;
-        }
-        #customify-app-container .spotify-frame-inner::after {
-          content: '';
-          position: absolute;
-          inset: 0;
-          background: url('https://customify-s56o.vercel.app/spotify-frame/overlay.png') center/contain no-repeat;
-          pointer-events: none;
-        }
-        #customify-app-container .spotify-frame-inner img {
-          position: absolute;
-          left: 61px;
-          top: 61px;
-          width: 902px;
-          height: 799px;
+          left: 11%;
+          top: 12%;
+          width: 78%;
+          height: 52%;
           object-fit: cover;
           border-radius: 8px;
         }
-
-        /* Crop modal */
-        .spotify-crop-modal {
-          position: fixed;
+        #customify-app-container .spotify-frame-preview::after {
+          content: '';
+          position: absolute;
           inset: 0;
-          background: rgba(0, 0, 0, 0.6);
-          display: none;
-          align-items: center;
-          justify-content: center;
-          z-index: 999999;
-          padding: 16px;
-          box-sizing: border-box;
-        }
-        .spotify-crop-modal.is-open {
-          display: flex;
-        }
-        .spotify-crop-dialog {
-          width: 100%;
-          max-width: 520px;
-          background: #ffffff;
-          border-radius: 12px;
-          padding: 16px;
-          box-sizing: border-box;
-        }
-        .spotify-crop-canvas {
-          width: 100%;
-          max-height: 70vh;
-          overflow: hidden;
-          border-radius: 8px;
-          background: #f4f4f4;
-          margin: 12px 0;
-        }
-        .spotify-crop-canvas img {
-          max-width: 100%;
-          display: block;
-        }
-        .spotify-crop-actions {
-          display: flex;
-          gap: 10px;
-          justify-content: flex-end;
+          background: url('https://customify-s56o.vercel.app/spotify/spotify-frame.png') center/contain no-repeat;
+          pointer-events: none;
         }
         {% endif %}
         

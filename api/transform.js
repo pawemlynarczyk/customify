@@ -8,6 +8,7 @@ const { checkIPLimit, incrementIPLimit, checkDeviceTokenLimit, incrementDeviceTo
 const Sentry = require('../utils/sentry');
 const { put } = require('@vercel/blob');
 const { trackError, trackAction, getRecentError } = require('../utils/userFlowTracker');
+const { composeSpotifyFrame } = require('./spotify-canvas-composer');
 
 // 🚫 Lista IP zablokowanych całkowicie (tymczasowe banowanie nadużyć)
 const BLOCKED_IPS = new Set([
@@ -275,6 +276,21 @@ async function uploadImageToVercel(imageDataUri) {
   }
 }
 
+async function getImageBufferFromUrlOrData(imageUrl) {
+  if (!imageUrl) {
+    throw new Error('Missing imageUrl for buffer conversion');
+  }
+  if (imageUrl.startsWith('data:image')) {
+    const base64Data = imageUrl.replace(/^data:image\/[a-z0-9.+-]+;base64,/i, '');
+    return Buffer.from(base64Data, 'base64');
+  }
+  const response = await fetch(imageUrl);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch image: ${response.status}`);
+  }
+  const arrayBuffer = await response.arrayBuffer();
+  return Buffer.from(arrayBuffer);
+}
 
 // Function to upload image to Cloudinary and return URL
 async function uploadToCloudinary(imageDataUri) {
@@ -1095,11 +1111,7 @@ module.exports = async (req, res) => {
   let customerEmailFromGraphQL = null;
 
   try {
-    let { imageData, prompt, style, productType, customerId: bodyCustomerId, email, productHandle } = req.body;
-    // ✅ Normalize imageData: accept base64 or data URI
-    if (typeof imageData === 'string' && imageData.startsWith('data:image')) {
-      imageData = imageData.split(',')[1];
-    }
+    const { imageData, prompt, style, productType, customerId: bodyCustomerId, email, productHandle } = req.body;
     if (bodyCustomerId !== undefined && bodyCustomerId !== null) {
       customerId = bodyCustomerId;
     }
@@ -1510,18 +1522,6 @@ module.exports = async (req, res) => {
           output_format: "jpeg", // dozwolony format wyjściowy
           background: "opaque",
           n: 1
-        }
-      },
-      // Usuwanie tła (Replicate)
-      'usun-tlo': {
-        model: "851-labs/background-remover:a029dff38972b5fda4ec5d75d7d1cd25aeff621d2cf4946a41055d7db66b80bc",
-        apiType: "replicate-bg-remove",
-        productType: "spotify_frame",
-        parameters: {
-          format: "png",
-          reverse: false,
-          threshold: 0,
-          background_type: "rgba"
         }
       },
       // 🎵 Spotify frame używa istniejących stylów (bez nowych slugów)
@@ -2384,36 +2384,6 @@ module.exports = async (req, res) => {
         console.log(`📸 [NANO-BANANA] Cats style - Obraz 2 (user): ${imageDataUri.substring(0, 50)}...`);
         console.log(`📸 [NANO-BANANA] image_input array length: ${inputParams.image_input.length}`);
       }
-    } else if (config.apiType === 'replicate-bg-remove') {
-      // Background remover - użyj URL z Vercel Blob (model wymaga URL)
-      console.log('🧼 [BG-REMOVE] Uploading image to Vercel Blob Storage...');
-      const baseUrl = 'https://customify-s56o.vercel.app';
-      const uploadResponse = await fetch(`${baseUrl}/api/upload-temp-image`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          imageData: imageDataUri,
-          filename: `bg-remove-${Date.now()}.png`
-        })
-      });
-
-      if (!uploadResponse.ok) {
-        const errorText = await uploadResponse.text();
-        console.error('❌ [BG-REMOVE] Vercel Blob upload failed:', errorText);
-        throw new Error(`Vercel Blob upload failed: ${uploadResponse.status} - ${errorText}`);
-      }
-
-      const uploadResult = await uploadResponse.json();
-      const userImageUrl = uploadResult.imageUrl;
-      console.log('✅ [BG-REMOVE] User image uploaded:', userImageUrl);
-
-      inputParams = {
-        image: userImageUrl,
-        format: config.parameters?.format || 'png',
-        reverse: config.parameters?.reverse || false,
-        threshold: config.parameters?.threshold ?? 0,
-        background_type: config.parameters?.background_type || 'rgba'
-      };
     } else {
       // Stable Diffusion model parameters (default)
       inputParams = {
@@ -2778,7 +2748,27 @@ module.exports = async (req, res) => {
 
     // ✅ WSPÓLNA LOGIKA - imageUrl jest już ustawione (z PiAPI lub Replicate)
     if (finalProductType === 'spotify_frame') {
-      console.log('🎵 [SPOTIFY] Kompozycja ramki jest po stronie frontendu (preview)');
+      const spotifyTitleRaw = typeof req.body?.spotifyTitle === 'string' ? req.body.spotifyTitle : '';
+      const spotifyArtistRaw = typeof req.body?.spotifyArtist === 'string' ? req.body.spotifyArtist : '';
+      const spotifyTitle = spotifyTitleRaw.trim().slice(0, 60);
+      const spotifyArtist = spotifyArtistRaw.trim().slice(0, 60);
+      const overlayUrl = 'https://customify-s56o.vercel.app/spotify-frame/overlay.png';
+
+      console.log('🎵 [SPOTIFY] Compositing Spotify frame...', {
+        title: spotifyTitle,
+        artist: spotifyArtist,
+        overlayUrl
+      });
+
+      const baseBuffer = await getImageBufferFromUrlOrData(imageUrl);
+      const composedBuffer = await composeSpotifyFrame(baseBuffer, {
+        title: spotifyTitle,
+        artist: spotifyArtist,
+        overlayUrl
+      });
+
+      imageUrl = `data:image/png;base64,${composedBuffer.toString('base64')}`;
+      console.log('✅ [SPOTIFY] Spotify frame composed');
     }
 
     // ✅ WATERMARK DLA REPLICATE URL-I - USUNIĘTY (problemy z Sharp w Vercel)

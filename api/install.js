@@ -25,7 +25,7 @@ module.exports = (req, res) => {
   const shop = process.env.SHOP_DOMAIN || 'customify-ok.myshopify.com';
   
   // Generate direct Shopify OAuth URL (no redirect through /auth)
-  const scopes = 'read_products,write_products,read_orders,write_orders,read_customers,read_content,read_themes,write_themes,read_script_tags,write_script_tags';
+  const scopes = 'read_products,write_products,read_orders,write_orders,read_customers,read_content,write_content,read_themes,write_themes,read_script_tags,write_script_tags';
   const redirectUri = `${process.env.APP_URL}/auth/callback`;
   const clientId = process.env.SHOPIFY_API_KEY;
   
