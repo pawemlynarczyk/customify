@@ -57,7 +57,6 @@ class CustomifyEmbed {
     this.spotifyCropper = null;
     this.spotifyCropSourceUrl = null;
     this.spotifyCropConfirmed = false;
-    this.spotifyCropDataUrl = null;
 
     this.uploadedFile = null;
     this.selectedStyle = null;
@@ -222,8 +221,13 @@ class CustomifyEmbed {
     }
 
     if (this.isSpotifyProduct()) {
-      this.selectedProductType = 'spotify_frame';
-      console.log('🎵 [SPOTIFY] Ustawiam selectedProductType = spotify_frame');
+      const szkloBtn = document.querySelector('.customify-product-type-btn[data-product-type="szklo"]');
+      if (szkloBtn) {
+        this.productTypeArea?.querySelectorAll('.customify-product-type-btn').forEach(btn => btn.classList.remove('active'));
+        szkloBtn.classList.add('active');
+        this.selectedProductType = 'szklo';
+        console.log('🎵 [SPOTIFY] Ustawiam selectedProductType = szklo');
+      }
     }
     this.updateSpotifyFrameScale();
     window.addEventListener('resize', () => this.updateSpotifyFrameScale());
@@ -2289,6 +2293,13 @@ class CustomifyEmbed {
     document.getElementById('addToCartBtn').addEventListener('click', () => this.addToCart());
     document.getElementById('addToCartBtnMain').addEventListener('click', () => this.addToCart());
     document.getElementById('tryAgainBtn').addEventListener('click', () => this.tryAgain());
+
+    if (this.spotifyCropConfirmBtn) {
+      this.spotifyCropConfirmBtn.addEventListener('click', () => this.confirmSpotifyCrop());
+    }
+    if (this.spotifyCropCancelBtn) {
+      this.spotifyCropCancelBtn.addEventListener('click', () => this.cancelSpotifyCrop());
+    }
   }
 
   /**
@@ -2484,7 +2495,6 @@ class CustomifyEmbed {
       }
       const croppedFile = new File([blob], `spotify-crop-${Date.now()}.jpg`, { type: 'image/jpeg' });
       this.uploadedFile = croppedFile;
-      this.spotifyCropDataUrl = canvas.toDataURL('image/jpeg', 0.9);
       this.spotifyCropConfirmed = true;
       this.closeSpotifyCropper();
       this.showPreview(croppedFile);
@@ -2495,7 +2505,6 @@ class CustomifyEmbed {
   cancelSpotifyCrop() {
     this.uploadedFile = null;
     this.spotifyCropConfirmed = false;
-    this.spotifyCropDataUrl = null;
     if (this.fileInput) {
       this.fileInput.value = '';
     }
@@ -2513,9 +2522,14 @@ class CustomifyEmbed {
       return;
     }
 
+    this.hideError();
+    if (this.isSpotifyProduct()) {
+      this.spotifyCropConfirmed = false;
+      this.openSpotifyCropper(file);
+      return;
+    }
     this.uploadedFile = file;
     this.showPreview(file);
-    this.hideError();
 
     // ✅ Google Ads Conversion Tracking - Image Upload Event
     if (typeof gtag !== 'undefined') {
@@ -3046,6 +3060,11 @@ class CustomifyEmbed {
         selectedStyle: this.selectedStyle
       });
       this.showError('Wgraj zdjęcie i wybierz styl', 'transform');
+      return;
+    }
+
+    if (this.isSpotifyProduct() && !this.spotifyCropConfirmed) {
+      this.showError('Najpierw wykadruj zdjęcie', 'transform');
       return;
     }
 
@@ -3595,14 +3614,7 @@ class CustomifyEmbed {
     this.uploadArea.style.display = 'none';
     console.log('🎯 [CUSTOMIFY] uploadArea hidden:', this.uploadArea.style.display);
 
-    // UKRYJ previewArea po generacji - przez klasę CSS (bardziej niezawodne)
-    const container = document.getElementById('customify-app-container');
-    if (container) {
-      container.classList.add('has-result');
-      console.log('🎯 [CUSTOMIFY] Added has-result class to container');
-    }
-    // Dodatkowo ukryj przez JS (backup)
-    if (this.previewArea) {
+    if (this.isSpotifyProduct() && this.previewArea) {
       this.previewArea.style.display = 'none';
     }
     
@@ -4093,7 +4105,6 @@ class CustomifyEmbed {
     this.textOverlayOriginalWatermarked = null;
     this.textOverlayState = { ...this.textOverlayState, text: '', applied: false };
     this.spotifyCropConfirmed = false;
-    this.spotifyCropDataUrl = null;
     this.closeSpotifyCropper();
     if (this.textOverlayInput) {
       this.textOverlayInput.value = '';
@@ -4161,7 +4172,6 @@ class CustomifyEmbed {
     this.textOverlayOriginalWatermarked = null;
     this.textOverlayState = { ...this.textOverlayState, text: '', applied: false };
     this.spotifyCropConfirmed = false;
-    this.spotifyCropDataUrl = null;
     this.closeSpotifyCropper();
     if (this.textOverlayInput) {
       this.textOverlayInput.value = '';

@@ -127,6 +127,9 @@
 
     <!-- CUSTOMIFY INTEGRATION -->
     <link rel="stylesheet" href="{{ 'customify.css' | asset_url }}">
+    {% if product and product.handle == 'ramka-spotify' %}
+      <link rel="stylesheet" href="https://unpkg.com/cropperjs@1.6.2/dist/cropper.min.css">
+    {% endif %}
     
     <!-- FIX: Preload obrazków produktu - eliminuje skakanie -->
     {% if template contains 'product' %}
@@ -161,6 +164,9 @@
     </script>
     
     <script src="{{ 'customify.js' | asset_url }}" defer></script>
+    {% if product and product.handle == 'ramka-spotify' %}
+      <script src="https://unpkg.com/cropperjs@1.6.2/dist/cropper.min.js" defer></script>
+    {% endif %}
     <script>
       (function() {
         function applyCustomifyCartOverride() {
@@ -3337,12 +3343,17 @@
           </div>
         {% endif %}
         <!-- Wybór rodzaju wydruku - NAD sekcją rozmiarów -->
-        <div class="customify-product-type-selector" id="productTypeArea" style="{% if product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem-karykatura' or product.handle == 'ramka-spotify' %}display: none;{% else %}display: block; margin-bottom: 10px;{% endif %}">
+        <div class="customify-product-type-selector" id="productTypeArea" style="{% if product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem-karykatura' %}display: none;{% else %}display: block; margin-bottom: 10px;{% endif %}">
           <h4 style="text-align: left; font-size: 0.95rem; font-weight: 600;">Rodzaj wydruku:</h4>
           <div class="customify-product-type-buttons">
             {% comment %} FILTRUJ RODZAJE WYDRUKU PER PRODUKT {% endcomment %}
             {% if product.handle == 'karykatura-na-zamowienie-druk-na-szkle-akrylowym-ramka-z-podswietleniem' or product.handle == 'prezent-dla-babci-i-dziadka-portret-na-na-szkle-akrylowym-ze-zdjecia-karykatura' or product.handle == 'dziadkowie-krolowie-nadruk-na-szkle' or product.handle == 'portret-pary-personalizowany-obraz-na-szkle-akrylowym' %}
               {% comment %} TYLKO SZKŁO dla produktów na szkle akrylowym {% endcomment %}
+              <div class="customify-product-type-btn active" data-product-type="szklo">
+                Nadruk na szkle (dodaj podstawkę)
+              </div>
+            {% elsif product.handle == 'ramka-spotify' %}
+              {% comment %} TYLKO SZKŁO dla ramka-spotify {% endcomment %}
               <div class="customify-product-type-btn active" data-product-type="szklo">
                 Nadruk na szkle (dodaj podstawkę)
               </div>
@@ -3442,12 +3453,29 @@
               <h4>Twoje zdjęcie:</h4>
               {% if product.handle == 'ramka-spotify' %}
                 <div class="spotify-frame-preview">
-                  <img id="previewImage" alt="Podgląd zdjęcia">
+                  <div class="spotify-frame-inner">
+                    <img id="previewImage" alt="Podgląd zdjęcia">
+                  </div>
                 </div>
               {% else %}
                 <img id="previewImage" alt="Podgląd zdjęcia">
               {% endif %}
             </div>
+
+            {% if product.handle == 'ramka-spotify' %}
+              <div id="spotifyCropModal" class="spotify-crop-modal" aria-hidden="true">
+                <div class="spotify-crop-dialog">
+                  <h4>Ustaw kadr zdjęcia</h4>
+                  <div class="spotify-crop-canvas">
+                    <img id="spotifyCropImage" alt="Kadrowanie zdjęcia">
+                  </div>
+                  <div class="spotify-crop-actions">
+                    <button type="button" class="customify-btn customify-btn-secondary" id="spotifyCropCancelBtn">Anuluj</button>
+                    <button type="button" class="customify-btn customify-btn-primary" id="spotifyCropConfirmBtn">Zapisz kadr</button>
+                  </div>
+                </div>
+              </div>
+            {% endif %}
 
             <div class="customify-styles" id="stylesArea" style="display: block;">
               <h4>Wybierz styl</h4>
@@ -3821,7 +3849,9 @@
               <h4>Twój obraz:</h4>
               {% if product.handle == 'ramka-spotify' %}
                 <div class="spotify-frame-result">
-                  <img id="resultImage" alt="Wynik AI">
+                  <div class="spotify-frame-inner">
+                    <img id="resultImage" alt="Wynik AI">
+                  </div>
                 </div>
               {% else %}
                 <img id="resultImage" alt="Wynik AI">
@@ -4197,58 +4227,31 @@
         }
 
         {% if product.handle == 'ramka-spotify' %}
-        /* Spotify frame - stały rozmiar 1024x1536 + skalowanie JS */
+        /* Spotify frame preview - tylko dla ramka-spotify */
         #customify-app-container .spotify-frame-preview,
         #customify-app-container .spotify-frame-result {
           position: relative;
           width: 100%;
-          max-width: 420px;
+          max-width: 460px;
           margin: 0 auto;
-          aspect-ratio: 2 / 3;
+          padding: 20px;
           background: #f4f4f4;
           box-sizing: border-box;
-          overflow: visible;
         }
-        @media (max-width: 768px) {
-          #customify-app-container .spotify-frame-preview,
-          #customify-app-container .spotify-frame-result {
-            max-width: 100%;
-          }
-        }
-        #customify-app-container .spotify-frame-inner,
-        #customify-app-container #resultArea .spotify-frame-inner {
+        #customify-app-container .spotify-frame-inner {
           position: relative;
-          width: 1024px;
-          height: 1536px;
-          transform-origin: top left;
+          width: 100%;
+          aspect-ratio: 2 / 3;
         }
         #customify-app-container .spotify-frame-inner::before {
           content: '';
           position: absolute;
           inset: 0;
-          background: url('https://customify-s56o.vercel.app/spotify/spotify-frame.png') center/contain no-repeat;
+          border: 1px solid #ffffff;
+          box-sizing: border-box;
           pointer-events: none;
-          z-index: 2;
         }
-        /* Obrazek - procenty względem kontenera - !important bo .customify-result img nadpisuje */
-        #customify-app-container .spotify-frame-preview img,
-        #customify-app-container .spotify-frame-result img {
-          position: absolute !important;
-          left: 6% !important;
-          top: 4% !important;
-          width: 88% !important;
-          height: auto !important;
-          max-width: none !important;
-          max-height: none !important;
-          border-radius: 8px !important;
-          z-index: 1;
-        }
-        /* Ukryj previewArea gdy resultArea jest widoczny (po generacji) */
-        #customify-app-container #resultArea[style*="display: block"] ~ #previewArea,
-        #customify-app-container.has-result #previewArea {
-          display: none !important;
-        }
-        #customify-app-container .spotify-frame-preview::after {
+        #customify-app-container .spotify-frame-inner::after {
           content: '';
           position: absolute;
           inset: 0;
@@ -4257,10 +4260,10 @@
         }
         #customify-app-container .spotify-frame-inner img {
           position: absolute;
-          left: 61px;
-          top: 61px;
-          width: 902px;
-          height: 799px;
+          left: 6%;
+          top: 4%;
+          width: 88%;
+          height: 52%;
           object-fit: cover;
           border-radius: 8px;
         }
