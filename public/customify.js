@@ -57,6 +57,7 @@ class CustomifyEmbed {
     this.spotifyCropper = null;
     this.spotifyCropSourceUrl = null;
     this.spotifyCropConfirmed = false;
+    this.spotifyCropDataUrl = null;
 
     this.uploadedFile = null;
     this.selectedStyle = null;
@@ -229,6 +230,8 @@ class CustomifyEmbed {
         console.log('🎵 [SPOTIFY] Ustawiam selectedProductType = szklo');
       }
     }
+    this.updateSpotifyFrameScale();
+    window.addEventListener('resize', () => this.updateSpotifyFrameScale());
 
     // Zaktualizuj dostępność rozmiarów po początkowej synchronizacji
     this.updateSizeAvailability();
@@ -2399,6 +2402,24 @@ class CustomifyEmbed {
     }
   }
 
+  updateSpotifyFrameScale() {
+    if (!this.isSpotifyProduct()) return;
+    const containers = document.querySelectorAll('.spotify-frame-preview, .spotify-frame-result');
+    if (!containers.length) return;
+
+    containers.forEach(container => {
+      const inner = container.querySelector('.spotify-frame-inner');
+      if (!inner) return;
+      const styles = window.getComputedStyle(container);
+      const padX = parseFloat(styles.paddingLeft || '0') + parseFloat(styles.paddingRight || '0');
+      const padY = parseFloat(styles.paddingTop || '0') + parseFloat(styles.paddingBottom || '0');
+      const availableWidth = Math.max(0, container.clientWidth - padX);
+      const scale = availableWidth / 1024;
+      inner.style.transform = `scale(${scale})`;
+      container.style.height = `${1536 * scale + padY}px`;
+    });
+  }
+
   getTextOverlayPayload() {
     if (!this.textOverlayEnabled || !this.textOverlayState.applied) return null;
     return {
@@ -2476,6 +2497,7 @@ class CustomifyEmbed {
       }
       const croppedFile = new File([blob], `spotify-crop-${Date.now()}.jpg`, { type: 'image/jpeg' });
       this.uploadedFile = croppedFile;
+      this.spotifyCropDataUrl = canvas.toDataURL('image/jpeg', 0.9);
       this.spotifyCropConfirmed = true;
       this.closeSpotifyCropper();
       this.showPreview(croppedFile);
@@ -2486,6 +2508,7 @@ class CustomifyEmbed {
   cancelSpotifyCrop() {
     this.uploadedFile = null;
     this.spotifyCropConfirmed = false;
+    this.spotifyCropDataUrl = null;
     if (this.fileInput) {
       this.fileInput.value = '';
     }
@@ -3092,7 +3115,9 @@ class CustomifyEmbed {
     }
 
     try {
-      const base64 = await this.fileToBase64(this.uploadedFile);
+      const base64 = (this.isSpotifyProduct() && this.spotifyCropConfirmed && this.spotifyCropDataUrl)
+        ? this.spotifyCropDataUrl
+        : await this.fileToBase64(this.uploadedFile);
       console.log('📱 [MOBILE] Starting transform request...');
       
       // Create AbortController for timeout
@@ -3603,6 +3628,7 @@ class CustomifyEmbed {
     
     // ✅ POKAŻ CENĘ NAD PRZYCISKIEM po wygenerowaniu AI
     this.updateCartPrice();
+    this.updateSpotifyFrameScale();
   }
 
   // NAPRAWIONA FUNKCJA: STWÓRZ NOWY PRODUKT Z OBRAZKIEM AI (UKRYTY W KATALOGU)
@@ -4083,6 +4109,7 @@ class CustomifyEmbed {
     this.textOverlayOriginalWatermarked = null;
     this.textOverlayState = { ...this.textOverlayState, text: '', applied: false };
     this.spotifyCropConfirmed = false;
+    this.spotifyCropDataUrl = null;
     this.closeSpotifyCropper();
     if (this.textOverlayInput) {
       this.textOverlayInput.value = '';
@@ -4144,6 +4171,7 @@ class CustomifyEmbed {
     this.textOverlayOriginalWatermarked = null;
     this.textOverlayState = { ...this.textOverlayState, text: '', applied: false };
     this.spotifyCropConfirmed = false;
+    this.spotifyCropDataUrl = null;
     this.closeSpotifyCropper();
     if (this.textOverlayInput) {
       this.textOverlayInput.value = '';
