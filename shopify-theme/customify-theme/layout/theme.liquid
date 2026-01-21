@@ -4241,46 +4241,12 @@
         #customify-app-container.has-result #previewArea {
           display: none !important;
         }
-
-        /* Crop modal */
-        .spotify-crop-modal {
-          position: fixed;
+        #customify-app-container .spotify-frame-preview::after {
+          content: '';
+          position: absolute;
           inset: 0;
-          background: rgba(0, 0, 0, 0.6);
-          display: none;
-          align-items: center;
-          justify-content: center;
-          z-index: 999999;
-          padding: 16px;
-          box-sizing: border-box;
-        }
-        .spotify-crop-modal.is-open {
-          display: flex;
-        }
-        .spotify-crop-dialog {
-          width: 100%;
-          max-width: 520px;
-          background: #ffffff;
-          border-radius: 12px;
-          padding: 16px;
-          box-sizing: border-box;
-        }
-        .spotify-crop-canvas {
-          width: 100%;
-          max-height: 70vh;
-          overflow: hidden;
-          border-radius: 8px;
-          background: #f4f4f4;
-          margin: 12px 0;
-        }
-        .spotify-crop-canvas img {
-          max-width: 100%;
-          display: block;
-        }
-        .spotify-crop-actions {
-          display: flex;
-          gap: 10px;
-          justify-content: flex-end;
+          background: url('https://customify-s56o.vercel.app/spotify/spotify-frame.png') center/contain no-repeat;
+          pointer-events: none;
         }
         {% endif %}
         
