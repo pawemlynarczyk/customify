@@ -4427,8 +4427,8 @@
           transition: border-color 0.2s;
         }
         .spotify-text-input-large {
-          font-size: 1.4rem;
-          padding: 16px 18px;
+          font-size: 1rem;
+          padding: 12px 14px;
         }
         .spotify-text-input:focus {
           outline: none;
@@ -4459,22 +4459,22 @@
           left: 61px;
           right: 61px;
           top: 1000px;
-          text-align: center;
+          text-align: left;
           pointer-events: none;
           z-index: 100;
         }
         .spotify-text-title {
-          font-size: 42px;
+          font-size: 72px;
           font-weight: 700;
-          color: #000000;
-          margin-bottom: 4px;
+          color: #ffffff;
+          margin-bottom: 6px;
           word-wrap: break-word;
           line-height: 1.2;
         }
         .spotify-text-artist {
-          font-size: 28px;
+          font-size: 48px;
           font-weight: 400;
-          color: #333333;
+          color: #ffffff;
           word-wrap: break-word;
           line-height: 1.2;
         }
@@ -4506,6 +4506,34 @@
           height: 1536px;
           transform-origin: top left;
           transform: scale(0.4);
+          background: linear-gradient(145deg, #f8f8f8 0%, #e0e0e0 50%, #d0d0d0 100%);
+          border-radius: 24px;
+          box-shadow: 
+            0 25px 50px rgba(0, 0, 0, 0.25),
+            0 10px 20px rgba(0, 0, 0, 0.15),
+            inset 0 1px 0 rgba(255, 255, 255, 0.6),
+            inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+        }
+        /* Odbicie pod ramką */
+        #customify-app-container .spotify-frame-preview::after,
+        #customify-app-container .spotify-frame-result::after {
+          content: '';
+          position: absolute;
+          bottom: -80px;
+          left: 10%;
+          right: 10%;
+          height: 60px;
+          background: linear-gradient(to bottom, rgba(0,0,0,0.15) 0%, transparent 100%);
+          filter: blur(8px);
+          border-radius: 50%;
+          z-index: -1;
+        }
+        /* Tło za ramką - zdjęcie mieszkania (tylko podgląd, nie w pliku do druku) */
+        #customify-app-container .spotify-frame-preview,
+        #customify-app-container .spotify-frame-result {
+          background: url('https://customify-s56o.vercel.app/spotify/tlo_mieszk.jpg') center/cover no-repeat;
+          border-radius: 16px;
+          padding: 30px;
         }
         #customify-app-container .spotify-frame-preview,
         #customify-app-container .spotify-frame-result {
@@ -4523,7 +4551,7 @@
           content: '';
           position: absolute;
           inset: 0;
-          background: url('https://customify-s56o.vercel.app/spotify/spotify-frame.png') center/contain no-repeat;
+          background: url('https://customify-s56o.vercel.app/spotify/biale_male.png') center/contain no-repeat;
           pointer-events: none;
         }
         #customify-app-container .spotify-frame-inner img {

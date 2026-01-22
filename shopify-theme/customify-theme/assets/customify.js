@@ -2486,21 +2486,21 @@ class CustomifyEmbed {
           // Pozycja tekstów (między zdjęciem a kontrolerami)
           const textY = 1020;
           
-          // Nagłówek - gruby, większy, BIAŁY
+          // Nagłówek - gruby, BIAŁY, wyrównany do lewej
           if (titleText) {
-            ctx.font = 'bold 42px Arial, sans-serif';
+            ctx.font = 'bold 72px Arial, sans-serif';
             ctx.fillStyle = '#ffffff';
-            ctx.textAlign = 'center';
-            ctx.fillText(titleText, canvas.width / 2, textY);
+            ctx.textAlign = 'left';
+            ctx.fillText(titleText, 61, textY);
             console.log('🎵 [SPOTIFY COMPOSE] Title added:', titleText);
           }
           
-          // Podpis - cieńszy, mniejszy, BIAŁY
+          // Podpis - cieńszy, BIAŁY, wyrównany do lewej
           if (artistText) {
-            ctx.font = '28px Arial, sans-serif';
+            ctx.font = '48px Arial, sans-serif';
             ctx.fillStyle = '#ffffff';
-            ctx.textAlign = 'center';
-            ctx.fillText(artistText, canvas.width / 2, textY + 45);
+            ctx.textAlign = 'left';
+            ctx.fillText(artistText, 61, textY + 70);
             console.log('🎵 [SPOTIFY COMPOSE] Artist added:', artistText);
           }
           
