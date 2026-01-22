@@ -3585,17 +3585,18 @@
             {% if product.handle == 'ramka-spotify' %}
             <!-- Panel tekstów dla ramka-spotify - widoczny zawsze -->
             <div class="spotify-text-panel" id="spotifyTextPanel">
+              <h3 class="spotify-panel-title">Dodaj napis</h3>
               <div class="spotify-text-field">
                 <label class="spotify-text-label">Nagłówek <span class="required">*</span></label>
                 <div class="spotify-input-wrapper">
-                  <input type="text" id="spotifyTitle" class="spotify-text-input" placeholder="PRAWDZIWA MIŁOŚĆ" maxlength="30">
+                  <input type="text" id="spotifyTitle" class="spotify-text-input spotify-text-input-large" placeholder="PRAWDZIWA MIŁOŚĆ" maxlength="30">
                   <span class="spotify-char-counter" id="spotifyTitleCounter">0/30</span>
                 </div>
               </div>
               <div class="spotify-text-field">
                 <label class="spotify-text-label">Podpis <span class="required">*</span></label>
                 <div class="spotify-input-wrapper">
-                  <input type="text" id="spotifyArtist" class="spotify-text-input" placeholder="Sara i Janek" maxlength="40">
+                  <input type="text" id="spotifyArtist" class="spotify-text-input spotify-text-input-large" placeholder="Sara i Janek" maxlength="40">
                   <span class="spotify-char-counter" id="spotifyArtistCounter">0/40</span>
                 </div>
               </div>
@@ -4396,6 +4397,14 @@
         .spotify-text-field {
           margin-bottom: 16px;
         }
+        .spotify-panel-title {
+          font-size: 1.3rem;
+          font-weight: 700;
+          color: #111;
+          margin: 0 0 16px 0;
+          padding-bottom: 8px;
+          border-bottom: 2px solid #1DB954;
+        }
         .spotify-text-label {
           display: block;
           font-size: 0.9rem;
@@ -4417,6 +4426,10 @@
           box-sizing: border-box;
           transition: border-color 0.2s;
         }
+        .spotify-text-input-large {
+          font-size: 1.4rem;
+          padding: 16px 18px;
+        }
         .spotify-text-input:focus {
           outline: none;
           border-color: #111;
@@ -4430,7 +4443,7 @@
           align-items: center;
         }
         .spotify-input-wrapper .spotify-text-input {
-          padding-right: 50px;
+          padding-right: 60px;
         }
         .spotify-char-counter {
           position: absolute;

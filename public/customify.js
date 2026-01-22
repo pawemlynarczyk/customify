@@ -2471,7 +2471,7 @@ class CustomifyEmbed {
         // 3. Nałóż maskę spotify
         const maskImage = new Image();
         maskImage.crossOrigin = 'anonymous';
-        maskImage.src = 'https://customify-s56o.vercel.app/spotify/spotify-frame.png';
+        maskImage.src = 'https://customify-s56o.vercel.app/spotify/biale_male.png';
         
         maskImage.onload = () => {
           console.log('🎵 [SPOTIFY COMPOSE] Mask loaded');
@@ -2486,19 +2486,19 @@ class CustomifyEmbed {
           // Pozycja tekstów (między zdjęciem a kontrolerami)
           const textY = 1020;
           
-          // Nagłówek - gruby, większy
+          // Nagłówek - gruby, większy, BIAŁY
           if (titleText) {
             ctx.font = 'bold 42px Arial, sans-serif';
-            ctx.fillStyle = '#000000';
+            ctx.fillStyle = '#ffffff';
             ctx.textAlign = 'center';
             ctx.fillText(titleText, canvas.width / 2, textY);
             console.log('🎵 [SPOTIFY COMPOSE] Title added:', titleText);
           }
           
-          // Podpis - cieńszy, mniejszy
+          // Podpis - cieńszy, mniejszy, BIAŁY
           if (artistText) {
             ctx.font = '28px Arial, sans-serif';
-            ctx.fillStyle = '#333333';
+            ctx.fillStyle = '#ffffff';
             ctx.textAlign = 'center';
             ctx.fillText(artistText, canvas.width / 2, textY + 45);
             console.log('🎵 [SPOTIFY COMPOSE] Artist added:', artistText);
