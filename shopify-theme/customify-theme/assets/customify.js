@@ -2431,6 +2431,102 @@ class CustomifyEmbed {
     }
   }
 
+  /**
+   * 🎵 Komponuje finalny obraz dla ramka-spotify
+   * Zawiera: tło + zdjęcie użytkownika + maska spotify + teksty
+   * @returns {Promise<string>} Base64 skomponowanego obrazu
+   */
+  async composeSpotifyImage() {
+    return new Promise((resolve, reject) => {
+      console.log('🎵 [SPOTIFY COMPOSE] Starting image composition...');
+      
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      
+      // Wymiary ramki spotify
+      canvas.width = 1024;
+      canvas.height = 1536;
+      
+      // 1. Białe tło
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // 2. Zdjęcie użytkownika (wykadrowane)
+      const userImage = new Image();
+      userImage.crossOrigin = 'anonymous';
+      
+      // Użyj wykadrowanego zdjęcia lub transformedImage
+      const imageSource = this.spotifyCropDataUrl || this.transformedImage;
+      
+      if (!imageSource) {
+        reject(new Error('Brak zdjęcia do kompozycji'));
+        return;
+      }
+      
+      userImage.onload = () => {
+        console.log('🎵 [SPOTIFY COMPOSE] User image loaded:', userImage.width, 'x', userImage.height);
+        
+        // Rysuj zdjęcie użytkownika w pozycji 61,61 o rozmiarze 902x902
+        ctx.drawImage(userImage, 61, 61, 902, 902);
+        
+        // 3. Nałóż maskę spotify
+        const maskImage = new Image();
+        maskImage.crossOrigin = 'anonymous';
+        maskImage.src = 'https://customify-s56o.vercel.app/spotify/spotify-frame.png';
+        
+        maskImage.onload = () => {
+          console.log('🎵 [SPOTIFY COMPOSE] Mask loaded');
+          ctx.drawImage(maskImage, 0, 0, canvas.width, canvas.height);
+          
+          // 4. Dodaj teksty
+          const titleInput = document.getElementById('spotifyTitle');
+          const artistInput = document.getElementById('spotifyArtist');
+          const titleText = titleInput ? titleInput.value : '';
+          const artistText = artistInput ? artistInput.value : '';
+          
+          // Pozycja tekstów (między zdjęciem a kontrolerami)
+          const textY = 1020;
+          
+          // Nagłówek - gruby, większy
+          if (titleText) {
+            ctx.font = 'bold 42px Arial, sans-serif';
+            ctx.fillStyle = '#000000';
+            ctx.textAlign = 'center';
+            ctx.fillText(titleText, canvas.width / 2, textY);
+            console.log('🎵 [SPOTIFY COMPOSE] Title added:', titleText);
+          }
+          
+          // Podpis - cieńszy, mniejszy
+          if (artistText) {
+            ctx.font = '28px Arial, sans-serif';
+            ctx.fillStyle = '#333333';
+            ctx.textAlign = 'center';
+            ctx.fillText(artistText, canvas.width / 2, textY + 45);
+            console.log('🎵 [SPOTIFY COMPOSE] Artist added:', artistText);
+          }
+          
+          // 5. Eksportuj jako base64
+          const composedImage = canvas.toDataURL('image/jpeg', 0.92);
+          console.log('🎵 [SPOTIFY COMPOSE] Image composed, size:', composedImage.length);
+          
+          resolve(composedImage);
+        };
+        
+        maskImage.onerror = (err) => {
+          console.error('🎵 [SPOTIFY COMPOSE] Failed to load mask:', err);
+          reject(new Error('Nie udało się załadować maski spotify'));
+        };
+      };
+      
+      userImage.onerror = (err) => {
+        console.error('🎵 [SPOTIFY COMPOSE] Failed to load user image:', err);
+        reject(new Error('Nie udało się załadować zdjęcia'));
+      };
+      
+      userImage.src = imageSource;
+    });
+  }
+
   getTextOverlayPayload() {
     if (!this.textOverlayEnabled || !this.textOverlayState.applied) return null;
     return {
@@ -3755,23 +3851,47 @@ class CustomifyEmbed {
         console.warn('⚠️ [CUSTOMIFY] No original image available, using transformed image as fallback');
       }
 
-      // ✅ TYLKO BACKEND WATERMARK - już jest na Vercel Blob, nie trzeba uploadować ponownie!
+      // 🎵 SPOTIFY: Komponuj finalny obraz z maską i tekstami
+      let finalTransformedImage = this.transformedImage;
       let watermarkedImageUrl = this.watermarkedImageUrl || null;
+      let needsBackendWatermark = false;
       
-      if (!watermarkedImageUrl) {
+      if (this.isSpotifyProduct()) {
+        console.log('🎵 [SPOTIFY] Composing final image with mask and texts...');
+        try {
+          finalTransformedImage = await this.composeSpotifyImage();
+          console.log('✅ [SPOTIFY] Image composed successfully, length:', finalTransformedImage.length);
+          // Dla spotify - backend musi dodać watermark do skomponowanego obrazu
+          watermarkedImageUrl = null;
+          needsBackendWatermark = true;
+        } catch (err) {
+          console.error('❌ [SPOTIFY] Failed to compose image:', err);
+          this.showError('Nie udało się przygotować obrazu. Spróbuj ponownie.', 'cart');
+          this.hideLoading();
+          return;
+        }
+      }
+      
+      // ✅ TYLKO BACKEND WATERMARK - już jest na Vercel Blob, nie trzeba uploadować ponownie!
+      if (!watermarkedImageUrl && !needsBackendWatermark) {
         console.error('❌ [CUSTOMIFY] Brak backend watermarkedImageUrl - nie można dodać do koszyka!');
         alert('Wystąpił błąd podczas generowania obrazu. Spróbuj wygenerować obraz ponownie klikając "Przekształć z AI".');
         this.hideLoading();
         return; // Blokada dodania do koszyka
       }
       
-      console.log('✅ [CUSTOMIFY] Używam backend watermarkedImageUrl (już na Vercel Blob):', watermarkedImageUrl.substring(0, 100));
+      if (watermarkedImageUrl) {
+        console.log('✅ [CUSTOMIFY] Używam backend watermarkedImageUrl (już na Vercel Blob):', watermarkedImageUrl.substring(0, 100));
+      } else {
+        console.log('🎵 [SPOTIFY] Backend doda watermark do skomponowanego obrazu');
+      }
 
       const productData = {
         originalImage: originalImage,
-        transformedImage: this.transformedImage,
+        transformedImage: finalTransformedImage, // 🎵 Dla spotify: skomponowany obraz, dla innych: this.transformedImage
         watermarkedImage: watermarkedImageUrl, // ✅ URL obrazka z watermarkiem (fallback dla starych wersji)
-        watermarkedImageUrl: watermarkedImageUrl, // ✅ URL obrazka z watermarkiem (backend PNG - PRIORYTET)
+        watermarkedImageUrl: watermarkedImageUrl, // ✅ URL obrazka z watermarkiem (backend PNG - PRIORYTET), null dla spotify
+        needsBackendWatermark: needsBackendWatermark, // 🎵 Dla spotify: backend musi dodać watermark
         watermarkedImageBase64: this.watermarkedImageBase64 || null, // ✅ NOWE: Base64 watermarku (dla /api/products - BEZ PONOWNEGO DOWNLOADU)
         style: this.selectedStyle,
         size: this.selectedSize,

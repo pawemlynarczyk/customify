@@ -1,6 +1,74 @@
 const { checkRateLimit, getClientIP } = require('../utils/vercelRateLimiter');
 const { put } = require('@vercel/blob');
 
+// Import Sharp for watermark (optional - may not be available in all environments)
+let sharp;
+try {
+  sharp = require('sharp');
+  console.log('✅ [PRODUCTS] Sharp loaded successfully');
+} catch (e) {
+  console.warn('⚠️ [PRODUCTS] Sharp not available:', e.message);
+  sharp = null;
+}
+
+// 🎵 Function to add watermark to image for Spotify products
+async function addWatermarkForSpotify(imageBuffer) {
+  if (!sharp) {
+    console.warn('⚠️ [WATERMARK] Sharp not available, returning original image');
+    return imageBuffer;
+  }
+  
+  try {
+    console.log('🎨 [WATERMARK-SPOTIFY] Adding PNG watermark to Spotify image...');
+    
+    // Pobierz watermark PNG
+    const watermarkUrl = 'https://customify-s56o.vercel.app/watermark_22.png';
+    console.log('📥 [WATERMARK-SPOTIFY] Fetching watermark PNG:', watermarkUrl);
+    
+    const watermarkResponse = await fetch(watermarkUrl);
+    if (!watermarkResponse.ok) {
+      throw new Error(`Failed to fetch watermark: ${watermarkResponse.status}`);
+    }
+    const watermarkArrayBuffer = await watermarkResponse.arrayBuffer();
+    const watermarkBuffer = Buffer.from(watermarkArrayBuffer);
+    console.log('✅ [WATERMARK-SPOTIFY] Watermark PNG fetched:', watermarkBuffer.length, 'bytes');
+    
+    // Get image metadata
+    const metadata = await sharp(imageBuffer).metadata();
+    const width = metadata.width || 1024;
+    const height = metadata.height || 1536;
+    console.log('📏 [WATERMARK-SPOTIFY] Image dimensions:', width, 'x', height);
+    
+    // Skaluj watermark do 60% szerokości obrazu
+    const watermarkWidth = Math.round(width * 0.6);
+    const resizedWatermark = await sharp(watermarkBuffer)
+      .resize(watermarkWidth, null, { fit: 'inside' })
+      .toBuffer();
+    
+    // Pozycjonuj watermark na środku-dole
+    const resizedWatermarkMeta = await sharp(resizedWatermark).metadata();
+    const left = Math.round((width - resizedWatermarkMeta.width) / 2);
+    const top = Math.round(height * 0.75 - resizedWatermarkMeta.height / 2);
+    
+    // Nałóż watermark
+    const watermarkedBuffer = await sharp(imageBuffer)
+      .composite([{
+        input: resizedWatermark,
+        left: left,
+        top: top,
+        blend: 'over'
+      }])
+      .jpeg({ quality: 92 })
+      .toBuffer();
+    
+    console.log('✅ [WATERMARK-SPOTIFY] Watermark applied successfully');
+    return watermarkedBuffer;
+  } catch (err) {
+    console.error('❌ [WATERMARK-SPOTIFY] Error adding watermark:', err);
+    return imageBuffer; // Fallback to original
+  }
+}
+
 module.exports = async (req, res) => {
   // ✅ POPRAWIONE CORS - nie można używać credentials: true z origin: *
   const origin = req.headers.origin;
@@ -42,6 +110,7 @@ module.exports = async (req, res) => {
     watermarkedImage, // ✅ Obrazek Z watermarkiem (frontend fallback) - do uploadu na Shopify (miniaturka)
     watermarkedImageUrl, // ✅ Obrazek Z watermarkiem (backend PNG) - PRIORYTET - do uploadu na Shopify (miniaturka)
     watermarkedImageBase64, // ✅ NOWE: Base64 obrazka z watermarkiem (z /api/transform) - BEZPOŚREDNI UPLOAD BEZ DOWNLOADU
+    needsBackendWatermark, // 🎵 SPOTIFY: Backend musi dodać watermark do skomponowanego obrazu
     style, 
     size, 
     productType, // Rodzaj wydruku: plakat, canvas lub szklo
@@ -244,8 +313,33 @@ module.exports = async (req, res) => {
     let imageBuffer;
     let contentType = 'image/jpeg'; // Domyślnie JPEG
     
+    // 🎵 PRIORYTET 0: SPOTIFY - transformedImage to skomponowany obraz, musimy dodać watermark
+    if (needsBackendWatermark && transformedImage) {
+      console.log('🎵 [PRODUCTS] SPOTIFY: Adding watermark to composed image...');
+      
+      // Pobierz transformedImage (base64) i dodaj watermark
+      let transformedBuffer;
+      if (transformedImage.startsWith('data:image')) {
+        const base64Data = transformedImage.split(',')[1];
+        transformedBuffer = Buffer.from(base64Data, 'base64');
+      } else if (transformedImage.startsWith('http')) {
+        const response = await fetch(transformedImage);
+        const arrayBuffer = await response.arrayBuffer();
+        transformedBuffer = Buffer.from(arrayBuffer);
+      } else {
+        transformedBuffer = Buffer.from(transformedImage, 'base64');
+      }
+      
+      console.log('🎵 [PRODUCTS] Transformed image loaded:', transformedBuffer.length, 'bytes');
+      
+      // Dodaj watermark
+      imageBuffer = await addWatermarkForSpotify(transformedBuffer);
+      contentType = 'image/jpeg';
+      
+      console.log('✅ [PRODUCTS] SPOTIFY: Watermark added, final size:', imageBuffer.length, 'bytes');
+      
+    } else if (watermarkedImageBase64) {
     // ✅ PRIORYTET 1: watermarkedImageBase64 (bezpośrednio z /api/transform - BEZ DOWNLOADU!)
-    if (watermarkedImageBase64) {
       console.log('✅ [PRODUCTS] Using watermarkedImageBase64 directly (no download needed)');
       
       // Sprawdź czy to jest data URI czy czysty base64

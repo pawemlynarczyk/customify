@@ -171,7 +171,6 @@
         document.addEventListener('DOMContentLoaded', function() {
           const titleInput = document.getElementById('spotifyTitle');
           const artistInput = document.getElementById('spotifyArtist');
-          const songInput = document.getElementById('spotifySong');
           // Teksty w preview
           const titleDisplayPreview = document.getElementById('spotifyTextTitlePreview');
           const artistDisplayPreview = document.getElementById('spotifyTextArtistPreview');
@@ -181,7 +180,6 @@
           // Liczniki
           const titleCounter = document.getElementById('spotifyTitleCounter');
           const artistCounter = document.getElementById('spotifyArtistCounter');
-          const songCounter = document.getElementById('spotifySongCounter');
           
           function updateSpotifyText() {
             const titleText = titleInput ? titleInput.value : '';
@@ -201,15 +199,11 @@
             if (artistCounter && artistInput) {
               artistCounter.textContent = artistInput.value.length + '/' + artistInput.maxLength;
             }
-            if (songCounter && songInput) {
-              songCounter.textContent = songInput.value.length + '/' + songInput.maxLength;
-            }
           }
           
           // Nasłuchuj zmian w polach
           if (titleInput) titleInput.addEventListener('input', updateSpotifyText);
           if (artistInput) artistInput.addEventListener('input', updateSpotifyText);
-          if (songInput) songInput.addEventListener('input', updateSpotifyText);
           
           // Inicjalizuj
           updateSpotifyText();
@@ -3534,13 +3528,6 @@
                   <span class="spotify-char-counter" id="spotifyArtistCounter">0/40</span>
                 </div>
               </div>
-              <div class="spotify-text-field">
-                <label class="spotify-text-label">Piosenka <span class="required">*</span></label>
-                <div class="spotify-input-wrapper">
-                  <input type="text" id="spotifySong" class="spotify-text-input" placeholder="Nazwa piosenki" maxlength="50">
-                  <span class="spotify-char-counter" id="spotifySongCounter">0/50</span>
-                </div>
-              </div>
             </div>
             {% endif %}
 
@@ -4395,8 +4382,7 @@
         .spotify-text-title {
           font-size: 42px;
           font-weight: 700;
-          color: #ffffff;
-          text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+          color: #000000;
           margin-bottom: 4px;
           word-wrap: break-word;
           line-height: 1.2;
@@ -4404,8 +4390,7 @@
         .spotify-text-artist {
           font-size: 28px;
           font-weight: 400;
-          color: #cccccc;
-          text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+          color: #333333;
           word-wrap: break-word;
           line-height: 1.2;
         }
