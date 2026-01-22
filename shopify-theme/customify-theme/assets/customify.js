@@ -2785,9 +2785,47 @@ class CustomifyEmbed {
       // Pokaż actionsArea z przyciskiem koszyka
       if (this.actionsArea) this.actionsArea.style.display = 'flex';
       
+      // 🎵 SPOTIFY: Przenieś elementy typu i rozmiaru pod preview (nie na górę strony!)
+      const spotifySlot = document.getElementById('spotify-type-size-slot');
+      if (spotifySlot && this.productTypeArea && this.sizeArea) {
+        spotifySlot.style.display = 'block';
+        spotifySlot.appendChild(this.productTypeArea);
+        spotifySlot.appendChild(this.sizeArea);
+        
+        // Przenieś też cenę i przyciski
+        const cartPriceDisplay = document.getElementById('cartPriceDisplay');
+        if (cartPriceDisplay) {
+          spotifySlot.appendChild(cartPriceDisplay);
+          cartPriceDisplay.style.display = 'block';
+        }
+        
+        // Przenieś przyciski koszyka
+        const addToCartBtn = document.getElementById('addToCartBtn');
+        const tryAgainBtn = document.getElementById('tryAgainBtn');
+        if (addToCartBtn && tryAgainBtn) {
+          // Stwórz kontener na przyciski jeśli nie istnieje
+          let btnContainer = document.getElementById('spotify-cart-buttons');
+          if (!btnContainer) {
+            btnContainer = document.createElement('div');
+            btnContainer.id = 'spotify-cart-buttons';
+            btnContainer.style.cssText = 'display: flex; gap: 10px; justify-content: center; margin-top: 15px;';
+            spotifySlot.appendChild(btnContainer);
+          }
+          btnContainer.appendChild(addToCartBtn);
+          btnContainer.appendChild(tryAgainBtn);
+          addToCartBtn.style.display = 'inline-block';
+          tryAgainBtn.style.display = 'inline-block';
+        }
+        
+        console.log('✅ [SPOTIFY] Przeniesiono elementy typu/rozmiaru/ceny/przycisków pod preview');
+      }
+      
       // Pokaż rozmiary i typ wydruku
       if (this.sizeArea) this.sizeArea.style.display = 'block';
       if (this.productTypeArea) this.productTypeArea.style.display = 'block';
+      
+      // Aktualizuj cenę
+      this.updateCartPrice();
       
       // Komunikat sukcesu
       this.showSuccess('Projekt gotowy! Wybierz parametry wydruku i dodaj do koszyka.');
