@@ -3856,7 +3856,15 @@ class CustomifyEmbed {
       let watermarkedImageUrl = this.watermarkedImageUrl || null;
       let needsBackendWatermark = false;
       
-      if (this.isSpotifyProduct()) {
+      // DEBUG: Sprawdź isSpotifyProduct
+      const isSpotify = this.isSpotifyProduct();
+      console.log('[SPOTIFY DEBUG] isSpotifyProduct():', isSpotify);
+      console.log('[SPOTIFY DEBUG] window.location.pathname:', window.location.pathname);
+      console.log('[SPOTIFY DEBUG] pathname.toLowerCase():', window.location.pathname.toLowerCase());
+      console.log('[SPOTIFY DEBUG] includes ramka-spotify:', window.location.pathname.toLowerCase().includes('ramka-spotify'));
+      console.log('[SPOTIFY DEBUG] this.isSpotifyProduct direct:', this.isSpotifyProduct());
+      
+      if (isSpotify) {
         console.log('🎵 [SPOTIFY] Composing final image with mask and texts...');
         try {
           finalTransformedImage = await this.composeSpotifyImage();
