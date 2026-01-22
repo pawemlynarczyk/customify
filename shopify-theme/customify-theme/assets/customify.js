@@ -2447,9 +2447,8 @@ class CustomifyEmbed {
       canvas.width = 1024;
       canvas.height = 1536;
       
-      // 1. Białe tło
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // 1. Przezroczyste tło (dla druku na szkle - podświetlane ramki)
+      // Canvas domyślnie ma przezroczyste tło
       
       // 2. Zdjęcie użytkownika (wykadrowane)
       const userImage = new Image();
@@ -2505,9 +2504,19 @@ class CustomifyEmbed {
             console.log('🎵 [SPOTIFY COMPOSE] Artist added:', artistText);
           }
           
-          // 5. Eksportuj jako base64
-          const composedImage = canvas.toDataURL('image/jpeg', 0.92);
-          console.log('🎵 [SPOTIFY COMPOSE] Image composed, size:', composedImage.length);
+          // 5. Eksportuj jako PNG (przezroczystość dla druku na szkle!)
+          const composedImagePNG = canvas.toDataURL('image/png');
+          console.log('🎵 [SPOTIFY COMPOSE] PNG for print, size:', composedImagePNG.length);
+          
+          // 6. Eksportuj również JPEG z szarym tłem (dla podglądu w koszyku)
+          ctx.globalCompositeOperation = 'destination-over';
+          ctx.fillStyle = '#f5f5f5';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          const composedImagePreview = canvas.toDataURL('image/jpeg', 0.92);
+          console.log('🎵 [SPOTIFY COMPOSE] JPEG preview, size:', composedImagePreview.length);
+          
+          // Zwróć oba obrazy
+          const composedImage = { png: composedImagePNG, preview: composedImagePreview };
           
           resolve(composedImage);
         };
@@ -3175,7 +3184,13 @@ class CustomifyEmbed {
       return;
     }
 
-    if (this.isSpotifyProduct() && !this.spotifyCropConfirmed) {
+    // Dla spotify: sprawdź czy zdjęcie zostało wykadrowane
+    // - spotifyCropConfirmed = true (świeżo wykadrowane)
+    // - lub uploadedFile.name zaczyna się od 'spotify-crop-' (już wykadrowane, po "spróbuj ponownie")
+    const isSpotifyCropped = this.spotifyCropConfirmed || 
+      (this.uploadedFile && this.uploadedFile.name && this.uploadedFile.name.startsWith('spotify-crop-'));
+    
+    if (this.isSpotifyProduct() && !isSpotifyCropped) {
       this.showError('Najpierw wykadruj zdjęcie', 'transform');
       return;
     }
@@ -3838,10 +3853,17 @@ class CustomifyEmbed {
       }
 
       // Sprawdź czy mamy uploadedFile (z upload) czy originalImage (z galerii)
+      console.log('[DEBUG] Before originalImage check');
+      console.log('[DEBUG] this.uploadedFile:', !!this.uploadedFile);
+      console.log('[DEBUG] this.originalImageFromGallery:', !!this.originalImageFromGallery);
+      console.log('[DEBUG] this.transformedImage:', !!this.transformedImage);
+      
       let originalImage;
       if (this.uploadedFile) {
         // Z upload - konwertuj plik na base64
+        console.log('[DEBUG] Before fileToBase64 call');
         originalImage = await this.fileToBase64(this.uploadedFile);
+        console.log('[DEBUG] After fileToBase64 call, originalImage length:', originalImage?.length);
       } else if (this.originalImageFromGallery) {
         // Z galerii - użyj zapisany originalImage
         originalImage = this.originalImageFromGallery;
@@ -3851,13 +3873,22 @@ class CustomifyEmbed {
         console.warn('⚠️ [CUSTOMIFY] No original image available, using transformed image as fallback');
       }
 
+      console.log('[DEBUG] After originalImage assignment, before SPOTIFY section');
+      console.log('[DEBUG] this.isSpotifyProduct() result:', this.isSpotifyProduct());
+
       // 🎵 SPOTIFY: Komponuj finalny obraz z maską i tekstami
+      console.log('[SPOTIFY CHECK] Reached SPOTIFY section in addToCart');
+      console.log('[SPOTIFY CHECK] this.transformedImage:', this.transformedImage?.substring(0, 50));
+      console.log('[SPOTIFY CHECK] this.watermarkedImageUrl:', this.watermarkedImageUrl?.substring(0, 50));
+      
       let finalTransformedImage = this.transformedImage;
       let watermarkedImageUrl = this.watermarkedImageUrl || null;
       let needsBackendWatermark = false;
       
       // DEBUG: Sprawdź isSpotifyProduct
+      console.log('[SPOTIFY CHECK] Before isSpotifyProduct() call');
       const isSpotify = this.isSpotifyProduct();
+      console.log('[SPOTIFY CHECK] After isSpotifyProduct() call, result:', isSpotify);
       console.log('[SPOTIFY DEBUG] isSpotifyProduct():', isSpotify);
       console.log('[SPOTIFY DEBUG] window.location.pathname:', window.location.pathname);
       console.log('[SPOTIFY DEBUG] pathname.toLowerCase():', window.location.pathname.toLowerCase());

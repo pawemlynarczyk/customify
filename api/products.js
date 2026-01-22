@@ -111,6 +111,7 @@ module.exports = async (req, res) => {
     watermarkedImageUrl, // ✅ Obrazek Z watermarkiem (backend PNG) - PRIORYTET - do uploadu na Shopify (miniaturka)
     watermarkedImageBase64, // ✅ NOWE: Base64 obrazka z watermarkiem (z /api/transform) - BEZPOŚREDNI UPLOAD BEZ DOWNLOADU
     needsBackendWatermark, // 🎵 SPOTIFY: Backend musi dodać watermark do skomponowanego obrazu
+    spotifyPreviewUrl, // 🎵 SPOTIFY: JPEG z szarym tłem - do koszyka (zamiast watermarku)
     style, 
     size, 
     productType, // Rodzaj wydruku: plakat, canvas lub szklo
@@ -313,9 +314,22 @@ module.exports = async (req, res) => {
     let imageBuffer;
     let contentType = 'image/jpeg'; // Domyślnie JPEG
     
-    // 🎵 PRIORYTET 0: SPOTIFY - transformedImage to skomponowany obraz, musimy dodać watermark
-    if (needsBackendWatermark && transformedImage) {
-      console.log('🎵 [PRODUCTS] SPOTIFY: Adding watermark to composed image...');
+    // 🎵 PRIORYTET 0: SPOTIFY - spotifyPreviewUrl to JPEG z szarym tłem (do koszyka)
+    if (spotifyPreviewUrl) {
+      console.log('🎵 [PRODUCTS] SPOTIFY: Using spotifyPreviewUrl for cart thumbnail');
+      console.log('🎵 [PRODUCTS] Preview URL:', spotifyPreviewUrl.substring(0, 100));
+      
+      // Pobierz preview image (JPEG z szarym tłem) - to będzie miniaturka w koszyku
+      const response = await fetch(spotifyPreviewUrl);
+      const arrayBuffer = await response.arrayBuffer();
+      imageBuffer = Buffer.from(arrayBuffer);
+      contentType = 'image/jpeg';
+      
+      console.log('✅ [PRODUCTS] SPOTIFY: Preview loaded, size:', imageBuffer.length, 'bytes');
+      
+    } else if (needsBackendWatermark && transformedImage) {
+      // Fallback: stara metoda - dodaj watermark do skomponowanego obrazu
+      console.log('🎵 [PRODUCTS] SPOTIFY FALLBACK: Adding watermark to composed image...');
       
       // Pobierz transformedImage (base64) i dodaj watermark
       let transformedBuffer;

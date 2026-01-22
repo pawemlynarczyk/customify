@@ -567,17 +567,84 @@
                 console.warn('⚠️ [CUSTOMIFY] No original image available, using transformed image as fallback');
               }
 
-              // ✅ TYLKO BACKEND WATERMARK - już jest na Vercel Blob, nie trzeba uploadować ponownie!
-              let watermarkedImageUrl = this.watermarkedImageUrl || null;
+              // 🎵 SPOTIFY: Komponuj finalny obraz z maską i tekstami
+              console.log('[SPOTIFY CHECK] Reached SPOTIFY section in addToCart');
+              console.log('[SPOTIFY CHECK] this.isSpotifyProduct():', this.isSpotifyProduct());
               
-              if (!watermarkedImageUrl) {
+              let finalTransformedImage = this.transformedImage;
+              let watermarkedImageUrl = this.watermarkedImageUrl || null;
+              let needsBackendWatermark = false;
+              
+              if (this.isSpotifyProduct()) {
+                console.log('🎵 [SPOTIFY] Composing final image with mask and texts...');
+                try {
+                  const composedImages = await this.composeSpotifyImage();
+                  console.log('✅ [SPOTIFY] Images composed - PNG:', composedImages.png.length, 'Preview:', composedImages.preview.length);
+                  
+                  // 🎵 Upload PNG (do druku - przezroczysty) na Vercel Blob
+                  console.log('🎵 [SPOTIFY] Uploading PNG (for print) to Vercel Blob...');
+                  const uploadPngResponse = await fetch('https://customify-s56o.vercel.app/api/upload-temp-image', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      imageData: composedImages.png,
+                      filename: `spotify-print-${Date.now()}.png`
+                    })
+                  });
+                  
+                  if (!uploadPngResponse.ok) {
+                    throw new Error('Failed to upload PNG to Vercel Blob');
+                  }
+                  
+                  const uploadPngResult = await uploadPngResponse.json();
+                  console.log('✅ [SPOTIFY] PNG uploaded:', uploadPngResult.url);
+                  
+                  // 🎵 Upload JPEG z szarym tłem (do koszyka - podgląd)
+                  console.log('🎵 [SPOTIFY] Uploading JPEG preview to Vercel Blob...');
+                  const uploadPreviewResponse = await fetch('https://customify-s56o.vercel.app/api/upload-temp-image', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      imageData: composedImages.preview,
+                      filename: `spotify-preview-${Date.now()}.jpg`
+                    })
+                  });
+                  
+                  if (!uploadPreviewResponse.ok) {
+                    throw new Error('Failed to upload preview to Vercel Blob');
+                  }
+                  
+                  const uploadPreviewResult = await uploadPreviewResponse.json();
+                  console.log('✅ [SPOTIFY] Preview uploaded:', uploadPreviewResult.url);
+                  
+                  // PNG (przezroczysty) idzie do druku, JPEG (szare tło) do koszyka
+                  finalTransformedImage = uploadPngResult.url;  // Do druku
+                  this.spotifyPreviewUrl = uploadPreviewResult.url;  // Do koszyka
+                  
+                  // Dla spotify - backend musi dodać watermark do skomponowanego obrazu
+                  watermarkedImageUrl = null;
+                  needsBackendWatermark = true;
+                } catch (err) {
+                  console.error('❌ [SPOTIFY] Failed to compose/upload image:', err);
+                  this.showError('Nie udało się przygotować obrazu. Spróbuj ponownie.', 'cart');
+                  this.hideLoading();
+                  return;
+                }
+              }
+              
+              // ✅ TYLKO BACKEND WATERMARK - już jest na Vercel Blob, nie trzeba uploadować ponownie!
+              if (!watermarkedImageUrl && !needsBackendWatermark) {
                 console.error('❌ [CUSTOMIFY] Brak backend watermarkedImageUrl - nie można dodać do koszyka!');
                 alert('Wystąpił błąd podczas generowania obrazu. Spróbuj wygenerować obraz ponownie klikając "Przekształć z AI".');
                 this.hideLoading();
                 return; // Blokada dodania do koszyka
               }
               
-              console.log('✅ [CUSTOMIFY] Używam backend watermarkedImageUrl (już na Vercel Blob):', watermarkedImageUrl.substring(0, 100));
+              if (watermarkedImageUrl) {
+                console.log('✅ [CUSTOMIFY] Używam backend watermarkedImageUrl (już na Vercel Blob):', watermarkedImageUrl.substring(0, 100));
+              } else {
+                console.log('🎵 [SPOTIFY] Backend doda watermark do skomponowanego obrazu');
+              }
 
               // 🖼️ Pobierz informacje o ramce (plakat)
               const selectedFrame = (this.selectedProductType === 'plakat' && window.CustomifyFrame && window.CustomifyFrame.color)
@@ -595,8 +662,12 @@
 
               const productData = {
                 originalImage: originalImage,
-                transformedImage: this.transformedImage,
+                transformedImage: finalTransformedImage, // 🎵 Dla spotify: PNG przezroczysty do druku
                 watermarkedImage: watermarkedImageUrl,
+                watermarkedImageUrl: watermarkedImageUrl, // 🎵 null dla spotify
+                needsBackendWatermark: needsBackendWatermark, // 🎵 true dla spotify
+                watermarkedImageBase64: this.watermarkedImageBase64 || null,
+                spotifyPreviewUrl: this.spotifyPreviewUrl || null, // 🎵 JPEG z szarym tłem do koszyka
                 style: this.selectedStyle,
                 size: isDigitalProduct ? 'digital' : this.selectedSize, // 🚨 ROLLBACK: Dla produktu cyfrowego użyj 'digital'
                 productType: this.selectedProductType || 'canvas',

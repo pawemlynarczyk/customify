@@ -64,10 +64,22 @@ module.exports = async (req, res) => {
 
     console.log('📝 [VERCEL-BLOB] Uploading to:', uniqueFilename);
 
+    // Wykryj contentType z base64 header lub filename
+    let contentType = 'image/jpeg';
+    if (typeof imageData === 'string') {
+      if (imageData.startsWith('data:image/png')) contentType = 'image/png';
+      else if (imageData.startsWith('data:image/webp')) contentType = 'image/webp';
+      else if (imageData.startsWith('data:image/gif')) contentType = 'image/gif';
+    }
+    if (baseFilename.endsWith('.png')) contentType = 'image/png';
+    else if (baseFilename.endsWith('.webp')) contentType = 'image/webp';
+    
+    console.log('📝 [VERCEL-BLOB] Content type:', contentType);
+
     // Upload to Vercel Blob Storage with custom token for organized storage
     const blob = await put(uniqueFilename, imageBuffer, {
       access: 'public',
-      contentType: 'image/jpeg',
+      contentType: contentType,
       token: process.env.customify_READ_WRITE_TOKEN,
     });
 
