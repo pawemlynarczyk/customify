@@ -3843,7 +3843,13 @@
                     </div>
                   </div>
                 {% elsif product.handle == 'ramka-spotify' %}
-                  {% comment %} STYLE SPOTIFY FRAME - tylko Usuń tło {% endcomment %}
+                  {% comment %} STYLE SPOTIFY FRAME {% endcomment %}
+                  <div class="customify-style-card" data-style="bez-zmian">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/ok.png'); background-size: cover; background-position: center;"></div>
+                    <div class="style-info">
+                      <div class="style-name">Bez zmian</div>
+                    </div>
+                  </div>
                   <div class="customify-style-card" data-style="usun-tlo">
                     <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/boho/detail.png'); background-size: cover; background-position: center;"></div>
                     <div class="style-info">
@@ -4487,7 +4493,6 @@
           max-width: 460px;
           margin: 0 auto;
           padding: 20px;
-          background: transparent;
           box-sizing: border-box;
           overflow: visible;
         }
@@ -4521,7 +4526,7 @@
           content: '';
           position: absolute;
           inset: 0;
-          border: 2px solid #ffffff;
+          border: none;
           box-sizing: border-box;
           pointer-events: none;
         }

@@ -2508,9 +2508,9 @@ class CustomifyEmbed {
           const composedImagePNG = canvas.toDataURL('image/png');
           console.log('🎵 [SPOTIFY COMPOSE] PNG for print, size:', composedImagePNG.length);
           
-          // 6. Eksportuj również JPEG z szarym tłem (dla podglądu w koszyku)
+          // 6. Eksportuj również JPEG z ciemniejszym szarym tłem (dla podglądu w koszyku - lepiej widać białe napisy)
           ctx.globalCompositeOperation = 'destination-over';
-          ctx.fillStyle = '#f5f5f5';
+          ctx.fillStyle = '#9a9a9a';
           ctx.fillRect(0, 0, canvas.width, canvas.height);
           const composedImagePreview = canvas.toDataURL('image/jpeg', 0.92);
           console.log('🎵 [SPOTIFY COMPOSE] JPEG preview, size:', composedImagePreview.length);
@@ -3200,6 +3200,28 @@ class CustomifyEmbed {
       const spotifyTitle = (this.spotifyTitleInput?.value || '').trim().slice(0, 60);
       const spotifyArtist = (this.spotifyArtistInput?.value || '').trim().slice(0, 60);
       spotifyPayload = { title: spotifyTitle, artist: spotifyArtist };
+    }
+
+    // 🎵 SPOTIFY: Styl "bez-zmian" - pomijamy AI, używamy oryginalnego zdjęcia
+    if (this.selectedStyle === 'bez-zmian') {
+      console.log('🎵 [SPOTIFY] Styl "bez-zmian" - pomijamy transformację AI');
+      this.showLoading();
+      
+      // Użyj wykadrowanego zdjęcia jako transformedImage
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        this.transformedImage = e.target.result;
+        this.watermarkedImageUrl = null; // Będzie generowany przy dodaniu do koszyka
+        
+        // Pokaż wynik
+        this.resultImage.src = this.transformedImage;
+        this.showResult();
+        this.hideLoading();
+        
+        console.log('✅ [SPOTIFY] Styl "bez-zmian" - zdjęcie gotowe (bez AI)');
+      };
+      reader.readAsDataURL(this.uploadedFile);
+      return;
     }
 
     // ✅ DEBUG: Sprawdź selectedStyle przed checkUsageLimit
