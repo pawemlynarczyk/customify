@@ -2747,7 +2747,54 @@ class CustomifyEmbed {
     // Ukryj komunikat błędu po wyborze stylu
     this.hideError();
     
+    // 🎵 SPOTIFY: Styl "bez-zmian" - od razu przejdź do koszyka (bez "Zobacz podgląd")
+    if (this.selectedStyle === 'bez-zmian' && this.uploadedFile) {
+      console.log('🎵 [SPOTIFY] Styl "bez-zmian" - automatyczne przejście do koszyka');
+      this.handleBezZmianStyle();
+    }
+    
     // Rozmiary już są widoczne od razu
+  }
+  
+  // 🎵 SPOTIFY: Obsługa stylu "bez-zmian"
+  handleBezZmianStyle() {
+    // Użyj wykadrowanego zdjęcia jako transformedImage (dla addToCart)
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      this.transformedImage = e.target.result;
+      this.watermarkedImageUrl = null; // Będzie generowany przy dodaniu do koszyka
+      
+      // Ukryj sekcje jak po normalnej generacji
+      if (this.uploadArea) this.uploadArea.style.display = 'none';
+      if (this.stylesArea) this.stylesArea.style.display = 'none';
+      
+      // Ukryj "Zobacz Podgląd" i "Wgraj inne"
+      const transformBtn = document.getElementById('transformBtn');
+      const resetBtn = document.getElementById('resetBtn');
+      if (transformBtn) transformBtn.style.display = 'none';
+      if (resetBtn) resetBtn.style.display = 'none';
+      
+      // Pokaż "Dodaj do koszyka" i "Spróbuj ponownie" (jak po generacji)
+      const addToCartBtnMain = document.getElementById('addToCartBtnMain');
+      if (addToCartBtnMain) {
+        addToCartBtnMain.style.display = 'inline-block';
+        addToCartBtnMain.classList.remove('customify-btn-primary');
+        addToCartBtnMain.classList.add('customify-btn-red');
+      }
+      
+      // Pokaż actionsArea z przyciskiem koszyka
+      if (this.actionsArea) this.actionsArea.style.display = 'flex';
+      
+      // Pokaż rozmiary i typ wydruku
+      if (this.sizeArea) this.sizeArea.style.display = 'block';
+      if (this.productTypeArea) this.productTypeArea.style.display = 'block';
+      
+      // Komunikat sukcesu
+      this.showSuccess('Projekt gotowy! Wybierz parametry wydruku i dodaj do koszyka.');
+      
+      console.log('✅ [SPOTIFY] Styl "bez-zmian" - widok koszyka aktywny');
+    };
+    reader.readAsDataURL(this.uploadedFile);
   }
 
   selectSize(sizeBtn) {
@@ -3202,23 +3249,35 @@ class CustomifyEmbed {
       spotifyPayload = { title: spotifyTitle, artist: spotifyArtist };
     }
 
-    // 🎵 SPOTIFY: Styl "bez-zmian" - pomijamy AI, używamy oryginalnego zdjęcia
+    // 🎵 SPOTIFY: Styl "bez-zmian" - pomijamy AI, pokazujemy widok jak po generacji
     if (this.selectedStyle === 'bez-zmian') {
       console.log('🎵 [SPOTIFY] Styl "bez-zmian" - pomijamy transformację AI');
       this.showLoading();
       
-      // Użyj wykadrowanego zdjęcia jako transformedImage
+      // Użyj wykadrowanego zdjęcia jako transformedImage (dla addToCart)
       const reader = new FileReader();
       reader.onload = (e) => {
         this.transformedImage = e.target.result;
         this.watermarkedImageUrl = null; // Będzie generowany przy dodaniu do koszyka
         
-        // Pokaż wynik
-        this.resultImage.src = this.transformedImage;
-        this.showResult();
+        // Ukryj sekcje jak po normalnej generacji
+        if (this.uploadArea) this.uploadArea.style.display = 'none';
+        if (this.stylesArea) this.stylesArea.style.display = 'none';
+        if (this.actionsArea) this.actionsArea.style.display = 'none';
+        
+        // Pokaż przyciski koszyka
+        if (this.cartActionsArea) this.cartActionsArea.style.display = 'flex';
+        
+        // Pokaż rozmiary i typ wydruku
+        if (this.sizeArea) this.sizeArea.style.display = 'block';
+        if (this.productTypeArea) this.productTypeArea.style.display = 'block';
+        
+        // Preview z maską pozostaje widoczny (nie zmieniamy na resultArea)
+        // Komunikat sukcesu
+        this.showSuccess('Projekt gotowy! Wybierz parametry wydruku i dodaj do koszyka.');
         this.hideLoading();
         
-        console.log('✅ [SPOTIFY] Styl "bez-zmian" - zdjęcie gotowe (bez AI)');
+        console.log('✅ [SPOTIFY] Styl "bez-zmian" - widok jak po generacji, gotowe do koszyka');
       };
       reader.readAsDataURL(this.uploadedFile);
       return;
