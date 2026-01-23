@@ -5034,6 +5034,10 @@
           }
 
           function syncPosition() {
+            // 🎵 SPOTIFY: Nie przenoś elementów gdy "bez-zmian" jest aktywny
+            if (window.spotifyBezZmianActive) {
+              return;
+            }
             if (isVisible(resultArea)) {
               moveToResult();
             } else {

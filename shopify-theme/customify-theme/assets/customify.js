@@ -2758,6 +2758,9 @@ class CustomifyEmbed {
   
   // 🎵 SPOTIFY: Obsługa stylu "bez-zmian"
   handleBezZmianStyle() {
+    // 🎵 SPOTIFY: Ustaw flagę żeby syncPosition() nie przenosiło elementów z powrotem
+    window.spotifyBezZmianActive = true;
+    
     // Użyj wykadrowanego zdjęcia jako transformedImage (dla addToCart)
     const reader = new FileReader();
     reader.onload = (e) => {
