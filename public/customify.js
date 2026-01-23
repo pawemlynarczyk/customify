@@ -173,6 +173,12 @@ class CustomifyEmbed {
     const currentUrl = window.location.pathname.toLowerCase();
     return currentUrl.includes('ramka-spotify') || currentUrl.includes('zdjecie-na-szkle-ramka-spotify');
   }
+  
+  // 🎵 Produkt Spotify BEZ generacji AI - od razu do koszyka po kadrowanie
+  isSpotifyNoAIProduct() {
+    const currentUrl = window.location.pathname.toLowerCase();
+    return currentUrl.includes('zdjecie-na-szkle-ramka-spotify');
+  }
 
   init() {
     if (!document.getElementById('uploadArea')) {
@@ -2614,9 +2620,17 @@ class CustomifyEmbed {
       const croppedFile = new File([blob], `spotify-crop-${Date.now()}.jpg`, { type: 'image/jpeg' });
       this.uploadedFile = croppedFile;
       this.spotifyCropConfirmed = true;
+      this.spotifyCropDataUrl = canvas.toDataURL('image/jpeg', 0.9); // Zapisz dla composeSpotifyImage
       this.closeSpotifyCropper();
       this.showPreview(croppedFile);
       this.hideError();
+      
+      // 🎵 Produkt bez AI - automatycznie aktywuj flow "bez-zmian" po kadrowanie
+      if (this.isSpotifyNoAIProduct()) {
+        console.log('🎵 [SPOTIFY NO-AI] Automatyczne przejście do koszyka po kadrowanie');
+        this.selectedStyle = 'bez-zmian'; // Ustaw styl na "bez-zmian"
+        setTimeout(() => this.handleBezZmianStyle(), 100); // Poczekaj na showPreview
+      }
     }, 'image/jpeg', 0.9);
   }
 
@@ -2702,7 +2716,8 @@ class CustomifyEmbed {
         if (addToCartBtnMain) {
           addToCartBtnMain.style.display = 'none';
         }
-        if (resetBtn) {
+        // 🎵 Dla produktu bez AI nie pokazuj "Wgraj inne zdjęcie" - upload jest zawsze widoczny na górze
+        if (resetBtn && !this.isSpotifyNoAIProduct()) {
           resetBtn.style.display = 'inline-block';
         }
       };
@@ -2799,7 +2814,7 @@ class CustomifyEmbed {
         // Przenieś przyciski koszyka z resultArea
         const addToCartBtn = document.getElementById('addToCartBtn');
         const tryAgainBtn = document.getElementById('tryAgainBtn');
-        if (addToCartBtn && tryAgainBtn) {
+        if (addToCartBtn) {
           // Stwórz kontener na przyciski jeśli nie istnieje
           let btnContainer = document.getElementById('spotify-cart-buttons');
           if (!btnContainer) {
@@ -2809,9 +2824,15 @@ class CustomifyEmbed {
             spotifySlot.appendChild(btnContainer);
           }
           btnContainer.appendChild(addToCartBtn);
-          btnContainer.appendChild(tryAgainBtn);
           addToCartBtn.style.display = 'inline-block';
-          tryAgainBtn.style.display = 'inline-block';
+          
+          // 🎵 Dla produktu bez AI ukryj "Spróbuj ponownie" - upload jest zawsze widoczny na górze
+          if (tryAgainBtn && !this.isSpotifyNoAIProduct()) {
+            btnContainer.appendChild(tryAgainBtn);
+            tryAgainBtn.style.display = 'inline-block';
+          } else if (tryAgainBtn) {
+            tryAgainBtn.style.display = 'none';
+          }
         }
         
         console.log('✅ [SPOTIFY] Przeniesiono elementy typu/rozmiaru/ceny/przycisków pod preview');

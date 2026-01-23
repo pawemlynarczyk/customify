@@ -3621,8 +3621,8 @@
               </div>
             {% endif %}
 
-            <div class="customify-styles" id="stylesArea" style="display: block;">
-              <h4>{% if product.handle == 'ramka-spotify' or product.handle == 'zdjecie-na-szkle-ramka-spotify' %}Popraw Obrazek{% else %}Wybierz styl{% endif %}</h4>
+            <div class="customify-styles" id="stylesArea" style="{% if product.handle == 'zdjecie-na-szkle-ramka-spotify' %}display: none;{% else %}display: block;{% endif %}">
+              <h4>{% if product.handle == 'ramka-spotify' %}Popraw Obrazek{% else %}Wybierz styl{% endif %}</h4>
               <div class="customify-style-grid">
                 {% comment %} LOGIKA SERVER-SIDE: Filtruj style per produkt {% endcomment %}
                 {% comment %} DEBUG: Product handle = {{ product.handle }}, ID = {{ product.id }} {% endcomment %}
