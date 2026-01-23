@@ -4389,6 +4389,13 @@
         {% if product.handle == 'ramka-spotify' or product.handle == 'zdjecie-na-szkle-ramka-spotify' %}
         /* Spotify frame preview - tylko dla ramka-spotify */
         
+        {% if product.handle == 'zdjecie-na-szkle-ramka-spotify' %}
+        /* 🎵 Ukryj galerię AI dla produktu bez AI */
+        #aiGallery {
+          display: none !important;
+        }
+        {% endif %}
+        
         /* 🎯 Ukryj previewArea gdy resultArea jest widoczny (po generacji AI) */
         #customify-app-container #resultArea[style*="block"] ~ #previewArea,
         #customify-app-container:has(#resultArea[style*="block"]) #previewArea {
