@@ -466,6 +466,9 @@
           // 🚨 ROLLBACK: END - Nadpisanie showResult()
 
           proto.addToCart = async function() {
+            // ✅ POKAŻ LOADING od razu - dodawanie do koszyka może trwać
+            this.showLoading();
+            
             console.log('🛒 [CUSTOMIFY] addToCart called with:', {
               transformedImage: !!this.transformedImage,
               selectedStyle: this.selectedStyle,
@@ -481,6 +484,7 @@
               if (!this.selectedSize) {
                 console.log('❌ [CUSTOMIFY] No selectedSize, showing error');
                 this.showError('Nie wybrałeś rozmiaru');
+                this.hideLoading();
                 return;
               }
               console.log('✅ [CUSTOMIFY] selectedSize OK, proceeding with price calculation');

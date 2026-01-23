@@ -3945,6 +3945,9 @@ class CustomifyEmbed {
 
   // NAPRAWIONA FUNKCJA: STWÓRZ NOWY PRODUKT Z OBRAZKIEM AI (UKRYTY W KATALOGU)
   async addToCart(retryCount = 0) {
+    // ✅ POKAŻ LOADING od razu - dodawanie do koszyka może trwać
+    this.showLoading();
+    
     console.log('🛒 [CUSTOMIFY] addToCart called with:', {
       transformedImage: !!this.transformedImage,
       selectedStyle: this.selectedStyle,
@@ -3958,6 +3961,7 @@ class CustomifyEmbed {
     if (!this.selectedSize) {
       console.log('❌ [CUSTOMIFY] No selectedSize, showing error');
       this.showError('Nie wybrałeś rozmiaru', 'cart');
+      this.hideLoading();
       return;
     }
     console.log('✅ [CUSTOMIFY] selectedSize OK, proceeding with price calculation');
@@ -3984,6 +3988,7 @@ class CustomifyEmbed {
     // ✅ SPRAWDŹ OBRAZ AI DOPIERO POTEM
     if (!this.transformedImage) {
       this.showError('Brak przekształconego obrazu', 'cart');
+      this.hideLoading();
       return;
     }
     
