@@ -2306,6 +2306,28 @@ class CustomifyEmbed {
     if (this.spotifyCropCancelBtn) {
       this.spotifyCropCancelBtn.addEventListener('click', () => this.cancelSpotifyCrop());
     }
+    
+    // 🎵 Kliknięcie w preview image otwiera cropper ponownie (ponowne kadrowanie)
+    if (this.isSpotifyProduct() && this.previewImage) {
+      this.previewImage.style.cursor = 'pointer';
+      this.previewImage.title = 'Kliknij aby ponownie wykadrować zdjęcie';
+      this.previewImage.addEventListener('click', () => this.reopenSpotifyCropper());
+    }
+  }
+  
+  // 🎵 Ponowne otwarcie croppera z oryginalnym zdjęciem
+  reopenSpotifyCropper() {
+    if (!this.originalSpotifyFile) {
+      console.warn('⚠️ [SPOTIFY] Brak oryginalnego zdjęcia do ponownego kadrowania');
+      return;
+    }
+    console.log('🎵 [SPOTIFY] Ponowne otwieranie croppera z oryginalnym zdjęciem');
+    
+    // Resetuj flagę spotifyBezZmianActive żeby syncPosition znów działał
+    window.spotifyBezZmianActive = false;
+    
+    // Otwórz cropper z oryginalnym zdjęciem
+    this.openSpotifyCropper(this.originalSpotifyFile);
   }
 
   /**
@@ -2563,6 +2585,10 @@ class CustomifyEmbed {
       this.showPreview(file);
       return;
     }
+
+    // 🎵 Zachowaj oryginalne zdjęcie do ponownego kadrowania
+    this.originalSpotifyFile = file;
+    console.log('🎵 [SPOTIFY] Zapisano oryginalne zdjęcie do ponownego kadrowania');
 
     this.spotifyCropConfirmed = false;
     if (this.spotifyCropper) {
