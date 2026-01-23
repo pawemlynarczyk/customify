@@ -2760,9 +2760,18 @@ class CustomifyEmbed {
   }
 
   showStyles() {
-    this.stylesArea.style.display = 'block';
+    // 🎵 Dla produktu bez AI nie pokazuj stylów
+    if (!this.isSpotifyNoAIProduct()) {
+      this.stylesArea.style.display = 'block';
+    }
     this.sizeArea.style.display = 'block'; // Pokaż rozmiary od razu
-    this.actionsArea.style.display = 'flex';
+    
+    // 🎵 Dla produktu bez AI ukryj przyciski "Zobacz podgląd" - upload jest zawsze widoczny
+    if (this.isSpotifyNoAIProduct()) {
+      this.actionsArea.style.display = 'none';
+    } else {
+      this.actionsArea.style.display = 'flex';
+    }
     
     // Pokaż przycisk "Dodaj do koszyka" jeśli użytkownik nie wgrał zdjęcia
     const addToCartBtnMain = document.getElementById('addToCartBtnMain');
@@ -4511,9 +4520,11 @@ class CustomifyEmbed {
     // Ukryj wynik AI
     this.resultArea.style.display = 'none';
     
-    // Pokaż style AI i przyciski
-    this.stylesArea.style.display = 'block';
-    this.actionsArea.style.display = 'flex';
+    // Pokaż style AI i przyciski (nie dla produktu bez AI)
+    if (!this.isSpotifyNoAIProduct()) {
+      this.stylesArea.style.display = 'block';
+      this.actionsArea.style.display = 'flex';
+    }
     
     // Pokaż pole upload (jeśli było ukryte)
     this.uploadArea.style.display = 'block';
