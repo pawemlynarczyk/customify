@@ -234,6 +234,14 @@ class CustomifyEmbed {
         this.selectedProductType = 'szklo';
         console.log('🎵 [SPOTIFY] Ustawiam selectedProductType = szklo');
       }
+      // 🎵 Ustaw domyślny rozmiar A5 (najtańszy) dla produktów Spotify
+      const a5Btn = document.querySelector('.customify-size-btn[data-size="a5"]');
+      if (a5Btn) {
+        this.sizeArea?.querySelectorAll('.customify-size-btn').forEach(btn => btn.classList.remove('active'));
+        a5Btn.classList.add('active');
+        this.selectedSize = 'a5';
+        console.log('🎵 [SPOTIFY] Ustawiam domyślny rozmiar = a5 (15×21)');
+      }
     }
     this.updateSpotifyFrameScale();
     window.addEventListener('resize', () => this.updateSpotifyFrameScale());
