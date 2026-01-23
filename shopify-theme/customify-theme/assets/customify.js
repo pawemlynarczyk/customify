@@ -2768,22 +2768,16 @@ class CustomifyEmbed {
       if (this.uploadArea) this.uploadArea.style.display = 'none';
       if (this.stylesArea) this.stylesArea.style.display = 'none';
       
-      // Ukryj "Zobacz Podgląd" i "Wgraj inne"
+      // Ukryj "Zobacz Podgląd" i "Wgraj inne" oraz główny przycisk koszyka z actionsArea
       const transformBtn = document.getElementById('transformBtn');
       const resetBtn = document.getElementById('resetBtn');
+      const addToCartBtnMain = document.getElementById('addToCartBtnMain');
       if (transformBtn) transformBtn.style.display = 'none';
       if (resetBtn) resetBtn.style.display = 'none';
+      if (addToCartBtnMain) addToCartBtnMain.style.display = 'none';
       
-      // Pokaż "Dodaj do koszyka" i "Spróbuj ponownie" (jak po generacji)
-      const addToCartBtnMain = document.getElementById('addToCartBtnMain');
-      if (addToCartBtnMain) {
-        addToCartBtnMain.style.display = 'inline-block';
-        addToCartBtnMain.classList.remove('customify-btn-primary');
-        addToCartBtnMain.classList.add('customify-btn-red');
-      }
-      
-      // Pokaż actionsArea z przyciskiem koszyka
-      if (this.actionsArea) this.actionsArea.style.display = 'flex';
+      // UKRYJ actionsArea - będziemy używać tylko przycisków z resultArea
+      if (this.actionsArea) this.actionsArea.style.display = 'none';
       
       // 🎵 SPOTIFY: Przenieś elementy typu i rozmiaru pod preview (nie na górę strony!)
       const spotifySlot = document.getElementById('spotify-type-size-slot');
@@ -2792,14 +2786,14 @@ class CustomifyEmbed {
         spotifySlot.appendChild(this.productTypeArea);
         spotifySlot.appendChild(this.sizeArea);
         
-        // Przenieś też cenę i przyciski
+        // Przenieś też cenę
         const cartPriceDisplay = document.getElementById('cartPriceDisplay');
         if (cartPriceDisplay) {
           spotifySlot.appendChild(cartPriceDisplay);
           cartPriceDisplay.style.display = 'block';
         }
         
-        // Przenieś przyciski koszyka
+        // Przenieś przyciski koszyka z resultArea
         const addToCartBtn = document.getElementById('addToCartBtn');
         const tryAgainBtn = document.getElementById('tryAgainBtn');
         if (addToCartBtn && tryAgainBtn) {
@@ -2818,6 +2812,9 @@ class CustomifyEmbed {
         }
         
         console.log('✅ [SPOTIFY] Przeniesiono elementy typu/rozmiaru/ceny/przycisków pod preview');
+      } else {
+        console.error('❌ [SPOTIFY] Nie znaleziono spotify-type-size-slot lub elementów do przeniesienia');
+        console.log('spotifySlot:', !!spotifySlot, 'productTypeArea:', !!this.productTypeArea, 'sizeArea:', !!this.sizeArea);
       }
       
       // Pokaż rozmiary i typ wydruku
