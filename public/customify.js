@@ -64,6 +64,10 @@ class CustomifyEmbed {
     this.selectedProductType = 'plakat'; // Domyślny wybór: Plakat
     this.transformedImage = null;
     
+    // 🎨 GLFX Filters
+    this.glfxInitialized = false;
+    this.originalCroppedImage = null; // Oryginał przed filtrami
+    
     // ✅ PENDING WATERMARK UPLOAD: Dane do wysłania jeśli użytkownik zmieni stronę
     this.pendingWatermarkUpload = null; // { generationId, watermarkedImage, customerId, email }
     this.watermarkUploadInProgress = false;
@@ -2823,6 +2827,7 @@ class CustomifyEmbed {
     const reader = new FileReader();
     reader.onload = (e) => {
       this.transformedImage = e.target.result;
+      this.originalCroppedImage = e.target.result; // 🎨 Zachowaj oryginał dla filtrów
       this.watermarkedImageUrl = null; // Będzie generowany przy dodaniu do koszyka
       
       // Ukryj sekcje jak po normalnej generacji
@@ -2839,6 +2844,15 @@ class CustomifyEmbed {
       
       // UKRYJ actionsArea - będziemy używać tylko przycisków z resultArea
       if (this.actionsArea) this.actionsArea.style.display = 'none';
+      
+      // 🎨 Pokaż panel filtrów dla produktu bez AI
+      if (this.isSpotifyNoAIProduct()) {
+        const filtersPanel = document.getElementById('spotifyFiltersPanel');
+        if (filtersPanel) {
+          filtersPanel.style.display = 'block';
+          this.initGlfxFilters(); // Inicjalizuj glfx.js
+        }
+      }
       
       // 🎵 SPOTIFY: Przenieś elementy typu i rozmiaru pod preview (nie na górę strony!)
       const spotifySlot = document.getElementById('spotify-type-size-slot');
@@ -2897,6 +2911,164 @@ class CustomifyEmbed {
       console.log('✅ [SPOTIFY] Styl "bez-zmian" - widok koszyka aktywny');
     };
     reader.readAsDataURL(this.uploadedFile);
+  }
+  
+  // 🎨 GLFX.JS: Inicjalizacja filtrów zdjęć
+  initGlfxFilters() {
+    if (this.glfxInitialized) return;
+    
+    // Sprawdź czy glfx.js jest załadowane
+    if (typeof fx === 'undefined') {
+      console.warn('⚠️ [GLFX] Biblioteka glfx.js nie jest załadowana');
+      return;
+    }
+    
+    console.log('🎨 [GLFX] Inicjalizacja filtrów zdjęć...');
+    
+    // Event listeners dla przycisków filtrów
+    const filterBtns = document.querySelectorAll('.spotify-filter-btn');
+    filterBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        // Usuń active ze wszystkich
+        filterBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        const filter = btn.dataset.filter;
+        console.log('🎨 [GLFX] Wybrano filtr:', filter);
+        this.applyGlfxFilter(filter);
+      });
+    });
+    
+    this.glfxInitialized = true;
+    console.log('✅ [GLFX] Filtry zainicjalizowane');
+  }
+  
+  // 🎨 GLFX.JS: Aplikuj filtr na zdjęcie
+  applyGlfxFilter(filterName) {
+    if (!this.originalCroppedImage) {
+      console.warn('⚠️ [GLFX] Brak oryginalnego zdjęcia');
+      return;
+    }
+    
+    console.log('🎨 [GLFX] Aplikuję filtr:', filterName);
+    
+    // Stwórz tymczasowy obraz z oryginalnego
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      try {
+        // Stwórz canvas glfx
+        const canvas = fx.canvas();
+        const texture = canvas.texture(img);
+        
+        // Aplikuj filtry w zależności od wyboru
+        canvas.draw(texture);
+        
+        switch(filterName) {
+          case 'none':
+            // Bez filtra - oryginał
+            break;
+          case 'brighten':
+            canvas.brightnessContrast(0.15, 0.1);
+            break;
+          case 'vivid':
+            canvas.hueSaturation(0, 0.4);
+            canvas.vibrance(0.3);
+            break;
+          case 'sharpen':
+            canvas.unsharpMask(50, 1.5);
+            break;
+          case 'warm':
+            canvas.hueSaturation(0.05, 0.1);
+            canvas.brightnessContrast(0.05, 0.05);
+            break;
+          case 'cool':
+            canvas.hueSaturation(-0.05, 0);
+            canvas.brightnessContrast(0, 0.1);
+            break;
+          case 'bw':
+            canvas.hueSaturation(0, -1);
+            canvas.brightnessContrast(0.05, 0.15);
+            break;
+          case 'vintage':
+            canvas.sepia(0.3);
+            canvas.vignette(0.3, 0.7);
+            canvas.brightnessContrast(-0.05, 0.1);
+            break;
+          case 'dramatic':
+            canvas.brightnessContrast(-0.1, 0.4);
+            canvas.vignette(0.4, 0.6);
+            break;
+        }
+        
+        canvas.update();
+        
+        // Pobierz wynik jako data URL
+        const filteredImage = canvas.toDataURL('image/jpeg', 0.92);
+        
+        // Zaktualizuj transformedImage (dla addToCart)
+        this.transformedImage = filteredImage;
+        
+        // Zaktualizuj podgląd na stronie
+        const previewImg = document.querySelector('.spotify-frame-inner img');
+        if (previewImg) {
+          previewImg.src = filteredImage;
+        }
+        
+        console.log('✅ [GLFX] Filtr zastosowany:', filterName);
+        
+      } catch (err) {
+        console.error('❌ [GLFX] Błąd aplikowania filtra:', err);
+        // Fallback do CSS filters jeśli glfx zawiedzie
+        this.applyCssFilter(filterName);
+      }
+    };
+    
+    img.onerror = () => {
+      console.error('❌ [GLFX] Nie można załadować obrazu');
+    };
+    
+    img.src = this.originalCroppedImage;
+  }
+  
+  // 🎨 CSS Fallback: Jeśli glfx.js nie działa
+  applyCssFilter(filterName) {
+    const previewImg = document.querySelector('.spotify-frame-inner img');
+    if (!previewImg) return;
+    
+    let filter = '';
+    switch(filterName) {
+      case 'none':
+        filter = 'none';
+        break;
+      case 'brighten':
+        filter = 'brightness(1.15) contrast(1.1)';
+        break;
+      case 'vivid':
+        filter = 'saturate(1.4)';
+        break;
+      case 'sharpen':
+        filter = 'contrast(1.1)';
+        break;
+      case 'warm':
+        filter = 'sepia(0.2) saturate(1.1)';
+        break;
+      case 'cool':
+        filter = 'hue-rotate(-10deg) saturate(0.9)';
+        break;
+      case 'bw':
+        filter = 'grayscale(1) contrast(1.15)';
+        break;
+      case 'vintage':
+        filter = 'sepia(0.4) contrast(1.1)';
+        break;
+      case 'dramatic':
+        filter = 'contrast(1.4) brightness(0.9)';
+        break;
+    }
+    
+    previewImg.style.filter = filter;
+    console.log('🎨 [CSS] Fallback filtr:', filterName, filter);
   }
 
   selectSize(sizeBtn) {

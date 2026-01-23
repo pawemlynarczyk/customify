@@ -51,6 +51,11 @@
     </script>
     <!-- End Hotjar -->
 
+    <!-- GLFX.JS - Instant image filters (WebGL) -->
+    {% if product.handle == 'zdjecie-na-szkle-ramka-spotify' %}
+    <script src="https://cdn.jsdelivr.net/npm/glfx@0.0.4/glfx.min.js"></script>
+    {% endif %}
+
     <!-- SENTRY ERROR TRACKING -->
     <script src="https://browser.sentry-cdn.com/8.40.0/bundle.min.js" crossorigin="anonymous"></script>
     <script>
@@ -3606,6 +3611,52 @@
               </div>
             </div>
             
+            {% if product.handle == 'zdjecie-na-szkle-ramka-spotify' %}
+            <!-- 🎨 Panel filtrów zdjęć (natychmiastowe, bez AI) -->
+            <div class="spotify-filters-panel" id="spotifyFiltersPanel" style="display: none;">
+              <h3 class="spotify-panel-title">✨ Popraw zdjęcie</h3>
+              <p style="font-size: 0.85rem; color: #666; margin-bottom: 12px;">Kliknij na filtr, żeby zobaczyć efekt natychmiast</p>
+              <div class="spotify-filters-grid">
+                <div class="spotify-filter-btn active" data-filter="none">
+                  <div class="filter-preview" style="background: linear-gradient(135deg, #f5f5f5, #e0e0e0);"></div>
+                  <span>Oryginał</span>
+                </div>
+                <div class="spotify-filter-btn" data-filter="brighten">
+                  <div class="filter-preview" style="background: linear-gradient(135deg, #fff9c4, #fff59d);"></div>
+                  <span>Rozjaśnij</span>
+                </div>
+                <div class="spotify-filter-btn" data-filter="vivid">
+                  <div class="filter-preview" style="background: linear-gradient(135deg, #e91e63, #9c27b0);"></div>
+                  <span>Żywe kolory</span>
+                </div>
+                <div class="spotify-filter-btn" data-filter="sharpen">
+                  <div class="filter-preview" style="background: linear-gradient(135deg, #37474f, #607d8b);"></div>
+                  <span>Wyostrz</span>
+                </div>
+                <div class="spotify-filter-btn" data-filter="warm">
+                  <div class="filter-preview" style="background: linear-gradient(135deg, #ff9800, #ffb74d);"></div>
+                  <span>Ciepły</span>
+                </div>
+                <div class="spotify-filter-btn" data-filter="cool">
+                  <div class="filter-preview" style="background: linear-gradient(135deg, #03a9f4, #4fc3f7);"></div>
+                  <span>Chłodny</span>
+                </div>
+                <div class="spotify-filter-btn" data-filter="bw">
+                  <div class="filter-preview" style="background: linear-gradient(135deg, #212121, #757575);"></div>
+                  <span>Czarno-biały</span>
+                </div>
+                <div class="spotify-filter-btn" data-filter="vintage">
+                  <div class="filter-preview" style="background: linear-gradient(135deg, #8d6e63, #bcaaa4);"></div>
+                  <span>Vintage</span>
+                </div>
+                <div class="spotify-filter-btn" data-filter="dramatic">
+                  <div class="filter-preview" style="background: linear-gradient(135deg, #1a237e, #311b92);"></div>
+                  <span>Dramatyczny</span>
+                </div>
+              </div>
+            </div>
+            {% endif %}
+            
             <!-- Slot dla elementów typu/rozmiaru dla "bez-zmian" -->
             <div id="spotify-type-size-slot" style="display: none;"></div>
             {% endif %}
@@ -4437,6 +4488,63 @@
         #customify-app-container #resultArea > div.customify-text-overlay-toggle,
         #customify-app-container #resultArea > div.customify-product-type-buttons {
           display: none !important;
+        }
+        
+        /* 🎨 Panel filtrów Spotify (glfx.js) */
+        .spotify-filters-panel {
+          margin-top: 20px;
+          padding: 0;
+        }
+        .spotify-filters-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 10px;
+          margin-top: 12px;
+        }
+        .spotify-filter-btn {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          padding: 8px;
+          border: 2px solid #e0e0e0;
+          border-radius: 10px;
+          background: #fff;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+        .spotify-filter-btn:hover {
+          border-color: #1DB954;
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(29, 185, 84, 0.15);
+        }
+        .spotify-filter-btn.active {
+          border-color: #1DB954;
+          background: #f0fdf4;
+        }
+        .spotify-filter-btn .filter-preview {
+          width: 50px;
+          height: 50px;
+          border-radius: 8px;
+          margin-bottom: 6px;
+        }
+        .spotify-filter-btn span {
+          font-size: 0.75rem;
+          font-weight: 500;
+          color: #333;
+          text-align: center;
+        }
+        @media (max-width: 480px) {
+          .spotify-filters-grid {
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+          }
+          .spotify-filter-btn .filter-preview {
+            width: 40px;
+            height: 40px;
+          }
+          .spotify-filter-btn span {
+            font-size: 0.7rem;
+          }
         }
         
         /* 🎵 Panel tekstów Spotify */
