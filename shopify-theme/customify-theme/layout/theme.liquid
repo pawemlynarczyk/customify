@@ -127,7 +127,7 @@
 
     <!-- CUSTOMIFY INTEGRATION -->
     <link rel="stylesheet" href="{{ 'customify.css' | asset_url }}">
-    {% if product and product.handle == 'ramka-spotify' %}
+    {% if product and product.handle == 'ramka-spotify' or product.handle == 'zdjecie-na-szkle-ramka-spotify' %}
       <link rel="stylesheet" href="https://unpkg.com/cropperjs@1.6.2/dist/cropper.min.css">
     {% endif %}
     
@@ -164,7 +164,7 @@
     </script>
     
     <script src="{{ 'customify.js' | asset_url }}" defer></script>
-    {% if product and product.handle == 'ramka-spotify' %}
+    {% if product and product.handle == 'ramka-spotify' or product.handle == 'zdjecie-na-szkle-ramka-spotify' %}
       <script src="https://unpkg.com/cropperjs@1.6.2/dist/cropper.min.js" defer></script>
       <script>
         // 🎵 Spotify Text Overlay - aktualizacja tekstu w czasie rzeczywistym
@@ -3467,7 +3467,7 @@
               <div class="customify-product-type-btn active" data-product-type="szklo">
                 Nadruk na szkle (dodaj podstawkę)
               </div>
-            {% elsif product.handle == 'ramka-spotify' %}
+            {% elsif product.handle == 'ramka-spotify' or product.handle == 'zdjecie-na-szkle-ramka-spotify' %}
               {% comment %} TYLKO SZKŁO dla ramka-spotify {% endcomment %}
               <div class="customify-product-type-btn active" data-product-type="szklo">
                 Nadruk na szkle (dodaj podstawkę)
@@ -3566,7 +3566,7 @@
 
             <div class="customify-preview" id="previewArea">
               <h4>Twoje zdjęcie:</h4>
-              {% if product.handle == 'ramka-spotify' %}
+              {% if product.handle == 'ramka-spotify' or product.handle == 'zdjecie-na-szkle-ramka-spotify' %}
                 <div class="spotify-frame-preview">
                   <div class="spotify-frame-inner">
                     <img id="previewImage" alt="Podgląd zdjęcia">
@@ -3582,7 +3582,7 @@
               {% endif %}
             </div>
 
-            {% if product.handle == 'ramka-spotify' %}
+            {% if product.handle == 'ramka-spotify' or product.handle == 'zdjecie-na-szkle-ramka-spotify' %}
             <!-- Panel tekstów dla ramka-spotify - widoczny zawsze -->
             <div class="spotify-text-panel" id="spotifyTextPanel">
               <h3 class="spotify-panel-title">Dodaj napis</h3>
@@ -3606,7 +3606,7 @@
             <div id="spotify-type-size-slot" style="display: none;"></div>
             {% endif %}
 
-            {% if product.handle == 'ramka-spotify' %}
+            {% if product.handle == 'ramka-spotify' or product.handle == 'zdjecie-na-szkle-ramka-spotify' %}
               <div id="spotifyCropModal" class="spotify-crop-modal" aria-hidden="true">
                 <div class="spotify-crop-dialog">
                   <h4>Ustaw kadr zdjęcia</h4>
@@ -3622,7 +3622,7 @@
             {% endif %}
 
             <div class="customify-styles" id="stylesArea" style="display: block;">
-              <h4>{% if product.handle == 'ramka-spotify' %}Popraw Obrazek{% else %}Wybierz styl{% endif %}</h4>
+              <h4>{% if product.handle == 'ramka-spotify' or product.handle == 'zdjecie-na-szkle-ramka-spotify' %}Popraw Obrazek{% else %}Wybierz styl{% endif %}</h4>
               <div class="customify-style-grid">
                 {% comment %} LOGIKA SERVER-SIDE: Filtruj style per produkt {% endcomment %}
                 {% comment %} DEBUG: Product handle = {{ product.handle }}, ID = {{ product.id }} {% endcomment %}
@@ -3845,7 +3845,7 @@
                       <div class="style-name">Święta</div>
                     </div>
                   </div>
-                {% elsif product.handle == 'ramka-spotify' %}
+                {% elsif product.handle == 'ramka-spotify' or product.handle == 'zdjecie-na-szkle-ramka-spotify' %}
                   {% comment %} STYLE SPOTIFY FRAME {% endcomment %}
                   <div class="customify-style-card" data-style="bez-zmian">
                     <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/ok.png'); background-size: cover; background-position: center;"></div>
@@ -3954,7 +3954,7 @@
               </div>
         </div>
 
-            {% if product.handle == 'ramka-spotify' %}
+            {% if product.handle == 'ramka-spotify' or product.handle == 'zdjecie-na-szkle-ramka-spotify' %}
               <div id="spotifyFieldsPanel" class="customify-spotify-panel" style="display: none; margin: 12px 0 8px 0;">
                 <h4 style="margin-bottom: 6px;">Tekst na ramce</h4>
                 <div style="display: grid; gap: 8px;">
@@ -3997,7 +3997,7 @@
 
             <div class="customify-result" id="resultArea">
               <h4>Twój obraz:</h4>
-              {% if product.handle == 'ramka-spotify' %}
+              {% if product.handle == 'ramka-spotify' or product.handle == 'zdjecie-na-szkle-ramka-spotify' %}
                 <div class="spotify-frame-result">
                   <div class="spotify-frame-inner">
                     <img id="resultImage" alt="Wynik AI">
@@ -4382,7 +4382,7 @@
           pointer-events: none;
         }
 
-        {% if product.handle == 'ramka-spotify' %}
+        {% if product.handle == 'ramka-spotify' or product.handle == 'zdjecie-na-szkle-ramka-spotify' %}
         /* Spotify frame preview - tylko dla ramka-spotify */
         
         /* 🎯 Ukryj previewArea gdy resultArea jest widoczny (po generacji AI) */

@@ -171,7 +171,7 @@ class CustomifyEmbed {
 
   isSpotifyProduct() {
     const currentUrl = window.location.pathname.toLowerCase();
-    return currentUrl.includes('ramka-spotify');
+    return currentUrl.includes('ramka-spotify') || currentUrl.includes('zdjecie-na-szkle-ramka-spotify');
   }
 
   init() {
@@ -516,7 +516,7 @@ class CustomifyEmbed {
       console.log('🤴👸 [PRODUCT-TYPE] URL = Para królewska → productType: para_krolewska');
       return 'para_krolewska';
     }
-    if (currentUrl.includes('ramka-spotify')) {
+    if (currentUrl.includes('ramka-spotify') || currentUrl.includes('zdjecie-na-szkle-ramka-spotify')) {
       console.log('🎵 [PRODUCT-TYPE] URL = Ramka Spotify → productType: spotify_frame');
       return 'spotify_frame';
     }
