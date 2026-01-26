@@ -2961,10 +2961,9 @@ class CustomifyEmbed {
       vivid: { hue: 0, saturation: 0.2, vibrance: 0.2 },
       sharpen: { radius: 50, strength: 1.5 },
       warm: { hue: 0.05, saturation: 0.1, brightness: 0.05, contrast: 0.05 },
-      cool: { hue: -0.05, saturation: 0, brightness: 0, contrast: 0.1 },
       bw: { saturation: -1, brightness: 0.05, contrast: 0.15 },
       vintage: { sepia: 0.3, vignetteSize: 0.3, vignetteAmount: 0.7, brightness: -0.05, contrast: 0.1 },
-      dramatic: { brightness: -0.1, contrast: 0.4, vignetteSize: 0.4, vignetteAmount: 0.6 }
+      dotScreen: { centerX: 0.5, centerY: 0.5, angle: 0, size: 3 }
     };
   }
   
@@ -3052,11 +3051,6 @@ class CustomifyEmbed {
             canvas.hueSaturation(w.hue, w.saturation);
             canvas.brightnessContrast(w.brightness, w.contrast);
             break;
-          case 'cool':
-            const c = cfg.cool || { hue: -0.05, saturation: 0, brightness: 0, contrast: 0.1 };
-            canvas.hueSaturation(c.hue, c.saturation);
-            canvas.brightnessContrast(c.brightness, c.contrast);
-            break;
           case 'bw':
             const bw = cfg.bw || { saturation: -1, brightness: 0.05, contrast: 0.15 };
             canvas.hueSaturation(0, bw.saturation);
@@ -3068,10 +3062,9 @@ class CustomifyEmbed {
             canvas.vignette(vt.vignetteSize, vt.vignetteAmount);
             canvas.brightnessContrast(vt.brightness, vt.contrast);
             break;
-          case 'dramatic':
-            const dr = cfg.dramatic || { brightness: -0.1, contrast: 0.4, vignetteSize: 0.4, vignetteAmount: 0.6 };
-            canvas.brightnessContrast(dr.brightness, dr.contrast);
-            canvas.vignette(dr.vignetteSize, dr.vignetteAmount);
+          case 'dotScreen':
+            const ds = cfg.dotScreen || { centerX: 0.5, centerY: 0.5, angle: 0, size: 3 };
+            canvas.dotScreen(ds.centerX, ds.centerY, ds.angle, ds.size);
             break;
         }
         
@@ -3127,17 +3120,14 @@ class CustomifyEmbed {
       case 'warm':
         filter = 'sepia(0.2) saturate(1.1)';
         break;
-      case 'cool':
-        filter = 'hue-rotate(-10deg) saturate(0.9)';
-        break;
       case 'bw':
         filter = 'grayscale(1) contrast(1.15)';
         break;
       case 'vintage':
         filter = 'sepia(0.4) contrast(1.1)';
         break;
-      case 'dramatic':
-        filter = 'contrast(1.4) brightness(0.9)';
+      case 'dotScreen':
+        filter = 'contrast(1.2)'; // Prosty fallback dla halftone
         break;
     }
     
