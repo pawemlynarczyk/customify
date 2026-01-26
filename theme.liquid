@@ -3592,27 +3592,8 @@
             </div>
 
             {% if product.handle == 'ramka-spotify' or product.handle == 'zdjecie-na-szkle-ramka-spotify' %}
-            <!-- Panel tekstów dla ramka-spotify - widoczny zawsze -->
-            <div class="spotify-text-panel" id="spotifyTextPanel">
-              <h3 class="spotify-panel-title">Dodaj napis</h3>
-              <div class="spotify-text-field">
-                <label class="spotify-text-label">Nagłówek <span class="required">*</span></label>
-                <div class="spotify-input-wrapper">
-                  <input type="text" id="spotifyTitle" class="spotify-text-input spotify-text-input-large" placeholder="PRAWDZIWA MIŁOŚĆ" maxlength="30">
-                  <span class="spotify-char-counter" id="spotifyTitleCounter">0/30</span>
-                </div>
-              </div>
-              <div class="spotify-text-field">
-                <label class="spotify-text-label">Podpis <span class="required">*</span></label>
-                <div class="spotify-input-wrapper">
-                  <input type="text" id="spotifyArtist" class="spotify-text-input spotify-text-input-large" placeholder="Sara i Janek" maxlength="40">
-                  <span class="spotify-char-counter" id="spotifyArtistCounter">0/40</span>
-                </div>
-              </div>
-            </div>
-            
             {% if product.handle == 'zdjecie-na-szkle-ramka-spotify' %}
-            <!-- 🎨 Panel filtrów zdjęć (natychmiastowe, bez AI) -->
+            <!-- 🎨 Panel filtrów zdjęć (natychmiastowe, bez AI) - WYŻEJ, pod zdjęciem -->
             <div class="spotify-filters-panel" id="spotifyFiltersPanel" style="display: none;">
               <h3 class="spotify-panel-title">✨ Popraw zdjęcie</h3>
               <p style="font-size: 0.85rem; color: #666; margin-bottom: 12px;">Kliknij na filtr, żeby zobaczyć efekt natychmiast</p>
@@ -3648,6 +3629,46 @@
                 <div class="spotify-filter-btn" data-filter="dotScreen">
                   <div class="filter-preview" style="background: linear-gradient(135deg, #424242, #757575);"></div>
                   <span>Halftone</span>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Panel tekstów dla zdjecie-na-szkle-ramka-spotify - PO sekcji filtrów -->
+            <div class="spotify-text-panel" id="spotifyTextPanel">
+              <h3 class="spotify-panel-title">Dodaj napis</h3>
+              <div class="spotify-text-field">
+                <label class="spotify-text-label">Nagłówek <span class="required">*</span></label>
+                <div class="spotify-input-wrapper">
+                  <input type="text" id="spotifyTitle" class="spotify-text-input spotify-text-input-large" placeholder="PRAWDZIWA MIŁOŚĆ" maxlength="30">
+                  <span class="spotify-char-counter" id="spotifyTitleCounter">0/30</span>
+                </div>
+              </div>
+              <div class="spotify-text-field">
+                <label class="spotify-text-label">Podpis <span class="required">*</span></label>
+                <div class="spotify-input-wrapper">
+                  <input type="text" id="spotifyArtist" class="spotify-text-input spotify-text-input-large" placeholder="Sara i Janek" maxlength="40">
+                  <span class="spotify-char-counter" id="spotifyArtistCounter">0/40</span>
+                </div>
+              </div>
+            </div>
+            {% endif %}
+            
+            {% if product.handle == 'ramka-spotify' %}
+            <!-- Panel tekstów dla ramka-spotify - widoczny zawsze -->
+            <div class="spotify-text-panel" id="spotifyTextPanel">
+              <h3 class="spotify-panel-title">Dodaj napis</h3>
+              <div class="spotify-text-field">
+                <label class="spotify-text-label">Nagłówek <span class="required">*</span></label>
+                <div class="spotify-input-wrapper">
+                  <input type="text" id="spotifyTitle" class="spotify-text-input spotify-text-input-large" placeholder="PRAWDZIWA MIŁOŚĆ" maxlength="30">
+                  <span class="spotify-char-counter" id="spotifyTitleCounter">0/30</span>
+                </div>
+              </div>
+              <div class="spotify-text-field">
+                <label class="spotify-text-label">Podpis <span class="required">*</span></label>
+                <div class="spotify-input-wrapper">
+                  <input type="text" id="spotifyArtist" class="spotify-text-input spotify-text-input-large" placeholder="Sara i Janek" maxlength="40">
+                  <span class="spotify-char-counter" id="spotifyArtistCounter">0/40</span>
                 </div>
               </div>
             </div>
@@ -4493,7 +4514,7 @@
         }
         .spotify-filters-grid {
           display: grid;
-          grid-template-columns: repeat(3, 1fr);
+          grid-template-columns: repeat(4, 1fr);
           gap: 10px;
           margin-top: 12px;
         }
@@ -4531,7 +4552,7 @@
         }
         @media (max-width: 480px) {
           .spotify-filters-grid {
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 8px;
           }
           .spotify-filter-btn .filter-preview {
