@@ -105,7 +105,8 @@ const writeConfig = async (config) => {
       token: BLOB_TOKEN,
       contentType: 'application/json',
       addRandomSuffix: false,
-      access: 'public' // Wymagane przez Vercel Blob
+      access: 'public', // Wymagane przez Vercel Blob
+      allowOverwrite: true // Pozwól nadpisać istniejący plik
     });
     console.log('✅ [FILTER-CONFIG] Zapisano pomyślnie:', result.url);
     return result;
