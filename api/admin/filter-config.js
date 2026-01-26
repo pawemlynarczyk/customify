@@ -104,7 +104,8 @@ const writeConfig = async (config) => {
     const result = await put(BLOB_PATH, json, {
       token: BLOB_TOKEN,
       contentType: 'application/json',
-      addRandomSuffix: false
+      addRandomSuffix: false,
+      access: 'public' // Wymagane przez Vercel Blob
     });
     console.log('✅ [FILTER-CONFIG] Zapisano pomyślnie:', result.url);
     return result;
