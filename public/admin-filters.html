@@ -282,6 +282,9 @@
           if (!isActive) {
             header.classList.add('active');
             content.classList.add('active');
+            // 🎨 Automatycznie włącz filtr w podglądzie
+            filterSelect.value = filterKey;
+            applyFilter();
           }
         });
         
