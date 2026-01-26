@@ -6,7 +6,7 @@
   <title>Admin - Konfiguracja Filtrów Zdjęć</title>
   <script src="https://cdn.jsdelivr.net/npm/glfx@0.0.4/glfx.min.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; max-width: 1400px; margin: 32px auto; padding: 0 16px; background: #fafafa; }
+    body { font-family: Arial, sans-serif; max-width: 1600px; margin: 32px auto; padding: 0 16px; background: #fafafa; }
     h1 { font-size: 22px; margin-bottom: 12px; }
     section { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
     label { display: block; margin: 6px 0 2px; font-weight: 600; }
@@ -19,18 +19,70 @@
     .preview-box { border: 2px solid #ddd; border-radius: 8px; padding: 12px; background: #f9fafb; }
     .preview-box h4 { margin: 0 0 12px 0; font-size: 16px; }
     .preview-image { max-width: 100%; border-radius: 4px; display: block; margin: 0 auto; }
-    .filter-controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
-    .filter-group { border: 1px solid #e5e7eb; border-radius: 6px; padding: 12px; background: #fafafa; }
-    .filter-group h3 { margin: 0 0 12px 0; font-size: 14px; color: #374151; }
-    .slider-container { margin: 8px 0; }
-    .slider-label { display: flex; justify-content: space-between; font-size: 12px; color: #6b7280; }
-    input[type="range"] { width: 100%; margin: 4px 0; }
-    input[type="number"] { width: 80px; margin-left: 8px; }
+    
+    /* Accordion dla filtrów */
+    .filter-accordion { margin-bottom: 8px; }
+    .filter-accordion-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 12px;
+      background: #f3f4f6;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.2s;
+    }
+    .filter-accordion-header:hover {
+      background: #e5e7eb;
+    }
+    .filter-accordion-header.active {
+      background: #dbeafe;
+      border-color: #3b82f6;
+    }
+    .filter-accordion-title {
+      font-weight: 600;
+      font-size: 13px;
+      color: #374151;
+    }
+    .filter-accordion-icon {
+      font-size: 18px;
+      color: #6b7280;
+      transition: transform 0.2s;
+    }
+    .filter-accordion-header.active .filter-accordion-icon {
+      transform: rotate(180deg);
+    }
+    .filter-accordion-content {
+      display: none;
+      padding: 12px;
+      background: #fafafa;
+      border: 1px solid #e5e7eb;
+      border-top: none;
+      border-radius: 0 0 6px 6px;
+    }
+    .filter-accordion-content.active {
+      display: block;
+    }
+    
+    /* Zmniejszone kontrolki */
+    .slider-container { margin: 4px 0; }
+    .slider-label { display: flex; justify-content: space-between; font-size: 11px; color: #6b7280; margin-bottom: 2px; }
+    input[type="range"] { width: 100%; margin: 2px 0; height: 6px; }
+    input[type="number"] { width: 65px; margin-left: 8px; padding: 4px 6px; font-size: 12px; }
+    
     .status { padding: 8px 12px; border-radius: 6px; margin-top: 12px; display: none; }
     .status.success { background: #d1fae5; color: #065f46; }
     .status.error { background: #fee2e2; color: #991b1b; }
     small { color: #6b7280; display: block; margin-top: 4px; }
     #fileInput { margin-bottom: 12px; }
+    
+    .filter-controls { max-height: 60vh; overflow-y: auto; padding-right: 8px; }
+    .filter-controls::-webkit-scrollbar { width: 8px; }
+    .filter-controls::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+    .filter-controls::-webkit-scrollbar-thumb { background: #888; border-radius: 4px; }
+    .filter-controls::-webkit-scrollbar-thumb:hover { background: #555; }
   </style>
 </head>
 <body>
@@ -78,14 +130,6 @@
         <label for="filterSelect">Wybierz filtr do podglądu:</label>
         <select id="filterSelect" style="max-width: 300px;">
           <option value="none">Oryginał</option>
-          <option value="brighten">Rozjaśnij</option>
-          <option value="vivid">Żywe kolory</option>
-          <option value="sharpen">Wyostrz</option>
-          <option value="warm">Ciepły</option>
-          <option value="cool">Chłodny</option>
-          <option value="bw">Czarno-biały</option>
-          <option value="vintage">Vintage</option>
-          <option value="dramatic">Dramatyczny</option>
         </select>
       </div>
     </section>
@@ -161,42 +205,91 @@
       }
     }
 
-    // Renderowanie kontrolek
+    // Wszystkie dostępne filtry glfx.js
+    const ALL_FILTERS = {
+      // Podstawowe korekty
+      brighten: { name: '☀️ Rozjaśnij', params: { brightness: [-1, 1], contrast: [-1, 1] } },
+      vivid: { name: '🎨 Żywe kolory', params: { hue: [-1, 1], saturation: [-1, 1], vibrance: [-1, 1] } },
+      warm: { name: '🌅 Ciepły', params: { hue: [-1, 1], saturation: [-1, 1], brightness: [-1, 1], contrast: [-1, 1] } },
+      cool: { name: '❄️ Chłodny', params: { hue: [-1, 1], saturation: [-1, 1], brightness: [-1, 1], contrast: [-1, 1] } },
+      bw: { name: '⚫ Czarno-biały', params: { saturation: [-1, 1], brightness: [-1, 1], contrast: [-1, 1] } },
+      
+      // Wyostrzenie/Rozmycie
+      sharpen: { name: '🔍 Wyostrz', params: { radius: [0, 200], strength: [0, 5] } },
+      triangleBlur: { name: '🌫️ Rozmycie', params: { radius: [0, 50] } },
+      zoomBlur: { name: '🌀 Rozmycie zoom', params: { centerX: [0, 1], centerY: [0, 1], strength: [0, 20] } },
+      tiltShift: { name: '📸 Tilt-shift', params: { startX: [0, 1], startY: [0, 1], endX: [0, 1], endY: [0, 1], blurRadius: [0, 50], gradientRadius: [0, 200] } },
+      lensBlur: { name: '🔮 Rozmycie soczewkowe', params: { radius: [0, 50], brightness: [-1, 1], angle: [0, 360] } },
+      
+      // Efekty artystyczne
+      vintage: { name: '📷 Vintage', params: { sepia: [0, 1], vignetteSize: [0, 1], vignetteAmount: [0, 1], brightness: [-1, 1], contrast: [-1, 1] } },
+      dramatic: { name: '🎭 Dramatyczny', params: { brightness: [-1, 1], contrast: [-1, 1], vignetteSize: [0, 1], vignetteAmount: [0, 1] } },
+      ink: { name: '✏️ Efekt tuszu', params: { strength: [0, 1] } },
+      edgeWork: { name: '🔲 Wykrywanie krawędzi', params: { radius: [0, 10] } },
+      hexagonalPixelate: { name: '⬡ Pikselizacja', params: { centerX: [0, 1], centerY: [0, 1], scale: [0, 50] } },
+      dotScreen: { name: '⚫ Halftone', params: { centerX: [0, 1], centerY: [0, 1], angle: [0, 360], size: [0, 20] } },
+      colorHalftone: { name: '🌈 Kolorowy halftone', params: { centerX: [0, 1], centerY: [0, 1], angle: [0, 360], size: [0, 20] } },
+      noise: { name: '📺 Szum', params: { amount: [0, 1] } },
+      
+      // Zniekształcenia
+      bulgePinch: { name: '🔴 Wybrzuszenie', params: { centerX: [0, 1], centerY: [0, 1], radius: [0, 1], strength: [-1, 1] } },
+      swirl: { name: '🌪️ Spirala', params: { centerX: [0, 1], centerY: [0, 1], radius: [0, 1], angle: [-10, 10] } },
+      spherize: { name: '🌐 Sferyzacja', params: { centerX: [0, 1], centerY: [0, 1], radius: [0, 1] } },
+      
+      // Zaawansowane
+      curves: { name: '📈 Krzywe', params: { red: [0, 1], green: [0, 1], blue: [0, 1] } },
+      denoise: { name: '🔇 Redukcja szumu', params: { exponent: [0, 10] } }
+    };
+
+    // Renderowanie kontrolek z accordion
     function renderControls() {
       const container = document.getElementById('filterControls');
       container.innerHTML = '';
+      const filterSelect = document.getElementById('filterSelect');
+      
+      // Wyczyść select i dodaj opcje
+      filterSelect.innerHTML = '<option value="none">Oryginał</option>';
 
-      const filters = {
-        brighten: { brightness: [-1, 1], contrast: [-1, 1] },
-        vivid: { hue: [-1, 1], saturation: [-1, 1], vibrance: [-1, 1] },
-        sharpen: { radius: [0, 200], strength: [0, 5] },
-        warm: { hue: [-1, 1], saturation: [-1, 1], brightness: [-1, 1], contrast: [-1, 1] },
-        cool: { hue: [-1, 1], saturation: [-1, 1], brightness: [-1, 1], contrast: [-1, 1] },
-        bw: { saturation: [-1, 1], brightness: [-1, 1], contrast: [-1, 1] },
-        vintage: { sepia: [0, 1], vignetteSize: [0, 1], vignetteAmount: [0, 1], brightness: [-1, 1], contrast: [-1, 1] },
-        dramatic: { brightness: [-1, 1], contrast: [-1, 1], vignetteSize: [0, 1], vignetteAmount: [0, 1] }
-      };
-
-      const names = {
-        brighten: '☀️ Rozjaśnij',
-        vivid: '🎨 Żywe kolory',
-        sharpen: '🔍 Wyostrz',
-        warm: '🌅 Ciepły',
-        cool: '❄️ Chłodny',
-        bw: '⚫ Czarno-biały',
-        vintage: '📷 Vintage',
-        dramatic: '🎭 Dramatyczny'
-      };
-
-      Object.keys(filters).forEach(filterKey => {
-        const group = document.createElement('div');
-        group.className = 'filter-group';
-        group.innerHTML = `<h3>${names[filterKey]}</h3>`;
+      Object.keys(ALL_FILTERS).forEach(filterKey => {
+        const filter = ALL_FILTERS[filterKey];
         
-        const params = filters[filterKey];
-        Object.keys(params).forEach(paramKey => {
-          const [min, max] = params[paramKey];
-          const value = config[filterKey]?.[paramKey] ?? (min === -1 ? 0 : (min + max) / 2);
+        // Dodaj do selecta
+        const option = document.createElement('option');
+        option.value = filterKey;
+        option.textContent = filter.name;
+        filterSelect.appendChild(option);
+        
+        // Stwórz accordion
+        const accordion = document.createElement('div');
+        accordion.className = 'filter-accordion';
+        
+        const header = document.createElement('div');
+        header.className = 'filter-accordion-header';
+        header.innerHTML = `
+          <span class="filter-accordion-title">${filter.name}</span>
+          <span class="filter-accordion-icon">▼</span>
+        `;
+        
+        const content = document.createElement('div');
+        content.className = 'filter-accordion-content';
+        
+        // Toggle accordion
+        header.addEventListener('click', () => {
+          const isActive = header.classList.contains('active');
+          document.querySelectorAll('.filter-accordion-header').forEach(h => h.classList.remove('active'));
+          document.querySelectorAll('.filter-accordion-content').forEach(c => c.classList.remove('active'));
+          
+          if (!isActive) {
+            header.classList.add('active');
+            content.classList.add('active');
+          }
+        });
+        
+        // Dodaj kontrolki
+        Object.keys(filter.params).forEach(paramKey => {
+          const [min, max] = filter.params[paramKey];
+          const defaultValue = min === -1 ? 0 : (min + max) / 2;
+          const value = config[filterKey]?.[paramKey] ?? defaultValue;
           
           const sliderContainer = document.createElement('div');
           sliderContainer.className = 'slider-container';
@@ -225,10 +318,12 @@
             applyFilter();
           });
           
-          group.appendChild(sliderContainer);
+          content.appendChild(sliderContainer);
         });
         
-        container.appendChild(group);
+        accordion.appendChild(header);
+        accordion.appendChild(content);
+        container.appendChild(accordion);
       });
     }
 
@@ -260,6 +355,7 @@
 
         const cfg = config[filterName] || {};
         
+        // Aplikuj wszystkie dostępne filtry
         switch(filterName) {
           case 'brighten':
             glfxCanvas.brightnessContrast(cfg.brightness || 0, cfg.contrast || 0);
@@ -291,6 +387,45 @@
           case 'dramatic':
             glfxCanvas.brightnessContrast(cfg.brightness || 0, cfg.contrast || 0);
             glfxCanvas.vignette(cfg.vignetteSize || 0, cfg.vignetteAmount || 0);
+            break;
+          case 'triangleBlur':
+            glfxCanvas.triangleBlur(cfg.radius || 10);
+            break;
+          case 'zoomBlur':
+            glfxCanvas.zoomBlur(cfg.centerX || 0.5, cfg.centerY || 0.5, cfg.strength || 5);
+            break;
+          case 'tiltShift':
+            glfxCanvas.tiltShift(cfg.startX || 0, cfg.startY || 0, cfg.endX || 1, cfg.endY || 1, cfg.blurRadius || 20, cfg.gradientRadius || 100);
+            break;
+          case 'lensBlur':
+            glfxCanvas.lensBlur(cfg.radius || 10, cfg.brightness || 0, cfg.angle || 0);
+            break;
+          case 'ink':
+            glfxCanvas.ink(cfg.strength || 0.5);
+            break;
+          case 'edgeWork':
+            glfxCanvas.edgeWork(cfg.radius || 2);
+            break;
+          case 'hexagonalPixelate':
+            glfxCanvas.hexagonalPixelate(cfg.centerX || 0.5, cfg.centerY || 0.5, cfg.scale || 10);
+            break;
+          case 'dotScreen':
+            glfxCanvas.dotScreen(cfg.centerX || 0.5, cfg.centerY || 0.5, cfg.angle || 0, cfg.size || 3);
+            break;
+          case 'colorHalftone':
+            glfxCanvas.colorHalftone(cfg.centerX || 0.5, cfg.centerY || 0.5, cfg.angle || 0, cfg.size || 3);
+            break;
+          case 'noise':
+            glfxCanvas.noise(cfg.amount || 0.1);
+            break;
+          case 'bulgePinch':
+            glfxCanvas.bulgePinch(cfg.centerX || 0.5, cfg.centerY || 0.5, cfg.radius || 0.5, cfg.strength || 0.5);
+            break;
+          case 'swirl':
+            glfxCanvas.swirl(cfg.centerX || 0.5, cfg.centerY || 0.5, cfg.radius || 0.5, cfg.angle || 3);
+            break;
+          case 'spherize':
+            glfxCanvas.spherize(cfg.centerX || 0.5, cfg.centerY || 0.5, cfg.radius || 0.5);
             break;
         }
 
