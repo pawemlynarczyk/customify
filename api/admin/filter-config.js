@@ -97,14 +97,24 @@ const writeConfig = async (config) => {
   }
   
   const json = JSON.stringify(config, null, 2);
-  await put(BLOB_PATH, json, {
-    token: BLOB_TOKEN,
-    contentType: 'application/json',
-    addRandomSuffix: false
-  });
+  console.log('💾 [FILTER-CONFIG] Zapisuję konfigurację do:', BLOB_PATH);
+  console.log('💾 [FILTER-CONFIG] Rozmiar JSON:', json.length, 'znaków');
+  
+  try {
+    const result = await put(BLOB_PATH, json, {
+      token: BLOB_TOKEN,
+      contentType: 'application/json',
+      addRandomSuffix: false
+    });
+    console.log('✅ [FILTER-CONFIG] Zapisano pomyślnie:', result.url);
+    return result;
+  } catch (err) {
+    console.error('❌ [FILTER-CONFIG] Błąd put():', err);
+    throw err;
+  }
 };
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   sendCors(req, res);
   
   if (req.method === 'OPTIONS') {
@@ -131,19 +141,27 @@ export default async function handler(req, res) {
     try {
       const newConfig = req.body;
       
+      console.log('📥 [FILTER-CONFIG] Otrzymano konfigurację:', Object.keys(newConfig));
+      
       // Walidacja struktury
       if (!newConfig || typeof newConfig !== 'object') {
-        return res.status(400).json({ error: 'Nieprawidłowa struktura konfiguracji' });
+        console.error('❌ [FILTER-CONFIG] Nieprawidłowa struktura:', typeof newConfig);
+        return res.status(400).json({ error: 'Nieprawidłowa struktura konfiguracji', received: typeof newConfig });
       }
       
       // Zapis
       await writeConfig(newConfig);
       
-      console.log('✅ [FILTER-CONFIG] Konfiguracja zapisana');
+      console.log('✅ [FILTER-CONFIG] Konfiguracja zapisana pomyślnie');
       return res.status(200).json({ success: true, message: 'Konfiguracja zapisana' });
     } catch (err) {
       console.error('❌ [FILTER-CONFIG] Błąd zapisu:', err);
-      return res.status(500).json({ error: 'Błąd zapisu konfiguracji' });
+      console.error('❌ [FILTER-CONFIG] Stack:', err.stack);
+      return res.status(500).json({ 
+        error: 'Błąd zapisu konfiguracji',
+        message: err.message,
+        details: process.env.NODE_ENV === 'development' ? err.stack : undefined
+      });
     }
   }
   
