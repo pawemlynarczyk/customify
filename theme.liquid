@@ -4564,6 +4564,36 @@
           }
         }
         
+        /* 🎵 Slot dla elementów typu/rozmiaru/ceny/przycisków Spotify */
+        #spotify-type-size-slot {
+          display: flex;
+          flex-direction: column;
+          gap: 15px;
+          margin-top: 20px;
+        }
+        #spotify-type-size-slot > * {
+          order: 0; /* Domyślna kolejność */
+        }
+        #spotify-type-size-slot > .customify-product-type-selector {
+          order: 1; /* Rodzaj wydruku - pierwszy */
+        }
+        #spotify-type-size-slot > .customify-size-selector {
+          order: 2; /* Rozmiar - drugi */
+        }
+        #spotify-type-size-slot > #cartPriceDisplay {
+          order: 3; /* Cena - trzeci */
+        }
+        #spotify-type-size-slot > #spotify-cart-buttons {
+          order: 4; /* Przycisk "Dodaj do koszyka" - ostatni */
+        }
+        
+        /* 🎵 Ukryj główny przycisk "Dodaj do koszyka" dla produktu bez AI - używamy tylko tego z slotu */
+        {% if product.handle == 'zdjecie-na-szkle-ramka-spotify' %}
+        #addToCartBtnMain {
+          display: none !important;
+        }
+        {% endif %}
+        
         /* 🎵 Panel tekstów Spotify */
         .spotify-text-panel {
           margin-top: 20px;
