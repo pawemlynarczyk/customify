@@ -67,6 +67,8 @@ class CustomifyEmbed {
     // 🎨 GLFX Filters
     this.glfxInitialized = false;
     this.originalCroppedImage = null; // Oryginał przed filtrami
+    this.filterConfig = null; // Konfiguracja filtrów z API
+    this.filterConfigLoading = false; // Flaga ładowania
     
     // ✅ PENDING WATERMARK UPLOAD: Dane do wysłania jeśli użytkownik zmieni stronę
     this.pendingWatermarkUpload = null; // { generationId, watermarkedImage, customerId, email }
@@ -2913,8 +2915,61 @@ class CustomifyEmbed {
     reader.readAsDataURL(this.uploadedFile);
   }
   
+  // 🎨 GLFX.JS: Ładowanie konfiguracji filtrów z API
+  async loadFilterConfig() {
+    if (this.filterConfig) {
+      return this.filterConfig; // Już załadowane
+    }
+    
+    if (this.filterConfigLoading) {
+      // Czekaj na zakończenie ładowania
+      return new Promise((resolve) => {
+        const checkInterval = setInterval(() => {
+          if (this.filterConfig) {
+            clearInterval(checkInterval);
+            resolve(this.filterConfig);
+          }
+        }, 100);
+      });
+    }
+    
+    this.filterConfigLoading = true;
+    
+    try {
+      const res = await fetch('https://customify-s56o.vercel.app/api/admin/filter-config');
+      if (res.ok) {
+        const config = await res.json();
+        this.filterConfig = config;
+        console.log('✅ [GLFX] Konfiguracja filtrów załadowana z API');
+        return config;
+      } else {
+        console.warn('⚠️ [GLFX] Błąd ładowania konfiguracji, używam domyślnej');
+        return this.getDefaultFilterConfig();
+      }
+    } catch (err) {
+      console.error('❌ [GLFX] Błąd ładowania konfiguracji:', err);
+      return this.getDefaultFilterConfig();
+    } finally {
+      this.filterConfigLoading = false;
+    }
+  }
+  
+  // 🎨 Domyślna konfiguracja (fallback)
+  getDefaultFilterConfig() {
+    return {
+      brighten: { brightness: 0.15, contrast: 0.1 },
+      vivid: { hue: 0, saturation: 0.2, vibrance: 0.2 },
+      sharpen: { radius: 50, strength: 1.5 },
+      warm: { hue: 0.05, saturation: 0.1, brightness: 0.05, contrast: 0.05 },
+      cool: { hue: -0.05, saturation: 0, brightness: 0, contrast: 0.1 },
+      bw: { saturation: -1, brightness: 0.05, contrast: 0.15 },
+      vintage: { sepia: 0.3, vignetteSize: 0.3, vignetteAmount: 0.7, brightness: -0.05, contrast: 0.1 },
+      dramatic: { brightness: -0.1, contrast: 0.4, vignetteSize: 0.4, vignetteAmount: 0.6 }
+    };
+  }
+  
   // 🎨 GLFX.JS: Inicjalizacja filtrów zdjęć
-  initGlfxFilters() {
+  async initGlfxFilters() {
     if (this.glfxInitialized) return;
     
     // Sprawdź czy glfx.js jest załadowane
@@ -2924,6 +2979,9 @@ class CustomifyEmbed {
     }
     
     console.log('🎨 [GLFX] Inicjalizacja filtrów zdjęć...');
+    
+    // Załaduj konfigurację z API
+    await this.loadFilterConfig();
     
     // Event listeners dla przycisków filtrów
     const filterBtns = document.querySelectorAll('.spotify-filter-btn');
@@ -2944,13 +3002,18 @@ class CustomifyEmbed {
   }
   
   // 🎨 GLFX.JS: Aplikuj filtr na zdjęcie
-  applyGlfxFilter(filterName) {
+  async applyGlfxFilter(filterName) {
     if (!this.originalCroppedImage) {
       console.warn('⚠️ [GLFX] Brak oryginalnego zdjęcia');
       return;
     }
     
     console.log('🎨 [GLFX] Aplikuję filtr:', filterName);
+    
+    // Upewnij się że konfiguracja jest załadowana
+    if (!this.filterConfig) {
+      await this.loadFilterConfig();
+    }
     
     // Stwórz tymczasowy obraz z oryginalnego
     const img = new Image();
@@ -2962,8 +3025,8 @@ class CustomifyEmbed {
         const texture = canvas.texture(img);
         
         // Aplikuj filtry w zależności od wyboru
-        // 🎨 Pobierz konfigurację z window.FILTER_CONFIG (edytowalna w theme.liquid)
-        const cfg = window.FILTER_CONFIG || {};
+        // 🎨 Pobierz konfigurację z API (lub domyślną)
+        const cfg = this.filterConfig || this.getDefaultFilterConfig();
         
         canvas.draw(texture);
         
