@@ -2962,6 +2962,9 @@ class CustomifyEmbed {
         const texture = canvas.texture(img);
         
         // Aplikuj filtry w zależności od wyboru
+        // 🎨 Pobierz konfigurację z window.FILTER_CONFIG (edytowalna w theme.liquid)
+        const cfg = window.FILTER_CONFIG || {};
+        
         canvas.draw(texture);
         
         switch(filterName) {
@@ -2969,35 +2972,43 @@ class CustomifyEmbed {
             // Bez filtra - oryginał
             break;
           case 'brighten':
-            canvas.brightnessContrast(0.15, 0.1);
+            const b = cfg.brighten || { brightness: 0.15, contrast: 0.1 };
+            canvas.brightnessContrast(b.brightness, b.contrast);
             break;
           case 'vivid':
-            canvas.hueSaturation(0, 0.4);
-            canvas.vibrance(0.3);
+            const v = cfg.vivid || { hue: 0, saturation: 0.2, vibrance: 0.2 };
+            canvas.hueSaturation(v.hue, v.saturation);
+            canvas.vibrance(v.vibrance);
             break;
           case 'sharpen':
-            canvas.unsharpMask(50, 1.5);
+            const sh = cfg.sharpen || { radius: 50, strength: 1.5 };
+            canvas.unsharpMask(sh.radius, sh.strength);
             break;
           case 'warm':
-            canvas.hueSaturation(0.05, 0.1);
-            canvas.brightnessContrast(0.05, 0.05);
+            const w = cfg.warm || { hue: 0.05, saturation: 0.1, brightness: 0.05, contrast: 0.05 };
+            canvas.hueSaturation(w.hue, w.saturation);
+            canvas.brightnessContrast(w.brightness, w.contrast);
             break;
           case 'cool':
-            canvas.hueSaturation(-0.05, 0);
-            canvas.brightnessContrast(0, 0.1);
+            const c = cfg.cool || { hue: -0.05, saturation: 0, brightness: 0, contrast: 0.1 };
+            canvas.hueSaturation(c.hue, c.saturation);
+            canvas.brightnessContrast(c.brightness, c.contrast);
             break;
           case 'bw':
-            canvas.hueSaturation(0, -1);
-            canvas.brightnessContrast(0.05, 0.15);
+            const bw = cfg.bw || { saturation: -1, brightness: 0.05, contrast: 0.15 };
+            canvas.hueSaturation(0, bw.saturation);
+            canvas.brightnessContrast(bw.brightness, bw.contrast);
             break;
           case 'vintage':
-            canvas.sepia(0.3);
-            canvas.vignette(0.3, 0.7);
-            canvas.brightnessContrast(-0.05, 0.1);
+            const vt = cfg.vintage || { sepia: 0.3, vignetteSize: 0.3, vignetteAmount: 0.7, brightness: -0.05, contrast: 0.1 };
+            canvas.sepia(vt.sepia);
+            canvas.vignette(vt.vignetteSize, vt.vignetteAmount);
+            canvas.brightnessContrast(vt.brightness, vt.contrast);
             break;
           case 'dramatic':
-            canvas.brightnessContrast(-0.1, 0.4);
-            canvas.vignette(0.4, 0.6);
+            const dr = cfg.dramatic || { brightness: -0.1, contrast: 0.4, vignetteSize: 0.4, vignetteAmount: 0.6 };
+            canvas.brightnessContrast(dr.brightness, dr.contrast);
+            canvas.vignette(dr.vignetteSize, dr.vignetteAmount);
             break;
         }
         
