@@ -2525,8 +2525,10 @@ class CustomifyEmbed {
           const titleText = titleInput ? titleInput.value : '';
           const artistText = artistInput ? artistInput.value : '';
           
-          // Pozycja tekstów (między zdjęciem a kontrolerami)
-          const textY = 1020;
+          // Pozycja tekstów (między zdjęciem a kontrolerami) - zgodna z CSS (top: 1000px)
+          // Używamy textBaseline = 'top' żeby pozycjonować od góry tekstu (jak w CSS)
+          ctx.textBaseline = 'top';
+          const textY = 1000; // Zgodne z CSS .spotify-text-overlay { top: 1000px; }
           
           // Nagłówek - gruby, BIAŁY, wyrównany do lewej
           if (titleText) {
@@ -2538,11 +2540,12 @@ class CustomifyEmbed {
           }
           
           // Podpis - cieńszy, BIAŁY, wyrównany do lewej
+          // Oblicz pozycję na podstawie wysokości nagłówka (72px) + odstęp (6px jak w CSS margin-bottom)
           if (artistText) {
             ctx.font = '48px Arial, sans-serif';
             ctx.fillStyle = '#ffffff';
             ctx.textAlign = 'left';
-            ctx.fillText(artistText, 61, textY + 70);
+            ctx.fillText(artistText, 61, textY + 72 + 6); // 72px (wysokość nagłówka) + 6px (margin-bottom z CSS)
             console.log('🎵 [SPOTIFY COMPOSE] Artist added:', artistText);
           }
           
