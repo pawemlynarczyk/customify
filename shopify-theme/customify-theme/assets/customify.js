@@ -544,6 +544,10 @@ class CustomifyEmbed {
       console.log('🦄 [PRODUCT-TYPE] URL = Jednorożec → productType: unicorn');
       return 'unicorn';
     }
+    if (currentUrl.includes('portret-dziecka-w-stroju-misia') || currentUrl.includes('mis')) {
+      console.log('🧸 [PRODUCT-TYPE] URL = Miś → productType: teddy_bear');
+      return 'teddy_bear';
+    }
     
     // 🔄 PRIORYTET 2: Fallback - sprawdź styl (tylko dla starych generacji bez URL)
     console.log('⚠️ [PRODUCT-TYPE] Nie rozpoznano URL, sprawdzam styl:', style);
@@ -577,7 +581,8 @@ class CustomifyEmbed {
       'swieta_2': 'caricature-new',
       'akwarela': 'watercolor',
       'openai-art': 'openai-art', // OpenAI GPT-Image-1 style
-      'jednorozec': 'unicorn'
+      'jednorozec': 'unicorn',
+      'mis': 'teddy_bear'
     };
     
     const productType = styleToProductType[style] || 'other';
