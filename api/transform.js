@@ -1350,13 +1350,26 @@ module.exports = async (req, res) => {
       },
       'swieta_2': {
         model: "google/nano-banana",
-        prompt: "christmass cheer. keep all person on photo, keep faces recognizable. add them christmas sweaters, scurfs, hats, snow on the ground nad everywhere and lights. Add the text “Wesołych Świąt” in an elegant, festive font, placed gently above/below it, well-integrated into the composition.\n\nLighting: warm golden Christmas glow. Background: blurred tree lights (bokeh), cozy and festive.",
+        prompt: "christmass cheer. keep all person on photo, keep faces recognizable. add them christmas sweaters, scurfs, hats, snow on the ground nad everywhere and lights. Add the text "Wesołych Świąt" in an elegant, festive font, placed gently above/below it, well-integrated into the composition.\n\nLighting: warm golden Christmas glow. Background: blurred tree lights (bokeh), cozy and festive.",
         apiType: "nano-banana",
         productType: "caricature-new",
         parameters: {
           image_input: ["USER_IMAGE"],
-          prompt: "christmass cheer. keep all person on photo, keep faces recognizable. add them christmas sweaters, scurfs, hats, snow on the ground nad everywhere and lights. Add the text “Wesołych Świąt” in an elegant, festive font, placed gently above/below it, well-integrated into the composition.\n\nLighting: warm golden Christmas glow. Background: blurred tree lights (bokeh), cozy and festive.",
+          prompt: "christmass cheer. keep all person on photo, keep faces recognizable. add them christmas sweaters, scurfs, hats, snow on the ground nad everywhere and lights. Add the text "Wesołych Świąt" in an elegant, festive font, placed gently above/below it, well-integrated into the composition.\n\nLighting: warm golden Christmas glow. Background: blurred tree lights (bokeh), cozy and festive.",
           aspect_ratio: "2:3",
+          output_format: "jpg",
+          guidance: 3.5
+        }
+      },
+      'sketch': {
+        model: "google/nano-banana",
+        prompt: "pencil sketch",
+        apiType: "nano-banana",
+        productType: "spotify_frame", // ✅ Zmienione z "caricature-new" na "spotify_frame" dla produktu ramka-spotify
+        parameters: {
+          image_input: ["USER_IMAGE"],
+          prompt: "pencil sketch",
+          aspect_ratio: "3:4", // ✅ Zmienione z "2:3" na "3:4" dla spotify_frame (pionowy portret)
           output_format: "jpg",
           guidance: 3.5
         }
@@ -1695,6 +1708,20 @@ module.exports = async (req, res) => {
           reverse: false,
           threshold: 0,
           background_type: "rgba"
+        }
+      },
+      // 🎨 Anime style - Photo to Anime
+      'anime': {
+        model: "qwen-edit-apps/qwen-image-edit-plus-lora-photo-to-anime",
+        prompt: "transform into anime, clean line art, vibrant cel-shaded colors",
+        productType: "spotify_frame",
+        parameters: {
+          aspect_ratio: "3:4",
+          num_inference_steps: 20,
+          lora_scale: 1,
+          true_guidance_scale: 1,
+          output_format: "jpg",
+          output_quality: 95
         }
       },
     };
@@ -2585,6 +2612,39 @@ module.exports = async (req, res) => {
         reverse: config.parameters?.reverse || false,
         threshold: config.parameters?.threshold ?? 0,
         background_type: config.parameters?.background_type || 'rgba'
+      };
+    } else if (config.model.includes('qwen-image-edit-plus-lora-photo-to-anime')) {
+      // Qwen Photo-to-Anime model - upload to Vercel Blob first (model requires URL)
+      console.log('🎨 [QWEN-ANIME] Uploading image to Vercel Blob Storage...');
+      const baseUrl = 'https://customify-s56o.vercel.app';
+      const uploadResponse = await fetch(`${baseUrl}/api/upload-temp-image`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageData: imageDataUri,
+          filename: `anime-${Date.now()}.jpg`
+        })
+      });
+
+      if (!uploadResponse.ok) {
+        const errorText = await uploadResponse.text();
+        console.error('❌ [QWEN-ANIME] Vercel Blob upload failed:', errorText);
+        throw new Error(`Vercel Blob upload failed: ${uploadResponse.status} - ${errorText}`);
+      }
+
+      const uploadResult = await uploadResponse.json();
+      const userImageUrl = uploadResult.imageUrl;
+      console.log('✅ [QWEN-ANIME] User image uploaded:', userImageUrl);
+
+      inputParams = {
+        image: userImageUrl,
+        prompt: config.prompt,
+        aspect_ratio: config.parameters?.aspect_ratio || '3:4',
+        num_inference_steps: config.parameters?.num_inference_steps || 20,
+        lora_scale: config.parameters?.lora_scale || 1,
+        true_guidance_scale: config.parameters?.true_guidance_scale || 1,
+        output_format: config.parameters?.output_format || 'jpg',
+        output_quality: config.parameters?.output_quality || 95
       };
     } else {
       // Stable Diffusion model parameters (default)
