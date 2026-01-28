@@ -399,6 +399,33 @@ async function segmindCaricature(imageUrl) {
         const errorText = await response.text();
         const status = response.status;
         
+        // ✅ SZCZEGÓŁOWE LOGOWANIE DLA BŁĘDÓW 400 (Bad Request)
+        if (status === 400) {
+          console.error('❌ [SEGMIND] ⚠️⚠️⚠️ BŁĄD 400 - BAD REQUEST (CARICATURE) ⚠️⚠️⚠️');
+          console.error('❌ [SEGMIND] Error response:', errorText);
+          console.error('❌ [SEGMIND] Error response length:', errorText.length);
+          console.error('❌ [SEGMIND] Attempt:', attempt);
+          console.error('❌ [SEGMIND] Image URL length:', imageUrl?.length);
+          console.error('❌ [SEGMIND] Image URL type:', typeof imageUrl);
+          console.error('❌ [SEGMIND] Image URL preview:', imageUrl?.substring(0, 100));
+          
+          // ✅ SENTRY: Loguj błąd 400 z pełnym kontekstem
+          Sentry.withScope((scope) => {
+            scope.setTag('customify', 'true');
+            scope.setTag('error_type', 'segmind_400_error');
+            scope.setTag('segmind_function', 'caricature');
+            scope.setTag('status_code', '400');
+            scope.setContext('segmind_error', {
+              status: status,
+              errorText: errorText.substring(0, 1000), // Max 1000 chars
+              attempt: attempt,
+              imageUrlLength: imageUrl?.length,
+              imageUrlType: typeof imageUrl
+            });
+            Sentry.captureMessage(`Segmind API 400 error (caricature): ${errorText.substring(0, 200)}`, 'error');
+          });
+        }
+        
         // Check if error is moderation blocked
         if (isModerationBlocked(errorText)) {
           console.warn('⚠️ [SEGMIND] Moderation blocked - image rejected by safety system');
@@ -420,6 +447,12 @@ async function segmindCaricature(imageUrl) {
           // Non-retryable error or max retries reached
           console.error('❌ [SEGMIND] API Error:', status);
           console.error('❌ [SEGMIND] Error details:', errorText);
+          
+          // ✅ Dla błędów 400 - bardziej szczegółowy komunikat
+          if (status === 400) {
+            throw new Error(`Segmind API error: 400 Bad Request - ${errorText.substring(0, 500)}`);
+          }
+          
           throw new Error(`Segmind API error: ${status} - ${errorText}`);
         }
       }
@@ -561,6 +594,36 @@ async function segmindFaceswap(targetImageUrl, swapImageBase64) {
         const errorText = await response.text();
         const status = response.status;
         
+        // ✅ SZCZEGÓŁOWE LOGOWANIE DLA BŁĘDÓW 400 (Bad Request)
+        if (status === 400) {
+          console.error('❌ [SEGMIND] ⚠️⚠️⚠️ BŁĄD 400 - BAD REQUEST (FACESWAP) ⚠️⚠️⚠️');
+          console.error('❌ [SEGMIND] Error response:', errorText);
+          console.error('❌ [SEGMIND] Error response length:', errorText.length);
+          console.error('❌ [SEGMIND] Attempt:', attempt);
+          console.error('❌ [SEGMIND] Target image URL:', targetImageUrl);
+          console.error('❌ [SEGMIND] Target image base64 length:', targetImageBase64?.length);
+          console.error('❌ [SEGMIND] Swap image base64 length:', cleanSwapImage?.length);
+          console.error('❌ [SEGMIND] Request body keys:', Object.keys(requestBody));
+          
+          // ✅ SENTRY: Loguj błąd 400 z pełnym kontekstem
+          Sentry.withScope((scope) => {
+            scope.setTag('customify', 'true');
+            scope.setTag('error_type', 'segmind_400_error');
+            scope.setTag('segmind_function', 'faceswap');
+            scope.setTag('status_code', '400');
+            scope.setContext('segmind_error', {
+              status: status,
+              errorText: errorText.substring(0, 1000), // Max 1000 chars
+              attempt: attempt,
+              targetImageUrl: targetImageUrl,
+              targetImageBase64Length: targetImageBase64?.length,
+              swapImageBase64Length: cleanSwapImage?.length,
+              requestBodyKeys: Object.keys(requestBody)
+            });
+            Sentry.captureMessage(`Segmind API 400 error (faceswap): ${errorText.substring(0, 200)}`, 'error');
+          });
+        }
+        
         // Check if error is moderation blocked
         if (isModerationBlocked(errorText)) {
           console.warn('⚠️ [SEGMIND] Moderation blocked - image rejected by safety system');
@@ -581,6 +644,12 @@ async function segmindFaceswap(targetImageUrl, swapImageBase64) {
         } else {
           // Non-retryable error or max retries reached
           console.error('❌ [SEGMIND] Face-swap failed:', status, errorText);
+          
+          // ✅ Dla błędów 400 - bardziej szczegółowy komunikat
+          if (status === 400) {
+            throw new Error(`Segmind face-swap failed: 400 Bad Request - ${errorText.substring(0, 500)}`);
+          }
+          
           throw new Error(`Segmind face-swap failed: ${status} - ${errorText}`);
         }
       }
@@ -727,6 +796,34 @@ async function segmindBecomeImage(imageUrl, styleImageUrl, styleParameters = {})
         const errorText = await response.text();
         const status = response.status;
         
+        // ✅ SZCZEGÓŁOWE LOGOWANIE DLA BŁĘDÓW 400 (Bad Request)
+        if (status === 400) {
+          console.error('❌ [SEGMIND] ⚠️⚠️⚠️ BŁĄD 400 - BAD REQUEST (BECOME-IMAGE) ⚠️⚠️⚠️');
+          console.error('❌ [SEGMIND] Error response:', errorText);
+          console.error('❌ [SEGMIND] Error response length:', errorText.length);
+          console.error('❌ [SEGMIND] Attempt:', attempt);
+          console.error('❌ [SEGMIND] Image URL:', imageUrl);
+          console.error('❌ [SEGMIND] Style image URL:', styleImageUrl);
+          console.error('❌ [SEGMIND] Style parameters:', JSON.stringify(styleParameters, null, 2));
+          
+          // ✅ SENTRY: Loguj błąd 400 z pełnym kontekstem
+          Sentry.withScope((scope) => {
+            scope.setTag('customify', 'true');
+            scope.setTag('error_type', 'segmind_400_error');
+            scope.setTag('segmind_function', 'becomeImage');
+            scope.setTag('status_code', '400');
+            scope.setContext('segmind_error', {
+              status: status,
+              errorText: errorText.substring(0, 1000), // Max 1000 chars
+              attempt: attempt,
+              imageUrl: imageUrl,
+              styleImageUrl: styleImageUrl,
+              styleParameters: styleParameters
+            });
+            Sentry.captureMessage(`Segmind API 400 error (becomeImage): ${errorText.substring(0, 200)}`, 'error');
+          });
+        }
+        
         // Check if error is moderation blocked
         if (isModerationBlocked(errorText)) {
           console.warn('⚠️ [SEGMIND] Moderation blocked - image rejected by safety system');
@@ -748,6 +845,12 @@ async function segmindBecomeImage(imageUrl, styleImageUrl, styleParameters = {})
           // Non-retryable error or max retries reached
           console.error('❌ [SEGMIND] API Error:', status);
           console.error('❌ [SEGMIND] Error details:', errorText);
+          
+          // ✅ Dla błędów 400 - bardziej szczegółowy komunikat
+          if (status === 400) {
+            throw new Error(`Segmind API error: 400 Bad Request - ${errorText.substring(0, 500)}`);
+          }
+          
           throw new Error(`Segmind API error: ${status} - ${errorText}`);
         }
       }

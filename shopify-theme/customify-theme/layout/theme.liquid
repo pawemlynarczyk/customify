@@ -130,6 +130,141 @@
     </script>
     <!-- End Sentry -->
 
+    <!-- ✅ GLOBAL ERROR HANDLER - Przechwytuje błędy z motywu Shopify -->
+    <script>
+      (function() {
+        // ✅ Przechwytuj nieobsłużone błędy JavaScript
+        window.addEventListener('error', function(event) {
+          const error = event.error || event;
+          const errorMessage = error.message || event.message || 'Unknown error';
+          const errorStack = error.stack || '';
+          
+          // ✅ Sprawdź czy to błąd z motywu Shopify (aspectRatioHelper, processNewElements)
+          const isThemeError = 
+            errorMessage.includes('aspectRatioHelper') ||
+            errorMessage.includes('processNewElements') ||
+            errorMessage.includes('#aspectRatioHelper') ||
+            errorStack.includes('aspectRatioHelper') ||
+            errorStack.includes('processNewElements');
+          
+          if (isThemeError) {
+            // ✅ Zapobiegaj crashowi - loguj do Sentry ale nie przerywaj działania
+            console.warn('⚠️ [THEME-ERROR-HANDLER] Przechwycono błąd z motywu Shopify:', errorMessage);
+            
+            // ✅ Loguj do Sentry z pełnym kontekstem
+            if (typeof Sentry !== 'undefined' && window.__sentryInitialized) {
+              Sentry.withScope((scope) => {
+                scope.setTag('customify', 'true');
+                scope.setTag('error_type', 'theme_error');
+                scope.setTag('error_source', 'shopify_theme');
+                scope.setTag('theme_component', 'aspectRatioHelper');
+                scope.setContext('theme_error', {
+                  errorMessage: errorMessage,
+                  errorStack: errorStack.substring(0, 1000), // Max 1000 chars
+                  url: window.location.href,
+                  userAgent: navigator.userAgent,
+                  timestamp: new Date().toISOString()
+                });
+                Sentry.captureException(error);
+              });
+            }
+            
+            // ✅ Zapobiegaj domyślnemu zachowaniu (nie pokazuj w konsoli jako nieobsłużony błąd)
+            event.preventDefault();
+            return false;
+          }
+          
+          // ✅ Dla innych błędów - pozwól Sentry je obsłużyć normalnie
+          return true;
+        }, true); // useCapture = true (przechwytuj PRZED innymi handlerami)
+        
+        // ✅ Przechwytuj nieobsłużone promise rejections
+        window.addEventListener('unhandledrejection', function(event) {
+          const error = event.reason || event;
+          const errorMessage = error?.message || String(error) || 'Unknown promise rejection';
+          const errorStack = error?.stack || '';
+          
+          // ✅ Sprawdź czy to błąd z motywu Shopify
+          const isThemeError = 
+            errorMessage.includes('aspectRatioHelper') ||
+            errorMessage.includes('processNewElements') ||
+            errorMessage.includes('#aspectRatioHelper') ||
+            errorStack.includes('aspectRatioHelper') ||
+            errorStack.includes('processNewElements');
+          
+          if (isThemeError) {
+            console.warn('⚠️ [THEME-ERROR-HANDLER] Przechwycono promise rejection z motywu Shopify:', errorMessage);
+            
+            // ✅ Loguj do Sentry
+            if (typeof Sentry !== 'undefined' && window.__sentryInitialized) {
+              Sentry.withScope((scope) => {
+                scope.setTag('customify', 'true');
+                scope.setTag('error_type', 'theme_promise_rejection');
+                scope.setTag('error_source', 'shopify_theme');
+                scope.setTag('theme_component', 'aspectRatioHelper');
+                scope.setContext('theme_error', {
+                  errorMessage: errorMessage,
+                  errorStack: errorStack.substring(0, 1000),
+                  url: window.location.href,
+                  timestamp: new Date().toISOString()
+                });
+                Sentry.captureException(error);
+              });
+            }
+            
+            // ✅ Zapobiegaj domyślnemu zachowaniu
+            event.preventDefault();
+          }
+        });
+        
+        console.log('✅ [THEME-ERROR-HANDLER] Global error handler zainstalowany');
+        
+        // ✅ VIEW TRANSITION ERROR HANDLER - Ignoruj błędy animacji (nieistotne)
+        // Błędy view transition to tylko animacje przejść między stronami - nie wpływają na funkcjonalność
+        window.addEventListener('error', function(event) {
+          const error = event.error || event;
+          const errorMessage = error.message || event.message || '';
+          
+          // ✅ Sprawdź czy to błąd view transition
+          const isViewTransitionError = 
+            errorMessage.includes('view transition') ||
+            errorMessage.includes('ViewTransition') ||
+            errorMessage.includes('skipTransition') ||
+            errorMessage.includes('Skipping view transition') ||
+            error.name === 'AbortError' && errorMessage.includes('transition');
+          
+          if (isViewTransitionError) {
+            // ✅ Ignoruj - to tylko animacje, nie wpływają na funkcjonalność
+            console.debug('🔇 [VIEW-TRANSITION] Ignoruję błąd animacji:', errorMessage);
+            event.preventDefault();
+            return false; // Nie loguj do Sentry
+          }
+        }, true);
+        
+        // ✅ VIEW TRANSITION PROMISE REJECTION HANDLER
+        window.addEventListener('unhandledrejection', function(event) {
+          const error = event.reason || event;
+          const errorMessage = error?.message || String(error) || '';
+          
+          const isViewTransitionError = 
+            errorMessage.includes('view transition') ||
+            errorMessage.includes('ViewTransition') ||
+            errorMessage.includes('skipTransition') ||
+            errorMessage.includes('Skipping view transition') ||
+            (error?.name === 'AbortError' && errorMessage.includes('transition'));
+          
+          if (isViewTransitionError) {
+            // ✅ Ignoruj - to tylko animacje
+            console.debug('🔇 [VIEW-TRANSITION] Ignoruję promise rejection animacji:', errorMessage);
+            event.preventDefault();
+          }
+        });
+        
+        console.log('✅ [VIEW-TRANSITION-HANDLER] View transition error handler zainstalowany');
+      })();
+    </script>
+    <!-- End Global Error Handler -->
+
     <!-- CUSTOMIFY INTEGRATION -->
     <link rel="stylesheet" href="{{ 'customify.css' | asset_url }}">
     {% if product and product.handle == 'ramka-spotify' or product.handle == 'zdjecie-na-szkle-ramka-spotify' %}
@@ -472,7 +607,7 @@
 
           proto.addToCart = async function() {
             // ✅ POKAŻ LOADING od razu - dodawanie do koszyka może trwać
-            this.showLoading();
+            this.showCartLoading();
             
             console.log('🛒 [CUSTOMIFY] addToCart called with:', {
               transformedImage: !!this.transformedImage,
@@ -489,7 +624,7 @@
               if (!this.selectedSize) {
                 console.log('❌ [CUSTOMIFY] No selectedSize, showing error');
                 this.showError('Nie wybrałeś rozmiaru');
-                this.hideLoading();
+                this.hideCartLoading();
                 return;
               }
               console.log('✅ [CUSTOMIFY] selectedSize OK, proceeding with price calculation');
@@ -636,7 +771,7 @@
                 } catch (err) {
                   console.error('❌ [SPOTIFY] Failed to compose/upload image:', err);
                   this.showError('Nie udało się przygotować obrazu. Spróbuj ponownie.', 'cart');
-                  this.hideLoading();
+                  this.hideCartLoading();
                   return;
                 }
               }
@@ -645,7 +780,7 @@
               if (!watermarkedImageUrl && !needsBackendWatermark) {
                 console.error('❌ [CUSTOMIFY] Brak backend watermarkedImageUrl - nie można dodać do koszyka!');
                 alert('Wystąpił błąd podczas generowania obrazu. Spróbuj wygenerować obraz ponownie klikając "Przekształć z AI".');
-                this.hideLoading();
+                this.hideCartLoading();
                 return; // Blokada dodania do koszyka
               }
               
@@ -2487,6 +2622,10 @@
         
         // POTEM stwórz kontener dla miniaturek z nawigacją (poziomo poniżej)
         let thumbsNavigationContainer = galleryGrid.querySelector('.etsy-thumbs-navigation');
+        let thumbsRow = null;
+        let thumbsPrevBtn = null;
+        let thumbsNextBtn = null;
+        
         if (!thumbsNavigationContainer) {
           thumbsNavigationContainer = document.createElement('div');
           thumbsNavigationContainer.className = 'etsy-thumbs-navigation';
@@ -2498,7 +2637,7 @@
           `;
           
           // Strzałka LEWA dla miniaturek
-          const thumbsPrevBtn = document.createElement('button');
+          thumbsPrevBtn = document.createElement('button');
           thumbsPrevBtn.innerHTML = '‹';
           thumbsPrevBtn.style.cssText = `
             width: 36px;
@@ -2518,7 +2657,7 @@
           `;
           
           // Kontener miniaturek
-          let thumbsRow = document.createElement('div');
+          thumbsRow = document.createElement('div');
           thumbsRow.className = 'etsy-thumbnails-row';
           thumbsRow.style.cssText = `
             display: flex;
@@ -2534,7 +2673,7 @@
           thumbsRow.style.setProperty('-webkit-scrollbar', 'none');
           
           // Strzałka PRAWA dla miniaturek
-          const thumbsNextBtn = document.createElement('button');
+          thumbsNextBtn = document.createElement('button');
           thumbsNextBtn.innerHTML = '›';
           thumbsNextBtn.style.cssText = `
             width: 36px;
@@ -2554,97 +2693,114 @@
           `;
           
           // Event listenery dla strzałek miniaturek
-          thumbsPrevBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            thumbsRow.scrollBy({ left: -200, behavior: 'smooth' });
-          });
-          
-          thumbsNextBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            thumbsRow.scrollBy({ left: 200, behavior: 'smooth' });
-          });
+          if (thumbsRow) {
+            thumbsPrevBtn.addEventListener('click', (e) => {
+              e.preventDefault();
+              thumbsRow.scrollBy({ left: -200, behavior: 'smooth' });
+            });
+            
+            thumbsNextBtn.addEventListener('click', (e) => {
+              e.preventDefault();
+              thumbsRow.scrollBy({ left: 200, behavior: 'smooth' });
+            });
+          }
           
           // Hover effects
           [thumbsPrevBtn, thumbsNextBtn].forEach(btn => {
-            btn.addEventListener('mouseenter', () => {
-              btn.style.background = '#f5f5f5';
-              btn.style.transform = 'scale(1.1)';
-            });
-            btn.addEventListener('mouseleave', () => {
-              btn.style.background = 'white';
-              btn.style.transform = 'scale(1)';
-            });
+            if (btn) {
+              btn.addEventListener('mouseenter', () => {
+                btn.style.background = '#f5f5f5';
+                btn.style.transform = 'scale(1.1)';
+              });
+              btn.addEventListener('mouseleave', () => {
+                btn.style.background = 'white';
+                btn.style.transform = 'scale(1)';
+              });
+            }
           });
           
           // Przenieś miniaturki
-          allImages.forEach((img, index) => {
-            const thumb = img.cloneNode(true);
-            
-            // Usuń wszystkie atrybuty które mogą powodować zoom/modal
-            const links = thumb.querySelectorAll('a, button');
-            links.forEach(link => {
-              link.removeAttribute('href');
-              link.removeAttribute('data-modal');
-              link.removeAttribute('data-pswp-width');
-              link.removeAttribute('data-pswp-height');
-              link.style.pointerEvents = 'none'; // Wyłącz kliknięcia w linki
+          if (thumbsRow) {
+            allImages.forEach((img, index) => {
+              const thumb = img.cloneNode(true);
+              
+              // Usuń wszystkie atrybuty które mogą powodować zoom/modal
+              const links = thumb.querySelectorAll('a, button');
+              links.forEach(link => {
+                link.removeAttribute('href');
+                link.removeAttribute('data-modal');
+                link.removeAttribute('data-pswp-width');
+                link.removeAttribute('data-pswp-height');
+                link.style.pointerEvents = 'none'; // Wyłącz kliknięcia w linki
+              });
+              
+              thumb.style.cssText = `
+                width: 80px;
+                height: 80px;
+                border: 2px solid #e0e0e0;
+                border-radius: 4px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                flex-shrink: 0;
+              `;
+              
+              // Dodaj active state
+              if (index === 0) {
+                thumb.style.borderColor = '#000';
+              }
+              
+              // Kliknięcie zmienia główny obraz (BEZ ZOOM/MODAL)
+              thumb.addEventListener('click', (e) => {
+                e.preventDefault(); // Zatrzymaj domyślne zachowanie Shopify
+                e.stopPropagation(); // Zatrzymaj propagację (zoom/modal)
+                
+                // Aktualizuj currentIndex (dla synchronizacji ze strzałkami)
+                currentIndex = index;
+                
+                // Usuń active ze wszystkich
+                thumbsRow.querySelectorAll('li').forEach(t => {
+                  t.style.borderColor = '#e0e0e0';
+                });
+                // Dodaj active
+                thumb.style.borderColor = '#000';
+                
+                // Zmień główny obraz używając zapisanego URL
+                const mainImg = mainImageContainer.querySelector('img');
+                if (mainImg && imageUrls[index]) {
+                  mainImg.src = imageUrls[index];
+                  // Aktualizuj licznik
+                  const counter = mainImageContainer.querySelector('.etsy-counter');
+                  if (counter) {
+                    counter.textContent = `${index + 1} / ${imageUrls.length}`;
+                  }
+                }
+              }, true); // useCapture = true (przechwytuj PRZED Shopify)
+              
+              thumbsRow.appendChild(thumb);
             });
+          }
+          
+          // Składaj nawigację miniaturek (tylko jeśli wszystkie elementy istnieją)
+          if (thumbsNavigationContainer && thumbsPrevBtn && thumbsRow && thumbsNextBtn) {
+            thumbsNavigationContainer.appendChild(thumbsPrevBtn);
+            thumbsNavigationContainer.appendChild(thumbsRow);
+            thumbsNavigationContainer.appendChild(thumbsNextBtn);
             
-            thumb.style.cssText = `
-              width: 80px;
-              height: 80px;
-              border: 2px solid #e0e0e0;
-              border-radius: 4px;
-              cursor: pointer;
-              transition: all 0.2s ease;
-              flex-shrink: 0;
-            `;
-            
-            // Dodaj active state
-            if (index === 0) {
-              thumb.style.borderColor = '#000';
+            // Dodaj NAJPIERW główny obraz (góra)
+            if (mainImageContainer && !galleryGrid.querySelector('.etsy-main-image')) {
+              galleryGrid.appendChild(mainImageContainer);
             }
             
-            // Kliknięcie zmienia główny obraz (BEZ ZOOM/MODAL)
-            thumb.addEventListener('click', (e) => {
-              e.preventDefault(); // Zatrzymaj domyślne zachowanie Shopify
-              e.stopPropagation(); // Zatrzymaj propagację (zoom/modal)
-              
-              // Aktualizuj currentIndex (dla synchronizacji ze strzałkami)
-              currentIndex = index;
-              
-              // Usuń active ze wszystkich
-              thumbsRow.querySelectorAll('li').forEach(t => {
-                t.style.borderColor = '#e0e0e0';
-              });
-              // Dodaj active
-              thumb.style.borderColor = '#000';
-              
-              // Zmień główny obraz używając zapisanego URL
-              const mainImg = mainImageContainer.querySelector('img');
-              if (mainImg && imageUrls[index]) {
-                mainImg.src = imageUrls[index];
-                // Aktualizuj licznik
-                const counter = mainImageContainer.querySelector('.etsy-counter');
-                if (counter) {
-                  counter.textContent = `${index + 1} / ${imageUrls.length}`;
-                }
-              }
-            }, true); // useCapture = true (przechwytuj PRZED Shopify)
-            
-            thumbsRow.appendChild(thumb);
-          });
-          
-          // Składaj nawigację miniaturek
-          thumbsNavigationContainer.appendChild(thumbsPrevBtn);
-          thumbsNavigationContainer.appendChild(thumbsRow);
-          thumbsNavigationContainer.appendChild(thumbsNextBtn);
-          
-          // Dodaj NAJPIERW główny obraz (góra)
-          galleryGrid.appendChild(mainImageContainer);
-          
-          // POTEM miniaturki z nawigacją (dół)
-          galleryGrid.appendChild(thumbsNavigationContainer);
+            // POTEM miniaturki z nawigacją (dół)
+            galleryGrid.appendChild(thumbsNavigationContainer);
+          } else {
+            console.warn('⚠️ [ETSY GALLERY] Nie można utworzyć galerii - brakuje elementów:', {
+              thumbsNavigationContainer: !!thumbsNavigationContainer,
+              thumbsPrevBtn: !!thumbsPrevBtn,
+              thumbsRow: !!thumbsRow,
+              thumbsNextBtn: !!thumbsNextBtn
+            });
+          }
         }
         
         // Event listenery dla strzałek głównego obrazu (NA ZEWNĄTRZ if'a - działają zawsze)
@@ -2652,7 +2808,10 @@
         const nextBtn = mainImageContainer.querySelector('.etsy-nav-btn.next');
         const counter = mainImageContainer.querySelector('.etsy-counter');
         const mainImg = mainImageContainer.querySelector('img');
-        const thumbsRow = galleryGrid.querySelector('.etsy-thumbnails-row');
+        // ✅ Użyj istniejącej zmiennej thumbsRow (zadeklarowanej wcześniej) - NIE deklaruj ponownie!
+        if (!thumbsRow) {
+          thumbsRow = galleryGrid.querySelector('.etsy-thumbnails-row');
+        }
         
         console.log('🔧 [ETSY GALLERY] Elementy znalezione:', {
           prevBtn: !!prevBtn,
