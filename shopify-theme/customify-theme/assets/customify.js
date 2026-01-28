@@ -552,6 +552,10 @@ class CustomifyEmbed {
       console.log('❄️ [PRODUCT-TYPE] URL = Zimowa Księżniczka → productType: winter_princess');
       return 'winter_princess';
     }
+    if (currentUrl.includes('obraz-ze-zdjecia-krolowa-sniegu') || currentUrl.includes('krolowa-sniegu')) {
+      console.log('❄️👑 [PRODUCT-TYPE] URL = Królowa Śniegu → productType: snow_queen');
+      return 'snow_queen';
+    }
     
     // 🔄 PRIORYTET 2: Fallback - sprawdź styl (tylko dla starych generacji bez URL)
     console.log('⚠️ [PRODUCT-TYPE] Nie rozpoznano URL, sprawdzam styl:', style);
@@ -587,7 +591,8 @@ class CustomifyEmbed {
       'openai-art': 'openai-art', // OpenAI GPT-Image-1 style
       'jednorozec': 'unicorn',
       'mis': 'teddy_bear',
-      'zimowa-ksiezniczka': 'winter_princess'
+      'zimowa-ksiezniczka': 'winter_princess',
+      'krolowa-sniegu': 'snow_queen'
     };
     
     const productType = styleToProductType[style] || 'other';
