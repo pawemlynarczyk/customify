@@ -472,7 +472,7 @@
 
           proto.addToCart = async function() {
             // ✅ POKAŻ LOADING od razu - dodawanie do koszyka może trwać
-            this.showLoading();
+            this.showCartLoading();
             
             console.log('🛒 [CUSTOMIFY] addToCart called with:', {
               transformedImage: !!this.transformedImage,
@@ -489,7 +489,7 @@
               if (!this.selectedSize) {
                 console.log('❌ [CUSTOMIFY] No selectedSize, showing error');
                 this.showError('Nie wybrałeś rozmiaru');
-                this.hideLoading();
+                this.hideCartLoading();
                 return;
               }
               console.log('✅ [CUSTOMIFY] selectedSize OK, proceeding with price calculation');
@@ -636,7 +636,7 @@
                 } catch (err) {
                   console.error('❌ [SPOTIFY] Failed to compose/upload image:', err);
                   this.showError('Nie udało się przygotować obrazu. Spróbuj ponownie.', 'cart');
-                  this.hideLoading();
+                  this.hideCartLoading();
                   return;
                 }
               }
@@ -645,7 +645,7 @@
               if (!watermarkedImageUrl && !needsBackendWatermark) {
                 console.error('❌ [CUSTOMIFY] Brak backend watermarkedImageUrl - nie można dodać do koszyka!');
                 alert('Wystąpił błąd podczas generowania obrazu. Spróbuj wygenerować obraz ponownie klikając "Przekształć z AI".');
-                this.hideLoading();
+                this.hideCartLoading();
                 return; // Blokada dodania do koszyka
               }
               
