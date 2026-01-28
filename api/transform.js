@@ -1571,6 +1571,15 @@ module.exports = async (req, res) => {
           swap_image: "USER_IMAGE"
         }
       },
+      'jednorozec': {
+        model: "segmind/faceswap-v4",
+        apiType: "segmind-faceswap",
+        productType: "unicorn",
+        parameters: {
+          target_image: "https://customify-s56o.vercel.app/jednoroz/jednorozec.jpg",
+          swap_image: "USER_IMAGE"
+        }
+      },
       // Style karykatury - używają Segmind API
       'karykatura': {
         model: "segmind/caricature-style",

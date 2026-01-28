@@ -540,6 +540,10 @@ class CustomifyEmbed {
       console.log('🎵 [PRODUCT-TYPE] URL = Ramka Spotify → productType: spotify_frame');
       return 'spotify_frame';
     }
+    if (currentUrl.includes('portret-dziecka-w-stroju-jednorozca') || currentUrl.includes('jednorozec')) {
+      console.log('🦄 [PRODUCT-TYPE] URL = Jednorożec → productType: unicorn');
+      return 'unicorn';
+    }
     
     // 🔄 PRIORYTET 2: Fallback - sprawdź styl (tylko dla starych generacji bez URL)
     console.log('⚠️ [PRODUCT-TYPE] Nie rozpoznano URL, sprawdzam styl:', style);
@@ -572,7 +576,8 @@ class CustomifyEmbed {
       'swieta': 'caricature-new',
       'swieta_2': 'caricature-new',
       'akwarela': 'watercolor',
-      'openai-art': 'openai-art' // OpenAI GPT-Image-1 style
+      'openai-art': 'openai-art', // OpenAI GPT-Image-1 style
+      'jednorozec': 'unicorn'
     };
     
     const productType = styleToProductType[style] || 'other';
