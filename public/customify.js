@@ -512,7 +512,7 @@ class CustomifyEmbed {
     console.log('🔍 [PRODUCT-TYPE] Sprawdzam URL:', currentUrl);
     
     // Mapuj URL → productType (określa który produkt Shopify = jaka cena)
-    if (currentUrl.includes('krol-portret') || currentUrl.includes('krol-personalizowany')) {
+    if (currentUrl.includes('krol-portret') || currentUrl.includes('krol-personalizowany') || currentUrl.includes('portret-krola-polski')) {
       console.log('👑 [PRODUCT-TYPE] URL = Król → productType: king');
       return 'king';
     }
@@ -551,6 +551,7 @@ class CustomifyEmbed {
       'krol-majestatyczny': 'king',
       'krol-triumfalny': 'king',
       'krol-imponujacy': 'king',
+      'krol-polski': 'king',
       'krolowa-styl-1': 'queen',
       'krolowa-styl-2': 'queen',
       'krolowa-styl-3': 'queen',
