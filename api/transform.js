@@ -1355,7 +1355,7 @@ module.exports = async (req, res) => {
         productType: "caricature-new",
         parameters: {
           image_input: ["USER_IMAGE"],
-          prompt: "christmass cheer. keep all person on photo, keep faces recognizable. add them christmas sweaters, scurfs, hats, snow on the ground nad everywhere and lights. Add the text "Wesołych Świąt" in an elegant, festive font, placed gently above/below it, well-integrated into the composition.\n\nLighting: warm golden Christmas glow. Background: blurred tree lights (bokeh), cozy and festive.",
+          prompt: "christmass cheer. keep all person on photo, keep faces recognizable. add them christmas sweaters, scurfs, hats, snow on the ground nad everywhere and lights. Add the text \"Wesołych Świąt\" in an elegant, festive font, placed gently above/below it, well-integrated into the composition.\n\nLighting: warm golden Christmas glow. Background: blurred tree lights (bokeh), cozy and festive.",
           aspect_ratio: "2:3",
           output_format: "jpg",
           guidance: 3.5
