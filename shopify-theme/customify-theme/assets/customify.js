@@ -548,6 +548,10 @@ class CustomifyEmbed {
       console.log('🧸 [PRODUCT-TYPE] URL = Miś → productType: teddy_bear');
       return 'teddy_bear';
     }
+    if (currentUrl.includes('portret-ze-zdjecia-dla-dziewczynki-zimowa-ksiezniczka') || currentUrl.includes('zimowa-ksiezniczka')) {
+      console.log('❄️ [PRODUCT-TYPE] URL = Zimowa Księżniczka → productType: winter_princess');
+      return 'winter_princess';
+    }
     
     // 🔄 PRIORYTET 2: Fallback - sprawdź styl (tylko dla starych generacji bez URL)
     console.log('⚠️ [PRODUCT-TYPE] Nie rozpoznano URL, sprawdzam styl:', style);
@@ -582,7 +586,8 @@ class CustomifyEmbed {
       'akwarela': 'watercolor',
       'openai-art': 'openai-art', // OpenAI GPT-Image-1 style
       'jednorozec': 'unicorn',
-      'mis': 'teddy_bear'
+      'mis': 'teddy_bear',
+      'zimowa-ksiezniczka': 'winter_princess'
     };
     
     const productType = styleToProductType[style] || 'other';
