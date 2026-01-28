@@ -552,6 +552,7 @@ class CustomifyEmbed {
       'krol-triumfalny': 'king',
       'krol-imponujacy': 'king',
       'krol-polski': 'king',
+      'krol-polski-krolewski': 'king',
       'krolowa-styl-1': 'queen',
       'krolowa-styl-2': 'queen',
       'krolowa-styl-3': 'queen',

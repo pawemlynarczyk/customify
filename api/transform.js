@@ -1516,6 +1516,15 @@ module.exports = async (req, res) => {
           swap_image: "USER_IMAGE"
         }
       },
+      'krol-polski-krolewski': {
+        model: "segmind/faceswap-v4",
+        apiType: "segmind-faceswap",
+        productType: "king",
+        parameters: {
+          target_image: "https://customify-s56o.vercel.app/krol/krol-styl-7.jpg",
+          swap_image: "USER_IMAGE"
+        }
+      },
       // Style królowej - używają Segmind Faceswap v4
       'krolowa-styl-1': {
         model: "segmind/faceswap-v4",
