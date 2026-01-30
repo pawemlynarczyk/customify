@@ -1494,7 +1494,8 @@ module.exports = async (req, res) => {
           aspect_ratio: "2:3",
           output_format: "jpg",
           guidance: 3.5
-        }
+        },
+        disable_safety_checker: true // Wyłącz safety checker dla stylu GTA
       },
       // Style króla - używają Segmind Faceswap v4
       'krol-krolewski': {
@@ -2618,6 +2619,12 @@ module.exports = async (req, res) => {
           output_format: outputFormat,
           guidance: guidance
         };
+        
+        // Dodaj disable_safety_checker dla stylu GTA (jeśli dostępne w config)
+        if (config.disable_safety_checker !== undefined) {
+          inputParams.disable_safety_checker = config.disable_safety_checker;
+          console.log(`🛡️ [NANO-BANANA] Safety checker dla stylu ${selectedStyle}: ${config.disable_safety_checker ? 'WYŁĄCZONY' : 'WŁĄCZONY'}`);
+        }
         
         console.log(`📸 [NANO-BANANA] Single-image nano-banana style (${selectedStyle}) - 1 obrazek (user URL): ${userImageUrl}`);
         console.log(`📸 [NANO-BANANA] image_input array length: ${inputParams.image_input.length}`);
