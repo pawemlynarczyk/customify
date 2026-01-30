@@ -544,6 +544,10 @@ class CustomifyEmbed {
       console.log('💡 [PRODUCT-TYPE] URL = Neon Lights → productType: neo');
       return 'neo';
     }
+    if (currentUrl.includes('personalizowany-obraz-z-twojego-zdjecia-dla-mezczyzny-w-stylu-western-wanted')) {
+      console.log('🤠 [PRODUCT-TYPE] URL = Western Wanted → productType: wanted');
+      return 'wanted';
+    }
     if (currentUrl.includes('portret-dziecka-w-stroju-jednorozca') || currentUrl.includes('jednorozec')) {
       console.log('🦄 [PRODUCT-TYPE] URL = Jednorożec → productType: unicorn');
       return 'unicorn';
@@ -597,7 +601,8 @@ class CustomifyEmbed {
       'mis': 'teddy_bear',
       'zimowa-ksiezniczka': 'winter_princess',
       'krolowa-sniegu': 'snow_queen',
-      'neo': 'neo'
+      'neo': 'neo',
+      'wanted': 'wanted'
     };
     
     const productType = styleToProductType[style] || 'other';
