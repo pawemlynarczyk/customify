@@ -552,6 +552,10 @@ class CustomifyEmbed {
       console.log('🤠 [PRODUCT-TYPE] URL = Western Wanted (kobieta) → productType: wanted_k');
       return 'wanted_k';
     }
+    if (currentUrl.includes('portret-superbohater-obraz-na-plotnie-z-twojego-zdjecia-superman')) {
+      console.log('🦸 [PRODUCT-TYPE] URL = Superman → productType: superman');
+      return 'superman';
+    }
     if (currentUrl.includes('portret-dziecka-w-stroju-jednorozca') || currentUrl.includes('jednorozec')) {
       console.log('🦄 [PRODUCT-TYPE] URL = Jednorożec → productType: unicorn');
       return 'unicorn';
@@ -607,7 +611,8 @@ class CustomifyEmbed {
       'krolowa-sniegu': 'snow_queen',
       'neo': 'neo',
       'wanted': 'wanted',
-      'wanted_k': 'wanted_k'
+      'wanted_k': 'wanted_k',
+      'superman': 'superman'
     };
     
     const productType = styleToProductType[style] || 'other';
