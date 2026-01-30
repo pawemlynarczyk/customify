@@ -1651,6 +1651,17 @@ module.exports = async (req, res) => {
           swap_type: "head"
         }
       },
+      'superman': {
+        model: "segmind/faceswap-v4",
+        apiType: "segmind-faceswap",
+        productType: "superman",
+        parameters: {
+          target_image: "https://customify-s56o.vercel.app/superhero/superman.jpg",
+          swap_image: "USER_IMAGE",
+          style_type: "style",
+          swap_type: "head"
+        }
+      },
       // Style karykatury - używają Segmind API
       'karykatura': {
         model: "segmind/caricature-style",

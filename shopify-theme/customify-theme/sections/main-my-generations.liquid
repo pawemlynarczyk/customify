@@ -489,6 +489,7 @@
                 'neo': 'portret-z-twojego-zdjecia-neon-lights-dla-dziewczyny-prezent',
                 'wanted': 'personalizowany-obraz-z-twojego-zdjecia-dla-mezczyzny-w-stylu-western-wanted',
                 'wanted_k': 'obraz-ze-zdjecia-dla-kobiety-w-stylu-western-wanted-poszukiwana',
+                'superman': 'portret-superbohater-obraz-na-plotnie-z-twojego-zdjecia-superman',
                 'other': 'personalizowany-portret-w-stylu-boho' // Fallback dla nieznanych stylów
               };
               
@@ -523,6 +524,8 @@
                   detectedProductType = 'neo';
                 } else if (styleKey.includes('wanted')) {
                   detectedProductType = styleKey.includes('wanted_k') ? 'wanted_k' : 'wanted';
+                } else if (styleKey.includes('superman')) {
+                  detectedProductType = 'superman';
                 } else if (styleKey.includes('akwarela') || styleKey.includes('watercolor')) {
                   detectedProductType = 'watercolor';
                 }
@@ -653,6 +656,7 @@
                 'neo': 'portret-z-twojego-zdjecia-neon-lights-dla-dziewczyny-prezent',
                 'wanted': 'personalizowany-obraz-z-twojego-zdjecia-dla-mezczyzny-w-stylu-western-wanted',
                 'wanted_k': 'obraz-ze-zdjecia-dla-kobiety-w-stylu-western-wanted-poszukiwana',
+                'superman': 'portret-superbohater-obraz-na-plotnie-z-twojego-zdjecia-superman',
                 'other': 'personalizowany-portret-w-stylu-boho' // Fallback dla nieznanych stylów
               };
               
@@ -688,6 +692,8 @@
                   expectedProductType = 'neo';
                 } else if (styleKey.includes('wanted')) {
                   expectedProductType = styleKey.includes('wanted_k') ? 'wanted_k' : 'wanted';
+                } else if (styleKey.includes('superman')) {
+                  expectedProductType = 'superman';
                 } else if (styleKey.includes('minimalistyczny') || styleKey.includes('realistyczny')) {
                   expectedProductType = 'boho';
                 }
