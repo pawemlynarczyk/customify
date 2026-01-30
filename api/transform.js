@@ -1483,6 +1483,19 @@ module.exports = async (req, res) => {
           guidance: 3.5
         }
       },
+      // Style GTA - używają nano-banana z 1 obrazkiem
+      'gta': {
+        model: "google/nano-banana",
+        prompt: "Transform this photo into a GTA-style cover scene with thick outlines, vibrant colors, and high-contrast shadows. Place characters close to the camera with clearly visible faces in dramatic poses wearing sunglasses, hats, or chains, surrounded by city streets, neon lights, speeding cars, palm trees, flying money, and subtle explosions, in a semi-realistic comic-book style with slightly exaggerated proportions and cinematic lighting.",
+        apiType: "nano-banana",
+        productType: "gta", // Identyfikator typu produktu
+        parameters: {
+          image_input: ["USER_IMAGE"],
+          aspect_ratio: "2:3",
+          output_format: "jpg",
+          guidance: 3.5
+        }
+      },
       // Style króla - używają Segmind Faceswap v4
       'krol-krolewski': {
         model: "segmind/faceswap-v4",
@@ -2572,8 +2585,8 @@ module.exports = async (req, res) => {
         
         console.log(`📸 [NANO-BANANA] Boho style - 1 obrazek (user base64): ${imageDataUri.substring(0, 50)}...`);
         console.log(`📸 [NANO-BANANA] image_input array length: ${inputParams.image_input.length}`);
-      } else if (finalProductType === 'other' || finalProductType === 'para_krolewska' || finalProductType === 'caricature-new' || (config.parameters?.image_input?.length === 1 && config.parameters.image_input[0] === "USER_IMAGE")) {
-        // Style na 1 obrazek usera (zamkowy/krolewski-para/caricature-new i inne single-image)
+      } else if (finalProductType === 'other' || finalProductType === 'para_krolewska' || finalProductType === 'caricature-new' || finalProductType === 'gta' || (config.parameters?.image_input?.length === 1 && config.parameters.image_input[0] === "USER_IMAGE")) {
+        // Style na 1 obrazek usera (zamkowy/krolewski-para/caricature-new/gta i inne single-image)
         // ✅ UPLOAD BASE64 DO VERCEL BLOB (nano-banana wymaga URL)
         console.log('📤 [NANO-BANANA] Uploading user image to Vercel Blob Storage (single-image nano-banana requires URL, not base64)...');
         const baseUrl = 'https://customify-s56o.vercel.app';
