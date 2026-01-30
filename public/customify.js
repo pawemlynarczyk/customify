@@ -1204,7 +1204,9 @@ class CustomifyEmbed {
       script2: `700 ${fontSize}px "Pacifico", "Dancing Script", cursive`,
       script3: `700 ${fontSize}px "Satisfy", "Dancing Script", cursive`,
       script4: `700 ${fontSize}px "Great Vibes", "Satisfy", cursive`,
-      script5: `700 ${fontSize}px "Indie Flower", "Pacifico", cursive`
+      script5: `700 ${fontSize}px "Indie Flower", "Pacifico", cursive`,
+      western_1: `700 ${fontSize}px "Rye", "Times New Roman", serif`,
+      western_2: `700 ${fontSize}px "Creepster", "Rye", "Times New Roman", serif`
     };
             const font = fontMap[options.font] || fontMap.sans;
 
