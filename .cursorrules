@@ -9,7 +9,13 @@
 - 🚨 **Testuj WSZYSTKIE style (boho, pixar, koty, król) przed wdrożeniem**
 - 🚨 **Jeśli dodajesz nowy styl - NIE ZMIENIAJ logiki dla istniejących stylów**
 - 🚨 **Pytanie: "Czy ta zmiana zepsuje coś co już działa?" - jeśli TAK, NIE RÓB TEGO**
-- 🚨 **NOWE STYLE = JEDEN SLUG W TRZECH MIEJSCACH**: ten sam `data-style`/slug musi być w `theme.liquid` (karta), w `api/transform.js` (`styleConfig` klucz), oraz w `public/customify.js` (mapowanie styl→productType/URL). Jeśli slug nie jest w `styleConfig`, backend zwróci błąd „Styl X nie istnieje w config”.
+- 🚨 **NOWE STYLE = JEDEN SLUG W TRZECH MIEJSCACH**: ten sam `data-style`/slug musi być w `theme.liquid` (karta), w `api/transform.js` (`styleConfig` klucz), oraz w `public/customify.js` (mapowanie styl→productType/URL). Jeśli slug nie jest w `styleConfig`, backend zwróci błąd „Styl X nie istnieje w config".
+- 🚨 **CRITICAL: DODAWANIE NOWEGO STYLU = 4 KROKI + DEPLOY**: 
+  1. Dodaj konfigurację w `api/transform.js` (`styleConfig` - klucz stylu)
+  2. Dodaj kartę stylu w `theme.liquid` (`data-style="nazwa"`)
+  3. Dodaj mapowanie URL → productType w `customify.js` (jeśli potrzebne)
+  4. Dodaj mapowanie stylu → productType w `customify.js` (`styleToProductType`)
+  5. **WAŻNE**: Wypushuj zmiany do GitHub (`git add . && git commit -m "..." && git push origin main`) - Vercel automatycznie wdroży backend! Bez tego backend zwróci błąd "Nieznany styl"!
 
 ### **🚨 CRITICAL: ZAWSZE ZMIENIAJ KOD ŹRÓDŁOWY - NIE TWÓRZ SKRYPTÓW FRONTOWYCH!**
 - 🚨 **ZAWSZE edytuj kod źródłowy** (Liquid, HTML, CSS) zamiast tworzyć skrypty JavaScript które modyfikują DOM
@@ -1140,3 +1146,146 @@ const productTypeToHandle = {
 - **Sprawdź duplikaty**: `console.log('Total generations:', uniqueGenerations.length)`
 - **Sprawdź localStorage**: `localStorage.getItem('customify_ai_generations')`
 - **Sprawdź selected**: `localStorage.getItem('customify_selected_generation')`
+
+## 🎨 DODAWANIE NOWYCH STYLÓW - INSTRUKCJA KROK PO KROKU
+
+### **🚨 CRITICAL: ZAWSZE WYKONAJ WSZYSTKIE 5 KROKÓW!**
+
+Gdy dodajesz nowy styl (np. używający Nano Banana), **MUSISZ** wykonać wszystkie kroki, inaczej backend zwróci błąd "Nieznany styl: X":
+
+### **📋 KROK 1: Dodaj konfigurację w `api/transform.js`**
+
+Znajdź `const styleConfig = {` (około linia 1290) i dodaj nowy styl:
+
+**Przykład - styl z 1 obrazkiem (jak boho/GTA):**
+```javascript
+'gta': {
+  model: "google/nano-banana",
+  prompt: "Twój prompt dla AI...",
+  apiType: "nano-banana",
+  productType: "gta", // Identyfikator typu produktu
+  parameters: {
+    image_input: ["USER_IMAGE"], // 1 obrazek = tylko zdjęcie użytkownika
+    aspect_ratio: "2:3", // lub "3:4", "match_input_image", etc.
+    output_format: "jpg", // lub "png", "webp"
+    guidance: 3.5 // Opcjonalnie (domyślnie 3.5)
+  }
+}
+```
+
+**Przykład - styl z 2 obrazkami (jak koty):**
+```javascript
+'nowy-styl-koty': {
+  model: "google/nano-banana",
+  prompt: "Stwórz obraz w stylu jak na pierwszym obrazku, z twarzą z drugiego obrazka...",
+  apiType: "nano-banana",
+  productType: "cats", // lub inny typ
+  parameters: {
+    image_input: [
+      "https://customify-s56o.vercel.app/koty/miniaturka.png", // Miniaturka stylu
+      "USER_IMAGE" // Zdjęcie użytkownika
+    ],
+    aspect_ratio: "3:4",
+    output_format: "jpg",
+    guidance: 10
+  }
+}
+```
+
+**WAŻNE**: Jeśli styl używa Nano Banana z 1 obrazkiem, dodaj `finalProductType === 'nazwa'` do warunku w linii ~2588:
+```javascript
+} else if (finalProductType === 'other' || finalProductType === 'para_krolewska' || finalProductType === 'caricature-new' || finalProductType === 'gta' || ...) {
+```
+
+### **📋 KROK 2: Dodaj kartę stylu w `theme.liquid`**
+
+Znajdź sekcję z kartami stylów (około linia 3877) i dodaj:
+
+```html
+{% elsif product.handle == 'nazwa-produktu' %}
+  {% comment %} STYLE GTA dla produktu {% endcomment %}
+  <div class="customify-style-card" data-style="gta">
+    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/style/GTA.jpg'); background-size: cover; background-position: center;"></div>
+    <div class="style-info">
+      <div class="style-name">GTA</div>
+    </div>
+  </div>
+```
+
+**WAŻNE**: `data-style="gta"` MUSI być identyczny z kluczem w `styleConfig`!
+
+### **📋 KROK 3: Dodaj mapowanie URL → productType w `customify.js`**
+
+Znajdź funkcję `getProductType(style)` (około linia 509) i dodaj:
+
+```javascript
+if (currentUrl.includes('portret-w-stylu-gta') || currentUrl.includes('gta')) {
+  console.log('🎮 [PRODUCT-TYPE] URL = GTA → productType: gta');
+  return 'gta';
+}
+```
+
+### **📋 KROK 4: Dodaj mapowanie stylu → productType w `customify.js`**
+
+Znajdź `const styleToProductType = {` (około linia 579) i dodaj:
+
+```javascript
+const styleToProductType = {
+  // ... istniejące style ...
+  'gta': 'gta', // lub 'boho', 'cats', 'other', etc.
+};
+```
+
+### **📋 KROK 5: WDRÓŻ ZMIANY - KRYTYCZNE!**
+
+**🚨 BEZ TEGO KROKU BACKEND NIE BĘDZIE DZIAŁAŁ!**
+
+```bash
+# 1. Wdróż frontend (Shopify theme)
+npm run deploy
+
+# 2. Wypushuj zmiany do GitHub (backend Vercel)
+git add .
+git commit -m "Dodano styl GTA używający Nano Banana API"
+git push origin main
+```
+
+**DLACZEGO TO WAŻNE:**
+- `npm run deploy` wdraża tylko frontend (Shopify theme)
+- `git push` wdraża backend (Vercel automatycznie wdraża z GitHub)
+- **Bez `git push`** backend nie widzi nowego stylu w `styleConfig` → błąd "Nieznany styl"!
+
+### **✅ CHECKLIST PRZED COMMITEM:**
+
+- [ ] Styl dodany do `styleConfig` w `api/transform.js`
+- [ ] Karta stylu dodana w `theme.liquid` z `data-style="nazwa"`
+- [ ] Mapowanie URL → productType dodane w `customify.js` (jeśli potrzebne)
+- [ ] Mapowanie stylu → productType dodane w `customify.js`
+- [ ] Warunek dla Nano Banana z 1 obrazkiem zaktualizowany (jeśli dotyczy)
+- [ ] `npm run deploy` wykonany (frontend)
+- [ ] `git push origin main` wykonany (backend)
+
+### **🔍 DEBUGGING BŁĘDU "Nieznany styl":**
+
+1. **Sprawdź czy styl jest w `styleConfig`**: `grep -n "'gta'" api/transform.js`
+2. **Sprawdź czy zmiany są w GitHub**: `git log --oneline -5`
+3. **Sprawdź czy Vercel wdrożył**: Sprawdź Vercel Dashboard → Deployments
+4. **Sprawdź logi Vercel**: `vercel logs customify-s56o.vercel.app | grep "gta"`
+
+### **📝 PRZYKŁAD PEŁNEGO WORKFLOW (styl GTA):**
+
+```bash
+# 1. Edytuj api/transform.js - dodaj styl do styleConfig
+# 2. Edytuj theme.liquid - dodaj kartę stylu
+# 3. Edytuj customify.js - dodaj mapowania
+# 4. Wdróż frontend
+npm run deploy
+
+# 5. Wypushuj backend
+git add api/transform.js theme.liquid shopify-theme/customify-theme/assets/customify.js
+git commit -m "Dodano styl GTA używający Nano Banana API"
+git push origin main
+
+# 6. Poczekaj 1-2 minuty na wdrożenie Vercel
+# 7. Przetestuj na https://lumly.pl/products/portret-w-stylu-gta-...
+```
