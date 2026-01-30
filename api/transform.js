@@ -483,7 +483,7 @@ async function segmindCaricature(imageUrl) {
 }
 
 // Function to handle Segmind Faceswap v4
-async function segmindFaceswap(targetImageUrl, swapImageBase64) {
+async function segmindFaceswap(targetImageUrl, swapImageBase64, options = {}) {
   const SEGMIND_API_KEY = process.env.SEGMIND_API_KEY;
   
   console.log('🔑 [SEGMIND] Checking API key...', SEGMIND_API_KEY ? `Key present (${SEGMIND_API_KEY.substring(0, 10)}...)` : 'KEY MISSING!');
@@ -533,8 +533,8 @@ async function segmindFaceswap(targetImageUrl, swapImageBase64) {
     source_image: cleanSwapImage,      // Twarz użytkownika (źródło twarzy)
     target_image: targetImageBase64,   // Obraz króla (na co nakładamy twarz)
     model_type: "speed",               // 8 steps - szybko
-    swap_type: "head",                 // Zamień całą głowę
-    style_type: "normal",              // Zachowaj styl source
+    swap_type: options.swap_type || "head",    // Zamień całą głowę (per styl)
+    style_type: options.style_type || "normal", // Zachowaj styl source (per styl)
     seed: 42,
     image_format: "jpeg",
     image_quality: 90,
@@ -1627,6 +1627,17 @@ module.exports = async (req, res) => {
         parameters: {
           target_image: "https://customify-s56o.vercel.app/kobieta/neon.jpg",
           swap_image: "USER_IMAGE"
+        }
+      },
+      'wanted': {
+        model: "segmind/faceswap-v4",
+        apiType: "segmind-faceswap",
+        productType: "wanted",
+        parameters: {
+          target_image: "https://customify-s56o.vercel.app/wanted/wanted_1.jpg",
+          swap_image: "USER_IMAGE",
+          style_type: "style",
+          swap_type: "head"
         }
       },
       // Style karykatury - używają Segmind API
@@ -2734,7 +2745,10 @@ module.exports = async (req, res) => {
         console.log('🎯 [TRANSFORM] Swap image (base64) length:', swapImageBase64?.length);
         console.log('🎯 [TRANSFORM] ======================================');
         
-        imageUrl = await segmindFaceswap(targetImageUrl, swapImageBase64);
+        imageUrl = await segmindFaceswap(targetImageUrl, swapImageBase64, {
+          style_type: config.parameters?.style_type,
+          swap_type: config.parameters?.swap_type
+        });
         console.log('✅ [SEGMIND] Face-swap completed successfully');
         
       } catch (error) {
