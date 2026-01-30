@@ -1658,7 +1658,7 @@ module.exports = async (req, res) => {
         parameters: {
           target_image: "https://customify-s56o.vercel.app/superhero/superman.jpg",
           swap_image: "USER_IMAGE",
-          style_type: "style",
+          style_type: "normal",
           swap_type: "head"
         }
       },
