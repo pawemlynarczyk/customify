@@ -548,6 +548,10 @@ class CustomifyEmbed {
       console.log('🤠 [PRODUCT-TYPE] URL = Western Wanted → productType: wanted');
       return 'wanted';
     }
+    if (currentUrl.includes('obraz-ze-zdjecia-dla-kobiety-w-stylu-western-wanted-poszukiwana')) {
+      console.log('🤠 [PRODUCT-TYPE] URL = Western Wanted (kobieta) → productType: wanted_k');
+      return 'wanted_k';
+    }
     if (currentUrl.includes('portret-dziecka-w-stroju-jednorozca') || currentUrl.includes('jednorozec')) {
       console.log('🦄 [PRODUCT-TYPE] URL = Jednorożec → productType: unicorn');
       return 'unicorn';
@@ -602,7 +606,8 @@ class CustomifyEmbed {
       'zimowa-ksiezniczka': 'winter_princess',
       'krolowa-sniegu': 'snow_queen',
       'neo': 'neo',
-      'wanted': 'wanted'
+      'wanted': 'wanted',
+      'wanted_k': 'wanted_k'
     };
     
     const productType = styleToProductType[style] || 'other';

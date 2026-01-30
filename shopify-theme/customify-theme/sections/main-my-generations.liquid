@@ -488,6 +488,7 @@
                 'snow_queen': 'obraz-ze-zdjecia-krolowa-sniegu-na-tronie-portret-r',
                 'neo': 'portret-z-twojego-zdjecia-neon-lights-dla-dziewczyny-prezent',
                 'wanted': 'personalizowany-obraz-z-twojego-zdjecia-dla-mezczyzny-w-stylu-western-wanted',
+                'wanted_k': 'obraz-ze-zdjecia-dla-kobiety-w-stylu-western-wanted-poszukiwana',
                 'other': 'personalizowany-portret-w-stylu-boho' // Fallback dla nieznanych stylów
               };
               
@@ -521,7 +522,7 @@
                 } else if (styleKey.includes('neo') || styleKey.includes('neon')) {
                   detectedProductType = 'neo';
                 } else if (styleKey.includes('wanted')) {
-                  detectedProductType = 'wanted';
+                  detectedProductType = styleKey.includes('wanted_k') ? 'wanted_k' : 'wanted';
                 } else if (styleKey.includes('akwarela') || styleKey.includes('watercolor')) {
                   detectedProductType = 'watercolor';
                 }
@@ -651,6 +652,7 @@
                 'snow_queen': 'obraz-ze-zdjecia-krolowa-sniegu-na-tronie-portret-r',
                 'neo': 'portret-z-twojego-zdjecia-neon-lights-dla-dziewczyny-prezent',
                 'wanted': 'personalizowany-obraz-z-twojego-zdjecia-dla-mezczyzny-w-stylu-western-wanted',
+                'wanted_k': 'obraz-ze-zdjecia-dla-kobiety-w-stylu-western-wanted-poszukiwana',
                 'other': 'personalizowany-portret-w-stylu-boho' // Fallback dla nieznanych stylów
               };
               
@@ -685,7 +687,7 @@
                 } else if (styleKey.includes('neo') || styleKey.includes('neon')) {
                   expectedProductType = 'neo';
                 } else if (styleKey.includes('wanted')) {
-                  expectedProductType = 'wanted';
+                  expectedProductType = styleKey.includes('wanted_k') ? 'wanted_k' : 'wanted';
                 } else if (styleKey.includes('minimalistyczny') || styleKey.includes('realistyczny')) {
                   expectedProductType = 'boho';
                 }
