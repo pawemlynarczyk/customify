@@ -540,6 +540,10 @@ class CustomifyEmbed {
       console.log('🎵 [PRODUCT-TYPE] URL = Ramka Spotify → productType: spotify_frame');
       return 'spotify_frame';
     }
+    if (currentUrl.includes('portret-z-twojego-zdjecia-neon-lights-dla-dziewczyny-prezent')) {
+      console.log('💡 [PRODUCT-TYPE] URL = Neon Lights → productType: neo');
+      return 'neo';
+    }
     if (currentUrl.includes('portret-dziecka-w-stroju-jednorozca') || currentUrl.includes('jednorozec')) {
       console.log('🦄 [PRODUCT-TYPE] URL = Jednorożec → productType: unicorn');
       return 'unicorn';
@@ -592,7 +596,8 @@ class CustomifyEmbed {
       'jednorozec': 'unicorn',
       'mis': 'teddy_bear',
       'zimowa-ksiezniczka': 'winter_princess',
-      'krolowa-sniegu': 'snow_queen'
+      'krolowa-sniegu': 'snow_queen',
+      'neo': 'neo'
     };
     
     const productType = styleToProductType[style] || 'other';

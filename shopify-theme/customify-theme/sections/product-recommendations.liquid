@@ -174,6 +174,10 @@
           %}
         </div>
       {% endif %}
+
+      <div class="customify-view-all-products">
+        <a class="customify-view-all-products__button" href="/collections/all">Zobacz wszystkie produkty</a>
+      </div>
     {%- else -%}
       <div class="no-products-message" style="padding: 40px; text-align: center; color: #666;">
         <p>No products available to recommend.</p>
@@ -275,6 +279,36 @@
     font-size: 1.1rem;
     font-weight: 600;
     color: #000;
+  }
+
+  .customify-view-all-products {
+    display: flex;
+    justify-content: center;
+    padding: 20px 0 40px;
+  }
+
+  .customify-view-all-products__button {
+    display: inline-block;
+    background: #111;
+    color: #fff;
+    text-decoration: none;
+    padding: 12px 22px;
+    border-radius: 8px;
+    font-weight: 600;
+  }
+
+  .customify-view-all-products__button:hover {
+    background: #000;
+  }
+
+  @media (max-width: 768px) {
+    .customify-view-all-products {
+      padding: 16px 16px 28px;
+    }
+    .customify-view-all-products__button {
+      width: 100%;
+      text-align: center;
+    }
   }
 {% endstylesheet %}
 

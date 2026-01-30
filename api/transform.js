@@ -1620,6 +1620,15 @@ module.exports = async (req, res) => {
           swap_image: "USER_IMAGE"
         }
       },
+      'neo': {
+        model: "segmind/faceswap-v4",
+        apiType: "segmind-faceswap",
+        productType: "neo",
+        parameters: {
+          target_image: "https://customify-s56o.vercel.app/kobieta/neon.jpg",
+          swap_image: "USER_IMAGE"
+        }
+      },
       // Style karykatury - używają Segmind API
       'karykatura': {
         model: "segmind/caricature-style",

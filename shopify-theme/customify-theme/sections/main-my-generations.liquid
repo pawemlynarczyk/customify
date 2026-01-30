@@ -486,6 +486,7 @@
                 'teddy_bear': 'portret-dziecka-w-stroju-misia-uroczy-obraz-z-twojego-zdjecia',
                 'winter_princess': 'portret-ze-zdjecia-dla-dziewczynki-zimowa-ksiezniczka-obraz',
                 'snow_queen': 'obraz-ze-zdjecia-krolowa-sniegu-na-tronie-portret-r',
+                'neo': 'portret-z-twojego-zdjecia-neon-lights-dla-dziewczyny-prezent',
                 'other': 'personalizowany-portret-w-stylu-boho' // Fallback dla nieznanych stylów
               };
               
@@ -516,6 +517,8 @@
                   detectedProductType = 'superhero';
                 } else if (styleKey.includes('karykatura') || styleKey.includes('caricature')) {
                   detectedProductType = 'caricature';
+                } else if (styleKey.includes('neo') || styleKey.includes('neon')) {
+                  detectedProductType = 'neo';
                 } else if (styleKey.includes('akwarela') || styleKey.includes('watercolor')) {
                   detectedProductType = 'watercolor';
                 }
@@ -643,6 +646,7 @@
                 'teddy_bear': 'portret-dziecka-w-stroju-misia-uroczy-obraz-z-twojego-zdjecia',
                 'winter_princess': 'portret-ze-zdjecia-dla-dziewczynki-zimowa-ksiezniczka-obraz',
                 'snow_queen': 'obraz-ze-zdjecia-krolowa-sniegu-na-tronie-portret-r',
+                'neo': 'portret-z-twojego-zdjecia-neon-lights-dla-dziewczyny-prezent',
                 'other': 'personalizowany-portret-w-stylu-boho' // Fallback dla nieznanych stylów
               };
               
@@ -674,6 +678,8 @@
                   expectedProductType = 'superhero';
                 } else if (styleKey.includes('karykatura') || styleKey.includes('caricature')) {
                   expectedProductType = 'caricature';
+                } else if (styleKey.includes('neo') || styleKey.includes('neon')) {
+                  expectedProductType = 'neo';
                 } else if (styleKey.includes('minimalistyczny') || styleKey.includes('realistyczny')) {
                   expectedProductType = 'boho';
                 }

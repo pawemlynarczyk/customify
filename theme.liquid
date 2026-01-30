@@ -3522,7 +3522,28 @@
           {% if collection.description != blank %}
             <div class="custom-collection-description">{{ collection.description }}</div>
           {% endif %}
-          {% if collection.products_count > 0 %}
+        {% if collection.products_count > 0 %}
+          {% if collection.handle == 'all' %}
+            {% paginate collection.products by 1000 %}
+              <div class="custom-collection-grid">
+                {% for product in collection.products %}
+                  <a href="{{ product.url }}" class="custom-collection-card">
+                    <div class="custom-collection-image">
+                      {% if product.featured_image %}
+                        <img src="{{ product.featured_image | image_url: width: 600 }}" alt="{{ product.title }}">
+                      {% endif %}
+                    </div>
+                    <div class="custom-collection-meta">
+                      <div class="custom-collection-card-title">{{ product.title }}</div>
+                      {% if product.price %}
+                        <div class="custom-collection-price">{{ product.price | money }}</div>
+                      {% endif %}
+                    </div>
+                  </a>
+                {% endfor %}
+              </div>
+            {% endpaginate %}
+          {% else %}
             {% paginate collection.products by 250 %}
               <div class="custom-collection-grid">
                 {% for product in collection.products %}
@@ -3553,7 +3574,8 @@
                 </div>
               {% endif %}
             {% endpaginate %}
-          {% else %}
+          {% endif %}
+        {% else %}
             <div class="custom-collection-empty">Brak produktów do wyświetlenia.</div>
           {% endif %}
         </div>
@@ -4066,6 +4088,14 @@
                     <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/krolowa/krolowa_sniegu.jpg'); background-size: cover; background-position: center;"></div>
                     <div class="style-info">
                       <div class="style-name">Królowa Śniegu</div>
+                    </div>
+                  </div>
+                {% elsif product.handle == 'portret-z-twojego-zdjecia-neon-lights-dla-dziewczyny-prezent' %}
+                  {% comment %} STYL NEO dla produktu neon lights {% endcomment %}
+                  <div class="customify-style-card" data-style="neo">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/kobieta/neon.jpg'); background-size: cover; background-position: center;"></div>
+                    <div class="style-info">
+                      <div class="style-name">Neo</div>
                     </div>
                   </div>
                 {% elsif product.handle == 'koty-krolewskie-zwierzeta-w-koronach' %}
