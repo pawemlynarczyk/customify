@@ -935,6 +935,14 @@
 
                   if (result.orderId) {
                     hiddenProperties['_Order ID Full'] = result.orderId;
+                    console.log('✅ [CUSTOMIFY] _Order ID Full added to hiddenProperties:', result.orderId);
+                  } else {
+                    console.error('❌ [CUSTOMIFY] result.orderId is missing!', {
+                      hasResult: !!result,
+                      resultKeys: result ? Object.keys(result) : [],
+                      orderId: result?.orderId,
+                      shortOrderId: result?.shortOrderId
+                    });
                   }
                   
                   // ✅ BEZ WATERMARKU - dla admina do realizacji zamówienia (krótki ~100 znaków, nie base64!)
@@ -973,6 +981,10 @@
                   Object.entries(cartProperties).forEach(([key, value]) => {
                     if (value != null) {
                       params.append(`properties[${key}]`, value);
+                      // ✅ LOGOWANIE: Sprawdź czy _Order ID Full jest dodawane
+                      if (key === '_Order ID Full') {
+                        console.log('✅ [CUSTOMIFY] _Order ID Full added to URL params:', value);
+                      }
                     }
                   });
 
@@ -981,6 +993,18 @@
                   console.log('🛒 [CUSTOMIFY] Cart URL length:', cartUrl.length, 'chars');
                   console.log('🛒 [CUSTOMIFY] Cart URL:', cartUrl.substring(0, 200), '...');
                   console.log('🛒 [CUSTOMIFY] Full URL length:', fullUrl.length, 'chars');
+                  
+                  // ✅ WERYFIKACJA: Sprawdź czy _Order ID Full jest w URL
+                  if (cartUrl.includes('_Order%20ID%20Full') || cartUrl.includes('_Order+ID+Full')) {
+                    console.log('✅ [CUSTOMIFY] _Order ID Full found in cart URL');
+                  } else {
+                    console.error('❌ [CUSTOMIFY] _Order ID Full NOT found in cart URL!', {
+                      hasOrderId: !!result.orderId,
+                      orderId: result.orderId,
+                      hiddenProperties: hiddenProperties,
+                      cartUrlPreview: cartUrl.substring(0, 500)
+                    });
+                  }
 
                   if (fullUrl.length > 2048) {
                     console.error('❌ [CUSTOMIFY] URL TOO LONG:', fullUrl.length, 'chars (max 2048)');
@@ -4072,6 +4096,14 @@
                     <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/dziecko/dziecko_mis.jpg'); background-size: cover; background-position: center;"></div>
                     <div class="style-info">
                       <div class="style-name">Miś</div>
+                    </div>
+                  </div>
+                {% elsif product.handle == 'portret-w-stylu-hip-hop-obraz-na-plotnie-z-twojego-zdjecia' %}
+                  {% comment %} STYL HIP-HOP dla produktu hip-hop {% endcomment %}
+                  <div class="customify-style-card" data-style="hiphop">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/style/hiphop.jpg'); background-size: cover; background-position: center;"></div>
+                    <div class="style-info">
+                      <div class="style-name">Hip-Hop</div>
                     </div>
                   </div>
                 {% elsif product.handle == 'portret-ze-zdjecia-dla-dziewczynki-zimowa-ksiezniczka-obraz' %}

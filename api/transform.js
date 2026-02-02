@@ -1497,6 +1497,19 @@ module.exports = async (req, res) => {
         },
         disable_safety_checker: true // Wyłącz safety checker dla stylu GTA
       },
+      // Style Hip-Hop - używają nano-banana z 1 obrazkiem
+      'hiphop': {
+        model: "google/nano-banana",
+        prompt: "A highly detailed, glossy digital illustration in the style of urban street art and classic hip-hop culture, with a bold, vibrant color palette. Emphasize exaggerated 90s/early 2000s hip-hop fashion: baggy clothes, oversized sneakers, caps, gold chains, hoodies, and streetwear accessories. Include dynamic poses and expressive gestures typical of hip-hop culture. Add urban background elements like graffiti walls, murals, boomboxes, and city streets to enhance the street vibe. Art Style: Highly stylized, cartoonish proportions, sharp details, strong linework, gentle specular highlights, volumetric lighting, and smooth rendering for a cinematic, energetic feel. Keep composition intact, preserving the poses and expressions of the subjects, while amplifying attitude, swagger, and street authenticity",
+        apiType: "nano-banana",
+        productType: "hiphop", // Identyfikator typu produktu
+        parameters: {
+          image_input: ["USER_IMAGE"],
+          aspect_ratio: "2:3",
+          output_format: "png",
+          guidance: 3.5
+        }
+      },
       // Style króla - używają Segmind Faceswap v4
       'krol-krolewski': {
         model: "segmind/faceswap-v4",
@@ -2586,7 +2599,7 @@ module.exports = async (req, res) => {
         
         console.log(`📸 [NANO-BANANA] Boho style - 1 obrazek (user base64): ${imageDataUri.substring(0, 50)}...`);
         console.log(`📸 [NANO-BANANA] image_input array length: ${inputParams.image_input.length}`);
-      } else if (finalProductType === 'other' || finalProductType === 'para_krolewska' || finalProductType === 'caricature-new' || finalProductType === 'gta' || (config.parameters?.image_input?.length === 1 && config.parameters.image_input[0] === "USER_IMAGE")) {
+      } else if (finalProductType === 'other' || finalProductType === 'para_krolewska' || finalProductType === 'caricature-new' || finalProductType === 'gta' || finalProductType === 'hiphop' || (config.parameters?.image_input?.length === 1 && config.parameters.image_input[0] === "USER_IMAGE")) {
         // Style na 1 obrazek usera (zamkowy/krolewski-para/caricature-new/gta i inne single-image)
         // ✅ UPLOAD BASE64 DO VERCEL BLOB (nano-banana wymaga URL)
         console.log('📤 [NANO-BANANA] Uploading user image to Vercel Blob Storage (single-image nano-banana requires URL, not base64)...');
