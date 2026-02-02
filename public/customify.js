@@ -3187,10 +3187,25 @@ class CustomifyEmbed {
       console.log('⚠️ [SIZE] Attempted to select disabled size:', sizeBtn.dataset.size);
       return;
     }
+    
+    // 🚨 WALIDACJA: Dla szkła tylko A5 i A4 są dozwolone
+    const size = sizeBtn.dataset.size;
+    if (this.selectedProductType === 'szklo') {
+      const allowedSizes = ['a5', 'a4'];
+      if (!allowedSizes.includes(size.toLowerCase())) {
+        console.error('❌ [SIZE] Invalid size for szklo:', size);
+        this.showError('Dla wydruku na szkle dostępne są tylko rozmiary: 15×21 cm (A5) i 20×30 cm (A4). Wybierz jeden z dostępnych rozmiarów.', 'size');
+        return;
+      }
+    }
+    
     this.sizeArea.querySelectorAll('.customify-size-btn').forEach(btn => btn.classList.remove('active'));
     sizeBtn.classList.add('active');
     this.selectedSize = sizeBtn.dataset.size;
     console.log('📏 [SIZE] Selected size:', this.selectedSize);
+    
+    // Ukryj błąd jeśli rozmiar jest poprawny
+    this.hideError();
     
     // Aktualizuj cenę po wyborze rozmiaru
     this.updateProductPrice();
@@ -4255,6 +4270,18 @@ class CustomifyEmbed {
       this.hideLoading();
       return;
     }
+    
+    // 🚨 WALIDACJA: Dla szkła tylko A5 i A4 są dozwolone (maksymalnie 20×30 cm)
+    if (this.selectedProductType === 'szklo') {
+      const allowedSizes = ['a5', 'a4'];
+      if (!allowedSizes.includes(this.selectedSize.toLowerCase())) {
+        console.error('❌ [CUSTOMIFY] Invalid size for szklo:', this.selectedSize);
+        this.showError('Dla wydruku na szkle dostępne są tylko rozmiary: 15×21 cm (A5) i 20×30 cm (A4). Maksymalny rozmiar to 20×30 cm.', 'cart');
+        this.hideLoading();
+        return;
+      }
+    }
+    
     console.log('✅ [CUSTOMIFY] selectedSize OK, proceeding with price calculation');
 
     // ✅ OBLICZ CENĘ NAJPIERW - niezależnie od obrazu AI

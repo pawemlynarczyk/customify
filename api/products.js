@@ -140,6 +140,18 @@ module.exports = async (req, res) => {
       });
     }
 
+    // 🚨 WALIDACJA: Dla szkła tylko A5 i A4 są dozwolone (maksymalnie 20×30 cm)
+    if (productType === 'szklo' && size) {
+      const allowedSizes = ['a5', 'a4'];
+      if (!allowedSizes.includes(size.toLowerCase())) {
+        console.error('❌ [PRODUCTS.JS] Invalid size for szklo:', size);
+        return res.status(400).json({ 
+          error: 'Dla wydruku na szkle dostępne są tylko rozmiary: 15×21 cm (A5) i 20×30 cm (A4). Maksymalny rozmiar to 20×30 cm.',
+          invalidSize: size
+        });
+      }
+    }
+
     const shop = process.env.SHOP_DOMAIN || 'customify-ok.myshopify.com';
     const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
 
@@ -385,6 +397,12 @@ module.exports = async (req, res) => {
         hasTransformedImage: !!transformedImage,
         selected: watermarkedImageUrl ? 'watermarkedImageUrl (backend)' : watermarkedImage ? 'watermarkedImage (frontend)' : 'transformedImage (no watermark)'
       });
+      console.log('🔍 [PRODUCTS] Debug - watermarkedImageBase64 in request:', {
+        hasWatermarkedImageBase64: !!watermarkedImageBase64,
+        watermarkedImageBase64Type: typeof watermarkedImageBase64,
+        watermarkedImageBase64Length: watermarkedImageBase64?.length || 0,
+        watermarkedImageBase64Preview: watermarkedImageBase64?.substring(0, 100) || 'null'
+      });
       
       if (imageToUpload.startsWith('data:image')) {
         // Base64 format - convert directly
@@ -403,39 +421,66 @@ module.exports = async (req, res) => {
         const imageResponse = await fetch(imageToUpload);
         
         if (!imageResponse.ok) {
-          // Failed to download watermarked image
+          // Failed to download watermarked image - użyj fallback do transformedImage
           console.error('❌ [PRODUCTS] Failed to download watermarked image:', imageResponse.status, imageResponse.statusText);
-          return res.json({
-            success: true,
-            product: product,
-            variantId: product.variants[0].id,
-            productId: productId,
-            warning: 'Product created but watermarked image upload failed',
-            imageUrl: imageToUpload
-          });
+          console.warn('⚠️ [PRODUCTS] Falling back to transformedImage (bez watermarku)');
+          
+          // ✅ FALLBACK: Użyj transformedImage bez watermarku (lepsze niż brak obrazu)
+          if (transformedImage && transformedImage.startsWith('http')) {
+            console.log('📥 [PRODUCTS] Downloading transformedImage (bez watermarku) as fallback:', transformedImage);
+            const fallbackResponse = await fetch(transformedImage);
+            
+            if (fallbackResponse.ok) {
+              contentType = fallbackResponse.headers.get('content-type') || 'image/jpeg';
+              const fallbackArrayBuffer = await fallbackResponse.arrayBuffer();
+              imageBuffer = Buffer.from(fallbackArrayBuffer);
+              console.log('✅ [PRODUCTS] Fallback image downloaded successfully:', imageBuffer.length, 'bytes');
+            } else {
+              console.error('❌ [PRODUCTS] Fallback image also failed:', fallbackResponse.status, fallbackResponse.statusText);
+              return res.json({
+                success: true,
+                product: product,
+                variantId: product.variants[0].id,
+                productId: productId,
+                warning: 'Product created but image upload failed (watermarked and fallback)',
+                imageUrl: imageToUpload
+              });
+            }
+          } else {
+            console.error('❌ [PRODUCTS] No valid fallback image available');
+            return res.json({
+              success: true,
+              product: product,
+              variantId: product.variants[0].id,
+              productId: productId,
+              warning: 'Product created but watermarked image upload failed and no fallback',
+              imageUrl: imageToUpload
+            });
+          }
+        } else {
+        
+          // ✅ SPRAWDŹ Content-Type z response
+          contentType = imageResponse.headers.get('content-type') || 'image/jpeg';
+          console.log('📦 [PRODUCTS] Image Content-Type:', contentType);
+          
+          const imageArrayBuffer = await imageResponse.arrayBuffer();
+          imageBuffer = Buffer.from(imageArrayBuffer);
+          
+          // ✅ WALIDACJA: Sprawdź czy obrazek nie jest pusty
+          if (!imageBuffer || imageBuffer.length === 0) {
+            console.error('❌ [PRODUCTS] Downloaded image is empty');
+            return res.json({
+              success: true,
+              product: product,
+              variantId: product.variants[0].id,
+              productId: productId,
+              warning: 'Product created but downloaded image is empty',
+              imageUrl: imageToUpload
+            });
+          }
+          
+          console.log('✅ [PRODUCTS] Image downloaded successfully:', imageBuffer.length, 'bytes');
         }
-        
-        // ✅ SPRAWDŹ Content-Type z response
-        contentType = imageResponse.headers.get('content-type') || 'image/jpeg';
-        console.log('📦 [PRODUCTS] Image Content-Type:', contentType);
-        
-        const imageArrayBuffer = await imageResponse.arrayBuffer();
-        imageBuffer = Buffer.from(imageArrayBuffer);
-        
-        // ✅ WALIDACJA: Sprawdź czy obrazek nie jest pusty
-        if (!imageBuffer || imageBuffer.length === 0) {
-          console.error('❌ [PRODUCTS] Downloaded image is empty');
-          return res.json({
-            success: true,
-            product: product,
-            variantId: product.variants[0].id,
-            productId: productId,
-            warning: 'Product created but downloaded image is empty',
-            imageUrl: imageToUpload
-          });
-        }
-        
-        console.log('✅ [PRODUCTS] Image downloaded successfully:', imageBuffer.length, 'bytes');
       }
     }
     
@@ -556,7 +601,9 @@ module.exports = async (req, res) => {
         console.log(`📦 [PRODUCTS] Base64 buffer size: ${imageBuffer.length} bytes (${(imageBuffer.length / 1024 / 1024).toFixed(2)} MB)`);
         
         const timestamp = Date.now();
-        const uniqueFilename = `customify/temp/generation-${timestamp}.jpg`;
+        // ✅ ZAPISZ W TRWAŁYM MIEJSCU (customify/orders/) - NIE BĘDZIE USUNIĘTY PRZEZ CLEANUP
+        // Cleanup usuwa tylko customify/temp/ - customify/orders/ jest trwałe
+        const uniqueFilename = `customify/orders/generation-${timestamp}.jpg`;
         
         const blob = await put(uniqueFilename, imageBuffer, {
           access: 'public',
