@@ -3551,6 +3551,12 @@
             {% paginate collection.products by 1000 %}
               <div class="custom-collection-grid">
                 {% for product in collection.products %}
+                  {% if collection.handle == 'see_also' %}
+                    {% assign is_hidden_product = product.url contains 'rozmiar' or product.url contains 'cyfrowy' %}
+                    {% if is_hidden_product %}
+                      {% continue %}
+                    {% endif %}
+                  {% endif %}
                   <a href="{{ product.url }}" class="custom-collection-card">
                     <div class="custom-collection-image">
                       {% if product.featured_image %}
