@@ -4307,6 +4307,14 @@
                       <div class="style-name">Szkic</div>
                     </div>
                   </div>
+                {% elsif product.handle == 'royal-love' %}
+                  {% comment %} STYL ROYAL LOVE dla produktu Royal Love - OpenAI GPT Image 1.5 via Replicate {% endcomment %}
+                  <div class="customify-style-card" data-style="royal-love">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/style/royal_love.jpg'); background-size: cover; background-position: center;"></div>
+                    <div class="style-info">
+                      <div class="style-name">Royal Love</div>
+                    </div>
+                  </div>
                 {% else %}
                   {% comment %} WSZYSTKIE STYLE NORMALNE dla innych produktów {% endcomment %}
                   <div class="customify-style-card" data-style="watercolor">

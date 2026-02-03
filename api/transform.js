@@ -1794,6 +1794,22 @@ module.exports = async (req, res) => {
           output_quality: 95
         }
       },
+      // 💕 Royal Love - OpenAI GPT Image 1.5 via Replicate
+      'royal-love': {
+        model: "openai/gpt-image-1.5",
+        prompt: `${prompt}, high quality, detailed, photorealistic, royal love style`,
+        productType: "royal_love",
+        parameters: {
+          aspect_ratio: "2:3",
+          quality: "medium",
+          background: "auto",
+          output_format: "png",
+          input_fidelity: "high",
+          number_of_images: 1,
+          output_compression: 90,
+          moderation: "low"
+        }
+      },
     };
 
     // ✅ KRYTYCZNE: Brak fallbacków - jeśli styl nie istnieje, zwróć błąd
@@ -2721,6 +2737,41 @@ module.exports = async (req, res) => {
         true_guidance_scale: config.parameters?.true_guidance_scale || 1,
         output_format: config.parameters?.output_format || 'jpg',
         output_quality: config.parameters?.output_quality || 95
+      };
+    } else if (config.model.includes('gpt-image-1.5')) {
+      // GPT Image 1.5 model parameters (Royal Love) - img2img with OpenAI's latest model via Replicate
+      console.log('💕 [ROYAL-LOVE] Uploading image to Vercel Blob Storage for img2img...');
+      const baseUrl = 'https://customify-s56o.vercel.app';
+      const uploadResponse = await fetch(`${baseUrl}/api/upload-temp-image`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageData: imageDataUri,
+          filename: `royal-love-${Date.now()}.jpg`
+        })
+      });
+
+      if (!uploadResponse.ok) {
+        const errorText = await uploadResponse.text();
+        console.error('❌ [ROYAL-LOVE] Vercel Blob upload failed:', errorText);
+        throw new Error(`Vercel Blob upload failed: ${uploadResponse.status} - ${errorText}`);
+      }
+
+      const uploadResult = await uploadResponse.json();
+      const userImageUrl = uploadResult.imageUrl;
+      console.log('✅ [ROYAL-LOVE] User image uploaded:', userImageUrl);
+
+      inputParams = {
+        prompt: config.prompt,
+        input_images: [userImageUrl], // Array z URL obrazu użytkownika (img2img)
+        aspect_ratio: config.parameters?.aspect_ratio || '3:4',
+        quality: config.parameters?.quality || 'high',
+        background: config.parameters?.background || 'auto',
+        output_format: config.parameters?.output_format || 'jpeg',
+        input_fidelity: config.parameters?.input_fidelity || 'low',
+        number_of_images: config.parameters?.number_of_images || 1,
+        output_compression: config.parameters?.output_compression || 90,
+        moderation: config.parameters?.moderation || 'auto'
       };
     } else {
       // Stable Diffusion model parameters (default)
