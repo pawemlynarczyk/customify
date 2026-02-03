@@ -1486,32 +1486,36 @@ module.exports = async (req, res) => {
           guidance: 3.5
         }
       },
-      // Style GTA - używają nano-banana z 1 obrazkiem
+      // Style GTA - OpenAI GPT Image 1.5 via Replicate
       'gta': {
-        model: "google/nano-banana",
+        model: "openai/gpt-image-1.5",
         prompt: "Transform this photo into a GTA-style cover scene with thick outlines, vibrant colors, and high-contrast shadows. Place characters close to the camera with clearly visible faces in dramatic poses wearing sunglasses, hats, or chains, surrounded by city streets, neon lights, speeding cars, palm trees, flying money, and subtle explosions, in a semi-realistic comic-book style with slightly exaggerated proportions and cinematic lighting.",
-        apiType: "nano-banana",
-        productType: "gta", // Identyfikator typu produktu
+        productType: "gta",
         parameters: {
-          image_input: ["USER_IMAGE"],
           aspect_ratio: "2:3",
-          output_format: "jpg",
-          guidance: 3.5
-        },
-        disable_safety_checker: true // Wyłącz safety checker dla stylu GTA
-      },
-      // Style Hip-Hop - używają nano-banana z 1 obrazkiem
-      'hiphop': {
-        model: "google/nano-banana",
-        prompt: "keep faces from the image recognizable, this is most important goal of that work to make a face swap and put them in A highly detailed, glossy digital illustration in the style of urban street art and classic hip-hop culture, with a bold, vibrant color palette. Emphasize exaggerated 90s/early 2000s hip-hop fashion: baggy clothes, oversized sneakers, caps, gold chains, hoodies, and streetwear accessories. Include dynamic poses and expressive gestures typical of hip-hop culture. Add urban background elements like graffiti walls, murals, boomboxes, and city streets to enhance the street vibe. Art Style: Highly stylized, cartoonish proportions, sharp details, strong linework, gentle specular highlights, volumetric lighting, and smooth rendering for a cinematic, energetic feel. Keep composition intact, preserving the poses and expressions of the subjects, while amplifying attitude, swagger, and street authenticity.",
-        apiType: "nano-banana",
-        productType: "hiphop", // Identyfikator typu produktu
-        parameters: {
-          image_input: ["USER_IMAGE"],
-          prompt: "keep faces from the image recognizable, this is most important goal of that work to make a face swap and put them in A highly detailed, glossy digital illustration in the style of urban street art and classic hip-hop culture, with a bold, vibrant color palette. Emphasize exaggerated 90s/early 2000s hip-hop fashion: baggy clothes, oversized sneakers, caps, gold chains, hoodies, and streetwear accessories. Include dynamic poses and expressive gestures typical of hip-hop culture. Add urban background elements like graffiti walls, murals, boomboxes, and city streets to enhance the street vibe. Art Style: Highly stylized, cartoonish proportions, sharp details, strong linework, gentle specular highlights, volumetric lighting, and smooth rendering for a cinematic, energetic feel. Keep composition intact, preserving the poses and expressions of the subjects, while amplifying attitude, swagger, and street authenticity.",
-          aspect_ratio: "2:3",
+          quality: "medium",
+          background: "auto",
           output_format: "png",
-          guidance: 3.5
+          input_fidelity: "high",
+          number_of_images: 1,
+          output_compression: 90,
+          moderation: "low"
+        }
+      },
+      // Style Hip-Hop - OpenAI GPT Image 1.5 via Replicate
+      'hiphop': {
+        model: "openai/gpt-image-1.5",
+        prompt: "keep faces from the image recognizable, this is most important goal of that work to make a face swap and put them in A highly detailed, glossy digital illustration in the style of urban street art and classic hip-hop culture, with a bold, vibrant color palette. Emphasize exaggerated 90s/early 2000s hip-hop fashion: baggy clothes, oversized sneakers, caps, gold chains, hoodies, and streetwear accessories. Include dynamic poses and expressive gestures typical of hip-hop culture. Add urban background elements like graffiti walls, murals, boomboxes, and city streets to enhance the street vibe. Art Style: Highly stylized, cartoonish proportions, sharp details, strong linework, gentle specular highlights, volumetric lighting, and smooth rendering for a cinematic, energetic feel. Keep composition intact, preserving the poses and expressions of the subjects, while amplifying attitude, swagger, and street authenticity.",
+        productType: "hiphop",
+        parameters: {
+          aspect_ratio: "2:3",
+          quality: "medium",
+          background: "auto",
+          output_format: "png",
+          input_fidelity: "high",
+          number_of_images: 1,
+          output_compression: 90,
+          moderation: "low"
         }
       },
       // Style króla - używają Segmind Faceswap v4
@@ -2722,7 +2726,7 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
         
         console.log(`📸 [NANO-BANANA] Boho style - 1 obrazek (user base64): ${imageDataUri.substring(0, 50)}...`);
         console.log(`📸 [NANO-BANANA] image_input array length: ${inputParams.image_input.length}`);
-      } else if (finalProductType === 'other' || finalProductType === 'para_krolewska' || finalProductType === 'caricature-new' || finalProductType === 'gta' || finalProductType === 'hiphop' || (config.parameters?.image_input?.length === 1 && config.parameters.image_input[0] === "USER_IMAGE")) {
+      } else if (finalProductType === 'other' || finalProductType === 'para_krolewska' || finalProductType === 'caricature-new' || (config.parameters?.image_input?.length === 1 && config.parameters.image_input[0] === "USER_IMAGE")) {
         // Style na 1 obrazek usera (zamkowy/krolewski-para/caricature-new/gta i inne single-image)
         // ✅ UPLOAD BASE64 DO VERCEL BLOB (nano-banana wymaga URL)
         console.log('📤 [NANO-BANANA] Uploading user image to Vercel Blob Storage (single-image nano-banana requires URL, not base64)...');
