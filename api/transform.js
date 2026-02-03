@@ -1903,7 +1903,7 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
       // 🦸 Superpara - OpenAI GPT Image 1.5 via Replicate
       'superpara': {
         model: "openai/gpt-image-1.5",
-        prompt: `valentines superhero couple based on photo reference, dynamic flying pose in the sky, their hands reaching toward each other, glowing heart-shaped energy symbol between them as their shared power source, bright vibrant colors, classic American comic book style, bold clean line art, dramatic lighting, flowing capes, heroic and cute expressions, strong love energy aura, cinematic clouds background, high detail, clean illustration, title text "SUPERPARA" in bold retro superhero font at the top`,
+        prompt: `valentine superhero couple, dynamic flying pose in the sky, their hands reaching toward each other, glowing heart-shaped symbol between them as their shared power, bright vibrant colors, classic American comic book style, bold clean line art, dramatic lighting, flowing capes, heroic and expressions, strong energy, cinematic clouds background, high detail, clean illustration, title text "SUPERPARA" in bold retro superhero font at the top`,
         productType: "superpara",
         parameters: {
           aspect_ratio: "2:3",
