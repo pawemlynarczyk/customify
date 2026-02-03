@@ -325,7 +325,10 @@ function isModerationBlocked(errorText) {
   const errorLower = errorText.toLowerCase();
   return errorLower.includes('moderation_blocked') || 
          errorLower.includes('safety_violations') ||
-         errorLower.includes('rejected by the safety system');
+         errorLower.includes('rejected by the safety system') ||
+         errorLower.includes('flagged as sensitive') ||
+         errorLower.includes('e005') ||
+         errorLower.includes('sensitive');
 }
 
 // Helper function to create user-friendly moderation error
@@ -3127,6 +3130,14 @@ Whimsical, playful, romantic comedy chaos, polished digital painting, 3D cartoon
           break;
         } catch (error) {
           lastError = error;
+          
+          // ✅ SPRAWDŹ CZY TO BŁĄD MODERACJI (sensitive content)
+          const errorMessage = error.message || error.toString() || '';
+          if (isModerationBlocked(errorMessage)) {
+            console.warn('⚠️ [REPLICATE] Moderation blocked - image flagged as sensitive');
+            console.warn('⚠️ [REPLICATE] Error details:', errorMessage.substring(0, 500));
+            throw createModerationError(`Replicate API error: ${errorMessage}`);
+          }
           
           // Check if error is retryable (5xx server errors or timeout)
           // Replicate ApiError has response.status property
