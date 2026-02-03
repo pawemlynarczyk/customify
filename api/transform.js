@@ -1813,7 +1813,20 @@ module.exports = async (req, res) => {
       // 💖 Crazy Love - OpenAI GPT Image 1.5 via Replicate
       'crazy-love': {
         model: "openai/gpt-image-1.5",
-        prompt: `${prompt}, high quality, detailed, photorealistic, crazy love style`,
+        prompt: `Transform the photo into an extremely detailed, over-the-top funny romantic cartoon illustration.
+Keep the people recognizable but push the caricature style further: huge sparkling eyes, very expressive faces, big smiles, playful cartoon proportions.
+
+Style like a chaotic romantic comedy scene from an animated movie mixed with a colorful hand-painted storybook illustration.
+
+Add an EXPLOSION of Valentine elements everywhere: floating hearts, heart confetti, Cupid arrows flying, roses, chocolates, giant gifts, balloons, plush toys, love letters. Fill the scene with many tiny humorous background details.
+
+Make the atmosphere magical, silly, and exaggerated — romantic madness in a cute way. Add a small illustrated calendar page showing the date "14 Lutego",
+
+Use warm glowing cinematic cartoon lighting with soft bloom and sparkle effects.
+Bright, vibrant colors: reds, pinks, golds, warm cozy tones with glowing highlights.
+
+Ultra-detailed textures (hair strands, fabric folds, shiny sweets, reflections, soft plush fur, glitter effects).
+Whimsical, playful, romantic comedy chaos, polished digital painting, 3D cartoon render, fantasy love explosion, highly detailed, vibrant and cute.`,
         productType: "crazy_love",
         parameters: {
           aspect_ratio: "2:3",
