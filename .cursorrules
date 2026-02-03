@@ -51,6 +51,11 @@
 - ❌ **Nie ignoruj błędów** - napraw zanim przejdziesz dalej
 - ❌ **Nie zmieniaj logiki globalnie** - tylko dla konkretnych produktów/stylów
 
+## 🚨 CRITICAL: UKRYWANIE PRODUKTÓW "ROZMIAR"/"CYFROWY" W KOLEKCJACH
+- **ZASADA**: Produkty wygenerowane (z `rozmiar` lub `cyfrowy` w URL) MUSZĄ być ukrywane na stronach kolekcji
+- **JAK**: Ukrywaj je na etapie renderu w `theme.liquid` (np. `{% continue %}` w pętli kolekcji)
+- **NIE USUWAJ** tej logiki – wpływa na kolejność i czystość kolekcji
+
 ## 🚨 CRITICAL: UMIEJSCOWIENIE APLIKACJI W THEME.LIQUID
 
 ### **📍 GDZIE APLIKACJA MUSI BYĆ:**
