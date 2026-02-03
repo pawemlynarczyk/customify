@@ -501,16 +501,42 @@ async function saveGenerationHandler(req, res) {
       // ✅ KROK 1: Ustaw metafield generation_ready (dla Shopify Email template)
       try {
         // ✅ Użyj watermarkedImageUrl jeśli istnieje, w przeciwnym razie imageUrl (fallback)
-        const finalImageUrlForEmail = watermarkedImageUrl || imageUrl;
+        let finalImageUrlForEmail = watermarkedImageUrl || imageUrl;
         
+        // 🚨 FIX: Jeśli imageUrl to base64 (data URI), nie zapisuj go do metafielda (przekracza limit 2MB)
+        // Metafield ma limit 2,000,000 znaków, a base64 obrazka może mieć kilka MB
+        if (finalImageUrlForEmail && finalImageUrlForEmail.startsWith('data:image')) {
+          console.warn('⚠️ [SAVE-GENERATION] imageUrl to base64 - pomijam w metafield (przekracza limit)');
+          console.warn(`⚠️ [SAVE-GENERATION] Base64 length: ${finalImageUrlForEmail.length} znaków`);
+          finalImageUrlForEmail = null; // Nie zapisuj base64 do metafielda
+        }
+        
+        // ✅ Sprawdź również długość URL (nawet jeśli nie jest base64, może być bardzo długi)
+        if (finalImageUrlForEmail && finalImageUrlForEmail.length > 1000000) {
+          console.warn(`⚠️ [SAVE-GENERATION] imageUrl jest bardzo długi (${finalImageUrlForEmail.length} znaków) - pomijam w metafield`);
+          finalImageUrlForEmail = null;
+        }
+        
+        // ✅ Sprawdź długość przed zapisem (limit 2,000,000 znaków)
         const metafieldData = {
-          imageUrl: finalImageUrlForEmail,
+          imageUrl: finalImageUrlForEmail, // Tylko URL, nie base64
           style: style,
           size: size || null,
           productType: productType || 'other',
           timestamp: new Date().toISOString(),
           galleryUrl: 'https://lumly.pl/pages/my-generations'
         };
+        
+        const metafieldValueString = JSON.stringify(metafieldData);
+        const metafieldValueLength = metafieldValueString.length;
+        
+        if (metafieldValueLength > 2000000) {
+          console.error(`❌ [SAVE-GENERATION] Metafield value przekracza limit (${metafieldValueLength} > 2,000,000 znaków)`);
+          console.error(`❌ [SAVE-GENERATION] imageUrl length: ${finalImageUrlForEmail ? finalImageUrlForEmail.length : 0}`);
+          // Usuń imageUrl jeśli przekracza limit
+          metafieldData.imageUrl = null;
+          console.warn('⚠️ [SAVE-GENERATION] Usunięto imageUrl z metafield (przekracza limit)');
+        }
         
         // ✅ Najpierw sprawdź czy metafield już istnieje
         const checkMetafieldResponse = await fetch(`https://${shop}/admin/api/2023-10/customers/${customerId}/metafields.json?namespace=customify&key=generation_ready`, {
