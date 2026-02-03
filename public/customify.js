@@ -1192,7 +1192,7 @@ class CustomifyEmbed {
         if (imageUrl && !imageUrl.startsWith('data:')) {
           img.crossOrigin = 'anonymous';
         }
-        img.onload = () => {
+        img.onload = async () => {
           try {
             const canvas = document.createElement('canvas');
             canvas.width = img.width;
@@ -1208,6 +1208,41 @@ class CustomifyEmbed {
 
     const sizeMap = { small: 0.05, medium: 0.075, large: 0.11 };
     const fontSize = Math.max(32, canvas.height * (sizeMap[options.size] || sizeMap.medium));
+
+    // Mapowanie nazw czcionek do nazw Google Fonts
+    const fontNameMap = {
+      serif: 'Times New Roman', // Systemowa
+      sans: 'Montserrat',
+      script: 'Dancing Script',
+      script2: 'Pacifico',
+      script3: 'Satisfy',
+      script4: 'Great Vibes',
+      script5: 'Indie Flower',
+      western_1: 'Rye',
+      western_2: 'Creepster'
+    };
+    
+    const fontName = fontNameMap[options.font] || fontNameMap.sans;
+    
+    // ✅ SPRAWDŹ CZY KONKRETNA CZCIONKA JEST ZAŁADOWANA (przed użyciem w canvas)
+    if (document.fonts && fontName !== 'Times New Roman') {
+      const fontSpec = `700 ${fontSize}px "${fontName}"`;
+      const isLoaded = document.fonts.check(fontSpec);
+      if (!isLoaded) {
+        console.log(`🔤 [TEXT-OVERLAY] Czekam na czcionkę "${fontName}"...`);
+        // Czekaj maksymalnie 3 sekundy na załadowanie konkretnej czcionki
+        let attempts = 0;
+        while (!document.fonts.check(fontSpec) && attempts < 30) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+          attempts++;
+        }
+        if (document.fonts.check(fontSpec)) {
+          console.log(`✅ [TEXT-OVERLAY] Czcionka "${fontName}" załadowana!`);
+        } else {
+          console.warn(`⚠️ [TEXT-OVERLAY] Czcionka "${fontName}" nie załadowała się w czasie, używam fallback`);
+        }
+      }
+    }
 
     const fontMap = {
       serif: `700 ${fontSize}px "Times New Roman", "Georgia", serif`,
