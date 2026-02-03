@@ -1878,6 +1878,28 @@ Add a few soft red watercolor-style hearts floating around them. Light splashes 
           moderation: "low"
         }
       },
+      // 🌳 Jak z bajki - OpenAI GPT Image 1.5 via Replicate
+      'jak-z-bajki': {
+        model: "openai/gpt-image-1.5",
+        prompt: `Turn this couple into a romantic stylized cartoon illustration in a soft 3D caricature style. Slightly enlarged heads, smooth skin, warm friendly facial expressions, big expressive eyes, and gentle facial features. Pixar-inspired but more like a polished digital painting. Soft studio lighting, smooth shading, no harsh shadows. Simplified clothing with clean shapes and solid colors. Cute, wholesome, in-love mood. Background filled with small soft red hearts floating around them.
+
+Place a large tree trunk between them. The woman stands on the left side of the tree, gently leaning against it and facing toward the man. The man stands on the right side of the tree, also leaning against it and facing toward the woman. Their posture should feel relaxed, intimate, and deeply connected.
+
+The tree bark should be slightly lighter in color, warm brown with soft golden highlights from the sunlight. Carve the word "LOVE" vertically into the tree trunk, along with a carved heart symbol. The carving should look natural, slightly rough, and realistically etched into the bark.
+
+Set the scene in a forest during golden hour. Warm sunlight streams through the trees, creating strong visible sun rays and volumetric light beams.`,
+        productType: "jak_z_bajki",
+        parameters: {
+          aspect_ratio: "2:3",
+          quality: "medium",
+          background: "auto",
+          output_format: "png",
+          input_fidelity: "high",
+          number_of_images: 1,
+          output_compression: 90,
+          moderation: "low"
+        }
+      },
     };
 
     // ✅ KRYTYCZNE: Brak fallbacków - jeśli styl nie istnieje, zwróć błąd
