@@ -1810,6 +1810,22 @@ module.exports = async (req, res) => {
           moderation: "low"
         }
       },
+      // 💖 Crazy Love - OpenAI GPT Image 1.5 via Replicate
+      'crazy-love': {
+        model: "openai/gpt-image-1.5",
+        prompt: `${prompt}, high quality, detailed, photorealistic, crazy love style`,
+        productType: "crazy_love",
+        parameters: {
+          aspect_ratio: "2:3",
+          quality: "medium",
+          background: "auto",
+          output_format: "png",
+          input_fidelity: "high",
+          number_of_images: 1,
+          output_compression: 90,
+          moderation: "low"
+        }
+      },
     };
 
     // ✅ KRYTYCZNE: Brak fallbacków - jeśli styl nie istnieje, zwróć błąd
