@@ -1797,7 +1797,7 @@ module.exports = async (req, res) => {
       // 💕 Royal Love - OpenAI GPT Image 1.5 via Replicate
       'royal-love': {
         model: "openai/gpt-image-1.5",
-        prompt: `${prompt}, high quality, detailed, photorealistic, royal love style`,
+        prompt: `Transform this photo of a couple into a majestic royal fantasy illustration. The couple is portrayed as a king and queen in a passionate, elegant embrace, both clearly wearing royal crowns. The woman wears a luxurious, flowing crimson royal gown with gold embroidery and an ornate queen's crown. The man wears an ornate dark royal suit or ceremonial uniform with gold details, medals, a regal cape, and a distinguished king's crown. Surround them with rich red roses and subtle royal decorative elements. Add a grand palace-inspired background with soft glowing light, marble textures, and a romantic, fairytale atmosphere. Include a classic ornamental banner with the words "Neverending Love" in an elegant royal font. Cinematic lighting, soft glow, ultra-detailed, painterly, semi-realistic digital art, fantasy romance novel cover, symmetrical composition, highly polished, luxurious and dramatic.`,
         productType: "royal_love",
         parameters: {
           aspect_ratio: "2:3",
