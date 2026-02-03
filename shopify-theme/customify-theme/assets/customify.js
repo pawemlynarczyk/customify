@@ -1262,7 +1262,12 @@ class CustomifyEmbed {
     const colorMap = {
       white: '#ffffff',
       black: '#111111',
-      gold: '#d6b36a'
+      gold: '#d6b36a',
+      red: '#dc2626',      // Czerwony
+      green: '#16a34a',    // Zielony
+      blue: '#2563eb',     // Niebieski
+      yellow: '#eab308',   // Żółty
+      brown: '#92400e'     // Brązowy
     };
     const fillColor = colorMap[options.color] || '#ffffff';
 
@@ -1307,7 +1312,12 @@ class CustomifyEmbed {
               // Kolor tła zależy od koloru tekstu: biały→czarne, czarny→białe, złoty→ciemnobrązowe
               const bannerBg = options.color === 'black' ? 'rgba(255,255,255,0.4)' :
                                options.color === 'gold' ? 'rgba(40,25,15,0.45)' :
-                               'rgba(0,0,0,0.4)';
+                               options.color === 'red' ? 'rgba(255,255,255,0.4)' :
+                               options.color === 'green' ? 'rgba(255,255,255,0.4)' :
+                               options.color === 'blue' ? 'rgba(255,255,255,0.4)' :
+                               options.color === 'yellow' ? 'rgba(0,0,0,0.4)' :
+                               options.color === 'brown' ? 'rgba(255,255,255,0.4)' :
+                               'rgba(0,0,0,0.4)'; // fallback
               ctx.fillStyle = bannerBg;
               ctx.fillRect(padding * 0.9, bannerTop, canvas.width - padding * 1.8, bannerHeight);
             }
@@ -1319,7 +1329,13 @@ class CustomifyEmbed {
         const shadowColor =
           options.color === 'white' ? 'rgba(0,0,0,0.45)' :
           options.color === 'black' ? 'rgba(255,255,255,0.45)' :
-          'rgba(95, 70, 30, 0.55)'; // gold → brownish
+          options.color === 'gold' ? 'rgba(95, 70, 30, 0.55)' :
+          options.color === 'red' ? 'rgba(0,0,0,0.4)' :
+          options.color === 'green' ? 'rgba(0,0,0,0.4)' :
+          options.color === 'blue' ? 'rgba(0,0,0,0.4)' :
+          options.color === 'yellow' ? 'rgba(0,0,0,0.4)' :
+          options.color === 'brown' ? 'rgba(0,0,0,0.4)' :
+          'rgba(0,0,0,0.45)'; // fallback
         ctx.fillStyle = shadowColor;
         ctx.fillText(line, canvas.width / 2 + Math.max(2, fontSize * 0.04), lineY + Math.max(2, fontSize * 0.04));
       }
@@ -1328,7 +1344,13 @@ class CustomifyEmbed {
       const strokeColor =
         options.color === 'white' ? 'rgba(0,0,0,0.65)' :
         options.color === 'black' ? 'rgba(255,255,255,0.65)' :
-        'rgba(95, 70, 30, 0.75)'; // gold
+        options.color === 'gold' ? 'rgba(95, 70, 30, 0.75)' :
+        options.color === 'red' ? 'rgba(0,0,0,0.5)' :
+        options.color === 'green' ? 'rgba(0,0,0,0.5)' :
+        options.color === 'blue' ? 'rgba(0,0,0,0.5)' :
+        options.color === 'yellow' ? 'rgba(0,0,0,0.5)' :
+        options.color === 'brown' ? 'rgba(255,255,255,0.5)' :
+        'rgba(0,0,0,0.65)'; // fallback
       ctx.strokeStyle = strokeColor;
       ctx.lineWidth = Math.max(2.5, fontSize * 0.09);
       ctx.strokeText(line, canvas.width / 2, lineY);
