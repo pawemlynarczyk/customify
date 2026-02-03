@@ -1839,6 +1839,22 @@ Whimsical, playful, romantic comedy chaos, polished digital painting, 3D cartoon
           moderation: "low"
         }
       },
+      // 🌹 Love Rose - OpenAI GPT Image 1.5 via Replicate
+      'love-rose': {
+        model: "openai/gpt-image-1.5",
+        prompt: `Transform this photo of a couple into a romantic, semi-realistic digital painting illustration. The couple is elegantly dressed, posed in a close, intimate embrace, full of love and passion, but both faces are turned forward, looking toward the viewer instead of at each other. The woman wears a flowing, glamorous red gown, the man in a stylish dark suit. Surround them with large, detailed red roses and soft decorative floral elements. Add a vintage romantic poster aesthetic with a soft cream background and a classic ribbon banner that says "LOVE" placed at the top of the composition. Warm, soft lighting, smooth painterly skin, cinematic shading, ultra-detailed, elegant, dreamy, Valentine's Day illustration, romance novel cover art style, symmetrical composition, highly polished digital art. masterpiece, ultra detailed, soft glow, romantic fantasy, luxury illustration, glossy finish, art nouveau influence, poster design, decorative frame.`,
+        productType: "love_rose",
+        parameters: {
+          aspect_ratio: "2:3",
+          quality: "medium",
+          background: "auto",
+          output_format: "png",
+          input_fidelity: "high",
+          number_of_images: 1,
+          output_compression: 90,
+          moderation: "low"
+        }
+      },
     };
 
     // ✅ KRYTYCZNE: Brak fallbacków - jeśli styl nie istnieje, zwróć błąd

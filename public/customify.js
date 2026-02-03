@@ -572,6 +572,10 @@ class CustomifyEmbed {
       console.log('❄️👑 [PRODUCT-TYPE] URL = Królowa Śniegu → productType: snow_queen');
       return 'snow_queen';
     }
+    if (currentUrl.includes('prezent-na-walentynki-obraz-na-plotnie-z-twojego-zdjecia')) {
+      console.log('🌹 [PRODUCT-TYPE] URL = Love Rose → productType: love_rose');
+      return 'love_rose';
+    }
     
     // 🔄 PRIORYTET 2: Fallback - sprawdź styl (tylko dla starych generacji bez URL)
     console.log('⚠️ [PRODUCT-TYPE] Nie rozpoznano URL, sprawdzam styl:', style);
@@ -605,6 +609,7 @@ class CustomifyEmbed {
       'swieta_2': 'caricature-new',
       'akwarela': 'watercolor',
       'openai-art': 'openai-art', // OpenAI GPT-Image-1 style
+      'love-rose': 'love_rose', // Love Rose - OpenAI GPT-Image-1.5 via Replicate
       'jednorozec': 'unicorn',
       'mis': 'teddy_bear',
       'zimowa-ksiezniczka': 'winter_princess',
