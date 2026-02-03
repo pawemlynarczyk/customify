@@ -612,6 +612,7 @@ class CustomifyEmbed {
       'love-rose': 'love_rose', // Love Rose - OpenAI GPT-Image-1.5 via Replicate
       'szkic-love': 'szkic_love', // Szkic Love - OpenAI GPT-Image-1.5 via Replicate
       'jak-z-bajki': 'jak_z_bajki', // Jak z bajki - OpenAI GPT-Image-1.5 via Replicate
+      'superpara': 'superpara', // Superpara - OpenAI GPT-Image-1.5 via Replicate
       'jednorozec': 'unicorn',
       'mis': 'teddy_bear',
       'zimowa-ksiezniczka': 'winter_princess',
