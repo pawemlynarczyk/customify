@@ -1179,8 +1179,15 @@ class CustomifyEmbed {
    * Renderuje napis na kanwie
    */
   async renderTextOverlay(imageUrl, text, options) {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       try {
+        // ✅ CZEKAJ NA ZAŁADOWANIE CZCIONEK (Google Fonts)
+        if (document.fonts && document.fonts.status !== 'loaded') {
+          console.log('🔤 [TEXT-OVERLAY] Czekam na document.fonts.ready...');
+          await document.fonts.ready;
+          console.log('✅ [TEXT-OVERLAY] Fonty załadowane!');
+        }
+
         const img = new Image();
         if (imageUrl && !imageUrl.startsWith('data:')) {
           img.crossOrigin = 'anonymous';
