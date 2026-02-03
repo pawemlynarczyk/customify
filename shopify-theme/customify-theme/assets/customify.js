@@ -610,6 +610,7 @@ class CustomifyEmbed {
       'akwarela': 'watercolor',
       'openai-art': 'openai-art', // OpenAI GPT-Image-1 style
       'love-rose': 'love_rose', // Love Rose - OpenAI GPT-Image-1.5 via Replicate
+      'szkic-love': 'szkic_love', // Szkic Love - OpenAI GPT-Image-1.5 via Replicate
       'jednorozec': 'unicorn',
       'mis': 'teddy_bear',
       'zimowa-ksiezniczka': 'winter_princess',

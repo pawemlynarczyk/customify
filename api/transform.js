@@ -1858,6 +1858,26 @@ Whimsical, playful, romantic comedy chaos, polished digital painting, 3D cartoon
           moderation: "low"
         }
       },
+      // ✏️ Szkic Love - OpenAI GPT Image 1.5 via Replicate
+      'szkic-love': {
+        model: "openai/gpt-image-1.5",
+        prompt: `Transform the photo of a couple into a stylish hand-drawn fashion illustration. Slim, slightly elongated silhouettes with a sense of motion, as if they are walking together gracefully. Their poses should feel natural and dynamic, with flowing movement in clothing and posture, like a couture runway sketch. Clean black ink outlines with soft pencil shading. Mostly black and white / grayscale tones for skin, hair and clothing.
+
+Add selective vivid red accents only — especially a large, flowing, voluminous red skirt or dress with dramatic movement and soft fabric waves, and red heels. The woman is holding a long red rose in one hand, with delicate petals and a thin elegant stem, matching the red accent theme. The woman should look graceful and feminine, the man classy and well-dressed (shirt, elegant trousers) with slight fabric movement as if walking.
+
+Add a few soft red watercolor-style hearts floating around them. Light splashes of red paint, subtle sparkles on the dress. Minimalist white background. Romantic, chic, Valentine's Day illustration. Fashion magazine sketch style, ink and watercolor mix. Sense of motion, elegant movement, flowing fabric.`,
+        productType: "szkic_love",
+        parameters: {
+          aspect_ratio: "2:3",
+          quality: "medium",
+          background: "auto",
+          output_format: "png",
+          input_fidelity: "high",
+          number_of_images: 1,
+          output_compression: 90,
+          moderation: "low"
+        }
+      },
     };
 
     // ✅ KRYTYCZNE: Brak fallbacków - jeśli styl nie istnieje, zwróć błąd
