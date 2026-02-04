@@ -56,7 +56,7 @@ module.exports = async (req, res) => {
     return res.status(500).json({ error: 'Blob token not configured' });
   }
 
-  const DAYS_OLD = 14;
+  const DAYS_OLD = 30; // ✅ ZWIĘKSZONO z 14 do 30 dni - więcej czasu na dodanie do koszyka
   const cutoffDate = Date.now() - DAYS_OLD * 24 * 60 * 60 * 1000;
   const MAX_ROUNDS = 20; // 20 * 300 = max 6000 plików/dzień (bezpiecznie)
   const MAX_DELETE_PER_ROUND = 300; // zgodnie z hard cap w admin cleanup
@@ -90,6 +90,7 @@ module.exports = async (req, res) => {
       };
 
       // 1) Pobierz listę blobów (customify/temp/ + stats JSON)
+      // ✅ NIE USUWAJ customify/orders/ - to są trwałe obrazki z zamówień
       const tempBlobs = await listAllFromPrefix('customify/temp/');
       const statsBlobs = await listAllFromPrefix('customify/system/stats/generations/');
       const allBlobs = [...tempBlobs, ...statsBlobs];

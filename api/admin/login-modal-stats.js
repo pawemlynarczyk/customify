@@ -55,6 +55,40 @@ const ensureStatsStructure = (stats) => {
 
 const cloneDeep = (obj) => JSON.parse(JSON.stringify(obj));
 
+const normalizeProductKey = (rawKey) => {
+  if (!rawKey || typeof rawKey !== 'string') return 'unknown';
+  const withoutHash = rawKey.split('#')[0];
+  const withoutQuery = withoutHash.split('?')[0];
+  return withoutQuery.replace(/\/+$/, '') || 'unknown';
+};
+
+const getProductKeyFromUrl = (productUrl) => {
+  if (!productUrl || typeof productUrl !== 'string') return 'unknown';
+  const parts = productUrl.split('/products/');
+  const candidate = parts[1] || parts[0];
+  return normalizeProductKey(candidate);
+};
+
+const mergeBreakdownTotals = (target, source) => {
+  const base = { ...defaultBreakdown(), ...(target || {}) };
+  Object.keys(source || {}).forEach((metric) => {
+    const val = source[metric];
+    if (typeof val === 'number' && !Number.isNaN(val)) {
+      base[metric] = (base[metric] || 0) + val;
+    }
+  });
+  return base;
+};
+
+const normalizeByProductStats = (byProduct = {}) => {
+  const normalized = {};
+  Object.entries(byProduct).forEach(([key, breakdown]) => {
+    const normalizedKey = normalizeProductKey(key);
+    normalized[normalizedKey] = mergeBreakdownTotals(normalized[normalizedKey], breakdown);
+  });
+  return normalized;
+};
+
 const mergeStatsData = (baseStats, additionalStats) => {
   if (!additionalStats) {
     return ensureStatsStructure(cloneDeep(baseStats));
@@ -319,7 +353,7 @@ module.exports = async (req, res) => {
 
       // Aktualizuj statystyki per produkt
       if (productUrl) {
-        const productKey = productUrl.split('/products/')[1] || 'unknown';
+        const productKey = getProductKeyFromUrl(productUrl);
         if (!stats.byProduct[productKey]) {
           stats.byProduct[productKey] = defaultBreakdown();
         } else {
@@ -436,10 +470,13 @@ module.exports = async (req, res) => {
         ? ((stats.summary.totalRegisterSuccess + stats.summary.totalLoginSuccess) / stats.summary.totalShown * 100).toFixed(2)
         : 0;
 
+      const normalizedByProduct = normalizeByProductStats(stats.byProduct);
+
       return res.json({
         success: true,
         stats: {
           ...stats,
+          byProduct: normalizedByProduct,
           calculated: {
             conversionRate: `${conversionRate}%`,
             actualConversionRate: `${actualConversionRate}%`,
