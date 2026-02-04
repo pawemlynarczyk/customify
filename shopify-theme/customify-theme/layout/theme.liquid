@@ -5330,24 +5330,34 @@
           max-width: 100%;
           display: block;
         }
-        /* Etui - maska podczas kadrowania */
+        /* Etui - maska podczas kadrowania jako okno */
         .spotify-crop-modal.phone-crop .spotify-crop-canvas {
           aspect-ratio: 1 / 2;
           padding: 20px; /* Miejsce po bokach do przesuwania */
           box-sizing: border-box;
+          position: relative;
+          background: rgba(0, 0, 0, 0.7); /* Ciemne tło - przyciemnienie */
         }
+        /* Maska jako przezroczyste okno - wycina przyciemnienie używając mask-image */
         .spotify-crop-modal.phone-crop .spotify-crop-canvas::after {
           content: '';
           position: absolute;
-          /* Maska mniejsza niż canvas - 85% szerokości, wyśrodkowana */
-          left: 50%;
-          top: 50%;
-          transform: translate(-50%, -50%);
-          width: 85%;
-          height: 85%;
-          background: url('https://customify-s56o.vercel.app/phone/phone_ok.png') center/contain no-repeat;
+          inset: 0;
+          /* Odwrócona maska - przyciemnij wszystko POZA kształtem maski */
+          background: rgba(0, 0, 0, 0.7);
+          mask-image: url('https://customify-s56o.vercel.app/phone/phone_ok.png');
+          mask-size: 85%;
+          mask-position: center;
+          mask-repeat: no-repeat;
+          /* Odwróć maskę - przyciemnij poza maską */
+          mask-composite: exclude;
+          -webkit-mask-image: url('https://customify-s56o.vercel.app/phone/phone_ok.png');
+          -webkit-mask-size: 85%;
+          -webkit-mask-position: center;
+          -webkit-mask-repeat: no-repeat;
+          -webkit-mask-composite: destination-out;
           pointer-events: none;
-          z-index: 2;
+          z-index: 3;
         }
         .spotify-crop-actions {
           display: flex;
