@@ -2760,14 +2760,20 @@ class CustomifyEmbed {
     this.spotifyCropModal.classList.toggle('phone-crop', this.isPhoneCaseProduct());
 
     const cropConfig = this.getCropConfig();
+    // Dla etui: pozwól na zoom i przesuwanie obrazu względem maski
+    const isPhoneCase = this.isPhoneCaseProduct();
     this.spotifyCropper = new Cropper(this.spotifyCropImage, {
       aspectRatio: cropConfig.aspectRatio,
-      viewMode: 1,
-      autoCropArea: 1,
+      viewMode: isPhoneCase ? 0 : 1, // 0 = obraz może być większy niż canvas (etui), 1 = ograniczony (spotify)
+      autoCropArea: isPhoneCase ? 0.5 : 1, // Mniejszy autoCrop dla etui = możliwość zoom
       responsive: true,
       movable: true,
       zoomable: true,
-      background: false
+      zoomOnTouch: true,
+      zoomOnWheel: true,
+      background: false,
+      minCanvasWidth: isPhoneCase ? 0 : undefined, // Dla etui: pozwól na mniejszy canvas
+      minCanvasHeight: isPhoneCase ? 0 : undefined
     });
   }
 

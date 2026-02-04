@@ -5334,6 +5334,13 @@
         .spotify-crop-modal.phone-crop .spotify-crop-canvas {
           aspect-ratio: 1 / 2;
         }
+        /* Dla etui: obraz może być większy niż canvas (zoom) */
+        .spotify-crop-modal.phone-crop .spotify-crop-canvas .cropper-container {
+          overflow: visible;
+        }
+        .spotify-crop-modal.phone-crop .spotify-crop-canvas .cropper-canvas {
+          overflow: visible;
+        }
         .spotify-crop-modal.phone-crop .spotify-crop-canvas::after {
           content: '';
           position: absolute;
