@@ -4309,6 +4309,14 @@
                       <div class="style-name">Święta</div>
                     </div>
                   </div>
+                {% elsif product.handle == 'portret-pary-w-stylu-anime-obraz-ze-zdjecia' %}
+                  {% comment %} TYLKO STYL ANIME dla produktu anime {% endcomment %}
+                  <div class="customify-style-card" data-style="anime">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/para/anime.jpg'); background-size: cover; background-position: center;"></div>
+                    <div class="style-info">
+                      <div class="style-name">Anime</div>
+                    </div>
+                  </div>
                 {% elsif product.handle == 'ramka-spotify' or product.handle == 'zdjecie-na-szkle-ramka-spotify' %}
                   {% comment %} STYLE SPOTIFY FRAME {% endcomment %}
                   <div class="customify-style-card" data-style="bez-zmian">

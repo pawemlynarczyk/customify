@@ -552,6 +552,10 @@ class CustomifyEmbed {
       console.log('🤴👸 [PRODUCT-TYPE] URL = Para królewska → productType: para_krolewska');
       return 'para_krolewska';
     }
+    if (currentUrl.includes('portret-pary-w-stylu-anime-obraz-ze-zdjecia')) {
+      console.log('🎌 [PRODUCT-TYPE] URL = Anime → productType: anime');
+      return 'anime';
+    }
     if (currentUrl.includes('ramka-spotify') || currentUrl.includes('zdjecie-na-szkle-ramka-spotify')) {
       console.log('🎵 [PRODUCT-TYPE] URL = Ramka Spotify → productType: spotify_frame');
       return 'spotify_frame';
@@ -640,6 +644,7 @@ class CustomifyEmbed {
       'neo': 'neo',
       'wanted': 'wanted',
       'wanted_k': 'wanted_k',
+      'anime': 'anime',
       'superman': 'superman'
     };
     

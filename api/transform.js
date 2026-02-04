@@ -1791,7 +1791,7 @@ module.exports = async (req, res) => {
       'anime': {
         model: "qwen-edit-apps/qwen-image-edit-plus-lora-photo-to-anime",
         prompt: "transform into anime, clean line art, vibrant cel-shaded colors",
-        productType: "spotify_frame",
+        productType: "anime", // Zmienione z "spotify_frame" na "anime" dla produktu anime
         parameters: {
           aspect_ratio: "3:4",
           num_inference_steps: 20,
