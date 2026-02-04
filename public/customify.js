@@ -185,6 +185,10 @@ class CustomifyEmbed {
     return currentUrl.includes('personalizowane-etui-na-telefon-z-twoim-zdjeciem-karykatura');
   }
 
+  isCropperProduct() {
+    return this.isSpotifyProduct() || this.isPhoneCaseProduct();
+  }
+
   // 🎵 Produkt Spotify BEZ generacji AI - od razu do koszyka po kadrowanie
   isSpotifyNoAIProduct() {
     const currentUrl = window.location.pathname.toLowerCase();
@@ -2454,7 +2458,7 @@ class CustomifyEmbed {
     }
     
     // 🎵 Kliknięcie w preview image otwiera cropper ponownie (ponowne kadrowanie)
-    if ((this.isSpotifyProduct() || this.isPhoneCaseProduct()) && this.previewImage) {
+    if (this.isCropperProduct() && this.previewImage) {
       this.previewImage.style.cursor = 'pointer';
       this.previewImage.title = 'Kliknij aby ponownie wykadrować zdjęcie';
       this.previewImage.addEventListener('click', () => this.reopenSpotifyCropper());
@@ -2753,6 +2757,7 @@ class CustomifyEmbed {
     this.spotifyCropImage.src = this.spotifyCropSourceUrl;
     this.spotifyCropModal.classList.add('is-open');
     this.spotifyCropModal.setAttribute('aria-hidden', 'false');
+    this.spotifyCropModal.classList.toggle('phone-crop', this.isPhoneCaseProduct());
 
     const cropConfig = this.getCropConfig();
     this.spotifyCropper = new Cropper(this.spotifyCropImage, {
@@ -2778,6 +2783,7 @@ class CustomifyEmbed {
     if (this.spotifyCropModal) {
       this.spotifyCropModal.classList.remove('is-open');
       this.spotifyCropModal.setAttribute('aria-hidden', 'true');
+      this.spotifyCropModal.classList.remove('phone-crop');
     }
   }
 
@@ -2832,7 +2838,7 @@ class CustomifyEmbed {
     }
 
     this.hideError();
-    if (this.isSpotifyProduct() || this.isPhoneCaseProduct()) {
+    if (this.isCropperProduct()) {
       this.spotifyCropConfirmed = false;
       this.openSpotifyCropper(file);
       return;
