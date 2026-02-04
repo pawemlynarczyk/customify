@@ -5331,11 +5331,14 @@
           display: block;
         }
         /* Etui - maska podczas kadrowania */
+        .spotify-crop-modal.phone-crop .spotify-crop-canvas {
+          aspect-ratio: 1 / 2;
+        }
         .spotify-crop-modal.phone-crop .spotify-crop-canvas::after {
           content: '';
           position: absolute;
           inset: 0;
-          background: url('https://customify-s56o.vercel.app/phone/phone_ok.png') center/contain no-repeat;
+          background: url('https://customify-s56o.vercel.app/phone/phone_ok.png') center/cover no-repeat;
           pointer-events: none;
           z-index: 2;
         }
