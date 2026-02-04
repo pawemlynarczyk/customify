@@ -270,7 +270,7 @@
 
     <!-- CUSTOMIFY INTEGRATION -->
     <link rel="stylesheet" href="{{ 'customify.css' | asset_url }}">
-    {% if product and product.handle == 'ramka-spotify' or product.handle == 'zdjecie-na-szkle-ramka-spotify' or product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem-karykatura' %}
+    {% if product and product.handle == 'ramka-spotify' or product.handle == 'zdjecie-na-szkle-ramka-spotify' %}
       <link rel="stylesheet" href="https://unpkg.com/cropperjs@1.6.2/dist/cropper.min.css">
     {% endif %}
     
@@ -307,7 +307,7 @@
     </script>
     
     <script src="{{ 'customify.js' | asset_url }}" defer></script>
-    {% if product and product.handle == 'ramka-spotify' or product.handle == 'zdjecie-na-szkle-ramka-spotify' or product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem-karykatura' %}
+    {% if product and product.handle == 'ramka-spotify' or product.handle == 'zdjecie-na-szkle-ramka-spotify' %}
       <script src="https://unpkg.com/cropperjs@1.6.2/dist/cropper.min.js" defer></script>
       <script>
         // 🎵 Spotify Text Overlay - aktualizacja tekstu w czasie rzeczywistym
@@ -3901,7 +3901,19 @@
               {% elsif product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem-karykatura' %}
                 <div class="phone-frame-preview">
                   <div class="phone-frame-inner">
-                    <img id="previewImage" alt="Podgląd zdjęcia">
+                    <div class="phone-image-wrapper">
+                      <img id="previewImage" alt="Podgląd zdjęcia">
+                    </div>
+                    <div class="phone-edit-handles" style="display: none;">
+                      <div class="phone-handle phone-handle-nw"></div>
+                      <div class="phone-handle phone-handle-ne"></div>
+                      <div class="phone-handle phone-handle-sw"></div>
+                      <div class="phone-handle phone-handle-se"></div>
+                      <div class="phone-handle phone-handle-n"></div>
+                      <div class="phone-handle phone-handle-s"></div>
+                      <div class="phone-handle phone-handle-w"></div>
+                      <div class="phone-handle phone-handle-e"></div>
+                    </div>
                   </div>
                 </div>
               {% else %}
@@ -3996,7 +4008,7 @@
             <div id="spotify-type-size-slot" style="display: none;"></div>
             {% endif %}
 
-            {% if product.handle == 'ramka-spotify' or product.handle == 'zdjecie-na-szkle-ramka-spotify' or product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem-karykatura' %}
+            {% if product.handle == 'ramka-spotify' or product.handle == 'zdjecie-na-szkle-ramka-spotify' %}
               <div id="spotifyCropModal" class="spotify-crop-modal" aria-hidden="true">
                 <div class="spotify-crop-dialog">
                   <h4>Ustaw kadr zdjęcia</h4>
@@ -5194,12 +5206,48 @@
           overflow: hidden;
           border-radius: 18px;
         }
-        #customify-app-container .phone-frame-inner img {
+        #customify-app-container .phone-frame-inner .phone-image-wrapper {
+          position: absolute;
+          inset: 0;
+          cursor: move;
+          user-select: none;
+          touch-action: none;
+          /* Clipping mask - zdjęcie widoczne tylko w obrębie maski */
+          mask-image: url('https://customify-s56o.vercel.app/phone/phone_ok.png');
+          mask-size: contain;
+          mask-position: center;
+          mask-repeat: no-repeat;
+          -webkit-mask-image: url('https://customify-s56o.vercel.app/phone/phone_ok.png');
+          -webkit-mask-size: contain;
+          -webkit-mask-position: center;
+          -webkit-mask-repeat: no-repeat;
+        }
+        #customify-app-container .phone-frame-inner .phone-image-wrapper img {
           position: absolute;
           inset: 0;
           width: 100%;
           height: 100%;
           object-fit: cover;
+          display: block;
+        }
+        /* Obrys zdjęcia poza maską - widoczny tylko w trybie edycji */
+        #customify-app-container .phone-frame-inner.editing .phone-image-wrapper::before {
+          content: '';
+          position: absolute;
+          inset: -2px;
+          border: 2px dashed rgba(0, 0, 0, 0.3);
+          pointer-events: none;
+          z-index: 1;
+        }
+        /* Uchwyty do edycji - widoczne tylko w trybie edycji */
+        #customify-app-container .phone-frame-inner .phone-edit-handles {
+          position: absolute;
+          inset: -15px;
+          pointer-events: none;
+          z-index: 2;
+        }
+        #customify-app-container .phone-frame-inner.editing .phone-edit-handles {
+          pointer-events: all;
         }
         #customify-app-container .phone-frame-inner::after {
           content: '';
@@ -5207,6 +5255,46 @@
           inset: 0;
           background: url('https://customify-s56o.vercel.app/phone/phone_ok.png') center/contain no-repeat;
           pointer-events: none;
+        }
+        /* Ikona edycji dla etui - podobna do Spotify */
+        #customify-app-container .phone-frame-preview .phone-frame-inner::before {
+          content: '✏️';
+          position: absolute;
+          bottom: 15px;
+          right: 15px;
+          background: rgba(0,0,0,0.7);
+          color: white;
+          width: 36px;
+          height: 36px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 18px;
+          z-index: 10;
+          opacity: 0.8;
+          transition: all 0.2s ease;
+          pointer-events: none;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        @media (max-width: 768px) {
+          #customify-app-container .phone-frame-preview .phone-frame-inner::before {
+            width: 44px;
+            height: 44px;
+            font-size: 20px;
+          }
+        }
+        #customify-app-container .phone-frame-preview .phone-frame-inner:hover::before {
+          opacity: 1;
+          transform: scale(1.1);
+          background: rgba(220, 53, 69, 0.9);
+        }
+        #customify-app-container .phone-frame-preview .phone-frame-inner img {
+          cursor: pointer;
+          transition: opacity 0.2s ease;
+        }
+        #customify-app-container .phone-frame-preview .phone-frame-inner img:hover {
+          opacity: 0.85;
         }
         
         #customify-app-container .spotify-frame-preview,
@@ -5354,70 +5442,55 @@
           max-width: 100%;
           display: block;
         }
-        /* Mobile: canvas na pełną wysokość dostępną */
-        @media (max-width: 768px) {
-          .spotify-crop-modal.phone-crop .spotify-crop-canvas {
-            max-height: calc(100vh - 200px); /* Minus miejsce na przyciski i tytuł */
-            flex: 1;
-          }
-        }
-        /* Etui - NOWY cropper od zera */
-        .spotify-crop-modal.phone-crop .spotify-crop-canvas {
-          position: relative;
-          width: 100%;
-          aspect-ratio: 1 / 2; /* Canvas 1:2 */
-          background: rgba(0, 0, 0, 0.7); /* Ciemne tło */
-          border-radius: 8px;
-          overflow: hidden;
-        }
-        /* Przyciemnienie całego canvas */
-        .spotify-crop-modal.phone-crop .spotify-crop-canvas::before {
-          content: '';
-          position: absolute;
-          inset: 0;
-          background: rgba(0, 0, 0, 0.7);
-          pointer-events: none;
-          z-index: 10;
-        }
-        /* Maska etui - 70% szerokości, wyśrodkowana, przezroczysta */
-        .spotify-crop-modal.phone-crop .spotify-crop-canvas::after {
-          content: '';
-          position: absolute;
-          left: 50%;
-          top: 50%;
-          transform: translate(-50%, -50%);
-          width: 70%;
-          height: 70%;
-          background: url('https://customify-s56o.vercel.app/phone/phone_ok.png') center/contain no-repeat;
-          pointer-events: none;
-          z-index: 11;
-          opacity: 0.4; /* Przezroczysta - widać zdjęcie */
-        }
-        /* Wycięcie przyciemnienia w kształcie maski - tylko obszar maski jest jasny */
-        .spotify-crop-modal.phone-crop .spotify-crop-canvas::before {
-          mask-image: url('https://customify-s56o.vercel.app/phone/phone_ok.png');
-          mask-size: 70%;
-          mask-position: center;
-          mask-repeat: no-repeat;
-          mask-composite: exclude;
-          -webkit-mask-image: url('https://customify-s56o.vercel.app/phone/phone_ok.png');
-          -webkit-mask-size: 70%;
-          -webkit-mask-position: center;
-          -webkit-mask-repeat: no-repeat;
-          -webkit-mask-composite: destination-out;
-        }
-        /* Mobile: pełna szerokość */
-        @media (max-width: 768px) {
-          .spotify-crop-modal.phone-crop .spotify-crop-canvas {
-            width: 100%;
-            max-width: 100%;
-          }
-        }
         .spotify-crop-actions {
           display: flex;
           gap: 10px;
           justify-content: flex-end;
         }
+        
+        /* Uchwyty do edycji - widoczne tylko w trybie edycji */
+        #customify-app-container .phone-frame-inner .phone-edit-handles {
+          position: absolute;
+          inset: -15px;
+          pointer-events: none;
+          z-index: 2;
+        }
+        #customify-app-container .phone-frame-inner.editing .phone-edit-handles {
+          pointer-events: all;
+        }
+        .phone-handle {
+          position: absolute;
+          width: 30px;
+          height: 30px;
+          background: #fff;
+          border: 2px solid #dc3545;
+          border-radius: 50%;
+          cursor: pointer;
+          pointer-events: all;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+          transition: transform 0.2s ease;
+        }
+        .phone-handle:hover,
+        .phone-handle:active {
+          transform: scale(1.2);
+          background: #dc3545;
+        }
+        @media (max-width: 768px) {
+          .phone-handle {
+            width: 40px;
+            height: 40px;
+            border-width: 3px;
+          }
+        }
+        /* Pozycje uchwytów */
+        .phone-handle-nw { top: 0; left: 0; cursor: nw-resize; }
+        .phone-handle-ne { top: 0; right: 0; cursor: ne-resize; }
+        .phone-handle-sw { bottom: 0; left: 0; cursor: sw-resize; }
+        .phone-handle-se { bottom: 0; right: 0; cursor: se-resize; }
+        .phone-handle-n { top: 0; left: 50%; transform: translateX(-50%); cursor: n-resize; }
+        .phone-handle-s { bottom: 0; left: 50%; transform: translateX(-50%); cursor: s-resize; }
+        .phone-handle-w { top: 50%; left: 0; transform: translateY(-50%); cursor: w-resize; }
+        .phone-handle-e { top: 50%; right: 0; transform: translateY(-50%); cursor: e-resize; }
         {% endif %}
         
         /* Marginesy po przeniesieniu sekcji typu i rozmiaru nad cenę */

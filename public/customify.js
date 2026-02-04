@@ -54,6 +54,13 @@ class CustomifyEmbed {
     this.spotifyCropImage = document.getElementById('spotifyCropImage');
     this.spotifyCropConfirmBtn = document.getElementById('spotifyCropConfirmBtn');
     this.spotifyCropCancelBtn = document.getElementById('spotifyCropCancelBtn');
+    
+    // 📱 Etui na telefon - edycja inline
+    this.phoneFrameInner = document.querySelector('.phone-frame-inner');
+    this.phoneImageWrapper = document.querySelector('.phone-image-wrapper');
+    this.phoneEditHandles = document.querySelector('.phone-edit-handles');
+    this.phoneEditTransform = { x: 0, y: 0, scale: 1 }; // Transformacja zdjęcia
+    this.phoneEditingMode = false; // Czy tryb edycji jest aktywny
     this.spotifyCropper = null;
     this.spotifyCropSourceUrl = null;
     this.spotifyCropConfirmed = false;
@@ -186,7 +193,7 @@ class CustomifyEmbed {
   }
 
   isCropperProduct() {
-    return this.isSpotifyProduct() || this.isPhoneCaseProduct();
+    return this.isSpotifyProduct();
   }
 
   // 🎵 Produkt Spotify BEZ generacji AI - od razu do koszyka po kadrowanie
@@ -196,9 +203,6 @@ class CustomifyEmbed {
   }
 
   getCropConfig() {
-    if (this.isPhoneCaseProduct()) {
-      return { aspectRatio: 1 / 2, width: 1024, height: 2048, filePrefix: 'phone-crop' };
-    }
     return { aspectRatio: 1, width: 1024, height: 1024, filePrefix: 'spotify-crop' };
   }
 
@@ -2468,6 +2472,13 @@ class CustomifyEmbed {
       this.previewImage.title = 'Kliknij aby ponownie wykadrować zdjęcie';
       this.previewImage.addEventListener('click', () => this.reopenSpotifyCropper());
     }
+    
+    // 📱 Etui - kliknięcie w preview image włącza/wyłącza tryb edycji
+    if (this.isPhoneCaseProduct() && this.previewImage) {
+      this.previewImage.style.cursor = 'pointer';
+      this.previewImage.title = 'Kliknij aby edytować pozycję zdjęcia';
+      this.previewImage.addEventListener('click', () => this.togglePhoneEditMode());
+    }
   }
   
   // 🎵 Ponowne otwarcie croppera z oryginalnym zdjęciem
@@ -2762,23 +2773,18 @@ class CustomifyEmbed {
     this.spotifyCropImage.src = this.spotifyCropSourceUrl;
     this.spotifyCropModal.classList.add('is-open');
     this.spotifyCropModal.setAttribute('aria-hidden', 'false');
-    this.spotifyCropModal.classList.toggle('phone-crop', this.isPhoneCaseProduct());
 
     const cropConfig = this.getCropConfig();
-    // Dla etui: pozwól na zoom i przesuwanie obrazu względem maski
-    const isPhoneCase = this.isPhoneCaseProduct();
     this.spotifyCropper = new Cropper(this.spotifyCropImage, {
       aspectRatio: cropConfig.aspectRatio,
-      viewMode: isPhoneCase ? 0 : 1, // 0 = obraz może być większy niż canvas (etui), 1 = ograniczony (spotify)
-      autoCropArea: isPhoneCase ? 0.5 : 1, // Mniejszy autoCrop dla etui = możliwość zoom
+      viewMode: 1,
+      autoCropArea: 1,
       responsive: true,
       movable: true,
       zoomable: true,
       zoomOnTouch: true,
       zoomOnWheel: true,
-      background: false,
-      minCanvasWidth: isPhoneCase ? 0 : undefined, // Dla etui: pozwól na mniejszy canvas
-      minCanvasHeight: isPhoneCase ? 0 : undefined
+      background: false
     });
   }
 
@@ -2794,7 +2800,6 @@ class CustomifyEmbed {
     if (this.spotifyCropModal) {
       this.spotifyCropModal.classList.remove('is-open');
       this.spotifyCropModal.setAttribute('aria-hidden', 'true');
-      this.spotifyCropModal.classList.remove('phone-crop');
     }
   }
 
@@ -2835,6 +2840,209 @@ class CustomifyEmbed {
       this.fileInput.value = '';
     }
     this.closeSpotifyCropper();
+  }
+
+  // 📱 ETUI - Włącz/wyłącz tryb edycji inline
+  togglePhoneEditMode() {
+    if (!this.phoneFrameInner || !this.phoneImageWrapper) return;
+    
+    this.phoneEditingMode = !this.phoneEditingMode;
+    
+    if (this.phoneEditingMode) {
+      // Włącz tryb edycji
+      this.phoneFrameInner.classList.add('editing');
+      if (this.phoneEditHandles) {
+        this.phoneEditHandles.style.display = 'block';
+      }
+      
+      // Przywróć zapisaną transformację lub resetuj
+      if (this.phoneEditTransformSaved) {
+        this.phoneEditTransform = { ...this.phoneEditTransformSaved };
+      } else {
+        this.phoneEditTransform = { x: 0, y: 0, scale: 1 };
+      }
+      this.applyPhoneTransform();
+      
+      // Inicjalizuj handlery
+      this.initPhoneEditHandlers();
+    } else {
+      // Wyłącz tryb edycji
+      this.phoneFrameInner.classList.remove('editing');
+      if (this.phoneEditHandles) {
+        this.phoneEditHandles.style.display = 'none';
+      }
+      
+      // Zapisz transformację
+      this.phoneEditTransformSaved = { ...this.phoneEditTransform };
+      this.removePhoneEditHandlers();
+    }
+  }
+
+  // 📱 ETUI - Zastosuj transformację do zdjęcia
+  applyPhoneTransform() {
+    if (!this.phoneImageWrapper) return;
+    const { x, y, scale } = this.phoneEditTransform;
+    this.phoneImageWrapper.style.transform = `translate(${x}px, ${y}px) scale(${scale})`;
+    this.phoneImageWrapper.style.transformOrigin = 'center center';
+  }
+
+  // 📱 ETUI - Inicjalizuj handlery przesuwania i skalowania
+  initPhoneEditHandlers() {
+    if (!this.phoneImageWrapper) return;
+
+    let isDragging = false;
+    let startX = 0, startY = 0;
+    let startTransform = { x: 0, y: 0 };
+
+    // Przesuwanie - mouse
+    this.phoneImageWrapper.addEventListener('mousedown', (e) => {
+      // Nie przesuwaj jeśli kliknięto w uchwyt
+      if (e.target.closest('.phone-handle')) return;
+      isDragging = true;
+      startX = e.clientX;
+      startY = e.clientY;
+      startTransform = { ...this.phoneEditTransform };
+      e.preventDefault();
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      this.phoneEditTransform.x = startTransform.x + dx;
+      this.phoneEditTransform.y = startTransform.y + dy;
+      this.applyPhoneTransform();
+    });
+
+    document.addEventListener('mouseup', () => {
+      isDragging = false;
+    });
+
+    // Przesuwanie - touch
+    let touchStartX = 0, touchStartY = 0;
+    this.phoneImageWrapper.addEventListener('touchstart', (e) => {
+      // Nie przesuwaj jeśli dotknięto uchwytu
+      if (e.target.closest('.phone-handle')) return;
+      if (e.touches.length === 1) {
+        isDragging = true;
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+        startTransform = { ...this.phoneEditTransform };
+        e.preventDefault();
+      }
+    });
+
+    this.phoneImageWrapper.addEventListener('touchmove', (e) => {
+      if (!isDragging || e.touches.length !== 1) return;
+      const dx = e.touches[0].clientX - touchStartX;
+      const dy = e.touches[0].clientY - touchStartY;
+      this.phoneEditTransform.x = startTransform.x + dx;
+      this.phoneEditTransform.y = startTransform.y + dy;
+      this.applyPhoneTransform();
+      e.preventDefault();
+    });
+
+    this.phoneImageWrapper.addEventListener('touchend', () => {
+      isDragging = false;
+    });
+
+    // Skalowanie - uchwyty
+    const handles = this.phoneFrameInner?.querySelectorAll('.phone-handle');
+    if (!handles || handles.length === 0) return;
+    handles.forEach(handle => {
+      let isResizing = false;
+      let handleStartX = 0, handleStartY = 0;
+      let handleStartTransform = { x: 0, y: 0, scale: 1 };
+      const handleType = handle.classList[1].split('-').pop(); // nw, ne, sw, se, n, s, w, e
+
+      const startResize = (clientX, clientY) => {
+        isResizing = true;
+        handleStartX = clientX;
+        handleStartY = clientY;
+        handleStartTransform = { ...this.phoneEditTransform };
+      };
+
+      const updateResize = (clientX, clientY) => {
+        if (!isResizing) return;
+        const dx = clientX - handleStartX;
+        const dy = clientY - handleStartY;
+        // Odległość od punktu startowego - używamy do skalowania
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        // Współczynnik skalowania - 1px ruchu = 0.01 skali
+        const scaleDelta = distance * 0.01;
+        // Wszystkie uchwyty skalują proporcjonalnie
+        this.phoneEditTransform.scale = Math.max(0.5, Math.min(3, handleStartTransform.scale + scaleDelta));
+        this.applyPhoneTransform();
+      };
+
+      handle.addEventListener('mousedown', (e) => {
+        startResize(e.clientX, e.clientY);
+        e.stopPropagation();
+      });
+
+      document.addEventListener('mousemove', (e) => {
+        updateResize(e.clientX, e.clientY);
+      });
+
+      document.addEventListener('mouseup', () => {
+        isResizing = false;
+      });
+
+      // Touch dla uchwytów
+      handle.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 1) {
+          startResize(e.touches[0].clientX, e.touches[0].clientY);
+          e.stopPropagation();
+        }
+      });
+
+      document.addEventListener('touchmove', (e) => {
+        if (e.touches.length === 1 && isResizing) {
+          updateResize(e.touches[0].clientX, e.touches[0].clientY);
+          e.preventDefault();
+        }
+      });
+
+      document.addEventListener('touchend', () => {
+        isResizing = false;
+      });
+    });
+
+    // Pinch-to-zoom dla mobile
+    let initialDistance = 0;
+    let initialScale = 1;
+    this.phoneImageWrapper.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 2) {
+        const touch1 = e.touches[0];
+        const touch2 = e.touches[1];
+        initialDistance = Math.hypot(
+          touch2.clientX - touch1.clientX,
+          touch2.clientY - touch1.clientY
+        );
+        initialScale = this.phoneEditTransform.scale;
+        e.preventDefault();
+      }
+    });
+
+    this.phoneImageWrapper.addEventListener('touchmove', (e) => {
+      if (e.touches.length === 2) {
+        const touch1 = e.touches[0];
+        const touch2 = e.touches[1];
+        const currentDistance = Math.hypot(
+          touch2.clientX - touch1.clientX,
+          touch2.clientY - touch1.clientY
+        );
+        const scaleDelta = (currentDistance - initialDistance) / 100;
+        this.phoneEditTransform.scale = Math.max(0.5, Math.min(3, initialScale + scaleDelta * 0.1));
+        this.applyPhoneTransform();
+        e.preventDefault();
+      }
+    });
+  }
+
+  // 📱 ETUI - Usuń handlery (cleanup)
+  removePhoneEditHandlers() {
+    // Handlery są automatycznie usuwane gdy tryb edycji jest wyłączony
   }
 
   handleFileSelect(file) {
