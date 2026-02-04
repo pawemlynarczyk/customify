@@ -576,6 +576,10 @@ class CustomifyEmbed {
       console.log('🌹 [PRODUCT-TYPE] URL = Love Rose → productType: love_rose');
       return 'love_rose';
     }
+    if (currentUrl.includes('prezent-na-walentynki-superpara-obraz-na-plotnie-z-twojego-zdjecia')) {
+      console.log('🦸 [PRODUCT-TYPE] URL = Superpara → productType: superpara');
+      return 'superpara';
+    }
     
     // 🔄 PRIORYTET 2: Fallback - sprawdź styl (tylko dla starych generacji bez URL)
     console.log('⚠️ [PRODUCT-TYPE] Nie rozpoznano URL, sprawdzam styl:', style);

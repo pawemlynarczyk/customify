@@ -28,7 +28,10 @@
     <!-- Google Fonts for text overlay preview -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Dancing+Script:wght@700&family=Pacifico&family=Satisfy&family=Great+Vibes&family=Indie+Flower&family=Bebas+Neue&family=Rye&family=Creepster&family=Bungee:wght@400&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <!-- Preload najczęściej używanych czcionek dla szybszego ładowania -->
+    <link rel="preload" href="https://fonts.gstatic.com/s/montserrat/v26/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCtr6Hw5aXpsog.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="https://fonts.gstatic.com/s/dancingscript/v25/If2cXTr6YS-zF4S-kcSWSVi_sxjsohD9F50Ruu7BMSo3Sup8.woff2" as="font" type="font/woff2" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Dancing+Script:wght@700&family=Pacifico&family=Satisfy&family=Great+Vibes&family=Indie+Flower&family=Bebas+Neue&family=Rye&family=Creepster&family=Bungee:wght@400&family=Bonheur+Royale&display=swap" rel="stylesheet">
     {%- render 'scripts' -%}
     {%- render 'theme-styles-variables' -%}
     {%- render 'color-schemes' -%}
@@ -3551,6 +3554,12 @@
             {% paginate collection.products by 1000 %}
               <div class="custom-collection-grid">
                 {% for product in collection.products %}
+                  {% if collection.handle == 'see_also' %}
+                    {% assign is_hidden_product = product.url contains 'rozmiar' or product.url contains 'cyfrowy' %}
+                    {% if is_hidden_product %}
+                      {% continue %}
+                    {% endif %}
+                  {% endif %}
                   <a href="{{ product.url }}" class="custom-collection-card">
                     <div class="custom-collection-image">
                       {% if product.featured_image %}
@@ -4217,9 +4226,21 @@
                     </div>
                   </div>
                   <div class="customify-style-card" data-style="usun-tlo">
-                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/boho/detail.png'); background-size: cover; background-position: center;"></div>
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/para/background.jpeg'); background-size: cover; background-position: center;"></div>
                     <div class="style-info">
                       <div class="style-name">Usuń tło</div>
+                    </div>
+                  </div>
+                  <div class="customify-style-card" data-style="anime">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/para/anime.jpg'); background-size: cover; background-position: center;"></div>
+                    <div class="style-info">
+                      <div class="style-name">Anime</div>
+                    </div>
+                  </div>
+                  <div class="customify-style-card" data-style="sketch">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/para/sketch.jpeg'); background-size: cover; background-position: center;"></div>
+                    <div class="style-info">
+                      <div class="style-name">Sketch</div>
                     </div>
                   </div>
                 {% elsif product.handle == 'obraz-ze-zdjecia-akwarela' %}
@@ -4305,6 +4326,54 @@
                     <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/karykat/olowek.png'); background-size: cover; background-position: center;"></div>
                     <div class="style-info">
                       <div class="style-name">Szkic</div>
+                    </div>
+                  </div>
+                {% elsif product.handle == 'portret-zakochana-para-krolewska-prezent-na-walentynki-personalizowany' %}
+                  {% comment %} STYL ROYAL LOVE dla produktu Portret Zakochana Para Królewska - OpenAI GPT Image 1.5 via Replicate {% endcomment %}
+                  <div class="customify-style-card" data-style="royal-love">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/style/royal_love.jpg'); background-size: cover; background-position: center;"></div>
+                    <div class="style-info">
+                      <div class="style-name">Royal Love</div>
+                    </div>
+                  </div>
+                {% elsif product.handle == 'obraz-na-plotnie-szalona-milosc-prezent-na-walentynki-z-twojego-zdjecia' %}
+                  {% comment %} STYL CRAZY LOVE dla produktu Szalona Miłość - OpenAI GPT Image 1.5 via Replicate {% endcomment %}
+                  <div class="customify-style-card" data-style="crazy-love">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/style/crazy_l.jpg'); background-size: cover; background-position: center;"></div>
+                    <div class="style-info">
+                      <div class="style-name">Crazy Love</div>
+                    </div>
+                  </div>
+                {% elsif product.handle == 'prezent-na-walentynki-obraz-na-plotnie-z-twojego-zdjecia' %}
+                  {% comment %} STYL LOVE ROSE dla produktu Prezent na Walentynki - OpenAI GPT Image 1.5 via Replicate {% endcomment %}
+                  <div class="customify-style-card" data-style="love-rose">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/style/love_rose.jpg'); background-size: cover; background-position: center;"></div>
+                    <div class="style-info">
+                      <div class="style-name">Love Rose</div>
+                    </div>
+                  </div>
+                {% elsif product.handle == 'prezent-na-walentynki-portret-rysunkowa-para-personalizowany-ze-zdjecia' %}
+                  {% comment %} STYL SZKIC LOVE dla produktu Prezent na Walentynki Portret Rysunkowa Para - OpenAI GPT Image 1.5 via Replicate {% endcomment %}
+                  <div class="customify-style-card" data-style="szkic-love">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/style/szkic_love.jpg'); background-size: cover; background-position: center;"></div>
+                    <div class="style-info">
+                      <div class="style-name">Szkic Love</div>
+                    </div>
+                  </div>
+                {% elsif product.handle == 'portret-para-przy-drzewie-prezent-na-walentynki-romantyczny-obraz-na-plotnie-z-twojego-zdjecia' %}
+                  {% comment %} STYL JAK Z BAJKI dla produktu Portret Para przy Drzewie - OpenAI GPT Image 1.5 via Replicate {% endcomment %}
+                  <div class="customify-style-card" data-style="jak-z-bajki">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/style/jak_bajka.jpg'); background-size: cover; background-position: center;"></div>
+                    <div class="style-info">
+                      <div class="style-name">Jak z bajki</div>
+                    </div>
+                  </div>
+                {% elsif product.handle == 'prezent-na-walentynki-superpara-obraz-na-plotnie-z-twojego-zdjecia' %}
+                  {% comment %} STYL SUPERPARA dla produktu Prezent na Walentynki Superpara - OpenAI GPT Image 1.5 via Replicate {% endcomment %}
+                  <div class="customify-style-card" data-style="superpara">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/style/superpara.jpg'); background-size: cover; background-position: center;"></div>
+                    <div class="style-info">
+                      <div class="style-name">Superpara</div>
                     </div>
                   </div>
                 {% else %}
