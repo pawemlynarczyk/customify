@@ -270,7 +270,7 @@
 
     <!-- CUSTOMIFY INTEGRATION -->
     <link rel="stylesheet" href="{{ 'customify.css' | asset_url }}">
-    {% if product and product.handle == 'ramka-spotify' or product.handle == 'zdjecie-na-szkle-ramka-spotify' %}
+    {% if product and product.handle == 'ramka-spotify' or product.handle == 'zdjecie-na-szkle-ramka-spotify' or product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem-karykatura' %}
       <link rel="stylesheet" href="https://unpkg.com/cropperjs@1.6.2/dist/cropper.min.css">
     {% endif %}
     
@@ -307,7 +307,7 @@
     </script>
     
     <script src="{{ 'customify.js' | asset_url }}" defer></script>
-    {% if product and product.handle == 'ramka-spotify' or product.handle == 'zdjecie-na-szkle-ramka-spotify' %}
+    {% if product and product.handle == 'ramka-spotify' or product.handle == 'zdjecie-na-szkle-ramka-spotify' or product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem-karykatura' %}
       <script src="https://unpkg.com/cropperjs@1.6.2/dist/cropper.min.js" defer></script>
       <script>
         // 🎵 Spotify Text Overlay - aktualizacja tekstu w czasie rzeczywistym
@@ -3898,6 +3898,12 @@
                     </div>
                   </div>
                 </div>
+              {% elsif product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem-karykatura' %}
+                <div class="phone-frame-preview">
+                  <div class="phone-frame-inner">
+                    <img id="previewImage" alt="Podgląd zdjęcia">
+                  </div>
+                </div>
               {% else %}
                 <img id="previewImage" alt="Podgląd zdjęcia">
               {% endif %}
@@ -3990,7 +3996,7 @@
             <div id="spotify-type-size-slot" style="display: none;"></div>
             {% endif %}
 
-            {% if product.handle == 'ramka-spotify' or product.handle == 'zdjecie-na-szkle-ramka-spotify' %}
+            {% if product.handle == 'ramka-spotify' or product.handle == 'zdjecie-na-szkle-ramka-spotify' or product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem-karykatura' %}
               <div id="spotifyCropModal" class="spotify-crop-modal" aria-hidden="true">
                 <div class="spotify-crop-dialog">
                   <h4>Ustaw kadr zdjęcia</h4>
@@ -4011,23 +4017,11 @@
                 {% comment %} LOGIKA SERVER-SIDE: Filtruj style per produkt {% endcomment %}
                 {% comment %} DEBUG: Product handle = {{ product.handle }}, ID = {{ product.id }} {% endcomment %}
                 {% if product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem-karykatura' %}
-                  {% comment %} TYLKO STYLE KARYKATURY dla etui: klasyczna, nowoczesna, rysunkowa {% endcomment %}
+                  {% comment %} TYLKO TESTOWY STYL KARYKATURY dla etui {% endcomment %}
                   <div class="customify-style-card" data-style="karykatura">
                     <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/karykat/caricature.png'); background-size: cover; background-position: center;"></div>                                                
                     <div class="style-info">
-                      <div class="style-name">Klasyczna</div>
-                    </div>
-                  </div>
-                  <div class="customify-style-card" data-style="caricature-new" style="display: block !important;">
-                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/karykat/karykat_nowoczesna.png'); background-size: cover; background-position: center;"></div>
-                    <div class="style-info">
-                      <div class="style-name">Nowoczesna</div>
-                    </div>
-                  </div>
-                  <div class="customify-style-card" data-style="karykatura-olowek" style="display: block !important;">
-                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/karykat/olowek.png'); background-size: cover; background-position: center;"></div>
-                    <div class="style-info">
-                      <div class="style-name">Rysunkowa</div>
+                      <div class="style-name">Karykatura</div>
                     </div>
                   </div>
                 {% elsif product.handle == 'karykatura-z-twojego-zdjecia-obraz' %}
@@ -4547,6 +4541,12 @@
                   </div>
                 </div>
                 
+              {% elsif product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem-karykatura' %}
+                <div class="phone-frame-result">
+                  <div class="phone-frame-inner">
+                    <img id="resultImage" alt="Wynik AI">
+                  </div>
+                </div>
               {% else %}
                 <img id="resultImage" alt="Wynik AI">
               {% endif %}
@@ -5162,6 +5162,43 @@
           color: #ffffff;
           word-wrap: break-word;
           line-height: 1.2;
+        }
+
+        /* Etui na telefon - podgląd i wynik z maską */
+        #customify-app-container .phone-frame-preview,
+        #customify-app-container .phone-frame-result {
+          position: relative;
+          width: 100%;
+          max-width: 360px;
+          margin: 0 auto;
+        }
+        @media (max-width: 768px) {
+          #customify-app-container .phone-frame-preview,
+          #customify-app-container .phone-frame-result {
+            max-width: 100%;
+          }
+        }
+        #customify-app-container .phone-frame-inner {
+          position: relative;
+          width: 100%;
+          aspect-ratio: 1 / 2;
+          background: #f3f4f6;
+          overflow: hidden;
+          border-radius: 18px;
+        }
+        #customify-app-container .phone-frame-inner img {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+        #customify-app-container .phone-frame-inner::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: url('https://customify-s56o.vercel.app/phone/phone_ok.png') center/contain no-repeat;
+          pointer-events: none;
         }
         
         #customify-app-container .spotify-frame-preview,

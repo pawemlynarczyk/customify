@@ -180,10 +180,22 @@ class CustomifyEmbed {
     return currentUrl.includes('ramka-spotify') || currentUrl.includes('zdjecie-na-szkle-ramka-spotify');
   }
   
+  isPhoneCaseProduct() {
+    const currentUrl = window.location.pathname.toLowerCase();
+    return currentUrl.includes('personalizowane-etui-na-telefon-z-twoim-zdjeciem-karykatura');
+  }
+
   // 🎵 Produkt Spotify BEZ generacji AI - od razu do koszyka po kadrowanie
   isSpotifyNoAIProduct() {
     const currentUrl = window.location.pathname.toLowerCase();
     return currentUrl.includes('zdjecie-na-szkle-ramka-spotify');
+  }
+
+  getCropConfig() {
+    if (this.isPhoneCaseProduct()) {
+      return { aspectRatio: 1 / 2, width: 1024, height: 2048, filePrefix: 'phone-crop' };
+    }
+    return { aspectRatio: 1, width: 1024, height: 1024, filePrefix: 'spotify-crop' };
   }
 
   init() {
@@ -2442,7 +2454,7 @@ class CustomifyEmbed {
     }
     
     // 🎵 Kliknięcie w preview image otwiera cropper ponownie (ponowne kadrowanie)
-    if (this.isSpotifyProduct() && this.previewImage) {
+    if ((this.isSpotifyProduct() || this.isPhoneCaseProduct()) && this.previewImage) {
       this.previewImage.style.cursor = 'pointer';
       this.previewImage.title = 'Kliknij aby ponownie wykadrować zdjęcie';
       this.previewImage.addEventListener('click', () => this.reopenSpotifyCropper());
@@ -2742,8 +2754,9 @@ class CustomifyEmbed {
     this.spotifyCropModal.classList.add('is-open');
     this.spotifyCropModal.setAttribute('aria-hidden', 'false');
 
+    const cropConfig = this.getCropConfig();
     this.spotifyCropper = new Cropper(this.spotifyCropImage, {
-      aspectRatio: 1,
+      aspectRatio: cropConfig.aspectRatio,
       viewMode: 1,
       autoCropArea: 1,
       responsive: true,
@@ -2770,9 +2783,10 @@ class CustomifyEmbed {
 
   confirmSpotifyCrop() {
     if (!this.spotifyCropper) return;
+    const cropConfig = this.getCropConfig();
     const canvas = this.spotifyCropper.getCroppedCanvas({
-      width: 1024,
-      height: 1024,
+      width: cropConfig.width,
+      height: cropConfig.height,
       imageSmoothingQuality: 'high'
     });
     canvas.toBlob((blob) => {
@@ -2780,7 +2794,7 @@ class CustomifyEmbed {
         this.showError('Nie udało się przyciąć zdjęcia', 'transform');
         return;
       }
-      const croppedFile = new File([blob], `spotify-crop-${Date.now()}.jpg`, { type: 'image/jpeg' });
+      const croppedFile = new File([blob], `${cropConfig.filePrefix}-${Date.now()}.jpg`, { type: 'image/jpeg' });
       this.uploadedFile = croppedFile;
       this.spotifyCropConfirmed = true;
       this.spotifyCropDataUrl = canvas.toDataURL('image/jpeg', 0.9); // Zapisz dla composeSpotifyImage
@@ -2818,7 +2832,7 @@ class CustomifyEmbed {
     }
 
     this.hideError();
-    if (this.isSpotifyProduct()) {
+    if (this.isSpotifyProduct() || this.isPhoneCaseProduct()) {
       this.spotifyCropConfirmed = false;
       this.openSpotifyCropper(file);
       return;
