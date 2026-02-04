@@ -2844,15 +2844,22 @@ class CustomifyEmbed {
 
   // 📱 ETUI - Włącz/wyłącz tryb edycji inline
   togglePhoneEditMode() {
-    if (!this.phoneFrameInner || !this.phoneImageWrapper) return;
+    if (!this.phoneFrameInner || !this.phoneImageWrapper) {
+      console.warn('📱 [PHONE EDIT] Brak elementów:', { phoneFrameInner: !!this.phoneFrameInner, phoneImageWrapper: !!this.phoneImageWrapper });
+      return;
+    }
     
     this.phoneEditingMode = !this.phoneEditingMode;
+    console.log('📱 [PHONE EDIT] Tryb edycji:', this.phoneEditingMode ? 'WŁĄCZONY' : 'WYŁĄCZONY');
     
     if (this.phoneEditingMode) {
       // Włącz tryb edycji
       this.phoneFrameInner.classList.add('editing');
       if (this.phoneEditHandles) {
         this.phoneEditHandles.style.display = 'block';
+        console.log('📱 [PHONE EDIT] Uchwyty pokazane');
+      } else {
+        console.warn('📱 [PHONE EDIT] Brak uchwytów!');
       }
       
       // Przywróć zapisaną transformację lub resetuj
@@ -2888,7 +2895,18 @@ class CustomifyEmbed {
 
   // 📱 ETUI - Inicjalizuj handlery przesuwania i skalowania
   initPhoneEditHandlers() {
-    if (!this.phoneImageWrapper) return;
+    if (!this.phoneImageWrapper) {
+      console.warn('📱 [PHONE EDIT] Brak phoneImageWrapper');
+      return;
+    }
+    
+    console.log('📱 [PHONE EDIT] Inicjalizacja handlerów');
+    
+    // Usuń stare handlery jeśli istnieją
+    if (this.phoneEditHandlersInitialized) {
+      this.removePhoneEditHandlers();
+    }
+    this.phoneEditHandlersInitialized = true;
 
     let isDragging = false;
     let startX = 0, startY = 0;

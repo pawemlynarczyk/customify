@@ -5228,18 +5228,21 @@
           content: '';
           position: absolute;
           inset: -2px;
-          border: 2px dashed rgba(0, 0, 0, 0.3);
+          border: 2px dashed rgba(0, 0, 0, 0.5);
           pointer-events: none;
           z-index: 1;
+          border-radius: 4px;
         }
         /* Uchwyty do edycji - widoczne tylko w trybie edycji */
         #customify-app-container .phone-frame-inner .phone-edit-handles {
           position: absolute;
           inset: -15px;
           pointer-events: none;
-          z-index: 2;
+          z-index: 4; /* Nad maską */
+          display: none; /* Domyślnie ukryte */
         }
         #customify-app-container .phone-frame-inner.editing .phone-edit-handles {
+          display: block !important; /* Widoczne w trybie edycji */
           pointer-events: all;
         }
         #customify-app-container .phone-frame-inner::after {
