@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Statystyki Produktów - Customify</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
+      color: #333;
+    }
+    .container {
+      max-width: 1300px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      margin-bottom: 20px;
+      color: #1565C0;
+      font-size: 28px;
+    }
+    .filters {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 12px;
+      align-items: end;
+      margin-bottom: 20px;
+    }
+    .filter-group label {
+      display: block;
+      font-size: 13px;
+      color: #555;
+      margin-bottom: 6px;
+    }
+    .filter-group input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+    .btn {
+      background: #1565C0;
+      color: white;
+      border: none;
+      padding: 12px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .btn:disabled { background: #ccc; cursor: not-allowed; }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 30px;
+    }
+    .stat-card {
+      background: linear-gradient(135deg, #1565C0 0%, #0d47a1 100%);
+      color: white;
+      padding: 18px;
+      border-radius: 8px;
+      text-align: center;
+    }
+    .stat-card.secondary {
+      background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+    }
+    .stat-card.warning {
+      background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+    }
+    .stat-value { font-size: 30px; font-weight: bold; margin-bottom: 6px; }
+    .stat-label { font-size: 13px; opacity: 0.9; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+    }
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+      vertical-align: middle;
+      font-size: 14px;
+    }
+    th {
+      background: #f8f9fa;
+      font-weight: 600;
+      color: #555;
+    }
+    tr:hover { background: #f8f9fa; }
+    .product-cell {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .product-image {
+      width: 44px;
+      height: 44px;
+      border-radius: 6px;
+      object-fit: cover;
+      background: #eee;
+    }
+    .product-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .product-title { font-weight: 600; }
+    .product-id { font-size: 12px; color: #777; }
+    .loading { text-align: center; padding: 40px; color: #666; }
+    .error {
+      background: #ffebee;
+      color: #c62828;
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 16px;
+    }
+    .last-updated {
+      text-align: right;
+      color: #666;
+      font-size: 13px;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📈 Statystyki Produktów</h1>
+
+    <div class="last-updated" id="lastUpdated">Ładowanie...</div>
+    <div id="errorContainer"></div>
+
+    <div class="filters">
+      <div class="filter-group">
+        <label for="startDate">Data od</label>
+        <input type="date" id="startDate">
+      </div>
+      <div class="filter-group">
+        <label for="endDate">Data do</label>
+        <input type="date" id="endDate">
+      </div>
+      <button class="btn" id="applyFiltersBtn">🔍 Zastosuj filtr</button>
+    </div>
+
+    <div id="loading" class="loading">Ładowanie statystyk...</div>
+
+    <div id="content" style="display: none;">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value" id="totalViews">0</div>
+          <div class="stat-label">Wejść na produkt</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="totalGenerateClicks">0</div>
+          <div class="stat-label">Kliknięć „Generuj”</div>
+        </div>
+        <div class="stat-card secondary">
+          <div class="stat-value" id="totalApiSuccess">0</div>
+          <div class="stat-label">API sukces</div>
+        </div>
+        <div class="stat-card warning">
+          <div class="stat-value" id="totalApiError">0</div>
+          <div class="stat-label">API błędy</div>
+        </div>
+        <div class="stat-card secondary">
+          <div class="stat-value" id="totalPurchasesQty">0</div>
+          <div class="stat-label">Zakupy (ilość sztuk)</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="totalOrdersCount">0</div>
+          <div class="stat-label">Zamówienia (liczba)</div>
+        </div>
+      </div>
+
+      <table id="productTable">
+        <thead>
+          <tr>
+            <th>Produkt</th>
+            <th>Wejścia</th>
+            <th>Generuj</th>
+            <th>API OK</th>
+            <th>API błędy</th>
+            <th>Zakupy (qty)</th>
+            <th>Zamówienia</th>
+            <th>Konw. z wejść</th>
+            <th>Konw. z generuj</th>
+            <th>Skuteczność API</th>
+          </tr>
+        </thead>
+        <tbody id="productTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = 'https://customify-s56o.vercel.app/api/admin/product-performance-stats';
+    let AUTH_TOKEN = localStorage.getItem('customify_admin_token');
+
+    if (!AUTH_TOKEN) {
+      const tokenInput = prompt('🔐 Wprowadź token autoryzacji (ADMIN_STATS_TOKEN):');
+      if (tokenInput && tokenInput.trim()) {
+        AUTH_TOKEN = tokenInput.trim();
+        localStorage.setItem('customify_admin_token', AUTH_TOKEN);
+      } else {
+        alert('❌ Token jest wymagany. Odśwież stronę i wprowadź token.');
+        AUTH_TOKEN = null;
+      }
+    }
+
+    const formatPercent = (value) => `${value.toFixed(1)}%`;
+
+    const setDefaultRange = () => {
+      const end = new Date();
+      const start = new Date();
+      start.setDate(end.getDate() - 29);
+      document.getElementById('startDate').value = start.toISOString().slice(0, 10);
+      document.getElementById('endDate').value = end.toISOString().slice(0, 10);
+    };
+
+    async function loadStats() {
+      if (!AUTH_TOKEN) {
+        document.getElementById('errorContainer').innerHTML = `
+          <div class="error">
+            <strong>❌ Brak tokena autoryzacji</strong><br>
+            Odśwież stronę i wprowadź token z ADMIN_STATS_TOKEN.
+          </div>
+        `;
+        return;
+      }
+
+      const startDate = document.getElementById('startDate').value;
+      const endDate = document.getElementById('endDate').value;
+
+      const loadingEl = document.getElementById('loading');
+      const contentEl = document.getElementById('content');
+      const errorContainer = document.getElementById('errorContainer');
+
+      loadingEl.style.display = 'block';
+      contentEl.style.display = 'none';
+      errorContainer.innerHTML = '';
+
+      try {
+        const params = new URLSearchParams();
+        if (startDate) params.set('startDate', startDate);
+        if (endDate) params.set('endDate', endDate);
+
+        const response = await fetch(`${API_URL}?${params.toString()}`, {
+          headers: { 'Authorization': `Bearer ${AUTH_TOKEN}` }
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        if (!data.success) {
+          throw new Error(data.error || 'Unknown error');
+        }
+
+        document.getElementById('totalViews').textContent = data.summary.totalViews;
+        document.getElementById('totalGenerateClicks').textContent = data.summary.totalGenerateClicks;
+        document.getElementById('totalApiSuccess').textContent = data.summary.totalApiSuccess;
+        document.getElementById('totalApiError').textContent = data.summary.totalApiError;
+        document.getElementById('totalPurchasesQty').textContent = data.summary.totalPurchasesQty;
+        document.getElementById('totalOrdersCount').textContent = data.summary.totalOrdersCount;
+
+        const rangeText = `${data.range.start} → ${data.range.end}`;
+        document.getElementById('lastUpdated').textContent = `Zakres: ${rangeText}`;
+
+        const tableBody = document.getElementById('productTableBody');
+        tableBody.innerHTML = '';
+
+        (data.products || []).forEach((product) => {
+          const productLink = product.productUrl
+            ? `<a href="${product.productUrl}" target="_blank" rel="noopener">${product.title || product.handle || product.productId}</a>`
+            : (product.title || product.handle || product.productId);
+
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>
+              <div class="product-cell">
+                ${product.imageUrl ? `<img class="product-image" src="${product.imageUrl}" alt="">` : '<div class="product-image"></div>'}
+                <div class="product-meta">
+                  <div class="product-title">${productLink}</div>
+                  <div class="product-id">ID: ${product.productId}</div>
+                </div>
+              </div>
+            </td>
+            <td>${product.views}</td>
+            <td>${product.generateClicks}</td>
+            <td>${product.apiSuccess}</td>
+            <td>${product.apiError}</td>
+            <td>${product.purchasesQty}</td>
+            <td>${product.ordersCount}</td>
+            <td>${formatPercent(product.conversionFromViews)}</td>
+            <td>${formatPercent(product.conversionFromGenerates)}</td>
+            <td>${formatPercent(product.apiSuccessRate)}</td>
+          `;
+          tableBody.appendChild(row);
+        });
+
+        loadingEl.style.display = 'none';
+        contentEl.style.display = 'block';
+      } catch (error) {
+        console.error('Error loading stats:', error);
+        loadingEl.style.display = 'none';
+        errorContainer.innerHTML = `
+          <div class="error">
+            <strong>Błąd:</strong> ${error.message}
+          </div>
+        `;
+      }
+    }
+
+    document.getElementById('applyFiltersBtn').addEventListener('click', loadStats);
+
+    setDefaultRange();
+    loadStats();
+  </script>
+</body>
+</html>
