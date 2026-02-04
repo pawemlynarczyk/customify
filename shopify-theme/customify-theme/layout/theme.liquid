@@ -5333,19 +5333,19 @@
         /* Etui - maska podczas kadrowania */
         .spotify-crop-modal.phone-crop .spotify-crop-canvas {
           aspect-ratio: 1 / 2;
-        }
-        /* Dla etui: obraz może być większy niż canvas (zoom) */
-        .spotify-crop-modal.phone-crop .spotify-crop-canvas .cropper-container {
-          overflow: visible;
-        }
-        .spotify-crop-modal.phone-crop .spotify-crop-canvas .cropper-canvas {
-          overflow: visible;
+          padding: 20px; /* Miejsce po bokach do przesuwania */
+          box-sizing: border-box;
         }
         .spotify-crop-modal.phone-crop .spotify-crop-canvas::after {
           content: '';
           position: absolute;
-          inset: 0;
-          background: url('https://customify-s56o.vercel.app/phone/phone_ok.png') center/cover no-repeat;
+          /* Maska mniejsza niż canvas - 85% szerokości, wyśrodkowana */
+          left: 50%;
+          top: 50%;
+          transform: translate(-50%, -50%);
+          width: 85%;
+          height: 85%;
+          background: url('https://customify-s56o.vercel.app/phone/phone_ok.png') center/contain no-repeat;
           pointer-events: none;
           z-index: 2;
         }
