@@ -222,7 +222,8 @@ const extractOriginalProductId = (lineItem) => {
 
 const isGeneratedTitle = (value) => {
   if (!value || typeof value !== 'string') return false;
-  return value.toLowerCase().includes('rozmiar');
+  const lower = value.toLowerCase();
+  return lower.includes('rozmiar') || lower.includes('produkt cyfrowy');
 };
 
 const fetchOrdersBetween = async (shopDomain, accessToken, startIso, endIso) => {

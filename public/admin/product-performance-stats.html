@@ -93,6 +93,16 @@
       background: #f8f9fa;
       font-weight: 600;
       color: #555;
+      cursor: pointer;
+      user-select: none;
+    }
+    th.sortable:hover {
+      background: #eef2f7;
+    }
+    th .sort-indicator {
+      font-size: 12px;
+      margin-left: 6px;
+      color: #888;
     }
     tr:hover { background: #f8f9fa; }
     .product-cell {
@@ -182,16 +192,16 @@
       <table id="productTable">
         <thead>
           <tr>
-            <th>Produkt</th>
-            <th>Wejścia</th>
-            <th>Generuj</th>
-            <th>API OK</th>
-            <th>API błędy</th>
-            <th>Zakupy (qty)</th>
-            <th>Zamówienia</th>
-            <th>Konw. z wejść</th>
-            <th>Konw. z generuj</th>
-            <th>Skuteczność API</th>
+            <th class="sortable" data-sort-key="title">Produkt <span class="sort-indicator" id="sort-title"></span></th>
+            <th class="sortable" data-sort-key="views">Wejścia <span class="sort-indicator" id="sort-views"></span></th>
+            <th class="sortable" data-sort-key="generateClicks">Generuj <span class="sort-indicator" id="sort-generateClicks"></span></th>
+            <th class="sortable" data-sort-key="apiSuccess">API OK <span class="sort-indicator" id="sort-apiSuccess"></span></th>
+            <th class="sortable" data-sort-key="apiError">API błędy <span class="sort-indicator" id="sort-apiError"></span></th>
+            <th class="sortable" data-sort-key="purchasesQty">Zakupy (qty) <span class="sort-indicator" id="sort-purchasesQty"></span></th>
+            <th class="sortable" data-sort-key="ordersCount">Zamówienia <span class="sort-indicator" id="sort-ordersCount"></span></th>
+            <th class="sortable" data-sort-key="conversionFromViews">Konw. z wejść <span class="sort-indicator" id="sort-conversionFromViews"></span></th>
+            <th class="sortable" data-sort-key="conversionFromGenerates">Konw. z generuj <span class="sort-indicator" id="sort-conversionFromGenerates"></span></th>
+            <th class="sortable" data-sort-key="apiSuccessRate">Skuteczność API <span class="sort-indicator" id="sort-apiSuccessRate"></span></th>
           </tr>
         </thead>
         <tbody id="productTableBody"></tbody>
@@ -215,6 +225,20 @@
     }
 
     const formatPercent = (value) => `${value.toFixed(1)}%`;
+    const sortableKeys = [
+      'title',
+      'views',
+      'generateClicks',
+      'apiSuccess',
+      'apiError',
+      'purchasesQty',
+      'ordersCount',
+      'conversionFromViews',
+      'conversionFromGenerates',
+      'apiSuccessRate'
+    ];
+    let currentSort = { key: 'purchasesQty', direction: 'desc' };
+    let lastProducts = [];
 
     const setDefaultRange = () => {
       const end = new Date();
@@ -222,6 +246,72 @@
       start.setDate(end.getDate() - 29);
       document.getElementById('startDate').value = start.toISOString().slice(0, 10);
       document.getElementById('endDate').value = end.toISOString().slice(0, 10);
+    };
+
+    const updateSortIndicators = () => {
+      sortableKeys.forEach((key) => {
+        const indicator = document.getElementById(`sort-${key}`);
+        if (!indicator) return;
+        if (currentSort.key === key) {
+          indicator.textContent = currentSort.direction === 'asc' ? '▲' : '▼';
+        } else {
+          indicator.textContent = '';
+        }
+      });
+    };
+
+    const getSortValue = (product, key) => {
+      if (key === 'title') {
+        return (product.title || product.handle || product.productId || '').toString().toLowerCase();
+      }
+      return Number(product[key] || 0);
+    };
+
+    const sortProducts = (products) => {
+      const { key, direction } = currentSort;
+      const multiplier = direction === 'asc' ? 1 : -1;
+      return [...products].sort((a, b) => {
+        const aVal = getSortValue(a, key);
+        const bVal = getSortValue(b, key);
+        if (typeof aVal === 'string' || typeof bVal === 'string') {
+          return aVal.localeCompare(bVal) * multiplier;
+        }
+        return (aVal - bVal) * multiplier;
+      });
+    };
+
+    const renderProductsTable = (products) => {
+      const tableBody = document.getElementById('productTableBody');
+      tableBody.innerHTML = '';
+      const sorted = sortProducts(products);
+      sorted.forEach((product) => {
+        const productLink = product.productUrl
+          ? `<a href="${product.productUrl}" target="_blank" rel="noopener">${product.title || product.handle || product.productId}</a>`
+          : (product.title || product.handle || product.productId);
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>
+            <div class="product-cell">
+              ${product.imageUrl ? `<img class="product-image" src="${product.imageUrl}" alt="">` : '<div class="product-image"></div>'}
+              <div class="product-meta">
+                <div class="product-title">${productLink}</div>
+                <div class="product-id">ID: ${product.productId}</div>
+              </div>
+            </div>
+          </td>
+          <td>${product.views}</td>
+          <td>${product.generateClicks}</td>
+          <td>${product.apiSuccess}</td>
+          <td>${product.apiError}</td>
+          <td>${product.purchasesQty}</td>
+          <td>${product.ordersCount}</td>
+          <td>${formatPercent(product.conversionFromViews)}</td>
+          <td>${formatPercent(product.conversionFromGenerates)}</td>
+          <td>${formatPercent(product.apiSuccessRate)}</td>
+        `;
+        tableBody.appendChild(row);
+      });
     };
 
     async function loadStats() {
@@ -274,37 +364,9 @@
         const rangeText = `${data.range.start} → ${data.range.end}`;
         document.getElementById('lastUpdated').textContent = `Zakres: ${rangeText}`;
 
-        const tableBody = document.getElementById('productTableBody');
-        tableBody.innerHTML = '';
-
-        (data.products || []).forEach((product) => {
-          const productLink = product.productUrl
-            ? `<a href="${product.productUrl}" target="_blank" rel="noopener">${product.title || product.handle || product.productId}</a>`
-            : (product.title || product.handle || product.productId);
-
-          const row = document.createElement('tr');
-          row.innerHTML = `
-            <td>
-              <div class="product-cell">
-                ${product.imageUrl ? `<img class="product-image" src="${product.imageUrl}" alt="">` : '<div class="product-image"></div>'}
-                <div class="product-meta">
-                  <div class="product-title">${productLink}</div>
-                  <div class="product-id">ID: ${product.productId}</div>
-                </div>
-              </div>
-            </td>
-            <td>${product.views}</td>
-            <td>${product.generateClicks}</td>
-            <td>${product.apiSuccess}</td>
-            <td>${product.apiError}</td>
-            <td>${product.purchasesQty}</td>
-            <td>${product.ordersCount}</td>
-            <td>${formatPercent(product.conversionFromViews)}</td>
-            <td>${formatPercent(product.conversionFromGenerates)}</td>
-            <td>${formatPercent(product.apiSuccessRate)}</td>
-          `;
-          tableBody.appendChild(row);
-        });
+        lastProducts = data.products || [];
+        updateSortIndicators();
+        renderProductsTable(lastProducts);
 
         loadingEl.style.display = 'none';
         contentEl.style.display = 'block';
@@ -320,6 +382,20 @@
     }
 
     document.getElementById('applyFiltersBtn').addEventListener('click', loadStats);
+    document.querySelectorAll('th.sortable').forEach((th) => {
+      th.addEventListener('click', () => {
+        const key = th.getAttribute('data-sort-key');
+        if (!key) return;
+        if (currentSort.key === key) {
+          currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+        } else {
+          currentSort.key = key;
+          currentSort.direction = 'desc';
+        }
+        updateSortIndicators();
+        renderProductsTable(lastProducts);
+      });
+    });
 
     setDefaultRange();
     loadStats();
