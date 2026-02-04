@@ -5309,6 +5309,11 @@
         .spotify-crop-modal.is-open {
           display: flex;
         }
+        @media (max-width: 768px) {
+          .spotify-crop-modal {
+            padding: 0; /* Na mobile: bez padding, dialog na całą szerokość */
+          }
+        }
         .spotify-crop-dialog {
           width: 100%;
           max-width: 520px;
@@ -5316,6 +5321,17 @@
           border-radius: 12px;
           padding: 16px;
           box-sizing: border-box;
+        }
+        @media (max-width: 768px) {
+          .spotify-crop-dialog {
+            max-width: 100%;
+            width: 100%;
+            border-radius: 0; /* Na mobile: bez zaokrągleń */
+            padding: 12px;
+            height: 100vh; /* Na mobile: pełna wysokość */
+            display: flex;
+            flex-direction: column;
+          }
         }
         .spotify-crop-canvas {
           position: relative;
@@ -5338,26 +5354,46 @@
           position: relative;
           background: rgba(0, 0, 0, 0.7); /* Ciemne tło - przyciemnienie */
         }
-        /* Maska jako przezroczyste okno - wycina przyciemnienie używając mask-image */
-        .spotify-crop-modal.phone-crop .spotify-crop-canvas::after {
+        @media (max-width: 768px) {
+          .spotify-crop-modal.phone-crop .spotify-crop-canvas {
+            padding: 10px;
+          }
+        }
+        /* Przyciemnienie poza maską */
+        .spotify-crop-modal.phone-crop .spotify-crop-canvas::before {
           content: '';
           position: absolute;
           inset: 0;
-          /* Odwrócona maska - przyciemnij wszystko POZA kształtem maski */
           background: rgba(0, 0, 0, 0.7);
+          pointer-events: none;
+          z-index: 3;
+        }
+        /* Maska jako przezroczyste okno - 70% szerokości, wyśrodkowana */
+        .spotify-crop-modal.phone-crop .spotify-crop-canvas::after {
+          content: '';
+          position: absolute;
+          left: 50%;
+          top: 50%;
+          transform: translate(-50%, -50%);
+          width: 70%;
+          height: 70%;
+          background: url('https://customify-s56o.vercel.app/phone/phone_ok.png') center/contain no-repeat;
+          pointer-events: none;
+          z-index: 4;
+          opacity: 0.3; /* Przezroczysta - widać zdjęcie przez nią */
+        }
+        /* Wycięcie przyciemnienia w kształcie maski */
+        .spotify-crop-modal.phone-crop .spotify-crop-canvas::before {
           mask-image: url('https://customify-s56o.vercel.app/phone/phone_ok.png');
-          mask-size: 85%;
+          mask-size: 70%;
           mask-position: center;
           mask-repeat: no-repeat;
-          /* Odwróć maskę - przyciemnij poza maską */
-          mask-composite: exclude;
+          mask-composite: exclude; /* Przyciemnij wszystko POZA maską */
           -webkit-mask-image: url('https://customify-s56o.vercel.app/phone/phone_ok.png');
-          -webkit-mask-size: 85%;
+          -webkit-mask-size: 70%;
           -webkit-mask-position: center;
           -webkit-mask-repeat: no-repeat;
           -webkit-mask-composite: destination-out;
-          pointer-events: none;
-          z-index: 3;
         }
         .spotify-crop-actions {
           display: flex;
