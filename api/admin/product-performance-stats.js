@@ -206,6 +206,25 @@ const parseLinkHeader = (header) => {
   return links;
 };
 
+const extractOriginalProductId = (lineItem) => {
+  const props = Array.isArray(lineItem?.properties) ? lineItem.properties : [];
+  const prop = props.find((entry) => {
+    const name = entry?.name || entry?.key;
+    return name === '_Original Product ID' || name === 'Original Product ID' || name === '_Original_Product_ID';
+  });
+  const rawValue = prop?.value;
+  if (!rawValue) return null;
+  const trimmed = String(rawValue).trim();
+  if (!trimmed) return null;
+  const numericMatch = trimmed.match(/\d+/);
+  return numericMatch ? numericMatch[0] : null;
+};
+
+const isGeneratedTitle = (value) => {
+  if (!value || typeof value !== 'string') return false;
+  return value.toLowerCase().includes('rozmiar');
+};
+
 const fetchOrdersBetween = async (shopDomain, accessToken, startIso, endIso) => {
   const purchasesByProduct = {};
   const ordersByProduct = {};
@@ -232,7 +251,8 @@ const fetchOrdersBetween = async (shopDomain, accessToken, startIso, endIso) => 
       if (!allowedFinancialStatus.has(order.financial_status)) return;
       const orderId = order.id;
       (order.line_items || []).forEach((item) => {
-        const productId = item.product_id ? String(item.product_id) : null;
+        const originalProductId = extractOriginalProductId(item);
+        const productId = originalProductId || (item.product_id ? String(item.product_id) : null);
         if (!productId) return;
         const qty = Number(item.quantity || 0);
         if (!Number.isFinite(qty) || qty <= 0) return;
@@ -511,7 +531,13 @@ module.exports = async (req, res) => {
         };
       });
 
-      const summary = products.reduce((acc, item) => {
+      const filteredProducts = products.filter((product) => {
+        const title = product.title || '';
+        const handle = product.handle || '';
+        return !isGeneratedTitle(title) && !isGeneratedTitle(handle);
+      });
+
+      const summary = filteredProducts.reduce((acc, item) => {
         acc.totalViews += item.views;
         acc.totalGenerateClicks += item.generateClicks;
         acc.totalApiSuccess += item.apiSuccess;
@@ -532,7 +558,7 @@ module.exports = async (req, res) => {
         success: true,
         range: { start, end, usedDefaultRange },
         summary,
-        products: products.sort((a, b) => b.purchasesQty - a.purchasesQty),
+        products: filteredProducts.sort((a, b) => b.purchasesQty - a.purchasesQty),
         byDate: aggregatedByDate
       });
     } catch (error) {

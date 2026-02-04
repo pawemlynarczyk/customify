@@ -970,6 +970,10 @@
                   if (cleanImageUrl && cleanImageUrl.startsWith('http')) {
                     hiddenProperties['_AI_Image_Clean_URL'] = cleanImageUrl; // Dodatkowy link BEZ watermarku
                   }
+                  if (productId) {
+                    // ✅ Powiąż wygenerowany produkt z oryginalnym produktem źródłowym (do statystyk zakupów)
+                    hiddenProperties['_Original Product ID'] = String(productId);
+                  }
                   // NIE dodawaj base64 - przekracza limit URL!
 
                   const cartProperties = Object.assign({}, visibleProperties, hiddenProperties);
