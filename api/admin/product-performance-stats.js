@@ -15,14 +15,16 @@ const defaultSummary = () => ({
   totalViews: 0,
   totalGenerateClicks: 0,
   totalApiSuccess: 0,
-  totalApiError: 0
+  totalApiError: 0,
+  totalValidationErrors: 0
 });
 
 const defaultBreakdown = () => ({
   views: 0,
   generateClicks: 0,
   apiSuccess: 0,
-  apiError: 0
+  apiError: 0,
+  validationErrors: 0
 });
 
 const ensureStatsStructure = (stats) => {
@@ -31,6 +33,7 @@ const ensureStatsStructure = (stats) => {
   normalized.byProduct = normalized.byProduct || {};
   normalized.byDate = normalized.byDate || {};
   normalized.byProductDate = normalized.byProductDate || {};
+  normalized.validationByProductDateMessage = normalized.validationByProductDateMessage || {};
   normalized.productsMeta = normalized.productsMeta || {};
 
   Object.keys(normalized.byProduct).forEach((key) => {
@@ -44,6 +47,9 @@ const ensureStatsStructure = (stats) => {
     Object.keys(perDate).forEach((dateKey) => {
       perDate[dateKey] = { ...defaultBreakdown(), ...perDate[dateKey] };
     });
+  });
+  Object.keys(normalized.validationByProductDateMessage).forEach((productId) => {
+    normalized.validationByProductDateMessage[productId] = normalized.validationByProductDateMessage[productId] || {};
   });
 
   return normalized;
@@ -94,6 +100,7 @@ const createEmptyStats = () => ensureStatsStructure({
   byProduct: {},
   byDate: {},
   byProductDate: {},
+  validationByProductDateMessage: {},
   productsMeta: {},
   createdAt: new Date().toISOString(),
   lastUpdated: new Date().toISOString()
@@ -189,6 +196,25 @@ const aggregateByDateForRange = (stats, start, end) => {
   Object.keys(stats.byDate || {}).forEach((dateKey) => {
     if (dateKey < start || dateKey > end) return;
     aggregated[dateKey] = { ...defaultBreakdown(), ...(stats.byDate[dateKey] || {}) };
+  });
+  return aggregated;
+};
+
+const aggregateValidationMessagesForRange = (stats, start, end) => {
+  const aggregated = {};
+  const byProductDateMessage = stats.validationByProductDateMessage || {};
+  Object.keys(byProductDateMessage).forEach((productId) => {
+    const perDate = byProductDateMessage[productId] || {};
+    Object.keys(perDate).forEach((dateKey) => {
+      if (dateKey < start || dateKey > end) return;
+      const messages = perDate[dateKey] || {};
+      if (!aggregated[productId]) aggregated[productId] = {};
+      Object.keys(messages).forEach((message) => {
+        const count = Number(messages[message] || 0);
+        if (!Number.isFinite(count) || count <= 0) return;
+        aggregated[productId][message] = (aggregated[productId][message] || 0) + count;
+      });
+    });
   });
   return aggregated;
 };
@@ -423,6 +449,22 @@ module.exports = async (req, res) => {
         stats.byDate[dateKey].apiError++;
         stats.byProductDate[productKey][dateKey].apiError++;
       }
+      if (eventType === 'validation_error') {
+        stats.summary.totalValidationErrors++;
+        stats.byProduct[productKey].validationErrors++;
+        stats.byDate[dateKey].validationErrors++;
+        stats.byProductDate[productKey][dateKey].validationErrors++;
+
+        const message = req.body?.message ? String(req.body.message).trim().slice(0, 120) : 'unknown';
+        if (!stats.validationByProductDateMessage[productKey]) {
+          stats.validationByProductDateMessage[productKey] = {};
+        }
+        if (!stats.validationByProductDateMessage[productKey][dateKey]) {
+          stats.validationByProductDateMessage[productKey][dateKey] = {};
+        }
+        const messagesMap = stats.validationByProductDateMessage[productKey][dateKey];
+        messagesMap[message] = (messagesMap[message] || 0) + 1;
+      }
 
       stats.productsMeta[productKey] = {
         id: productKey,
@@ -476,6 +518,7 @@ module.exports = async (req, res) => {
 
       const aggregatedByProduct = aggregateByProductForRange(stats, start, end);
       const aggregatedByDate = aggregateByDateForRange(stats, start, end);
+      const aggregatedValidationMessages = aggregateValidationMessagesForRange(stats, start, end);
 
       const shopDomain = process.env.SHOPIFY_STORE_DOMAIN || process.env.SHOP_DOMAIN || 'customify-ok.myshopify.com';
       const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
@@ -509,6 +552,8 @@ module.exports = async (req, res) => {
         const generateClicks = breakdown.generateClicks || 0;
         const apiSuccess = breakdown.apiSuccess || 0;
         const apiError = breakdown.apiError || 0;
+        const validationErrors = breakdown.validationErrors || 0;
+        const validationMessages = aggregatedValidationMessages?.[productId] || {};
 
         const conversionFromViews = views > 0 ? (purchasesQty / views) * 100 : 0;
         const conversionFromGenerates = generateClicks > 0 ? (purchasesQty / generateClicks) * 100 : 0;
@@ -524,11 +569,13 @@ module.exports = async (req, res) => {
           generateClicks,
           apiSuccess,
           apiError,
+          validationErrors,
           purchasesQty,
           ordersCount,
           conversionFromViews,
           conversionFromGenerates,
-          apiSuccessRate
+          apiSuccessRate,
+          validationMessages
         };
       });
 
@@ -543,6 +590,7 @@ module.exports = async (req, res) => {
         acc.totalGenerateClicks += item.generateClicks;
         acc.totalApiSuccess += item.apiSuccess;
         acc.totalApiError += item.apiError;
+        acc.totalValidationErrors += item.validationErrors || 0;
         acc.totalPurchasesQty += item.purchasesQty;
         acc.totalOrdersCount += item.ordersCount;
         return acc;
@@ -551,6 +599,7 @@ module.exports = async (req, res) => {
         totalGenerateClicks: 0,
         totalApiSuccess: 0,
         totalApiError: 0,
+        totalValidationErrors: 0,
         totalPurchasesQty: 0,
         totalOrdersCount: 0
       });

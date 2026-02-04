@@ -378,6 +378,29 @@
             return noteAttributes || {};
           };
 
+          const originalShowError = proto.showError;
+          proto.showError = function(message, type) {
+            try {
+              const rawMessage = message == null ? '' : String(message);
+              const normalizedMessage = rawMessage.replace(/^❌\s*/, '').trim();
+              const validationMessages = [
+                'Wybierz styl',
+                'Nie wybrałeś rozmiaru',
+                'Wgraj zdjęcie i wybierz styl'
+              ];
+              const isValidation = validationMessages.some(msg => normalizedMessage.includes(msg));
+              if (isValidation && typeof window.__customifyProductStatsSendEvent === 'function') {
+                window.__customifyProductStatsSendEvent('validation_error', {
+                  message: normalizedMessage,
+                  area: type || 'unknown'
+                });
+              }
+            } catch (error) {
+              console.warn('⚠️ [CUSTOMIFY] Validation tracking failed:', error?.message || error);
+            }
+            return originalShowError ? originalShowError.call(this, message, type) : undefined;
+          };
+
           /**
            * Pobiera bazową cenę produktu z window.ShopifyProduct (niezmienione źródło)
            */
@@ -3700,6 +3723,7 @@
               console.warn('⚠️ [PRODUCT-STATS] Failed to send event:', eventType, error?.message || error);
             }
           };
+          window.__customifyProductStatsSendEvent = sendEvent;
 
           document.addEventListener('DOMContentLoaded', function() {
             sendEvent('product_view');

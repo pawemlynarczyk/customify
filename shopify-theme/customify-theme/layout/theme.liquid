@@ -970,6 +970,10 @@
                   if (cleanImageUrl && cleanImageUrl.startsWith('http')) {
                     hiddenProperties['_AI_Image_Clean_URL'] = cleanImageUrl; // Dodatkowy link BEZ watermarku
                   }
+                  if (productId) {
+                    // ✅ Powiąż wygenerowany produkt z oryginalnym produktem źródłowym (do statystyk zakupów)
+                    hiddenProperties['_Original Product ID'] = String(productId);
+                  }
                   // NIE dodawaj base64 - przekracza limit URL!
 
                   const cartProperties = Object.assign({}, visibleProperties, hiddenProperties);
@@ -3655,12 +3659,82 @@
           id: {{ product.id }},
           title: {{ product.title | json }},
           handle: {{ product.handle | json }},
+          url: {{ product.url | json }},
+          imageUrl: {{ product.featured_image | image_url: width: 600 | json }},
           variants: {{ product.variants | json }},
           options: {{ product.options | json }},
           price: {{ product.price | money | json }}
         };
         console.log('📦 [SHOPIFY PRODUCT] Product data loaded:', window.ShopifyProduct);
         {% endif %}
+      </script>
+
+      <script>
+        (function() {
+          if (!window.ShopifyProduct || !window.ShopifyProduct.id) return;
+          if (window.__customifyProductStatsInit) return;
+          window.__customifyProductStatsInit = true;
+
+          const TRACK_URL = 'https://customify-s56o.vercel.app/api/admin/product-performance-stats';
+          const productMeta = {
+            productId: window.ShopifyProduct.id,
+            productHandle: window.ShopifyProduct.handle,
+            productTitle: window.ShopifyProduct.title,
+            productUrl: window.location.href.split('#')[0],
+            imageUrl: window.ShopifyProduct.imageUrl || null
+          };
+
+          const sendEvent = async (eventType, extra = {}) => {
+            try {
+              await fetch(TRACK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  eventType,
+                  timestamp: new Date().toISOString(),
+                  ...productMeta,
+                  ...extra
+                })
+              });
+            } catch (error) {
+              console.warn('⚠️ [PRODUCT-STATS] Failed to send event:', eventType, error?.message || error);
+            }
+          };
+
+          document.addEventListener('DOMContentLoaded', function() {
+            sendEvent('product_view');
+            const transformBtn = document.getElementById('transformBtn');
+            if (transformBtn) {
+              transformBtn.addEventListener('click', function() {
+                sendEvent('generate_click');
+              });
+            }
+          });
+
+          if (typeof window.fetch === 'function' && !window.__customifyProductStatsFetchWrapped) {
+            const originalFetch = window.fetch.bind(window);
+            window.__customifyProductStatsFetchWrapped = true;
+            window.fetch = async function(...args) {
+              const url = typeof args[0] === 'string' ? args[0] : args[0]?.url;
+              const isTransformCall = url && url.includes('/api/transform');
+              if (!isTransformCall) {
+                return originalFetch(...args);
+              }
+              try {
+                const response = await originalFetch(...args);
+                if (response?.ok) {
+                  sendEvent('api_success', { status: response.status });
+                } else {
+                  sendEvent('api_error', { status: response?.status || null });
+                }
+                return response;
+              } catch (error) {
+                sendEvent('api_error', { error: error?.message || 'fetch_error' });
+                throw error;
+              }
+            };
+          }
+        })();
       </script>
       
       <div id="customify-app-container" class="customify-shopify-container">

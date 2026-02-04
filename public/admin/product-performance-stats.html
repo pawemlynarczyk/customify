@@ -179,6 +179,10 @@
           <div class="stat-value" id="totalApiError">0</div>
           <div class="stat-label">API błędy</div>
         </div>
+        <div class="stat-card warning">
+          <div class="stat-value" id="totalValidationErrors">0</div>
+          <div class="stat-label">Błędy walidacji</div>
+        </div>
         <div class="stat-card secondary">
           <div class="stat-value" id="totalPurchasesQty">0</div>
           <div class="stat-label">Zakupy (ilość sztuk)</div>
@@ -197,6 +201,7 @@
             <th class="sortable" data-sort-key="generateClicks">Generuj <span class="sort-indicator" id="sort-generateClicks"></span></th>
             <th class="sortable" data-sort-key="apiSuccess">API OK <span class="sort-indicator" id="sort-apiSuccess"></span></th>
             <th class="sortable" data-sort-key="apiError">API błędy <span class="sort-indicator" id="sort-apiError"></span></th>
+            <th class="sortable" data-sort-key="validationErrors">Walidacja <span class="sort-indicator" id="sort-validationErrors"></span></th>
             <th class="sortable" data-sort-key="purchasesQty">Zakupy (qty) <span class="sort-indicator" id="sort-purchasesQty"></span></th>
             <th class="sortable" data-sort-key="ordersCount">Zamówienia <span class="sort-indicator" id="sort-ordersCount"></span></th>
             <th class="sortable" data-sort-key="conversionFromViews">Konw. z wejść <span class="sort-indicator" id="sort-conversionFromViews"></span></th>
@@ -231,6 +236,7 @@
       'generateClicks',
       'apiSuccess',
       'apiError',
+      'validationErrors',
       'purchasesQty',
       'ordersCount',
       'conversionFromViews',
@@ -288,6 +294,10 @@
         const productLink = product.productUrl
           ? `<a href="${product.productUrl}" target="_blank" rel="noopener">${product.title || product.handle || product.productId}</a>`
           : (product.title || product.handle || product.productId);
+        const validationMessages = product.validationMessages || {};
+        const validationDetails = Object.keys(validationMessages).length
+          ? Object.entries(validationMessages).map(([msg, count]) => `${msg}: ${count}`).join('\n')
+          : '';
 
         const row = document.createElement('tr');
         row.innerHTML = `
@@ -304,6 +314,7 @@
           <td>${product.generateClicks}</td>
           <td>${product.apiSuccess}</td>
           <td>${product.apiError}</td>
+          <td title="${validationDetails}">${product.validationErrors || 0}</td>
           <td>${product.purchasesQty}</td>
           <td>${product.ordersCount}</td>
           <td>${formatPercent(product.conversionFromViews)}</td>
@@ -358,6 +369,7 @@
         document.getElementById('totalGenerateClicks').textContent = data.summary.totalGenerateClicks;
         document.getElementById('totalApiSuccess').textContent = data.summary.totalApiSuccess;
         document.getElementById('totalApiError').textContent = data.summary.totalApiError;
+        document.getElementById('totalValidationErrors').textContent = data.summary.totalValidationErrors || 0;
         document.getElementById('totalPurchasesQty').textContent = data.summary.totalPurchasesQty;
         document.getElementById('totalOrdersCount').textContent = data.summary.totalOrdersCount;
 
