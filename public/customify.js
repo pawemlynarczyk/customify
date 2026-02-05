@@ -2475,12 +2475,14 @@ class CustomifyEmbed {
       this.spotifyCropCancelBtn.addEventListener('click', () => this.cancelSpotifyCrop());
     }
     
-    // 📱 Telefon - event listenery dla croppera
-    if (this.phoneCropConfirmBtn) {
-      this.phoneCropConfirmBtn.addEventListener('click', () => this.confirmPhoneCrop());
+    // 📱 Telefon - event listenery dla croppera (sprawdź w momencie użycia)
+    const phoneCropConfirmBtn = document.getElementById('phoneCropConfirmBtn');
+    const phoneCropCancelBtn = document.getElementById('phoneCropCancelBtn');
+    if (phoneCropConfirmBtn) {
+      phoneCropConfirmBtn.addEventListener('click', () => this.confirmPhoneCrop());
     }
-    if (this.phoneCropCancelBtn) {
-      this.phoneCropCancelBtn.addEventListener('click', () => this.cancelPhoneCrop());
+    if (phoneCropCancelBtn) {
+      phoneCropCancelBtn.addEventListener('click', () => this.cancelPhoneCrop());
     }
     
     // 🎵 Kliknięcie w preview image otwiera cropper ponownie (ponowne kadrowanie)
@@ -2858,7 +2860,11 @@ class CustomifyEmbed {
 
   // 📱 TELEFON - Otwórz cropper
   openPhoneCropper(file) {
-    if (!this.phoneCropModal || !this.phoneCropImage) {
+    // Sprawdź elementy w momencie użycia (nie w konstruktorze - mogą nie być w DOM)
+    const phoneCropModal = document.getElementById('phoneCropModal');
+    const phoneCropImage = document.getElementById('phoneCropImage');
+    
+    if (!phoneCropModal || !phoneCropImage) {
       console.warn('⚠️ [PHONE] Brak elementów croppera, fallback do normalnego preview');
       this.uploadedFile = file;
       this.showPreview(file);
@@ -2879,12 +2885,12 @@ class CustomifyEmbed {
     }
 
     this.phoneCropSourceUrl = URL.createObjectURL(file);
-    this.phoneCropImage.src = this.phoneCropSourceUrl;
-    this.phoneCropModal.classList.add('is-open');
-    this.phoneCropModal.setAttribute('aria-hidden', 'false');
+    phoneCropImage.src = this.phoneCropSourceUrl;
+    phoneCropModal.classList.add('is-open');
+    phoneCropModal.setAttribute('aria-hidden', 'false');
 
     const cropConfig = this.getPhoneCropConfig();
-    this.phoneCropper = new Cropper(this.phoneCropImage, {
+    this.phoneCropper = new Cropper(phoneCropImage, {
       aspectRatio: cropConfig.aspectRatio,
       viewMode: 1,
       autoCropArea: 1,
@@ -2907,9 +2913,10 @@ class CustomifyEmbed {
       URL.revokeObjectURL(this.phoneCropSourceUrl);
       this.phoneCropSourceUrl = null;
     }
-    if (this.phoneCropModal) {
-      this.phoneCropModal.classList.remove('is-open');
-      this.phoneCropModal.setAttribute('aria-hidden', 'true');
+    const phoneCropModal = document.getElementById('phoneCropModal');
+    if (phoneCropModal) {
+      phoneCropModal.classList.remove('is-open');
+      phoneCropModal.setAttribute('aria-hidden', 'true');
     }
   }
 
