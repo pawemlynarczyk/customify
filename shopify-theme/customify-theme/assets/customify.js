@@ -57,6 +57,17 @@ class CustomifyEmbed {
     this.spotifyCropper = null;
     this.spotifyCropSourceUrl = null;
     this.spotifyCropConfirmed = false;
+    
+    // 📱 Telefon - cropper
+    this.phoneCropModal = document.getElementById('phoneCropModal');
+    this.phoneCropImage = document.getElementById('phoneCropImage');
+    this.phoneCropConfirmBtn = document.getElementById('phoneCropConfirmBtn');
+    this.phoneCropCancelBtn = document.getElementById('phoneCropCancelBtn');
+    this.phoneCropper = null;
+    this.phoneCropSourceUrl = null;
+    this.phoneCropConfirmed = false;
+    this.phoneCropDataUrl = null;
+    this.originalPhoneFile = null;
 
     this.uploadedFile = null;
     this.selectedStyle = null;
@@ -181,7 +192,7 @@ class CustomifyEmbed {
   }
   
   isCropperProduct() {
-    return this.isSpotifyProduct();
+    return this.isSpotifyProduct() || this.isPhoneCaseProduct();
   }
 
   // 🎵 Produkt Spotify BEZ generacji AI - od razu do koszyka po kadrowanie
@@ -190,8 +201,18 @@ class CustomifyEmbed {
     return currentUrl.includes('zdjecie-na-szkle-ramka-spotify');
   }
 
+  // 📱 Produkt telefon
+  isPhoneCaseProduct() {
+    const currentUrl = window.location.pathname.toLowerCase();
+    return currentUrl.includes('personalizowane-etui-na-telefon-z-twoim-zdjeciem-karykatura');
+  }
+
   getCropConfig() {
     return { aspectRatio: 1, width: 1024, height: 1024, filePrefix: 'spotify-crop' };
+  }
+
+  getPhoneCropConfig() {
+    return { aspectRatio: 2 / 1, width: 2048, height: 1024, filePrefix: 'phone-crop' };
   }
 
   init() {
@@ -2454,11 +2475,23 @@ class CustomifyEmbed {
       this.spotifyCropCancelBtn.addEventListener('click', () => this.cancelSpotifyCrop());
     }
     
+    // 📱 Telefon - event listenery dla croppera
+    if (this.phoneCropConfirmBtn) {
+      this.phoneCropConfirmBtn.addEventListener('click', () => this.confirmPhoneCrop());
+    }
+    if (this.phoneCropCancelBtn) {
+      this.phoneCropCancelBtn.addEventListener('click', () => this.cancelPhoneCrop());
+    }
+    
     // 🎵 Kliknięcie w preview image otwiera cropper ponownie (ponowne kadrowanie)
     if (this.isCropperProduct() && this.previewImage) {
       this.previewImage.style.cursor = 'pointer';
       this.previewImage.title = 'Kliknij aby ponownie wykadrować zdjęcie';
-      this.previewImage.addEventListener('click', () => this.reopenSpotifyCropper());
+      if (this.isPhoneCaseProduct()) {
+        this.previewImage.addEventListener('click', () => this.reopenPhoneCropper());
+      } else {
+        this.previewImage.addEventListener('click', () => this.reopenSpotifyCropper());
+      }
     }
   }
   
@@ -2823,6 +2856,107 @@ class CustomifyEmbed {
     this.closeSpotifyCropper();
   }
 
+  // 📱 TELEFON - Otwórz cropper
+  openPhoneCropper(file) {
+    if (!this.phoneCropModal || !this.phoneCropImage) {
+      console.warn('⚠️ [PHONE] Brak elementów croppera, fallback do normalnego preview');
+      this.uploadedFile = file;
+      this.showPreview(file);
+      return;
+    }
+
+    this.originalPhoneFile = file;
+    console.log('📱 [PHONE] Zapisano oryginalne zdjęcie do ponownego kadrowania');
+
+    this.phoneCropConfirmed = false;
+    if (this.phoneCropper) {
+      this.phoneCropper.destroy();
+      this.phoneCropper = null;
+    }
+    if (this.phoneCropSourceUrl) {
+      URL.revokeObjectURL(this.phoneCropSourceUrl);
+      this.phoneCropSourceUrl = null;
+    }
+
+    this.phoneCropSourceUrl = URL.createObjectURL(file);
+    this.phoneCropImage.src = this.phoneCropSourceUrl;
+    this.phoneCropModal.classList.add('is-open');
+    this.phoneCropModal.setAttribute('aria-hidden', 'false');
+
+    const cropConfig = this.getPhoneCropConfig();
+    this.phoneCropper = new Cropper(this.phoneCropImage, {
+      aspectRatio: cropConfig.aspectRatio,
+      viewMode: 1,
+      autoCropArea: 1,
+      responsive: true,
+      movable: true,
+      zoomable: true,
+      zoomOnTouch: true,
+      zoomOnWheel: true,
+      background: false
+    });
+  }
+
+  // 📱 TELEFON - Zamknij cropper
+  closePhoneCropper() {
+    if (this.phoneCropper) {
+      this.phoneCropper.destroy();
+      this.phoneCropper = null;
+    }
+    if (this.phoneCropSourceUrl) {
+      URL.revokeObjectURL(this.phoneCropSourceUrl);
+      this.phoneCropSourceUrl = null;
+    }
+    if (this.phoneCropModal) {
+      this.phoneCropModal.classList.remove('is-open');
+      this.phoneCropModal.setAttribute('aria-hidden', 'true');
+    }
+  }
+
+  // 📱 TELEFON - Potwierdź kadrowanie
+  confirmPhoneCrop() {
+    if (!this.phoneCropper) return;
+    const cropConfig = this.getPhoneCropConfig();
+    const canvas = this.phoneCropper.getCroppedCanvas({
+      width: cropConfig.width,
+      height: cropConfig.height,
+      imageSmoothingQuality: 'high'
+    });
+    canvas.toBlob((blob) => {
+      if (!blob) {
+        this.showError('Nie udało się przyciąć zdjęcia', 'transform');
+        return;
+      }
+      const croppedFile = new File([blob], `${cropConfig.filePrefix}-${Date.now()}.jpg`, { type: 'image/jpeg' });
+      this.uploadedFile = croppedFile;
+      this.phoneCropConfirmed = true;
+      this.phoneCropDataUrl = canvas.toDataURL('image/jpeg', 0.9);
+      this.closePhoneCropper();
+      this.showPreview(croppedFile);
+      this.hideError();
+    }, 'image/jpeg', 0.9);
+  }
+
+  // 📱 TELEFON - Anuluj kadrowanie
+  cancelPhoneCrop() {
+    this.uploadedFile = null;
+    this.phoneCropConfirmed = false;
+    if (this.fileInput) {
+      this.fileInput.value = '';
+    }
+    this.closePhoneCropper();
+  }
+
+  // 📱 TELEFON - Ponowne otwarcie croppera
+  reopenPhoneCropper() {
+    if (!this.originalPhoneFile) {
+      console.warn('⚠️ [PHONE] Brak oryginalnego zdjęcia do ponownego kadrowania');
+      return;
+    }
+    console.log('📱 [PHONE] Ponowne otwieranie croppera z oryginalnym zdjęciem');
+    this.openPhoneCropper(this.originalPhoneFile);
+  }
+
   handleFileSelect(file) {
     if (!file) return;
     if (!file.type.startsWith('image/')) {
@@ -2836,8 +2970,13 @@ class CustomifyEmbed {
 
     this.hideError();
     if (this.isCropperProduct()) {
-      this.spotifyCropConfirmed = false;
-      this.openSpotifyCropper(file);
+      if (this.isPhoneCaseProduct()) {
+        this.phoneCropConfirmed = false;
+        this.openPhoneCropper(file);
+      } else {
+        this.spotifyCropConfirmed = false;
+        this.openSpotifyCropper(file);
+      }
       return;
     }
     this.uploadedFile = file;
@@ -3735,6 +3874,15 @@ class CustomifyEmbed {
       return;
     }
 
+    // 📱 Dla telefonu: sprawdź czy zdjęcie zostało wykadrowane
+    const isPhoneCropped = this.phoneCropConfirmed || 
+      (this.uploadedFile && this.uploadedFile.name && this.uploadedFile.name.startsWith('phone-crop-'));
+    
+    if (this.isPhoneCaseProduct() && !isPhoneCropped) {
+      this.showError('Najpierw wykadruj zdjęcie', 'transform');
+      return;
+    }
+
     let spotifyPayload = null;
     if (this.isSpotifyProduct()) {
       const spotifyTitle = (this.spotifyTitleInput?.value || '').trim().slice(0, 60);
@@ -3814,6 +3962,8 @@ class CustomifyEmbed {
     try {
       const base64 = (this.isSpotifyProduct() && this.spotifyCropConfirmed && this.spotifyCropDataUrl)
         ? this.spotifyCropDataUrl
+        : (this.isPhoneCaseProduct() && this.phoneCropConfirmed && this.phoneCropDataUrl)
+        ? this.phoneCropDataUrl
         : await this.fileToBase64(this.uploadedFile);
       console.log('📱 [MOBILE] Starting transform request...');
       
@@ -4886,6 +5036,8 @@ class CustomifyEmbed {
     this.textOverlayState = { ...this.textOverlayState, text: '', applied: false };
     this.spotifyCropConfirmed = false;
     this.closeSpotifyCropper();
+    this.phoneCropConfirmed = false;
+    this.closePhoneCropper();
     if (this.textOverlayInput) {
       this.textOverlayInput.value = '';
       this.updateTextOverlayCounter();
@@ -4955,6 +5107,8 @@ class CustomifyEmbed {
     this.textOverlayState = { ...this.textOverlayState, text: '', applied: false };
     this.spotifyCropConfirmed = false;
     this.closeSpotifyCropper();
+    this.phoneCropConfirmed = false;
+    this.closePhoneCropper();
     if (this.textOverlayInput) {
       this.textOverlayInput.value = '';
       this.updateTextOverlayCounter();

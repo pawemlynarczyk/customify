@@ -3989,6 +3989,21 @@
               </div>
             {% endif %}
 
+            {% if product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem-karykatura' %}
+              <div id="phoneCropModal" class="phone-crop-modal" aria-hidden="true">
+                <div class="phone-crop-dialog">
+                  <h4>Ustaw kadr zdjęcia</h4>
+                  <div class="phone-crop-canvas">
+                    <img id="phoneCropImage" alt="Kadrowanie zdjęcia">
+                  </div>
+                  <div class="phone-crop-actions">
+                    <button type="button" class="customify-btn customify-btn-secondary" id="phoneCropCancelBtn">Anuluj</button>
+                    <button type="button" class="customify-btn customify-btn-primary" id="phoneCropConfirmBtn">Zapisz kadr</button>
+                  </div>
+                </div>
+              </div>
+            {% endif %}
+
             <div class="customify-styles" id="stylesArea" style="{% if product.handle == 'zdjecie-na-szkle-ramka-spotify' %}display: none;{% else %}display: block;{% endif %}">
               <h4>{% if product.handle == 'ramka-spotify' %}Popraw Obrazek{% else %}Wybierz styl{% endif %}</h4>
               <div class="customify-style-grid">
@@ -5282,6 +5297,64 @@
           display: block;
         }
         .spotify-crop-actions {
+          display: flex;
+          gap: 10px;
+          justify-content: flex-end;
+        }
+
+        /* 📱 Telefon - Crop modal */
+        .phone-crop-modal {
+          position: fixed;
+          inset: 0;
+          background: rgba(0, 0, 0, 0.6);
+          display: none;
+          align-items: center;
+          justify-content: center;
+          z-index: 999999;
+          padding: 16px;
+          box-sizing: border-box;
+        }
+        .phone-crop-modal.is-open {
+          display: flex;
+        }
+        @media (max-width: 768px) {
+          .phone-crop-modal {
+            padding: 0; /* Na mobile: bez padding, dialog na całą szerokość */
+          }
+        }
+        .phone-crop-dialog {
+          width: 100%;
+          max-width: 520px;
+          background: #ffffff;
+          border-radius: 12px;
+          padding: 16px;
+          box-sizing: border-box;
+        }
+        @media (max-width: 768px) {
+          .phone-crop-dialog {
+            max-width: 100%;
+            width: 100%;
+            border-radius: 0; /* Na mobile: bez zaokrągleń */
+            padding: 12px;
+            height: 100vh; /* Na mobile: pełna wysokość */
+            display: flex;
+            flex-direction: column;
+          }
+        }
+        .phone-crop-canvas {
+          position: relative;
+          width: 100%;
+          max-height: 70vh;
+          overflow: hidden;
+          border-radius: 8px;
+          background: #f4f4f4;
+          margin: 12px 0;
+        }
+        .phone-crop-canvas img {
+          max-width: 100%;
+          display: block;
+        }
+        .phone-crop-actions {
           display: flex;
           gap: 10px;
           justify-content: flex-end;
