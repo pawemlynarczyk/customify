@@ -3216,7 +3216,11 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
               error.message.includes('504') ||
               error.message.includes('timeout') ||
               error.message.includes('Internal Server Error') ||
-              error.message.includes('Internal server error')
+              error.message.includes('Internal server error') ||
+              error.message.includes('unexpected error') ||
+              error.message.includes('Prediction failed') ||
+              error.message.includes('E8765') ||
+              error.message.match(/E\d{4,5}/) // Błędy Replicate z kodem E (np. E8765)
             ));
           
           if (isRetryable && attempt < maxRetries) {

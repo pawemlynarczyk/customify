@@ -31,7 +31,7 @@
     <!-- Preload najczęściej używanych czcionek dla szybszego ładowania -->
     <link rel="preload" href="https://fonts.gstatic.com/s/montserrat/v26/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCtr6Hw5aXpsog.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="https://fonts.gstatic.com/s/dancingscript/v25/If2cXTr6YS-zF4S-kcSWSVi_sxjsohD9F50Ruu7BMSo3Sup8.woff2" as="font" type="font/woff2" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Dancing+Script:wght@700&family=Pacifico&family=Satisfy&family=Great+Vibes&family=Indie+Flower&family=Bebas+Neue&family=Rye&family=Creepster&family=Bungee:wght@400&family=Bonheur+Royale&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Dancing+Script:wght@700&family=Pacifico&family=Satisfy&family=Great+Vibes&family=Indie+Flower&family=Bebas+Neue&family=Rye&family=Creepster&family=Bungee:wght@400&family=Rubik+Wet+Paint&family=Bonheur+Royale&display=swap" rel="stylesheet">
     {%- render 'scripts' -%}
     {%- render 'theme-styles-variables' -%}
     {%- render 'color-schemes' -%}
@@ -79,6 +79,26 @@
                   environment: "production",
                   tracesSampleRate: 0.1,
                   beforeSend(event, hint) {
+                    // ✅ FILTRUJ BŁĘDY VIEW TRANSITION - nie loguj do Sentry (tylko animacje, nie wpływają na funkcjonalność)
+                    if (event.exception && event.exception.values) {
+                      const firstException = event.exception.values[0];
+                      const errorMessage = firstException?.value || '';
+                      const errorType = firstException?.type || '';
+                      
+                      const isViewTransitionError = 
+                        errorMessage.includes('view transition') ||
+                        errorMessage.includes('ViewTransition') ||
+                        errorMessage.includes('Skipping view transition') ||
+                        errorMessage.includes('skipTransition') ||
+                        (errorType === 'AbortError' && errorMessage.includes('transition')) ||
+                        (errorType === 'AbortError' && errorMessage.toLowerCase().includes('skip'));
+                      
+                      if (isViewTransitionError) {
+                        console.debug('🔇 [SENTRY] Ignoruję błąd view transition:', errorMessage);
+                        return null; // Nie wysyłaj do Sentry
+                      }
+                    }
+                    
                     // ✅ Dodaj tag customify do wszystkich błędów
                     if (event.tags) {
                       event.tags.customify = 'true';
@@ -103,6 +123,26 @@
                   environment: "production",
                   tracesSampleRate: 0.1,
                   beforeSend(event, hint) {
+                    // ✅ FILTRUJ BŁĘDY VIEW TRANSITION - nie loguj do Sentry (tylko animacje, nie wpływają na funkcjonalność)
+                    if (event.exception && event.exception.values) {
+                      const firstException = event.exception.values[0];
+                      const errorMessage = firstException?.value || '';
+                      const errorType = firstException?.type || '';
+                      
+                      const isViewTransitionError = 
+                        errorMessage.includes('view transition') ||
+                        errorMessage.includes('ViewTransition') ||
+                        errorMessage.includes('Skipping view transition') ||
+                        errorMessage.includes('skipTransition') ||
+                        (errorType === 'AbortError' && errorMessage.includes('transition')) ||
+                        (errorType === 'AbortError' && errorMessage.toLowerCase().includes('skip'));
+                      
+                      if (isViewTransitionError) {
+                        console.debug('🔇 [SENTRY] Ignoruję błąd view transition:', errorMessage);
+                        return null; // Nie wysyłaj do Sentry
+                      }
+                    }
+                    
                     // ✅ Dodaj tag customify do wszystkich błędów
                     if (event.tags) {
                       event.tags.customify = 'true';
@@ -270,7 +310,7 @@
 
     <!-- CUSTOMIFY INTEGRATION -->
     <link rel="stylesheet" href="{{ 'customify.css' | asset_url }}">
-    {% if product and product.handle == 'ramka-spotify' or product.handle == 'zdjecie-na-szkle-ramka-spotify' %}
+    {% if product and product.handle == 'ramka-spotify' or product.handle == 'zdjecie-na-szkle-ramka-spotify' or product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem' %}
       <link rel="stylesheet" href="https://unpkg.com/cropperjs@1.6.2/dist/cropper.min.css">
     {% endif %}
     
@@ -307,8 +347,47 @@
     </script>
     
     <script src="{{ 'customify.js' | asset_url }}" defer></script>
-    {% if product and product.handle == 'ramka-spotify' or product.handle == 'zdjecie-na-szkle-ramka-spotify' %}
+    {% if product and product.handle == 'ramka-spotify' or product.handle == 'zdjecie-na-szkle-ramka-spotify' or product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem' %}
       <script src="https://unpkg.com/cropperjs@1.6.2/dist/cropper.min.js" defer></script>
+      {% if product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem' %}
+      <script>
+        // 📱 Etui - wymuś poprawne proporcje kontenera (559:1154)
+        document.addEventListener('DOMContentLoaded', function() {
+          function fixPhoneCaseAspectRatio() {
+            const containers = document.querySelectorAll('#customify-app-container .phone-case-inner');
+            console.log('📱 [PHONE-CASE] Found containers:', containers.length);
+            containers.forEach((container, index) => {
+              const parent = container.closest('.phone-case-preview');
+              const previewArea = container.closest('#previewArea');
+              const appContainer = container.closest('#customify-app-container');
+              console.log(`📱 [PHONE-CASE] Container ${index} parent widths:`);
+              console.log(`  - container: ${container.offsetWidth}px`);
+              console.log(`  - phoneCasePreview: ${parent ? parent.offsetWidth + 'px' : 'N/A'}`);
+              console.log(`  - previewArea: ${previewArea ? previewArea.offsetWidth + 'px' : 'N/A'}`);
+              console.log(`  - appContainer: ${appContainer ? appContainer.offsetWidth + 'px' : 'N/A'}`);
+              const width = container.offsetWidth;
+              if (width > 0) {
+                const correctHeight = width * (1154 / 559);
+                console.log(`📱 [PHONE-CASE] Setting height: ${correctHeight}px (was: ${container.offsetHeight}px)`);
+                container.style.height = correctHeight + 'px';
+                container.style.paddingTop = '0';
+                console.log(`📱 [PHONE-CASE] After fix: width=${container.offsetWidth}px, height=${container.offsetHeight}px`);
+              } else {
+                console.warn(`📱 [PHONE-CASE] Container ${index} has width=0, skipping`);
+              }
+            });
+          }
+          console.log('📱 [PHONE-CASE] Initializing aspect ratio fix...');
+          fixPhoneCaseAspectRatio();
+          window.addEventListener('resize', fixPhoneCaseAspectRatio);
+          // Retry po załadowaniu obrazków
+          setTimeout(fixPhoneCaseAspectRatio, 500);
+          setTimeout(fixPhoneCaseAspectRatio, 1000);
+        });
+      </script>
+      {% endif %}
+    {% endif %}
+    {% if product and product.handle == 'ramka-spotify' or product.handle == 'zdjecie-na-szkle-ramka-spotify' %}
       <script>
         // 🎵 Spotify Text Overlay - aktualizacja tekstu w czasie rzeczywistym
         document.addEventListener('DOMContentLoaded', function() {
@@ -593,13 +672,110 @@
               imageToShow = imageUrl; // Pokazujemy oryginał bez watermarku (tylko podgląd)
             }
             
-            if (this.resultImage) {
-              this.resultImage.src = imageToShow;
+            // 📱 Phone case: use background-image in PREVIEW area (same place as uploaded image)
+            if (this.isPhonePhotoCaseProduct && this.isPhonePhotoCaseProduct()) {
+              console.log('📱 [PHONE PREVIEW] Phone case detected in theme.liquid showResult, using preview area');
+              const photoBg = document.getElementById('phoneCasePhotoBg');
+              const resultBg = document.getElementById('phoneCaseResultBg');
+              
+              // Set image in PREVIEW area (main location)
+              if (photoBg) {
+                photoBg.style.backgroundImage = `url(${imageToShow})`;
+                console.log('[PHONE PREVIEW] set background image in PREVIEW area (phoneCasePhotoBg)', imageToShow?.substring(0, 50) + '...');
+              } else {
+                console.warn('⚠️ [PHONE PREVIEW] phoneCasePhotoBg not found!');
+              }
+              
+              // Also set in result area (backup, but resultArea will be hidden)
+              if (resultBg) {
+                resultBg.style.backgroundImage = `url(${imageToShow})`;
+                console.log('[PHONE PREVIEW] set background image in RESULT area (phoneCaseResultBg) as backup');
+              }
+              
+              // Keep resultImage hidden but set src for compatibility
+              if (this.resultImage) {
+                this.resultImage.src = imageToShow;
+              }
+              
+              // 📱 Phone case: hide resultArea, keep previewArea visible (like Spotify)
+              if (this.resultArea) {
+                this.resultArea.style.display = 'none';
+                this.resultArea.style.setProperty('display', 'none', 'important');
+                console.log('📱 [PHONE PREVIEW] resultArea hidden with !important');
+              }
+              if (this.previewArea) {
+                this.previewArea.style.display = 'block';
+                console.log('📱 [PHONE PREVIEW] previewArea shown');
+              }
+              
+              // 📱 Phone case: Show "Add to cart" button in previewArea ONLY after AI generation
+              const phoneCaseCartActions = document.getElementById('phoneCaseCartActions');
+              const phoneCaseCartPriceDisplay = document.getElementById('phoneCaseCartPriceDisplay');
+              // Show buttons and price ONLY if image is generated (after AI)
+              if (this.transformedImage) {
+                if (phoneCaseCartActions) {
+                  phoneCaseCartActions.style.display = 'flex';
+                  console.log('📱 [PHONE PREVIEW] Cart actions shown in previewArea (after AI generation)');
+                }
+                if (phoneCaseCartPriceDisplay) {
+                  phoneCaseCartPriceDisplay.style.display = 'block';
+                  phoneCaseCartPriceDisplay.setAttribute('data-ai-generated', 'true');
+                  console.log('📱 [PHONE PREVIEW] Cart price shown in previewArea (after AI generation)');
+                }
+              } else {
+                // Hide buttons and price if no image generated yet
+                if (phoneCaseCartActions) {
+                  phoneCaseCartActions.style.display = 'none';
+                  console.log('📱 [PHONE PREVIEW] Cart actions hidden (before AI generation)');
+                }
+                if (phoneCaseCartPriceDisplay) {
+                  phoneCaseCartPriceDisplay.style.display = 'none';
+                  console.log('📱 [PHONE PREVIEW] Cart price hidden (before AI generation)');
+                }
+              }
+              
+              // 📱 Phone case: Setup event listeners for cart buttons
+              const phoneCaseAddToCartBtn = document.getElementById('phoneCaseAddToCartBtn');
+              const phoneCaseTryAgainBtn = document.getElementById('phoneCaseTryAgainBtn');
+              if (phoneCaseAddToCartBtn) {
+                phoneCaseAddToCartBtn.onclick = () => {
+                  console.log('📱 [PHONE PREVIEW] Add to cart clicked');
+                  if (this.addToCart) {
+                    this.addToCart();
+                  }
+                };
+              }
+              if (phoneCaseTryAgainBtn) {
+                phoneCaseTryAgainBtn.onclick = () => {
+                  console.log('📱 [PHONE PREVIEW] Try again clicked');
+                  if (this.tryAgain) {
+                    this.tryAgain();
+                  }
+                };
+              }
+              
+              // 📱 Phone case: Update cart price (updateCartPrice() will sync phone case price automatically)
+              if (this.updateCartPrice) {
+                this.updateCartPrice();
+              }
+              
+              // 📱 Phone case: Also hide resultArea after a delay (in case something shows it later)
+              setTimeout(() => {
+                if (this.resultArea && this.isPhonePhotoCaseProduct && this.isPhonePhotoCaseProduct()) {
+                  this.resultArea.style.display = 'none';
+                  this.resultArea.style.setProperty('display', 'none', 'important');
+                  console.log('📱 [PHONE PREVIEW] resultArea hidden again (delayed)');
+                }
+              }, 100);
+            } else {
+              // Normal products: use resultImage and show resultArea
+              if (this.resultImage) {
+                this.resultImage.src = imageToShow;
+              }
+              this.resultArea.style.display = 'block';
             }
             
             console.log('🎨 [CUSTOMIFY] Obraz ustawiony:', imageToShow?.substring(0, 100) + '...');
-            
-            this.resultArea.style.display = 'block';
             
             // 🚨 ROLLBACK: START - Ukryj rozmiary dla produktu cyfrowego
             if (isDigitalProduct) {
@@ -1222,7 +1398,7 @@
           padding: 0 20px !important;
           /* FIX: Stabilny grid layout - eliminuje skakanie */
           display: grid !important;
-          grid-template-columns: 35% 65% !important; /* Obrazek 35%, Aplikacja 65% */
+          grid-template-columns: minmax(260px,35%) minmax(320px,65%) !important;
           gap: 24px !important;
           align-items: start !important;
           width: 100% !important;
@@ -1238,22 +1414,24 @@
         .product-information__media {
           grid-column: 1 !important;
           width: 100% !important;
-          min-height: 500px !important; /* Stabilna wysokość zdjęć */
+          min-height: 500px !important;
+          min-width: 260px !important;
           box-sizing: border-box !important;
           background: white !important;
           padding: 20px !important;
           border-radius: 0 !important;
           box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
         }
-        
         .product-details {
           grid-column: 2 !important;
-          min-height: 500px !important; /* Stabilna wysokość aplikacji */
+          min-height: 500px !important;
+          min-width: 260px !important;
           background: white !important;
           padding: 20px !important;
           border-radius: 0 !important;
           box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
         }
+        #customify-app-container{min-width:260px!important}
       }
       
       /* MOBILE: Elastyczne wymiary */
@@ -3672,6 +3850,13 @@
             placeholder.appendChild(app);
           }
           
+          // 📱 Phone case: Hide cart price on page load
+          if (window.location.pathname.toLowerCase().includes('etui')) {
+            const priceEl = document.getElementById('phoneCaseCartPriceDisplay');
+            const actionsEl = document.getElementById('phoneCaseCartActions');
+            if (priceEl) priceEl.style.setProperty('display','none','important');
+            if (actionsEl) actionsEl.style.setProperty('display','none','important');
+          }
         });
       </script>
       
@@ -3882,6 +4067,28 @@
                     </div>
                   </div>
                 </div>
+              {% elsif product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem' %}
+                <div class="phone-case-preview">
+                  <div class="phone-case-inner">
+                    <div class="phone-case-photo-bg" id="phoneCasePhotoBg"></div>
+                    <img class="phone-case-overlay" src="https://customify-s56o.vercel.app/phone/phone_ok.png" alt="">
+                    <img id="previewImage" alt="Podgląd zdjęcia" style="display: none;">
+                  </div>
+                </div>
+                <!-- 📱 Phone case: Przycisk "Dodaj do koszyka" pod obrazkiem w previewArea -->
+                <div class="customify-actions" id="phoneCaseCartActions" style="display: none; margin-top: 15px;">
+                  <button class="customify-btn customify-btn-primary customify-btn-red" id="phoneCaseAddToCartBtn">
+                    Dodaj do koszyka
+                  </button>
+                  <button class="customify-btn customify-btn-secondary" id="phoneCaseTryAgainBtn">
+                    Spróbuj ponownie
+                  </button>
+                </div>
+                <!-- 📱 Phone case: Cena nad przyciskiem -->
+                <div class="customify-cart-price" id="phoneCaseCartPriceDisplay" style="display: none; margin: 15px 0; text-align: center; padding: 10px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e9ecef;">
+                  <span class="cart-price-label" style="font-weight: 600; color: #333; margin-right: 12px;">Cena:</span>
+                  <span class="cart-price-value" id="phoneCaseCartPriceValue" style="font-size: 1.2rem; font-weight: 700; color: #e55a2b;">0.00 zł</span>
+                </div>
               {% else %}
                 <img id="previewImage" alt="Podgląd zdjęcia">
               {% endif %}
@@ -3999,6 +4206,22 @@
                   <div class="phone-crop-actions">
                     <button type="button" class="customify-btn customify-btn-secondary" id="phoneCropCancelBtn">Anuluj</button>
                     <button type="button" class="customify-btn customify-btn-primary" id="phoneCropConfirmBtn">Zapisz kadr</button>
+                  </div>
+                </div>
+              </div>
+            {% endif %}
+            
+            {% if product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem' %}
+              <div id="phonePhotoCropModal" class="phone-photo-crop-modal" aria-hidden="true">
+                <div class="phone-photo-crop-dialog">
+                  <h4>Ustaw kadr zdjęcia</h4>
+                  <div class="phone-photo-crop-canvas">
+                    <img id="phonePhotoCropImage" alt="Kadrowanie zdjęcia">
+                    <div id="phonePhotoCropWatermark" class="phone-photo-crop-watermark" style="display: none;"></div>
+                  </div>
+                  <div class="phone-photo-crop-actions">
+                    <button type="button" class="customify-btn customify-btn-secondary" id="phonePhotoCropCancelBtn">Anuluj</button>
+                    <button type="button" class="customify-btn customify-btn-primary" id="phonePhotoCropConfirmBtn">Zapisz kadr</button>
                   </div>
                 </div>
               </div>
@@ -4534,6 +4757,14 @@
                   </div>
                 </div>
                 
+              {% elsif product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem' %}
+                <div class="phone-case-preview">
+                  <div class="phone-case-inner">
+                    <div class="phone-case-photo-bg" id="phoneCaseResultBg"></div>
+                    <img class="phone-case-overlay" src="https://customify-s56o.vercel.app/phone/phone_ok.png" alt="">
+                    <img id="resultImage" alt="Wynik AI" style="display: none;">
+                  </div>
+                </div>
               {% else %}
                 <img id="resultImage" alt="Wynik AI">
               {% endif %}
@@ -4587,7 +4818,7 @@
                     <option value="script5">Indie Flower</option>
                     <option value="western_1">Westernowa 1 (Rye)</option>
                     <option value="western_2">Westernowa 2 (Creepster)</option>
-                    <option value="hiphop">Hip-Hop (Graffiti)</option>
+                    <option value="hiphop">Graffiti (Rubik Wet Paint)</option>
                     <option value="royale">Królewska (Bonheur Royale)</option>
                   </select>
                 </div>
@@ -4950,6 +5181,79 @@
           opacity: 0.5;
           pointer-events: none;
         }
+
+        {% if product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem' %}
+        /* 📱 Etui na telefon - overlay podglądu (preview + result) */
+        #customify-app-container .phone-case-preview {
+          width: 100% !important;
+          max-width: 520px !important;
+          min-width: 300px !important;
+          margin: 0 auto;
+          box-sizing: border-box;
+        }
+        #customify-app-container #previewArea {
+          padding: 0;
+          margin-top: 12px;
+          border-top: none;
+          background: transparent;
+          display: flex;
+          flex-direction: column;
+          width: 100% !important;
+          max-width: 520px !important;
+          margin-left: auto;
+          margin-right: auto;
+        }
+        #customify-app-container #previewArea h4 {
+          margin: 0 0 10px 0;
+          flex-shrink: 0;
+        }
+        #customify-app-container #previewArea .phone-case-preview {
+          flex-shrink: 0;
+        }
+        #customify-app-container .phone-case-inner {
+          position: relative !important;
+          width: 100% !important;
+          height: 0 !important;
+          padding-top: 206.61896171744258% !important;
+          overflow: hidden !important;
+        }
+        @supports (aspect-ratio: 1) {
+          #customify-app-container .phone-case-inner {
+            height: auto !important;
+            padding-top: 0 !important;
+            aspect-ratio: 559 / 1154 !important;
+          }
+        }
+        #customify-app-container .phone-case-photo-bg {
+          position: absolute !important;
+          inset: 0 !important;
+          width: 100% !important;
+          height: 100% !important;
+          background-repeat: no-repeat !important;
+          background-position: center center !important;
+          background-size: cover !important;
+          z-index: 0 !important;
+        }
+        #customify-app-container .phone-case-overlay {
+          position: absolute !important;
+          inset: 0 !important;
+          width: 100% !important;
+          height: 100% !important;
+          object-fit: contain !important;
+          object-position: center !important;
+          display: block !important;
+          max-width: 100% !important;
+          max-height: 100% !important;
+          pointer-events: none !important;
+          z-index: 1 !important;
+        }
+        #customify-app-container .phone-case-inner {
+          overflow: hidden !important;
+        }
+        #customify-app-container .phone-case-preview {
+          height: auto !important;
+        }
+        {% endif %}
 
         {% if product.handle == 'ramka-spotify' or product.handle == 'zdjecie-na-szkle-ramka-spotify' %}
         /* Spotify frame preview - tylko dla ramka-spotify */
@@ -5360,6 +5664,76 @@
           justify-content: flex-end;
         }
         
+        {% endif %}
+        
+        {% if product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem' %}
+        /* 📱 Telefon (etui) - Crop modal */
+        .phone-photo-crop-modal {
+          position: fixed;
+          inset: 0;
+          background: rgba(0, 0, 0, 0.6);
+          display: none;
+          align-items: center;
+          justify-content: center;
+          z-index: 999999;
+          padding: 16px;
+          box-sizing: border-box;
+        }
+        .phone-photo-crop-modal.is-open {
+          display: flex;
+        }
+        @media (max-width: 768px) {
+          .phone-photo-crop-modal {
+            padding: 0; /* Na mobile: bez padding, dialog na całą szerokość */
+          }
+        }
+        .phone-photo-crop-dialog {
+          width: 100%;
+          max-width: 520px;
+          background: #ffffff;
+          border-radius: 12px;
+          padding: 16px;
+          box-sizing: border-box;
+        }
+        @media (max-width: 768px) {
+          .phone-photo-crop-dialog {
+            max-width: 100%;
+            width: 100%;
+            border-radius: 0; /* Na mobile: bez zaokrągleń */
+            padding: 12px;
+            height: 100vh; /* Na mobile: pełna wysokość */
+            display: flex;
+            flex-direction: column;
+          }
+        }
+        .phone-photo-crop-canvas {
+          position: relative;
+          width: 100%;
+          max-height: 70vh;
+          overflow: hidden;
+          border-radius: 8px;
+          background: #f4f4f4;
+          margin: 12px 0;
+        }
+        .phone-photo-crop-canvas img {
+          max-width: 100%;
+          display: block;
+        }
+        .phone-photo-crop-watermark {
+          position: absolute;
+          inset: 0;
+          background-size: cover;
+          background-position: center;
+          background-repeat: no-repeat;
+          pointer-events: none;
+          z-index: 0;
+          opacity: 1;
+        }
+        .phone-photo-crop-actions {
+          display: flex;
+          gap: 10px;
+          justify-content: flex-end;
+        }
         {% endif %}
         
         /* Marginesy po przeniesieniu sekcji typu i rozmiaru nad cenę */

@@ -68,6 +68,17 @@ class CustomifyEmbed {
     this.phoneCropConfirmed = false;
     this.phoneCropDataUrl = null;
     this.originalPhoneFile = null;
+    
+    // 📱 Telefon (etui) - osobny cropper
+    this.phonePhotoCropModal = document.getElementById('phonePhotoCropModal');
+    this.phonePhotoCropImage = document.getElementById('phonePhotoCropImage');
+    this.phonePhotoCropConfirmBtn = document.getElementById('phonePhotoCropConfirmBtn');
+    this.phonePhotoCropCancelBtn = document.getElementById('phonePhotoCropCancelBtn');
+    this.phonePhotoCropper = null;
+    this.phonePhotoCropSourceUrl = null;
+    this.phonePhotoCropConfirmed = false;
+    this.phonePhotoCropDataUrl = null;
+    this.originalPhonePhotoFile = null;
 
     this.uploadedFile = null;
     this.selectedStyle = null;
@@ -192,7 +203,7 @@ class CustomifyEmbed {
   }
   
   isCropperProduct() {
-    return this.isSpotifyProduct() || this.isPhoneCaseProduct();
+    return this.isSpotifyProduct() || this.isPhoneCaseProduct() || this.isPhonePhotoCaseProduct();
   }
 
   // 🎵 Produkt Spotify BEZ generacji AI - od razu do koszyka po kadrowanie
@@ -204,7 +215,18 @@ class CustomifyEmbed {
   // 📱 Produkt telefon
   isPhoneCaseProduct() {
     const currentUrl = window.location.pathname.toLowerCase();
-    return currentUrl.includes('personalizowane-etui-na-telefon-z-twoim-zdjeciem-karykatura');
+    const isPhone = currentUrl.includes('personalizowane-etui-na-telefon-z-twoim-zdjeciem-karykatura');
+    console.log('📱 [DEBUG] isPhoneCaseProduct:', { currentUrl, isPhone });
+    return isPhone;
+  }
+  
+  // 📱 Produkt etui (zdjęcie) - osobny cropper
+  isPhonePhotoCaseProduct() {
+    const currentUrl = window.location.pathname.toLowerCase();
+    const isPhonePhoto = currentUrl.includes('personalizowane-etui-na-telefon-z-twoim-zdjeciem') &&
+      !currentUrl.includes('personalizowane-etui-na-telefon-z-twoim-zdjeciem-karykatura');
+    console.log('📱 [DEBUG] isPhonePhotoCaseProduct:', { currentUrl, isPhonePhoto });
+    return isPhonePhoto;
   }
 
   getCropConfig() {
@@ -213,6 +235,10 @@ class CustomifyEmbed {
 
   getPhoneCropConfig() {
     return { aspectRatio: 2 / 1, width: 2048, height: 1024, filePrefix: 'phone-crop' };
+  }
+  
+  getPhonePhotoCropConfig() {
+    return { aspectRatio: 1 / 2, width: 1000, height: 2000, filePrefix: 'phone-photo-crop' };
   }
 
   init() {
@@ -287,6 +313,16 @@ class CustomifyEmbed {
     // Po synchronizacji wymuś przeliczenie cen (uwzględnia ramkę, jeśli plakat)
     this.updateProductPrice();
     this.updateCartPrice();
+
+    // 📱 Phone case: Hide main cart price (phone case has its own price display)
+    if (this.isPhonePhotoCaseProduct && this.isPhonePhotoCaseProduct()) {
+      const cartPriceDisplay = document.getElementById('cartPriceDisplay');
+      if (cartPriceDisplay) cartPriceDisplay.style.display = 'none';
+      const phoneCaseCartPriceDisplay = document.getElementById('phoneCaseCartPriceDisplay');
+      if (phoneCaseCartPriceDisplay) phoneCaseCartPriceDisplay.style.setProperty('display','none','important');
+      const phoneCaseCartActions = document.getElementById('phoneCaseCartActions');
+      if (phoneCaseCartActions) phoneCaseCartActions.style.setProperty('display','none','important');
+    }
 
     // 🆕 Inicjalizacja napisów (pilotaż)
     this.setupTextOverlayUI();
@@ -1107,6 +1143,14 @@ class CustomifyEmbed {
       this.textOverlayState = { ...this.textOverlayState, text: '', previewUrl: null };
       this.updateTextOverlayHint('Pole jest puste');
       if (this.resultImage && this.watermarkedImageUrl) {
+        // 📱 Phone case: use background-image in preview area
+        if (this.isPhonePhotoCaseProduct()) {
+          const photoBg = document.getElementById('phoneCasePhotoBg');
+          if (photoBg) {
+            photoBg.style.backgroundImage = `url(${this.watermarkedImageUrl})`;
+            console.log('[PHONE PREVIEW] set background image from watermarkedImageUrl in preview area');
+          }
+        }
         this.resultImage.src = this.watermarkedImageUrl;
       }
       return;
@@ -1135,6 +1179,15 @@ class CustomifyEmbed {
     this.textOverlayState = { ...this.textOverlayState, previewUrl: base64WithText };
 
     if (this.resultImage) {
+      // 📱 Phone case: use background-image in preview area
+      if (this.isPhonePhotoCaseProduct()) {
+        const photoBg = document.getElementById('phoneCasePhotoBg');
+        const imageUrl = previewWithWatermark || base64WithText;
+        if (photoBg && imageUrl) {
+          photoBg.style.backgroundImage = `url(${imageUrl})`;
+          console.log('[PHONE PREVIEW] set background image from text overlay in preview area');
+        }
+      }
       this.resultImage.src = previewWithWatermark || base64WithText;
     }
   }
@@ -1191,6 +1244,15 @@ class CustomifyEmbed {
     }
 
     if (this.resultImage) {
+      // 📱 Phone case: use background-image in preview area
+      if (this.isPhonePhotoCaseProduct()) {
+        const photoBg = document.getElementById('phoneCasePhotoBg');
+        const imageUrl = watermarkedUrl || overlayUrl;
+        if (photoBg && imageUrl) {
+          photoBg.style.backgroundImage = `url(${imageUrl})`;
+          console.log('[PHONE PREVIEW] set background image from text overlay save in preview area');
+        }
+      }
       this.resultImage.src = watermarkedUrl || overlayUrl;
     }
 
@@ -1260,7 +1322,8 @@ class CustomifyEmbed {
       script4: 'Great Vibes',
       script5: 'Indie Flower',
       western_1: 'Rye',
-      western_2: 'Creepster'
+      western_2: 'Creepster',
+      hiphop: 'Rubik Wet Paint'
     };
     
     const fontName = fontNameMap[options.font] || fontNameMap.sans;
@@ -1294,7 +1357,8 @@ class CustomifyEmbed {
       script4: `700 ${fontSize}px "Great Vibes", "Satisfy", cursive`,
       script5: `700 ${fontSize}px "Indie Flower", "Pacifico", cursive`,
       western_1: `700 ${fontSize}px "Rye", "Times New Roman", serif`,
-      western_2: `700 ${fontSize}px "Creepster", "Rye", "Times New Roman", serif`
+      western_2: `700 ${fontSize}px "Creepster", "Rye", "Times New Roman", serif`,
+      hiphop: `700 ${fontSize}px "Rubik Wet Paint", "Creepster", "Rye", "Times New Roman", serif`
     };
             const font = fontMap[options.font] || fontMap.sans;
 
@@ -2485,15 +2549,79 @@ class CustomifyEmbed {
       phoneCropCancelBtn.addEventListener('click', () => this.cancelPhoneCrop());
     }
     
+    // 📱 Telefon (etui) - event listenery dla croppera
+    const phonePhotoCropConfirmBtn = document.getElementById('phonePhotoCropConfirmBtn');
+    const phonePhotoCropCancelBtn = document.getElementById('phonePhotoCropCancelBtn');
+    if (phonePhotoCropConfirmBtn) {
+      phonePhotoCropConfirmBtn.addEventListener('click', () => this.confirmPhonePhotoCrop());
+    }
+    if (phonePhotoCropCancelBtn) {
+      phonePhotoCropCancelBtn.addEventListener('click', () => this.cancelPhonePhotoCrop());
+    }
+    
     // 🎵 Kliknięcie w preview image otwiera cropper ponownie (ponowne kadrowanie)
-    if (this.isCropperProduct() && this.previewImage) {
-      this.previewImage.style.cursor = 'pointer';
-      this.previewImage.title = 'Kliknij aby ponownie wykadrować zdjęcie';
-      if (this.isPhoneCaseProduct()) {
-        this.previewImage.addEventListener('click', () => this.reopenPhoneCropper());
-      } else {
-        this.previewImage.addEventListener('click', () => this.reopenSpotifyCropper());
+    if (this.isCropperProduct()) {
+      if (this.isPhonePhotoCaseProduct()) {
+        // 📱 Phone case: click on background div instead of hidden img
+        const photoBg = document.getElementById('phoneCasePhotoBg');
+        if (photoBg) {
+          photoBg.style.cursor = 'pointer';
+          photoBg.title = 'Kliknij aby ponownie wykadrować zdjęcie';
+          photoBg.addEventListener('click', () => this.reopenPhonePhotoCropper());
+        }
+      } else if (this.previewImage) {
+        this.previewImage.style.cursor = 'pointer';
+        this.previewImage.title = 'Kliknij aby ponownie wykadrować zdjęcie';
+        if (this.isPhoneCaseProduct()) {
+          this.previewImage.addEventListener('click', () => this.reopenPhoneCropper());
+        } else {
+          this.previewImage.addEventListener('click', () => this.reopenSpotifyCropper());
+        }
       }
+    }
+    
+    // 📱 Phone case preview initialization (background-image mode)
+    if (this.isPhonePhotoCaseProduct()) {
+      console.log('📱 [PHONE PREVIEW] Initializing phone case preview (background-image mode)...');
+      const photoBg = document.getElementById('phoneCasePhotoBg');
+      if (photoBg) {
+        console.log(`📱 [PHONE PREVIEW] Found preview background div`);
+      } else {
+        console.warn('⚠️ [PHONE PREVIEW] No preview background div found - HTML may not be updated');
+      }
+      
+      // Debug: Log rendered sizes
+      setTimeout(() => {
+        const inner = document.querySelector('#customify-app-container .phone-case-inner');
+        const overlay = document.querySelector('#customify-app-container .phone-case-overlay');
+        const photoBgEl = document.getElementById('phoneCasePhotoBg');
+        if (inner) {
+          const innerRect = inner.getBoundingClientRect();
+          console.log('[PHONE PREVIEW] inner rect', {
+            width: innerRect.width,
+            height: innerRect.height,
+            aspectRatio: innerRect.width / innerRect.height,
+            expectedRatio: 559 / 1154
+          });
+        }
+        if (overlay) {
+          const overlayRect = overlay.getBoundingClientRect();
+          console.log('[PHONE PREVIEW] overlay rect', {
+            width: overlayRect.width,
+            height: overlayRect.height,
+            aspectRatio: overlayRect.width / overlayRect.height,
+            expectedRatio: 559 / 1154
+          });
+        }
+        if (photoBgEl) {
+          const photoBgRect = photoBgEl.getBoundingClientRect();
+          console.log('[PHONE PREVIEW] photo-bg rect', {
+            width: photoBgRect.width,
+            height: photoBgRect.height,
+            aspectRatio: photoBgRect.width / photoBgRect.height
+          });
+        }
+      }, 500);
     }
   }
   
@@ -2866,7 +2994,12 @@ class CustomifyEmbed {
     
     if (!phoneCropModal || !phoneCropImage) {
       console.warn('⚠️ [PHONE] Brak elementów croppera, fallback do normalnego preview');
-      this.uploadedFile = file;
+      this.showPreview(file);
+      return;
+    }
+    
+    if (typeof Cropper === 'undefined') {
+      console.warn('⚠️ [PHONE] CropperJS not loaded, fallback to normal preview');
       this.showPreview(file);
       return;
     }
@@ -2963,6 +3096,169 @@ class CustomifyEmbed {
     console.log('📱 [PHONE] Ponowne otwieranie croppera z oryginalnym zdjęciem');
     this.openPhoneCropper(this.originalPhoneFile);
   }
+  
+  // 📱 TELEFON (ETUI) - Otwórz cropper
+  openPhonePhotoCropper(file) {
+    const phonePhotoCropModal = document.getElementById('phonePhotoCropModal');
+    const phonePhotoCropImage = document.getElementById('phonePhotoCropImage');
+    
+    if (!phonePhotoCropModal || !phonePhotoCropImage) {
+      console.warn('⚠️ [PHONE-PHOTO] Brak elementów croppera, fallback do normalnego preview');
+      this.showPreview(file);
+      return;
+    }
+    
+    if (typeof Cropper === 'undefined') {
+      console.warn('⚠️ [PHONE-PHOTO] CropperJS not loaded, fallback to normal preview');
+      this.showPreview(file);
+      return;
+    }
+    
+    this.originalPhonePhotoFile = file;
+    console.log('📱 [PHONE-PHOTO] Zapisano oryginalne zdjęcie do ponownego kadrowania');
+    
+    this.phonePhotoCropConfirmed = false;
+    if (this.phonePhotoCropper) {
+      this.phonePhotoCropper.destroy();
+      this.phonePhotoCropper = null;
+    }
+    if (this.phonePhotoCropSourceUrl) {
+      URL.revokeObjectURL(this.phonePhotoCropSourceUrl);
+      this.phonePhotoCropSourceUrl = null;
+    }
+    
+    this.phonePhotoCropSourceUrl = URL.createObjectURL(file);
+    phonePhotoCropImage.src = this.phonePhotoCropSourceUrl;
+    
+    // Hide watermark overlay initially (will be shown in reopenPhonePhotoCropper if needed)
+    const watermarkOverlay = document.getElementById('phonePhotoCropWatermark');
+    if (watermarkOverlay) {
+      watermarkOverlay.style.display = 'none';
+    }
+    
+    phonePhotoCropModal.classList.add('is-open');
+    phonePhotoCropModal.setAttribute('aria-hidden', 'false');
+    
+    const cropConfig = this.getPhonePhotoCropConfig();
+    this.phonePhotoCropper = new Cropper(phonePhotoCropImage, {
+      aspectRatio: cropConfig.aspectRatio,
+      viewMode: 1,
+      autoCropArea: 1,
+      responsive: true,
+      movable: true,
+      zoomable: true,
+      zoomOnTouch: true,
+      zoomOnWheel: true,
+      background: false
+    });
+    
+    // Powiększone uchwyty croppera dla lepszej widoczności
+    setTimeout(() => {
+      const canvas = phonePhotoCropModal.querySelector('.phone-photo-crop-canvas');
+      if (canvas) {
+        const style = document.createElement('style');
+        style.textContent = '.phone-photo-crop-canvas .cropper-point{width:20px!important;height:20px!important;background:#39f!important;border:2px solid #fff!important;box-shadow:0 0 0 1px rgba(0,0,0,.2)!important}.phone-photo-crop-canvas .cropper-line,.phone-photo-crop-canvas .cropper-face{border-color:#39f!important;border-width:2px!important}';
+        document.head.appendChild(style);
+      }
+    }, 100);
+  }
+  
+  // 📱 TELEFON (ETUI) - Zamknij cropper
+  closePhonePhotoCropper() {
+    if (this.phonePhotoCropper) {
+      this.phonePhotoCropper.destroy();
+      this.phonePhotoCropper = null;
+    }
+    if (this.phonePhotoCropSourceUrl) {
+      URL.revokeObjectURL(this.phonePhotoCropSourceUrl);
+      this.phonePhotoCropSourceUrl = null;
+    }
+    const phonePhotoCropModal = document.getElementById('phonePhotoCropModal');
+    if (phonePhotoCropModal) {
+      phonePhotoCropModal.classList.remove('is-open');
+      phonePhotoCropModal.setAttribute('aria-hidden', 'true');
+    }
+  }
+  
+  // 📱 TELEFON (ETUI) - Potwierdź kadrowanie
+  confirmPhonePhotoCrop() {
+    if (!this.phonePhotoCropper) return;
+    const cropConfig = this.getPhonePhotoCropConfig();
+    const canvas = this.phonePhotoCropper.getCroppedCanvas({
+      width: cropConfig.width,
+      height: cropConfig.height,
+      imageSmoothingQuality: 'high'
+    });
+    canvas.toBlob((blob) => {
+      if (!blob) {
+        this.showError('Nie udało się przyciąć zdjęcia', 'transform');
+        return;
+      }
+      const croppedFile = new File([blob], `${cropConfig.filePrefix}-${Date.now()}.jpg`, { type: 'image/jpeg' });
+      this.uploadedFile = croppedFile;
+      this.phonePhotoCropConfirmed = true;
+      this.phonePhotoCropDataUrl = canvas.toDataURL('image/jpeg', 0.9);
+      this.closePhonePhotoCropper();
+      this.showPreview(croppedFile);
+      this.hideError();
+    }, 'image/jpeg', 0.9);
+  }
+  
+  // 📱 TELEFON (ETUI) - Anuluj kadrowanie
+  cancelPhonePhotoCrop() {
+    this.uploadedFile = null;
+    this.phonePhotoCropConfirmed = false;
+    if (this.fileInput) {
+      this.fileInput.value = '';
+    }
+    this.closePhonePhotoCropper();
+  }
+  
+  // 📱 TELEFON (ETUI) - Ponowne otwarcie croppera
+  async reopenPhonePhotoCropper() {
+    // 📱 Phone case: Crop image WITHOUT watermark (for print), but show watermark overlay visually
+    // Priority: transformedImage (without watermark) > original file
+    const imageToUse = this.transformedImage;
+    
+    if (imageToUse) {
+      console.log('📱 [PHONE-PHOTO] Ponowne otwieranie croppera z WYGENEROWANYM obrazem (bez watermarku - do cropowania)');
+      try {
+        // Convert URL to File for cropper (use image WITHOUT watermark for cropping)
+        const file = await this.urlToFile(imageToUse, 'phone-photo-ai-result.jpg');
+        this.openPhonePhotoCropper(file);
+        
+        // Show watermark overlay visually (if available)
+        if (this.watermarkedImageUrl) {
+          const watermarkOverlay = document.getElementById('phonePhotoCropWatermark');
+          if (watermarkOverlay) {
+            watermarkOverlay.style.backgroundImage = `url(${this.watermarkedImageUrl})`;
+            watermarkOverlay.style.display = 'block';
+            console.log('📱 [PHONE-PHOTO] Watermark overlay pokazany (tylko wizualnie)');
+          }
+        }
+      } catch (error) {
+        console.error('❌ [PHONE-PHOTO] Błąd konwersji URL na File:', error);
+        // Fallback to original file if conversion fails
+        if (this.originalPhonePhotoFile) {
+          console.log('📱 [PHONE-PHOTO] Fallback do oryginalnego zdjęcia');
+          this.openPhonePhotoCropper(this.originalPhonePhotoFile);
+        } else {
+          console.warn('⚠️ [PHONE-PHOTO] Brak oryginalnego zdjęcia do ponownego kadrowania');
+        }
+      }
+    } else if (this.originalPhonePhotoFile) {
+      console.log('📱 [PHONE-PHOTO] Ponowne otwieranie croppera z oryginalnym zdjęciem (przed AI)');
+      this.openPhonePhotoCropper(this.originalPhonePhotoFile);
+      
+      // Hide watermark overlay (no watermark before AI generation)
+      const watermarkOverlay = document.getElementById('phonePhotoCropWatermark');
+      if (watermarkOverlay) {
+        watermarkOverlay.style.display = 'none';
+      }
+    } else {
+      console.warn('⚠️ [PHONE-PHOTO] Brak oryginalnego zdjęcia do ponownego kadrowania');
+    }
+  }
 
   handleFileSelect(file) {
     if (!file) return;
@@ -2977,15 +3273,23 @@ class CustomifyEmbed {
 
     this.hideError();
     if (this.isCropperProduct()) {
+      console.log('🔍 [DEBUG] isCropperProduct = true');
       if (this.isPhoneCaseProduct()) {
+        console.log('📱 [DEBUG] isPhoneCaseProduct = true, otwieram phone cropper');
         this.phoneCropConfirmed = false;
         this.openPhoneCropper(file);
+      } else if (this.isPhonePhotoCaseProduct()) {
+        console.log('📱 [DEBUG] isPhonePhotoCaseProduct = true, otwieram phone photo cropper');
+        this.phonePhotoCropConfirmed = false;
+        this.openPhonePhotoCropper(file);
       } else {
+        console.log('🎵 [DEBUG] isPhoneCaseProduct = false, otwieram spotify cropper');
         this.spotifyCropConfirmed = false;
         this.openSpotifyCropper(file);
       }
       return;
     }
+    console.log('🔍 [DEBUG] isCropperProduct = false, normalny upload');
     this.uploadedFile = file;
     this.showPreview(file);
 
@@ -3029,7 +3333,29 @@ class CustomifyEmbed {
         }
         
         // Zdjęcie OK - pokaż podgląd
-        this.previewImage.src = e.target.result;
+        // 📱 Phone case: use background-image instead of img src
+        if (this.isPhonePhotoCaseProduct()) {
+          const photoBg = document.getElementById('phoneCasePhotoBg');
+          const inner = document.querySelector('#customify-app-container .phone-case-inner');
+          if (photoBg) {
+            photoBg.style.backgroundImage = `url(${e.target.result})`;
+            console.log('[PHONE PREVIEW] set background image', e.target.result.substring(0, 50) + '...');
+            if (inner) {
+              const innerRect = inner.getBoundingClientRect();
+              console.log('[PHONE PREVIEW] inner rect', {
+                width: innerRect.width,
+                height: innerRect.height,
+                aspectRatio: innerRect.width / innerRect.height
+              });
+            }
+          }
+          // Keep previewImage hidden but set src for compatibility
+          if (this.previewImage) {
+            this.previewImage.src = e.target.result;
+          }
+        } else {
+          this.previewImage.src = e.target.result;
+        }
         this.previewArea.style.display = 'block';
         console.log(`✅ [IMAGE] Rozdzielczość OK (min ${minWidth}×${minHeight}px)`);
         
@@ -3564,8 +3890,34 @@ class CustomifyEmbed {
             frameSurcharge
           });
 
-          // Pokaż element ceny
-          this.showCartPrice();
+          // 📱 Phone case: Also update phone case specific price display (ONLY after AI generation)
+          if (this.isPhonePhotoCaseProduct && this.isPhonePhotoCaseProduct()) {
+            // Phone case has its own price display - don't show main cart price
+            // (phone case price is shown/hidden separately in phoneCaseCartPriceDisplay)
+          } else {
+            // Pokaż element ceny (tylko dla innych produktów, nie phone case)
+            this.showCartPrice();
+          }
+          
+          // 📱 Phone case: Update phone case specific price display (ONLY after AI generation)
+          if (this.isPhonePhotoCaseProduct && this.isPhonePhotoCaseProduct()) {
+            const phoneCaseCartPriceValue = document.getElementById('phoneCaseCartPriceValue');
+            if (phoneCaseCartPriceValue) {
+              phoneCaseCartPriceValue.textContent = `${finalPrice.toFixed(2)} zł`;
+              console.log('📱 [PHONE PREVIEW] Phone case cart price updated:', finalPrice.toFixed(2), 'zł');
+            }
+            // Show price ONLY if image is generated (after AI)
+            const phoneCaseCartPriceDisplay = document.getElementById('phoneCaseCartPriceDisplay');
+            if (phoneCaseCartPriceDisplay) {
+              if (this.transformedImage) {
+                phoneCaseCartPriceDisplay.style.display = 'block';
+                console.log('📱 [PHONE PREVIEW] Cart price shown (after AI generation)');
+              } else {
+                phoneCaseCartPriceDisplay.style.display = 'none';
+                console.log('📱 [PHONE PREVIEW] Cart price hidden (before AI generation)');
+              }
+            }
+          }
         } else {
           console.warn('⚠️ [CART-PRICE] Cart price element not found');
         }
@@ -3578,6 +3930,10 @@ class CustomifyEmbed {
    * Pokazuje element ceny nad przyciskiem
    */
   showCartPrice() {
+    // Don't show main cart price for phone case (has its own price display)
+    if (this.isPhonePhotoCaseProduct && this.isPhonePhotoCaseProduct()) {
+      return; // Phone case has its own price display
+    }
     const cartPriceDisplay = document.getElementById('cartPriceDisplay');
     if (cartPriceDisplay) {
       cartPriceDisplay.style.display = 'block';
@@ -3889,6 +4245,15 @@ class CustomifyEmbed {
       this.showError('Najpierw wykadruj zdjęcie', 'transform');
       return;
     }
+    
+    // 📱 Dla etui (zdjęcie): sprawdź czy zdjęcie zostało wykadrowane
+    const isPhonePhotoCropped = this.phonePhotoCropConfirmed || 
+      (this.uploadedFile && this.uploadedFile.name && this.uploadedFile.name.startsWith('phone-photo-crop-'));
+    
+    if (this.isPhonePhotoCaseProduct() && !isPhonePhotoCropped) {
+      this.showError('Najpierw wykadruj zdjęcie', 'transform');
+      return;
+    }
 
     let spotifyPayload = null;
     if (this.isSpotifyProduct()) {
@@ -3971,6 +4336,8 @@ class CustomifyEmbed {
         ? this.spotifyCropDataUrl
         : (this.isPhoneCaseProduct() && this.phoneCropConfirmed && this.phoneCropDataUrl)
         ? this.phoneCropDataUrl
+        : (this.isPhonePhotoCaseProduct() && this.phonePhotoCropConfirmed && this.phonePhotoCropDataUrl)
+        ? this.phonePhotoCropDataUrl
         : await this.fileToBase64(this.uploadedFile);
       console.log('📱 [MOBILE] Starting transform request...');
       
@@ -4448,10 +4815,66 @@ class CustomifyEmbed {
     
     // ✅ POKAŻ PRZETWORZONY OBRAZ AI (bez watermarku w podglądzie)
     // Watermark będzie dodany PO transformacji i zapisany przez /api/update-generation-watermark
-    this.resultImage.src = imageUrl; // Pokaż PRZETWORZONY obraz AI (bez watermarku w podglądzie)
+    // 📱 Phone case: use background-image in PREVIEW area (same place as uploaded image)
+    if (this.isPhonePhotoCaseProduct()) {
+      console.log('📱 [PHONE PREVIEW] Phone case detected, using preview area');
+      // Use watermarkedImageUrl if available, otherwise use imageUrl
+      const finalImageUrl = this.watermarkedImageUrl || imageUrl;
+      console.log('📱 [PHONE PREVIEW] Using image URL:', finalImageUrl ? finalImageUrl.substring(0, 50) + '...' : 'none');
+      
+      const photoBg = document.getElementById('phoneCasePhotoBg');
+      const resultBg = document.getElementById('phoneCaseResultBg');
+      const inner = document.querySelector('#customify-app-container .phone-case-inner');
+      
+      // Set image in PREVIEW area (main location)
+      if (photoBg) {
+        photoBg.style.backgroundImage = `url(${finalImageUrl})`;
+        console.log('[PHONE PREVIEW] set background image in PREVIEW area (phoneCasePhotoBg)', finalImageUrl.substring(0, 50) + '...');
+      } else {
+        console.warn('⚠️ [PHONE PREVIEW] phoneCasePhotoBg not found!');
+      }
+      
+      // Also set in result area (backup, but resultArea will be hidden)
+      if (resultBg) {
+        resultBg.style.backgroundImage = `url(${finalImageUrl})`;
+        console.log('[PHONE PREVIEW] set background image in RESULT area (phoneCaseResultBg) as backup');
+      }
+      
+      if (inner) {
+        const innerRect = inner.getBoundingClientRect();
+        console.log('[PHONE PREVIEW] inner rect', {
+          width: innerRect.width,
+          height: innerRect.height,
+          aspectRatio: innerRect.width / innerRect.height
+        });
+      }
+      // Keep resultImage hidden but set src for compatibility
+      if (this.resultImage) {
+        this.resultImage.src = finalImageUrl;
+      }
+      // 📱 Phone case: hide resultArea, keep previewArea visible (like Spotify)
+      if (this.resultArea) {
+        this.resultArea.style.display = 'none !important';
+        this.resultArea.style.setProperty('display', 'none', 'important');
+        console.log('📱 [PHONE PREVIEW] resultArea hidden with !important');
+      }
+      if (this.previewArea) {
+        this.previewArea.style.display = 'block';
+        console.log('📱 [PHONE PREVIEW] previewArea shown');
+      }
+      // 📱 Phone case: Also hide resultArea after a delay (in case something shows it later)
+      setTimeout(() => {
+        if (this.resultArea && this.isPhonePhotoCaseProduct()) {
+          this.resultArea.style.display = 'none !important';
+          this.resultArea.style.setProperty('display', 'none', 'important');
+          console.log('📱 [PHONE PREVIEW] resultArea hidden again (delayed)');
+        }
+      }, 100);
+    } else {
+      this.resultImage.src = imageUrl; // Pokaż PRZETWORZONY obraz AI (bez watermarku w podglądzie)
+      this.resultArea.style.display = 'block';
+    }
     console.log('✅ [CUSTOMIFY] Showing AI result (watermark will be added after)');
-    
-    this.resultArea.style.display = 'block';
     
     // Rozmiary są zawsze widoczne na górze (poza resultArea)
     this.sizeArea.style.display = 'block';
@@ -4497,6 +4920,7 @@ class CustomifyEmbed {
     this.resultImage.onload = () => {
       setTimeout(() => this.updateSpotifyFrameScale(), 50);
     };
+    
   }
 
   // NAPRAWIONA FUNKCJA: STWÓRZ NOWY PRODUKT Z OBRAZKIEM AI (UKRYTY W KATALOGU)
@@ -5045,6 +5469,8 @@ class CustomifyEmbed {
     this.closeSpotifyCropper();
     this.phoneCropConfirmed = false;
     this.closePhoneCropper();
+    this.phonePhotoCropConfirmed = false;
+    this.closePhonePhotoCropper();
     if (this.textOverlayInput) {
       this.textOverlayInput.value = '';
       this.updateTextOverlayCounter();
@@ -5060,6 +5486,18 @@ class CustomifyEmbed {
     this.uploadArea.style.display = 'block'; // Pokaż pole upload z powrotem
     this.previewArea.style.display = 'none';
     this.stylesArea.style.display = 'none';
+    
+    // 📱 Phone case: Hide cart buttons in previewArea
+    if (this.isPhonePhotoCaseProduct && this.isPhonePhotoCaseProduct()) {
+      const phoneCaseCartActions = document.getElementById('phoneCaseCartActions');
+      const phoneCaseCartPriceDisplay = document.getElementById('phoneCaseCartPriceDisplay');
+      if (phoneCaseCartActions) {
+        phoneCaseCartActions.style.display = 'none';
+      }
+      if (phoneCaseCartPriceDisplay) {
+        phoneCaseCartPriceDisplay.style.display = 'none';
+      }
+    }
     
     // Usuń klasę has-result żeby previewArea mogło być widoczne po wgraniu nowego zdjęcia
     const container = document.getElementById('customify-app-container');
@@ -5104,6 +5542,18 @@ class CustomifyEmbed {
     // Pokaż pole upload (jeśli było ukryte)
     this.uploadArea.style.display = 'block';
     
+    // 📱 Phone case: Hide cart buttons in previewArea
+    if (this.isPhonePhotoCaseProduct && this.isPhonePhotoCaseProduct()) {
+      const phoneCaseCartActions = document.getElementById('phoneCaseCartActions');
+      const phoneCaseCartPriceDisplay = document.getElementById('phoneCaseCartPriceDisplay');
+      if (phoneCaseCartActions) {
+        phoneCaseCartActions.style.display = 'none';
+      }
+      if (phoneCaseCartPriceDisplay) {
+        phoneCaseCartPriceDisplay.style.display = 'none';
+      }
+    }
+    
     // Zresetuj wybrane style i rozmiary
     this.selectedStyle = null;
     this.selectedSize = null;
@@ -5116,6 +5566,8 @@ class CustomifyEmbed {
     this.closeSpotifyCropper();
     this.phoneCropConfirmed = false;
     this.closePhoneCropper();
+    this.phonePhotoCropConfirmed = false;
+    this.closePhonePhotoCropper();
     if (this.textOverlayInput) {
       this.textOverlayInput.value = '';
       this.updateTextOverlayCounter();

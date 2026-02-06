@@ -90,6 +90,36 @@ module.exports = async (req, res) => {
         body: JSON.stringify({ query, variables })
       });
 
+      // ✅ Sprawdź status odpowiedzi przed parsowaniem JSON
+      if (!response.ok) {
+        const contentType = response.headers.get('content-type') || '';
+        let errorBody = '';
+        
+        if (contentType.includes('application/json')) {
+          const errorData = await response.json();
+          errorBody = JSON.stringify(errorData);
+        } else {
+          // HTML lub inny format - pobierz jako tekst
+          errorBody = await response.text();
+          // Ogranicz do pierwszych 500 znaków żeby nie logować całej strony HTML
+          errorBody = errorBody.substring(0, 500);
+        }
+        
+        console.error(`❌ [CRON-POPULATE-QUEUE] HTTP ${response.status} ${response.statusText}`);
+        console.error(`❌ [CRON-POPULATE-QUEUE] Response body:`, errorBody);
+        
+        throw new Error(`Shopify API error: ${response.status} ${response.statusText} - ${errorBody.substring(0, 200)}`);
+      }
+
+      // ✅ Sprawdź Content-Type przed parsowaniem JSON
+      const contentType = response.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        const textBody = await response.text();
+        console.error(`❌ [CRON-POPULATE-QUEUE] Expected JSON but got ${contentType}`);
+        console.error(`❌ [CRON-POPULATE-QUEUE] Response body:`, textBody.substring(0, 500));
+        throw new Error(`Expected JSON but got ${contentType}. Response: ${textBody.substring(0, 200)}`);
+      }
+
       const data = await response.json();
       if (data.errors) {
         console.error('❌ [CRON-POPULATE-QUEUE] GraphQL errors:', data.errors);

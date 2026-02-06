@@ -1,0 +1,55 @@
+      /* Ukryj produkty Customify z nowymi nazwami rozmiarów (A5/A4/A3/A2) i "cyfrowy" */
+      .product-card:has([data-product-title*="A5"]),
+      .product-card:has([data-product-title*="A4"]),
+      .product-card:has([data-product-title*="A3"]),
+      .product-card:has([data-product-title*="A2"]),
+      .product-card:has([data-product-title*="cyfrowy" i]),
+      .product-card:has([href*="A5"]),
+      .product-card:has([href*="A4"]),
+      .product-card:has([href*="A3"]),
+      .product-card:has([href*="A2"]) {
+        display: none !important;
+      }
+      
+        /* ✅ NAPRAWIONE: Ukryj produkty z "rozmiar" w URL */
+        .custom-collection-card[href*="rozmiar"] {
+          display: none !important;
+        }
+        
+        /* ✅ Ukryj produkty z "cyfrowy" w URL */
+        .custom-collection-card[href*="cyfrowy"] {
+          display: none !important;
+        }
+        
+        /* ✅ NOWE: Ukryj produkty AI w sekcji rekomendacji produktów */
+        .product-recommendations a[href*="rozmiar"] {
+          display: none !important;
+        }
+        
+        .product-recommendations a[href*="cyfrowy"] {
+          display: none !important;
+        }
+      
+      
+      /* Zachowaj główny produkt Customify widoczny */
+      .product-card:has([data-product-title*="Obraz ze zdjęcia w stylu Ghibli"]),
+      .product-card:has([href*="custom"]) {
+        display: block !important;
+      }
+      
+      /* Ukryj TYLKO 2 przyciski Shopify - dodaj do koszyka i kup teraz */
+      button#BuyButtons-ProductSubmitButton,
+      button[id^="BuyButtons-ProductSubmitButton"],
+      .shopify-payment-button {
+        display: none !important;
+      }
+      
+      /* Ukryj quantity selector na stronie produktu */
+      #BuyButtons-ProductForm-template--26707455672645__main > div > quantity-selector-component {
+        display: none !important;
+      }
+      
+      /* Ukryj sekcję z koszyka */
+      #shopify-section-sections--26707450822981__section_fV4L9Q > div.section.section--page-width.color-scheme-1 > div.border-style.custom-section-content {
+        display: none !important;
+      }

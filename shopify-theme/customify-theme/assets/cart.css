@@ -1,0 +1,15 @@
+        .cart-item__ai-image {
+          width: 80px;
+          height: 80px;
+          object-fit: cover;
+          border-radius: 0;
+          border: 2px solid #e0e0e0;
+          margin-right: 15px;
+        }
+        
+        .cart-item__content-wrapper {
+          display: flex;
+          gap: 15px;
+          align-items: start;
+        }
+        

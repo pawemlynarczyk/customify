@@ -22,8 +22,225 @@ module.exports = async (req, res) => {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  // Funkcja pomocnicza do pobierania produktów z kolekcji (obsługuje handle lub ID)
+  async function getCollectionProducts(collectionHandleOrId) {
+    try {
+      const shopDomain = process.env.SHOPIFY_STORE_DOMAIN || 'customify-ok.myshopify.com';
+      const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
+
+      if (!accessToken) {
+        console.warn('⚠️ [BULK-EMAIL] SHOPIFY_ACCESS_TOKEN not configured, skipping collection products');
+        return [];
+      }
+
+      // Sprawdź czy to ID (tylko cyfry) czy handle (string)
+      const isId = /^\d+$/.test(collectionHandleOrId);
+      let query, variables;
+
+      if (isId) {
+        // Użyj ID (np. 672196395333)
+        const gid = `gid://shopify/Collection/${collectionHandleOrId}`;
+        query = `
+          query getCollectionProducts($id: ID!) {
+            collection(id: $id) {
+              id
+              title
+              handle
+              products(first: 50) {
+                edges {
+                  node {
+                    id
+                    title
+                    handle
+                    onlineStoreUrl
+                    featuredImage {
+                      url(transform: { maxWidth: 600, maxHeight: 600 })
+                    }
+                  }
+                }
+              }
+            }
+          }
+        `;
+        variables = { id: gid };
+      } else {
+        // Użyj handle (np. "walentynki")
+        query = `
+          query getCollectionProducts($handle: String!) {
+            collectionByHandle(handle: $handle) {
+              id
+              title
+              handle
+              products(first: 50) {
+                edges {
+                  node {
+                    id
+                    title
+                    handle
+                    onlineStoreUrl
+                    featuredImage {
+                      url(transform: { maxWidth: 600, maxHeight: 600 })
+                    }
+                  }
+                }
+              }
+            }
+          }
+        `;
+        variables = { handle: collectionHandleOrId };
+      }
+
+      const response = await fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Shopify-Access-Token': accessToken
+        },
+        body: JSON.stringify({
+          query,
+          variables
+        })
+      });
+
+      if (!response.ok) {
+        console.warn(`⚠️ [BULK-EMAIL] Failed to fetch collection ${collectionHandleOrId}`);
+        return [];
+      }
+
+      const data = await response.json();
+
+      // Obsługa zarówno collectionByHandle jak i collection (ID)
+      const collection = data?.data?.collectionByHandle || data?.data?.collection;
+
+      if (data.errors || !collection) {
+        console.warn(`⚠️ [BULK-EMAIL] Collection ${collectionHandleOrId} not found`);
+        return [];
+      }
+      const products = collection.products.edges
+        .map(edge => {
+          const product = edge.node;
+          return {
+            title: product.title,
+            handle: product.handle,
+            href: product.onlineStoreUrl || `https://lumly.pl/products/${product.handle}`,
+            img: product.featuredImage?.url || null
+          };
+        })
+        .filter(product => product.img); // Tylko produkty z obrazkiem
+
+      console.log(`✅ [BULK-EMAIL] Pobrano ${products.length} produktów z kolekcji "${collection.title}"`);
+      return products;
+    } catch (error) {
+      console.error(`❌ [BULK-EMAIL] Error fetching collection products:`, error);
+      return [];
+    }
+  }
+
+  // Funkcja do generowania template walentynkowego
+  function generateValentineTemplate(products) {
+    // Zbuduj wiersze produktów po 3 kolumny
+    const productRows = [];
+    for (let i = 0; i < products.length; i += 3) {
+      const rowItems = products.slice(i, i + 3);
+      const tds = rowItems.map(item => `
+        <td style="width: 33.33%; padding: 8px; vertical-align: top;">
+          <a href="${item.href}" style="text-decoration: none; color: #333; display: block; border: 2px solid #ffe0e8; border-radius: 10px; overflow: hidden; background: #fff;">
+            <img src="${item.img}" alt="${item.title}" style="width: 100%; height: auto; display: block; background: #ffe0e8;">
+            <div style="padding: 12px; font-size: 14px; line-height: 1.4; color: #333; text-align: center; font-weight: 500;">${item.title}</div>
+          </a>
+        </td>
+      `).join('');
+      productRows.push(`<tr>${tds}</tr>`);
+    }
+
+    const productTable = productRows.length > 0 ? `
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse: collapse; margin: 20px 0;">
+        ${productRows.join('')}
+      </table>
+    ` : '';
+
+    return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #fff5f8;">
+  <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+    <div style="background: linear-gradient(135deg, #ff6b9d 0%, #c44569 100%); padding: 50px 30px; text-align: center;">
+      <h1 style="color: white; margin: 0; font-size: 32px; font-weight: bold; text-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+        Obraz z waszego zdjęcia
+      </h1>
+      <p style="color: white; margin: 15px 0 0; font-size: 18px; opacity: 0.95;">
+        Stwórz wyjątkowy prezent dla ukochanej osoby
+      </p>
+    </div>
+    <div style="padding: 40px 30px; background-color: #ffffff;">
+      <p style="font-size: 18px; color: #333; margin: 0 0 20px; line-height: 1.6;">
+        Cześć! 👋
+      </p>
+      <p style="font-size: 16px; color: #555; margin: 0 0 20px; line-height: 1.6;">
+        Walentynki zbliżają się wielkimi krokami! 💝<br>
+        To idealny moment, żeby stworzyć wyjątkowy prezent - <strong>personalizowany obraz ze zdjęcia</strong> w stylu AI.
+      </p>
+      <p style="font-size: 16px; color: #555; margin: 0 0 30px; line-height: 1.6;">
+        Wybierz jeden z naszych <strong>walentynkowych stylów</strong> i stwórz niepowtarzalny portret, który zachwyci Twoją drugą połówkę! ❤️
+      </p>
+      <div style="text-align: center; margin: 35px 0;">
+        <a href="https://lumly.pl/collections/walentynki" style="display: inline-block; background: linear-gradient(135deg, #ff6b9d 0%, #c44569 100%); color: white; padding: 18px 45px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 18px; box-shadow: 0 4px 12px rgba(255, 107, 157, 0.3);">
+          Zobacz produkty walentynkowe →
+        </a>
+      </div>
+      ${products.length > 0 ? `
+      <div style="margin: 40px 0 20px;">
+        <h2 style="margin: 0 0 20px; font-size: 22px; color: #333; text-align: center;">
+          💝 Nasze propozycje na Walentynki
+        </h2>
+        ${productTable}
+        <div style="text-align: center; margin: 25px 0;">
+          <a href="https://lumly.pl/collections/walentynki" style="color: #ff6b9d; text-decoration: none; font-weight: bold; font-size: 16px; border-bottom: 2px solid #ff6b9d; padding-bottom: 2px;">
+            Zobacz wszystkie produkty walentynkowe →
+          </a>
+        </div>
+      </div>
+      ` : ''}
+      <div style="background: #fff5f8; padding: 25px; border-radius: 10px; margin: 30px 0; border-left: 4px solid #ff6b9d;">
+        <p style="font-size: 15px; color: #555; margin: 0 0 12px; line-height: 1.6;">
+          <strong>💡 Dlaczego warto?</strong>
+        </p>
+        <ul style="font-size: 14px; color: #666; margin: 0; padding-left: 20px; line-height: 1.8;">
+          <li>Wyjątkowe, personalizowane prezenty</li>
+          <li>Wysoka jakość wydruku na płótnie</li>
+          <li>Szybka realizacja zamówienia</li>
+          <li>Darmowa dostawa przy zamówieniach powyżej 200 zł</li>
+        </ul>
+      </div>
+      <p style="font-size: 15px; color: #555; line-height: 1.6; margin: 30px 0 20px; text-align: center;">
+        Zobacz swoje wcześniejsze efekty: 
+        <a href="https://lumly.pl/pages/my-generations" style="color: #ff6b9d; text-decoration: none; font-weight: bold;">Moje generacje</a>
+      </p>
+      <p style="font-size: 14px; color: #666; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; text-align: center;">
+        Masz pytania? Napisz do nas: 
+        <a href="mailto:biuro@lumly.pl" style="color: #ff6b9d; text-decoration: none; font-weight: bold;">biuro@lumly.pl</a>
+      </p>
+    </div>
+    <div style="background: linear-gradient(135deg, #fff5f8 0%, #ffe0e8 100%); padding: 25px 30px; text-align: center; border-top: 1px solid #ffe0e8;">
+      <p style="margin: 0 0 10px; font-size: 12px; color: #999;">
+        © 2025 Lumly.pl - Personalizowane portrety AI
+      </p>
+      <p style="margin: 0; font-size: 11px; color: #bbb;">
+        <a href="#" style="color: #999; text-decoration: underline;">Wypisz się z newslettera</a>
+      </p>
+    </div>
+  </div>
+</body>
+</html>
+    `;
+  }
+
   try {
-    const { customers, testEmail } = req.body;
+    const { customers, testEmail, collectionHandle } = req.body;
 
     // Jeśli testEmail, wyślij tylko do niego (nie wymaga customers)
     // Dodano obsługę custom subject/html przez payload (fallback do domyślnego)
@@ -35,6 +252,21 @@ module.exports = async (req, res) => {
         html: customHtml
       } = req.body || {};
 
+      // Jeśli collectionHandle === 'walentynki', pobierz produkty i użyj template walentynkowego
+      let emailHtml = customHtml;
+      let subject = customSubject;
+
+      // Obsługa collectionHandle (handle) lub collectionId (ID)
+      const collectionId = req.body.collectionId;
+      const collectionIdentifier = collectionId || collectionHandle;
+      
+      if (collectionIdentifier && !customHtml) {
+        console.log(`💕 [BULK-EMAIL] Używam template walentynkowego dla kolekcji: ${collectionIdentifier}`);
+        const products = await getCollectionProducts(collectionIdentifier);
+        emailHtml = generateValentineTemplate(products);
+        subject = subject || 'Walentynki - obraz z Waszego zdjęcia';
+      } else if (!customHtml) {
+        // Domyślny template (stary kod)
       // Produkty do sekcji na dole maila (realne miniatury z kolekcji see_also)
       const products = [
         {
@@ -151,15 +383,16 @@ module.exports = async (req, res) => {
 </html>
       `;
 
-      const emailHtml = customHtml || defaultHtml;
-      const subject = customSubject || '🎨 Zobacz wspaniałe obrazy, które stworzyłeś!';
+        emailHtml = emailHtml || defaultHtml;
+        subject = subject || '🎨 Zobacz wspaniałe obrazy, które stworzyłeś!';
+      }
 
       const result = await resend.emails.send({
         from: 'Lumly <noreply@notification.lumly.pl>',
         reply_to: 'biuro@lumly.pl',
         to: testEmail,
-        subject,
-        html: emailHtml
+        subject: subject || '🎨 Zobacz wspaniałe obrazy, które stworzyłeś!',
+        html: emailHtml || defaultHtml
       });
 
       return res.status(200).json({
@@ -181,6 +414,17 @@ module.exports = async (req, res) => {
 
     console.log(`📧 [BULK-EMAIL] Rozpoczynam wysyłkę do ${customers.length} klientów...`);
 
+    // Jeśli collectionHandle lub collectionId, pobierz produkty raz (dla wszystkich)
+    const collectionId = req.body.collectionId;
+    const collectionIdentifier = collectionId || collectionHandle;
+    let valentineProducts = [];
+    let valentineTemplate = null;
+    if (collectionIdentifier) {
+      console.log(`💕 [BULK-EMAIL] Pobieram produkty z kolekcji ${collectionIdentifier} dla masowej wysyłki...`);
+      valentineProducts = await getCollectionProducts(collectionIdentifier);
+      valentineTemplate = generateValentineTemplate(valentineProducts);
+    }
+
     for (let i = 0; i < customers.length; i++) {
       const customer = customers[i];
       const email = customer.email;
@@ -191,7 +435,10 @@ module.exports = async (req, res) => {
       }
 
       try {
-        const emailHtml = `
+        // Użyj template walentynkowego jeśli dostępny, w przeciwnym razie domyślny
+        const emailHtml = collectionIdentifier && valentineTemplate
+          ? valentineTemplate
+          : `
 <!DOCTYPE html>
 <html>
 <head>
@@ -220,11 +467,15 @@ module.exports = async (req, res) => {
 </html>
         `;
 
+        const emailSubject = collectionIdentifier
+          ? 'Walentynki - obraz z Waszego zdjęcia'
+          : '🎨 Zobacz wspaniałe obrazy, które stworzyłeś!';
+
         const result = await resend.emails.send({
           from: 'Lumly <noreply@notification.lumly.pl>',
           reply_to: 'biuro@lumly.pl',
           to: email,
-          subject: '🎨 Zobacz wspaniałe obrazy, które stworzyłeś!',
+          subject: emailSubject,
           html: emailHtml
         });
 

@@ -1,0 +1,16 @@
+              .customify-article-collection { max-width: 1200px; margin: 40px auto 20px; padding: 0 20px; }
+              .customify-article-collection__header { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
+              .customify-article-collection__title { font-size: 1.6rem; margin: 0; }
+              .customify-article-collection__link { font-size: .95rem; text-decoration: none; color: #111; }
+              .customify-article-collection__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+              .customify-article-collection__card { display: block; border: 1px solid #e5e5e5; border-radius: 8px; overflow: hidden; background: #fff; text-decoration: none; color: inherit; transition: box-shadow .2s ease, transform .2s ease; }
+              .customify-article-collection__card:hover { box-shadow: 0 6px 18px rgba(0,0,0,.08); transform: translateY(-2px); }
+              .customify-article-collection__image { aspect-ratio: 1 / 1; background: #f8f9fa; display: flex; align-items: center; justify-content: center; }
+              .customify-article-collection__image img { width: 100%; height: 100%; object-fit: cover; }
+              .customify-article-collection__meta { padding: 10px 12px; }
+              .customify-article-collection__name { font-weight: 600; font-size: .95rem; margin-bottom: 6px; }
+              .customify-article-collection__price { color: #000000; font-weight: 700; }
+              @media (max-width: 768px) {
+                .customify-article-collection__header { flex-direction: column; align-items: flex-start; }
+              }
+            </style>
