@@ -3055,6 +3055,9 @@
       </div>
       
       {{ 'customify.css' | asset_url | stylesheet_tag }}
+      <script>
+        // Dynamiczne przenoszenie sekcji rodzaju i rozmiaru nad cenę, gdy widoczny jest wynik AI
+        document.addEventListener('DOMContentLoaded', function() {
           var resultArea = document.getElementById('resultArea');
           var inlineSlot = document.getElementById('type-size-inline-slot');
           var originalPlaceholder = document.getElementById('type-size-original-placeholder');
@@ -3409,7 +3412,6 @@
           }
         });
       </script>
-    {% endif %}
 
     {% comment %} CUSTOMIFY CART INTEGRATION {% endcomment %}
     {% if template contains 'cart' %}
