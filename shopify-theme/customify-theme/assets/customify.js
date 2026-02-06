@@ -45,7 +45,7 @@ class CustomifyEmbed {
     this.textOverlayBaseImage = null; // Oryginał bez tekstu (URL z Blob)
     this.textOverlayWatermarkedUrl = null;
     this.textOverlayOriginalWatermarked = null;
-    this.textOverlayPreviewDebounceTimer = null; // Timer dla debounce preview
+    this.textOverlayDebounceTimer = null; // Timer dla debounce preview
 
     // 🎵 Spotify frame fields
     this.spotifyFieldsPanel = document.getElementById('spotifyFieldsPanel');
@@ -318,11 +318,10 @@ class CustomifyEmbed {
     // 📱 Phone case: Hide main cart price (phone case has its own price display)
     if (this.isPhonePhotoCaseProduct && this.isPhonePhotoCaseProduct()) {
       const cartPriceDisplay = document.getElementById('cartPriceDisplay');
-      if (cartPriceDisplay) cartPriceDisplay.style.display = 'none';
-      const phoneCaseCartPriceDisplay = document.getElementById('phoneCaseCartPriceDisplay');
-      if (phoneCaseCartPriceDisplay) phoneCaseCartPriceDisplay.style.setProperty('display','none','important');
-      const phoneCaseCartActions = document.getElementById('phoneCaseCartActions');
-      if (phoneCaseCartActions) phoneCaseCartActions.style.setProperty('display','none','important');
+      if (cartPriceDisplay) {
+        cartPriceDisplay.style.display = 'none';
+        console.log('📱 [PHONE PREVIEW] Main cart price hidden (phone case has its own price display)');
+      }
     }
 
     // 🆕 Inicjalizacja napisów (pilotaż)
@@ -2804,10 +2803,10 @@ class CustomifyEmbed {
         this.textOverlayState.applied = false;
         
         // ✅ DEBOUNCE: Opóźnij preview o 80ms żeby nie renderować przy każdym znaku
-        if (this.textOverlayPreviewDebounceTimer) {
-          clearTimeout(this.textOverlayPreviewDebounceTimer);
+        if (this.textOverlayDebounceTimer) {
+          clearTimeout(this.textOverlayDebounceTimer);
         }
-        this.textOverlayPreviewDebounceTimer = setTimeout(() => {
+        this.textOverlayDebounceTimer = setTimeout(() => {
           this.previewTextOverlay().catch(err => {
             console.error('❌ [TEXT-OVERLAY] auto-preview error:', err);
           });
