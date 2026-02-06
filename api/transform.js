@@ -1488,6 +1488,22 @@ module.exports = async (req, res) => {
           guidance: 3.5
         }
       },
+      // Style Pop Art - OpenAI GPT Image 1.5 via Replicate
+      'pop-art': {
+        model: "openai/gpt-image-1.5",
+        prompt: "Transform the entire scene into an intensely stylized, hyper-vibrant pop art illustration blending the aesthetics of 1960s comic books with bold modern pop art design. and dynamic, action-packed poses frozen at peak motion. Use thick, crisp, black contour lines and sharply defined silhouettes to emphasize every gesture and shape. Adopt a saturated, high-contrast color palette dominated by primary colors (electric yellow, punchy red, vivid blue) and intense accent tones (hot pink, neon turquoise, lime green). Apply Ben-Day dots and halftone shading across large surface areas — skin, clothing, sky, — with varied dot sizes to create depth and texture. In the background, add large, stylized sunburst rays radiating outward from a central point behind the characters — bold, symmetrical beams in alternating high-contrast colors,  Ensure the rays interact with the scene: cutting behind buildings, intersecting with halftone fields, and adding dramatic visual energy. Surround the characters with exaggerated urban elements rendered in iconic pop art style: graffiti-covered brick walls with thick outlines, abstracted city skylines, and mural-like geometric patterns. Incorporate graphic motion lines, comic-style speed bursts, and stylized shadow shapes to amplify the sense of action.",
+        productType: "pop_art",
+        parameters: {
+          aspect_ratio: "2:3",
+          quality: "medium",
+          background: "auto",
+          output_format: "png",
+          input_fidelity: "high",
+          number_of_images: 1,
+          output_compression: 90,
+          moderation: "low"
+        }
+      },
       // Style 3D Cartoon - OpenAI GPT Image 1.5 via Replicate
       '3d-cartoon': {
         model: "openai/gpt-image-1.5",

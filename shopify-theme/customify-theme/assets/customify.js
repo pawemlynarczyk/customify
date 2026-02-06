@@ -586,6 +586,11 @@ class CustomifyEmbed {
       console.log('🐱 [PRODUCT-TYPE] URL = Koty → productType: cats');
       return 'cats';
     }
+    if (currentUrl.includes('obraz-w-stylu-pop-art-z-twojego-zdjecia-personalizowany-na-prezent')) {
+      console.log('🎨 [PRODUCT-TYPE] URL = Pop Art → productType: pop_art');
+      return 'pop_art';
+    }
+
     if (currentUrl.includes('personalizowany-obraz-3d-cartoon-ilustracja-z-twojego-zdjecia')) {
       console.log('🎨 [PRODUCT-TYPE] URL = 3D Cartoon → productType: 3d_cartoon');
       return '3d_cartoon';
@@ -670,6 +675,7 @@ class CustomifyEmbed {
     console.log('⚠️ [PRODUCT-TYPE] Nie rozpoznano URL, sprawdzam styl:', style);
     
     const styleToProductType = {
+      'pop-art': 'pop_art',
       '3d-cartoon': '3d_cartoon',
       'oil-paints': 'oil_paints',
       'oil-painting': 'oil_painting',
