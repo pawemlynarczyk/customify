@@ -29,9 +29,8 @@
  <link rel="preconnect" href="https://fonts.googleapis.com">
  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
  
-<link rel="preload" href="https://fonts.gstatic.com/s/montserrat/v26/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCtr6Hw5aXpsog.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="https://fonts.gstatic.com/s/dancingscript/v25/If2cXTr6YS-zF4S-kcSWSVi_sxjsohD9F50Ruu7BMSo3Sup8.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="https://fonts.gstatic.com/s/rubikwetpaint/v2/CHyfV8E1QdobPzfw3zQhFXVH_5e8.woff2" as="font" type="font/woff2" crossorigin>
+ <link rel="preload" href="https://fonts.gstatic.com/s/montserrat/v26/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCtr6Hw5aXpsog.woff2" as="font" type="font/woff2" crossorigin>
+ <link rel="preload" href="https://fonts.gstatic.com/s/dancingscript/v25/If2cXTr6YS-zF4S-kcSWSVi_sxjsohD9F50Ruu7BMSo3Sup8.woff2" as="font" type="font/woff2" crossorigin>
  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Dancing+Script:wght@700&family=Pacifico&family=Satisfy&family=Great+Vibes&family=Indie+Flower&family=Bebas+Neue&family=Rye&family=Creepster&family=Bungee:wght@400&family=Rubik+Wet+Paint&family=Bonheur+Royale&display=swap" rel="stylesheet">
  {%- render 'scripts' -%}
  {%- render 'theme-styles-variables' -%}
@@ -696,6 +695,56 @@
  if (this.previewArea) {
  this.previewArea.style.display = 'block';
  console.log('📱 [PHONE PREVIEW] previewArea shown');
+ }
+ 
+ // 📱 Phone case: Show "Add to cart" button in previewArea ONLY after AI generation
+ const phoneCaseCartActions = document.getElementById('phoneCaseCartActions');
+ const phoneCaseCartPriceDisplay = document.getElementById('phoneCaseCartPriceDisplay');
+ // Show buttons and price ONLY if image is generated (after AI)
+ if (this.transformedImage) {
+ if (phoneCaseCartActions) {
+ phoneCaseCartActions.style.display = 'flex';
+ console.log('📱 [PHONE PREVIEW] Cart actions shown in previewArea (after AI generation)');
+ }
+ if (phoneCaseCartPriceDisplay) {
+ phoneCaseCartPriceDisplay.style.display = 'block';
+ console.log('📱 [PHONE PREVIEW] Cart price shown in previewArea (after AI generation)');
+ }
+ } else {
+ // Hide buttons and price if no image generated yet
+ if (phoneCaseCartActions) {
+ phoneCaseCartActions.style.display = 'none';
+ console.log('📱 [PHONE PREVIEW] Cart actions hidden (before AI generation)');
+ }
+ if (phoneCaseCartPriceDisplay) {
+ phoneCaseCartPriceDisplay.style.display = 'none';
+ console.log('📱 [PHONE PREVIEW] Cart price hidden (before AI generation)');
+ }
+ }
+ 
+ // 📱 Phone case: Setup event listeners for cart buttons
+ const phoneCaseAddToCartBtn = document.getElementById('phoneCaseAddToCartBtn');
+ const phoneCaseTryAgainBtn = document.getElementById('phoneCaseTryAgainBtn');
+ if (phoneCaseAddToCartBtn) {
+ phoneCaseAddToCartBtn.onclick = () => {
+ console.log('📱 [PHONE PREVIEW] Add to cart clicked');
+ if (this.addToCart) {
+ this.addToCart();
+ }
+ };
+ }
+ if (phoneCaseTryAgainBtn) {
+ phoneCaseTryAgainBtn.onclick = () => {
+ console.log('📱 [PHONE PREVIEW] Try again clicked');
+ if (this.tryAgain) {
+ this.tryAgain();
+ }
+ };
+ }
+ 
+ // 📱 Phone case: Update cart price (updateCartPrice() will sync phone case price automatically)
+ if (this.updateCartPrice) {
+ this.updateCartPrice();
  }
  
  // 📱 Phone case: Also hide resultArea after a delay (in case something shows it later)
@@ -2341,16 +2390,11 @@
  margin: 0; /* USUNIĘTO WSZYSTKIE MARGINESY NA MOBILE */
  }
  
-.arrow-down span {
-    font-size: 1.5rem;
-  }
-}
-
-/* Ukryj sekcję BuyButtons dla konkretnego szablonu (żądanie użytkownika) */
-#BuyButtons-ProductForm-template--28524657639749__main > div {
-  display: none !important;
-}
-</style>
+ .arrow-down span {
+ font-size: 1.5rem;
+ }
+ }
+ </style>
 
  <style>
  /* Ukryj produkty Customify z nowymi nazwami rozmiarów (A5/A4/A3/A2) i "cyfrowy" */
@@ -2398,10 +2442,8 @@
  display: none !important;
  }
  
- /* Ukryj quantity selector na stronie produktu */
- #BuyButtons-ProductForm-template--26707455672645__main > div > quantity-selector-component {
- display: none !important;
- }
+/* Ukryj quantity selector */
+quantity-selector-component{display:none!important}
  
  /* Ukryj sekcję z koszyka */
  #shopify-section-sections--26707450822981__section_fV4L9Q > div.section.section--page-width.color-scheme-1 > div.border-style.custom-section-content {
@@ -3778,6 +3820,13 @@
  placeholder.appendChild(app);
  }
  
+ // 📱 Phone case: Hide cart price on page load
+ if (window.location.pathname.toLowerCase().includes('etui')) {
+ const priceEl = document.getElementById('phoneCaseCartPriceDisplay');
+ const actionsEl = document.getElementById('phoneCaseCartActions');
+ if (priceEl) priceEl.style.display = 'none';
+ if (actionsEl) actionsEl.style.display = 'none';
+ }
  });
  </script>
  
@@ -3869,22 +3918,18 @@
  
  <div id="customify-app-container" class="customify-shopify-container">
  
- <div class="customify-product-type-selector" id="productTypeArea" style="display: block; margin-bottom: 10px;">
- <h4 style="text-align: left; font-size: 0.95rem; font-weight: 600;">Rodzaj wydruku:</h4>
+<div class="customify-product-type-selector{% if product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem' %} hide-for-phone-case{% endif %}" id="productTypeArea" style="display:block;margin-bottom:10px;">
+<h4 style="text-align: left; font-size: 0.95rem; font-weight: 600;">Rodzaj wydruku:</h4>
  <div class="customify-product-type-buttons">
- {% comment %} FILTRUJ RODZAJE WYDRUKU PER PRODUKT {% endcomment %}
  {% if product.handle == 'karykatura-na-zamowienie-druk-na-szkle-akrylowym-ramka-z-podswietleniem' or product.handle == 'prezent-dla-babci-i-dziadka-portret-na-na-szkle-akrylowym-ze-zdjecia-karykatura' or product.handle == 'dziadkowie-krolowie-nadruk-na-szkle' or product.handle == 'portret-pary-personalizowany-obraz-na-szkle-akrylowym' %}
- {% comment %} TYLKO SZKŁO dla produktów na szkle akrylowym {% endcomment %}
  <div class="customify-product-type-btn active" data-product-type="szklo">
  Nadruk na szkle (dodaj podstawkę)
  </div>
  {% elsif product.handle == 'ramka-spotify' or product.handle == 'zdjecie-na-szkle-ramka-spotify' %}
- {% comment %} TYLKO SZKŁO dla ramka-spotify {% endcomment %}
  <div class="customify-product-type-btn active" data-product-type="szklo">
  Nadruk na szkle (dodaj podstawkę)
  </div>
  {% else %}
- {% comment %} STANDARDOWE OPCJE dla innych produktów {% endcomment %}
  <div class="customify-product-type-btn active" data-product-type="plakat">
  Plakat (dodaj ramkę)
  </div>
@@ -3937,8 +3982,8 @@
  </div>
  </div>
 
- <div class="customify-size-selector" id="sizeArea" style="display: block; margin-bottom: 10px;">
- <h4 style="text-align: left;">Rozmiar (cm):</h4>
+<div class="customify-size-selector{% if product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem' %} hide-for-phone-case{% endif %}" id="sizeArea" style="display:block;margin-bottom:10px;">
+<h4 style="text-align: left;">Rozmiar (cm):</h4>
  <div class="customify-size-buttons">
  <div class="customify-size-btn" data-size="a5" data-for-szklo="true">15×21</div>
  <div class="customify-size-btn" data-size="a4">20×30</div>
@@ -3993,6 +4038,20 @@
  <img id="previewImage" alt="Podgląd zdjęcia" style="display: none;">
  </div>
  </div>
+ 
+<div class="customify-cart-price" id="phoneCaseCartPriceDisplay" style="display: none; margin: 15px 0; text-align: center; padding: 10px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e9ecef;">
+<span class="cart-price-label" style="font-weight: 600; color: #333; margin-right: 12px;">Cena:</span>
+<span class="cart-price-value" id="phoneCaseCartPriceValue" style="font-size: 1.2rem; font-weight: 700; color: #e55a2b;">0.00 zł</span>
+</div>
+
+<div class="customify-actions" id="phoneCaseCartActions" style="display: none; margin-top: 15px;">
+<button class="customify-btn customify-btn-primary customify-btn-red" id="phoneCaseAddToCartBtn">
+Dodaj do koszyka
+</button>
+<button class="customify-btn customify-btn-secondary" id="phoneCaseTryAgainBtn">
+Spróbuj ponownie
+</button>
+</div>
  {% else %}
  <img id="previewImage" alt="Podgląd zdjęcia">
  {% endif %}
@@ -4119,6 +4178,7 @@
  <h4>Ustaw kadr zdjęcia</h4>
  <div class="phone-photo-crop-canvas">
  <img id="phonePhotoCropImage" alt="Kadrowanie zdjęcia">
+ <div id="phonePhotoCropWatermark" class="phone-photo-crop-watermark" style="display: none;"></div>
  </div>
  <div class="phone-photo-crop-actions">
  <button type="button" class="customify-btn customify-btn-secondary" id="phonePhotoCropCancelBtn">Anuluj</button>
@@ -4129,7 +4189,7 @@
  {% endif %}
 
  <div class="customify-styles" id="stylesArea" style="{% if product.handle == 'zdjecie-na-szkle-ramka-spotify' %}display: none;{% else %}display: block;{% endif %}">
- <h4>{% if product.handle == 'ramka-spotify' %}Popraw Obrazek{% else %}Wybierz styl{% endif %}</h4>
+ <h4>{% if product.handle == 'ramka-spotify' %}Popraw Obrazek{% else %}Wybierz styl i kliknij Utwórz{% endif %}</h4>
  <div class="customify-style-grid">
  {% comment %} LOGIKA SERVER-SIDE: Filtruj style per produkt {% endcomment %}
  {% comment %} DEBUG: Product handle = {{ product.handle }}, ID = {{ product.id }} {% endcomment %}
@@ -4187,15 +4247,7 @@
  <div class="style-name">Szkic ołówkiem</div>
  </div>
  </div>
-  {% elsif product.handle == 'obraz-olejny-portret-na-plotnie-z-twojego-zdjecia' %}
-    {% comment %} STYL OBRAZ OLEJNY dla produktu {% endcomment %}
-    <div class="customify-style-card" data-style="oil-painting">
-      <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/style/oil-painting.jpg'); background-size: cover; background-position: center;"></div>
-      <div class="style-info">
-        <div class="style-name">Obraz Olejny</div>
-      </div>
-    </div>
-  {% elsif product.handle == 'plakat-ze-zdjecia-w-stylu-komiks' %}
+ {% elsif product.handle == 'plakat-ze-zdjecia-w-stylu-komiks' %}
  {% comment %} TEST: Styl karykatury szkic ołówkiem tylko dla produktu komiks {% endcomment %}
  <div class="customify-style-card" data-style="karykatura-olowek" style="display: block !important;">
  <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/karykat/olowek.png'); background-size: cover; background-position: center;"></div>
@@ -4626,9 +4678,9 @@
  <div class="customify-error" id="errorMessageTransform" style="display: none;"></div>
  
  <div class="customify-actions" id="actionsArea" style="display: none;">
- <button class="customify-btn customify-btn-red" id="transformBtn">
- Zobacz Podgląd
- </button>
+<button class="customify-btn customify-btn-red" id="transformBtn">
+Utwórz obraz
+</button>
  <button class="customify-btn customify-btn-secondary" id="resetBtn" style="display: none;">
  Wgraj inne zdjęcie
  </button>
@@ -5072,15 +5124,16 @@
  pointer-events: none;
  }
 
- {% if product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem' %}
- /* 📱 Etui na telefon - overlay podglądu (preview + result) */
- #customify-app-container .phone-case-preview {
- width: 100% !important;
- max-width: 520px !important;
- min-width: 300px !important;
- margin: 0 auto;
- box-sizing: border-box;
- }
+{% if product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem' %}
+.hide-for-phone-case{display:none!important}
+/* 📱 Etui na telefon - overlay podglądu (preview + result) */
+#customify-app-container .phone-case-preview {
+width: 85% !important;
+max-width: 450px !important;
+min-width: 280px !important;
+margin: 0 auto;
+box-sizing: border-box;
+}
  #customify-app-container #previewArea {
  padding: 0;
  margin-top: 12px;
@@ -5608,6 +5661,16 @@
  .phone-photo-crop-canvas img {
  max-width: 100%;
  display: block;
+ }
+ .phone-photo-crop-watermark {
+ position: absolute;
+ inset: 0;
+ background-size: cover;
+ background-position: center;
+ background-repeat: no-repeat;
+ pointer-events: none;
+ z-index: 0;
+ opacity: 1;
  }
  .phone-photo-crop-actions {
  display: flex;
