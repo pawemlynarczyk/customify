@@ -586,6 +586,11 @@ class CustomifyEmbed {
       console.log('🐱 [PRODUCT-TYPE] URL = Koty → productType: cats');
       return 'cats';
     }
+    if (currentUrl.includes('personalizowany-obraz-3d-cartoon-ilustracja-z-twojego-zdjecia')) {
+      console.log('🎨 [PRODUCT-TYPE] URL = 3D Cartoon → productType: 3d_cartoon');
+      return '3d_cartoon';
+    }
+
     if (currentUrl.includes('portret-z-efektem-farb-olejnych-z-twojego-zdjecia-na-prezent')) {
       console.log('🎨 [PRODUCT-TYPE] URL = Farby Olejne → productType: oil_paints');
       return 'oil_paints';
@@ -665,6 +670,7 @@ class CustomifyEmbed {
     console.log('⚠️ [PRODUCT-TYPE] Nie rozpoznano URL, sprawdzam styl:', style);
     
     const styleToProductType = {
+      '3d-cartoon': '3d_cartoon',
       'oil-paints': 'oil_paints',
       'oil-painting': 'oil_painting',
       'minimalistyczny': 'boho',

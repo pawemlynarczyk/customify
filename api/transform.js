@@ -1488,6 +1488,22 @@ module.exports = async (req, res) => {
           guidance: 3.5
         }
       },
+      // Style 3D Cartoon - OpenAI GPT Image 1.5 via Replicate
+      '3d-cartoon': {
+        model: "openai/gpt-image-1.5",
+        prompt: "Transform the input image into a vibrant stylized 3D cartoon illustration. convert every character into an expressive, energetic, humorous style with exaggerated proportions and big facial expressions. oversized heads that appears closer and more dominant in the frame. Use bright saturated colors, soft smooth shading, and a slightly glossy, plasticky surface. Add clean outlines, dynamic lighting, Maintain a fun, lively, eccentric cartoon aesthetic inspired by a cheerful character. change also background in to the cartoon 3d style.",
+        productType: "3d_cartoon",
+        parameters: {
+          aspect_ratio: "2:3",
+          quality: "medium",
+          background: "auto",
+          output_format: "png",
+          input_fidelity: "high",
+          number_of_images: 1,
+          output_compression: 90,
+          moderation: "low"
+        }
+      },
       // Style Farby Olejne - OpenAI GPT Image 1.5 via Replicate
       'oil-paints': {
         model: "openai/gpt-image-1.5",
