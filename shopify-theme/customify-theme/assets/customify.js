@@ -1485,20 +1485,24 @@ class CustomifyEmbed {
     // ✅ SPRAWDŹ CZY KONKRETNA CZCIONKA JEST ZAŁADOWANA (przed użyciem w canvas)
     if (document.fonts && fontName !== 'Times New Roman') {
       const fontSpec = `700 ${fontSize}px "${fontName}"`;
-      const isLoaded = document.fonts.check(fontSpec);
-      if (!isLoaded) {
-        console.log(`🔤 [TEXT-OVERLAY] Czekam na czcionkę "${fontName}"...`);
-        // Czekaj maksymalnie 3 sekundy na załadowanie konkretnej czcionki
-        let attempts = 0;
-        while (!document.fonts.check(fontSpec) && attempts < 30) {
-          await new Promise(resolve => setTimeout(resolve, 100));
-          attempts++;
+      try {
+        const isLoaded = document.fonts.check(fontSpec);
+        if (!isLoaded) {
+          console.log(`🔤 [TEXT-OVERLAY] Czekam na czcionkę "${fontName}"...`);
+          // Czekaj maksymalnie 3 sekundy na załadowanie konkretnej czcionki
+          let attempts = 0;
+          while (!document.fonts.check(fontSpec) && attempts < 30) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+            attempts++;
+          }
+          if (document.fonts.check(fontSpec)) {
+            console.log(`✅ [TEXT-OVERLAY] Czcionka "${fontName}" załadowana!`);
+          } else {
+            console.warn(`⚠️ [TEXT-OVERLAY] Czcionka "${fontName}" nie załadowała się w czasie, używam fallback`);
+          }
         }
-        if (document.fonts.check(fontSpec)) {
-          console.log(`✅ [TEXT-OVERLAY] Czcionka "${fontName}" załadowana!`);
-        } else {
-          console.warn(`⚠️ [TEXT-OVERLAY] Czcionka "${fontName}" nie załadowała się w czasie, używam fallback`);
-        }
+      } catch (e) {
+        console.warn('⚠️ [TEXT-OVERLAY] Błąd podczas sprawdzania czcionki:', e);
       }
     }
 
@@ -5419,23 +5423,27 @@ class CustomifyEmbed {
             return;
           }
           
-          // ✅ ZAPISZ NOTE ATTRIBUTES (linki dla admina)
-          if (Object.keys(noteAttributes).length > 0) {
-            try {
-              await this.updateCartNoteAttributes(noteAttributes);
-            } catch (error) {
-              console.error('⚠️ [CUSTOMIFY] Failed to update cart note attributes:', error);
-            }
-          }
-          
-          // ✅ DODAJ DO KOSZYKA PRZEZ DIRECT NAVIGATION (jak w rules)
-          console.log('✅ [CUSTOMIFY] Adding to cart via direct navigation');
-          
-          // Ukryj pasek postępu
-          this.hideCartLoading();
-          
-          // Przekieruj bezpośrednio do koszyka (zamiast fetch)
-          window.location.href = cartUrl;
+    // ✅ ZAPISZ NOTE ATTRIBUTES (linki dla admina)
+    if (Object.keys(noteAttributes).length > 0) {
+      try {
+        await this.updateCartNoteAttributes(noteAttributes);
+        console.log('✅ [CUSTOMIFY] Note attributes updated successfully');
+      } catch (error) {
+        console.error('⚠️ [CUSTOMIFY] Failed to update cart note attributes:', error);
+      }
+    }
+    
+    // ✅ DODAJ DO KOSZYKA PRZEZ DIRECT NAVIGATION (jak w rules)
+    console.log('✅ [CUSTOMIFY] Adding to cart via direct navigation');
+    
+    // Ukryj pasek postępu
+    this.hideCartLoading();
+    
+    // Przekieruj bezpośrednio do koszyka (zamiast fetch)
+    // ✅ DODANO: Małe opóźnienie dla pewności zapisu atrybutów
+    setTimeout(() => {
+      window.location.href = cartUrl;
+    }, 300);
         }
       } else {
         console.error('❌ [CUSTOMIFY] Product creation failed:', result);
