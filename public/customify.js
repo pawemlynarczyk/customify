@@ -1299,18 +1299,18 @@ class CustomifyEmbed {
             const sizeMap = { small: 0.05, medium: 0.075, large: 0.11 };
             const fontSize = Math.max(32, canvas.height * (sizeMap[options.size] || sizeMap.medium));
 
-            // ✅ PREVIEW: System font stack (bez czekania na Google Fonts)
+            // ✅ PREVIEW: Te same czcionki co w renderTextOverlay(), ale bez czekania na fonty
             const fontMapPreview = {
               serif: `700 ${fontSize}px "Times New Roman", "Georgia", serif`,
-              sans: `700 ${fontSize}px system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif`,
-              script: `700 ${fontSize}px "Comic Sans MS", "Brush Script MT", cursive`,
-              script2: `700 ${fontSize}px "Comic Sans MS", "Brush Script MT", cursive`,
-              script3: `700 ${fontSize}px "Comic Sans MS", "Brush Script MT", cursive`,
-              script4: `700 ${fontSize}px "Comic Sans MS", "Brush Script MT", cursive`,
-              script5: `700 ${fontSize}px "Comic Sans MS", "Brush Script MT", cursive`,
-              western_1: `700 ${fontSize}px "Times New Roman", "Georgia", serif`,
-              western_2: `700 ${fontSize}px "Times New Roman", "Georgia", serif`,
-              hiphop: `700 ${fontSize}px system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif`
+              sans: `700 ${fontSize}px "Montserrat", "Poppins", "Inter", Arial, sans-serif`,
+              script: `700 ${fontSize}px "Dancing Script", "Pacifico", cursive`,
+              script2: `700 ${fontSize}px "Pacifico", "Dancing Script", cursive`,
+              script3: `700 ${fontSize}px "Satisfy", "Dancing Script", cursive`,
+              script4: `700 ${fontSize}px "Great Vibes", "Satisfy", cursive`,
+              script5: `700 ${fontSize}px "Indie Flower", "Pacifico", cursive`,
+              western_1: `700 ${fontSize}px "Rye", "Times New Roman", serif`,
+              western_2: `700 ${fontSize}px "Creepster", "Rye", "Times New Roman", serif`,
+              hiphop: `700 ${fontSize}px "Rubik Wet Paint", "Creepster", "Rye", "Times New Roman", serif`
             };
             const font = fontMapPreview[options.font] || fontMapPreview.sans;
 
