@@ -2198,7 +2198,7 @@
             {% endif %}
 
             <div class="customify-styles" id="stylesArea" style="{% if product.handle == 'zdjecie-na-szkle-ramka-spotify' %}display: none;{% else %}display: block;{% endif %}">
-              <h4>{% if product.handle == 'ramka-spotify' %}Popraw Obrazek{% else %}Wybierz styl{% endif %}</h4>
+              <h4>{% if product.handle == 'ramka-spotify' %}Popraw Obrazek{% else %}Wybierz styl i kliknij Utwórz{% endif %}</h4>
               <div class="customify-style-grid">
                 {% comment %} LOGIKA SERVER-SIDE: Filtruj style per produkt {% endcomment %}
                 {% comment %} DEBUG: Product handle = {{ product.handle }}, ID = {{ product.id }} {% endcomment %}
@@ -2685,12 +2685,12 @@
             {% endif %}
 
 
-            <!-- Komunikat błędu - tuż nad przyciskiem "Zobacz Podgląd" -->
+            <!-- Komunikat błędu - tuż nad przyciskiem "Utwórz Obraz" -->
             <div class="customify-error" id="errorMessageTransform" style="display: none;"></div>
             
             <div class="customify-actions" id="actionsArea" style="display: none;">
               <button class="customify-btn customify-btn-red" id="transformBtn">
-                Zobacz Podgląd
+                Utwórz Obraz
               </button>
               <button class="customify-btn customify-btn-secondary" id="resetBtn" style="display: none;">
                 Wgraj inne zdjęcie
