@@ -586,6 +586,11 @@ class CustomifyEmbed {
       console.log('🐱 [PRODUCT-TYPE] URL = Koty → productType: cats');
       return 'cats';
     }
+    if (currentUrl.includes('obraz-olejny-portret-na-plotnie-z-twojego-zdjecia-copy')) {
+      console.log('🎨 [PRODUCT-TYPE] URL = Farby Olejne → productType: oil_paints');
+      return 'oil_paints';
+    }
+
     if (currentUrl.includes('obraz-olejny-portret-na-plotnie-z-twojego-zdjecia')) {
       console.log('🎨 [PRODUCT-TYPE] URL = Obraz Olejny → productType: oil_painting');
       return 'oil_painting';
@@ -660,6 +665,7 @@ class CustomifyEmbed {
     console.log('⚠️ [PRODUCT-TYPE] Nie rozpoznano URL, sprawdzam styl:', style);
     
     const styleToProductType = {
+      'oil-paints': 'oil_paints',
       'oil-painting': 'oil_painting',
       'minimalistyczny': 'boho',
       'realistyczny': 'boho',

@@ -1488,6 +1488,22 @@ module.exports = async (req, res) => {
           guidance: 3.5
         }
       },
+      // Style Farby Olejne - OpenAI GPT Image 1.5 via Replicate
+      'oil-paints': {
+        model: "openai/gpt-image-1.5",
+        prompt: "transform the uploaded image into a painting in the style of Vincent van Gogh. Bring characters slightly closer to the frame for a semi-portrait feel. Render them with bold, energetic, swirling brushstrokes and thick, textured paint. Use vibrant, intense, and contrasting colors. Emphasize movement, emotion, and expressive lines, keeping the composition lively and painterly with a dynamic, Van Gogh-inspired effect",
+        productType: "oil_paints",
+        parameters: {
+          aspect_ratio: "2:3",
+          quality: "medium",
+          background: "auto",
+          output_format: "png",
+          input_fidelity: "high",
+          number_of_images: 1,
+          output_compression: 90,
+          moderation: "low"
+        }
+      },
       // Style Obraz Olejny - OpenAI GPT Image 1.5 via Replicate
       'oil-painting': {
         model: "openai/gpt-image-1.5",
