@@ -4867,10 +4867,10 @@ class CustomifyEmbed {
             ctx.font = `bold ${fontSize}px ${fontFamily}`;
             console.log('🔤 [WATERMARK DEBUG] Font ustawiony:', ctx.font);
             
-            // 🔒 Watermark podglądu: lekko bardziej transparentny, ale większa czcionka
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
-            ctx.strokeStyle = 'rgba(0, 0, 0, 0.25)';
-            ctx.lineWidth = 2;
+            // 🔒 Watermark podglądu: WZMOCNIONY (opacity 0.6 + grubszy obrys)
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.6)';
+            ctx.lineWidth = 3;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             
