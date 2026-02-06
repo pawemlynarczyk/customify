@@ -1164,8 +1164,9 @@ class CustomifyEmbed {
       size: this.textOverlayState.size || 'medium'
     };
 
-    // ✅ PREVIEW: Szybki render bez czekania na fonty i bez watermarku
-    const baseUrl = this.textOverlayBaseImage || this.transformedImage;
+    // ✅ PREVIEW: Użyj watermarkedImageUrl jako base (żeby watermark był ZAWSZE widoczny)
+    // NIE dodajemy watermarku ponownie - tylko renderujemy tekst na obrazie z watermarkiem
+    const baseUrl = this.watermarkedImageUrl || this.textOverlayBaseImage || this.transformedImage;
     const base64WithText = await this.renderTextOverlayPreview(baseUrl, text, options);
 
     // ✅ PREVIEW: NIE DODAWAJ watermarku - tylko szybki podgląd tekstu
@@ -1754,6 +1755,7 @@ class CustomifyEmbed {
 
       // 🆕 Tekst na obrazie - odtwórz stan z generacji (tylko produkt pilota)
       if (this.textOverlayEnabled) {
+        this.watermarkedImageUrl = generation.watermarkedImageUrl || generation.transformedImage;
         this.textOverlayBaseImage = generation.transformedImage;
         this.textOverlayOriginalWatermarked = generation.watermarkedImageUrl || null;
         const textOverlay = generation.textOverlay || null;
@@ -4709,6 +4711,7 @@ class CustomifyEmbed {
 
         // 🆕 Tekst na obrazie – pokaż panel dopiero po generacji (tylko produkt pilota)
         if (this.textOverlayEnabled && this.textOverlayPanel) {
+          this.watermarkedImageUrl = result.watermarkedImageUrl || result.transformedImage;
           this.textOverlayBaseImage = result.transformedImage || null;
           this.textOverlayOriginalWatermarked = result.watermarkedImageUrl || null;
           this.textOverlayState = { ...this.textOverlayState, text: '', applied: false };
