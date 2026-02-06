@@ -309,7 +309,7 @@
     <!-- End Global Error Handler -->
 
     <!-- CUSTOMIFY INTEGRATION -->
-    <link rel="stylesheet" href="{{ 'customify.css' | asset_url }}">
+    <!-- customify.css jest już załadowany przez {%- render 'stylesheets' -%} -->
     {% if product and product.handle == 'ramka-spotify' or product.handle == 'zdjecie-na-szkle-ramka-spotify' or product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem' %}
       <link rel="stylesheet" href="https://unpkg.com/cropperjs@1.6.2/dist/cropper.min.css">
     {% endif %}
@@ -3054,7 +3054,6 @@
         </div>
       </div>
       
-      {{ 'customify.css' | asset_url | stylesheet_tag }}
       <script>
         // Dynamiczne przenoszenie sekcji rodzaju i rozmiaru nad cenę, gdy widoczny jest wynik AI
         document.addEventListener('DOMContentLoaded', function() {
