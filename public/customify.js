@@ -2830,9 +2830,16 @@ class CustomifyEmbed {
           this.textOverlayState[key] = selectEl.value;
         }
         this.textOverlayState.applied = false;
-        this.previewTextOverlay().catch(err => {
-          console.error('❌ [TEXT-OVERLAY] auto-preview error:', err);
-        });
+        
+        // ✅ DEBOUNCE: Opóźnij preview o 80ms (tak samo jak dla input)
+        if (this.textOverlayDebounceTimer) {
+          clearTimeout(this.textOverlayDebounceTimer);
+        }
+        this.textOverlayDebounceTimer = setTimeout(() => {
+          this.previewTextOverlay().catch(err => {
+            console.error('❌ [TEXT-OVERLAY] auto-preview error:', err);
+          });
+        }, 80);
       });
     };
 
