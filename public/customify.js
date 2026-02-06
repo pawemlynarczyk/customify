@@ -586,7 +586,7 @@ class CustomifyEmbed {
       console.log('🐱 [PRODUCT-TYPE] URL = Koty → productType: cats');
       return 'cats';
     }
-    if (currentUrl.includes('obraz-olejny-portret-na-plotnie-z-twojego-zdjecia-copy')) {
+    if (currentUrl.includes('portret-z-efektem-farb-olejnych-z-twojego-zdjecia-na-prezent')) {
       console.log('🎨 [PRODUCT-TYPE] URL = Farby Olejne → productType: oil_paints');
       return 'oil_paints';
     }
