@@ -4887,10 +4887,10 @@ class CustomifyEmbed {
             ctx.font = `bold ${fontSize}px ${fontFamily}`;
             console.log('🔤 [WATERMARK DEBUG] Font ustawiony:', ctx.font);
             
-            // 🔒 Watermark podglądu: WZMOCNIONY (opacity 0.8 + grubszy obrys)
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-            ctx.strokeStyle = 'rgba(0, 0, 0, 0.8)';
-            ctx.lineWidth = 3;
+            // 🔒 Watermark podglądu: ZBALANSOWANY (opacity 0.45 + cieńszy obrys)
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.35)';
+            ctx.lineWidth = 1.5;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             
