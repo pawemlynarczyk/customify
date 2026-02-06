@@ -1217,15 +1217,24 @@ class CustomifyEmbed {
     };
 
     const baseUrl = this.textOverlayBaseImage || this.transformedImage;
+    console.log('📝 [TEXT-OVERLAY] Rozpoczynam renderowanie napisu na obrazie:', baseUrl.substring(0, 100) + '...');
     const base64WithText = await this.renderTextOverlay(baseUrl, text, options);
+    console.log('✅ [TEXT-OVERLAY] Napis wyrenderowany pomyślnie (base64 length:', base64WithText.length, ')');
 
     // Upload wersji z napisem
     const filename = `text-overlay-${Date.now()}.jpg`;
+    console.log('📤 [TEXT-OVERLAY] Wysyłam wersję z napisem do Vercel Blob...');
     const overlayUrl = await this.saveToVercelBlob(base64WithText, filename);
+    console.log('✅ [TEXT-OVERLAY] Wersja z napisem zapisana:', overlayUrl);
 
     // Watermark na wersji z tekstem
+    console.log('🎨 [TEXT-OVERLAY] Nakładam watermark na wersję z napisem...');
     const watermarkedBase64 = await this.addWatermark(base64WithText);
+    console.log('✅ [TEXT-OVERLAY] Watermark nałożony (base64 length:', watermarkedBase64.length, ')');
+    
+    console.log('📤 [TEXT-OVERLAY] Wysyłam wersję z watermarkiem do Vercel Blob...');
     const watermarkedUrl = await this.saveToVercelBlob(watermarkedBase64, `text-overlay-watermarked-${Date.now()}.jpg`);
+    console.log('✅ [TEXT-OVERLAY] Wersja z watermarkiem zapisana:', watermarkedUrl);
 
     // Aktualizuj stan (dopiero po zapisie)
     this.transformedImage = overlayUrl;
