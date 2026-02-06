@@ -116,8 +116,8 @@ async function addWatermarkToImage(imageBuffer) {
           `font-family="Arial, sans-serif" ` +
           `font-weight="bold" ` +
           `font-size="${fontSize}" ` +
-            `fill="rgba(255, 255, 255, 0.35)" ` +
-            `stroke="rgba(0, 0, 0, 0.25)" ` +
+            `fill="rgba(255, 255, 255, 0.7)" ` +
+            `stroke="rgba(0, 0, 0, 0.5)" ` +
             `stroke-width="1" ` +
             `text-anchor="middle" ` +
             `dominant-baseline="middle">${text}</text>`
@@ -184,8 +184,10 @@ async function addWatermarkPNG(imageBuffer, options = {}) {
     const watermarkSize = Math.min(width, height) * 0.40;
     console.log(`📏 [WATERMARK-PNG] Watermark size: ${Math.round(watermarkSize)}px (40% of image)`);
     
-    // Resize watermark
+    // Resize watermark and increase opacity
     const watermarkTile = await sharp(watermarkBuffer)
+      .ensureAlpha()
+      .linear([1, 1, 1, 2.0], [0, 0, 0, 0]) // Wzmocnij opacity (200%)
       .resize(Math.round(watermarkSize), Math.round(watermarkSize), {
         fit: 'contain',
         background: { r: 0, g: 0, b: 0, alpha: 0 } // Transparent background

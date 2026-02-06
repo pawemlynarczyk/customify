@@ -29,8 +29,9 @@
  <link rel="preconnect" href="https://fonts.googleapis.com">
  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
  
- <link rel="preload" href="https://fonts.gstatic.com/s/montserrat/v26/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCtr6Hw5aXpsog.woff2" as="font" type="font/woff2" crossorigin>
- <link rel="preload" href="https://fonts.gstatic.com/s/dancingscript/v25/If2cXTr6YS-zF4S-kcSWSVi_sxjsohD9F50Ruu7BMSo3Sup8.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="https://fonts.gstatic.com/s/montserrat/v26/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCtr6Hw5aXpsog.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="https://fonts.gstatic.com/s/dancingscript/v25/If2cXTr6YS-zF4S-kcSWSVi_sxjsohD9F50Ruu7BMSo3Sup8.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="https://fonts.gstatic.com/s/rubikwetpaint/v2/CHyfV8E1QdobPzfw3zQhFXVH_5e8.woff2" as="font" type="font/woff2" crossorigin>
  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Dancing+Script:wght@700&family=Pacifico&family=Satisfy&family=Great+Vibes&family=Indie+Flower&family=Bebas+Neue&family=Rye&family=Creepster&family=Bungee:wght@400&family=Rubik+Wet+Paint&family=Bonheur+Royale&display=swap" rel="stylesheet">
  {%- render 'scripts' -%}
  {%- render 'theme-styles-variables' -%}
@@ -2340,11 +2341,16 @@
  margin: 0; /* USUNIĘTO WSZYSTKIE MARGINESY NA MOBILE */
  }
  
- .arrow-down span {
- font-size: 1.5rem;
- }
- }
- </style>
+.arrow-down span {
+    font-size: 1.5rem;
+  }
+}
+
+/* Ukryj sekcję BuyButtons dla konkretnego szablonu (żądanie użytkownika) */
+#BuyButtons-ProductForm-template--28524657639749__main > div {
+  display: none !important;
+}
+</style>
 
  <style>
  /* Ukryj produkty Customify z nowymi nazwami rozmiarów (A5/A4/A3/A2) i "cyfrowy" */
