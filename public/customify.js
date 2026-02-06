@@ -45,6 +45,7 @@ class CustomifyEmbed {
     this.textOverlayBaseImage = null; // Oryginał bez tekstu (URL z Blob)
     this.textOverlayWatermarkedUrl = null;
     this.textOverlayOriginalWatermarked = null;
+    this.textOverlayDebounceTimer = null; // Timer dla debounce preview
 
     // 🎵 Spotify frame fields
     this.spotifyFieldsPanel = document.getElementById('spotifyFieldsPanel');
@@ -1163,32 +1164,23 @@ class CustomifyEmbed {
       size: this.textOverlayState.size || 'medium'
     };
 
-    // Canvas render z napisem (jedna linia, auto-shrink)
+    // ✅ PREVIEW: Szybki render bez czekania na fonty i bez watermarku
     const baseUrl = this.textOverlayBaseImage || this.transformedImage;
-    const base64WithText = await this.renderTextOverlay(baseUrl, text, options);
+    const base64WithText = await this.renderTextOverlayPreview(baseUrl, text, options);
 
-    // Podgląd lokalny (bez uploadu) – z watermarkiem na froncie
-    let previewWithWatermark = null;
-    try {
-      previewWithWatermark = await this.addWatermark(base64WithText);
-    } catch (e) {
-      console.warn('⚠️ [TEXT-OVERLAY] addWatermark preview failed, using plain overlay:', e);
-      previewWithWatermark = base64WithText;
-    }
-
+    // ✅ PREVIEW: NIE DODAWAJ watermarku - tylko szybki podgląd tekstu
     this.textOverlayState = { ...this.textOverlayState, previewUrl: base64WithText };
 
     if (this.resultImage) {
       // 📱 Phone case: use background-image in preview area
       if (this.isPhonePhotoCaseProduct()) {
         const photoBg = document.getElementById('phoneCasePhotoBg');
-        const imageUrl = previewWithWatermark || base64WithText;
-        if (photoBg && imageUrl) {
-          photoBg.style.backgroundImage = `url(${imageUrl})`;
+        if (photoBg && base64WithText) {
+          photoBg.style.backgroundImage = `url(${base64WithText})`;
           console.log('[PHONE PREVIEW] set background image from text overlay in preview area');
         }
       }
-      this.resultImage.src = previewWithWatermark || base64WithText;
+      this.resultImage.src = base64WithText;
     }
   }
 
@@ -1276,6 +1268,161 @@ class CustomifyEmbed {
     } catch (err) {
       console.warn('⚠️ [TEXT-OVERLAY] Nie udało się zaktualizować localStorage:', err);
     }
+  }
+
+  /**
+   * Szybki preview tekstu overlay (bez czekania na fonty, bez watermarku)
+   * Używany TYLKO podczas wpisywania tekstu - finalny render używa renderTextOverlay()
+   */
+  async renderTextOverlayPreview(imageUrl, text, options) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        // ✅ PREVIEW: NIE CZEKAJ na fonty - użyj system font stack natychmiast
+        const img = new Image();
+        if (imageUrl && !imageUrl.startsWith('data:')) {
+          img.crossOrigin = 'anonymous';
+        }
+        img.onload = async () => {
+          try {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d');
+
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+            const padding = canvas.width * 0.06;
+            const areaHeight = canvas.height * 0.22;
+            const baseY = canvas.height - areaHeight * 0.35;
+            const maxWidth = canvas.width - padding * 2;
+
+            const sizeMap = { small: 0.05, medium: 0.075, large: 0.11 };
+            const fontSize = Math.max(32, canvas.height * (sizeMap[options.size] || sizeMap.medium));
+
+            // ✅ PREVIEW: System font stack (bez czekania na Google Fonts)
+            const fontMapPreview = {
+              serif: `700 ${fontSize}px "Times New Roman", "Georgia", serif`,
+              sans: `700 ${fontSize}px system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif`,
+              script: `700 ${fontSize}px "Comic Sans MS", "Brush Script MT", cursive`,
+              script2: `700 ${fontSize}px "Comic Sans MS", "Brush Script MT", cursive`,
+              script3: `700 ${fontSize}px "Comic Sans MS", "Brush Script MT", cursive`,
+              script4: `700 ${fontSize}px "Comic Sans MS", "Brush Script MT", cursive`,
+              script5: `700 ${fontSize}px "Comic Sans MS", "Brush Script MT", cursive`,
+              western_1: `700 ${fontSize}px "Times New Roman", "Georgia", serif`,
+              western_2: `700 ${fontSize}px "Times New Roman", "Georgia", serif`,
+              hiphop: `700 ${fontSize}px system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif`
+            };
+            const font = fontMapPreview[options.font] || fontMapPreview.sans;
+
+            const colorMap = {
+              white: '#ffffff',
+              black: '#111111',
+              gold: '#d6b36a',
+              red: '#dc2626',
+              green: '#16a34a',
+              blue: '#2563eb',
+              yellow: '#eab308',
+              brown: '#92400e'
+            };
+            const fillColor = colorMap[options.color] || '#ffffff';
+
+            ctx.font = font;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            const words = text.split(' ');
+            const lines = [];
+            let current = '';
+            words.forEach(word => {
+              const testLine = current ? `${current} ${word}` : word;
+              const { width } = ctx.measureText(testLine);
+              if (width > maxWidth && current) {
+                lines.push(current);
+                current = word;
+              } else {
+                current = testLine;
+              }
+            });
+            if (current) lines.push(current);
+            const limitedLines = lines.slice(0, 2);
+
+            // 🛟 Safety: nie pozwól spaść niżej niż 10% od dołu
+            const lineYs = limitedLines.map((_, idx) =>
+              baseY + (idx - (limitedLines.length - 1) / 2) * (fontSize * 1.2)
+            );
+            const maxAllowedY = canvas.height * 0.90;
+            const shiftY = Math.max(0, Math.max(...lineYs) - maxAllowedY);
+
+            // Skorygowane pozycje linii
+            const correctedLineYs = lineYs.map(y => y - shiftY);
+
+            if (options.preset === 'banner') {
+              const topLineY = Math.min(...correctedLineYs);
+              const bottomLineY = Math.max(...correctedLineYs);
+              const bannerPadding = fontSize * 0.5;
+              const bannerTop = topLineY - fontSize * 0.6 - bannerPadding;
+              const bannerBottom = bottomLineY + fontSize * 0.6 + bannerPadding;
+              const bannerHeight = bannerBottom - bannerTop;
+              const bannerBg = options.color === 'black' ? 'rgba(255,255,255,0.4)' :
+                               options.color === 'gold' ? 'rgba(40,25,15,0.45)' :
+                               options.color === 'red' ? 'rgba(255,255,255,0.4)' :
+                               options.color === 'green' ? 'rgba(255,255,255,0.4)' :
+                               options.color === 'blue' ? 'rgba(255,255,255,0.4)' :
+                               options.color === 'yellow' ? 'rgba(0,0,0,0.4)' :
+                               options.color === 'brown' ? 'rgba(255,255,255,0.4)' :
+                               'rgba(0,0,0,0.4)';
+              ctx.fillStyle = bannerBg;
+              ctx.fillRect(padding * 0.9, bannerTop, canvas.width - padding * 1.8, bannerHeight);
+            }
+
+            limitedLines.forEach((line, idx) => {
+              const lineY = correctedLineYs[idx];
+
+              if (options.preset === '3d') {
+                const shadowColor =
+                  options.color === 'white' ? 'rgba(0,0,0,0.45)' :
+                  options.color === 'black' ? 'rgba(255,255,255,0.45)' :
+                  options.color === 'gold' ? 'rgba(95, 70, 30, 0.55)' :
+                  options.color === 'red' ? 'rgba(0,0,0,0.4)' :
+                  options.color === 'green' ? 'rgba(0,0,0,0.4)' :
+                  options.color === 'blue' ? 'rgba(0,0,0,0.4)' :
+                  options.color === 'yellow' ? 'rgba(0,0,0,0.4)' :
+                  options.color === 'brown' ? 'rgba(0,0,0,0.4)' :
+                  'rgba(0,0,0,0.45)';
+                ctx.fillStyle = shadowColor;
+                ctx.fillText(line, canvas.width / 2 + Math.max(2, fontSize * 0.04), lineY + Math.max(2, fontSize * 0.04));
+              }
+
+              const strokeColor =
+                options.color === 'white' ? 'rgba(0,0,0,0.65)' :
+                options.color === 'black' ? 'rgba(255,255,255,0.65)' :
+                options.color === 'gold' ? 'rgba(95, 70, 30, 0.75)' :
+                options.color === 'red' ? 'rgba(0,0,0,0.5)' :
+                options.color === 'green' ? 'rgba(0,0,0,0.5)' :
+                options.color === 'blue' ? 'rgba(0,0,0,0.5)' :
+                options.color === 'yellow' ? 'rgba(0,0,0,0.5)' :
+                options.color === 'brown' ? 'rgba(255,255,255,0.5)' :
+                'rgba(0,0,0,0.65)';
+              ctx.strokeStyle = strokeColor;
+              ctx.lineWidth = Math.max(2.5, fontSize * 0.09);
+              ctx.strokeText(line, canvas.width / 2, lineY);
+
+              ctx.fillStyle = fillColor;
+              ctx.fillText(line, canvas.width / 2, lineY);
+            });
+
+            const result = canvas.toDataURL('image/jpeg', 0.92);
+            resolve(result);
+          } catch (err) {
+            reject(err);
+          }
+        };
+        img.onerror = (err) => reject(err);
+        img.src = imageUrl;
+      } catch (error) {
+        reject(error);
+      }
+    });
   }
 
   /**
@@ -2655,9 +2802,16 @@ class CustomifyEmbed {
       this.textOverlayInput.addEventListener('input', () => {
         this.updateTextOverlayCounter();
         this.textOverlayState.applied = false;
-        this.previewTextOverlay().catch(err => {
-          console.error('❌ [TEXT-OVERLAY] auto-preview error:', err);
-        });
+        
+        // ✅ DEBOUNCE: Opóźnij preview o 80ms żeby nie renderować przy każdym znaku
+        if (this.textOverlayDebounceTimer) {
+          clearTimeout(this.textOverlayDebounceTimer);
+        }
+        this.textOverlayDebounceTimer = setTimeout(() => {
+          this.previewTextOverlay().catch(err => {
+            console.error('❌ [TEXT-OVERLAY] auto-preview error:', err);
+          });
+        }, 80);
       });
       this.updateTextOverlayCounter();
     }
