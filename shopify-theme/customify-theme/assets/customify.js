@@ -1316,18 +1316,18 @@ class CustomifyEmbed {
             const fontSize = Math.max(32, canvas.height * (sizeMap[options.size] || sizeMap.medium));
 
             // ✅ PREVIEW: Te same czcionki co w renderTextOverlay(), ale bez czekania na fonty
-            const fontMapPreview = {
-              serif: `700 ${fontSize}px "Times New Roman", "Georgia", serif`,
-              sans: `700 ${fontSize}px "Montserrat", "Poppins", "Inter", Arial, sans-serif`,
-              script: `700 ${fontSize}px "Dancing Script", "Pacifico", cursive`,
-              script2: `700 ${fontSize}px "Pacifico", "Dancing Script", cursive`,
-              script3: `700 ${fontSize}px "Satisfy", "Dancing Script", cursive`,
-              script4: `700 ${fontSize}px "Great Vibes", "Satisfy", cursive`,
-              script5: `700 ${fontSize}px "Indie Flower", "Pacifico", cursive`,
-              western_1: `700 ${fontSize}px "Rye", "Times New Roman", serif`,
-              western_2: `700 ${fontSize}px "Creepster", "Rye", "Times New Roman", serif`,
-              hiphop: `700 ${fontSize}px "Rubik Wet Paint", "Creepster", "Rye", "Times New Roman", serif`
-            };
+    const fontMapPreview = {
+      serif: `700 ${fontSize}px "Times New Roman", "Georgia", serif`,
+      sans: `700 ${fontSize}px "Montserrat", "Poppins", "Inter", Arial, sans-serif`,
+      script: `700 ${fontSize}px "Dancing Script", "Pacifico", cursive`,
+      script2: `700 ${fontSize}px "Pacifico", "Dancing Script", cursive`,
+      script3: `700 ${fontSize}px "Satisfy", "Dancing Script", cursive`,
+      script4: `700 ${fontSize}px "Great Vibes", "Satisfy", cursive`,
+      script5: `700 ${fontSize}px "Indie Flower", "Pacifico", cursive`,
+      western_1: `700 ${fontSize}px "Rye", "Times New Roman", serif`,
+      western_2: `700 ${fontSize}px "Creepster", "Rye", "Times New Roman", serif`,
+      hiphop: `400 ${fontSize}px "Rubik Wet Paint", "Creepster", "Rye", "Times New Roman", serif`
+    };
             const font = fontMapPreview[options.font] || fontMapPreview.sans;
 
             const colorMap = {
@@ -1490,10 +1490,11 @@ class CustomifyEmbed {
     };
     
     const fontName = fontNameMap[options.font] || fontNameMap.sans;
+    const fontWeight = options.font === 'hiphop' ? '400' : '700';
     
     // ✅ SPRAWDŹ CZY KONKRETNA CZCIONKA JEST ZAŁADOWANA (przed użyciem w canvas)
     if (document.fonts && fontName !== 'Times New Roman') {
-      const fontSpec = `700 ${fontSize}px "${fontName}"`;
+      const fontSpec = `${fontWeight} ${fontSize}px "${fontName}"`;
       try {
         const isLoaded = document.fonts.check(fontSpec);
         if (!isLoaded) {
@@ -1525,7 +1526,7 @@ class CustomifyEmbed {
       script5: `700 ${fontSize}px "Indie Flower", "Pacifico", cursive`,
       western_1: `700 ${fontSize}px "Rye", "Times New Roman", serif`,
       western_2: `700 ${fontSize}px "Creepster", "Rye", "Times New Roman", serif`,
-      hiphop: `700 ${fontSize}px "Rubik Wet Paint", "Creepster", "Rye", "Times New Roman", serif`
+      hiphop: `400 ${fontSize}px "Rubik Wet Paint", "Creepster", "Rye", "Times New Roman", serif`
     };
             const font = fontMap[options.font] || fontMap.sans;
 
