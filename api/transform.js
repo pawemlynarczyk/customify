@@ -1570,15 +1570,18 @@ module.exports = async (req, res) => {
       },
       // Style Hip-Hop - OpenAI GPT Image 1.5 via Replicate
       'hiphop': {
-        model: "google/nano-banana",
-        prompt: "A highly detailed, glossy digital illustration in the style of urban street art and classic hip-hop culture, with a bold, vibrant color palette. Emphasize exaggerated 90s/early 2000s hip-hop fashion: baggy clothes, oversized sneakers, caps, gold chains, hoodies, and streetwear accessories. Include dynamic poses and expressive gestures typical of hip-hop culture. Add urban background elements like graffiti walls, murals, boomboxes, and city streets to enhance the street vibe. Art Style: Highly stylized, cartoonish proportions, sharp details, strong linework, gentle specular highlights, volumetric lighting, and smooth rendering for a cinematic, energetic feel. Keep composition intact, preserving the poses and expressions of the subjects, while amplifying attitude, swagger, and street authenticity.",
-        apiType: "nano-banana",
+        model: "openai/gpt-image-1.5",
+        prompt: "keep faces from the image recognizable, this is most important goal of that work to make a face swap and put them in A highly detailed, glossy digital illustration in the style of urban street art and classic hip-hop culture, with a bold, vibrant color palette. Emphasize exaggerated 90s/early 2000s hip-hop fashion: baggy clothes, oversized sneakers, caps, gold chains, hoodies, and streetwear accessories. Include dynamic poses and expressive gestures typical of hip-hop culture. Add urban background elements like graffiti walls, murals, boomboxes, and city streets to enhance the street vibe. Art Style: Highly stylized, cartoonish proportions, sharp details, strong linework, gentle specular highlights, volumetric lighting, and smooth rendering for a cinematic, energetic feel. Keep composition intact, preserving the poses and expressions of the subjects, while amplifying attitude, swagger, and street authenticity.",
         productType: "hiphop",
         parameters: {
-          image_input: ["USER_IMAGE"],
-          aspect_ratio: "3:4",
-          output_format: "jpg",
-          guidance: 3.5
+          aspect_ratio: "2:3",
+          quality: "medium",
+          background: "auto",
+          output_format: "png",
+          input_fidelity: "high",
+          number_of_images: 1,
+          output_compression: 90,
+          moderation: "low"
         }
       },
       // Style króla - używają Segmind Faceswap v4
@@ -1762,19 +1765,17 @@ module.exports = async (req, res) => {
       },
       // Style karykatury - używają Segmind API
       'karykatura': {
-        model: "gpt-image-1",
-        prompt: "Create a humorous and flattering caricature based on the uploaded photo. Exaggerate expressive features like smiles and eyes while maintaining a strong likeness. Style: vibrant colors, bold lines, cartoon-like but professional art. Keep the original background but stylize it to match the caricature.",
-        apiType: "openai-caricature",
+        model: "segmind/caricature-style",
+        prompt: "Create a caricature portrait based on the uploaded photo. Exaggerate facial features, make it humorous and cartoon-like while maintaining likeness. Use bold lines, vibrant colors, and comedic proportions typical of caricature art.",
+        apiType: "segmind-caricature",
         productType: "caricature", // Identyfikator typu produktu
         parameters: {
-          model: "gpt-image-1",
-          size: "1024x1536",
-          quality: "auto",
-          style: "vivid",
-          output_format: "jpg",
-          background: "opaque",
-          fidelity: "low",
-          n: 1
+          image: "USER_IMAGE", // URL do obrazu użytkownika
+          size: "1024x1536", // PIONOWY PORTRET - NIE ZMIENIAJ! (2:3 format)
+          quality: "medium", // Jakość średnia
+          background: "opaque", // Nieprzezroczyste tło
+          output_format: "jpeg", // JPEG zamiast PNG - 80-90% mniejszy rozmiar (rozwiązuje 413) - używaj "jpeg" nie "jpg"!
+          output_compression: 85 // Kompresja JPEG 85% - dobra jakość, mały rozmiar
         }
       },
       // Style akwareli - używa Segmind Become-Image API

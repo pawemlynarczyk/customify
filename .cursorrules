@@ -6,6 +6,8 @@
 - 🚨 **Nigdy nie zmieniaj więcej niż konieczne** - zmiany tylko tam gdzie trzeba
 - 🚨 **Zmieniaj tylko produkty/style których to dotyczy** - nie rób zmian globalnych
 - 🚨 **Zanim coś zmienisz - SPRAWDŹ czy nie zepsujesz kluczowych funkcjonalności**
+- 🚨 **NIGDY nie zmieniaj modeli AI ani logiki stylów bez wyraźnego polecenia użytkownika** - nawet jeśli obecny model zwraca błędy (np. billing limit)
+- 🚨 **ZAKAZ stosowania fallbacków na modelach** - jeśli model X nie działa, nie przełączaj go samowolnie na model Y
 - 🚨 **Testuj WSZYSTKIE style (boho, pixar, koty, król) przed wdrożeniem**
 - 🚨 **Jeśli dodajesz nowy styl - NIE ZMIENIAJ logiki dla istniejących stylów**
 - 🚨 **Pytanie: "Czy ta zmiana zepsuje coś co już działa?" - jeśli TAK, NIE RÓB TEGO**
