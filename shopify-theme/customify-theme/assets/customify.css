@@ -2287,3 +2287,31 @@ main {
     padding: 10px;
   }
 }
+
+/* 📱 Phone selectors - TYLKO dla etui (personalizowane-etui-na-telefon-z-twoim-zdjeciem) */
+#customify-app-container #phone-selectors-slot .phone-selectors-wrap {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+#customify-app-container #phone-selectors-slot .phone-selector-field label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+#customify-app-container #phone-selectors-slot .phone-selector-field select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  background: #fff;
+  cursor: pointer;
+}
+@media (max-width: 480px) {
+  #customify-app-container #phone-selectors-slot .phone-selectors-wrap {
+    grid-template-columns: 1fr;
+  }
+}

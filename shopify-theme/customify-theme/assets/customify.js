@@ -80,6 +80,9 @@ class CustomifyEmbed {
     this.phonePhotoCropConfirmed = false;
     this.phonePhotoCropDataUrl = null;
     this.originalPhonePhotoFile = null;
+    this.selectedPhoneBrand = null;
+    this.selectedPhoneModel = null;
+    this.phoneModelsData = null;
 
     this.uploadedFile = null;
     this.selectedStyle = null;
@@ -242,6 +245,130 @@ class CustomifyEmbed {
     return { aspectRatio: 1 / 2, width: 1000, height: 2000, filePrefix: 'phone-photo-crop' };
   }
 
+  /** 📱 TYLKO etui: Inicjalizacja selektorów marka/model */
+  async setupPhoneSelectors() {
+    const slot = document.getElementById('phone-selectors-slot');
+    if (!slot || !this.isPhonePhotoCaseProduct()) return;
+
+    this.selectedPhoneBrand = null;
+    this.selectedPhoneModel = null;
+    this.phoneModelsData = null;
+
+    try {
+      const res = await fetch('https://customify-s56o.vercel.app/api/phone-models');
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      this.phoneModelsData = await res.json();
+    } catch (err) {
+      console.error('❌ [PHONE] Nie można załadować listy modeli:', err);
+      slot.innerHTML = '<p class="customify-error">Nie można załadować listy modeli. Odśwież stronę.</p>';
+      return;
+    }
+
+    const brands = this.phoneModelsData.brands || [];
+    const modelsByBrand = this.phoneModelsData.models || {};
+    if (brands.length === 0) {
+      slot.innerHTML = '<p class="customify-error">Brak listy marek.</p>';
+      return;
+    }
+
+    const wrap = document.createElement('div');
+    wrap.className = 'phone-selectors-wrap';
+
+    const brandField = document.createElement('div');
+    brandField.className = 'phone-selector-field';
+    const brandLabel = document.createElement('label');
+    brandLabel.htmlFor = 'phoneBrandSelect';
+    brandLabel.textContent = 'Marka telefonu';
+    brandField.appendChild(brandLabel);
+    const brandSelect = document.createElement('select');
+    brandSelect.id = 'phoneBrandSelect';
+    brandSelect.className = 'phone-selector-select';
+    const brandOpt0 = document.createElement('option');
+    brandOpt0.value = '';
+    brandOpt0.textContent = 'Wybierz markę';
+    brandSelect.appendChild(brandOpt0);
+    brands.forEach(b => {
+      const opt = document.createElement('option');
+      opt.value = b.id;
+      opt.textContent = b.name;
+      brandSelect.appendChild(opt);
+    });
+    brandField.appendChild(brandSelect);
+    wrap.appendChild(brandField);
+
+    const modelField = document.createElement('div');
+    modelField.className = 'phone-selector-field';
+    const modelLabel = document.createElement('label');
+    modelLabel.htmlFor = 'phoneModelSelect';
+    modelLabel.textContent = 'Model telefonu';
+    modelField.appendChild(modelLabel);
+    const modelSelect = document.createElement('select');
+    modelSelect.id = 'phoneModelSelect';
+    modelSelect.className = 'phone-selector-select';
+    modelSelect.disabled = true;
+    const modelOpt0 = document.createElement('option');
+    modelOpt0.value = '';
+    modelOpt0.textContent = 'Najpierw wybierz markę';
+    modelSelect.appendChild(modelOpt0);
+    modelField.appendChild(modelSelect);
+    wrap.appendChild(modelField);
+
+    const populateModels = (brandId) => {
+      modelSelect.innerHTML = '';
+      const models = modelsByBrand[brandId] || [];
+      if (!brandId || models.length === 0) {
+        const ph = document.createElement('option');
+        ph.value = '';
+        ph.textContent = 'Najpierw wybierz markę';
+        modelSelect.appendChild(ph);
+        modelSelect.disabled = true;
+        this.selectedPhoneModel = null;
+        return;
+      }
+      const def = document.createElement('option');
+      def.value = '';
+      def.textContent = 'Wybierz model';
+      modelSelect.appendChild(def);
+      models.forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m.id;
+        opt.textContent = m.name;
+        modelSelect.appendChild(opt);
+      });
+      modelSelect.disabled = false;
+    };
+
+    brandSelect.addEventListener('change', () => {
+      this.selectedPhoneBrand = brandSelect.value || null;
+      this.selectedPhoneModel = null;
+      populateModels(this.selectedPhoneBrand);
+      this.hideError();
+    });
+
+    modelSelect.addEventListener('change', () => {
+      this.selectedPhoneModel = modelSelect.value || null;
+      if (this.selectedPhoneModel) this.hideError();
+    });
+
+    populateModels(null);
+    slot.innerHTML = '';
+    slot.appendChild(wrap);
+    console.log('📱 [PHONE] Selektory marka/model zainicjalizowane');
+  }
+
+  getPhoneBrandLabel() {
+    if (!this.selectedPhoneBrand || !this.phoneModelsData?.brands) return null;
+    const b = this.phoneModelsData.brands.find(x => x.id === this.selectedPhoneBrand);
+    return b ? b.name : this.selectedPhoneBrand;
+  }
+
+  getPhoneModelLabel() {
+    if (!this.selectedPhoneBrand || !this.selectedPhoneModel || !this.phoneModelsData?.models) return null;
+    const models = this.phoneModelsData.models[this.selectedPhoneBrand] || [];
+    const m = models.find(x => x.id === this.selectedPhoneModel);
+    return m ? m.name : this.selectedPhoneModel;
+  }
+
   init() {
     if (!document.getElementById('uploadArea')) {
       return; // Jeśli nie ma elementów, nie rób nic
@@ -323,6 +450,7 @@ class CustomifyEmbed {
       if (phoneCaseCartPriceDisplay) phoneCaseCartPriceDisplay.style.setProperty('display','none','important');
       const phoneCaseCartActions = document.getElementById('phoneCaseCartActions');
       if (phoneCaseCartActions) phoneCaseCartActions.style.setProperty('display','none','important');
+      this.setupPhoneSelectors().catch(err => console.error('❌ [PHONE] setupPhoneSelectors error:', err));
     }
 
     // 🆕 Inicjalizacja napisów (pilotaż)
@@ -5192,6 +5320,15 @@ class CustomifyEmbed {
       return;
     }
 
+    // 📱 Etui: wymagana marka i model telefonu
+    if (this.isPhonePhotoCaseProduct()) {
+      if (!this.selectedPhoneBrand || !this.selectedPhoneModel) {
+        this.showError('Wybierz markę i model telefonu', 'cart');
+        this.hideLoading();
+        return;
+      }
+    }
+
     // 🆕 Tekst na obrazie: jeśli użytkownik wpisał tekst, musi kliknąć „Zastosuj napis”
     let textOverlayPayload = null;
     if (this.textOverlayEnabled) {
@@ -5396,6 +5533,12 @@ class CustomifyEmbed {
           }
           if (textOverlayPayload?.text) {
             properties['Napis na obrazie'] = textOverlayPayload.text;
+          }
+          if (this.isPhonePhotoCaseProduct()) {
+            const brandLabel = this.getPhoneBrandLabel();
+            const modelLabel = this.getPhoneModelLabel();
+            if (brandLabel) properties['Marka'] = brandLabel;
+            if (modelLabel) properties['Model'] = modelLabel;
           }
           
           const noteAttributes = {};
