@@ -79,6 +79,7 @@ class CustomifyEmbed {
     this.phonePhotoCropSourceUrl = null;
     this.phonePhotoCropConfirmed = false;
     this.phonePhotoCropDataUrl = null;
+    this.phonePhotoCropSourceIsWatermarked = false;
     this.originalPhonePhotoFile = null;
     this.selectedPhoneBrand = null;
     this.selectedPhoneModel = null;
@@ -124,7 +125,8 @@ class CustomifyEmbed {
         a2: 30,
         a0: 45,
         a1: 60
-      }
+      },
+      etui: { etui: 0 }  // 📱 Etui - jeden rozmiar, cena z produktu
     };
     
     // Ceny ramek w zależności od rozmiaru (tylko dla plakatu)
@@ -756,6 +758,10 @@ class CustomifyEmbed {
       console.log('🎵 [PRODUCT-TYPE] URL = Ramka Spotify → productType: spotify_frame');
       return 'spotify_frame';
     }
+    if (currentUrl.includes('personalizowane-etui-na-telefon-z-twoim-zdjeciem') && !currentUrl.includes('-karykatura')) {
+      console.log('📱 [PRODUCT-TYPE] URL = Etui na telefon → productType: etui');
+      return 'etui';
+    }
     if (currentUrl.includes('portret-z-twojego-zdjecia-neon-lights-dla-dziewczyny-prezent')) {
       console.log('💡 [PRODUCT-TYPE] URL = Neon Lights → productType: neo');
       return 'neo';
@@ -1333,10 +1339,15 @@ class CustomifyEmbed {
       size: this.textOverlayState.size || 'medium'
     };
 
-    // ✅ PREVIEW: Preferuj base64 (bez CORS). Dla URL użyj proxy (Vercel Blob blokuje canvas)
-    let baseUrl = this.watermarkedImageBase64
-      ? `data:image/jpeg;base64,${this.watermarkedImageBase64}`
-      : (this.watermarkedImageUrl || this.textOverlayBaseImage || this.transformedImage);
+    // ✅ PREVIEW: Dla etui z cropem – baza = wykadrowany obraz (nie pełny przed cropem)
+    let baseUrl;
+    if (this.isPhonePhotoCaseProduct() && this.phonePhotoCropConfirmed && this.phonePhotoCropDataUrl) {
+      baseUrl = this.phonePhotoCropDataUrl;
+    } else {
+      baseUrl = this.watermarkedImageBase64
+        ? `data:image/jpeg;base64,${this.watermarkedImageBase64}`
+        : (this.watermarkedImageUrl || this.textOverlayBaseImage || this.transformedImage);
+    }
     baseUrl = this.getCanvasSafeImageUrl(baseUrl);
     const base64WithText = await this.renderTextOverlayPreview(baseUrl, text, options);
 
@@ -1380,7 +1391,10 @@ class CustomifyEmbed {
       size: this.textOverlayState.size || 'medium'
     };
 
-    let baseUrl = this.textOverlayBaseImage || this.transformedImage;
+    // 📱 Etui: baza = wykadrowany obraz (phonePhotoCropDataUrl), nie pełny przed cropem
+    let baseUrl = (this.isPhonePhotoCaseProduct() && this.phonePhotoCropConfirmed && this.phonePhotoCropDataUrl)
+      ? this.phonePhotoCropDataUrl
+      : (this.textOverlayBaseImage || this.transformedImage);
     baseUrl = this.getCanvasSafeImageUrl(baseUrl);
     console.log('📝 [TEXT-OVERLAY] Rozpoczynam renderowanie napisu na obrazie:', baseUrl.substring(0, 100) + '...');
     const base64WithText = await this.renderTextOverlay(baseUrl, text, options);
@@ -1907,6 +1921,21 @@ class CustomifyEmbed {
         reject(error);
       }
     });
+  }
+
+  dataUrlToBlob(dataUrl) {
+    if (!dataUrl || !dataUrl.startsWith('data:')) return null;
+    try {
+      const [header, data] = dataUrl.split(',');
+      const mimeMatch = header.match(/data:([^;]+)/);
+      if (!mimeMatch) return null;
+      const binary = atob(data);
+      const arr = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) arr[i] = binary.charCodeAt(i);
+      return new Blob([arr], { type: mimeMatch[1] });
+    } catch (e) {
+      return null;
+    }
   }
 
   /**
@@ -3558,6 +3587,49 @@ class CustomifyEmbed {
   confirmPhonePhotoCrop() {
     if (!this.phonePhotoCropper) return;
     const cropConfig = this.getPhonePhotoCropConfig();
+    
+    const finishWithCropped = (printDataUrl, displayDataUrl) => {
+      displayDataUrl = displayDataUrl || printDataUrl;
+      this.phonePhotoCropDataUrl = printDataUrl;
+      this.closePhonePhotoCropper();
+      if (this.transformedImage) {
+        const resultBg = document.getElementById('phoneCaseResultBg');
+        const photoBg = document.getElementById('phoneCasePhotoBg');
+        if (resultBg) resultBg.style.backgroundImage = `url(${displayDataUrl})`;
+        if (photoBg) photoBg.style.backgroundImage = `url(${displayDataUrl})`;
+        if (this.resultImage) this.resultImage.src = displayDataUrl;
+        this.transformedImage = printDataUrl;
+        this.textOverlayBaseImage = printDataUrl; // 📱 Napis na wykadrowanym, nie na pełnym
+      } else {
+        const blob = this.dataUrlToBlob(printDataUrl);
+        if (blob) this.showPreview(new File([blob], `${cropConfig.filePrefix}-${Date.now()}.jpg`, { type: 'image/jpeg' }));
+        else this.showError('Nie udało się przygotować zdjęcia', 'transform');
+      }
+      this.phonePhotoCropConfirmed = true;
+      const blob = this.dataUrlToBlob(printDataUrl);
+      this.uploadedFile = blob ? new File([blob], `${cropConfig.filePrefix}-${Date.now()}.jpg`, { type: 'image/jpeg' }) : null;
+      this.hideError();
+    };
+    
+    if (this.phonePhotoCropSourceIsWatermarked && this.transformedImage) {
+      const data = this.phonePhotoCropper.getData();
+      const displayDataUrl = this.phonePhotoCropper.getCroppedCanvas({ width: cropConfig.width, height: cropConfig.height, imageSmoothingQuality: 'high' }).toDataURL('image/jpeg', 0.9);
+      const cleanUrl = this.transformedImage.startsWith('http') ? this.getCanvasSafeImageUrl(this.transformedImage) : this.transformedImage;
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        const c = document.createElement('canvas');
+        c.width = cropConfig.width;
+        c.height = cropConfig.height;
+        const ctx = c.getContext('2d');
+        ctx.drawImage(img, data.x, data.y, data.width, data.height, 0, 0, c.width, c.height);
+        finishWithCropped(c.toDataURL('image/jpeg', 0.9), displayDataUrl);
+      };
+      img.onerror = () => finishWithCropped(displayDataUrl, displayDataUrl);
+      img.src = cleanUrl;
+      return;
+    }
+    
     const canvas = this.phonePhotoCropper.getCroppedCanvas({
       width: cropConfig.width,
       height: cropConfig.height,
@@ -3568,23 +3640,8 @@ class CustomifyEmbed {
         this.showError('Nie udało się przyciąć zdjęcia', 'transform');
         return;
       }
-      const croppedFile = new File([blob], `${cropConfig.filePrefix}-${Date.now()}.jpg`, { type: 'image/jpeg' });
-      this.uploadedFile = croppedFile;
-      this.phonePhotoCropConfirmed = true;
       const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
-      this.phonePhotoCropDataUrl = dataUrl;
-      this.closePhonePhotoCropper();
-      if (this.transformedImage) {
-        const resultBg = document.getElementById('phoneCaseResultBg');
-        const photoBg = document.getElementById('phoneCasePhotoBg');
-        if (resultBg) resultBg.style.backgroundImage = `url(${dataUrl})`;
-        if (photoBg) photoBg.style.backgroundImage = `url(${dataUrl})`;
-        if (this.resultImage) this.resultImage.src = dataUrl;
-        this.transformedImage = dataUrl;
-      } else {
-        this.showPreview(croppedFile);
-      }
-      this.hideError();
+      finishWithCropped(dataUrl);
     }, 'image/jpeg', 0.9);
   }
   
@@ -3600,47 +3657,33 @@ class CustomifyEmbed {
   
   // 📱 TELEFON (ETUI) - Ponowne otwarcie croppera
   async reopenPhonePhotoCropper() {
-    // 📱 Phone case: Crop image WITHOUT watermark (for print), but show watermark overlay visually
-    // Priority: transformedImage (without watermark) > original file
-    const imageToUse = this.transformedImage;
+    // 📱 ZAWSZE watermark widoczny: ładujemy obraz Z watermarkem do croppera
+    // Przy zapisie: stosujemy ten sam crop do czystego obrazu (dla druku)
+    const watermarkedSource = this.watermarkedImageBase64 || this.watermarkedImageUrl;
     
-    if (imageToUse) {
-      console.log('📱 [PHONE-PHOTO] Ponowne otwieranie croppera z WYGENEROWANYM obrazem (bez watermarku - do cropowania)');
+    if (watermarkedSource && this.transformedImage) {
       try {
-        // urlToFile używa proxy dla Vercel Blob (CORS bypass)
-        const file = await this.urlToFile(imageToUse, 'phone-photo-ai-result.jpg');
-        this.openPhonePhotoCropper(file);
-        
-        // Show watermark overlay visually (if available) – proxy dla Vercel Blob (jak w showResult)
-        if (this.watermarkedImageUrl) {
-          const watermarkOverlay = document.getElementById('phonePhotoCropWatermark');
-          if (watermarkOverlay) {
-            const watermarkUrl = this.getCanvasSafeImageUrl(this.watermarkedImageUrl);
-            watermarkOverlay.style.backgroundImage = `url(${watermarkUrl})`;
-            watermarkOverlay.style.display = 'block';
-            console.log('📱 [PHONE-PHOTO] Watermark overlay pokazany (tylko wizualnie)');
-          }
-        }
-      } catch (error) {
-        console.error('❌ [PHONE-PHOTO] Błąd konwersji URL na File:', error);
-        if (this.originalPhonePhotoFile) {
-          console.log('📱 [PHONE-PHOTO] Fallback do oryginalnego zdjęcia');
-          this.openPhonePhotoCropper(this.originalPhonePhotoFile);
+        let file;
+        if (watermarkedSource.startsWith('data:')) {
+          file = await this.base64ToFile(watermarkedSource, 'phone-photo-watermarked.jpg');
+        } else if (watermarkedSource.startsWith('http') || watermarkedSource.includes('blob.vercel-storage.com')) {
+          file = await this.urlToFile(this.getCanvasSafeImageUrl(watermarkedSource), 'phone-photo-watermarked.jpg');
         } else {
-          console.warn('⚠️ [PHONE-PHOTO] Brak oryginalnego zdjęcia do ponownego kadrowania');
+          // Backend zwraca raw base64 (bez prefiksu) dla etui
+          const dataUrl = `data:image/jpeg;base64,${watermarkedSource}`;
+          file = await this.base64ToFile(dataUrl, 'phone-photo-watermarked.jpg');
         }
+        this.phonePhotoCropSourceIsWatermarked = true;
+        this.openPhonePhotoCropper(file);
+      } catch (error) {
+        console.error('❌ [PHONE-PHOTO] Błąd ładowania watermarked:', error);
+        this.showError('Nie udało się załadować obrazu do edycji. Odśwież stronę i spróbuj ponownie.', 'transform');
       }
     } else if (this.originalPhonePhotoFile) {
-      console.log('📱 [PHONE-PHOTO] Ponowne otwieranie croppera z oryginalnym zdjęciem (przed AI)');
+      this.phonePhotoCropSourceIsWatermarked = false;
       this.openPhonePhotoCropper(this.originalPhonePhotoFile);
-      
-      // Hide watermark overlay (no watermark before AI generation)
-      const watermarkOverlay = document.getElementById('phonePhotoCropWatermark');
-      if (watermarkOverlay) {
-        watermarkOverlay.style.display = 'none';
-      }
     } else {
-      console.warn('⚠️ [PHONE-PHOTO] Brak oryginalnego zdjęcia do ponownego kadrowania');
+      console.warn('⚠️ [PHONE-PHOTO] Brak obrazu do kadrowania');
     }
   }
 
@@ -3665,6 +3708,7 @@ class CustomifyEmbed {
       } else if (this.isPhonePhotoCaseProduct()) {
         console.log('📱 [DEBUG] isPhonePhotoCaseProduct = true, otwieram phone photo cropper');
         this.phonePhotoCropConfirmed = false;
+        this.phonePhotoCropSourceIsWatermarked = false;
         this.openPhonePhotoCropper(file);
       } else {
         console.log('🎵 [DEBUG] isPhoneCaseProduct = false, otwieram spotify cropper');
@@ -4488,7 +4532,8 @@ class CustomifyEmbed {
       'a3': '30×45 cm', 
       'a2': '40×60 cm',
       'a0': '50×75 cm',
-      'a1': '60×90 cm'
+      'a1': '60×90 cm',
+      'etui': 'Etui na telefon'  // 📱 Etui - brak selektora rozmiaru
     };
     return dimensions[size] || size;
   }
@@ -5325,8 +5370,11 @@ class CustomifyEmbed {
       retryCount: retryCount
     });
     
-    // ✅ SPRAWDŹ ROZMIAR NAJPIERW - to jest wymagane dla ceny
-    console.log('🔍 [CUSTOMIFY] Checking selectedSize:', this.selectedSize);
+    // ✅ SPRAWDŹ ROZMIAR - dla etui brak selektora, używamy domyślnego
+    if (this.isPhonePhotoCaseProduct()) {
+      if (!this.selectedSize) this.selectedSize = 'etui';
+      if (this.selectedProductType !== 'etui') this.selectedProductType = 'etui';
+    }
     if (!this.selectedSize) {
       console.log('❌ [CUSTOMIFY] No selectedSize, showing error');
       this.showError('Nie wybrałeś rozmiaru', 'cart');
@@ -5504,7 +5552,7 @@ class CustomifyEmbed {
         watermarkedImageBase64: this.watermarkedImageBase64 || null, // ✅ NOWE: Base64 watermarku (dla /api/products - BEZ PONOWNEGO DOWNLOADU)
         style: this.selectedStyle,
         size: this.selectedSize,
-        productType: this.selectedProductType || 'canvas', // Rodzaj wydruku: plakat lub canvas
+        productType: this.isPhonePhotoCaseProduct() ? 'etui' : (this.selectedProductType || 'canvas'), // 📱 Etui: wymuszony productType
         originalProductTitle: document.querySelector('h1, .product-title, .view-product-title')?.textContent?.trim() || 'Produkt',
         originalProductId: productId, // ✅ Dodano ID produktu do pobrania ceny z Shopify
         finalPrice: finalPrice, // ✅ Przekaż obliczoną cenę do API

@@ -228,8 +228,12 @@ module.exports = async (req, res) => {
           ? 'Nadruk na szkle'  // 🆕 Szkło
           : productType === 'spotify_frame'
             ? 'Ramka Spotify'
-            : 'Obraz na płótnie'; // Canvas
-      sizeName = size === 'a5'
+            : productType === 'etui'
+              ? 'Etui na telefon'  // 📱 Etui
+              : 'Obraz na płótnie'; // Canvas
+      sizeName = size === 'etui'
+        ? 'Etui na telefon'  // 📱 Etui - brak rozmiaru
+        : size === 'a5'
         ? '15×21 cm'  // 🆕 A5 dla szkła
         : size === 'a4'
           ? '20×30 cm'
@@ -249,7 +253,7 @@ module.exports = async (req, res) => {
     // 🚨 ROLLBACK: START - Konfiguracja produktu cyfrowego
     const productData = {
       product: {
-        title: isDigitalProduct 
+        title: (isDigitalProduct || productType === 'etui')
           ? `${productTypeName} - Styl ${style}`
           : `${productTypeName} - Rozmiar ${sizeName}`,
         body_html: isDigitalProduct
