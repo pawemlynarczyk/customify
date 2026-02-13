@@ -819,12 +819,16 @@
  }
 
  // 🎵 SPOTIFY: Komponuj finalny obraz z maską i tekstami
- console.log('[SPOTIFY CHECK] Reached SPOTIFY section in addToCart');
- console.log('[SPOTIFY CHECK] this.isSpotifyProduct():', this.isSpotifyProduct());
- 
  let finalTransformedImage = this.transformedImage;
  let watermarkedImageUrl = this.watermarkedImageUrl || null;
  let needsBackendWatermark = false;
+ 
+ // 📱 ETUI: wycięty kadr (jak ramka Spotify)
+ if (this.isPhonePhotoCaseProduct() && this.phonePhotoCropConfirmed && this.phonePhotoCropDataUrl) {
+ finalTransformedImage = this.phonePhotoCropDataUrl;
+ watermarkedImageUrl = null;
+ needsBackendWatermark = true;
+ }
  
  if (this.isSpotifyProduct()) {
  console.log('🎵 [SPOTIFY] Composing final image with mask and texts...');
@@ -917,7 +921,7 @@
  watermarkedImage: watermarkedImageUrl,
  watermarkedImageUrl: watermarkedImageUrl, // 🎵 null dla spotify
  needsBackendWatermark: needsBackendWatermark, // 🎵 true dla spotify
- watermarkedImageBase64: this.watermarkedImageBase64 || null,
+ watermarkedImageBase64: needsBackendWatermark ? null : (this.watermarkedImageBase64 || null),
  spotifyPreviewUrl: this.spotifyPreviewUrl || null, // 🎵 JPEG z szarym tłem do koszyka
  style: this.selectedStyle,
  size: isDigitalProduct ? 'digital' : this.selectedSize, // 🚨 ROLLBACK: Dla produktu cyfrowego użyj 'digital'
