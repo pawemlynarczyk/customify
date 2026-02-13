@@ -133,7 +133,7 @@ const cleanupOldVersions = async (blobToken, versions) => {
     if (!path) continue;
     try {
       await del(path, { token: blobToken });
-      console.log(`🧹 [PRODUCT-STATS] Usunięto stary plik: ${path}`);
+      // cleanup przy każdym evencie gdy >5 wersji - nie loguj (zaśmieca logi)
     } catch (error) {
       console.warn(`⚠️ [PRODUCT-STATS] Nie udało się usunąć ${path}:`, error?.message || error);
     }

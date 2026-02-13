@@ -662,50 +662,16 @@
  imageToShow = imageUrl; // Pokazujemy oryginał bez watermarku (tylko podgląd)
  }
  
- // 📱 Phone case: use background-image in PREVIEW area (same place as uploaded image)
+ // ✅ Vercel Blob: użyj proxy (CORS blokuje bezpośrednie ładowanie - inspiracja z ramka-spotify używającej img)
+ if (imageToShow && imageToShow.includes('blob.vercel-storage.com')) {
+ imageToShow = 'https://customify-s56o.vercel.app/api/proxy-image?url=' + encodeURIComponent(imageToShow);
+ }
+ // 📱 Phone case: pokaż resultArea (jak inne produkty) - cena i przycisk wewnątrz
  if (this.isPhonePhotoCaseProduct && this.isPhonePhotoCaseProduct()) {
- console.log('📱 [PHONE PREVIEW] Phone case detected in theme.liquid showResult, using preview area');
- const photoBg = document.getElementById('phoneCasePhotoBg');
  const resultBg = document.getElementById('phoneCaseResultBg');
- 
- // Set image in PREVIEW area (main location)
- if (photoBg) {
- photoBg.style.backgroundImage = `url(${imageToShow})`;
- console.log('[PHONE PREVIEW] set background image in PREVIEW area (phoneCasePhotoBg)', imageToShow?.substring(0, 50) + '...');
- } else {
- console.warn('⚠️ [PHONE PREVIEW] phoneCasePhotoBg not found!');
- }
- 
- // Also set in result area (backup, but resultArea will be hidden)
- if (resultBg) {
- resultBg.style.backgroundImage = `url(${imageToShow})`;
- console.log('[PHONE PREVIEW] set background image in RESULT area (phoneCaseResultBg) as backup');
- }
- 
- // Keep resultImage hidden but set src for compatibility
- if (this.resultImage) {
- this.resultImage.src = imageToShow;
- }
- 
- // 📱 Phone case: hide resultArea, keep previewArea visible (like Spotify)
- if (this.resultArea) {
- this.resultArea.style.display = 'none';
- this.resultArea.style.setProperty('display', 'none', 'important');
- console.log('📱 [PHONE PREVIEW] resultArea hidden with !important');
- }
- if (this.previewArea) {
- this.previewArea.style.display = 'block';
- console.log('📱 [PHONE PREVIEW] previewArea shown');
- }
- 
- // 📱 Phone case: Also hide resultArea after a delay (in case something shows it later)
- setTimeout(() => {
- if (this.resultArea && this.isPhonePhotoCaseProduct && this.isPhonePhotoCaseProduct()) {
- this.resultArea.style.display = 'none';
- this.resultArea.style.setProperty('display', 'none', 'important');
- console.log('📱 [PHONE PREVIEW] resultArea hidden again (delayed)');
- }
- }, 100);
+ if (resultBg) resultBg.style.backgroundImage = `url(${imageToShow})`;
+ if (this.resultImage) this.resultImage.src = imageToShow;
+ this.resultArea.style.display = 'block';
  } else {
  // Normal products: use resultImage and show resultArea
  if (this.resultImage) {
@@ -853,12 +819,16 @@
  }
 
  // 🎵 SPOTIFY: Komponuj finalny obraz z maską i tekstami
- console.log('[SPOTIFY CHECK] Reached SPOTIFY section in addToCart');
- console.log('[SPOTIFY CHECK] this.isSpotifyProduct():', this.isSpotifyProduct());
- 
  let finalTransformedImage = this.transformedImage;
  let watermarkedImageUrl = this.watermarkedImageUrl || null;
  let needsBackendWatermark = false;
+ 
+ // 📱 ETUI: wycięty kadr (jak ramka Spotify)
+ if (this.isPhonePhotoCaseProduct() && this.phonePhotoCropConfirmed && this.phonePhotoCropDataUrl) {
+ finalTransformedImage = this.phonePhotoCropDataUrl;
+ watermarkedImageUrl = null;
+ needsBackendWatermark = true;
+ }
  
  if (this.isSpotifyProduct()) {
  console.log('🎵 [SPOTIFY] Composing final image with mask and texts...');
@@ -951,7 +921,7 @@
  watermarkedImage: watermarkedImageUrl,
  watermarkedImageUrl: watermarkedImageUrl, // 🎵 null dla spotify
  needsBackendWatermark: needsBackendWatermark, // 🎵 true dla spotify
- watermarkedImageBase64: this.watermarkedImageBase64 || null,
+ watermarkedImageBase64: needsBackendWatermark ? null : (this.watermarkedImageBase64 || null),
  spotifyPreviewUrl: this.spotifyPreviewUrl || null, // 🎵 JPEG z szarym tłem do koszyka
  style: this.selectedStyle,
  size: isDigitalProduct ? 'digital' : this.selectedSize, // 🚨 ROLLBACK: Dla produktu cyfrowego użyj 'digital'
@@ -1136,32 +1106,48 @@
  const cartUrl = `/cart/add?${params.toString()}`;
  const fullUrl = window.location.origin + cartUrl;
  console.log('🛒 [CUSTOMIFY] Cart URL length:', cartUrl.length, 'chars');
- console.log('🛒 [CUSTOMIFY] Cart URL:', cartUrl.substring(0, 200), '...');
  console.log('🛒 [CUSTOMIFY] Full URL length:', fullUrl.length, 'chars');
  
- // ✅ WERYFIKACJA: Sprawdź czy _Order ID Full jest w URL
- if (cartUrl.includes('_Order%20ID%20Full') || cartUrl.includes('_Order+ID+Full')) {
- console.log('✅ [CUSTOMIFY] _Order ID Full found in cart URL');
- } else {
- console.error('❌ [CUSTOMIFY] _Order ID Full NOT found in cart URL!', {
- hasOrderId: !!result.orderId,
- orderId: result.orderId,
- hiddenProperties: hiddenProperties,
- cartUrlPreview: cartUrl.substring(0, 500)
- });
- }
-
  if (fullUrl.length > 2048) {
  console.error('❌ [CUSTOMIFY] URL TOO LONG:', fullUrl.length, 'chars (max 2048)');
- console.error('❌ [CUSTOMIFY] Properties:', cartProperties);
  this.hideCartLoading();
  this.showError('URL zbyt długi - usuń niektóre właściwości lub skontaktuj się z supportem');
  return;
  }
 
- console.log('✅ [CUSTOMIFY] Adding to cart via direct navigation');
+ // ✅ Użyj cart/add.js (POST) zamiast GET - lepsza obsługa błędów Shopify
+ const cartRoot = (window.Shopify && window.Shopify.routes && window.Shopify.routes.root) || '/';
+ const addToCartUrl = cartRoot + 'cart/add.js';
+ const addPayload = {
+ items: [{
+ id: parseInt(result.variantId, 10),
+ quantity: 1,
+ properties: cartProperties
+ }]
+ };
+ console.log('🛒 [CUSTOMIFY] Adding via cart/add.js POST:', addToCartUrl);
+ try {
+ const addResponse = await fetch(addToCartUrl, {
+ method: 'POST',
+ headers: { 'Content-Type': 'application/json' },
+ body: JSON.stringify(addPayload)
+ });
+ const addResult = await addResponse.json();
+ if (addResponse.ok && addResult.items && addResult.items.length > 0) {
+ console.log('✅ [CUSTOMIFY] Added to cart successfully');
  this.hideCartLoading();
- window.location.href = cartUrl;
+ window.location.href = cartRoot + 'cart';
+ } else {
+ const errMsg = addResult.description || addResult.message || 'Nie udało się dodać do koszyka';
+ console.error('❌ [CUSTOMIFY] Cart add error:', addResult);
+ this.hideCartLoading();
+ this.showError('❌ ' + errMsg);
+ }
+ } catch (addErr) {
+ console.error('❌ [CUSTOMIFY] Cart add fetch error:', addErr);
+ this.hideCartLoading();
+ this.showError('❌ Błąd dodawania do koszyka. Spróbuj ponownie.');
+ }
  }
  } else {
  console.error('❌ [CUSTOMIFY] Product creation failed:', result);
@@ -3869,7 +3855,7 @@
  
  <div id="customify-app-container" class="customify-shopify-container">
  
- <div class="customify-product-type-selector" id="productTypeArea" style="display: block; margin-bottom: 10px;">
+ <div class="customify-product-type-selector{% if product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem' %} hide-for-phone-case{% endif %}" id="productTypeArea" style="display: block; margin-bottom: 10px;">
  <h4 style="text-align: left; font-size: 0.95rem; font-weight: 600;">Rodzaj wydruku:</h4>
  <div class="customify-product-type-buttons">
  {% comment %} FILTRUJ RODZAJE WYDRUKU PER PRODUKT {% endcomment %}
@@ -3937,8 +3923,8 @@
  </div>
  </div>
 
- <div class="customify-size-selector" id="sizeArea" style="display: block; margin-bottom: 10px;">
- <h4 style="text-align: left;">Rozmiar (cm):</h4>
+<div class="customify-size-selector{% if product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem' %} hide-for-phone-case{% endif %}" id="sizeArea" style="display: block; margin-bottom: 10px;">
+<h4 style="text-align: left;">Rozmiar (cm):</h4>
  <div class="customify-size-buttons">
  <div class="customify-size-btn" data-size="a5" data-for-szklo="true">15×21</div>
  <div class="customify-size-btn" data-size="a4">20×30</div>
@@ -4120,6 +4106,7 @@
  <h4>Ustaw kadr zdjęcia</h4>
  <div class="phone-photo-crop-canvas">
  <img id="phonePhotoCropImage" alt="Kadrowanie zdjęcia">
+ <div id="phonePhotoCropWatermark" class="phone-photo-crop-watermark" style="display: none;"></div>
  </div>
  <div class="phone-photo-crop-actions">
  <button type="button" class="customify-btn customify-btn-secondary" id="phonePhotoCropCancelBtn">Anuluj</button>
@@ -4662,7 +4649,9 @@
  </button>
  </div>
 
- <div class="customify-loading" id="loadingArea">
+ {% if product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem' %}{% render 'phone-case-cart' %}{% endif %}
+
+<div class="customify-loading" id="loadingArea">
  
  <div class="arrow-down">
  <span>↓ ↓ ↓</span>
@@ -5097,9 +5086,11 @@
  pointer-events: none;
  }
 
- {% if product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem' %}
- /* 📱 Etui na telefon - overlay podglądu (preview + result) */
- #customify-app-container .phone-case-preview {
+{% if product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem' %}
+/* 📱 Etui - ukryj Rodzaj wydruku i Rozmiar (TYLKO ten produkt) */
+#customify-app-container .hide-for-phone-case{display:none!important}
+/* 📱 Etui na telefon - overlay podglądu (preview + result) */
+#customify-app-container .phone-case-preview {
  width: 100% !important;
  max-width: 520px !important;
  min-width: 300px !important;
@@ -5167,6 +5158,11 @@
  }
  #customify-app-container .phone-case-preview {
  height: auto !important;
+ }
+ /* 📱 Etui: ukryj previewArea gdy resultArea widoczny (jak ramka-spotify) */
+ #customify-app-container #resultArea[style*="block"] ~ #previewArea,
+ #customify-app-container:has(#resultArea[style*="block"]) #previewArea {
+ display: none !important;
  }
  {% endif %}
 
@@ -5624,8 +5620,9 @@
  .phone-photo-crop-canvas {
  position: relative;
  width: 100%;
+ min-height: 400px;
  max-height: 70vh;
- overflow: hidden;
+ overflow: visible;
  border-radius: 8px;
  background: #f4f4f4;
  margin: 12px 0;
@@ -5633,6 +5630,22 @@
  .phone-photo-crop-canvas img {
  max-width: 100%;
  display: block;
+ }
+ .phone-photo-crop-canvas .cropper-container {
+ z-index: 2;
+ }
+ .phone-photo-crop-canvas .cropper-point,
+ .phone-photo-crop-canvas .cropper-line {
+ z-index: 10;
+ }
+ .phone-photo-crop-watermark {
+ position: absolute;
+ inset: 0;
+ background-size: contain;
+ background-position: center;
+ background-repeat: no-repeat;
+ pointer-events: none;
+ z-index: 5;
  }
  .phone-photo-crop-actions {
  display: flex;

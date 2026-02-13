@@ -227,10 +227,8 @@ class CustomifyEmbed {
   // 📱 Produkt etui (zdjęcie) - osobny cropper
   isPhonePhotoCaseProduct() {
     const currentUrl = window.location.pathname.toLowerCase();
-    const isPhonePhoto = currentUrl.includes('personalizowane-etui-na-telefon-z-twoim-zdjeciem') &&
+    return currentUrl.includes('personalizowane-etui-na-telefon-z-twoim-zdjeciem') &&
       !currentUrl.includes('personalizowane-etui-na-telefon-z-twoim-zdjeciem-karykatura');
-    console.log('📱 [DEBUG] isPhonePhotoCaseProduct:', { currentUrl, isPhonePhoto });
-    return isPhonePhoto;
   }
 
   getCropConfig() {
@@ -278,7 +276,7 @@ class CustomifyEmbed {
     brandField.className = 'phone-selector-field';
     const brandLabel = document.createElement('label');
     brandLabel.htmlFor = 'phoneBrandSelect';
-    brandLabel.textContent = 'Marka telefonu';
+    brandLabel.textContent = 'Wybierz markę telefonu';
     brandField.appendChild(brandLabel);
     const brandSelect = document.createElement('select');
     brandSelect.id = 'phoneBrandSelect';
@@ -300,7 +298,7 @@ class CustomifyEmbed {
     modelField.className = 'phone-selector-field';
     const modelLabel = document.createElement('label');
     modelLabel.htmlFor = 'phoneModelSelect';
-    modelLabel.textContent = 'Model telefonu';
+    modelLabel.textContent = 'Wybierz model telefonu';
     modelField.appendChild(modelLabel);
     const modelSelect = document.createElement('select');
     modelSelect.id = 'phoneModelSelect';
@@ -1146,14 +1144,34 @@ class CustomifyEmbed {
   }
 
   /**
+   * Zwraca URL bezpieczny dla canvas (proxy dla Vercel Blob - CORS)
+   * Używane w text overlay i innych miejscach gdzie ładujemy obraz do canvas
+   */
+  getCanvasSafeImageUrl(url) {
+    if (!url || typeof url !== 'string') return url;
+    if (url.startsWith('data:')) return url;
+    if (url.includes('blob.vercel-storage.com')) {
+      return `https://customify-s56o.vercel.app/api/proxy-image?url=${encodeURIComponent(url)}`;
+    }
+    return url;
+  }
+
+  /**
    * Konwertuje URL na File object
+   * Dla Vercel Blob używa proxy (CORS blokuje bezpośredni fetch)
    */
   urlToFile(url, filename) {
+    const fetchUrl = (url && url.includes('blob.vercel-storage.com'))
+      ? `https://customify-s56o.vercel.app/api/proxy-image?url=${encodeURIComponent(url)}`
+      : url;
     return new Promise((resolve, reject) => {
-      fetch(url)
-        .then(response => response.blob())
+      fetch(fetchUrl)
+        .then(response => {
+          if (!response.ok) throw new Error(`Fetch failed: ${response.status}`);
+          return response.blob();
+        })
         .then(blob => {
-          const file = new File([blob], filename, { type: blob.type });
+          const file = new File([blob], filename, { type: blob.type || 'image/jpeg' });
           resolve(file);
         })
         .catch(error => {
@@ -1291,20 +1309,19 @@ class CustomifyEmbed {
     const text = (this.textOverlayInput?.value || '').trim();
     this.textOverlayState = { ...this.textOverlayState, text };
 
-    // Jeśli tekst pusty – wróć do oryginału
+    // Jeśli tekst pusty – wróć do oryginału (z proxy dla Vercel Blob – jak w showResult)
     if (!text) {
       this.textOverlayState = { ...this.textOverlayState, text: '', previewUrl: null };
       this.updateTextOverlayHint('Pole jest puste');
       if (this.resultImage && this.watermarkedImageUrl) {
-        // 📱 Phone case: use background-image in preview area
+        const url = this.getCanvasSafeImageUrl(this.watermarkedImageUrl);
         if (this.isPhonePhotoCaseProduct()) {
           const photoBg = document.getElementById('phoneCasePhotoBg');
-          if (photoBg) {
-            photoBg.style.backgroundImage = `url(${this.watermarkedImageUrl})`;
-            console.log('[PHONE PREVIEW] set background image from watermarkedImageUrl in preview area');
-          }
+          const resultBg = document.getElementById('phoneCaseResultBg');
+          if (photoBg) photoBg.style.backgroundImage = `url(${url})`;
+          if (resultBg) resultBg.style.backgroundImage = `url(${url})`;
         }
-        this.resultImage.src = this.watermarkedImageUrl;
+        this.resultImage.src = url;
       }
       return;
     }
@@ -1316,22 +1333,23 @@ class CustomifyEmbed {
       size: this.textOverlayState.size || 'medium'
     };
 
-    // ✅ PREVIEW: Użyj watermarkedImageUrl jako base (żeby watermark był ZAWSZE widoczny)
-    // NIE dodajemy watermarku ponownie - tylko renderujemy tekst na obrazie z watermarkiem
-    const baseUrl = this.watermarkedImageUrl || this.textOverlayBaseImage || this.transformedImage;
+    // ✅ PREVIEW: Preferuj base64 (bez CORS). Dla URL użyj proxy (Vercel Blob blokuje canvas)
+    let baseUrl = this.watermarkedImageBase64
+      ? `data:image/jpeg;base64,${this.watermarkedImageBase64}`
+      : (this.watermarkedImageUrl || this.textOverlayBaseImage || this.transformedImage);
+    baseUrl = this.getCanvasSafeImageUrl(baseUrl);
     const base64WithText = await this.renderTextOverlayPreview(baseUrl, text, options);
 
     // ✅ PREVIEW: NIE DODAWAJ watermarku - tylko szybki podgląd tekstu
     this.textOverlayState = { ...this.textOverlayState, previewUrl: base64WithText };
 
     if (this.resultImage) {
-      // 📱 Phone case: use background-image in preview area
-      if (this.isPhonePhotoCaseProduct()) {
+      // 📱 Phone case: aktualizuj oba (preview + result) - podgląd napisu
+      if (this.isPhonePhotoCaseProduct() && base64WithText) {
         const photoBg = document.getElementById('phoneCasePhotoBg');
-        if (photoBg && base64WithText) {
-          photoBg.style.backgroundImage = `url(${base64WithText})`;
-          console.log('[PHONE PREVIEW] set background image from text overlay in preview area');
-        }
+        const resultBg = document.getElementById('phoneCaseResultBg');
+        if (photoBg) photoBg.style.backgroundImage = `url(${base64WithText})`;
+        if (resultBg) resultBg.style.backgroundImage = `url(${base64WithText})`;
       }
       this.resultImage.src = base64WithText;
     }
@@ -1362,7 +1380,8 @@ class CustomifyEmbed {
       size: this.textOverlayState.size || 'medium'
     };
 
-    const baseUrl = this.textOverlayBaseImage || this.transformedImage;
+    let baseUrl = this.textOverlayBaseImage || this.transformedImage;
+    baseUrl = this.getCanvasSafeImageUrl(baseUrl);
     console.log('📝 [TEXT-OVERLAY] Rozpoczynam renderowanie napisu na obrazie:', baseUrl.substring(0, 100) + '...');
     const base64WithText = await this.renderTextOverlay(baseUrl, text, options);
     console.log('✅ [TEXT-OVERLAY] Napis wyrenderowany pomyślnie (base64 length:', base64WithText.length, ')');
@@ -1398,16 +1417,15 @@ class CustomifyEmbed {
     }
 
     if (this.resultImage) {
-      // 📱 Phone case: use background-image in preview area
+      // 📱 Phone case: aktualizuj oba (preview + result) - po zapisie napisu (proxy dla Vercel Blob)
+      const imageUrl = this.getCanvasSafeImageUrl(watermarkedUrl || overlayUrl);
       if (this.isPhonePhotoCaseProduct()) {
         const photoBg = document.getElementById('phoneCasePhotoBg');
-        const imageUrl = watermarkedUrl || overlayUrl;
-        if (photoBg && imageUrl) {
-          photoBg.style.backgroundImage = `url(${imageUrl})`;
-          console.log('[PHONE PREVIEW] set background image from text overlay save in preview area');
-        }
+        const resultBg = document.getElementById('phoneCaseResultBg');
+        if (photoBg && imageUrl) photoBg.style.backgroundImage = `url(${imageUrl})`;
+        if (resultBg && imageUrl) resultBg.style.backgroundImage = `url(${imageUrl})`;
       }
-      this.resultImage.src = watermarkedUrl || overlayUrl;
+      this.resultImage.src = imageUrl;
     }
 
     // Zaktualizuj najnowszą generację w localStorage
@@ -1822,8 +1840,14 @@ class CustomifyEmbed {
           console.log('✅ [CLEANUP] Replicate URL kept (CORS safe):', generation.id);
           continue;
         }
+        // ✅ NIE SPRAWDZAJ Vercel Blob URLs (CORS blokuje HEAD) - obrazy działają do wyświetlania
+        if (generation.thumbnail.includes('blob.vercel-storage.com')) {
+          workingGenerations.push(generation);
+          console.log('✅ [CLEANUP] Vercel Blob URL kept (CORS):', generation.id);
+          continue;
+        }
         
-        // Sprawdź tylko Vercel Blob URLs
+        // Sprawdź inne URLs
         const isWorking = await this.checkImageUrl(generation.thumbnail);
         if (isWorking) {
           workingGenerations.push(generation);
@@ -2845,6 +2869,8 @@ class CustomifyEmbed {
     document.getElementById('resetBtn').addEventListener('click', () => this.reset());
     document.getElementById('addToCartBtn').addEventListener('click', () => this.addToCart());
     document.getElementById('addToCartBtnMain').addEventListener('click', () => this.addToCart());
+    const addToCartBtnPhoneCase = document.getElementById('addToCartBtnPhoneCase');
+    if (addToCartBtnPhoneCase) addToCartBtnPhoneCase.addEventListener('click', () => this.addToCart());
     document.getElementById('tryAgainBtn').addEventListener('click', () => this.tryAgain());
 
     if (this.spotifyCropConfirmBtn) {
@@ -2877,13 +2903,16 @@ class CustomifyEmbed {
     // 🎵 Kliknięcie w preview image otwiera cropper ponownie (ponowne kadrowanie)
     if (this.isCropperProduct()) {
       if (this.isPhonePhotoCaseProduct()) {
-        // 📱 Phone case: click on background div instead of hidden img
+        // 📱 Phone case: click na preview (przed AI) i result (po AI) - ponowne kadrowanie
         const photoBg = document.getElementById('phoneCasePhotoBg');
-        if (photoBg) {
-          photoBg.style.cursor = 'pointer';
-          photoBg.title = 'Kliknij aby ponownie wykadrować zdjęcie';
-          photoBg.addEventListener('click', () => this.reopenPhonePhotoCropper());
-        }
+        const resultBg = document.getElementById('phoneCaseResultBg');
+        [photoBg, resultBg].forEach(el => {
+          if (el) {
+            el.style.cursor = 'pointer';
+            el.title = 'Kliknij aby ponownie wykadrować zdjęcie';
+            el.addEventListener('click', () => this.reopenPhonePhotoCropper());
+          }
+        });
       } else if (this.previewImage) {
         this.previewImage.style.cursor = 'pointer';
         this.previewImage.title = 'Kliknij aby ponownie wykadrować zdjęcie';
@@ -3121,9 +3150,11 @@ class CustomifyEmbed {
       const userImage = new Image();
       userImage.crossOrigin = 'anonymous';
       
-      // Użyj wykadrowanego zdjęcia lub transformedImage
-      const imageSource = this.spotifyCropDataUrl || this.transformedImage;
-      
+      // Użyj wykadrowanego zdjęcia (base64) lub transformedImage (URL – przez proxy przy Vercel Blob)
+      let imageSource = this.spotifyCropDataUrl || this.transformedImage;
+      if (imageSource && typeof imageSource === 'string' && imageSource.startsWith('http')) {
+        imageSource = this.getCanvasSafeImageUrl(imageSource);
+      }
       if (!imageSource) {
         reject(new Error('Brak zdjęcia do kompozycji'));
         return;
@@ -3457,7 +3488,6 @@ class CustomifyEmbed {
     }
     
     this.phonePhotoCropSourceUrl = URL.createObjectURL(file);
-    phonePhotoCropImage.src = this.phonePhotoCropSourceUrl;
     
     // Hide watermark overlay initially (will be shown in reopenPhonePhotoCropper if needed)
     const watermarkOverlay = document.getElementById('phonePhotoCropWatermark');
@@ -3469,24 +3499,36 @@ class CustomifyEmbed {
     phonePhotoCropModal.setAttribute('aria-hidden', 'false');
     
     const cropConfig = this.getPhonePhotoCropConfig();
-    this.phonePhotoCropper = new Cropper(phonePhotoCropImage, {
-      aspectRatio: cropConfig.aspectRatio,
-      viewMode: 1,
-      autoCropArea: 1,
-      responsive: true,
-      movable: true,
-      zoomable: true,
-      zoomOnTouch: true,
-      zoomOnWheel: true,
-      background: false
-    });
+    const initCropper = () => {
+      if (this.phonePhotoCropper) return;
+      this.phonePhotoCropper = new Cropper(phonePhotoCropImage, {
+        aspectRatio: cropConfig.aspectRatio,
+        viewMode: 1,
+        autoCropArea: 1,
+        responsive: true,
+        movable: true,
+        zoomable: true,
+        zoomOnTouch: true,
+        zoomOnWheel: false,
+        background: false
+      });
+    };
+    phonePhotoCropImage.onload = () => {
+      phonePhotoCropImage.onload = null;
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          initCropper();
+        });
+      });
+    };
+    phonePhotoCropImage.src = this.phonePhotoCropSourceUrl;
     
-    // Powiększone uchwyty croppera dla lepszej widoczności
+    // Powiększone uchwyty croppera - z-index nad watermark, widoczne
     setTimeout(() => {
       const canvas = phonePhotoCropModal.querySelector('.phone-photo-crop-canvas');
       if (canvas) {
         const style = document.createElement('style');
-        style.textContent = '.phone-photo-crop-canvas .cropper-point{width:20px!important;height:20px!important;background:#39f!important;border:2px solid #fff!important;box-shadow:0 0 0 1px rgba(0,0,0,.2)!important}.phone-photo-crop-canvas .cropper-line,.phone-photo-crop-canvas .cropper-face{border-color:#39f!important;border-width:2px!important}';
+        style.textContent = '.phone-photo-crop-canvas .cropper-point{width:20px!important;height:20px!important;background:#39f!important;border:2px solid #fff!important;box-shadow:0 0 0 1px rgba(0,0,0,.2)!important;z-index:10!important}.phone-photo-crop-canvas .cropper-line,.phone-photo-crop-canvas .cropper-face{border-color:#39f!important;border-width:2px!important;z-index:5!important}';
         document.head.appendChild(style);
       }
     }, 100);
@@ -3504,6 +3546,9 @@ class CustomifyEmbed {
     }
     const phonePhotoCropModal = document.getElementById('phonePhotoCropModal');
     if (phonePhotoCropModal) {
+      if (document.activeElement && phonePhotoCropModal.contains(document.activeElement)) {
+        document.activeElement.blur();
+      }
       phonePhotoCropModal.classList.remove('is-open');
       phonePhotoCropModal.setAttribute('aria-hidden', 'true');
     }
@@ -3526,9 +3571,19 @@ class CustomifyEmbed {
       const croppedFile = new File([blob], `${cropConfig.filePrefix}-${Date.now()}.jpg`, { type: 'image/jpeg' });
       this.uploadedFile = croppedFile;
       this.phonePhotoCropConfirmed = true;
-      this.phonePhotoCropDataUrl = canvas.toDataURL('image/jpeg', 0.9);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+      this.phonePhotoCropDataUrl = dataUrl;
       this.closePhonePhotoCropper();
-      this.showPreview(croppedFile);
+      if (this.transformedImage) {
+        const resultBg = document.getElementById('phoneCaseResultBg');
+        const photoBg = document.getElementById('phoneCasePhotoBg');
+        if (resultBg) resultBg.style.backgroundImage = `url(${dataUrl})`;
+        if (photoBg) photoBg.style.backgroundImage = `url(${dataUrl})`;
+        if (this.resultImage) this.resultImage.src = dataUrl;
+        this.transformedImage = dataUrl;
+      } else {
+        this.showPreview(croppedFile);
+      }
       this.hideError();
     }, 'image/jpeg', 0.9);
   }
@@ -3552,22 +3607,22 @@ class CustomifyEmbed {
     if (imageToUse) {
       console.log('📱 [PHONE-PHOTO] Ponowne otwieranie croppera z WYGENEROWANYM obrazem (bez watermarku - do cropowania)');
       try {
-        // Convert URL to File for cropper (use image WITHOUT watermark for cropping)
+        // urlToFile używa proxy dla Vercel Blob (CORS bypass)
         const file = await this.urlToFile(imageToUse, 'phone-photo-ai-result.jpg');
         this.openPhonePhotoCropper(file);
         
-        // Show watermark overlay visually (if available)
+        // Show watermark overlay visually (if available) – proxy dla Vercel Blob (jak w showResult)
         if (this.watermarkedImageUrl) {
           const watermarkOverlay = document.getElementById('phonePhotoCropWatermark');
           if (watermarkOverlay) {
-            watermarkOverlay.style.backgroundImage = `url(${this.watermarkedImageUrl})`;
+            const watermarkUrl = this.getCanvasSafeImageUrl(this.watermarkedImageUrl);
+            watermarkOverlay.style.backgroundImage = `url(${watermarkUrl})`;
             watermarkOverlay.style.display = 'block';
             console.log('📱 [PHONE-PHOTO] Watermark overlay pokazany (tylko wizualnie)');
           }
         }
       } catch (error) {
         console.error('❌ [PHONE-PHOTO] Błąd konwersji URL na File:', error);
-        // Fallback to original file if conversion fails
         if (this.originalPhonePhotoFile) {
           console.log('📱 [PHONE-PHOTO] Fallback do oryginalnego zdjęcia');
           this.openPhonePhotoCropper(this.originalPhonePhotoFile);
@@ -4235,16 +4290,21 @@ class CustomifyEmbed {
               phoneCaseCartPriceValue.textContent = `${finalPrice.toFixed(2)} zł`;
               console.log('📱 [PHONE PREVIEW] Phone case cart price updated:', finalPrice.toFixed(2), 'zł');
             }
-            // Show price ONLY if image is generated (after AI)
+            // Show price and buttons ONLY if image is generated (after AI)
             const phoneCaseCartPriceDisplay = document.getElementById('phoneCaseCartPriceDisplay');
-            if (phoneCaseCartPriceDisplay) {
-              if (this.transformedImage) {
+            const phoneCaseCartActions = document.getElementById('phoneCaseCartActions');
+            if (this.transformedImage) {
+              if (phoneCaseCartPriceDisplay) {
                 phoneCaseCartPriceDisplay.style.display = 'block';
                 console.log('📱 [PHONE PREVIEW] Cart price shown (after AI generation)');
-              } else {
-                phoneCaseCartPriceDisplay.style.display = 'none';
-                console.log('📱 [PHONE PREVIEW] Cart price hidden (before AI generation)');
               }
+              if (phoneCaseCartActions) {
+                phoneCaseCartActions.style.display = 'flex';
+                console.log('📱 [PHONE PREVIEW] Cart actions shown (after AI generation)');
+              }
+            } else {
+              if (phoneCaseCartPriceDisplay) phoneCaseCartPriceDisplay.style.display = 'none';
+              if (phoneCaseCartActions) phoneCaseCartActions.style.display = 'none';
             }
           }
         } else {
@@ -4259,10 +4319,7 @@ class CustomifyEmbed {
    * Pokazuje element ceny nad przyciskiem
    */
   showCartPrice() {
-    // Don't show main cart price for phone case (has its own price display)
-    if (this.isPhonePhotoCaseProduct && this.isPhonePhotoCaseProduct()) {
-      return; // Phone case has its own price display
-    }
+    // Etui używa tego samego cartPriceDisplay (w resultArea) jak inne produkty
     const cartPriceDisplay = document.getElementById('cartPriceDisplay');
     if (cartPriceDisplay) {
       cartPriceDisplay.style.display = 'block';
@@ -4870,7 +4927,9 @@ class CustomifyEmbed {
         // ✅ AWAIT: Czekaj aż wynik zostanie pokazany
         // showResult() użyje watermarkedImageUrl jeśli dostępny, w przeciwnym razie transformedImage
         await this.showResult(result.transformedImage);
-        this.showSuccess('Projekt poprawny możesz wybrać rozmiar i zamówić wydruk');
+        if (!this.isPhonePhotoCaseProduct || !this.isPhonePhotoCaseProduct()) {
+          this.showSuccess('Projekt poprawny możesz wybrać rozmiar i zamówić wydruk');
+        }
         
         // ✅ UKRYJ PASEK POSTĘPU - obraz jest już widoczny, reszta działa w tle
         this.hideLoading();

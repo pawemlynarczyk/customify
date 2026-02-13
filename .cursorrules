@@ -53,6 +53,20 @@
 - ❌ **Nie ignoruj błędów** - napraw zanim przejdziesz dalej
 - ❌ **Nie zmieniaj logiki globalnie** - tylko dla konkretnych produktów/stylów
 
+## 🚨 CRITICAL: NIGDY NIE NADPISUJ GŁÓWNYCH PLIKÓW POD JEDNĄ MAŁĄ FUNKCJONALNOŚĆ
+- **ZAKAZ**: Tworzenie/istnienie pliku `public/customify.css` NADPISUJE `shopify-theme/.../customify.css` przy sync/deploy (sync kopiuje public→shopify-theme)
+- **SKUTEK**: customify.css ma ~52KB stylów dla CAŁEJ strony (footer, policy, layout) – nadpisanie małym plikiem = wyjebana cała strona
+- **ZASADA**: Dla małej funkcji (np. selektory dla 1 produktu) – ZAWSZE tylko **DODAWAJ** do istniejących plików, NIGDY nie twórz nowych które replaceują główne
+- **PRAWIDŁOWO**: Style dla 1 produktu → dopisz na KONIEC `shopify-theme/customify-theme/assets/customify.css` LUB inline w theme.liquid (sekcja `{% if product.handle == 'x' %}`)
+- **ŹLE**: Tworzenie `public/customify.css` gdy nie istnieje – zniszczy cały CSS na stronie
+
+## 🚨 CRITICAL: ZMIANY PER PRODUKT – ZERO WPŁYWU NA INNE
+- **ZASADA**: Pracując nad jednym produktem (np. etui), zmiany MUSZĄ wpływać TYLKO na ten produkt, najlepiej w ogóle nie dotykać innych
+- **JAK**: Zawsze opakuj w warunek `if product.handle == 'x'` (Liquid) lub `if this.isPhonePhotoCaseProduct()` (JS)
+- **CSS**: Selektory scoped – np. `#customify-app-container #phone-selectors-slot .xyz` – style działają TYLKO gdy ten element istnieje (tylko na stronie etui)
+- **JS**: Wszystka logika w blokach `if (this.isPhonePhotoCaseProduct()) { ... }` – inne produkty nie wykonują tego kodu
+- **PYTANIE PRZED KAŻDĄ ZMIANĄ**: "Czy to wpłynie na Boho/Króla/Koty/Spotify/inne?" – jeśli TAK, zmień zakres
+
 ## 🚨 CRITICAL: UKRYWANIE PRODUKTÓW "ROZMIAR"/"CYFROWY" W KOLEKCJACH
 - **ZASADA**: Produkty wygenerowane (z `rozmiar` lub `cyfrowy` w URL) MUSZĄ być ukrywane na stronach kolekcji
 - **JAK**: Ukrywaj je na etapie renderu w `theme.liquid` (np. `{% continue %}` w pętli kolekcji)

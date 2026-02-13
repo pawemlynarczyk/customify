@@ -167,6 +167,18 @@ async function deployOptimizedTheme() {
       console.log('✅ product-recommendations.liquid wdrożony pomyślnie!');
     }
     
+    // Wdróż phone-case-cart.liquid (snippet dla etui)
+    const phoneCaseCartPath = path.join(__dirname, 'shopify-theme/customify-theme/snippets/phone-case-cart.liquid');
+    if (fs.existsSync(phoneCaseCartPath)) {
+      const phoneCaseCartContent = fs.readFileSync(phoneCaseCartPath, 'utf8');
+      const phoneCaseCartResponse = await fetch('https://customify-s56o.vercel.app/api/update-theme-simple', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ themeContent: phoneCaseCartContent, fileName: 'snippets/phone-case-cart.liquid' })
+      });
+      if (phoneCaseCartResponse.ok) console.log('✅ phone-case-cart.liquid wdrożony pomyślnie!');
+    }
+    
     // Wdróż main-my-generations.liquid
     const myGenerationsPath = path.join(__dirname, 'shopify-theme/customify-theme/sections/main-my-generations.liquid');
     const myGenerationsContent = fs.readFileSync(myGenerationsPath, 'utf8');
