@@ -1351,18 +1351,24 @@ class CustomifyEmbed {
     baseUrl = this.getCanvasSafeImageUrl(baseUrl);
     const base64WithText = await this.renderTextOverlayPreview(baseUrl, text, options);
 
-    // ✅ PREVIEW: NIE DODAWAJ watermarku - tylko szybki podgląd tekstu
+    // ✅ PREVIEW: ZAWSZE z watermarkem - user nie może widzieć obrazu bez watermarku
+    let toDisplay = base64WithText;
+    try {
+      toDisplay = await this.addWatermark(base64WithText);
+    } catch (e) {
+      console.warn('⚠️ [TEXT-OVERLAY] addWatermark preview failed:', e);
+    }
     this.textOverlayState = { ...this.textOverlayState, previewUrl: base64WithText };
 
     if (this.resultImage) {
-      // 📱 Phone case: aktualizuj oba (preview + result) - podgląd napisu
-      if (this.isPhonePhotoCaseProduct() && base64WithText) {
+      // 📱 Phone case: aktualizuj oba (preview + result) - podgląd napisu Z watermarkem
+      if (this.isPhonePhotoCaseProduct() && toDisplay) {
         const photoBg = document.getElementById('phoneCasePhotoBg');
         const resultBg = document.getElementById('phoneCaseResultBg');
-        if (photoBg) photoBg.style.backgroundImage = `url(${base64WithText})`;
-        if (resultBg) resultBg.style.backgroundImage = `url(${base64WithText})`;
+        if (photoBg) photoBg.style.backgroundImage = `url(${toDisplay})`;
+        if (resultBg) resultBg.style.backgroundImage = `url(${toDisplay})`;
       }
-      this.resultImage.src = base64WithText;
+      this.resultImage.src = toDisplay;
     }
   }
 
@@ -4910,6 +4916,12 @@ class CustomifyEmbed {
           // Utwórz komunikat z linkiem do innych produktów
           const messageWithLink = `${baseMessage} <a href="/collections/all" style="color: #0066cc; text-decoration: underline;">Zobacz inne produkty</a>`;
           this.showErrorWithHTML(messageWithLink, 'transform');
+          return;
+        }
+
+        if (errorJson?.error === 'CROPPED_FACE') {
+          const msg = errorJson.message || 'Zdjęcie musi pokazywać całą twarz z przodu. Użyj zdjęcia, gdzie twarz jest w pełni widoczna i nie jest ucięta.';
+          this.showError(msg, 'transform');
           return;
         }
 
