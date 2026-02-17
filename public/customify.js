@@ -6189,16 +6189,26 @@ class CustomifyEmbed {
     if (this.errorMessageBottom) {
       this.errorMessageBottom.style.display = 'none';
     }
+    const phoneCaseCartError = document.getElementById('phoneCaseCartError');
+    if (phoneCaseCartError) {
+      phoneCaseCartError.style.display = 'none';
+    }
     
     // Pokaż błąd w odpowiednim miejscu
     if (location === 'transform' && this.errorMessageTransform) {
       // Błędy transformacji - nad przyciskiem "Zobacz Podgląd"
       this.errorMessageTransform.textContent = message;
       this.errorMessageTransform.style.display = 'block';
-    } else if (location === 'cart' && this.errorMessageBottom) {
+    } else if (location === 'cart') {
       // Błędy koszyka - nad przyciskiem "Dodaj do koszyka"
-      this.errorMessageBottom.textContent = message;
-      this.errorMessageBottom.style.display = 'block';
+      // 📱 Etui: pokaż w phoneCaseCartError (nad przyciskiem etui), inaczej w errorMessageBottom
+      if (this.isPhonePhotoCaseProduct && this.isPhonePhotoCaseProduct() && phoneCaseCartError) {
+        phoneCaseCartError.textContent = message;
+        phoneCaseCartError.style.display = 'block';
+      } else if (this.errorMessageBottom) {
+        this.errorMessageBottom.textContent = message;
+        this.errorMessageBottom.style.display = 'block';
+      }
     } else if (location === 'top' && this.errorMessage) {
       // Błędy uploadu/walidacji pliku - na górze
       this.errorMessage.textContent = message;
@@ -6223,16 +6233,25 @@ class CustomifyEmbed {
     if (this.errorMessageBottom) {
       this.errorMessageBottom.style.display = 'none';
     }
+    const phoneCaseCartError = document.getElementById('phoneCaseCartError');
+    if (phoneCaseCartError) {
+      phoneCaseCartError.style.display = 'none';
+    }
     
     // Pokaż błąd z HTML w odpowiednim miejscu
     if (location === 'transform' && this.errorMessageTransform) {
       // Błędy transformacji - nad przyciskiem "Zobacz Podgląd"
       this.errorMessageTransform.innerHTML = message;
       this.errorMessageTransform.style.display = 'block';
-    } else if (location === 'cart' && this.errorMessageBottom) {
+    } else if (location === 'cart') {
       // Błędy koszyka - nad przyciskiem "Dodaj do koszyka"
-      this.errorMessageBottom.innerHTML = message;
-      this.errorMessageBottom.style.display = 'block';
+      if (this.isPhonePhotoCaseProduct && this.isPhonePhotoCaseProduct() && phoneCaseCartError) {
+        phoneCaseCartError.innerHTML = message;
+        phoneCaseCartError.style.display = 'block';
+      } else if (this.errorMessageBottom) {
+        this.errorMessageBottom.innerHTML = message;
+        this.errorMessageBottom.style.display = 'block';
+      }
     } else if (location === 'top' && this.errorMessage) {
       // Błędy uploadu/walidacji pliku - na górze
       this.errorMessage.innerHTML = message;
@@ -6256,6 +6275,10 @@ class CustomifyEmbed {
     }
     if (this.errorMessageBottom) {
       this.errorMessageBottom.style.display = 'none';
+    }
+    const phoneCaseCartError = document.getElementById('phoneCaseCartError');
+    if (phoneCaseCartError) {
+      phoneCaseCartError.style.display = 'none';
     }
   }
 
