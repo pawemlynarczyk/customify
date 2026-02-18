@@ -320,12 +320,15 @@
         <select id="productTypeFilter">
           <option value="">Wszystkie produkty</option>
           <option value="caricature">Karykatura</option>
+          <option value="caricature_new">Karykatura (new)</option>
           <option value="king">Król</option>
           <option value="queen">Królowa</option>
+          <option value="para_krolewska">Para królewska</option>
           <option value="cats">Koty</option>
           <option value="phone">Telefon</option>
           <option value="boho">Boho</option>
           <option value="spotify">Spotify</option>
+          <option value="spotify_frame">Ramka Spotify</option>
           <option value="etui">Etui</option>
           <option value="other">Inne</option>
         </select>
@@ -947,7 +950,7 @@
           `;
         } else {
           // productType → czytelna etykieta (karykatura, król, koty, telefon, boho, etc.)
-          const productTypeLabels = { caricature: 'Karykatura', king: 'Król', queen: 'Królowa', cats: 'Koty', phone: 'Telefon', boho: 'Boho', other: 'Inne', spotify: 'Spotify', etui: 'Etui' };
+          const productTypeLabels = { caricature: 'Karykatura', caricature_new: 'Karykatura', king: 'Król', queen: 'Królowa', para_krolewska: 'Para królewska', cats: 'Koty', phone: 'Telefon', boho: 'Boho', other: 'Inne', spotify: 'Spotify', spotify_frame: 'Ramka Spotify', etui: 'Etui' };
           const safeProductType = typeof image.productType === 'string' && /^[a-z0-9_-]+$/i.test(image.productType) ? image.productType : null;
           const productTypeLabel = safeProductType ? (productTypeLabels[safeProductType] || safeProductType) : null;
           const productTypeHtml = productTypeLabel ? `<span class="product-type">${productTypeLabel}</span>` : '';

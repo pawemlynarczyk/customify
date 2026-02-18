@@ -14,7 +14,7 @@ const { checkRateLimit, getClientIP } = require('../../utils/vercelRateLimiter')
 async function buildProductTypeMap(jsonBlobs) {
   const urlToProductType = {};
   const pathnameToProductType = {};
-  const MAX_JSON_FETCH = 100; // Limit żeby nie przeciążyć
+  const MAX_JSON_FETCH = 200; // Limit żeby nie przeciążyć (więcej = lepsze dopasowanie)
   const toFetch = jsonBlobs.slice(0, MAX_JSON_FETCH);
 
   await Promise.all(toFetch.map(async (blob) => {
@@ -30,7 +30,11 @@ async function buildProductTypeMap(jsonBlobs) {
           urlToProductType[url] = pt;
           try {
             const pathFromUrl = new URL(url).pathname.replace(/^\//, '');
-            if (pathFromUrl) pathnameToProductType[pathFromUrl] = pt;
+            if (pathFromUrl) {
+              pathnameToProductType[pathFromUrl] = pt;
+              const fn = pathFromUrl.split('/').pop();
+              if (fn) pathnameToProductType[fn] = pt; // fallback: match po samym filename
+            }
           } catch (_) {}
         }
       }
@@ -339,7 +343,11 @@ module.exports = async (req, res) => {
       // productType dla wygenerowanych - lookup z JSON (bez zmiany URL)
       let productType = null;
       if (blob.category === 'wygenerowane') {
-        productType = urlToProductType[blob.url] || pathnameToProductType[pathname] || null;
+        const filenameOnly = pathname.split('/').pop();
+        productType = urlToProductType[blob.url] 
+          || pathnameToProductType[pathname] 
+          || (filenameOnly ? pathnameToProductType[filenameOnly] : null) 
+          || null;
       }
       
       // Wyciągnij datę z uploadedAt, createdAt lub z timestamp w nazwie pliku
