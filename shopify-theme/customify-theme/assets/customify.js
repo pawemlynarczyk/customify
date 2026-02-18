@@ -28,7 +28,7 @@ const PRODUCT_FIELD_CONFIGS = {
         options: ['10', '15', '20', '25', '30', '35', '40', '45', '50', '55', '60', '65', '70'],
         defaultValue: '50',
         required: true,
-        promptPhrase: 'This is a {{value}}-year anniversary illustration. Render this EXACT text prominently in the image: "{{value}}" — copy these characters exactly as written, do not alter any character.'
+        promptPhrase: 'SCENE OVERRIDE — ignore any background preservation rules above. Create a full festive party illustration: the caricature figure is sitting or leaning on a massive, bold, three-dimensional golden number "{{value}}" placed prominently at the bottom-center of the image. The number must be a large 3D golden prop/object — not flat text. Surround with colorful balloons (gold and navy blue), confetti falling, and wrapped gift boxes at the base of the number. The figure holds a champagne bottle with a big celebratory smile. Background is dark and dramatic with warm golden bokeh lights. Premium anniversary party atmosphere.'
       },
       {
         id: 'imiona',
@@ -375,8 +375,6 @@ class CustomifyEmbed {
     }
 
     if (phrases.length === 0) return null;
-    // Wymuszenie polskich znaków – na początku (model czyta od góry)
-    phrases.unshift('CRITICAL TYPOGRAPHY RULE: All text rendered in the image MUST use exact Polish characters including diacritics. Do NOT simplify: ą→a, ę→e, ó→o, ś→s, ź→z, ż→z, ć→c, ń→n, ł→l. Render every letter exactly as provided.');
     return phrases.join(' ');
   }
 
