@@ -336,7 +336,7 @@
  {% endif %}
  </script>
  
- <script src="{{ 'customify.js' | asset_url }}" defer></script>
+ <script src="{{ 'customify.js' | asset_url }}?v=7" defer></script>
  {% if product and product.handle == 'ramka-spotify' or product.handle == 'zdjecie-na-szkle-ramka-spotify' or product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem' %}
  <script src="https://unpkg.com/cropperjs@1.6.2/dist/cropper.min.js" defer></script>
  {% if product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem' %}

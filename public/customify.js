@@ -5,52 +5,66 @@
 
 // ============================================================
 // PRODUCT CUSTOM FIELDS CONFIG
-// Aby dodać pola dla nowego produktu: dodaj wpis w tym obiekcie.
-// Klucz = product handle z URL (np. /products/KLUCZ).
-// Każde pole:
-//   id           - unikalny identyfikator pola
-//   label        - etykieta widoczna dla użytkownika
-//   type         - 'select' | 'text'
-//   options      - (tylko select) tablica opcji
-//   defaultValue - (opcjonalnie) wartość domyślna
-//   placeholder  - (opcjonalnie, dla text) placeholder
-//   required     - (opcjonalnie) true = blokuje generowanie jeśli puste
-//   promptPhrase - zdanie doklejane do prompta; {{value}} = wartość pola
+// Klucz = product handle z URL. Dwa tryby:
+// 1) promptTemplate + pola z placeholder — jeden szablon, wartości wstawiane w {PLACEHOLDER}
+// 2) pola z promptPhrase — każdy pole dokleja swoją frazę ({{value}})
+// Pole: id, label, type, options/defaultValue/placeholder, required, placeholder (np. 'YEARS') lub promptPhrase
 // ============================================================
 const PRODUCT_FIELD_CONFIGS = {
   'obraz-ze-zdjecia-karykatura-na-50-ta-rocznice': {
     title: 'Personalizacja',
+    promptTemplate: `Create a luxury 3D anniversary caricature figurine.
+
+STYLE:
+• High-end 3D resin sculpture.
+• Soft cinematic studio lighting.
+• Glossy surfaces, premium finish.
+• Warm golden color grading.
+• Slight caricature exaggeration (larger heads, elegant proportions).
+
+FACE:
+• Preserve facial identity and structure.
+• Natural skin tones.
+• Slight beautification (smooth skin, refined details).
+• Expressive, joyful smiles.
+
+POSE:
+• The couple is sitting on a large metallic gold 3D number "{YEARS}".
+• Romantic, elegant body language.
+• Holding champagne glasses.
+
+OUTFITS:
+• Glamorous evening look.
+• Elegant black and gold styling.
+
+SCENE TYPE:
+The occasion is "{SCENE_TYPE}".
+The decorations, props and mood must visually reflect this theme.
+
+Examples:
+• golden wedding → gold accents, wedding rings, romantic mood.
+• anniversary → romantic lighting, subtle hearts, elegant decor.
+• birthday → cake, candles, festive balloons.
+• jubilee → formal, prestigious setting.
+
+BACKGROUND:
+• Warm golden studio backdrop.
+• Metallic gold and black balloons.
+• Elegant gift boxes with gold ribbons.
+• Soft bokeh lights.
+
+TEXT:
+Render this EXACT text on a golden plaque at the base:
+"{NAMES}"
+
+RESULT:
+A premium 3D anniversary caricature statue, luxurious, celebratory, highly polished, photorealistic 3D render.`,
     fields: [
-      {
-        id: 'rocznica',
-        label: 'Rocznica',
-        type: 'select',
-        options: ['10', '15', '20', '25', '30', '35', '40', '45', '50', '55', '60', '65', '70'],
-        defaultValue: '50',
-        required: true,
-        promptPhrase: 'SCENE OVERRIDE — ignore any background preservation rules above. Create a full festive party illustration: the caricature figure is sitting or leaning on a massive, bold, three-dimensional golden number "{{value}}" placed prominently at the bottom-center of the image. The number must be a large 3D golden prop/object — not flat text. Surround with colorful balloons (gold and navy blue), confetti falling, and wrapped gift boxes at the base of the number. The figure holds a champagne bottle with a big celebratory smile. Background is dark and dramatic with warm golden bokeh lights. Premium anniversary party atmosphere.'
-      },
-      {
-        id: 'imiona',
-        label: 'Imiona (opcjonalnie)',
-        type: 'text',
-        placeholder: 'np. Anna i Marek',
-        promptPhrase: 'Render this EXACT text at the bottom of the image: "{{value}}" — copy each character exactly as written, including all special letters.'
-      },
-      {
-        id: 'motyw',
-        label: 'Motyw / okazja (opcjonalnie)',
-        type: 'text',
-        placeholder: 'np. złote wesele, urodziny, jubileusz',
-        promptPhrase: 'Theme of the illustration: "{{value}}".'
-      }
+      { id: 'rocznica', label: 'Rocznica', type: 'select', options: ['10', '15', '20', '25', '30', '35', '40', '45', '50', '55', '60', '65', '70'], defaultValue: '50', required: true, promptKey: 'YEARS' },
+      { id: 'imiona', label: 'Imiona (opcjonalnie)', type: 'text', placeholder: 'np. Anna i Marek', required: false, promptKey: 'NAMES' },
+      { id: 'motyw', label: 'Motyw / okazja (opcjonalnie)', type: 'text', placeholder: 'np. złote wesele, urodziny, jubileusz', required: false, promptKey: 'SCENE_TYPE' }
     ]
   }
-  // --- Dodaj kolejny produkt tutaj: ---
-  // 'nazwa-produktu': {
-  //   title: 'Personalizacja',
-  //   fields: [ ... ]
-  // }
 };
 
 class CustomifyEmbed {
@@ -355,25 +369,41 @@ class CustomifyEmbed {
     if (!config) return null;
 
     const missingLabels = [];
-    const phrases = [];
-
     config.fields.forEach(field => {
       const el = document.getElementById(`customField_${field.id}`);
       const value = el ? el.value.trim() : '';
-
-      if (field.required && !value) {
-        missingLabels.push(field.label);
-        return;
-      }
-      if (value && field.promptPhrase) {
-        phrases.push(field.promptPhrase.replaceAll('{{value}}', value));
-      }
+      if (field.required && !value) missingLabels.push(field.label);
     });
-
     if (missingLabels.length > 0) {
       throw new Error(`Uzupełnij wymagane pola: ${missingLabels.join(', ')}`);
     }
 
+    // Tryb szablonu: jeden prompt z placeholderami {YEARS}, {NAMES}, {SCENE_TYPE}
+    if (config.promptTemplate) {
+      const replacements = {};
+      config.fields.forEach(field => {
+        if (!field.promptKey) return;
+        const el = document.getElementById(`customField_${field.id}`);
+        let value = el ? el.value.trim() : '';
+        if (field.promptKey === 'SCENE_TYPE' && !value) value = 'anniversary';
+        replacements[field.promptKey] = value;
+      });
+      let prompt = config.promptTemplate;
+      Object.keys(replacements).forEach(key => {
+        prompt = prompt.replaceAll(`{${key}}`, replacements[key]);
+      });
+      return prompt.trim() || null;
+    }
+
+    // Tryb fraz: każdy pole dokleja promptPhrase z {{value}}
+    const phrases = [];
+    config.fields.forEach(field => {
+      const el = document.getElementById(`customField_${field.id}`);
+      const value = el ? el.value.trim() : '';
+      if (value && field.promptPhrase) {
+        phrases.push(field.promptPhrase.replaceAll('{{value}}', value));
+      }
+    });
     if (phrases.length === 0) return null;
     return phrases.join(' ');
   }
@@ -5017,7 +5047,9 @@ class CustomifyEmbed {
 
       if (promptAddition) {
         requestBody.promptAddition = promptAddition;
-        console.log('🎛️ [CUSTOM-FIELDS] Dodano promptAddition do requestBody:', promptAddition.substring(0, 100));
+        const cfg = this.getCustomFieldConfig();
+        if (cfg && cfg.promptTemplate) requestBody.replaceBasePrompt = true;
+        console.log('🎛️ [CUSTOM-FIELDS] Dodano promptAddition do requestBody:', promptAddition.substring(0, 100), cfg && cfg.promptTemplate ? '(replaceBasePrompt)' : '');
       }
       
       console.log('📱 [MOBILE] Request body size:', JSON.stringify(requestBody).length, 'bytes');
