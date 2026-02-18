@@ -2697,12 +2697,12 @@
  <h4 style="text-align: left; font-size: 0.95rem; font-weight: 600;">Rodzaj wydruku:</h4>
  <div class="customify-product-type-buttons">
  {% comment %} FILTRUJ RODZAJE WYDRUKU PER PRODUKT {% endcomment %}
- {% if product.handle == 'karykatura-na-zamowienie-druk-na-szkle-akrylowym-ramka-z-podswietleniem' or product.handle == 'prezent-dla-babci-i-dziadka-portret-na-na-szkle-akrylowym-ze-zdjecia-karykatura' or product.handle == 'dziadkowie-krolowie-nadruk-na-szkle' or product.handle == 'portret-pary-personalizowany-obraz-na-szkle-akrylowym' %}
- {% comment %} TYLKO SZKŁO dla produktów na szkle akrylowym {% endcomment %}
- <div class="customify-product-type-btn active" data-product-type="szklo">
- Nadruk na szkle (dodaj podstawkę)
- </div>
- {% elsif product.handle == 'ramka-spotify' or product.handle == 'zdjecie-na-szkle-ramka-spotify' %}
+{% if product.handle == 'karykatura-na-zamowienie-druk-na-szkle-akrylowym-ramka-z-podswietleniem' or product.handle == 'prezent-dla-babci-i-dziadka-portret-na-na-szkle-akrylowym-ze-zdjecia-karykatura' or product.handle == 'dziadkowie-krolowie-nadruk-na-szkle' or product.handle == 'portret-pary-personalizowany-obraz-na-szkle-akrylowym' or product.handle == 'obraz-ze-zdjecia-karykatura-na-50-ta-rocznice' %}
+{% comment %} TYLKO SZKŁO (domyślnie wydruk na szkle) {% endcomment %}
+<div class="customify-product-type-btn active" data-product-type="szklo">
+Nadruk na szkle (dodaj podstawkę)
+</div>
+{% elsif product.handle == 'ramka-spotify' or product.handle == 'zdjecie-na-szkle-ramka-spotify' %}
  {% comment %} TYLKO SZKŁO dla ramka-spotify {% endcomment %}
  <div class="customify-product-type-btn active" data-product-type="szklo">
  Nadruk na szkle (dodaj podstawkę)

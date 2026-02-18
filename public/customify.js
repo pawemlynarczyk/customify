@@ -649,6 +649,22 @@ class CustomifyEmbed {
         console.log('🎵 [SPOTIFY] Ustawiam domyślny rozmiar = a5 (15×21)');
       }
     }
+    // 🎯 Rocznica 50-ta: domyślnie wydruk na szkle + rozmiar A5
+    if (this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-na-50-ta-rocznice') {
+      const szkloBtn = document.querySelector('.customify-product-type-btn[data-product-type="szklo"]');
+      if (szkloBtn) {
+        this.productTypeArea?.querySelectorAll('.customify-product-type-btn').forEach(btn => btn.classList.remove('active'));
+        szkloBtn.classList.add('active');
+        this.selectedProductType = 'szklo';
+      }
+      const a5Btn = document.querySelector('.customify-size-btn[data-size="a5"]');
+      if (a5Btn) {
+        this.sizeArea?.querySelectorAll('.customify-size-btn').forEach(btn => btn.classList.remove('active'));
+        a5Btn.classList.add('active');
+        this.selectedSize = 'a5';
+        console.log('🎯 [ROCZnica] Domyślnie: wydruk na szkle, rozmiar A5');
+      }
+    }
     this.updateSpotifyFrameScale();
     window.addEventListener('resize', () => this.updateSpotifyFrameScale());
 
