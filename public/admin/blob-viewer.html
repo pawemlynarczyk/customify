@@ -213,6 +213,17 @@
       color: #7B1FA2;
     }
     
+    .product-type {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      background: #E8F5E9;
+      color: #2E7D32;
+    }
+    
     .image-info .filename {
       word-break: break-all;
       color: #666;
@@ -302,6 +313,21 @@
           <option value="koszyki">Koszyki</option>
           <option value="wygenerowane">Wygenerowane</option>
           <option value="statystyki">Statystyki</option>
+        </select>
+      </div>
+      <div class="control-group" id="productTypeFilterGroup" style="display: none;">
+        <label><strong>Produkt:</strong></label>
+        <select id="productTypeFilter">
+          <option value="">Wszystkie produkty</option>
+          <option value="caricature">Karykatura</option>
+          <option value="king">Król</option>
+          <option value="queen">Królowa</option>
+          <option value="cats">Koty</option>
+          <option value="phone">Telefon</option>
+          <option value="boho">Boho</option>
+          <option value="spotify">Spotify</option>
+          <option value="etui">Etui</option>
+          <option value="other">Inne</option>
         </select>
       </div>
       
@@ -818,6 +844,18 @@
         console.log(`🔍 [DISPLAY] Category filter "${category}": ${beforeCategoryFilter} → ${filteredImages.length}`);
       }
       
+      // Pokaż/ukryj filtr produktu gdy kategoria = wygenerowane
+      const productTypeFilterGroup = document.getElementById('productTypeFilterGroup');
+      if (productTypeFilterGroup) {
+        productTypeFilterGroup.style.display = category === 'wygenerowane' ? 'flex' : 'none';
+      }
+      
+      // 1b. Filtruj po productType (tylko dla wygenerowanych)
+      const productTypeFilter = document.getElementById('productTypeFilter')?.value;
+      if (category === 'wygenerowane' && productTypeFilter) {
+        filteredImages = filteredImages.filter(img => img.productType === productTypeFilter);
+      }
+      
       // 2. Filtruj po datach PO kategorii
       const dateFrom = document.getElementById('dateFrom').value;
       const dateTo = document.getElementById('dateTo').value;
@@ -908,6 +946,11 @@
             </div>
           `;
         } else {
+          // productType → czytelna etykieta (karykatura, król, koty, telefon, boho, etc.)
+          const productTypeLabels = { caricature: 'Karykatura', king: 'Król', queen: 'Królowa', cats: 'Koty', phone: 'Telefon', boho: 'Boho', other: 'Inne', spotify: 'Spotify', etui: 'Etui' };
+          const safeProductType = typeof image.productType === 'string' && /^[a-z0-9_-]+$/i.test(image.productType) ? image.productType : null;
+          const productTypeLabel = safeProductType ? (productTypeLabels[safeProductType] || safeProductType) : null;
+          const productTypeHtml = productTypeLabel ? `<span class="product-type">${productTypeLabel}</span>` : '';
           // Obrazek - normalne wyświetlanie z retry logic
           card.innerHTML = `
             <input type="checkbox" class="checkbox" ${isSelected ? 'checked' : ''} 
@@ -918,6 +961,7 @@
                  style="cursor: pointer;">
             <div class="image-info">
               <span class="category ${image.category}">${image.category}</span>
+              ${productTypeHtml}
               <div class="filename">${fileName}</div>
               <div class="date">${new Date(image.uploadedAt).toLocaleString('pl-PL')}</div>
             </div>
@@ -942,14 +986,17 @@
     
     function updateFilteredCount() {
       const category = document.getElementById('categoryFilter').value;
-      const filteredImages = filterByDate(allImages);
+      let filteredImages = filterByDate(allImages);
       
-      let count = filteredImages.length;
       if (category !== 'all') {
-        count = filteredImages.filter(img => img.category === category).length;
+        filteredImages = filteredImages.filter(img => img.category === category);
+      }
+      const productTypeFilter = document.getElementById('productTypeFilter')?.value;
+      if (category === 'wygenerowane' && productTypeFilter) {
+        filteredImages = filteredImages.filter(img => img.productType === productTypeFilter);
       }
       
-      document.getElementById('statFiltered').textContent = count;
+      document.getElementById('statFiltered').textContent = filteredImages.length;
     }
     
     function toggleSelection(url, index) {
@@ -1080,6 +1127,13 @@
       updateFilteredCount();
       displayImages();
     });
+    const productTypeFilterEl = document.getElementById('productTypeFilter');
+    if (productTypeFilterEl) {
+      productTypeFilterEl.addEventListener('change', () => {
+        updateFilteredCount();
+        displayImages();
+      });
+    }
     document.getElementById('sortBy').addEventListener('change', () => loadImages(true));
     document.getElementById('sortOrder').addEventListener('change', () => loadImages(true));
     document.getElementById('dateFrom').addEventListener('change', () => {

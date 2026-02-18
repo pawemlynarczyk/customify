@@ -7,6 +7,41 @@
 const { list } = require('@vercel/blob');
 const { checkRateLimit, getClientIP } = require('../../utils/vercelRateLimiter');
 
+/**
+ * Buduje mapę imageUrl → productType z plików JSON w customify/system/stats/generations/
+ * Bez zmiany URL - lookup w istniejących danych
+ */
+async function buildProductTypeMap(jsonBlobs) {
+  const urlToProductType = {};
+  const pathnameToProductType = {};
+  const MAX_JSON_FETCH = 100; // Limit żeby nie przeciążyć
+  const toFetch = jsonBlobs.slice(0, MAX_JSON_FETCH);
+
+  await Promise.all(toFetch.map(async (blob) => {
+    try {
+      const resp = await fetch(blob.url, { signal: AbortSignal.timeout(5000) });
+      if (!resp.ok) return;
+      const data = await resp.json();
+      const generations = data?.generations || [];
+      for (const gen of generations) {
+        const url = gen.imageUrl || gen.watermarkedImageUrl;
+        const pt = gen.productType || gen.style || 'other';
+        if (url && pt) {
+          urlToProductType[url] = pt;
+          try {
+            const pathFromUrl = new URL(url).pathname.replace(/^\//, '');
+            if (pathFromUrl) pathnameToProductType[pathFromUrl] = pt;
+          } catch (_) {}
+        }
+      }
+    } catch (e) {
+      // Cicho ignoruj błędy fetch
+    }
+  }));
+
+  return { urlToProductType, pathnameToProductType };
+}
+
 module.exports = async (req, res) => {
   console.log(`📊 [LIST-BLOB-IMAGES] API called - Method: ${req.method}`);
   
@@ -261,6 +296,13 @@ module.exports = async (req, res) => {
       statystyki: allCategorizedBlobs.filter(b => b.category === 'statystyki').length
     };
 
+    // Lookup productType z plików JSON (customify/system/stats/generations/)
+    const jsonBlobs = blobs.blobs.filter(b => {
+      const p = (b.pathname || '').toLowerCase();
+      return p.startsWith('customify/system/stats/generations/') && p.endsWith('.json');
+    });
+    const { urlToProductType, pathnameToProductType } = await buildProductTypeMap(jsonBlobs);
+
     // Filtruj po kategorii jeśli podano (PO liczeniu statystyk!)
     let categorizedBlobs = allCategorizedBlobs;
     if (category && category !== 'all') {
@@ -294,6 +336,12 @@ module.exports = async (req, res) => {
       const pathname = blob.pathname || blob.path || 'unknown';
       const isJson = pathname.toLowerCase().endsWith('.json');
       
+      // productType dla wygenerowanych - lookup z JSON (bez zmiany URL)
+      let productType = null;
+      if (blob.category === 'wygenerowane') {
+        productType = urlToProductType[blob.url] || pathnameToProductType[pathname] || null;
+      }
+      
       // Wyciągnij datę z uploadedAt, createdAt lub z timestamp w nazwie pliku
       let uploadedAt = blob.uploadedAt;
       if (!uploadedAt && blob.createdAt) {
@@ -319,6 +367,7 @@ module.exports = async (req, res) => {
         uploadedAt: uploadedAt,
         uploadedAtTimestamp: uploadedAtTimestamp, // Dodaj timestamp dla sortowania
         category: blob.category,
+        productType: productType, // karykatura, king, cats, phone, boho, etc.
         isJson: isJson,
         contentType: blob.contentType || (isJson ? 'application/json' : 'image')
       };
