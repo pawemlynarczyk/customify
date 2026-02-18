@@ -374,7 +374,10 @@ class CustomifyEmbed {
       throw new Error(`Uzupełnij wymagane pola: ${missingLabels.join(', ')}`);
     }
 
-    return phrases.length > 0 ? phrases.join(' ') : null;
+    if (phrases.length === 0) return null;
+    // Wymuszenie polskich znaków diakrytycznych w renderowanym tekście
+    phrases.push('IMPORTANT: When rendering any text in the image, use correct Polish diacritics: ą, ć, ę, ł, ń, ó, ś, ź, ż (uppercase: Ą, Ć, Ę, Ł, Ń, Ó, Ś, Ź, Ż). Do NOT replace them with plain ASCII letters.');
+    return phrases.join(' ');
   }
 
   isCropperProduct() {
@@ -5180,6 +5183,18 @@ class CustomifyEmbed {
       
       if (result.success) {
         this.transformedImage = result.transformedImage;
+        // ✅ STATS: Generacja AI zakończona
+        try {
+          fetch('https://customify-s56o.vercel.app/api/admin/login-modal-stats', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              eventType: 'ai_generation_success',
+              productUrl: window.location.pathname || '',
+              timestamp: new Date().toISOString()
+            })
+          }).catch(() => {});
+        } catch (_) {}
         // ✅ ZAPISZ watermarkedImageUrl z backendu (jeśli dostępny)
         this.watermarkedImageUrl = result.watermarkedImageUrl || null;
         console.log('✅ [TRANSFORM] watermarkedImageUrl z backendu:', this.watermarkedImageUrl?.substring(0, 100) || 'brak');

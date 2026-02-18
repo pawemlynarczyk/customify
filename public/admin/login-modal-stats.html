@@ -190,6 +190,10 @@
           <div class="stat-value" id="totalEntries">0</div>
           <div class="stat-label">Wyświetleń stron produktów</div>
         </div>
+        <div class="stat-card" style="background: linear-gradient(135deg, #E91E63 0%, #C2185B 100%);">
+          <div class="stat-value" id="totalGenerations">0</div>
+          <div class="stat-label">Generacji AI</div>
+        </div>
         <div class="stat-card primary">
           <div class="stat-value" id="totalShown">0</div>
           <div class="stat-label">Wyświetleń modala</div>
@@ -246,6 +250,7 @@
               <th>Odsłon</th>
               <th>Wyświetleń modala</th>
               <th>Odsłon/modal</th>
+              <th>Generacji AI</th>
               <th>Rejestracje</th>
               <th>Logowania</th>
               <th>Anulowania</th>
@@ -268,6 +273,7 @@
               <th>Odsłon</th>
               <th>Wyświetleń modala</th>
               <th>Odsłon/modal</th>
+              <th>Generacji AI</th>
               <th>Rejestracje</th>
               <th>Logowania</th>
               <th>Anulowania</th>
@@ -356,6 +362,7 @@
         
         // Update summary
         document.getElementById('totalEntries').textContent = stats.summary.totalEntries || 0;
+        document.getElementById('totalGenerations').textContent = stats.summary.totalGenerations || 0;
         document.getElementById('totalShown').textContent = stats.summary.totalShown;
         document.getElementById('entriesPerModal').textContent = stats.calculated?.entriesPerModal ?? '-';
         document.getElementById('modalPercent').textContent = stats.calculated?.modalPercentOfEntries ?? '0%';
@@ -390,6 +397,7 @@
           const entries = data.entries || 0;
           const shown = data.shown || 0;
           const entriesPerModal = shown > 0 && entries > 0 ? (entries / shown).toFixed(1) : '-';
+          const generations = data.generations || 0;
           
           const row = document.createElement('tr');
           row.innerHTML = `
@@ -397,6 +405,7 @@
             <td>${entries}</td>
             <td>${shown}</td>
             <td>${entriesPerModal}</td>
+            <td>${generations}</td>
             <td>${data.registerClicks}</td>
             <td>${data.loginClicks}</td>
             <td>${data.cancelClicks}</td>
@@ -421,6 +430,7 @@
           const entries = data.entries || 0;
           const shown = data.shown || 0;
           const entriesPerModal = shown > 0 && entries > 0 ? (entries / shown).toFixed(1) : '-';
+          const generations = data.generations || 0;
           
           const row = document.createElement('tr');
           row.innerHTML = `
@@ -428,6 +438,7 @@
             <td>${entries}</td>
             <td>${shown}</td>
             <td>${entriesPerModal}</td>
+            <td>${generations}</td>
             <td>${data.registerClicks}</td>
             <td>${data.loginClicks}</td>
             <td>${data.cancelClicks}</td>

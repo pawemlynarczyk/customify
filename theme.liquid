@@ -2994,13 +2994,8 @@
  </div>
  </div>
 {% elsif product.handle == 'obraz-ze-zdjecia-karykatura-na-50-ta-rocznice' %}
-{% comment %} STYLE KARYKATURY dla produktu 50-ta rocznica - Segmind + OpenAI {% endcomment %}
-<div class="customify-style-card" data-style="karykatura">
-<div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/karykat/caricature.png'); background-size: cover; background-position: center;"></div>
-<div class="style-info">
-<div class="style-name">Karykatura</div>
-</div>
-</div>
+{% comment %} TYLKO STYLE Z OBSŁUGĄ PROMPTU dla produktu 50-ta rocznica (OpenAI) {% endcomment %}
+{% comment %} Styl "karykatura" (Segmind) ukryty - nie obsługuje promptAddition {% endcomment %}
 <div class="customify-style-card" data-style="caricature-new" style="display: block !important;">
 <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/karykat/karykat_nowoczesna.png'); background-size: cover; background-position: center;"></div>
 <div class="style-info">

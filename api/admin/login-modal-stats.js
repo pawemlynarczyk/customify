@@ -14,6 +14,7 @@ const MAX_STATS_VERSIONS = 5;
 
 const defaultSummary = () => ({
   totalEntries: 0,
+  totalGenerations: 0,
   totalShown: 0,
   totalRegisterClicks: 0,
   totalLoginClicks: 0,
@@ -25,6 +26,7 @@ const defaultSummary = () => ({
 
 const defaultBreakdown = () => ({
   entries: 0,
+  generations: 0,
   shown: 0,
   registerClicks: 0,
   loginClicks: 0,
@@ -346,6 +348,7 @@ module.exports = async (req, res) => {
       
       // Aktualizuj summary
       if (eventType === 'login_modal_page_entry') stats.summary.totalEntries++;
+      if (eventType === 'ai_generation_success') stats.summary.totalGenerations++;
       if (eventType === 'login_modal_shown') stats.summary.totalShown++;
       if (eventType === 'login_modal_register_click') stats.summary.totalRegisterClicks++;
       if (eventType === 'login_modal_login_click') stats.summary.totalLoginClicks++;
@@ -363,6 +366,7 @@ module.exports = async (req, res) => {
           stats.byProduct[productKey] = { ...defaultBreakdown(), ...stats.byProduct[productKey] };
         }
         if (eventType === 'login_modal_page_entry') stats.byProduct[productKey].entries++;
+        if (eventType === 'ai_generation_success') stats.byProduct[productKey].generations++;
         if (eventType === 'login_modal_shown') stats.byProduct[productKey].shown++;
         if (eventType === 'login_modal_register_click') stats.byProduct[productKey].registerClicks++;
         if (eventType === 'login_modal_login_click') stats.byProduct[productKey].loginClicks++;
@@ -380,6 +384,7 @@ module.exports = async (req, res) => {
         stats.byDate[dateKey] = { ...defaultBreakdown(), ...stats.byDate[dateKey] };
       }
       if (eventType === 'login_modal_page_entry') stats.byDate[dateKey].entries++;
+      if (eventType === 'ai_generation_success') stats.byDate[dateKey].generations++;
       if (eventType === 'login_modal_shown') stats.byDate[dateKey].shown++;
       if (eventType === 'login_modal_register_click') stats.byDate[dateKey].registerClicks++;
       if (eventType === 'login_modal_login_click') stats.byDate[dateKey].loginClicks++;
