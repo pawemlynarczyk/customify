@@ -56,6 +56,7 @@ BACKGROUND:
 TEXT:
 Render this EXACT text on a golden plaque at the base:
 "{NAMES}"
+CRITICAL for names: use exact Polish characters — ą, ć, ę, ł, ń, ó, ś, ź, ż (uppercase: Ą, Ć, Ę, Ł, Ń, Ó, Ś, Ź, Ż). Do NOT replace with a, c, e, l, n, o, s, z. Copy every letter exactly as provided.
 
 RESULT:
 A premium 3D anniversary caricature statue, luxurious, celebratory, highly polished, photorealistic 3D render.`,

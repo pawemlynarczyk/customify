@@ -336,7 +336,7 @@
  {% endif %}
  </script>
  
- <script src="{{ 'customify.js' | asset_url }}?v=7" defer></script>
+ <script src="{{ 'customify.js' | asset_url }}?v=9" defer></script>
  {% if product and product.handle == 'ramka-spotify' or product.handle == 'zdjecie-na-szkle-ramka-spotify' or product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem' %}
  <script src="https://unpkg.com/cropperjs@1.6.2/dist/cropper.min.js" defer></script>
  {% if product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem' %}
@@ -2995,14 +2995,13 @@
  </div>
 {% elsif product.handle == 'obraz-ze-zdjecia-karykatura-na-50-ta-rocznice' %}
 {% comment %} TYLKO STYLE Z OBSŁUGĄ PROMPTU dla produktu 50-ta rocznica (OpenAI) {% endcomment %}
-{% comment %} Styl "karykatura" (Segmind) ukryty - nie obsługuje promptAddition {% endcomment %}
 <div class="customify-style-card" data-style="caricature-new" style="display: block !important;">
-<div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/karykat/karykat_nowoczesna.png'); background-size: cover; background-position: center;"></div>
+<div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/rocznice/pary/para_30/_biz.jpeg'); background-size: cover; background-position: center;"></div>
 <div class="style-info">
-<div class="style-name">Nowoczesna</div>
+<div class="style-name">Rocznica biznes</div>
 </div>
 </div>
-<div class="customify-style-card" data-style="karykatura-olowek" style="display: block !important;">
+<div class="customify-style-card" data-style="karykatura-olowek" style="display: none !important;">
 <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/karykat/olowek.png'); background-size: cover; background-position: center;"></div>
 <div class="style-info">
 <div class="style-name">Szkic ołówkiem</div>
@@ -3572,12 +3571,14 @@
 
  <div class="customify-success" id="successMessage"></div>
  
- <div class="customify-text-overlay-toggle customify-product-type-buttons" style="margin-top:12px; display:flex; justify-content:center;">
- <div class="customify-product-type-btn" id="textOverlayToggleBtn" data-overlay-open="false">
- Dodać napis? Kliknij tutaj
- </div>
- </div>
- <div class="customify-text-overlay-panel" id="textOverlayPanel" style="display: none;">
+{% unless product.handle == 'obraz-ze-zdjecia-karykatura-na-50-ta-rocznice' %}
+<div class="customify-text-overlay-toggle customify-product-type-buttons" style="margin-top:12px; display:flex; justify-content:center;">
+<div class="customify-product-type-btn" id="textOverlayToggleBtn" data-overlay-open="false">
+Dodać napis? Kliknij tutaj
+</div>
+</div>
+{% endunless %}
+<div class="customify-text-overlay-panel" id="textOverlayPanel" style="display: none;">
  <div class="text-overlay-row">
  <div class="text-overlay-input-wrapper" style="border:1px solid #d1d5db; border-radius:8px; padding:8px 10px; background:#f5f5f5; box-shadow: 0 0 0 1px rgba(0,0,0,0.03);">
  <input class="text-overlay-input" type="text" id="textOverlayInput" maxlength="80" placeholder="Wpisz tekst" style="border:none; outline:none; background:transparent; width:100%; font-size:0.95rem; color:#111; box-sizing:border-box; min-height:26px;">
