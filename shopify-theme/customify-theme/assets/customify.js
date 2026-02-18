@@ -542,6 +542,21 @@ class CustomifyEmbed {
     if (!document.getElementById('uploadArea')) {
       return; // Jeśli nie ma elementów, nie rób nic
     }
+    
+    // ✅ STATS: Wyświetlenie strony produktu (każda odsłona = 1)
+    try {
+      const productPath = window.location.pathname || '';
+      fetch('https://customify-s56o.vercel.app/api/admin/login-modal-stats', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          eventType: 'login_modal_page_entry',
+          productUrl: productPath,
+          timestamp: new Date().toISOString()
+        })
+      }).catch(() => {});
+    } catch (_) {}
+    
     this.setupEventListeners();
     this.positionApp();
     this.showStyles(); // Pokaż style od razu

@@ -186,9 +186,21 @@
     <div id="content" style="display: none;">
       <!-- Summary Stats -->
       <div class="stats-grid">
+        <div class="stat-card" style="background: linear-gradient(135deg, #607D8B 0%, #455A64 100%);">
+          <div class="stat-value" id="totalEntries">0</div>
+          <div class="stat-label">Wyświetleń stron produktów</div>
+        </div>
         <div class="stat-card primary">
           <div class="stat-value" id="totalShown">0</div>
           <div class="stat-label">Wyświetleń modala</div>
+        </div>
+        <div class="stat-card" style="background: linear-gradient(135deg, #795548 0%, #5D4037 100%);">
+          <div class="stat-value" id="entriesPerModal">-</div>
+          <div class="stat-label">Odsłon / 1 modal</div>
+        </div>
+        <div class="stat-card" style="background: linear-gradient(135deg, #009688 0%, #00796B 100%);">
+          <div class="stat-value" id="modalPercent">0%</div>
+          <div class="stat-label">Modal % odsłon</div>
         </div>
         <div class="stat-card success">
           <div class="stat-value" id="totalRegisterClicks">0</div>
@@ -231,7 +243,9 @@
           <thead>
             <tr>
               <th>Produkt</th>
-              <th>Wyświetleń</th>
+              <th>Odsłon</th>
+              <th>Wyświetleń modala</th>
+              <th>Odsłon/modal</th>
               <th>Rejestracje</th>
               <th>Logowania</th>
               <th>Anulowania</th>
@@ -251,7 +265,9 @@
           <thead>
             <tr>
               <th>Data</th>
-              <th>Wyświetleń</th>
+              <th>Odsłon</th>
+              <th>Wyświetleń modala</th>
+              <th>Odsłon/modal</th>
               <th>Rejestracje</th>
               <th>Logowania</th>
               <th>Anulowania</th>
@@ -339,7 +355,10 @@
         const stats = data.stats;
         
         // Update summary
+        document.getElementById('totalEntries').textContent = stats.summary.totalEntries || 0;
         document.getElementById('totalShown').textContent = stats.summary.totalShown;
+        document.getElementById('entriesPerModal').textContent = stats.calculated?.entriesPerModal ?? '-';
+        document.getElementById('modalPercent').textContent = stats.calculated?.modalPercentOfEntries ?? '0%';
         document.getElementById('totalRegisterClicks').textContent = stats.summary.totalRegisterClicks;
         document.getElementById('totalLoginClicks').textContent = stats.summary.totalLoginClicks;
         document.getElementById('totalCancelClicks').textContent = stats.summary.totalCancelClicks;
@@ -368,11 +387,16 @@
           const conversion = data.shown > 0 
             ? ((totalClicks / data.shown) * 100).toFixed(1) + '%'
             : '0%';
+          const entries = data.entries || 0;
+          const shown = data.shown || 0;
+          const entriesPerModal = shown > 0 && entries > 0 ? (entries / shown).toFixed(1) : '-';
           
           const row = document.createElement('tr');
           row.innerHTML = `
             <td><strong>${product}</strong></td>
-            <td>${data.shown}</td>
+            <td>${entries}</td>
+            <td>${shown}</td>
+            <td>${entriesPerModal}</td>
             <td>${data.registerClicks}</td>
             <td>${data.loginClicks}</td>
             <td>${data.cancelClicks}</td>
@@ -394,11 +418,16 @@
           const conversion = data.shown > 0 
             ? ((totalClicks / data.shown) * 100).toFixed(1) + '%'
             : '0%';
+          const entries = data.entries || 0;
+          const shown = data.shown || 0;
+          const entriesPerModal = shown > 0 && entries > 0 ? (entries / shown).toFixed(1) : '-';
           
           const row = document.createElement('tr');
           row.innerHTML = `
             <td><strong>${date}</strong></td>
-            <td>${data.shown}</td>
+            <td>${entries}</td>
+            <td>${shown}</td>
+            <td>${entriesPerModal}</td>
             <td>${data.registerClicks}</td>
             <td>${data.loginClicks}</td>
             <td>${data.cancelClicks}</td>
