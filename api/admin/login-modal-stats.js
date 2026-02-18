@@ -13,6 +13,7 @@ const STATS_LEGACY_PREFIX = 'customify/temp/admin-stats/';
 const MAX_STATS_VERSIONS = 5;
 
 const defaultSummary = () => ({
+  totalEntries: 0,
   totalShown: 0,
   totalRegisterClicks: 0,
   totalLoginClicks: 0,
@@ -23,6 +24,7 @@ const defaultSummary = () => ({
 });
 
 const defaultBreakdown = () => ({
+  entries: 0,
   shown: 0,
   registerClicks: 0,
   loginClicks: 0,
@@ -343,6 +345,7 @@ module.exports = async (req, res) => {
       stats.events.push(newEvent);
       
       // Aktualizuj summary
+      if (eventType === 'login_modal_page_entry') stats.summary.totalEntries++;
       if (eventType === 'login_modal_shown') stats.summary.totalShown++;
       if (eventType === 'login_modal_register_click') stats.summary.totalRegisterClicks++;
       if (eventType === 'login_modal_login_click') stats.summary.totalLoginClicks++;
@@ -359,6 +362,7 @@ module.exports = async (req, res) => {
         } else {
           stats.byProduct[productKey] = { ...defaultBreakdown(), ...stats.byProduct[productKey] };
         }
+        if (eventType === 'login_modal_page_entry') stats.byProduct[productKey].entries++;
         if (eventType === 'login_modal_shown') stats.byProduct[productKey].shown++;
         if (eventType === 'login_modal_register_click') stats.byProduct[productKey].registerClicks++;
         if (eventType === 'login_modal_login_click') stats.byProduct[productKey].loginClicks++;
@@ -375,6 +379,7 @@ module.exports = async (req, res) => {
       } else {
         stats.byDate[dateKey] = { ...defaultBreakdown(), ...stats.byDate[dateKey] };
       }
+      if (eventType === 'login_modal_page_entry') stats.byDate[dateKey].entries++;
       if (eventType === 'login_modal_shown') stats.byDate[dateKey].shown++;
       if (eventType === 'login_modal_register_click') stats.byDate[dateKey].registerClicks++;
       if (eventType === 'login_modal_login_click') stats.byDate[dateKey].loginClicks++;
@@ -469,6 +474,11 @@ module.exports = async (req, res) => {
       const actualConversionRate = stats.summary.totalShown > 0
         ? ((stats.summary.totalRegisterSuccess + stats.summary.totalLoginSuccess) / stats.summary.totalShown * 100).toFixed(2)
         : 0;
+      // Stosunek wejść do wyświetleń modala
+      const entries = stats.summary.totalEntries || 0;
+      const modalShown = stats.summary.totalShown || 0;
+      const entriesPerModal = modalShown > 0 ? (entries / modalShown).toFixed(1) : '-';
+      const modalPercentOfEntries = entries > 0 ? ((modalShown / entries) * 100).toFixed(2) : 0;
 
       const normalizedByProduct = normalizeByProductStats(stats.byProduct);
 
@@ -480,6 +490,8 @@ module.exports = async (req, res) => {
           calculated: {
             conversionRate: `${conversionRate}%`,
             actualConversionRate: `${actualConversionRate}%`,
+            entriesPerModal,
+            modalPercentOfEntries: `${modalPercentOfEntries}%`,
             totalInteractions: stats.summary.totalRegisterClicks + stats.summary.totalLoginClicks + stats.summary.totalCancelClicks + stats.summary.totalAutoRedirects,
             totalSuccess: stats.summary.totalRegisterSuccess + stats.summary.totalLoginSuccess
           }
