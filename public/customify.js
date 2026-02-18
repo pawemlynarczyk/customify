@@ -28,21 +28,21 @@ const PRODUCT_FIELD_CONFIGS = {
         options: ['10', '15', '20', '25', '30', '35', '40', '45', '50', '55', '60', '65', '70'],
         defaultValue: '50',
         required: true,
-        promptPhrase: 'This is a {{value}}-year anniversary illustration. Include the number "{{value}}" as large, elegant, decorative text clearly visible in the image.'
+        promptPhrase: 'This is a {{value}}-year anniversary illustration. Render this EXACT text prominently in the image: "{{value}}" — copy these characters exactly as written, do not alter any character.'
       },
       {
         id: 'imiona',
         label: 'Imiona (opcjonalnie)',
         type: 'text',
         placeholder: 'np. Anna i Marek',
-        promptPhrase: 'Write the names "{{value}}" elegantly at the bottom of the image.'
+        promptPhrase: 'Render this EXACT text at the bottom of the image: "{{value}}" — copy each character exactly as written, including all special letters.'
       },
       {
         id: 'motyw',
         label: 'Motyw / okazja (opcjonalnie)',
         type: 'text',
         placeholder: 'np. złote wesele, urodziny, jubileusz',
-        promptPhrase: 'Theme of the illustration: {{value}}.'
+        promptPhrase: 'Theme of the illustration: "{{value}}".'
       }
     ]
   }
@@ -375,8 +375,8 @@ class CustomifyEmbed {
     }
 
     if (phrases.length === 0) return null;
-    // Wymuszenie polskich znaków diakrytycznych w renderowanym tekście
-    phrases.push('IMPORTANT: When rendering any text in the image, use correct Polish diacritics: ą, ć, ę, ł, ń, ó, ś, ź, ż (uppercase: Ą, Ć, Ę, Ł, Ń, Ó, Ś, Ź, Ż). Do NOT replace them with plain ASCII letters.');
+    // Wymuszenie polskich znaków – na początku (model czyta od góry)
+    phrases.unshift('CRITICAL TYPOGRAPHY RULE: All text rendered in the image MUST use exact Polish characters including diacritics. Do NOT simplify: ą→a, ę→e, ó→o, ś→s, ź→z, ż→z, ć→c, ń→n, ł→l. Render every letter exactly as provided.');
     return phrases.join(' ');
   }
 
