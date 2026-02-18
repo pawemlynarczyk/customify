@@ -2,10 +2,10 @@
   "version": 1,
   "productTypes": {
     "caricature": {
-      "handles": ["karykatura-z-twojego-zdjecia-obraz"]
+      "handles": ["karykatura-z-twojego-zdjecia-obraz", "obraz-ze-zdjecia-karykatura-na-50-ta-rocznice"]
     },
     "caricature-new": {
-      "handles": ["karykatura-z-twojego-zdjecia-obraz"]
+      "handles": ["karykatura-z-twojego-zdjecia-obraz", "obraz-ze-zdjecia-karykatura-na-50-ta-rocznice"]
     },
     "queen": {
       "handles": ["krol-portret-personalizowany"]

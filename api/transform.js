@@ -1219,7 +1219,7 @@ module.exports = async (req, res) => {
   let customerEmailFromGraphQL = null;
 
   try {
-    let { imageData, prompt, style, productType, customerId: bodyCustomerId, email, productHandle } = req.body;
+    let { imageData, prompt, style, productType, customerId: bodyCustomerId, email, productHandle, promptAddition } = req.body;
     // ✅ Normalize imageData: accept base64 or data URI
     if (typeof imageData === 'string' && imageData.startsWith('data:image')) {
       imageData = imageData.split(',')[1];
@@ -2032,7 +2032,23 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
     
     // ✅ DEBUG: Sprawdź config
     const selectedConfig = styleConfig[selectedStyle];
-    const config = selectedConfig;
+    // Shallow copy – pozwala zmodyfikować prompt bez zmiany globalnego styleConfig
+    const config = { ...selectedConfig, parameters: selectedConfig.parameters ? { ...selectedConfig.parameters } : undefined };
+
+    // 🎛️ CUSTOM FIELDS: Doklejamy promptAddition do prompta stylu
+    // Działa dla OpenAI (caricature-new, karykatura-olowek, nano-banana itp.)
+    // Dla Segmind caricature (segmind-caricature) – prompt nie jest wysyłany do API, więc addition jest ignorowane
+    if (promptAddition && typeof promptAddition === 'string' && promptAddition.trim()) {
+      const sanitized = promptAddition.trim().substring(0, 600); // max 600 znaków – bezpieczeństwo
+      if (config.prompt) {
+        config.prompt = config.prompt + '\n\n' + sanitized;
+      }
+      // Dla stylów gdzie prompt jest też w parameters (nano-banana)
+      if (config.parameters && config.parameters.prompt) {
+        config.parameters.prompt = config.parameters.prompt + '\n\n' + sanitized;
+      }
+      console.log(`✅ [CUSTOM-FIELDS] promptAddition dodane do stylu "${selectedStyle}" (${sanitized.length} znaków)`);
+    }
     console.log(`🔍 [STYLE-DEBUG] ===== CONFIG DLA STYLU "${selectedStyle}" =====`);
     console.log(`🔍 [STYLE-DEBUG] model:`, config.model);
     console.log(`🔍 [STYLE-DEBUG] apiType:`, config.apiType);

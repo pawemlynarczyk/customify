@@ -3,6 +3,55 @@
  * Clean JavaScript implementation for Shopify theme integration
  */
 
+// ============================================================
+// PRODUCT CUSTOM FIELDS CONFIG
+// Aby dodać pola dla nowego produktu: dodaj wpis w tym obiekcie.
+// Klucz = product handle z URL (np. /products/KLUCZ).
+// Każde pole:
+//   id           - unikalny identyfikator pola
+//   label        - etykieta widoczna dla użytkownika
+//   type         - 'select' | 'text'
+//   options      - (tylko select) tablica opcji
+//   defaultValue - (opcjonalnie) wartość domyślna
+//   placeholder  - (opcjonalnie, dla text) placeholder
+//   required     - (opcjonalnie) true = blokuje generowanie jeśli puste
+//   promptPhrase - zdanie doklejane do prompta; {{value}} = wartość pola
+// ============================================================
+const PRODUCT_FIELD_CONFIGS = {
+  'obraz-ze-zdjecia-karykatura-na-50-ta-rocznice': {
+    title: 'Personalizacja',
+    fields: [
+      {
+        id: 'rocznica',
+        label: 'Rocznica',
+        type: 'select',
+        options: ['10', '15', '20', '25', '30', '35', '40', '45', '50', '55', '60', '65', '70'],
+        defaultValue: '50',
+        required: true,
+        promptPhrase: 'This is a {{value}}-year anniversary illustration. Include the number "{{value}}" as large, elegant, decorative text clearly visible in the image.'
+      },
+      {
+        id: 'imiona',
+        label: 'Imiona (opcjonalnie)',
+        type: 'text',
+        placeholder: 'np. Anna i Marek',
+        promptPhrase: 'Write the names "{{value}}" elegantly at the bottom of the image.'
+      },
+      {
+        id: 'motyw',
+        label: 'Motyw / okazja (opcjonalnie)',
+        type: 'text',
+        placeholder: 'np. złote wesele, urodziny, jubileusz',
+        promptPhrase: 'Theme of the illustration: {{value}}.'
+      }
+    ]
+  }
+  // --- Dodaj kolejny produkt tutaj: ---
+  // 'nazwa-produktu': {
+  //   title: 'Personalizacja',
+  //   fields: [ ... ]
+  // }
+};
 
 class CustomifyEmbed {
   constructor() {
@@ -207,7 +256,127 @@ class CustomifyEmbed {
     const currentUrl = window.location.pathname.toLowerCase();
     return currentUrl.includes('ramka-spotify') || currentUrl.includes('zdjecie-na-szkle-ramka-spotify');
   }
-  
+
+  // ============================================================
+  // CUSTOM FIELDS – pola personalizacji per produkt
+  // ============================================================
+
+  /** Zwraca handle produktu z URL (np. "obraz-ze-zdjecia-karykatura-na-50-ta-rocznice") */
+  getProductHandle() {
+    const parts = window.location.pathname.toLowerCase().split('/');
+    const idx = parts.indexOf('products');
+    return (idx !== -1 && parts[idx + 1]) ? parts[idx + 1].split('?')[0] : null;
+  }
+
+  /** Zwraca config pól dla bieżącego produktu lub null */
+  getCustomFieldConfig() {
+    const handle = this.getProductHandle();
+    return handle ? (PRODUCT_FIELD_CONFIGS[handle] || null) : null;
+  }
+
+  /** Renderuje sekcję z polami personalizacji – wstawia przed actionsArea */
+  renderCustomFields() {
+    const config = this.getCustomFieldConfig();
+    if (!config || !config.fields || config.fields.length === 0) return;
+    if (document.getElementById('customFieldsArea')) return; // już wyrenderowane
+
+    const actionsArea = document.getElementById('actionsArea');
+    if (!actionsArea) return;
+
+    const container = document.createElement('div');
+    container.id = 'customFieldsArea';
+    container.style.cssText = [
+      'padding: 12px 16px',
+      'margin: 8px 0 0 0',
+      'border-top: 1px solid #e5e5e5',
+      'border-bottom: 1px solid #e5e5e5',
+      'background: #fafafa',
+      'border-radius: 4px'
+    ].join(';');
+
+    const title = document.createElement('h4');
+    title.textContent = config.title || 'Personalizacja';
+    title.style.cssText = 'margin: 0 0 10px 0; font-size: 14px; font-weight: 600; color: #222;';
+    container.appendChild(title);
+
+    config.fields.forEach(field => {
+      const group = document.createElement('div');
+      group.style.cssText = 'margin-bottom: 10px;';
+
+      const label = document.createElement('label');
+      label.htmlFor = `customField_${field.id}`;
+      label.textContent = field.label + (field.required ? ' *' : '');
+      label.style.cssText = 'display: block; font-size: 13px; font-weight: 500; margin-bottom: 4px; color: #444;';
+      group.appendChild(label);
+
+      let input;
+      if (field.type === 'select') {
+        input = document.createElement('select');
+        input.style.cssText = 'width: 100%; padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; background: white; cursor: pointer;';
+        if (!field.required) {
+          const placeholder = document.createElement('option');
+          placeholder.value = '';
+          placeholder.textContent = '-- wybierz --';
+          input.appendChild(placeholder);
+        }
+        field.options.forEach(opt => {
+          const option = document.createElement('option');
+          option.value = opt;
+          option.textContent = opt;
+          if (field.defaultValue && opt === field.defaultValue) option.selected = true;
+          input.appendChild(option);
+        });
+      } else {
+        input = document.createElement('input');
+        input.type = 'text';
+        input.placeholder = field.placeholder || '';
+        input.style.cssText = 'width: 100%; padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; box-sizing: border-box;';
+        if (field.defaultValue) input.value = field.defaultValue;
+      }
+      input.id = `customField_${field.id}`;
+      input.dataset.fieldId = field.id;
+      if (field.required) input.dataset.required = 'true';
+
+      group.appendChild(input);
+      container.appendChild(group);
+    });
+
+    actionsArea.parentNode.insertBefore(container, actionsArea);
+    console.log('🎛️ [CUSTOM-FIELDS] Wyrenderowano pola personalizacji dla:', this.getProductHandle());
+  }
+
+  /**
+   * Zbiera wartości pól i buduje promptAddition.
+   * Rzuca Error jeśli wymagane pole jest puste.
+   * Zwraca null jeśli nie ma konfiguracji dla bieżącego produktu.
+   */
+  collectCustomFieldsPrompt() {
+    const config = this.getCustomFieldConfig();
+    if (!config) return null;
+
+    const missingLabels = [];
+    const phrases = [];
+
+    config.fields.forEach(field => {
+      const el = document.getElementById(`customField_${field.id}`);
+      const value = el ? el.value.trim() : '';
+
+      if (field.required && !value) {
+        missingLabels.push(field.label);
+        return;
+      }
+      if (value && field.promptPhrase) {
+        phrases.push(field.promptPhrase.replaceAll('{{value}}', value));
+      }
+    });
+
+    if (missingLabels.length > 0) {
+      throw new Error(`Uzupełnij wymagane pola: ${missingLabels.join(', ')}`);
+    }
+
+    return phrases.length > 0 ? phrases.join(' ') : null;
+  }
+
   isCropperProduct() {
     return this.isSpotifyProduct() || this.isPhoneCaseProduct() || this.isPhonePhotoCaseProduct();
   }
@@ -376,6 +545,7 @@ class CustomifyEmbed {
     this.setupEventListeners();
     this.positionApp();
     this.showStyles(); // Pokaż style od razu
+    this.renderCustomFields(); // Pola personalizacji (jeśli produkt je obsługuje)
     // filterStylesForProduct() USUNIĘTE - logika przeniesiona na server-side (Shopify Liquid)
     
     // Setup expandable description USUNIĘTE - opisy produktów są teraz pełne
@@ -745,6 +915,10 @@ class CustomifyEmbed {
     if (currentUrl.includes('plakat-ze-zdjecia-w-stylu-komiks')) {
       console.log('🖍️ [PRODUCT-TYPE] URL = Komiks (test) → productType: caricature-new');
       return 'caricature-new';
+    }
+    if (currentUrl.includes('obraz-ze-zdjecia-karykatura-na-50-ta-rocznice')) {
+      console.log('🎂 [PRODUCT-TYPE] URL = Karykatura 50-ta rocznica → productType: caricature');
+      return 'caricature';
     }
     if (currentUrl.includes('portret-pary-z-okazji-rocznicy-z-twojego-zdjecia')) {
       console.log('🤴👸 [PRODUCT-TYPE] URL = Para królewska → productType: para_krolewska');
@@ -4692,12 +4866,25 @@ class CustomifyEmbed {
       return;
     }
 
-    let spotifyPayload = null;
-    if (this.isSpotifyProduct()) {
-      const spotifyTitle = (this.spotifyTitleInput?.value || '').trim().slice(0, 60);
-      const spotifyArtist = (this.spotifyArtistInput?.value || '').trim().slice(0, 60);
-      spotifyPayload = { title: spotifyTitle, artist: spotifyArtist };
-    }
+      // 🎛️ CUSTOM FIELDS: Zbierz wartości pól personalizacji i zbuduj promptAddition
+      let promptAddition = null;
+      try {
+        promptAddition = this.collectCustomFieldsPrompt();
+        if (promptAddition) {
+          console.log('🎛️ [CUSTOM-FIELDS] promptAddition:', promptAddition);
+        }
+      } catch (fieldError) {
+        this.showError(fieldError.message, 'transform');
+        this.hideLoading();
+        return;
+      }
+
+      let spotifyPayload = null;
+      if (this.isSpotifyProduct()) {
+        const spotifyTitle = (this.spotifyTitleInput?.value || '').trim().slice(0, 60);
+        const spotifyArtist = (this.spotifyArtistInput?.value || '').trim().slice(0, 60);
+        spotifyPayload = { title: spotifyTitle, artist: spotifyArtist };
+      }
 
     // 🎵 SPOTIFY: Styl "bez-zmian" - pomijamy AI, pokazujemy widok jak po generacji
     if (this.selectedStyle === 'bez-zmian') {
@@ -4810,6 +4997,11 @@ class CustomifyEmbed {
       if (spotifyPayload) {
         requestBody.spotifyTitle = spotifyPayload.title;
         requestBody.spotifyArtist = spotifyPayload.artist;
+      }
+
+      if (promptAddition) {
+        requestBody.promptAddition = promptAddition;
+        console.log('🎛️ [CUSTOM-FIELDS] Dodano promptAddition do requestBody:', promptAddition.substring(0, 100));
       }
       
       console.log('📱 [MOBILE] Request body size:', JSON.stringify(requestBody).length, 'bytes');
@@ -6201,11 +6393,8 @@ class CustomifyEmbed {
       this.errorMessageTransform.style.display = 'block';
     } else if (location === 'cart') {
       // Błędy koszyka - nad przyciskiem "Dodaj do koszyka"
-      // 📱 Etui: pokaż w phoneCaseCartError (nad przyciskiem etui), inaczej w errorMessageBottom
-      if (this.isPhonePhotoCaseProduct && this.isPhonePhotoCaseProduct() && phoneCaseCartError) {
-        phoneCaseCartError.textContent = message;
-        phoneCaseCartError.style.display = 'block';
-      } else if (this.errorMessageBottom) {
+      // 📱 Etui: pokaż w errorMessageBottom (zaraz pod #cartPriceDisplay)
+      if (this.errorMessageBottom) {
         this.errorMessageBottom.textContent = message;
         this.errorMessageBottom.style.display = 'block';
       }
@@ -6245,10 +6434,8 @@ class CustomifyEmbed {
       this.errorMessageTransform.style.display = 'block';
     } else if (location === 'cart') {
       // Błędy koszyka - nad przyciskiem "Dodaj do koszyka"
-      if (this.isPhonePhotoCaseProduct && this.isPhonePhotoCaseProduct() && phoneCaseCartError) {
-        phoneCaseCartError.innerHTML = message;
-        phoneCaseCartError.style.display = 'block';
-      } else if (this.errorMessageBottom) {
+      // 📱 Etui: pokaż w errorMessageBottom (zaraz pod #cartPriceDisplay)
+      if (this.errorMessageBottom) {
         this.errorMessageBottom.innerHTML = message;
         this.errorMessageBottom.style.display = 'block';
       }

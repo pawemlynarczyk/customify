@@ -2993,8 +2993,28 @@
  <div class="style-name">Szkic ołówkiem</div>
  </div>
  </div>
- {% elsif product.handle == 'karykatura-na-zamowienie-druk-na-szkle-akrylowym-ramka-z-podswietleniem' %}
- {% comment %} TYLKO STYLE KARYKATURY dla produktu karykatura-na-zamowienie - używa Segmind API {% endcomment %}
+{% elsif product.handle == 'obraz-ze-zdjecia-karykatura-na-50-ta-rocznice' %}
+{% comment %} STYLE KARYKATURY dla produktu 50-ta rocznica - Segmind + OpenAI {% endcomment %}
+<div class="customify-style-card" data-style="karykatura">
+<div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/karykat/caricature.png'); background-size: cover; background-position: center;"></div>
+<div class="style-info">
+<div class="style-name">Karykatura</div>
+</div>
+</div>
+<div class="customify-style-card" data-style="caricature-new" style="display: block !important;">
+<div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/karykat/karykat_nowoczesna.png'); background-size: cover; background-position: center;"></div>
+<div class="style-info">
+<div class="style-name">Nowoczesna</div>
+</div>
+</div>
+<div class="customify-style-card" data-style="karykatura-olowek" style="display: block !important;">
+<div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/karykat/olowek.png'); background-size: cover; background-position: center;"></div>
+<div class="style-info">
+<div class="style-name">Szkic ołówkiem</div>
+</div>
+</div>
+{% elsif product.handle == 'karykatura-na-zamowienie-druk-na-szkle-akrylowym-ramka-z-podswietleniem' %}
+{% comment %} TYLKO STYLE KARYKATURY dla produktu karykatura-na-zamowienie - używa Segmind API {% endcomment %}
  <div class="customify-style-card" data-style="karykatura">
  <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/karykat/caricature.png'); background-size: cover; background-position: center;"></div>
  <div class="style-info">
@@ -3443,21 +3463,33 @@
  <div class="style-name">Superpara</div>
  </div>
  </div>
- {% elsif product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem' %}
- {% comment %} TYLKO KARYKATURA i KARYKATURA NOWOCZESNA dla etui na telefon {% endcomment %}
- <div class="customify-style-card" data-style="karykatura">
- <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/karykat/caricature.png'); background-size: cover; background-position: center;"></div>
- <div class="style-info">
- <div class="style-name">Karykatura</div>
- </div>
- </div>
- <div class="customify-style-card" data-style="caricature-new" style="display: block !important;">
- <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/karykat/karykat_nowoczesna.png'); background-size: cover; background-position: center;"></div>
- <div class="style-info">
- <div class="style-name">Karykatura Nowoczesna</div>
- </div>
- </div>
- {% else %}
+{% elsif product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem' %}
+{% comment %} KARYKATURA, NOWOCZESNA, GTA i HIP-HOP dla etui na telefon {% endcomment %}
+<div class="customify-style-card" data-style="karykatura">
+<div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/karykat/caricature.png'); background-size: cover; background-position: center;"></div>
+<div class="style-info">
+<div class="style-name">Karykatura</div>
+</div>
+</div>
+<div class="customify-style-card" data-style="caricature-new" style="display: block !important;">
+<div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/karykat/karykat_nowoczesna.png'); background-size: cover; background-position: center;"></div>
+<div class="style-info">
+<div class="style-name">Karykatura Nowoczesna</div>
+</div>
+</div>
+<div class="customify-style-card" data-style="gta" style="display: block !important;">
+<div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/style/GTA.jpg'); background-size: cover; background-position: center;"></div>
+<div class="style-info">
+<div class="style-name">GTA</div>
+</div>
+</div>
+<div class="customify-style-card" data-style="hiphop" style="display: block !important;">
+<div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/style/hiphop.jpg'); background-size: cover; background-position: center;"></div>
+<div class="style-info">
+<div class="style-name">Hip-Hop</div>
+</div>
+</div>
+{% else %}
  {% comment %} WSZYSTKIE STYLE NORMALNE dla innych produktów {% endcomment %}
  <div class="customify-style-card" data-style="watercolor">
  <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/Screenshot%202025-09-29%20at%2022.17.14.png'); background-size: cover; background-position: center;"></div>
