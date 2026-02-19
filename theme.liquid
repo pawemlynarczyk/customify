@@ -2697,7 +2697,8 @@
  <h4 style="text-align: left; font-size: 0.95rem; font-weight: 600;">Rodzaj wydruku:</h4>
  <div class="customify-product-type-buttons">
  {% comment %} FILTRUJ RODZAJE WYDRUKU PER PRODUKT {% endcomment %}
-{% if product.handle == 'karykatura-na-zamowienie-druk-na-szkle-akrylowym-ramka-z-podswietleniem' or product.handle == 'prezent-dla-babci-i-dziadka-portret-na-na-szkle-akrylowym-ze-zdjecia-karykatura' or product.handle == 'dziadkowie-krolowie-nadruk-na-szkle' or product.handle == 'portret-pary-personalizowany-obraz-na-szkle-akrylowym' or product.handle == 'obraz-ze-zdjecia-karykatura-na-50-ta-rocznice' %}
+{% assign rocznica_handles = 'obraz-ze-zdjecia-karykatura-na-30-ta-rocznice,obraz-ze-zdjecia-karykatura-na-40-ta-rocznice,obraz-ze-zdjecia-karykatura-na-50-ta-rocznice' %}
+{% if product.handle == 'karykatura-na-zamowienie-druk-na-szkle-akrylowym-ramka-z-podswietleniem' or product.handle == 'prezent-dla-babci-i-dziadka-portret-na-na-szkle-akrylowym-ze-zdjecia-karykatura' or product.handle == 'dziadkowie-krolowie-nadruk-na-szkle' or product.handle == 'portret-pary-personalizowany-obraz-na-szkle-akrylowym' or rocznica_handles contains product.handle %}
 {% comment %} TYLKO SZKŁO (domyślnie wydruk na szkle) {% endcomment %}
 <div class="customify-product-type-btn active" data-product-type="szklo">
 Nadruk na szkle (dodaj podstawkę)
@@ -2993,8 +2994,8 @@ Nadruk na szkle (dodaj podstawkę)
  <div class="style-name">Szkic ołówkiem</div>
  </div>
  </div>
-{% elsif product.handle == 'obraz-ze-zdjecia-karykatura-na-50-ta-rocznice' %}
-{% comment %} TYLKO STYLE Z OBSŁUGĄ PROMPTU dla produktu 50-ta rocznica (OpenAI) {% endcomment %}
+{% elsif rocznica_handles contains product.handle %}
+{% comment %} Rocznica (30/40/50/…) — styl Rocznica biznes, drugi ukryty {% endcomment %}
 <div class="customify-style-card" data-style="caricature-new" style="display: block !important;">
 <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/rocznice/pary/para_30_biz.jpeg'); background-size: cover; background-position: center;"></div>
 <div class="style-info">
@@ -3571,7 +3572,7 @@ Nadruk na szkle (dodaj podstawkę)
 
  <div class="customify-success" id="successMessage"></div>
  
-{% unless product.handle == 'obraz-ze-zdjecia-karykatura-na-50-ta-rocznice' %}
+{% unless rocznica_handles contains product.handle %}
 <div class="customify-text-overlay-toggle customify-product-type-buttons" style="margin-top:12px; display:flex; justify-content:center;">
 <div class="customify-product-type-btn" id="textOverlayToggleBtn" data-overlay-open="false">
 Dodać napis? Kliknij tutaj

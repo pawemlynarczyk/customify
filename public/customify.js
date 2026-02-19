@@ -5,13 +5,25 @@
 
 // ============================================================
 // PRODUCT CUSTOM FIELDS CONFIG
-// Klucz = product handle z URL. Dwa tryby:
+// Klucz = product handle z URL LUB lista handle'ów (rocznica). Dwa tryby:
 // 1) promptTemplate + pola z placeholder — jeden szablon, wartości wstawiane w {PLACEHOLDER}
 // 2) pola z promptPhrase — każdy pole dokleja swoją frazę ({{value}})
-// Pole: id, label, type, options/defaultValue/placeholder, required, placeholder (np. 'YEARS') lub promptPhrase
 // ============================================================
-const PRODUCT_FIELD_CONFIGS = {
-  'obraz-ze-zdjecia-karykatura-na-50-ta-rocznice': {
+
+// 🎯 Produkty rocznicowe (30-ta, 40-ta, 50-ta…) — jeden szablon; domyślna liczba z handle'a (np. ...-na-50-ta-rocznice → 50)
+const ROCZNICA_HANDLES = [
+  'obraz-ze-zdjecia-karykatura-na-30-ta-rocznice',
+  'obraz-ze-zdjecia-karykatura-na-40-ta-rocznice',
+  'obraz-ze-zdjecia-karykatura-na-50-ta-rocznice'
+  // Kolejny produkt: dopisz linię, np. 'obraz-ze-zdjecia-karykatura-na-60-ta-rocznice'
+];
+
+function getYearsFromRocznicaHandle(handle) {
+  const m = handle && handle.match(/-na-(\d+)-ta-rocznice/);
+  return m ? m[1] : null;
+}
+
+const ROCZNICA_CONFIG = {
     title: 'Personalizacja',
     promptTemplate: `Create a luxury 3D anniversary caricature figurine.
 
@@ -38,14 +50,7 @@ OUTFITS:
 • Elegant black and gold styling.
 
 SCENE TYPE:
-The occasion is "{SCENE_TYPE}".
-The decorations, props and mood must visually reflect this theme.
-
-Examples:
-• golden wedding → gold accents, wedding rings, romantic mood.
-• anniversary → romantic lighting, subtle hearts, elegant decor.
-• birthday → cake, candles, festive balloons.
-• jubilee → formal, prestigious setting.
+The occasion is anniversary. The decorations, props and mood: romantic lighting, subtle hearts, elegant decor.
 
 BACKGROUND:
 • Warm golden studio backdrop.
@@ -62,11 +67,11 @@ RESULT:
 A premium 3D anniversary caricature statue, luxurious, celebratory, highly polished, photorealistic 3D render.`,
     fields: [
       { id: 'rocznica', label: 'Rocznica', type: 'select', options: ['10', '15', '20', '25', '30', '35', '40', '45', '50', '55', '60', '65', '70'], defaultValue: '50', required: true, promptKey: 'YEARS' },
-      { id: 'imiona', label: 'Imiona (opcjonalnie)', type: 'text', placeholder: 'np. Anna i Marek', required: false, promptKey: 'NAMES' },
-      { id: 'motyw', label: 'Motyw / okazja (opcjonalnie)', type: 'text', placeholder: 'np. złote wesele, urodziny, jubileusz', required: false, promptKey: 'SCENE_TYPE' }
+      { id: 'imiona', label: 'Imiona (opcjonalnie)', type: 'text', placeholder: 'np. Anna i Marek', required: false, promptKey: 'NAMES' }
     ]
-  }
 };
+
+const PRODUCT_FIELD_CONFIGS = { /* inne produkty (nie rocznica) – dodawane pod konkretnym handle'm */ };
 
 class CustomifyEmbed {
   constructor() {
@@ -286,7 +291,15 @@ class CustomifyEmbed {
   /** Zwraca config pól dla bieżącego produktu lub null */
   getCustomFieldConfig() {
     const handle = this.getProductHandle();
-    return handle ? (PRODUCT_FIELD_CONFIGS[handle] || null) : null;
+    if (!handle) return null;
+    if (ROCNICA_HANDLES.includes(handle)) {
+      const years = getYearsFromRocznicaHandle(handle) || '50';
+      const fields = ROCZNICA_CONFIG.fields.map(f =>
+        f.promptKey === 'YEARS' ? { ...f, defaultValue: years } : f
+      );
+      return { ...ROCNICA_CONFIG, fields, promptTemplate: ROCZNICA_CONFIG.promptTemplate };
+    }
+    return PRODUCT_FIELD_CONFIGS[handle] || null;
   }
 
   /** Renderuje sekcję z polami personalizacji – wstawia przed actionsArea */
@@ -649,8 +662,8 @@ class CustomifyEmbed {
         console.log('🎵 [SPOTIFY] Ustawiam domyślny rozmiar = a5 (15×21)');
       }
     }
-    // 🎯 Rocznica 50-ta: domyślnie wydruk na szkle + rozmiar A5
-    if (this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-na-50-ta-rocznice') {
+    // 🎯 Rocznica (30/40/50/…): domyślnie wydruk na szkle + rozmiar A5
+    if (ROCNICA_HANDLES.includes(this.getProductHandle())) {
       const szkloBtn = document.querySelector('.customify-product-type-btn[data-product-type="szklo"]');
       if (szkloBtn) {
         this.productTypeArea?.querySelectorAll('.customify-product-type-btn').forEach(btn => btn.classList.remove('active'));
@@ -979,9 +992,9 @@ class CustomifyEmbed {
       console.log('🖍️ [PRODUCT-TYPE] URL = Komiks (test) → productType: caricature-new');
       return 'caricature-new';
     }
-    if (currentUrl.includes('obraz-ze-zdjecia-karykatura-na-50-ta-rocznice')) {
-      console.log('🎂 [PRODUCT-TYPE] URL = Karykatura 50-ta rocznica → productType: caricature');
-      return 'caricature';
+    if (/obraz-ze-zdjecia-karykatura-na-\d+-ta-rocznice/.test(currentUrl)) {
+      console.log('🎂 [PRODUCT-TYPE] URL = Rocznica (30/40/50/…) → productType: caricature-new');
+      return 'caricature-new';
     }
     if (currentUrl.includes('portret-pary-z-okazji-rocznicy-z-twojego-zdjecia')) {
       console.log('🤴👸 [PRODUCT-TYPE] URL = Para królewska → productType: para_krolewska');
