@@ -74,15 +74,15 @@ module.exports = async (req, res) => {
       });
     }
 
-    // Jeśli nie zalogowany - zwróć limit 2 (Vercel KV sprawdza device token)
+    // Jeśli nie zalogowany - zwróć limit 3 (Vercel KV sprawdza device token)
     if (!customerId || !customerAccessToken) {
-      console.log(`👤 [CHECK-USAGE] Niezalogowany użytkownik - limit 2 użycia TOTAL`);
+      console.log(`👤 [CHECK-USAGE] Niezalogowany użytkownik - limit 3 użycia TOTAL`);
       return res.json({
         isLoggedIn: false,
-        totalLimit: 2,
+        totalLimit: 3,
         usedCount: 0, // KV sprawdza device token
-        remainingCount: 2,
-        message: 'Masz 2 darmowe transformacje. Zaloguj się dla więcej!'
+        remainingCount: 3,
+        message: 'Masz 3 darmowe transformacje. Zaloguj się dla więcej!'
       });
     }
 
