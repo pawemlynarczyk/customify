@@ -346,20 +346,48 @@ module.exports = async (req, res) => {
     // ═══════════════════════════════════════════════════════════════════════
     // NORMALIZACJA I MAPOWANIE OBRAZKÓW (z normalizacją daty)
     // ═══════════════════════════════════════════════════════════════════════
+    // Mapowanie prefiksu nazwy pliku (upload) → czytelna etykieta stylu
+    const uploadPrefixToLabel = {
+      'caricature-': 'Karykatura',
+      'watercolor-': 'Akwarela',
+      'anime-': 'Anime',
+      'bg-remove-': 'Bg remove',
+      'royal-love-': 'Royal Love',
+      'gta-': 'GTA',
+      'minimalistyczny-': 'Boho (min.)',
+      'realistyczny-': 'Boho (real.)',
+      'van-gogh-': 'Van Gogh',
+      'pixar-': 'Pixar'
+    };
     const normalizedBlobs = categorizedBlobs.map(blob => {
       const pathname = blob.pathname || blob.path || 'unknown';
       const isJson = pathname.toLowerCase().endsWith('.json');
+      const filenameOnly = pathname.split('/').pop() || '';
       
       // productType dla wygenerowanych - lookup z JSON (URL, pathname, path bez prefiksu, filename)
       let productType = null;
+      let uploadType = null; // dla kategorii "upload" - który styl zapisał oryginał
       if (blob.category === 'wygenerowane') {
-        const filenameOnly = pathname.split('/').pop();
         const pathWithoutPrefix = pathname.replace(/^customify\/?/, '');
         productType = urlToProductType[blob.url] 
           || pathnameToProductType[pathname] 
           || (pathWithoutPrefix ? pathnameToProductType[pathWithoutPrefix] : null)
           || (filenameOnly ? pathnameToProductType[filenameOnly] : null) 
           || null;
+      } else if (blob.category === 'upload') {
+        const fn = filenameOnly.toLowerCase();
+        for (const [prefix, label] of Object.entries(uploadPrefixToLabel)) {
+          if (fn.startsWith(prefix)) {
+            uploadType = label;
+            break;
+          }
+        }
+        // Nano-banana single-image: nazwa to np. "gta-123.jpg", "zamkowy-123.jpg" - etykieta z pierwszego segmentu
+        if (!uploadType && /^[a-z0-9_-]+-\d+\.(jpg|jpeg|png|webp)$/i.test(fn)) {
+          const prefix = fn.replace(/-\d+\.(jpg|jpeg|png|webp)$/i, '');
+          uploadType = uploadPrefixToLabel[prefix + '-'] || (prefix.charAt(0).toUpperCase() + prefix.slice(1));
+        }
+        if (!uploadType) uploadType = 'Inny upload';
       }
       
       // Wyciągnij datę z uploadedAt, createdAt lub z timestamp w nazwie pliku
@@ -388,6 +416,7 @@ module.exports = async (req, res) => {
         uploadedAtTimestamp: uploadedAtTimestamp, // Dodaj timestamp dla sortowania
         category: blob.category,
         productType: productType, // karykatura, king, cats, phone, boho, etc.
+        uploadType: uploadType, // dla upload: Karykatura, Akwarela, GTA, itd.
         isJson: isJson,
         contentType: blob.contentType || (isJson ? 'application/json' : 'image')
       };

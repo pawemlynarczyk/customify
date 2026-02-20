@@ -954,13 +954,22 @@
             </div>
           `;
         } else {
-          // productType → czytelna etykieta (karykatura, król, koty, telefon, boho, gta, etc.)
+          // Wygenerowane: productType z JSON. Upload: uploadType z prefiksu nazwy (Karykatura, Akwarela, GTA, itd.)
           const productTypeLabels = { caricature: 'Karykatura', caricature_new: 'Karykatura', king: 'Król', queen: 'Królowa', para_krolewska: 'Para królewska', cats: 'Koty', phone: 'Telefon', boho: 'Boho', gta: 'GTA', other: 'Inne', spotify: 'Spotify', spotify_frame: 'Ramka Spotify', etui: 'Etui' };
-          const safeProductType = typeof image.productType === 'string' && /^[a-z0-9_-]+$/i.test(image.productType) ? image.productType : null;
-          const productTypeLabel = safeProductType ? (productTypeLabels[safeProductType] || safeProductType) : null;
-          const productTypeHtml = productTypeLabel
-            ? `<span class="product-type">${productTypeLabel}</span>`
-            : `<span class="product-type product-type-unknown" title="Brak dopasowania z plików JSON (generations)">—</span>`;
+          let typeHtml = '';
+          if (image.category === 'wygenerowane') {
+            const safeProductType = typeof image.productType === 'string' && /^[a-z0-9_-]+$/i.test(image.productType) ? image.productType : null;
+            const productTypeLabel = safeProductType ? (productTypeLabels[safeProductType] || safeProductType) : null;
+            typeHtml = productTypeLabel
+              ? `<span class="product-type">${productTypeLabel}</span>`
+              : `<span class="product-type product-type-unknown" title="Brak dopasowania z plików JSON (generations)">—</span>`;
+          } else if (image.category === 'upload' && image.uploadType) {
+            typeHtml = `<span class="product-type" title="Oryginał przed transformacją">${image.uploadType}</span>`;
+          } else if (image.category === 'upload') {
+            typeHtml = `<span class="product-type product-type-unknown" title="Upload (oryginał)">Upload</span>`;
+          } else {
+            typeHtml = '';
+          }
           // Obrazek - normalne wyświetlanie z retry logic
           card.innerHTML = `
             <input type="checkbox" class="checkbox" ${isSelected ? 'checked' : ''} 
@@ -971,7 +980,7 @@
                  style="cursor: pointer;">
             <div class="image-info">
               <span class="category ${image.category}">${image.category}</span>
-              ${productTypeHtml}
+              ${typeHtml}
               <div class="filename">${fileName}</div>
               <div class="date">${new Date(image.uploadedAt).toLocaleString('pl-PL')}</div>
             </div>
