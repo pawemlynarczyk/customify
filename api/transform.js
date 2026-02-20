@@ -988,6 +988,54 @@ async function openaiImageGeneration(prompt, parameters = {}) {
   throw lastError || new Error('OpenAI image generation failed after all retries');
 }
 
+/**
+ * Fallback: OpenAI Images Edit (gpt-image-1.5) - ten sam model co na Replicate, ale przez oficjalne API OpenAI.
+ * Używane gdy Replicate zwraca błędy (E8765, 5xx, timeout) dla stylów GPT-Image-1.5.
+ * @param {string} imageDataUri - data URI (base64) obrazu użytkownika
+ * @param {object} config - styleConfig dla stylu (prompt, parameters)
+ * @returns {Promise<string>} - data URL base64 lub URL wygenerowanego obrazu
+ */
+async function openaiGpt15Edit(imageDataUri, config) {
+  if (!openai) {
+    throw new Error('OpenAI client not initialized - cannot use fallback');
+  }
+  const mimeMatch = imageDataUri.match(/^data:(image\/(png|jpeg|jpg|webp));base64,/i);
+  const mimeType = mimeMatch ? mimeMatch[1].toLowerCase() : 'image/jpeg';
+  const extension = (mimeMatch && mimeMatch[2]) ? mimeMatch[2].toLowerCase() : 'jpg';
+  const base64Data = imageDataUri.split(',')[1] || imageDataUri;
+  const imageBuffer = Buffer.from(base64Data, 'base64');
+  const imageFile = await toFile(imageBuffer, `image.${extension}`, { type: mimeType });
+
+  const aspectRatio = config.parameters?.aspect_ratio || '2:3';
+  const sizeMap = { '2:3': '1024x1536', '3:4': '1024x1536', '1:1': '1024x1024' };
+  const size = sizeMap[aspectRatio] || config.parameters?.size || '1024x1536';
+
+  console.log('🔄 [OPENAI-FALLBACK] Using OpenAI gpt-image-1.5 Edit API (fallback from Replicate)');
+  const response = await openai.images.edit({
+    model: 'gpt-image-1.5',
+    image: imageFile,
+    prompt: config.prompt,
+    size,
+    quality: config.parameters?.quality || 'medium',
+    background: config.parameters?.background || 'auto',
+    n: config.parameters?.number_of_images || 1,
+  });
+
+  if (!response?.data?.length) {
+    throw new Error('No image returned from OpenAI gpt-image-1.5 Edit API');
+  }
+  const first = response.data[0];
+  if (first.b64_json) {
+    const fmt = (config.parameters?.output_format || 'png').toLowerCase();
+    const mime = fmt === 'jpeg' || fmt === 'jpg' ? 'jpeg' : fmt === 'webp' ? 'webp' : 'png';
+    return `data:image/${mime};base64,${first.b64_json}`;
+  }
+  if (first.url) {
+    return first.url;
+  }
+  throw new Error('OpenAI gpt-image-1.5 response had no b64_json or url');
+}
+
 // Function to compress and resize images for SDXL models
 async function compressImage(imageData, maxWidth = 1152, maxHeight = 1152, quality = 85) {
   if (!sharp) {
@@ -3304,7 +3352,12 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
               error.message.includes('E8765') ||
               error.message.match(/E\d{4,5}/) // Błędy Replicate z kodem E (np. E8765)
             ));
-          
+
+          // Dla gpt-image-1.5: po 1 błędzie od razu fallback na OpenAI, bez retry
+          if (config.model.includes('gpt-image-1.5') && openai) {
+            console.warn(`⚠️ [REPLICATE] Replicate error (attempt ${attempt}) – skipping retry, using OpenAI fallback`);
+            break;
+          }
           if (isRetryable && attempt < maxRetries) {
             const delay = retryDelay * Math.pow(2, attempt - 1); // Exponential backoff: 2s, 4s, 8s
             console.warn(`⚠️ [REPLICATE] Server error (attempt ${attempt}/${maxRetries}) - retrying in ${delay}ms...`);
@@ -3320,25 +3373,35 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
       }
 
       if (!output) {
-        throw lastError || new Error('Replicate prediction failed after all retries');
+        // Fallback na OpenAI API (gpt-image-1.5) gdy Replicate nie działa – np. karykatura nowoczesna, Love Rose, Jak z bajki
+        if (config.model.includes('gpt-image-1.5') && openai) {
+          try {
+            console.log('🔄 [REPLICATE] Replicate failed – trying OpenAI gpt-image-1.5 Edit API fallback');
+            imageUrl = await openaiGpt15Edit(imageDataUri, config);
+            console.log('✅ [OPENAI-FALLBACK] Fallback succeeded');
+          } catch (fallbackErr) {
+            console.warn('⚠️ [OPENAI-FALLBACK] Fallback failed:', fallbackErr?.message || fallbackErr);
+            throw lastError || new Error('Replicate prediction failed after all retries');
+          }
+        } else {
+          throw lastError || new Error('Replicate prediction failed after all retries');
+        }
       }
 
-      // Handle different output formats based on model
-      if (config.model.includes('nano-banana')) {
-        // Nano-banana returns direct string URL
-        imageUrl = output;
-      } else if (Array.isArray(output)) {
-        // Standard Replicate models return array
-        imageUrl = output[0];
-      } else if (typeof output === 'string') {
-        // Fallback for string output
-        imageUrl = output;
-      } else if (output && output.url) {
-        // Some models return object with url() method
-        imageUrl = output.url();
-      } else {
-        console.error('❌ [REPLICATE] Unknown output format:', output);
-        return res.status(500).json({ error: 'Invalid response format from AI model' });
+      // Handle different output formats based on model (tylko gdy mamy output z Replicate – przy fallbacku imageUrl jest już ustawione)
+      if (output) {
+        if (config.model.includes('nano-banana')) {
+          imageUrl = output;
+        } else if (Array.isArray(output)) {
+          imageUrl = output[0];
+        } else if (typeof output === 'string') {
+          imageUrl = output;
+        } else if (output && output.url) {
+          imageUrl = typeof output.url === 'function' ? output.url() : output.url;
+        } else {
+          console.error('❌ [REPLICATE] Unknown output format:', output);
+          return res.status(500).json({ error: 'Invalid response format from AI model' });
+        }
       }
     }
 
