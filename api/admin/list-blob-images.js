@@ -9,12 +9,12 @@ const { checkRateLimit, getClientIP } = require('../../utils/vercelRateLimiter')
 
 /**
  * Buduje mapę imageUrl → productType z plików JSON w customify/system/stats/generations/
- * Bez zmiany URL - lookup w istniejących danych
+ * jsonBlobs powinny być posortowane po dacie (najnowsze pierwsze), żeby najpierw czytać pliki z ostatnimi generacjami.
  */
 async function buildProductTypeMap(jsonBlobs) {
   const urlToProductType = {};
   const pathnameToProductType = {};
-  const MAX_JSON_FETCH = 200; // Limit żeby nie przeciążyć (więcej = lepsze dopasowanie)
+  const MAX_JSON_FETCH = 800; // Więcej plików = lepsze dopasowanie (najpierw najnowsze dzięki sortowaniu)
   const toFetch = jsonBlobs.slice(0, MAX_JSON_FETCH);
 
   await Promise.all(toFetch.map(async (blob) => {
@@ -33,7 +33,10 @@ async function buildProductTypeMap(jsonBlobs) {
             if (pathFromUrl) {
               pathnameToProductType[pathFromUrl] = pt;
               const fn = pathFromUrl.split('/').pop();
-              if (fn) pathnameToProductType[fn] = pt; // fallback: match po samym filename
+              if (fn) pathnameToProductType[fn] = pt;
+              // Ścieżka bez prefiksu customify/ (na wypadek innego formatu w list())
+              const pathWithoutPrefix = pathFromUrl.replace(/^customify\/?/, '');
+              if (pathWithoutPrefix) pathnameToProductType[pathWithoutPrefix] = pt;
             }
           } catch (_) {}
         }
@@ -43,6 +46,7 @@ async function buildProductTypeMap(jsonBlobs) {
     }
   }));
 
+  console.log(`📊 [LIST-BLOB-IMAGES] productType map: ${Object.keys(urlToProductType).length} URLs, ${Object.keys(pathnameToProductType).length} pathnames (z ${toFetch.length} plików JSON)`);
   return { urlToProductType, pathnameToProductType };
 }
 
@@ -305,7 +309,13 @@ module.exports = async (req, res) => {
       const p = (b.pathname || '').toLowerCase();
       return p.startsWith('customify/system/stats/generations/') && p.endsWith('.json');
     });
-    const { urlToProductType, pathnameToProductType } = await buildProductTypeMap(jsonBlobs);
+    // Sortuj po dacie (najnowsze pierwsze) – wtedy buildProductTypeMap czyta najpierw pliki z ostatnimi generacjami
+    const jsonBlobsSorted = [...jsonBlobs].sort((a, b) => {
+      const at = (a.uploadedAt && new Date(a.uploadedAt).getTime()) || 0;
+      const bt = (b.uploadedAt && new Date(b.uploadedAt).getTime()) || 0;
+      return bt - at;
+    });
+    const { urlToProductType, pathnameToProductType } = await buildProductTypeMap(jsonBlobsSorted);
 
     // Filtruj po kategorii jeśli podano (PO liczeniu statystyk!)
     let categorizedBlobs = allCategorizedBlobs;
@@ -340,12 +350,14 @@ module.exports = async (req, res) => {
       const pathname = blob.pathname || blob.path || 'unknown';
       const isJson = pathname.toLowerCase().endsWith('.json');
       
-      // productType dla wygenerowanych - lookup z JSON (bez zmiany URL)
+      // productType dla wygenerowanych - lookup z JSON (URL, pathname, path bez prefiksu, filename)
       let productType = null;
       if (blob.category === 'wygenerowane') {
         const filenameOnly = pathname.split('/').pop();
+        const pathWithoutPrefix = pathname.replace(/^customify\/?/, '');
         productType = urlToProductType[blob.url] 
           || pathnameToProductType[pathname] 
+          || (pathWithoutPrefix ? pathnameToProductType[pathWithoutPrefix] : null)
           || (filenameOnly ? pathnameToProductType[filenameOnly] : null) 
           || null;
       }

@@ -223,6 +223,10 @@
       background: #E8F5E9;
       color: #2E7D32;
     }
+    .product-type.product-type-unknown {
+      background: #f5f5f5;
+      color: #757575;
+    }
     
     .image-info .filename {
       word-break: break-all;
@@ -327,6 +331,7 @@
           <option value="cats">Koty</option>
           <option value="phone">Telefon</option>
           <option value="boho">Boho</option>
+          <option value="gta">GTA</option>
           <option value="spotify">Spotify</option>
           <option value="spotify_frame">Ramka Spotify</option>
           <option value="etui">Etui</option>
@@ -949,11 +954,13 @@
             </div>
           `;
         } else {
-          // productType → czytelna etykieta (karykatura, król, koty, telefon, boho, etc.)
-          const productTypeLabels = { caricature: 'Karykatura', caricature_new: 'Karykatura', king: 'Król', queen: 'Królowa', para_krolewska: 'Para królewska', cats: 'Koty', phone: 'Telefon', boho: 'Boho', other: 'Inne', spotify: 'Spotify', spotify_frame: 'Ramka Spotify', etui: 'Etui' };
+          // productType → czytelna etykieta (karykatura, król, koty, telefon, boho, gta, etc.)
+          const productTypeLabels = { caricature: 'Karykatura', caricature_new: 'Karykatura', king: 'Król', queen: 'Królowa', para_krolewska: 'Para królewska', cats: 'Koty', phone: 'Telefon', boho: 'Boho', gta: 'GTA', other: 'Inne', spotify: 'Spotify', spotify_frame: 'Ramka Spotify', etui: 'Etui' };
           const safeProductType = typeof image.productType === 'string' && /^[a-z0-9_-]+$/i.test(image.productType) ? image.productType : null;
           const productTypeLabel = safeProductType ? (productTypeLabels[safeProductType] || safeProductType) : null;
-          const productTypeHtml = productTypeLabel ? `<span class="product-type">${productTypeLabel}</span>` : '';
+          const productTypeHtml = productTypeLabel
+            ? `<span class="product-type">${productTypeLabel}</span>`
+            : `<span class="product-type product-type-unknown" title="Brak dopasowania z plików JSON (generations)">—</span>`;
           // Obrazek - normalne wyświetlanie z retry logic
           card.innerHTML = `
             <input type="checkbox" class="checkbox" ${isSelected ? 'checked' : ''} 

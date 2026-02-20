@@ -5171,6 +5171,12 @@ class CustomifyEmbed {
           return;
         }
 
+        if (response.status === 503) {
+          const msg = errorJson?.error || errorJson?.message || 'Serwis AI jest tymczasowo niedostępny. Spróbuj za 5–10 minut.';
+          this.showError(msg, 'transform');
+          return;
+        }
+
         throw new Error(`HTTP ${response.status}: ${errorText}`);
       }
 
@@ -6319,6 +6325,8 @@ class CustomifyEmbed {
   }
 
   showLoading() {
+    const transformBtn = document.getElementById('transformBtn');
+    if (transformBtn) transformBtn.disabled = true;
     this.loadingArea.style.display = 'block';
     this.actionsArea.style.display = 'none';
     
@@ -6356,6 +6364,8 @@ class CustomifyEmbed {
   }
 
   hideLoading() {
+    const transformBtn = document.getElementById('transformBtn');
+    if (transformBtn) transformBtn.disabled = false;
     // Zatrzymaj animację paska postępu
     if (this.progressInterval) {
       clearInterval(this.progressInterval);

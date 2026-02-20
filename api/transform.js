@@ -4194,6 +4194,9 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
     } else if (error.message.includes('402') || error.message.includes('Payment Required') || error.message.includes('spend limit')) {
       errorMessage = 'AI service temporarily unavailable due to billing limits. Please try again later or contact support.';
       statusCode = 402;
+    } else if (error.message.includes('503') || error.message.includes('Service Unavailable') || error.message.includes('Internal server error')) {
+      errorMessage = 'Serwis AI jest tymczasowo niedostępny. Spróbuj za 5–10 minut.';
+      statusCode = 503;
     } else if (error.message.includes('half cropped face') || error.message.includes('Source image contains')) {
       errorMessage = 'CROPPED_FACE';
       statusCode = 400;
