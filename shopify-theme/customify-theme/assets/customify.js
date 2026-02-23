@@ -956,6 +956,10 @@ class CustomifyEmbed {
       return 'oil_painting';
     }
 
+    if (currentUrl.includes('obraz-ze-zdjecia-personalizowany-prezent-dla-niej-akwarela')) {
+      console.log('🎨 [PRODUCT-TYPE] URL = Prezent dla Niej (Farby Olejne) → productType: oil_paints');
+      return 'oil_paints';
+    }
     if (currentUrl.includes('personalizowany-portret-w-stylu-boho')) {
       console.log('🎨 [PRODUCT-TYPE] URL = Boho → productType: boho');
       return 'boho';
@@ -5171,12 +5175,6 @@ class CustomifyEmbed {
           return;
         }
 
-        if (response.status === 503) {
-          const msg = errorJson?.error || errorJson?.message || 'Serwis AI jest tymczasowo niedostępny. Spróbuj za 5–10 minut.';
-          this.showError(msg, 'transform');
-          return;
-        }
-
         throw new Error(`HTTP ${response.status}: ${errorText}`);
       }
 
@@ -5225,18 +5223,7 @@ class CustomifyEmbed {
       
       if (result.success) {
         this.transformedImage = result.transformedImage;
-        // ✅ STATS: Generacja AI zakończona
-        try {
-          fetch('https://customify-s56o.vercel.app/api/admin/login-modal-stats', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              eventType: 'ai_generation_success',
-              productUrl: window.location.pathname || '',
-              timestamp: new Date().toISOString()
-            })
-          }).catch(() => {});
-        } catch (_) {}
+        // ✅ STATS: Generacje AI zlicza backend (transform.js) – jedna źródło prawdy, bez podwójnego liczenia
         // ✅ ZAPISZ watermarkedImageUrl z backendu (jeśli dostępny)
         this.watermarkedImageUrl = result.watermarkedImageUrl || null;
         console.log('✅ [TRANSFORM] watermarkedImageUrl z backendu:', this.watermarkedImageUrl?.substring(0, 100) || 'brak');
@@ -6325,8 +6312,6 @@ class CustomifyEmbed {
   }
 
   showLoading() {
-    const transformBtn = document.getElementById('transformBtn');
-    if (transformBtn) transformBtn.disabled = true;
     this.loadingArea.style.display = 'block';
     this.actionsArea.style.display = 'none';
     
@@ -6364,8 +6349,6 @@ class CustomifyEmbed {
   }
 
   hideLoading() {
-    const transformBtn = document.getElementById('transformBtn');
-    if (transformBtn) transformBtn.disabled = false;
     // Zatrzymaj animację paska postępu
     if (this.progressInterval) {
       clearInterval(this.progressInterval);

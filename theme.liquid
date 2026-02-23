@@ -3343,6 +3343,14 @@ Nadruk na szkle (dodaj podstawkę)
  }
  });
  </script>
+ {% elsif product.handle == 'obraz-ze-zdjecia-personalizowany-prezent-dla-niej-akwarela' %}
+ {% comment %} TYLKO STYL FARBY OLEJNE dla produktu "Prezent dla Niej - Akwarela" {% endcomment %}
+ <div class="customify-style-card" data-style="oil-paints" style="display: block !important;">
+ <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/style/water_ona.png'); background-size: cover; background-position: center;"></div>
+ <div class="style-info">
+ <div class="style-name">Farby Olejne</div>
+ </div>
+ </div>
  {% elsif product.id == 15475649675589 or product.handle contains 'akwarela' %}
  {% comment %} TYLKO STYL AKWARELE dla produktu akwarela - używa Segmind Become-Image API {% endcomment %}
  <div class="customify-style-card" data-style="akwarela">
