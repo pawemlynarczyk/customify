@@ -1,0 +1,11 @@
+      /* Nadpisz ukrywanie produktów na stronach kolekcji (pokazuj wszystkie karty) */
+      .product-card:has([data-product-title*="rozmiar"]),
+      .product-card:has([href*="spersonalizowany"]) {
+        display: block !important;
+      }
+
+      /* Ukryj nagłówek "Produkty" na stronie kolekcji */
+      #shopify-section-template--26450137481541__section {
+        display: none !important;
+      }
+    </style>

@@ -4230,6 +4230,18 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
     
     console.log(`🔍🔍🔍 [TRANSFORM] ===== KONIEC SPRAWDZANIA saveGenerationDebug =====`);
     
+    // ✅ STATS: Zlicz generację AI w panelu login-modal-stats (źródło prawdy = backend, nie frontend)
+    const productUrlForStats = (productHandle && String(productHandle).trim()) ? `/products/${String(productHandle).trim()}` : '/products/unknown';
+    fetch('https://customify-s56o.vercel.app/api/admin/login-modal-stats', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        eventType: 'ai_generation_success',
+        productUrl: productUrlForStats,
+        timestamp: new Date().toISOString()
+      })
+    }).catch((err) => console.warn('📊 [TRANSFORM] login-modal-stats event send failed:', err?.message || err));
+    
     res.json(responseData);
   } catch (error) {
     console.error('AI transformation error:', error);

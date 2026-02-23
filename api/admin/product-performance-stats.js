@@ -252,15 +252,27 @@ const isGeneratedTitle = (value) => {
   return lower.includes('rozmiar') || lower.includes('produkt cyfrowy');
 };
 
+const SHOPIFY_FETCH_TIMEOUT_MS = 20000; // 20s per request - avoid INTERNAL_FUNCTION_INVOCATION_TIMEOUT
+const ORDERS_MAX_PAGES = 20; // max 20 * 250 = 5000 orders per request - keep GET under ~60s
+
+const fetchWithTimeout = (url, options = {}, timeoutMs = SHOPIFY_FETCH_TIMEOUT_MS) => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal })
+    .finally(() => clearTimeout(timeoutId));
+};
+
 const fetchOrdersBetween = async (shopDomain, accessToken, startIso, endIso) => {
   const purchasesByProduct = {};
   const ordersByProduct = {};
   const allowedFinancialStatus = new Set(['paid', 'partially_paid']);
 
   let nextUrl = `https://${shopDomain}/admin/api/2024-01/orders.json?status=any&limit=250&created_at_min=${encodeURIComponent(startIso)}&created_at_max=${encodeURIComponent(endIso)}&fields=id,created_at,financial_status,cancelled_at,line_items`;
+  let pageCount = 0;
 
-  while (nextUrl) {
-    const response = await fetch(nextUrl, {
+  while (nextUrl && pageCount < ORDERS_MAX_PAGES) {
+    pageCount++;
+    const response = await fetchWithTimeout(nextUrl, {
       headers: {
         'X-Shopify-Access-Token': accessToken
       }
@@ -332,14 +344,18 @@ const fetchProductsByIds = async (shopDomain, accessToken, productIds) => {
         }
       }
     `;
-    const response = await fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Shopify-Access-Token': accessToken
+    const response = await fetchWithTimeout(
+      `https://${shopDomain}/admin/api/2024-01/graphql.json`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Shopify-Access-Token': accessToken
+        },
+        body: JSON.stringify({ query, variables: { ids: chunk } })
       },
-      body: JSON.stringify({ query, variables: { ids: chunk } })
-    });
+      15000
+    );
 
     if (!response.ok) {
       throw new Error(`Shopify GraphQL error: ${response.status} ${response.statusText}`);
@@ -363,7 +379,7 @@ const fetchProductsByIds = async (shopDomain, accessToken, productIds) => {
   return results;
 };
 
-module.exports = async (req, res) => {
+const handler = async (req, res) => {
   const allowedOrigins = [
     'https://lumly.pl',
     'https://customify-s56o.vercel.app',
@@ -613,9 +629,19 @@ module.exports = async (req, res) => {
       });
     } catch (error) {
       console.error('❌ [PRODUCT-STATS] Error fetching stats:', error);
+      const isTimeout = error?.name === 'AbortError' || /timeout|aborted/i.test(error?.message || '');
+      if (isTimeout) {
+        return res.status(504).json({
+          error: 'Gateway Timeout',
+          message: 'Shopify API odpowiedział zbyt długo. Spróbuj zawęzić zakres dat (startDate, endDate).'
+        });
+      }
       return res.status(500).json({ error: 'Internal server error', message: error.message });
     }
   }
 
   return res.status(405).json({ error: 'Method not allowed' });
 };
+
+handler.config = { maxDuration: 60 };
+module.exports = handler;

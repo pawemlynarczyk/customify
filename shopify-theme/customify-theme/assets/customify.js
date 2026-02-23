@@ -8,6 +8,50 @@
 // Klucz = product handle z URL.
 // ============================================================
 const PRODUCT_FIELD_CONFIGS = {
+  'obraz-ze-zdjecia-biznes-woman-personalizowany-prezent': {
+    title: 'Personalizacja',
+    promptTemplate: `Create a luxury 3D business caricature figurine.
+
+STYLE:
+• High-end 3D resin sculpture.
+• Soft cinematic studio lighting.
+• Glossy surfaces, premium finish.
+• Warm golden color grading.
+• Slight caricature exaggeration (larger heads, elegant proportions).
+
+FACE:
+• Preserve facial identity and structure.
+• Natural skin tones.
+• Slight beautification (smooth skin, refined details).
+• Expressive, joyful smiles.
+
+POSE:
+• The woman is sitting on a business party podium.
+• Romantic, elegant body language.
+• Hands elegantly on lap.
+
+OUTFITS:
+• Glamorous evening look.
+• Elegant black and gold styling.
+
+SCENE TYPE:
+The occasion is business conference.
+
+BACKGROUND:
+• Warm golden studio backdrop.
+• Metallic gold and black decoration.
+• Elegant business bag and other business woman attributes.
+• Soft bokeh lights.
+
+TEXT:
+{NAMES_SECTION}
+
+RESULT:
+A premium 3D anniversary caricature statue, luxurious, celebratory, highly polished, photorealistic 3D render.`,
+    fields: [
+      { id: 'imiona', label: 'Imię (opcjonalnie)', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'NAMES' }
+    ]
+  },
   'obraz-ze-zdjecia-karykatura-na-50-ta-rocznice': {
     title: 'Personalizacja',
     promptTemplate: `Create a luxury 3D anniversary caricature figurine.
@@ -368,7 +412,7 @@ class CustomifyEmbed {
       throw new Error(`Uzupełnij wymagane pola: ${missingLabels.join(', ')}`);
     }
 
-    // Tryb szablonu: jeden prompt z placeholderami {YEARS}, {NAMES}, {SCENE_TYPE}
+    // Tryb szablonu: jeden prompt z placeholderami {YEARS}, {NAMES}, {SCENE_TYPE}, {NAMES_SECTION}
     if (config.promptTemplate) {
       const replacements = {};
       config.fields.forEach(field => {
@@ -378,6 +422,13 @@ class CustomifyEmbed {
         if (field.promptKey === 'SCENE_TYPE' && !value) value = 'anniversary';
         replacements[field.promptKey] = value;
       });
+      // {NAMES_SECTION} — warunkowy blok: gdy NAMES puste = brak tekstu, gdy wypełnione = tabliczka
+      if (config.promptTemplate.includes('{NAMES_SECTION}')) {
+        const namesVal = replacements['NAMES'] || '';
+        replacements['NAMES_SECTION'] = namesVal.trim()
+          ? `Render this EXACT text on a golden plaque at the base:\n"${namesVal.trim()}"\nCRITICAL for names: use exact Polish characters — ą, ć, ę, ł, ń, ó, ś, ź, ż (uppercase: Ą, Ć, Ę, Ł, Ń, Ó, Ś, Ź, Ż). Do NOT replace with a, c, e, l, n, o, s, z. Copy every letter exactly as provided.`
+          : 'Do not add any text, plaque or inscription to the image.';
+      }
       let prompt = config.promptTemplate;
       Object.keys(replacements).forEach(key => {
         prompt = prompt.replaceAll(`{${key}}`, replacements[key]);
@@ -974,6 +1025,10 @@ class CustomifyEmbed {
     }
     if (currentUrl.includes('obraz-ze-zdjecia-karykatura-na-50-ta-rocznice')) {
       console.log('🎂 [PRODUCT-TYPE] URL = Karykatura 50-ta rocznica → productType: caricature-new');
+      return 'caricature-new';
+    }
+    if (currentUrl.includes('obraz-ze-zdjecia-biznes-woman-personalizowany-prezent')) {
+      console.log('👩‍💼 [PRODUCT-TYPE] URL = Biznes Woman → productType: caricature-new');
       return 'caricature-new';
     }
     if (currentUrl.includes('portret-pary-z-okazji-rocznicy-z-twojego-zdjecia')) {

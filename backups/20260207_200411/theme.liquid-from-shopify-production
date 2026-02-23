@@ -1,0 +1,2189 @@
+<!-- Cache buster: 20250115123456 -->
+<!doctype html>
+<html
+  class="no-js{% if request.design_mode %} shopify-design-mode{% endif %}"
+  lang="{{ request.locale.iso_code }}"
+>
+  <head>
+    {%- render 'stylesheets' -%}
+
+    {%- if settings.favicon != blank -%}
+      <link
+        rel="icon"
+        type="image/png"
+        href="{{ settings.favicon | image_url: width: 32, height: 32 }}"
+      >
+    {%- endif -%}
+
+    {% comment %} This a way to wait for main content to load when navigating to a new page so that the view transitions can work consistently {% endcomment %}
+    <link
+      rel="expect"
+      href="#MainContent"
+      blocking="render"
+      id="view-transition-render-blocker"
+    >
+
+    {%- render 'meta-tags' -%}
+    {%- render 'fonts' -%}
+    {%- render 'scripts' -%}
+    {%- render 'theme-styles-variables' -%}
+    {%- render 'color-schemes' -%}
+
+    {% if request.design_mode %}
+      {%- render 'theme-editor' -%}
+    {% endif %}
+
+    <!-- CUSTOMIFY INTEGRATION -->
+    <link rel="stylesheet" href="{{ 'customify.css' | asset_url }}">
+    <script src="{{ 'customify.js' | asset_url }}" defer></script>
+    
+    <!-- FIX: CSS dla galerii - TYLKO JEDEN MIEJSCE -->
+    <style>
+      /* TYLKO JEDEN MIEJSCE - bez duplikatów */
+      .media-gallery__grid {
+        grid-template-rows: 400px 120px !important;
+        grid-template-columns: 120px 120px !important;
+        height: 524px !important;
+      }
+      
+      /* OGRANICZ ROZMIAR MODALA ZDJĘĆ */
+      .product-media-container__zoom-button {
+        /* Usuń full screen - pokaż mniejszy modal */
+      }
+      
+      /* Modal z ograniczonym rozmiarem */
+      .media-gallery__modal,
+      .product-media-modal,
+      [data-modal],
+      .modal {
+        max-width: 80vw !important;
+        max-height: 80vh !important;
+        width: auto !important;
+        height: auto !important;
+        margin: auto !important;
+        position: fixed !important;
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        z-index: 9999 !important;
+        background: white !important;
+        border-radius: 8px !important;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3) !important;
+        overflow: hidden !important;
+      }
+      
+      /* Obraz w modalu - WYPEŁNIA CAŁY KONTENER BEZ BIAŁYCH PÓL */
+      .media-gallery__modal img,
+      .product-media-modal img,
+      [data-modal] img,
+      .modal img {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
+        object-position: center !important;
+      }
+      
+      /* FIX: Zdjęcia w galerii - WYPEŁNIAJĄ CAŁY KONTENER */
+      .product-media__image {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
+        object-position: center !important;
+        max-height: none !important;
+      }
+      
+      /* FIX: Kontener zdjęcia */
+      .product-media {
+        width: 100% !important;
+        height: 100% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+      }
+      
+      /* Overlay */
+      .media-gallery__overlay,
+      .product-media-overlay,
+      [data-overlay],
+      .modal-overlay {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        background: rgba(0,0,0,0.8) !important;
+        z-index: 9998 !important;
+      }
+      
+      /* OGRANICZ SZEROKOŚĆ TYLKO STRON PRODUKTÓW */
+      .product-information__grid {
+        max-width: 1400px !important;
+        margin: 0 auto !important;
+        padding: 0 20px !important;
+      }
+      
+      /* Responsive - tablet */
+      @media (max-width: 768px) {
+        .product-information__grid {
+          max-width: 768px !important;
+          padding: 0 15px !important;
+        }
+      }
+      
+      /* Responsive - mobile */
+      @media (max-width: 480px) {
+        .product-information__grid {
+          max-width: 100% !important;
+          padding: 0 10px !important;
+        }
+      }
+      
+      /* FIX: POKAŻ WSZYSTKIE ELEMENTY STOPKI ZAMIAST POPOVER */
+      .terms-policies-popover {
+        position: static !important;
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        transform: none !important;
+        box-shadow: none !important;
+        border: none !important;
+        background: transparent !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: none !important;
+        width: auto !important;
+        height: auto !important;
+        z-index: auto !important;
+      }
+      
+      .policy_list {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 15px !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        list-style: none !important;
+      }
+      
+      .policy_list li {
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      
+      .policy_list a {
+        color: inherit !important;
+        text-decoration: none !important;
+        font-size: 0.75rem !important;
+        transition: opacity 0.2s ease !important;
+      }
+      
+      .policy_list a:hover {
+        opacity: 0.7 !important;
+      }
+      
+      /* UKRYJ PRZYCISK POPOVER - POKAŻ TYLKO LISTĘ */
+      .policy-list-trigger {
+        display: none !important;
+      }
+      
+      /* RESPONSIVE - MOBILE */
+      @media (max-width: 768px) {
+        .policy_list {
+          flex-direction: column !important;
+          gap: 8px !important;
+        }
+      }
+
+      /* EXPANDABLE DESCRIPTION USUNIĘTE - opisy produktów są teraz pełne */
+
+      /* ACCORDION POD PRZYCISKAMI - STYL ETSY */
+      .product-details-accordion {
+        display: block !important;
+        margin-top: 24px;
+        border-top: 1px solid #e5e5e5;
+        padding-top: 8px;
+      }
+
+      .accordion-item {
+        border-bottom: 1px solid #e5e5e5;
+        margin-bottom: 8px;
+      }
+
+      .accordion-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 20px;
+        cursor: pointer;
+        font-weight: 600;
+        color: #333;
+        font-size: 0.95rem;
+        transition: all 0.2s ease;
+        user-select: none;
+        background: #fff;
+        border-radius: 8px;
+        border: 1px solid #e5e5e5;
+        margin-bottom: 4px;
+        width: 100%;
+        box-sizing: border-box;
+      }
+
+      .accordion-header:hover {
+        background: #f8f9fa;
+        border-color: #d32f2f;
+        color: #d32f2f;
+        box-shadow: 0 2px 8px rgba(211, 47, 47, 0.1);
+      }
+
+      .accordion-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex: 1;
+      }
+
+      .accordion-icon {
+        font-size: 1.2rem;
+        transition: transform 0.3s ease;
+        color: #666;
+        flex-shrink: 0;
+      }
+
+      .accordion-item.expanded .accordion-icon {
+        transform: rotate(180deg);
+        color: #d32f2f;
+      }
+
+      .accordion-item.expanded .accordion-header {
+        background: #f8f9fa;
+        border-color: #d32f2f;
+        color: #d32f2f;
+      }
+
+      .accordion-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.4s ease;
+        color: #666;
+        font-size: 0.9rem;
+        line-height: 1.6;
+        padding: 0 20px;
+      }
+
+      .accordion-item.expanded .accordion-content {
+        max-height: 800px; /* Enough for longest content */
+        padding: 16px 20px;
+        background: #f8f9fa;
+        border-radius: 0 0 8px 8px;
+        border: 1px solid #e5e5e5;
+        border-top: none;
+        margin-bottom: 8px;
+      }
+
+      .accordion-content ul {
+        margin: 8px 0;
+        padding-left: 20px;
+      }
+
+      .accordion-content li {
+        margin: 6px 0;
+      }
+
+      .accordion-content strong {
+        color: #333;
+        font-weight: 600;
+      }
+
+      .accordion-step {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        margin: 12px 0;
+        padding: 12px;
+        background: #f9f9f9;
+        border-radius: 8px;
+      }
+
+      .accordion-step-number {
+        background: #d32f2f;
+        color: white;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.9rem;
+        flex-shrink: 0;
+      }
+
+      .accordion-step-content {
+        flex: 1;
+      }
+
+      .accordion-size-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        margin-top: 12px;
+      }
+
+      .accordion-size-item {
+        background: #f9f9f9;
+        padding: 12px;
+        border-radius: 8px;
+        border: 2px solid #e5e5e5;
+        transition: all 0.2s ease;
+      }
+
+      .accordion-size-item:hover {
+        border-color: #d32f2f;
+        background: #fff;
+      }
+
+      .accordion-size-name {
+        font-weight: 700;
+        color: #333;
+        font-size: 1rem;
+      }
+
+      .accordion-size-dimensions {
+        color: #666;
+        font-size: 0.85rem;
+        margin: 4px 0;
+      }
+
+      .accordion-size-price {
+        color: #d32f2f;
+        font-weight: 700;
+        font-size: 1.1rem;
+      }
+
+      .accordion-size-description {
+        color: #999;
+        font-size: 0.8rem;
+        margin-top: 4px;
+      }
+
+      @media (max-width: 768px) {
+        .product-details-accordion {
+          margin-top: 16px;
+        }
+
+        .accordion-header {
+          font-size: 0.9rem;
+          padding: 14px 16px;
+        }
+
+        .accordion-content {
+          font-size: 0.85rem;
+          padding: 0 16px;
+        }
+
+        .accordion-item.expanded .accordion-content {
+          padding: 14px 16px;
+        }
+
+        .accordion-title {
+          gap: 10px;
+        }
+
+        .accordion-size-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .accordion-step {
+          padding: 10px;
+        }
+      }
+    </style>
+    
+    
+    <style>
+      /* Ukryj produkty Customify z nowymi nazwami rozmiarów (A5/A4/A3/A2) */
+      .product-card:has([data-product-title*="A5"]),
+      .product-card:has([data-product-title*="A4"]),
+      .product-card:has([data-product-title*="A3"]),
+      .product-card:has([data-product-title*="A2"]),
+      .product-card:has([href*="A5"]),
+      .product-card:has([href*="A4"]),
+      .product-card:has([href*="A3"]),
+      .product-card:has([href*="A2"]) {
+        display: none !important;
+      }
+      
+      /* Zachowaj główny produkt Customify widoczny */
+      .product-card:has([data-product-title*="Obraz ze zdjęcia w stylu Ghibli"]),
+      .product-card:has([href*="custom"]) {
+        display: block !important;
+      }
+      
+      /* Ukryj TYLKO 2 przyciski Shopify - dodaj do koszyka i kup teraz */
+      button#BuyButtons-ProductSubmitButton,
+      button[id^="BuyButtons-ProductSubmitButton"],
+      .shopify-payment-button {
+        display: none !important;
+      }
+    </style>
+    
+    {% if template contains 'collection' %}
+    <style>
+      /* Nadpisz ukrywanie produktów na stronach kolekcji (pokazuj wszystkie karty) */
+      .product-card:has([data-product-title*="rozmiar"]),
+      .product-card:has([href*="spersonalizowany"]) {
+        display: block !important;
+      }
+
+      /* Ukryj nagłówek "Produkty" na stronie kolekcji */
+      #shopify-section-template--26450137481541__section {
+        display: none !important;
+      }
+    </style>
+    {% endif %}
+    
+    <!-- FIX: Poprawne proporcje galerii - JavaScript wymusza zmiany -->
+    <script>
+      // FUNKCJA NAPRAWY POWIĘKSZONEGO ZDJĘCIA W DIALOGU
+      function fixDialogImages() {
+        const dialog = document.querySelector('dialog[open]');
+        if (!dialog) return;
+        
+        // Znajdź wszystkie zdjęcia w dialogu
+        const allImages = dialog.querySelectorAll('img');
+        let largestImg = null;
+        let largestWidth = 0;
+        
+        allImages.forEach(img => {
+          const width = img.clientWidth;
+          if (width > largestWidth) {
+            largestWidth = width;
+            largestImg = img;
+          }
+        });
+        
+        if (!largestImg) return;
+        
+        // Wymuś poprawne style - WYPEŁNIA CAŁY KONTENER
+        largestImg.style.setProperty('object-fit', 'cover', 'important');
+        largestImg.style.setProperty('max-height', 'none', 'important');
+        largestImg.style.setProperty('height', '100%', 'important');
+        largestImg.style.setProperty('width', '100%', 'important');
+        largestImg.style.setProperty('object-position', 'center', 'important');
+        
+        // Styluj kontener
+        if (largestImg.parentElement) {
+          largestImg.parentElement.style.setProperty('height', '100%', 'important');
+        }
+        
+        console.log('✅ Zdjęcie w dialogu naprawione - brak białych pól!');
+      }
+      
+      // FUNKCJA UKRYWANIA STAREJ SEKCJI POLITYK
+      function hideOldPolicySection() {
+        // Ukryj cały popover z politykami
+        const policyPopover = document.querySelector('.footer-utilities__group--left anchored-popover-component');
+        if (policyPopover) {
+          policyPopover.style.display = 'none';
+          policyPopover.style.visibility = 'hidden';
+          policyPopover.style.opacity = '0';
+          policyPopover.style.height = '0';
+          policyPopover.style.overflow = 'hidden';
+          console.log('✅ Ukryto stary popover z politykami');
+        }
+        
+        // Ukryj element "Preferencje dotyczące plików cookie"
+        const cookieLink = document.querySelector('a[href="/policies/#shopifyReshowConsentBanner"]');
+        if (cookieLink) {
+          cookieLink.style.display = 'none';
+          cookieLink.style.visibility = 'hidden';
+          cookieLink.style.opacity = '0';
+          cookieLink.style.height = '0';
+          cookieLink.style.overflow = 'hidden';
+          
+          const parentLi = cookieLink.closest('li');
+          if (parentLi) {
+            parentLi.style.display = 'none';
+            parentLi.style.visibility = 'hidden';
+            parentLi.style.opacity = '0';
+            parentLi.style.height = '0';
+            parentLi.style.overflow = 'hidden';
+          }
+          
+          console.log('✅ Ukryto element "Preferencje dotyczące plików cookie"');
+        }
+      }
+
+      // FUNKCJA DODAWANIA NAWIGACJI NA STRONACH POLITYK
+      function addPolicyNavigation() {
+        // Dodaj nawigację do stopki (przed popoverem)
+        const footerLeft = document.querySelector('.footer-utilities__group--left');
+        if (!footerLeft) {
+          console.log('❌ Footer left nie znaleziony');
+          return;
+        }
+        
+        const policyPopover = footerLeft.querySelector('anchored-popover-component');
+        if (!policyPopover) {
+          console.log('❌ Policy popover nie znaleziony');
+          return;
+        }
+        
+        // Sprawdzam czy nawigacja już istnieje
+        if (document.querySelector('.policy-nav-container-footer')) {
+          return;
+        }
+        
+        // Stwórz aktywną nawigację
+        const navContainer = document.createElement('div');
+        navContainer.className = 'policy-nav-container-footer';
+          navContainer.style.cssText = `
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin-top: 30px;
+            text-align: center;
+            font-size: 0.9rem;
+          `;
+          
+          const navTitle = document.createElement('div');
+          navTitle.textContent = '🔗 Szybka nawigacja:';
+          navTitle.style.cssText = `
+            color: #666;
+            margin-bottom: 10px;
+            font-weight: 500;
+          `;
+          
+          const navLinks = document.createElement('div');
+          navLinks.className = 'policy-nav-links';
+          navLinks.style.cssText = `
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+          `;
+          
+          const links = [
+            { text: 'Polityka Prywatności', url: '/policies/privacy-policy' },
+            { text: 'Polityka Zwrotów', url: '/policies/refund-policy' },
+            { text: 'Dane Kontaktowe', url: '/policies/contact-information' },
+            { text: 'Warunki Usług', url: '/policies/terms-of-service' },
+            { text: 'Polityka Wysyłki', url: '/policies/shipping-policy' }
+          ];
+          
+          links.forEach(link => {
+            const linkEl = document.createElement('a');
+            linkEl.href = link.url;
+            linkEl.textContent = link.text;
+            linkEl.style.cssText = `
+              color: #666;
+              text-decoration: none;
+              font-weight: 500;
+              padding: 8px 16px;
+              border-radius: 6px;
+              transition: all 0.3s ease;
+              display: inline-block;
+              border: 1px solid transparent;
+            `;
+            
+            linkEl.addEventListener('mouseenter', function() {
+              this.style.color = '#333';
+              this.style.backgroundColor = '#fff';
+              this.style.borderColor = '#666';
+              this.style.transform = 'translateY(-2px)';
+              this.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
+            });
+            
+            linkEl.addEventListener('mouseleave', function() {
+              this.style.color = '#666';
+              this.style.backgroundColor = 'transparent';
+              this.style.borderColor = 'transparent';
+              this.style.transform = 'translateY(0)';
+              this.style.boxShadow = 'none';
+            });
+            
+            navLinks.appendChild(linkEl);
+          });
+          
+          navContainer.appendChild(navTitle);
+          navContainer.appendChild(navLinks);
+          
+          // Wstaw nawigację przed popoverem w stopce
+          footerLeft.insertBefore(navContainer, policyPopover);
+          
+          console.log('✅ [v2] Nawigacja dodana w stopce przed popoverem');
+      }
+
+      function fixGalleryProportions() {
+        const galleryGrid = document.querySelector('.media-gallery__grid');
+        if (!galleryGrid) return;
+        
+        // ZAWSZE uruchamiaj galerię w stylu Etsy na stronach produktu
+        console.log('🔧 [ETSY GALLERY] Tworzę galerię w stylu Etsy dla produktu...');
+        createEtsyGallery(galleryGrid);
+      }
+      
+      // ETSY-STYLE GALLERY (miniaturki poniżej)
+      function createEtsyGallery(galleryGrid) {
+        // Sprawdź czy już utworzono
+        if (galleryGrid.classList.contains('etsy-gallery-initialized')) {
+          return;
+        }
+        
+        // Wymuś layout flexbox pionowy (góra-dół)
+        galleryGrid.style.setProperty('display', 'flex', 'important');
+        galleryGrid.style.setProperty('flex-direction', 'column', 'important');
+        galleryGrid.style.setProperty('gap', '16px', 'important');
+        galleryGrid.style.setProperty('height', 'auto', 'important');
+        galleryGrid.style.setProperty('width', '100%', 'important');
+        
+        // Pobierz wszystkie elementy listy (oryginalne media)
+        const allImages = Array.from(galleryGrid.querySelectorAll('li'));
+        if (allImages.length === 0) return;
+        
+        // Zapisz URL wszystkich obrazków PRZED usunięciem elementów
+        const imageUrls = allImages.map(li => {
+          const img = li.querySelector('img');
+          if (!img) return null;
+          // Spróbuj wyciągnąć URL z currentSrc, src lub srcset
+          const direct = img.currentSrc || img.src || '';
+          if (direct) return direct;
+          const srcset = img.getAttribute('srcset') || '';
+          if (srcset) {
+            // Weź największy URL z srcset
+            const candidates = srcset.split(',').map(s => s.trim().split(' ')[0]).filter(Boolean);
+            return candidates[candidates.length - 1] || null;
+          }
+          return null;
+        }).filter(url => url !== null && url !== '');
+        
+        if (imageUrls.length === 0) {
+          console.warn('⏳ [ETSY] Brak gotowych obrazów (lazy-load). Spróbuję ponownie później.');
+          return; // Nie usuwaj oryginalnych elementów dopóki nie mamy URLi
+        }
+        
+        console.log(`📸 [ETSY] Znaleziono ${imageUrls.length} obrazków`);
+        
+        // Zmienna do śledzenia aktualnego indexu (globalna dla całej galerii)
+        let currentIndex = 0;
+        
+        // NAJPIERW stwórz kontener dla głównego obrazu (będzie potrzebny w event listenerach)
+        let mainImageContainer = galleryGrid.querySelector('.etsy-main-image');
+        if (!mainImageContainer) {
+          mainImageContainer = document.createElement('div');
+          mainImageContainer.className = 'etsy-main-image';
+          mainImageContainer.style.cssText = `
+            width: 100%;
+            position: relative;
+            aspect-ratio: 1 / 1;
+            background: #f5f5f5;
+            border-radius: 8px;
+            overflow: hidden;
+          `;
+          
+          // Dodaj główny obraz
+          const firstImage = allImages[0]?.querySelector('img');
+          if (firstImage) {
+            const mainImg = document.createElement('img');
+            mainImg.src = firstImage.src;
+            mainImg.alt = 'Główne zdjęcie produktu';
+            mainImg.style.cssText = `
+              width: 100%;
+              height: 100%;
+              object-fit: cover;
+              cursor: default;
+            `;
+            
+            // Wyłącz zoom/modal na głównym obrazie
+            mainImg.addEventListener('click', (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              console.log('🖼️ [ETSY] Kliknięcie w główny obraz - zoom wyłączony');
+            }, true);
+            
+            mainImageContainer.appendChild(mainImg);
+          }
+          
+          // Wyłącz również kliknięcie w kontener (ale przepuść kliknięcia strzałek)
+          mainImageContainer.addEventListener('click', (e) => {
+            // Pozwól na kliknięcia przycisków nawigacji
+            if (e.target.closest && e.target.closest('.etsy-nav-btn')) {
+              return;
+            }
+            e.preventDefault();
+            e.stopPropagation();
+          }, true);
+          
+          // Licznik zdjęć
+          const counter = document.createElement('div');
+          counter.className = 'etsy-counter';
+          counter.textContent = `1 / ${imageUrls.length}`;
+          counter.style.cssText = `
+            position: absolute;
+            bottom: 16px;
+            right: 16px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 14px;
+          `;
+          mainImageContainer.appendChild(counter);
+          
+          // Strzałka LEWA na głównym obrazie
+          const prevBtn = document.createElement('button');
+          prevBtn.innerHTML = '‹';
+          prevBtn.className = 'etsy-nav-btn prev';
+          prevBtn.style.cssText = `
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 28px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            transition: all 0.2s ease;
+            z-index: 10;
+          `;
+          
+          // Strzałka PRAWA na głównym obrazie
+          const nextBtn = document.createElement('button');
+          nextBtn.innerHTML = '›';
+          nextBtn.className = 'etsy-nav-btn next';
+          nextBtn.style.cssText = `
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 28px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            transition: all 0.2s ease;
+            z-index: 10;
+          `;
+          
+          mainImageContainer.appendChild(prevBtn);
+          mainImageContainer.appendChild(nextBtn);
+        }
+        
+        // POTEM stwórz kontener dla miniaturek z nawigacją (poziomo poniżej)
+        let thumbsNavigationContainer = galleryGrid.querySelector('.etsy-thumbs-navigation');
+        if (!thumbsNavigationContainer) {
+          thumbsNavigationContainer = document.createElement('div');
+          thumbsNavigationContainer.className = 'etsy-thumbs-navigation';
+          thumbsNavigationContainer.style.cssText = `
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+          `;
+          
+          // Strzałka LEWA dla miniaturek
+          const thumbsPrevBtn = document.createElement('button');
+          thumbsPrevBtn.innerHTML = '‹';
+          thumbsPrevBtn.style.cssText = `
+            width: 36px;
+            height: 36px;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 24px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: all 0.2s ease;
+          `;
+          
+          // Kontener miniaturek
+          let thumbsRow = document.createElement('div');
+          thumbsRow.className = 'etsy-thumbnails-row';
+          thumbsRow.style.cssText = `
+            display: flex;
+            flex-direction: row;
+            gap: 8px;
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding: 10px 0;
+            flex: 1;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+          `;
+          thumbsRow.style.setProperty('-webkit-scrollbar', 'none');
+          
+          // Strzałka PRAWA dla miniaturek
+          const thumbsNextBtn = document.createElement('button');
+          thumbsNextBtn.innerHTML = '›';
+          thumbsNextBtn.style.cssText = `
+            width: 36px;
+            height: 36px;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 24px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: all 0.2s ease;
+          `;
+          
+          // Event listenery dla strzałek miniaturek
+          thumbsPrevBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            thumbsRow.scrollBy({ left: -200, behavior: 'smooth' });
+          });
+          
+          thumbsNextBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            thumbsRow.scrollBy({ left: 200, behavior: 'smooth' });
+          });
+          
+          // Hover effects
+          [thumbsPrevBtn, thumbsNextBtn].forEach(btn => {
+            btn.addEventListener('mouseenter', () => {
+              btn.style.background = '#f5f5f5';
+              btn.style.transform = 'scale(1.1)';
+            });
+            btn.addEventListener('mouseleave', () => {
+              btn.style.background = 'white';
+              btn.style.transform = 'scale(1)';
+            });
+          });
+          
+          // Przenieś miniaturki
+          allImages.forEach((img, index) => {
+            const thumb = img.cloneNode(true);
+            
+            // Usuń wszystkie atrybuty które mogą powodować zoom/modal
+            const links = thumb.querySelectorAll('a, button');
+            links.forEach(link => {
+              link.removeAttribute('href');
+              link.removeAttribute('data-modal');
+              link.removeAttribute('data-pswp-width');
+              link.removeAttribute('data-pswp-height');
+              link.style.pointerEvents = 'none'; // Wyłącz kliknięcia w linki
+            });
+            
+            thumb.style.cssText = `
+              width: 80px;
+              height: 80px;
+              border: 2px solid #e0e0e0;
+              border-radius: 4px;
+              cursor: pointer;
+              transition: all 0.2s ease;
+              flex-shrink: 0;
+            `;
+            
+            // Dodaj active state
+            if (index === 0) {
+              thumb.style.borderColor = '#000';
+            }
+            
+            // Kliknięcie zmienia główny obraz (BEZ ZOOM/MODAL)
+            thumb.addEventListener('click', (e) => {
+              e.preventDefault(); // Zatrzymaj domyślne zachowanie Shopify
+              e.stopPropagation(); // Zatrzymaj propagację (zoom/modal)
+              
+              // Aktualizuj currentIndex (dla synchronizacji ze strzałkami)
+              currentIndex = index;
+              
+              // Usuń active ze wszystkich
+              thumbsRow.querySelectorAll('li').forEach(t => {
+                t.style.borderColor = '#e0e0e0';
+              });
+              // Dodaj active
+              thumb.style.borderColor = '#000';
+              
+              // Zmień główny obraz używając zapisanego URL
+              const mainImg = mainImageContainer.querySelector('img');
+              if (mainImg && imageUrls[index]) {
+                mainImg.src = imageUrls[index];
+                // Aktualizuj licznik
+                const counter = mainImageContainer.querySelector('.etsy-counter');
+                if (counter) {
+                  counter.textContent = `${index + 1} / ${imageUrls.length}`;
+                }
+                console.log(`🖼️ [ETSY] Kliknięcie miniaturki ${index + 1}: ${imageUrls[index]}`);
+              }
+            }, true); // useCapture = true (przechwytuj PRZED Shopify)
+            
+            thumbsRow.appendChild(thumb);
+          });
+          
+          // Składaj nawigację miniaturek
+          thumbsNavigationContainer.appendChild(thumbsPrevBtn);
+          thumbsNavigationContainer.appendChild(thumbsRow);
+          thumbsNavigationContainer.appendChild(thumbsNextBtn);
+          
+          // Dodaj NAJPIERW główny obraz (góra)
+          galleryGrid.appendChild(mainImageContainer);
+          
+          // POTEM miniaturki z nawigacją (dół)
+          galleryGrid.appendChild(thumbsNavigationContainer);
+        }
+        
+        // Event listenery dla strzałek głównego obrazu (NA ZEWNĄTRZ if'a - działają zawsze)
+        const prevBtn = mainImageContainer.querySelector('.etsy-nav-btn.prev');
+        const nextBtn = mainImageContainer.querySelector('.etsy-nav-btn.next');
+        const counter = mainImageContainer.querySelector('.etsy-counter');
+        const mainImg = mainImageContainer.querySelector('img');
+        const thumbsRow = galleryGrid.querySelector('.etsy-thumbnails-row');
+        
+        console.log('🔍 [ETSY] Sprawdzam elementy:', {
+          prevBtn: !!prevBtn,
+          nextBtn: !!nextBtn,
+          mainImg: !!mainImg,
+          thumbsRow: !!thumbsRow,
+          counter: !!counter
+        });
+        
+        if (prevBtn && nextBtn && mainImg && thumbsRow) {
+          // Usuń stare event listenery (klonuj przyciski)
+          const newPrevBtn = prevBtn.cloneNode(true);
+          const newNextBtn = nextBtn.cloneNode(true);
+          prevBtn.replaceWith(newPrevBtn);
+          nextBtn.replaceWith(newNextBtn);
+          
+          newPrevBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            currentIndex = currentIndex === 0 ? imageUrls.length - 1 : currentIndex - 1;
+            
+            // Zmień obraz używając zapisanego URL
+            if (mainImg && imageUrls[currentIndex]) {
+              mainImg.src = imageUrls[currentIndex];
+              counter.textContent = `${currentIndex + 1} / ${imageUrls.length}`;
+              
+              // Aktualizuj active state miniaturek
+              if (thumbsRow) {
+                thumbsRow.querySelectorAll('li').forEach((t, i) => {
+                  t.style.borderColor = i === currentIndex ? '#000' : '#e0e0e0';
+                });
+              }
+              
+              console.log(`🔧 [ETSY] Strzałka ← : Zdjęcie ${currentIndex + 1}/${imageUrls.length}`);
+            }
+          });
+          
+          newNextBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            currentIndex = currentIndex === imageUrls.length - 1 ? 0 : currentIndex + 1;
+            
+            // Zmień obraz używając zapisanego URL
+            if (mainImg && imageUrls[currentIndex]) {
+              mainImg.src = imageUrls[currentIndex];
+              counter.textContent = `${currentIndex + 1} / ${imageUrls.length}`;
+              
+              // Aktualizuj active state miniaturek
+              if (thumbsRow) {
+                thumbsRow.querySelectorAll('li').forEach((t, i) => {
+                  t.style.borderColor = i === currentIndex ? '#000' : '#e0e0e0';
+                });
+              }
+              
+              console.log(`🔧 [ETSY] Strzałka → : Zdjęcie ${currentIndex + 1}/${imageUrls.length}`);
+            }
+          });
+          
+          // Hover effects dla strzałek głównego obrazu
+          [newPrevBtn, newNextBtn].forEach(btn => {
+            btn.addEventListener('mouseenter', () => {
+              btn.style.background = 'white';
+              btn.style.transform = 'translateY(-50%) scale(1.1)';
+            });
+            btn.addEventListener('mouseleave', () => {
+              btn.style.background = 'rgba(255, 255, 255, 0.9)';
+              btn.style.transform = 'translateY(-50%) scale(1)';
+            });
+          });
+          
+          console.log('✅ [ETSY] Event listenery dla strzałek głównego obrazu dodane');
+        } else {
+          console.error('❌ [ETSY] Brak elementów:', { prevBtn, nextBtn, mainImg, thumbsRow });
+        }
+        
+        // Usuń oryginalne elementy
+        allImages.forEach(img => img.remove());
+        
+        galleryGrid.classList.add('etsy-gallery-initialized');
+        console.log('✅ [ETSY] Galeria utworzona: główny obraz + strzałki ← → + miniaturki poniżej');
+      }
+      
+      // STANDARD CAROUSEL (dla innych produktów)
+      function createStandardCarousel(galleryGrid) {
+        // UKRYJ SLIDESHOW-COMPONENT NA MOBILE (powoduje duplikację głównego zdjęcia)
+        if (window.innerWidth <= 749) {
+          const slideshow = document.querySelector('slideshow-component');
+          if (slideshow) {
+            slideshow.style.setProperty('display', 'none', 'important');
+            slideshow.style.setProperty('visibility', 'hidden', 'important');
+            slideshow.style.setProperty('opacity', '0', 'important');
+            slideshow.style.setProperty('height', '0', 'important');
+            slideshow.style.setProperty('overflow', 'hidden', 'important');
+            console.log('🎯 Ukryto slideshow-component na mobile');
+          }
+        }
+        
+        // Dodaj aktywną nawigację na stronach polityk
+        if (window.location.pathname.includes('/policies/')) {
+          addPolicyNavigation();
+        }
+        
+        // Wymuś nowe wymiary przez JavaScript - KARUZELA
+        galleryGrid.style.setProperty('display', 'flex', 'important');
+        galleryGrid.style.setProperty('flex-direction', 'column', 'important');
+        galleryGrid.style.setProperty('height', 'auto', 'important');
+        galleryGrid.style.setProperty('width', '100%', 'important');
+        
+        // Stwórz kontener dla miniaturek z nawigacją
+        let thumbnailsContainer = galleryGrid.querySelector('.thumbnails-container');
+        if (!thumbnailsContainer) {
+          // Kontener z nawigacją
+          const navigationContainer = document.createElement('div');
+          navigationContainer.className = 'thumbnails-navigation';
+          navigationContainer.style.cssText = `
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+          `;
+          
+                // Przycisk lewo
+                const leftBtn = document.createElement('button');
+                leftBtn.innerHTML = '←';
+                leftBtn.className = 'thumbnails-nav-btn left';
+                leftBtn.style.cssText = `
+                  background: white;
+                  color: #333;
+                  border: 1px solid #e0e0e0;
+                  border-radius: 50%;
+                  width: 36px;
+                  height: 36px;
+                  cursor: pointer;
+                  font-size: 16px;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  flex-shrink: 0;
+                  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                  transition: all 0.2s ease;
+                `;
+          
+          // Kontener miniaturek
+          thumbnailsContainer = document.createElement('div');
+          thumbnailsContainer.className = 'thumbnails-container';
+          thumbnailsContainer.style.cssText = `
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding: 10px 0;
+            scroll-behavior: smooth;
+            flex: 1;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+          `;
+          thumbnailsContainer.style.webkitScrollbar = 'none';
+          
+                // Przycisk prawo
+                const rightBtn = document.createElement('button');
+                rightBtn.innerHTML = '→';
+                rightBtn.className = 'thumbnails-nav-btn right';
+                rightBtn.style.cssText = `
+                  background: white;
+                  color: #333;
+                  border: 1px solid #e0e0e0;
+                  border-radius: 50%;
+                  width: 36px;
+                  height: 36px;
+                  cursor: pointer;
+                  font-size: 16px;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  flex-shrink: 0;
+                  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                  transition: all 0.2s ease;
+                `;
+          
+          // Przenieś miniaturki do kontenera
+          const thumbnails = Array.from(galleryGrid.querySelectorAll('li:not(:first-child)'));
+          thumbnails.forEach(thumb => {
+            thumbnailsContainer.appendChild(thumb);
+          });
+          
+          // Składaj nawigację
+          navigationContainer.appendChild(leftBtn);
+          navigationContainer.appendChild(thumbnailsContainer);
+          navigationContainer.appendChild(rightBtn);
+          
+          galleryGrid.appendChild(navigationContainer);
+          
+                // Event listeners dla przycisków
+                leftBtn.addEventListener('click', () => {
+                  thumbnailsContainer.scrollBy({ left: -100, behavior: 'smooth' });
+                });
+                
+                rightBtn.addEventListener('click', () => {
+                  thumbnailsContainer.scrollBy({ left: 100, behavior: 'smooth' });
+                });
+                
+                // Hover effects
+                leftBtn.addEventListener('mouseenter', () => {
+                  leftBtn.style.background = '#f5f5f5';
+                  leftBtn.style.borderColor = '#ccc';
+                  leftBtn.style.transform = 'scale(1.05)';
+                });
+                
+                leftBtn.addEventListener('mouseleave', () => {
+                  leftBtn.style.background = 'white';
+                  leftBtn.style.borderColor = '#e0e0e0';
+                  leftBtn.style.transform = 'scale(1)';
+                });
+                
+                rightBtn.addEventListener('mouseenter', () => {
+                  rightBtn.style.background = '#f5f5f5';
+                  rightBtn.style.borderColor = '#ccc';
+                  rightBtn.style.transform = 'scale(1.05)';
+                });
+                
+                rightBtn.addEventListener('mouseleave', () => {
+                  rightBtn.style.background = 'white';
+                  rightBtn.style.borderColor = '#e0e0e0';
+                  rightBtn.style.transform = 'scale(1)';
+                });
+        }
+        
+        // Główne zdjęcie - WYPEŁNIA CAŁĄ SZEROKOŚĆ
+        const mainImage = galleryGrid.querySelector('li:first-child');
+        if (mainImage) {
+          // Usuń klasy które ograniczają wymiary
+          mainImage.classList.remove('constrain-height', 'media-fit-contain');
+          mainImage.classList.add('media-fit'); // Dodaj klasę która wypełnia
+          
+          mainImage.style.setProperty('height', 'auto', 'important'); // RESPONSIVE
+          mainImage.style.setProperty('width', '100%', 'important');
+          mainImage.style.setProperty('aspect-ratio', '1 / 1', 'important'); // KWADRAT RESPONSIVE
+          mainImage.style.setProperty('grid-row', '1 / 2', 'important');
+          mainImage.style.setProperty('grid-column', '1 / 4', 'important'); // WSZYSTKIE 3 KOLUMNY
+          mainImage.style.setProperty('margin', '0', 'important');
+          mainImage.style.setProperty('max-height', 'none', 'important');
+          
+          const mainImg = mainImage.querySelector('img');
+          if (mainImg) {
+            mainImg.style.setProperty('height', '100%', 'important'); // RESPONSIVE
+            mainImg.style.setProperty('width', '100%', 'important');
+            mainImg.style.setProperty('object-fit', 'cover', 'important');
+            mainImg.style.setProperty('object-position', 'center', 'important');
+            mainImg.style.setProperty('aspect-ratio', 'inherit', 'important'); // Dziedzicz z kontenera
+          }
+        }
+        
+        // Miniaturki - KARUZELA
+        const thumbnails = thumbnailsContainer.querySelectorAll('li');
+        thumbnails.forEach((thumb) => {
+          // Usuń inline styles które blokują
+          thumb.removeAttribute('style');
+          
+          // Ustaw nowe wymiary - KARUZELA
+          thumb.style.setProperty('height', '90px', 'important');
+          thumb.style.setProperty('width', '90px', 'important');
+          thumb.style.setProperty('aspect-ratio', '1 / 1', 'important');
+          thumb.style.setProperty('flex-shrink', '0', 'important'); // Nie kurcz się
+          
+          // Styluj kontener product-media
+          const productMedia = thumb.querySelector('.product-media');
+          if (productMedia) {
+            productMedia.style.setProperty('width', '100%', 'important');
+            productMedia.style.setProperty('height', '100%', 'important');
+            productMedia.style.setProperty('aspect-ratio', '1 / 1', 'important');
+          }
+          
+          const thumbImg = thumb.querySelector('img');
+          if (thumbImg) {
+            thumbImg.style.setProperty('object-fit', 'cover', 'important');
+            thumbImg.style.setProperty('width', '100%', 'important');
+            thumbImg.style.setProperty('height', '100%', 'important');
+          }
+        });
+        
+        console.log('✅ Proporcje galerii naprawione!');
+      }
+
+      // Uruchom naprawę galerii po załadowaniu strony
+      document.addEventListener('DOMContentLoaded', function() {
+        // Czekaj aż galeria się załaduje
+        setTimeout(fixGalleryProportions, 1500);
+        
+        // Uruchom ponownie co 500ms żeby nadpisać style Shopify
+        setInterval(fixGalleryProportions, 500);
+        
+        // Dodaj nawigację w stopce (na wszystkich stronach)
+        addPolicyNavigation();
+        
+        // Ukryj starą sekcję polityk
+        hideOldPolicySection();
+        
+        // NAPRAWA POWIĘKSZONYCH ZDJĘĆ W DIALOGU
+        // Event listener dla kliknięć w przyciski powiększenia
+        document.addEventListener('click', function(e) {
+          const zoomButton = e.target.closest('.product-media-container__zoom-button, button[class*="zoom"]');
+          if (zoomButton) {
+            setTimeout(fixDialogImages, 100);  // Czekaj aż dialog się otworzy
+            setTimeout(fixDialogImages, 300);  // Ponownie po załadowaniu
+            setTimeout(fixDialogImages, 600);  // I jeszcze raz dla pewności
+          }
+        });
+        
+        // Regularnie sprawdzaj czy dialog jest otwarty i naprawiaj
+        setInterval(fixDialogImages, 300);
+      });
+    </script>
+    
+
+    {{ content_for_header }}
+  </head>
+
+  <body class="page-width-{{ settings.page_width }} card-hover-effect-{{ settings.card_hover_effect }}">
+    {% render 'skip-to-content-link', href: '#MainContent', text: 'accessibility.skip_to_text' %}
+    
+    <!-- KOMPLETNY NAGŁÓWEK CUSTOMIFY -->
+    <header class="header-main">
+      <!-- GÓRA HEADERA: Logo + Linki użytkownika + Koszyk -->
+      <div class="header-top">
+        <div class="header-container">
+          <!-- Logo (środek) -->
+          <div class="header-logo">
+            <a href="{{ routes.root_url }}" class="logo-link">
+              {% if settings.logo != blank %}
+                <img src="{{ settings.logo | image_url: width: 200 }}" alt="{{ shop.name }}" class="logo-image">
+              {% else %}
+                <span class="logo-text">{{ shop.name }}</span>
+              {% endif %}
+            </a>
+          </div>
+          
+          <!-- Linki użytkownika + Koszyk (po prawej) -->
+          <div class="header-right">
+            <div class="header-user">
+              {% if customer %}
+                <div class="user-section">
+                  <div class="user-icon-wrapper">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" class="user-icon">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                  </div>
+                  <div class="user-links">
+                    <a href="{{ routes.account_url }}" class="user-text-link">Moje konto</a>
+                    <a href="{{ routes.account_logout_url }}" class="user-text-link">Wyloguj się</a>
+                  </div>
+                </div>
+              {% else %}
+                <div class="user-section">
+                  <div class="user-icon-wrapper">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" class="user-icon">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                  </div>
+                  <div class="user-links">
+                    <a href="{{ routes.account_login_url }}" class="user-text-link">Zaloguj</a>
+                    <a href="{{ routes.account_register_url }}" class="user-text-link">Zarejestruj</a>
+                  </div>
+                </div>
+              {% endif %}
+            </div>
+
+            <div class="header-cart">
+              <a href="{{ routes.cart_url }}" class="cart-link">
+                <div class="cart-icon-wrapper">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" class="cart-icon">
+                    <path d="M3 3H5L5.4 5M7 13H17L21 5H5.4M7 13L5.4 5M7 13L4.7 15.3C4.3 15.7 4.6 16.5 5.1 16.5H17M17 13V17C17 18.1 16.1 19 15 19H9C7.9 19 7 18.1 7 17V13M17 13H7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                  {% if cart.item_count > 0 %}
+                    <span class="cart-count">{{ cart.item_count }}</span>
+                  {% endif %}
+                </div>
+                <span class="cart-text">Koszyk</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DÓŁ HEADERA: Menu nawigacji -->
+      <div class="header-bottom">
+        <div class="header-container">
+          <nav class="header-nav">
+            <div class="nav-item">
+              <a href="/" class="nav-link">Główna</a>
+            </div>
+            <div class="nav-item">
+              <a href="/collections/all" class="nav-link">Produkty</a>
+            </div>
+            <div class="nav-item">
+              <a href="/pages/kontakt" class="nav-link">Kontakt</a>
+            </div>
+          </nav>
+        </div>
+      </div>
+
+    </header>
+
+    <!-- Breadcrumbs -->
+    {% if template contains 'product' or template contains 'collection' or template contains 'blog' %}
+      <div class="breadcrumbs">
+        <div class="breadcrumbs-container">
+          <a href="{{ routes.root_url }}" class="breadcrumb-link">Home</a>
+          {% if template contains 'product' %}
+              <span class="breadcrumb-separator">/</span>
+            <a href="/collections/all" class="breadcrumb-link">Produkty</a>
+            <span class="breadcrumb-separator">/</span>
+            <span class="breadcrumb-current">{{ product.title | truncate: 50 }}</span>
+          {% elsif template contains 'collection' %}
+            <span class="breadcrumb-separator">/</span>
+            <span class="breadcrumb-current">{{ collection.title }}</span>
+          {% elsif template contains 'blog' %}
+            <span class="breadcrumb-separator">/</span>
+            <a href="{{ blog.url }}" class="breadcrumb-link">{{ blog.title }}</a>
+            {% if article %}
+              <span class="breadcrumb-separator">/</span>
+              <span class="breadcrumb-current">{{ article.title | truncate: 30 }}</span>
+            {% endif %}
+          {% endif %}
+        </div>
+      </div>
+    {% endif %}
+
+    <script
+      src="{{ 'critical.js' | asset_url }}"
+      type="module"
+      async
+      blocking="render"
+    ></script>
+
+    <main
+      id="MainContent"
+      class="content-for-layout"
+      role="main"
+      data-page-transition-enabled="{{ settings.page_transition_enabled }}"
+      data-product-transition="{{ settings.transition_to_main_product }}"
+      data-template="{{ template }}"
+    >
+      {{ content_for_layout }}
+
+      {% if template contains 'collection' %}
+        <div class="custom-collection-wrapper">
+          <h1 class="custom-collection-title">{{ collection.title }}</h1>
+          {% if collection.description != blank %}
+            <div class="custom-collection-description">{{ collection.description }}</div>
+          {% endif %}
+          {% if collection.products_count > 0 %}
+            <div class="custom-collection-grid">
+              {% for product in collection.products %}
+                <a href="{{ product.url }}" class="custom-collection-card">
+                  <div class="custom-collection-image">
+                    {% if product.featured_image %}
+                      <img src="{{ product.featured_image | image_url: width: 600 }}" alt="{{ product.title }}">
+                    {% endif %}
+                  </div>
+                  <div class="custom-collection-meta">
+                    <div class="custom-collection-card-title">{{ product.title }}</div>
+                    {% if product.price %}
+                      <div class="custom-collection-price">{{ product.price | money }}</div>
+                    {% endif %}
+                  </div>
+                </a>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="custom-collection-empty">Brak produktów do wyświetlenia.</div>
+          {% endif %}
+        </div>
+        <style>
+          .custom-collection-wrapper { max-width: 1200px; margin: 20px auto; padding: 0 20px; }
+          .custom-collection-title { font-size: 1.8rem; margin: 10px 0 15px; }
+          .custom-collection-description { color: #666; margin-bottom: 15px; }
+          .custom-collection-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+          .custom-collection-card { display: block; border: 1px solid #e5e5e5; border-radius: 8px; overflow: hidden; background: #fff; text-decoration: none; color: inherit; transition: box-shadow .2s ease, transform .2s ease; }
+          .custom-collection-card:hover { box-shadow: 0 6px 18px rgba(0,0,0,.08); transform: translateY(-2px); }
+          .custom-collection-image { aspect-ratio: 1 / 1; background: #f8f9fa; display: flex; align-items: center; justify-content: center; }
+          .custom-collection-image img { width: 100%; height: 100%; object-fit: cover; }
+          .custom-collection-meta { padding: 10px 12px; }
+          .custom-collection-card-title { font-weight: 600; font-size: .95rem; margin-bottom: 6px; }
+          .custom-collection-price { color: #d32f2f; font-weight: 700; }
+          .custom-collection-empty { color: #666; padding: 20px 0; }
+        </style>
+      {% endif %}
+    </main>
+
+    {% render 'search-modal' %}
+
+    {% if settings.quick_add or settings.mobile_quick_add %}
+      {% render 'quick-add-modal' %}
+          {% endif %}
+
+    {% comment %} CUSTOMIFY AI PHOTO CUSTOMIZATION {% endcomment %}
+    {% if template contains 'product' %}
+      <div id="customify-app-container" class="customify-shopify-container">
+        <h3 class="customify-title">Wgraj zdjęcie - wybierz styl obrazu</h3>
+        <div class="customify-inline-wrapper">
+          <div class="customify-embed" id="customifyEmbed">
+          <div class="customify-upload-area" id="uploadArea">
+            <button class="customify-upload-btn" id="uploadBtn">
+              Wgraj zdjęcie
+            </button>
+            {% if product.handle == 'koty-krolewskie-zwierzeta-w-koronach' %}
+              <div class="customify-upload-hint">Min. 600×600px, max 10MB, formaty: JPG, PNG, GIF</div>
+            {% else %}
+              <div class="customify-upload-hint">Min. 768×768px, max 10MB, formaty: JPG, PNG, GIF</div>
+            {% endif %}
+            <input type="file" id="fileInput" class="customify-file-input" accept="image/*">
+            <!-- Komunikat błędu - od razu pod uploadem -->
+            <div class="customify-error" id="errorMessage" style="display: none; margin-top: 10px;"></div>
+          </div>
+
+            <div class="customify-preview" id="previewArea">
+              <h4>Twoje zdjęcie:</h4>
+              <img id="previewImage" alt="Podgląd zdjęcia">
+            </div>
+
+            <div class="customify-styles" id="stylesArea" style="display: none;">
+              <h4>Wybierz styl</h4>
+              <div class="customify-style-grid">
+                {% comment %} LOGIKA SERVER-SIDE: Filtruj style per produkt {% endcomment %}
+                {% if product.handle == 'personalizowany-portret-w-stylu-boho' %}
+                  {% comment %} NOWE STYLE BOHO dla produktu boho {% endcomment %}
+                  <div class="customify-style-card" data-style="minimalistyczny">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/boho/minimal.png'); background-size: cover; background-position: center;"></div>
+                    <div class="style-name">Minimalistyczny</div>
+                  </div>
+                  
+                  <div class="customify-style-card" data-style="realistyczny">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/boho/detail.png'); background-size: cover; background-position: center;"></div>
+                    <div class="style-name">Realistyczny</div>
+                  </div>
+                {% elsif product.handle == 'koty-krolewskie-zwierzeta-w-koronach' %}
+                  {% comment %} TYLKO STYLE KOTÓW dla produktu kotów {% endcomment %}
+                  <div class="customify-style-card" data-style="krolewski">
+                  <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/koty/krolewski.png'); background-size: cover; background-position: center;"></div>
+                  <div class="style-info">
+                    <div class="style-name">Królewski Kot</div>
+                  </div>
+                </div>
+                <div class="customify-style-card" data-style="na-tronie">
+                  <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/koty/na_tronie.png'); background-size: cover; background-position: center;"></div>
+                  <div class="style-info">
+                    <div class="style-name">Kot na Tronie</div>
+                  </div>
+                </div>
+                <div class="customify-style-card" data-style="wojenny">
+                  <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/koty/wojenny.png'); background-size: cover; background-position: center;"></div>
+                  <div class="style-info">
+                    <div class="style-name">Wojenny Kot</div>
+                  </div>
+                </div>
+                <div class="customify-style-card" data-style="wiktorianski">
+                  <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/koty/wiktorianski.png'); background-size: cover; background-position: center;"></div>
+                  <div class="style-info">
+                    <div class="style-name">Wiktoriański Kot</div>
+                  </div>
+                </div>
+                <div class="customify-style-card" data-style="renesansowy">
+                  <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/koty/renesansowy.png'); background-size: cover; background-position: center;"></div>
+                  <div class="style-info">
+                    <div class="style-name">Renesansowy Kot</div>
+                  </div>
+                </div>
+                {% else %}
+                  {% comment %} WSZYSTKIE STYLE NORMALNE dla innych produktów {% endcomment %}
+                  <div class="customify-style-card" data-style="van gogh">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/Screenshot%202025-09-29%20at%2022.17.01.png'); background-size: cover; background-position: center;"></div>
+                    <div class="style-info">
+                      <div class="style-name">Van Gogh</div>
+                    </div>
+                  </div>
+                  <div class="customify-style-card" data-style="picasso">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/Screenshot%202025-09-29%20at%2022.17.14.png'); background-size: cover; background-position: center;"></div>
+                    <div class="style-info">
+                      <div class="style-name">Picasso</div>
+                    </div>
+                  </div>
+                  <div class="customify-style-card" data-style="monet">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/Screenshot%202025-09-29%20at%2022.17.37.png'); background-size: cover; background-position: center;"></div>
+                    <div class="style-info">
+                      <div class="style-name">Monet</div>
+                    </div>
+                  </div>
+                  <div class="customify-style-card" data-style="anime">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/Screenshot%202025-09-29%20at%2022.17.52.png'); background-size: cover; background-position: center;"></div>
+                    <div class="style-info">
+                      <div class="style-name">Anime</div>
+                    </div>
+                  </div>
+                  <div class="customify-style-card" data-style="cyberpunk">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/Screenshot%202025-09-29%20at%2022.17.01.png'); background-size: cover; background-position: center;"></div>
+                    <div class="style-info">
+                      <div class="style-name">Cyberpunk</div>
+                    </div>
+                  </div>
+                  <div class="customify-style-card" data-style="watercolor">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/Screenshot%202025-09-29%20at%2022.17.14.png'); background-size: cover; background-position: center;"></div>
+                    <div class="style-info">
+                      <div class="style-name">Akwarela</div>
+                    </div>
+                  </div>
+                  <div class="customify-style-card" data-style="pixar">
+                    <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/Screenshot%202025-09-29%20at%2022.17.37.png'); background-size: cover; background-position: center;"></div>
+                    <div class="style-info">
+                      <div class="style-name">Pixar</div>
+                    </div>
+                  </div>
+                {% endif %}
+              </div>
+        </div>
+
+            <!-- Rozmiary - widoczne od razu na samej górze -->
+            <div class="customify-size-selector" id="sizeArea" style="display: block;">
+              <h4>Wybierz rozmiar:</h4>
+              <div class="customify-size-buttons">
+                <div class="customify-size-btn" data-size="a5">A5 - 15×21 cm<br>+30 zł</div>
+                <div class="customify-size-btn" data-size="a4">A4 - 21×30 cm<br>+89 zł</div>
+                <div class="customify-size-btn" data-size="a3">A3 - 30×42 cm<br>+139 zł</div>
+                <div class="customify-size-btn" data-size="a2">A2 - 42×59 cm<br>+189 zł</div>
+              </div>
+            </div>
+
+            <!-- Komunikat błędu - nad przyciskami -->
+            <div class="customify-error" id="errorMessageBottom" style="display: none; margin: 15px 0;"></div>
+            
+            <div class="customify-actions" id="actionsArea" style="display: none;">
+              <button class="customify-btn customify-btn-red" id="transformBtn">
+                Zobacz Podgląd
+              </button>
+              <button class="customify-btn customify-btn-secondary" id="resetBtn" style="display: none;">
+                Wgraj inne zdjęcie
+              </button>
+              <button class="customify-btn customify-btn-primary" id="addToCartBtnMain" style="display: none;">
+                Dodaj do koszyka
+              </button>
+      </div>
+
+            <div class="customify-loading" id="loadingArea">
+              <div class="customify-spinner"></div>
+              <div class="loading-text">Przetwarzanie...</div>
+              <div class="loading-progress">
+                <div class="loading-progress-bar" id="progressBar"></div>
+              </div>
+              <div class="loading-stage" id="loadingStage">Przesyłanie zdjęcia...</div>
+            </div>
+
+            <div class="customify-result" id="resultArea">
+              <h4>Twój obraz:</h4>
+              <img id="resultImage" alt="Wynik AI">
+              
+              <!-- Komunikat sukcesu -->
+              <div class="customify-success" id="successMessage"></div>
+              
+              <div class="customify-actions" style="margin-top: 15px;">
+                <button class="customify-btn customify-btn-primary customify-btn-red" id="addToCartBtn">
+                  Dodaj do koszyka
+                </button>
+                <button class="customify-btn customify-btn-secondary" id="tryAgainBtn">
+                  Spróbuj ponownie
+                </button>
+            </div>
+            
+            <!-- Pasek postępu dla dodawania do koszyka -->
+            <div class="customify-cart-loading" id="cartLoadingArea" style="display: none;">
+              <div class="customify-spinner"></div>
+              <div class="loading-text">Dodawanie do koszyka...</div>
+              <div class="loading-progress">
+                <div class="loading-progress-bar" id="cartProgressBar"></div>
+              </div>
+              <div class="loading-stage" id="cartLoadingStage">Tworzenie produktu...</div>
+            </div>
+            </div>
+
+            <!-- ACCORDION: SZCZEGÓŁY PRODUKTU (NA SAMYM DOLE APLIKACJI) -->
+            <div class="product-details-accordion">
+              
+              <!-- 1. Szczegóły produktu -->
+              <div class="accordion-item" data-accordion="details">
+                <div class="accordion-header">
+                  <div class="accordion-title">
+                    <span>📋</span>
+                    <span>O produkcie</span>
+                  </div>
+                  <span class="accordion-icon">▼</span>
+                </div>
+                <div class="accordion-content">
+                  <ul>
+                    <li><strong>🎨 Piękne płótno artystyczne:</strong> Twoje zdjęcie wydrukowane na grubym, premium płótnie canvas z naturalną teksturą</li>
+                    <li><strong>🖼️ Elegancka rama:</strong> Solidna drewniana rama z naturalnej sosny, na której płótno jest pięknie naciągnięte</li>
+                    <li><strong>✨ Matowe wykończenie:</strong> Żadnych nieestetycznych odblasków światła - obraz wygląda profesjonalnie z każdej strony</li>
+                    <li><strong>🔧 Gotowe do powieszenia:</strong> Wieszak w zestawie - wystarczy powiesić na ścianie, nic więcej do montażu!</li>
+                    <li><strong>🤖 Twoje zdjęcie + magia AI:</strong> Przekształcamy Twoje zdjęcie w wybranym stylu artystycznym - od klasyki po nowoczesność</li>
+                  </ul>
+                </div>
+              </div>
+
+              <!-- 2. Wysyłka i dostawa -->
+              <div class="accordion-item" data-accordion="shipping">
+                <div class="accordion-header">
+                  <div class="accordion-title">
+                    <span>📦</span>
+                    <span>Wysyłka i dostawa</span>
+                  </div>
+                  <span class="accordion-icon">▼</span>
+                </div>
+                <div class="accordion-content">
+                  <ul>
+                    <li><strong>⚡ Szybka realizacja:</strong> 3-5 dni roboczych od akceptacji projektu</li>
+                    <li><strong>📦 Bezpieczne opakowanie:</strong> Karton wzmocniony + folia bąbelkowa</li>
+                    <li><strong>🇵🇱 Wysyłka z Polski:</strong> InPost Paczkomaty, Poczta Polska, Kurier DPD</li>
+                    <li><strong>📍 Śledzenie przesyłki:</strong> Numer trackingowy wysyłany mailem</li>
+                  </ul>
+                </div>
+              </div>
+
+              <!-- 3. Dostępne rozmiary -->
+              <div class="accordion-item" data-accordion="sizes">
+                <div class="accordion-header">
+                  <div class="accordion-title">
+                    <span>📏</span>
+                    <span>Dostępne rozmiary</span>
+                  </div>
+                  <span class="accordion-icon">▼</span>
+                </div>
+                <div class="accordion-content">
+                  <div class="accordion-size-grid">
+                    <div class="accordion-size-item">
+                      <div class="accordion-size-name">A5</div>
+                      <div class="accordion-size-dimensions">15 × 21 cm</div>
+                      <div class="accordion-size-description">Idealny na biurko lub małą półkę</div>
+                    </div>
+                    <div class="accordion-size-item">
+                      <div class="accordion-size-name">A4</div>
+                      <div class="accordion-size-dimensions">21 × 30 cm</div>
+                      <div class="accordion-size-description">Świetny do małych pokoi</div>
+                    </div>
+                    <div class="accordion-size-item">
+                      <div class="accordion-size-name">A3</div>
+                      <div class="accordion-size-dimensions">30 × 42 cm</div>
+                      <div class="accordion-size-description">Doskonały do średnich pomieszczeń</div>
+                    </div>
+                    <div class="accordion-size-item">
+                      <div class="accordion-size-name">A2</div>
+                      <div class="accordion-size-dimensions">42 × 59 cm</div>
+                      <div class="accordion-size-description">Efektowny na duże ściany w salonie</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 4. Jak to działa -->
+              <div class="accordion-item" data-accordion="howto">
+                <div class="accordion-header">
+                  <div class="accordion-title">
+                    <span>💡</span>
+                    <span>Jak to działa?</span>
+                  </div>
+                  <span class="accordion-icon">▼</span>
+                </div>
+                <div class="accordion-content">
+                  <div class="accordion-step">
+                    <div class="accordion-step-number">1</div>
+                    <div class="accordion-step-content">
+                      <strong>Wgraj swoje zdjęcie</strong><br>
+                      JPG, PNG lub GIF do 10MB. Najlepiej w wysokiej rozdzielczości.
+                    </div>
+                  </div>
+                  <div class="accordion-step">
+                    <div class="accordion-step-number">2</div>
+                    <div class="accordion-step-content">
+                      <strong>Wybierz styl artystyczny</strong><br>
+                      Van Gogh, Picasso, Monet, Anime, Cyberpunk, Akwarela, Pixar i więcej!
+                    </div>
+                  </div>
+                  <div class="accordion-step">
+                    <div class="accordion-step-number">3</div>
+                    <div class="accordion-step-content">
+                      <strong>AI przekształci Twoje zdjęcie</strong><br>
+                      Najnowocześniejsza technologia sztucznej inteligencji w 30-60 sekund.
+                    </div>
+                  </div>
+                  <div class="accordion-step">
+                    <div class="accordion-step-number">4</div>
+                    <div class="accordion-step-content">
+                      <strong>Wybierz rozmiar i dodaj do koszyka</strong><br>
+                      A5, A4, A3 lub A2 - wybierz idealny rozmiar dla Twojej przestrzeni.
+                    </div>
+                  </div>
+                  <div class="accordion-step">
+                    <div class="accordion-step-number">5</div>
+                    <div class="accordion-step-content">
+                      <strong>Drukujemy i wysyłamy</strong><br>
+                      Wysokiej jakości druk na płótnie premium, bezpiecznie zapakowany.
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+            <!-- KONIEC ACCORDION (NA SAMYM DOLE) -->
+
+              </div>
+          </div>
+        </div>
+      </div>
+      
+      <style>
+        /* GRID STYLÓW AI - TYLKO STYLE, NIE DOTYKAM PROPORCJI */
+        .customify-style-grid {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 15px;
+          margin-bottom: 20px;
+        }
+
+        .customify-style-card {
+          border: 2px solid #dee2e6;
+          border-radius: 8px;
+          background: white;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          overflow: hidden;
+        }
+
+        .customify-style-card:hover {
+          border-color: #c82333;
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .customify-style-card.active {
+          border-color: #dc3545 !important;
+          box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.2) !important;
+          transform: scale(1.02) !important;
+        }
+
+        .style-image {
+          width: 100%;
+          aspect-ratio: 1 / 1;
+          background-size: contain;
+          background-position: center;
+          background-repeat: no-repeat;
+        }
+
+        /* Miniaturki kotów - portret 3:4 (jak będzie wysyłane do Nano Banana) */
+        [data-style="krolewski"] .style-image,
+        [data-style="na-tronie"] .style-image,
+        [data-style="wojenny"] .style-image,
+        [data-style="wiktorianski"] .style-image,
+        [data-style="renesansowy"] .style-image {
+          aspect-ratio: 3 / 4; /* Portret - jak w API */
+        }
+
+        /* Miniaturki boho - portret 3:4 (jak koty, bo używają tego samego API) */
+        [data-style="minimalistyczny"] .style-image,
+        [data-style="realistyczny"] .style-image {
+          aspect-ratio: 3 / 4; /* Portret - jak w API */
+        }
+
+        /* Gradienty usunięte - używamy obrazków */
+
+        .style-info {
+          padding: 8px;
+          text-align: center;
+        }
+
+        .style-name {
+          font-weight: 600;
+          font-size: 0.9rem;
+          color: #333;
+          margin-bottom: 2px;
+        }
+
+        /* Ceny stylów usunięte - style nie wpływają na cenę */
+
+        @media (max-width: 768px) {
+          .customify-style-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+          }
+        }
+
+        /* MOBILE HEADER STYLES */
+        @media (max-width: 768px) {
+          /* GÓRA HEADERA: Logo + Ikony w jednej linii */
+          .header-top .header-container {
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            padding: 15px !important;
+            gap: 15px !important;
+          }
+          
+          /* LOGO NA MOBILE */
+          .header-logo {
+            flex-grow: 1 !important;
+            text-align: center !important;
+          }
+          
+          /* ZMNIEJSZ LOGO NA MOBILE */
+          .header-logo img {
+            max-width: 120px !important;
+            height: auto !important;
+          }
+          
+          /* IKONKI PO PRAWEJ */
+          .header-right {
+            display: flex !important;
+            align-items: center !important;
+            gap: 15px !important;
+          }
+          
+          /* DÓŁ HEADERA: Menu poniżej */
+          .header-bottom {
+            width: 100% !important;
+            background-color: #f8f9fa !important;
+            border-top: 1px solid #dee2e6 !important;
+          }
+          
+          .header-bottom .header-container {
+            padding: 10px 15px !important;
+          }
+          
+          .header-nav {
+            display: flex !important;
+            justify-content: center !important;
+            flex-wrap: wrap !important;
+            gap: 15px !important;
+          }
+          
+          .nav-item {
+            margin-right: 0 !important;
+            margin-bottom: 0 !important;
+          }
+          
+          .nav-link {
+            font-size: 14px !important;
+            padding: 8px 12px !important;
+            color: #495057 !important;
+            text-decoration: none !important;
+            border-radius: 4px !important;
+            transition: background-color 0.2s !important;
+          }
+          
+          .nav-link:hover {
+            background-color: #e9ecef !important;
+            color: #dc3545 !important;
+          }
+          
+          /* UKRYJ NAPISY "ZALOGUJ" I "ZAREJESTRUJ" NA MOBILE */
+          .user-text-link {
+            display: none !important;
+          }
+          
+          /* ZOSTAW TYLKO IKONKĘ OSOBY */
+          .user-section {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 0 !important;
+          }
+          
+          /* ZMIEŃ IKONKĘ OSOBY NA BARDZIEJ POPULARNĄ I MNIEJ KOLOROWĄ */
+          .user-icon-wrapper {
+            width: 36px !important;
+            height: 36px !important;
+            border-radius: 50% !important;
+            background-color: #f8f9fa !important;
+            border: 1px solid #dee2e6 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+          }
+          
+          .user-icon {
+            width: 20px !important;
+            height: 20px !important;
+            color: #6c757d !important;
+          }
+          
+          /* HOVER EFFECT DLA IKONKI */
+          .user-section:hover .user-icon-wrapper {
+            border-color: #dc3545 !important;
+            background-color: #fff5f5 !important;
+          }
+          
+          .user-section:hover .user-icon {
+            color: #dc3545 !important;
+          }
+        }
+
+
+        /* CSS dla rozmiarów */
+        .customify-size-selector {
+          display: block;
+          margin-bottom: 24px;
+          background: white;
+          border-radius: 0;
+          padding: 20px 0;
+          border: none;
+          border-top: 1px solid #e9ecef;
+        }
+
+        .customify-size-selector h4 {
+          font-size: 1.2rem;
+          font-weight: 600;
+          color: #000;
+          margin: 0 0 16px 0;
+          text-align: center;
+        }
+
+        .customify-size-buttons {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+          gap: 12px;
+        }
+
+        .customify-size-btn {
+          padding: 16px 12px;
+          border: 1px solid #666666 !important;
+          border-radius: 0;
+          background: white;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          text-align: center;
+          font-size: 0.95rem;
+          font-weight: 500;
+          color: #333;
+          box-shadow: none;
+          line-height: 1.3;
+          min-height: 80px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .customify-size-btn:hover {
+          border-color: #c82333;
+          background-color: #fff5f0;
+          transform: none;
+          box-shadow: none;
+        }
+
+        .customify-size-btn.active {
+          border: 2px solid #dc3545 !important;
+          background: #fff5f5 !important;
+          color: #dc3545 !important;
+          font-weight: 600 !important;
+          transform: none !important;
+          box-shadow: none !important;
+        }
+      </style>
+    {% endif %}
+
+    {% comment %} CUSTOMIFY CART INTEGRATION {% endcomment %}
+    {% if template contains 'cart' %}
+      <style>
+        .cart-item__ai-image {
+          width: 80px;
+          height: 80px;
+          object-fit: cover;
+          border-radius: 0;
+          border: 2px solid #e0e0e0;
+          margin-right: 15px;
+        }
+        
+        .cart-item__content-wrapper {
+          display: flex;
+          gap: 15px;
+          align-items: start;
+        }
+      </style>
+    {% endif %}
+
+    {% comment %} CUSTOMIFY CUSTOMER REVIEWS {% endcomment %}
+    {% if template contains 'product' %}
+    <div class="customer-reviews-section">
+      <div class="reviews-header">
+        <h2 class="reviews-title">
+          ⭐ Opinie klientów
+          <a href="#customer-reviews" class="reviews-link">Zobacz wszystkie opinie</a>
+        </h2>
+        <div class="stars-rating">
+          <span class="star">★</span>
+          <span class="star">★</span>
+          <span class="star">★</span>
+          <span class="star">★</span>
+          <span class="star">★</span>
+          <span style="margin-left: 10px; color: #6c757d; font-weight: 600;">4.9/5 (143 opinii)</span>
+        </div>
+      </div>
+      
+      <div class="reviews-grid" id="customer-reviews">
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-author">Anna K.</div>
+            <div class="review-date">15.01.2025</div>
+          </div>
+          <div class="review-stars">
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+          </div>
+          <div class="review-text">
+            "Niesamowite! Moje zdjęcie w stylu anime wygląda jak prawdziwe dzieło sztuki. Jakość druku na płótnie jest doskonała, kolory są żywe i wyraźne. Polecam każdemu!"
+          </div>
+          <div class="review-style">Styl: Anime</div>
+        </div>
+
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-author">Marcin W.</div>
+            <div class="review-date">12.01.2025</div>
+          </div>
+          <div class="review-stars">
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+          </div>
+          <div class="review-text">
+            "Zamówiłem portret w stylu Van Gogh dla żony na rocznicę. Była zachwycona! AI doskonale odtworzyło styl malarza. Szybka realizacja i świetna jakość."
+          </div>
+          <div class="review-style">Styl: Van Gogh</div>
+        </div>
+
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-author">Katarzyna M.</div>
+            <div class="review-date">10.01.2025</div>
+          </div>
+          <div class="review-stars">
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+          </div>
+          <div class="review-text">
+            "Cyberpunk style to był strzał w dziesiątkę! Moje zdjęcie wygląda jak z filmu sci-fi. Płótno jest wysokiej jakości, a kolory są niesamowicie intensywne."
+          </div>
+          <div class="review-style">Styl: Cyberpunk</div>
+        </div>
+
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-author">Piotr L.</div>
+            <div class="review-date">08.01.2025</div>
+          </div>
+          <div class="review-stars">
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+          </div>
+          <div class="review-text">
+            "Akwarela wyszła przepięknie! Delikatne kolory i miękki styl idealnie pasują do naszego salonu. Żona już planuje kolejne zamówienia."
+          </div>
+          <div class="review-style">Styl: Akwarela</div>
+        </div>
+
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-author">Magdalena S.</div>
+            <div class="review-date">05.01.2025</div>
+          </div>
+          <div class="review-stars">
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+          </div>
+          <div class="review-text">
+            "Monet style to czysta magia! Moje zdjęcie wygląda jak impresjonistyczne dzieło sztuki. Jakość wykonania i szybkość realizacji na najwyższym poziomie."
+          </div>
+          <div class="review-style">Styl: Monet</div>
+        </div>
+
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-author">Tomasz K.</div>
+            <div class="review-date">03.01.2025</div>
+          </div>
+          <div class="review-stars">
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+          </div>
+          <div class="review-text">
+            "Picasso style to prawdziwe dzieło sztuki! Abstrakcyjne formy i wyraziste kolory tworzą niesamowity efekt. Polecam każdemu miłośnikowi sztuki."
+          </div>
+          <div class="review-style">Styl: Picasso</div>
+        </div>
+
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-author">Agnieszka R.</div>
+            <div class="review-date">01.01.2025</div>
+          </div>
+          <div class="review-stars">
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+          </div>
+          <div class="review-text">
+            "Renesans to absolutnie niesamowity styl! Moje zdjęcie wygląda jak prawdziwy portret z epoki renesansu. Dramatyczne światło i szczegóły są imponujące!"
+          </div>
+          <div class="review-style">Styl: Renesans</div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    {% sections 'footer-group' %}
+  </body>
+</html>

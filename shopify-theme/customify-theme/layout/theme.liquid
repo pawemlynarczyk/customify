@@ -1246,6 +1246,10 @@
  console.log('🔒 [PRODUCT HIDING] Ukryto', totalHidden, 'produktów AI (kolekcje + rekomendacje)');
  
  // ✅ NOWE: Dla produktu akwarela (ID: 15475649675589 lub handle zawiera 'akwarela') - ukryj wszystkie style oprócz akwareli
+ // WYJĄTEK: obraz-ze-zdjecia-personalizowany-prezent-dla-niej-akwarela ma styl oil-paints (Farby Olejne), NIE akwarela - nie ukrywaj
+ if (window.ShopifyProduct && window.ShopifyProduct.handle === 'obraz-ze-zdjecia-personalizowany-prezent-dla-niej-akwarela') {
+ return; // Ten produkt ma Farby Olejne - nie uruchamiaj logiki ukrywania
+ }
  if (window.ShopifyProduct && (window.ShopifyProduct.id === 15475649675589 || window.ShopifyProduct.id === '15475649675589' || (window.ShopifyProduct.handle && window.ShopifyProduct.handle.includes('akwarela')) || window.location.pathname.includes('akwarela'))) {
  console.log('🎨 [WATERCOLOR] Produkt akwarela wykryty (ID:', window.ShopifyProduct.id, 'handle:', window.ShopifyProduct.handle, ') - ukrywanie wszystkich stylów oprócz akwareli');
  const allStyleCards = document.querySelectorAll('.customify-style-card');
@@ -3007,6 +3011,14 @@ Nadruk na szkle (dodaj podstawkę)
 <div class="style-name">Szkic ołówkiem</div>
 </div>
 </div>
+{% elsif product.handle == 'obraz-ze-zdjecia-biznes-woman-personalizowany-prezent' %}
+{% comment %} Biznes Woman — portret kobiety w stylu biznes karykatura {% endcomment %}
+<div class="customify-style-card" data-style="caricature-new" style="display: block !important;">
+<div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/style/kobieta_biz_1.jpeg'); background-size: cover; background-position: center;"></div>
+<div class="style-info">
+<div class="style-name">Biznes Woman</div>
+</div>
+</div>
 {% elsif product.handle == 'karykatura-na-zamowienie-druk-na-szkle-akrylowym-ramka-z-podswietleniem' %}
 {% comment %} TYLKO STYLE KARYKATURY dla produktu karykatura-na-zamowienie - używa Segmind API {% endcomment %}
  <div class="customify-style-card" data-style="karykatura">
@@ -3346,7 +3358,7 @@ Nadruk na szkle (dodaj podstawkę)
  {% elsif product.handle == 'obraz-ze-zdjecia-personalizowany-prezent-dla-niej-akwarela' %}
  {% comment %} TYLKO STYL FARBY OLEJNE dla produktu "Prezent dla Niej - Akwarela" {% endcomment %}
  <div class="customify-style-card" data-style="oil-paints" style="display: block !important;">
- <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/style/olej_1.jpg'); background-size: cover; background-position: center;"></div>
+ <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/style/water_ona.png'); background-size: cover; background-position: center;"></div>
  <div class="style-info">
  <div class="style-name">Farby Olejne</div>
  </div>
@@ -3579,7 +3591,7 @@ Nadruk na szkle (dodaj podstawkę)
 
  <div class="customify-success" id="successMessage"></div>
  
-{% unless product.handle == 'obraz-ze-zdjecia-karykatura-na-50-ta-rocznice' %}
+{% unless product.handle == 'obraz-ze-zdjecia-karykatura-na-50-ta-rocznice' or product.handle == 'obraz-ze-zdjecia-biznes-woman-personalizowany-prezent' %}
 <div class="customify-text-overlay-toggle customify-product-type-buttons" style="margin-top:12px; display:flex; justify-content:center;">
 <div class="customify-product-type-btn" id="textOverlayToggleBtn" data-overlay-open="false">
 Dodać napis? Kliknij tutaj
