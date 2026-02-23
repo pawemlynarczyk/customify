@@ -226,9 +226,10 @@
           <div class="stat-value" id="conversionRate">0%</div>
           <div class="stat-label">Conversion Rate</div>
         </div>
-        <div class="stat-card success">
+        <div class="stat-card success" id="registerSuccessCard">
           <div class="stat-value" id="totalRegisterSuccess">0</div>
-          <div class="stat-label">Rejestracje zakończone</div>
+          <div class="stat-label">Rejestracje (nowi klienci dziś)</div>
+          <div class="stat-sublabel" id="registerSuccessSublabel" style="font-size: 12px; opacity: 0.9; margin-top: 6px;"></div>
         </div>
         <div class="stat-card success">
           <div class="stat-value" id="totalLoginSuccess">0</div>
@@ -370,7 +371,22 @@
         document.getElementById('totalLoginClicks').textContent = stats.summary.totalLoginClicks;
         document.getElementById('totalCancelClicks').textContent = stats.summary.totalCancelClicks;
         document.getElementById('totalAutoRedirects').textContent = stats.summary.totalAutoRedirects;
-        document.getElementById('totalRegisterSuccess').textContent = stats.summary.totalRegisterSuccess || 0;
+        const fromEvents = stats.summary.totalRegisterSuccess || 0;
+        const fromShopifyToday = (typeof data.shopifyNewCustomersToday === 'number') ? data.shopifyNewCustomersToday : null;
+        const registerSuccessDisplay = fromShopifyToday !== null ? fromShopifyToday : fromEvents;
+        document.getElementById('totalRegisterSuccess').textContent = registerSuccessDisplay;
+        const sublabelEl = document.getElementById('registerSuccessSublabel');
+        if (sublabelEl) {
+          if (fromShopifyToday !== null) {
+            sublabelEl.textContent = fromEvents > 0 ? `Źródło: Shopify (dziś). Z powrotu z modala: ${fromEvents}` : 'Źródło: Shopify (nowi klienci dziś, czas: Europe/Warsaw)';
+            sublabelEl.style.display = '';
+          } else {
+            sublabelEl.textContent = 'Tylko z powrotu z modala (Shopify niedostępne)';
+            sublabelEl.style.display = '';
+          }
+        }
+        const registerTitle = document.getElementById('totalRegisterSuccess').closest('.stat-card');
+        if (registerTitle) registerTitle.title = 'Rejestracje = nowi klienci w Shopify z dzisiejszego dnia (czas Warszawa). „Z powrotu z modala” = tylko ci, którzy wrócili na stronę po rejestracji.';
         document.getElementById('totalLoginSuccess').textContent = stats.summary.totalLoginSuccess || 0;
         document.getElementById('conversionRate').textContent = stats.calculated?.conversionRate || '0%';
         document.getElementById('actualConversionRate').textContent = stats.calculated?.actualConversionRate || stats.calculated?.conversionRate || '0%';

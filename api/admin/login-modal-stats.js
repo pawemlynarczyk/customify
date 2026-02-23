@@ -161,6 +161,63 @@ const getBlobToken = () => {
   return token;
 };
 
+/** Granice "dziś" w strefie Europe/Warsaw (żeby zgadzało się z Presty / sklepem). */
+function getTodayBoundsWarsawUTC() {
+  const now = new Date();
+  const warsawDateStr = now.toLocaleDateString('en-CA', { timeZone: 'Europe/Warsaw' }); // YYYY-MM-DD
+  const [y, m, d] = warsawDateStr.split('-').map(Number);
+  const noon = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Europe/Warsaw',
+    timeZoneName: 'shortOffset'
+  }).formatToParts(noon);
+  const tzPart = parts.find((p) => p.type === 'timeZoneName');
+  let offsetHours = 1;
+  if (tzPart && tzPart.value) {
+    const m = tzPart.value.match(/GMT([+-])(\d+)/);
+    if (m) {
+      const sign = m[1] === '+' ? 1 : -1;
+      offsetHours = sign * parseInt(m[2], 10) || 1;
+    }
+  }
+  const fromUTC = new Date(Date.UTC(y, m - 1, d, 0, 0, 0) - offsetHours * 60 * 60 * 1000);
+  const toUTC = new Date(Date.UTC(y, m - 1, d + 1, 0, 0, 0) - offsetHours * 60 * 60 * 1000);
+  return {
+    from: fromUTC.toISOString(),
+    to: toUTC.toISOString()
+  };
+}
+
+/** Liczba nowych klientów w Shopify z dzisiejszego dnia (dzień w strefie Europe/Warsaw – spójne z Presty). */
+const getShopifyNewCustomersToday = async () => {
+  const shopDomain = process.env.SHOPIFY_STORE_DOMAIN || process.env.SHOP_DOMAIN || 'customify-ok.myshopify.com';
+  const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
+  if (!accessToken) return null;
+  const { from, to } = getTodayBoundsWarsawUTC();
+  const query = `query { customersCount(query: "created_at:>=${from} AND created_at:<${to}") { count } }`;
+  try {
+    const res = await fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Shopify-Access-Token': accessToken },
+      body: JSON.stringify({ query })
+    });
+    if (!res.ok) {
+      console.warn('📊 [LOGIN-MODAL-STATS] Shopify customers count HTTP:', res.status);
+      return null;
+    }
+    const json = await res.json();
+    if (json.errors) {
+      console.warn('📊 [LOGIN-MODAL-STATS] Shopify GraphQL errors:', json.errors);
+      return null;
+    }
+    const count = json?.data?.customersCount?.count;
+    return typeof count === 'number' ? count : null;
+  } catch (e) {
+    console.warn('📊 [LOGIN-MODAL-STATS] Shopify customers count failed:', e?.message || e);
+    return null;
+  }
+};
+
 const loadLatestFromPrefix = async (prefix, blobToken) => {
   if (!prefix) return null;
   try {
@@ -487,6 +544,14 @@ module.exports = async (req, res) => {
 
       const normalizedByProduct = normalizeByProductStats(stats.byProduct);
 
+      // Źródło prawdy dla rejestracji: max(eventy z modala, nowi klienci dziś z Shopify) – tylko do wyświetlania
+      let shopifyNewCustomersToday = null;
+      try {
+        shopifyNewCustomersToday = await getShopifyNewCustomersToday();
+      } catch (e) {
+        console.warn('📊 [LOGIN-MODAL-STATS] getShopifyNewCustomersToday error:', e?.message || e);
+      }
+
       return res.json({
         success: true,
         stats: {
@@ -500,7 +565,8 @@ module.exports = async (req, res) => {
             totalInteractions: stats.summary.totalRegisterClicks + stats.summary.totalLoginClicks + stats.summary.totalCancelClicks + stats.summary.totalAutoRedirects,
             totalSuccess: stats.summary.totalRegisterSuccess + stats.summary.totalLoginSuccess
           }
-        }
+        },
+        shopifyNewCustomersToday: shopifyNewCustomersToday
       });
 
     } catch (error) {
