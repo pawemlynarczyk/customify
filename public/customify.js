@@ -8,6 +8,74 @@
 // Klucz = product handle z URL.
 // ============================================================
 const PRODUCT_FIELD_CONFIGS = {
+  'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania': {
+    title: 'Personalizacja',
+    promptTemplate: `Create a caricature figurine based on the provided photo.
+
+STYLE
+• Premium resin statue.
+• Soft cinematic studio lighting.
+• Glossy surfaces, high-end product render.
+• Warm elegant color grading.
+• Slight caricature exaggeration (bigger head, stylish proportions).
+
+FACE — CRITICAL
+• Strongly preserve the identity from the reference photo.
+• Keep facial structure, eyes, nose, mouth, beard/hairline.
+• Natural skin tones.
+• Friendly expressive smile.
+
+CUSTOMIZATION
+The character represents this profession / hobby / personality:
+"{personalization}"
+
+CRITICAL: The overall character should be cohesive — outfit, props, scene, background, podium and decorations must all reference and match the same theme. The podium on which the figurine stands must be styled to fit the profession or hobby. Everything should harmonize and create a unified, coherent whole.
+
+Add visual elements, clothing, props and small scene details related to it.
+Examples:
+• nurse → medical uniform, stethoscope
+• fisherman → fishing rod, fish, outdoor vibe
+• business person → suit, laptop, phone
+• farmer → straw hat, tractor elements
+• gamer, chef, traveler, musician etc.
+
+POSE
+• Character sitting or standing confidently on a podium.
+• The podium must be styled to match the profession or hobby — e.g. medical podium for nurse, boat deck for fisherman, office desk for business person, sports field for athlete. The podium design, shape, materials and decorations should reflect and harmonize with the overall theme.
+• Relaxed, charismatic pose.
+
+OUTFIT
+• Outfit matching the profession or interest.
+• Stylish, slightly exaggerated caricature look.
+
+SCENE
+Mini decorative environment connected with the interest or job.
+Fun but elegant.
+
+BACKGROUND
+• Colors and style of the background must be related to the person's profession or hobby — e.g. soft blues for nurse/medical, warm earth tones for farmer, fresh greens for outdoor/travel, sporty colors for athlete.
+• The backdrop should visually connect with the character's theme, not generic studio.
+• Soft bokeh lights.
+• Subtle themed decorations.
+
+TEXT
+Render this EXACT text on a plaque at the base:
+
+"{name}"
+
+CRITICAL for names:
+Use exact Polish characters — ą, ć, ę, ł, ń, ó, ś, ź, ż
+(uppercase: Ą, Ć, Ę, Ł, Ń, Ó, Ś, Ź, Ż)
+
+Do NOT replace letters.
+
+RESULT
+Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
+    fields: [
+      { id: 'imiona', label: 'Imię (opcjonalnie)', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
+      { id: 'opis_charakteru', label: 'Opis osoby', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
+    ]
+  },
   'obraz-ze-zdjecia-biznes-woman-personalizowany-prezent': {
     title: 'Personalizacja',
     promptTemplate: `Create a luxury 3D business caricature figurine.
@@ -424,6 +492,8 @@ class CustomifyEmbed {
         const el = document.getElementById(`customField_${field.id}`);
         let value = el ? el.value.trim() : '';
         if (field.promptKey === 'SCENE_TYPE' && !value) value = 'anniversary';
+        if (field.promptKey === 'CHARACTER_DESC' && !value) value = 'Elegant, romantic, celebratory mood.';
+        if (field.promptKey === 'personalization' && !value) value = 'elegant, versatile person';
         replacements[field.promptKey] = value;
       });
       // {NAMES_SECTION} — warunkowy blok: gdy NAMES puste = brak tekstu, gdy wypełnione = tabliczka
@@ -693,8 +763,8 @@ class CustomifyEmbed {
         console.log('🎵 [SPOTIFY] Ustawiam domyślny rozmiar = a5 (15×21)');
       }
     }
-    // 🎯 Rocznica 50-ta: domyślnie wydruk na szkle + rozmiar A5
-    if (this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-na-50-ta-rocznice') {
+    // 🎯 Rocznica 50-ta / Dla niej: domyślnie wydruk na szkle + rozmiar A5
+    if (this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-na-50-ta-rocznice' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania') {
       const szkloBtn = document.querySelector('.customify-product-type-btn[data-product-type="szklo"]');
       if (szkloBtn) {
         this.productTypeArea?.querySelectorAll('.customify-product-type-btn').forEach(btn => btn.classList.remove('active'));
@@ -1033,6 +1103,10 @@ class CustomifyEmbed {
     }
     if (currentUrl.includes('obraz-ze-zdjecia-biznes-woman-personalizowany-prezent')) {
       console.log('👩‍💼 [PRODUCT-TYPE] URL = Biznes Woman → productType: caricature-new');
+      return 'caricature-new';
+    }
+    if (currentUrl.includes('obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania')) {
+      console.log('💝 [PRODUCT-TYPE] URL = Karykatura dla niej → productType: caricature-new');
       return 'caricature-new';
     }
     if (currentUrl.includes('portret-pary-z-okazji-rocznicy-z-twojego-zdjecia')) {
