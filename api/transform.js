@@ -1862,31 +1862,35 @@ module.exports = async (req, res) => {
           n: 1
         }
       },
-      // Nowy styl IMG2IMG z OpenAI GPT-Image-1 (caricature from input photo)
+      // Nowy styl IMG2IMG - OpenAI GPT-Image-1.5 via Replicate (caricature, para, biznes woman)
       'caricature-new': {
-        model: "gpt-image-1",
+        model: "openai/gpt-image-1.5",
         prompt: "Create a soft, flattering caricature while keeping the people clearly recognizable.\n\nSTYLE:\n\n• Smooth, clean colors with a soft marker-and-colored-pencil look.\n\n• Natural, balanced skin tones (no yellow or sepia filter).\n\n• Gentle outlines and soft shading with mild exaggeration of expressive features.\n\nFACE & BEAUTY:\n\n• Preserve facial structure and identity.\n\n• Slightly enhance beauty: smooth skin, reduce wrinkles or harsh details.\n\n• Keep eyes natural and expressive.\n\nBACKGROUND:\n\n• Keep the original background, but softly stylize it to match the caricature style.\n\n• Do NOT remove or replace the background.\n\nEXAGGERATION:\n\n• Larger heads and slightly smaller bodies, but still natural and flattering.\n\n• Exaggerate only smiles, eyebrows, and cheeks — no distortion of identity.\n\nRESULT:\n\nA natural-color, soft, flattering caricature with preserved background and strong likeness.",
-        apiType: "openai-caricature",
         productType: "caricature-new",
         parameters: {
-          model: "gpt-image-1",
-          size: "1024x1536", // pionowy portret 2:3
-          output_format: "jpeg", // dozwolony format wyjściowy
-          background: "opaque",
-          n: 1
+          aspect_ratio: "2:3",
+          quality: "medium",
+          background: "auto",
+          output_format: "jpeg",
+          input_fidelity: "high",
+          number_of_images: 1,
+          output_compression: 90,
+          moderation: "low"
         }
       },
       'karykatura-olowek': {
-        model: "gpt-image-1",
+        model: "openai/gpt-image-1.5",
         prompt: "keep faces of the persons recognizable. Generate a premium caricature portrait with exaggerated proportions:\n\nlarge expressive head, small body, elegant ink illustration style.\n\nProportions should clearly look like caricature but still artistic and refined.\n\nKeep facial likeness high. Clean white background.",
-        apiType: "openai-caricature",
         productType: "caricature-new",
         parameters: {
-          model: "gpt-image-1",
-          size: "1024x1536", // pionowy portret 2:3
-          output_format: "jpeg", // dozwolony format wyjściowy
-          background: "opaque",
-          n: 1
+          aspect_ratio: "2:3",
+          quality: "medium",
+          background: "auto",
+          output_format: "jpeg",
+          input_fidelity: "high",
+          number_of_images: 1,
+          output_compression: 90,
+          moderation: "low"
         }
       },
       // 🎵 Spotify frame - usuwanie tła

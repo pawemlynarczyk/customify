@@ -1218,6 +1218,24 @@ Znajdź `const styleConfig = {` (około linia 1290) i dodaj nowy styl:
 } else if (finalProductType === 'other' || finalProductType === 'para_krolewska' || finalProductType === 'caricature-new' || finalProductType === 'gta' || ...) {
 ```
 
+### **📋 STYLE REPLICATE GPT-IMAGE-1.5 — ZAWSZE KOPIUJ PARAMETRY Z ISTNIEJĄCYCH!**
+- **Model**: `openai/gpt-image-1.5` (bez apiType — idzie przez Replicate)
+- **ZASADA**: Nowe style używające GPT-Image-1.5 via Replicate MUSZĄ mieć **identyczne parameters** jak pozostałe (pop-art, royal-love, love-rose, caricature-new, itd.)
+- **Parameters (NIE ZMIENIAJ — kopiuj 1:1)**:
+```javascript
+parameters: {
+  aspect_ratio: "2:3",
+  quality: "medium",        // ZAWSZE "medium" — NIE ustawiaj "high"!
+  background: "auto",
+  output_format: "png",     // lub "jpeg" jeśli potrzebne
+  input_fidelity: "high",
+  number_of_images: 1,
+  output_compression: 90,
+  moderation: "low"
+}
+```
+- **quality**: ZAWSZE `"medium"` — wszystkie style GPT-Image-1.5 przez Replicate używają medium. Nie zmieniaj na "high" bez wyraźnego polecenia użytkownika.
+
 ### **📋 KROK 2: Dodaj kartę stylu w `theme.liquid`**
 
 Znajdź sekcję z kartami stylów (około linia 3877) i dodaj:
