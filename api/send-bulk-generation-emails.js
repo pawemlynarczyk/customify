@@ -136,6 +136,108 @@ module.exports = async (req, res) => {
     }
   }
 
+  // Funkcja do generowania template Dnia Kobiet
+  function generateDzienKobietTemplate(products) {
+    const productRows = [];
+    for (let i = 0; i < products.length; i += 3) {
+      const rowItems = products.slice(i, i + 3);
+      const tds = rowItems.map(item => `
+        <td style="width: 33.33%; padding: 8px; vertical-align: top;">
+          <a href="${item.href}" style="text-decoration: none; color: #333; display: block; border: 2px solid #f3e5f5; border-radius: 10px; overflow: hidden; background: #fff;">
+            <img src="${item.img}" alt="${item.title}" style="width: 100%; height: auto; display: block; background: #f3e5f5;">
+            <div style="padding: 12px; font-size: 14px; line-height: 1.4; color: #333; text-align: center; font-weight: 500;">${item.title}</div>
+          </a>
+        </td>
+      `).join('');
+      productRows.push(`<tr>${tds}</tr>`);
+    }
+
+    const productTable = productRows.length > 0 ? `
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse: collapse; margin: 20px 0;">
+        ${productRows.join('')}
+      </table>
+    ` : '';
+
+    return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #fdf5f8;">
+  <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+    <div style="background: linear-gradient(135deg, #9b59b6 0%, #e91e63 100%); padding: 50px 30px; text-align: center;">
+      <h1 style="color: white; margin: 0; font-size: 32px; font-weight: bold; text-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+        🌸 Dzień Kobiet z Lumly.pl
+      </h1>
+      <p style="color: white; margin: 15px 0 0; font-size: 18px; opacity: 0.95;">
+        Wyjątkowy prezent dla Niej – personalizowany portret ze zdjęcia
+      </p>
+    </div>
+    <div style="padding: 40px 30px; background-color: #ffffff;">
+      <p style="font-size: 18px; color: #333; margin: 0 0 20px; line-height: 1.6;">
+        Cześć! 👋
+      </p>
+      <p style="font-size: 16px; color: #555; margin: 0 0 20px; line-height: 1.6;">
+        Dzień Kobiet zbliża się wielkimi krokami! 🌸<br>
+        To idealny moment, żeby stworzyć wyjątkowy prezent - <strong>personalizowany obraz ze zdjęcia</strong> w stylu AI – portret królowej, karykatura zawodowa lub elegancka akwarela.
+      </p>
+      <p style="font-size: 16px; color: #555; margin: 0 0 30px; line-height: 1.6;">
+        Wybierz jeden z naszych <strong>stylów na Dzień Kobiet</strong> i stwórz niepowtarzalny portret, który zachwyci Twoją mamę, partnerkę, koleżankę lub przyjaciółkę! 💐
+      </p>
+      <div style="text-align: center; margin: 35px 0;">
+        <a href="https://lumly.pl/collections/dzien-kobiet" style="display: inline-block; background: linear-gradient(135deg, #9b59b6 0%, #e91e63 100%); color: white; padding: 18px 45px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 18px; box-shadow: 0 4px 12px rgba(155, 89, 182, 0.3);">
+          Zobacz produkty na Dzień Kobiet →
+        </a>
+      </div>
+      ${products.length > 0 ? `
+      <div style="margin: 40px 0 20px;">
+        <h2 style="margin: 0 0 20px; font-size: 22px; color: #333; text-align: center;">
+          🌸 Nasze propozycje na Dzień Kobiet
+        </h2>
+        ${productTable}
+        <div style="text-align: center; margin: 25px 0;">
+          <a href="https://lumly.pl/collections/dzien-kobiet" style="color: #9b59b6; text-decoration: none; font-weight: bold; font-size: 16px; border-bottom: 2px solid #9b59b6; padding-bottom: 2px;">
+            Zobacz wszystkie produkty na Dzień Kobiet →
+          </a>
+        </div>
+      </div>
+      ` : ''}
+      <div style="background: #fdf5f8; padding: 25px; border-radius: 10px; margin: 30px 0; border-left: 4px solid #9b59b6;">
+        <p style="font-size: 15px; color: #555; margin: 0 0 12px; line-height: 1.6;">
+          <strong>💡 Dlaczego warto?</strong>
+        </p>
+        <ul style="font-size: 14px; color: #666; margin: 0; padding-left: 20px; line-height: 1.8;">
+          <li>Wyjątkowe, personalizowane prezenty</li>
+          <li>Wysoka jakość wydruku na płótnie</li>
+          <li>Szybka realizacja zamówienia</li>
+          <li>Darmowa dostawa przy zamówieniach powyżej 200 zł</li>
+        </ul>
+      </div>
+      <p style="font-size: 15px; color: #555; line-height: 1.6; margin: 30px 0 20px; text-align: center;">
+        Zobacz swoje wcześniejsze efekty: 
+        <a href="https://lumly.pl/pages/my-generations" style="color: #9b59b6; text-decoration: none; font-weight: bold;">Moje generacje</a>
+      </p>
+      <p style="font-size: 14px; color: #666; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; text-align: center;">
+        Masz pytania? Napisz do nas: 
+        <a href="mailto:biuro@lumly.pl" style="color: #9b59b6; text-decoration: none; font-weight: bold;">biuro@lumly.pl</a>
+      </p>
+    </div>
+    <div style="background: linear-gradient(135deg, #fdf5f8 0%, #f3e5f5 100%); padding: 25px 30px; text-align: center; border-top: 1px solid #f3e5f5;">
+      <p style="margin: 0 0 10px; font-size: 12px; color: #999;">
+        © 2025 Lumly.pl - Personalizowane portrety AI
+      </p>
+      <p style="margin: 0; font-size: 11px; color: #bbb;">
+        <a href="#" style="color: #999; text-decoration: underline;">Wypisz się z newslettera</a>
+      </p>
+    </div>
+  </div>
+</body>
+</html>
+    `;
+  }
+
   // Funkcja do generowania template walentynkowego
   function generateValentineTemplate(products) {
     // Zbuduj wiersze produktów po 3 kolumny
@@ -261,10 +363,17 @@ module.exports = async (req, res) => {
       const collectionIdentifier = collectionId || collectionHandle;
       
       if (collectionIdentifier && !customHtml) {
-        console.log(`💕 [BULK-EMAIL] Używam template walentynkowego dla kolekcji: ${collectionIdentifier}`);
         const products = await getCollectionProducts(collectionIdentifier);
-        emailHtml = generateValentineTemplate(products);
-        subject = subject || 'Walentynki - obraz z Waszego zdjęcia';
+        const isDzienKobiet = (collectionHandle === 'dzien-kobiet' || collectionIdentifier === 'dzien-kobiet');
+        if (isDzienKobiet) {
+          console.log(`🌸 [BULK-EMAIL] Używam template Dnia Kobiet dla kolekcji: ${collectionIdentifier}`);
+          emailHtml = generateDzienKobietTemplate(products);
+          subject = subject || 'Dzień Kobiet - wyjątkowy prezent dla Niej';
+        } else {
+          console.log(`💕 [BULK-EMAIL] Używam template walentynkowego dla kolekcji: ${collectionIdentifier}`);
+          emailHtml = generateValentineTemplate(products);
+          subject = subject || 'Walentynki - obraz z Waszego zdjęcia';
+        }
       } else if (!customHtml) {
         // Domyślny template (stary kod)
       // Produkty do sekcji na dole maila (realne miniatury z kolekcji see_also)
@@ -417,12 +526,20 @@ module.exports = async (req, res) => {
     // Jeśli collectionHandle lub collectionId, pobierz produkty raz (dla wszystkich)
     const collectionId = req.body.collectionId;
     const collectionIdentifier = collectionId || collectionHandle;
-    let valentineProducts = [];
-    let valentineTemplate = null;
+    const isDzienKobiet = (collectionHandle === 'dzien-kobiet' || collectionIdentifier === 'dzien-kobiet');
+    let campaignProducts = [];
+    let campaignTemplate = null;
+    let campaignSubject = null;
     if (collectionIdentifier) {
-      console.log(`💕 [BULK-EMAIL] Pobieram produkty z kolekcji ${collectionIdentifier} dla masowej wysyłki...`);
-      valentineProducts = await getCollectionProducts(collectionIdentifier);
-      valentineTemplate = generateValentineTemplate(valentineProducts);
+      console.log(`📧 [BULK-EMAIL] Pobieram produkty z kolekcji ${collectionIdentifier} dla masowej wysyłki...`);
+      campaignProducts = await getCollectionProducts(collectionIdentifier);
+      if (isDzienKobiet) {
+        campaignTemplate = generateDzienKobietTemplate(campaignProducts);
+        campaignSubject = 'Dzień Kobiet - wyjątkowy prezent dla Niej';
+      } else {
+        campaignTemplate = generateValentineTemplate(campaignProducts);
+        campaignSubject = 'Walentynki - obraz z Waszego zdjęcia';
+      }
     }
 
     for (let i = 0; i < customers.length; i++) {
@@ -435,9 +552,9 @@ module.exports = async (req, res) => {
       }
 
       try {
-        // Użyj template walentynkowego jeśli dostępny, w przeciwnym razie domyślny
-        const emailHtml = collectionIdentifier && valentineTemplate
-          ? valentineTemplate
+        // Użyj template kampanii jeśli dostępny, w przeciwnym razie domyślny
+        const emailHtml = collectionIdentifier && campaignTemplate
+          ? campaignTemplate
           : `
 <!DOCTYPE html>
 <html>
@@ -468,7 +585,7 @@ module.exports = async (req, res) => {
         `;
 
         const emailSubject = collectionIdentifier
-          ? 'Walentynki - obraz z Waszego zdjęcia'
+          ? campaignSubject
           : '🎨 Zobacz wspaniałe obrazy, które stworzyłeś!';
 
         const result = await resend.emails.send({
