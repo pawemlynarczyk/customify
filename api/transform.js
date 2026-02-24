@@ -1720,7 +1720,7 @@ module.exports = async (req, res) => {
         apiType: "segmind-faceswap",
         productType: "queen",
         parameters: {
-          target_image: "https://customify-s56o.vercel.app/krolowa/krolowa_sitting.png",
+          target_image: "https://customify-s56o.vercel.app/krolowa/krolowa_sitting.jpg",
           swap_image: "USER_IMAGE"
         }
       },
@@ -1879,18 +1879,16 @@ module.exports = async (req, res) => {
         }
       },
       'karykatura-olowek': {
-        model: "openai/gpt-image-1.5",
+        model: "gpt-image-1",
         prompt: "keep faces of the persons recognizable. Generate a premium caricature portrait with exaggerated proportions:\n\nlarge expressive head, small body, elegant ink illustration style.\n\nProportions should clearly look like caricature but still artistic and refined.\n\nKeep facial likeness high. Clean white background.",
+        apiType: "openai-caricature",
         productType: "caricature-new",
         parameters: {
-          aspect_ratio: "2:3",
-          quality: "medium",
-          background: "auto",
+          model: "gpt-image-1",
+          size: "1024x1536",
           output_format: "jpeg",
-          input_fidelity: "high",
-          number_of_images: 1,
-          output_compression: 90,
-          moderation: "low"
+          background: "opaque",
+          n: 1
         }
       },
       // 🎵 Spotify frame - usuwanie tła

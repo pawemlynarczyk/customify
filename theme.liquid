@@ -2701,7 +2701,7 @@
  <h4 style="text-align: left; font-size: 0.95rem; font-weight: 600;">Rodzaj wydruku:</h4>
  <div class="customify-product-type-buttons">
  {% comment %} FILTRUJ RODZAJE WYDRUKU PER PRODUKT {% endcomment %}
-{% if product.handle == 'karykatura-na-zamowienie-druk-na-szkle-akrylowym-ramka-z-podswietleniem' or product.handle == 'prezent-dla-babci-i-dziadka-portret-na-na-szkle-akrylowym-ze-zdjecia-karykatura' or product.handle == 'dziadkowie-krolowie-nadruk-na-szkle' or product.handle == 'portret-pary-personalizowany-obraz-na-szkle-akrylowym' or product.handle == 'obraz-ze-zdjecia-karykatura-na-50-ta-rocznice' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania' %}
+{% if product.handle == 'karykatura-na-zamowienie-druk-na-szkle-akrylowym-ramka-z-podswietleniem' or product.handle == 'prezent-dla-babci-i-dziadka-portret-na-na-szkle-akrylowym-ze-zdjecia-karykatura' or product.handle == 'dziadkowie-krolowie-nadruk-na-szkle' or product.handle == 'portret-pary-personalizowany-obraz-na-szkle-akrylowym' %}
 {% comment %} TYLKO SZKŁO (domyślnie wydruk na szkle) {% endcomment %}
 <div class="customify-product-type-btn active" data-product-type="szklo">
 Nadruk na szkle (dodaj podstawkę)
@@ -2958,7 +2958,7 @@ Nadruk na szkle (dodaj podstawkę)
  </div>
  {% endif %}
 
- <div class="customify-styles" id="stylesArea" style="{% if product.handle == 'zdjecie-na-szkle-ramka-spotify' %}display: none;{% else %}display: block;{% endif %}">
+ <div class="customify-styles" id="stylesArea" style="{% if product.handle == 'zdjecie-na-szkle-ramka-spotify' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-fitness' %}display: none;{% else %}display: block;{% endif %}">
  <h4>{% if product.handle == 'ramka-spotify' %}Popraw Obrazek{% else %}Wybierz styl{% endif %}</h4>
  <div class="customify-style-grid">
  {% comment %} LOGIKA SERVER-SIDE: Filtruj style per produkt {% endcomment %}
@@ -3021,6 +3021,62 @@ Nadruk na szkle (dodaj podstawkę)
 </div>
 {% elsif product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania' %}
 {% comment %} Karykatura dla niej — romantyczny prezent, styl jak 50-ta {% endcomment %}
+<div class="customify-style-card" data-style="caricature-new" style="display: block !important;">
+<div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/style/3d_couple_50.jpg'); background-size: cover; background-position: center;"></div>
+<div class="style-info">
+<div class="style-name">Dla niej</div>
+</div>
+</div>
+{% elsif product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka' %}
+{% comment %} Karykatura dla niej policjantka — ten sam styl co dla niej {% endcomment %}
+<div class="customify-style-card" data-style="caricature-new" style="display: block !important;">
+<div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/style/3d_couple_50.jpg'); background-size: cover; background-position: center;"></div>
+<div class="style-info">
+<div class="style-name">Dla niej</div>
+</div>
+</div>
+{% elsif product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka' %}
+{% comment %} Karykatura dla niej rolniczka — ten sam styl co dla niej {% endcomment %}
+<div class="customify-style-card" data-style="caricature-new" style="display: block !important;">
+<div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/style/3d_couple_50.jpg'); background-size: cover; background-position: center;"></div>
+<div class="style-info">
+<div class="style-name">Dla niej</div>
+</div>
+</div>
+{% elsif product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka' %}
+{% comment %} Karykatura dla niej lekarka — ten sam styl co dla niej {% endcomment %}
+<div class="customify-style-card" data-style="caricature-new" style="display: block !important;">
+<div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/style/3d_couple_50.jpg'); background-size: cover; background-position: center;"></div>
+<div class="style-info">
+<div class="style-name">Dla niej</div>
+</div>
+</div>
+{% elsif product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka' %}
+{% comment %} Karykatura dla niej podróżniczka — ten sam styl co dla niej {% endcomment %}
+<div class="customify-style-card" data-style="caricature-new" style="display: block !important;">
+<div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/style/3d_couple_50.jpg'); background-size: cover; background-position: center;"></div>
+<div class="style-info">
+<div class="style-name">Dla niej</div>
+</div>
+</div>
+{% elsif product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog' %}
+{% comment %} Karykatura dla niej psycholog — ten sam styl co dla niej {% endcomment %}
+<div class="customify-style-card" data-style="caricature-new" style="display: block !important;">
+<div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/style/3d_couple_50.jpg'); background-size: cover; background-position: center;"></div>
+<div class="style-info">
+<div class="style-name">Dla niej</div>
+</div>
+</div>
+{% elsif product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka' %}
+{% comment %} Karykatura dla niej kucharka — ten sam styl co dla niej {% endcomment %}
+<div class="customify-style-card" data-style="caricature-new" style="display: block !important;">
+<div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/style/3d_couple_50.jpg'); background-size: cover; background-position: center;"></div>
+<div class="style-info">
+<div class="style-name">Dla niej</div>
+</div>
+</div>
+{% elsif product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-fitness' %}
+{% comment %} Karykatura dla niej fitness — ten sam styl co dla niej {% endcomment %}
 <div class="customify-style-card" data-style="caricature-new" style="display: block !important;">
 <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/style/3d_couple_50.jpg'); background-size: cover; background-position: center;"></div>
 <div class="style-info">
@@ -3171,7 +3227,7 @@ Nadruk na szkle (dodaj podstawkę)
  </div>
  </div>
  <div class="customify-style-card" data-style="krolowa-styl-4">
- <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/krolowa/krolowa_sitting.png'); background-size: cover; background-position: center;"></div>
+ <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/krolowa/krolowa_sitting.jpg'); background-size: cover; background-position: center;"></div>
  <div class="style-info">
  <div class="style-name">Królowa - Sitting</div>
  </div>
@@ -3599,7 +3655,7 @@ Nadruk na szkle (dodaj podstawkę)
 
  <div class="customify-success" id="successMessage"></div>
  
-{% unless product.handle == 'obraz-ze-zdjecia-karykatura-na-50-ta-rocznice' or product.handle == 'obraz-ze-zdjecia-biznes-woman-personalizowany-prezent' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania' %}
+{% unless product.handle == 'obraz-ze-zdjecia-karykatura-na-50-ta-rocznice' or product.handle == 'obraz-ze-zdjecia-biznes-woman-personalizowany-prezent' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-fitness' %}
 <div class="customify-text-overlay-toggle customify-product-type-buttons" style="margin-top:12px; display:flex; justify-content:center;">
 <div class="customify-product-type-btn" id="textOverlayToggleBtn" data-overlay-open="false">
 Dodać napis? Kliknij tutaj
