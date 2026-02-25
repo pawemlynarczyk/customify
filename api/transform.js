@@ -335,9 +335,10 @@ function isModerationBlocked(errorText) {
 
 // Helper function to create user-friendly moderation error
 function createModerationError(originalError) {
-  const error = new Error('Zdjęcie zostało odrzucone przez system bezpieczeństwa. Spróbuj użyć innego zdjęcia portretowego.');
+  const msg = 'Zdjęcie zostało odrzucone przez system bezpieczeństwa. Użyj zdjęcia portretowego w stroju codziennym, z wyraźną twarzą, ale bez głębokich dekoltów i strojów kąpielowych.';
+  const error = new Error(msg);
   error.code = 'MODERATION_BLOCKED';
-  error.userMessage = 'Zdjęcie zostało odrzucone przez system bezpieczeństwa. Spróbuj użyć innego zdjęcia portretowego.';
+  error.userMessage = msg;
   error.originalError = originalError;
   return error;
 }
@@ -1721,6 +1722,25 @@ module.exports = async (req, res) => {
         productType: "queen",
         parameters: {
           target_image: "https://customify-s56o.vercel.app/krolowa/krolowa_sitting.jpg",
+          swap_image: "USER_IMAGE"
+        }
+      },
+      // Portret królowej - prezent dla Niej (nowy produkt, 2 style) – miniaturki z public/krolowa/
+      'krolowa-prezent-1': {
+        model: "segmind/faceswap-v4",
+        apiType: "segmind-faceswap",
+        productType: "queen_prezent",
+        parameters: {
+          target_image: "https://customify-s56o.vercel.app/krolowa/krolowa_tron_1.jpg",
+          swap_image: "USER_IMAGE"
+        }
+      },
+      'krolowa-prezent-2': {
+        model: "segmind/faceswap-v4",
+        apiType: "segmind-faceswap",
+        productType: "queen_prezent",
+        parameters: {
+          target_image: "https://customify-s56o.vercel.app/krolowa/krolowa_tron_2.jpeg",
           swap_image: "USER_IMAGE"
         }
       },
@@ -4254,7 +4274,7 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
     
     // Check if error has user-friendly message (e.g., moderation blocked)
     if (error.code === 'MODERATION_BLOCKED' || error.userMessage) {
-      errorMessage = error.userMessage || 'Zdjęcie zostało odrzucone przez system bezpieczeństwa. Spróbuj użyć innego zdjęcia portretowego.';
+      errorMessage = error.userMessage || 'Zdjęcie zostało odrzucone przez system bezpieczeństwa. Użyj zdjęcia portretowego w stroju codziennym, z wyraźną twarzą, ale bez głębokich dekoltów i strojów kąpielowych.';
       statusCode = 400;
     } else if (error.message.includes('NSFW') || error.message.includes('content detected')) {
       errorMessage = 'Obraz został odrzucony przez filtr bezpieczeństwa. Spróbuj użyć innego zdjęcia lub stylu. Upewnij się, że zdjęcie jest odpowiednie dla wszystkich widzów.';

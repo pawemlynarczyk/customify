@@ -3019,6 +3019,14 @@ Nadruk na szkle (dodaj podstawkę)
 <div class="style-name">Biznes Woman</div>
 </div>
 </div>
+{% elsif product.handle == 'obraz-ze-zdjecia-prezent-na-30-urodziny-dla-kobiety-biznes-woman' %}
+{% comment %} Prezent na 30 urodziny — ten sam styl Biznes Woman {% endcomment %}
+<div class="customify-style-card" data-style="caricature-new" style="display: block !important;">
+<div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/style/kobieta_biz_1.jpeg'); background-size: cover; background-position: center;"></div>
+<div class="style-info">
+<div class="style-name">Biznes Woman</div>
+</div>
+</div>
 {% elsif product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania' %}
 {% comment %} Karykatura dla niej — romantyczny prezent, styl jak 50-ta {% endcomment %}
 <div class="customify-style-card" data-style="caricature-new" style="display: block !important;">
@@ -3206,8 +3214,22 @@ Nadruk na szkle (dodaj podstawkę)
  <div class="style-name">Król Imponujący</div>
  </div>
  </div>
- {% elsif product.id == 15389095297349 or product.handle == 'krolowa' or product.handle contains 'krolowa' %}
- {% comment %} TYLKO STYLE KRÓLOWEJ dla produktu królowa {% endcomment %}
+ {% elsif product.handle == 'portret-krolowej-obraz-ze-zdjecia-prezent-dla-niej' %}
+ {% comment %} Portret królowej - prezent dla Niej (2 style, miniaturki krolowa_tron_1/2) {% endcomment %}
+ <div class="customify-style-card" data-style="krolowa-prezent-1">
+ <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/krolowa/krolowa_tron_1.jpg'); background-size: cover; background-position: center;"></div>
+ <div class="style-info">
+ <div class="style-name">Królowa - Prezent 1</div>
+ </div>
+ </div>
+ <div class="customify-style-card" data-style="krolowa-prezent-2">
+ <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/krolowa/krolowa_tron_2.jpeg'); background-size: cover; background-position: center;"></div>
+ <div class="style-info">
+ <div class="style-name">Królowa - Prezent 2</div>
+ </div>
+ </div>
+ {% elsif product.id == 15389095297349 or product.handle == 'krolowa' or product.handle == 'krol-i-krolowa-portrety-krolewskie' %}
+ {% comment %} TYLKO STYLE KRÓLOWEJ dla produktu Król i Królowa (4 style) {% endcomment %}
  <div class="customify-style-card" data-style="krolowa-styl-1">
  <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/krolowa/krolowa-styl-1.jpg'); background-size: cover; background-position: center;"></div>
  <div class="style-info">
@@ -3655,7 +3677,7 @@ Nadruk na szkle (dodaj podstawkę)
 
  <div class="customify-success" id="successMessage"></div>
  
-{% unless product.handle == 'obraz-ze-zdjecia-karykatura-na-50-ta-rocznice' or product.handle == 'obraz-ze-zdjecia-biznes-woman-personalizowany-prezent' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-fitness' %}
+{% unless product.handle == 'obraz-ze-zdjecia-karykatura-na-50-ta-rocznice' or product.handle == 'obraz-ze-zdjecia-biznes-woman-personalizowany-prezent' or product.handle == 'obraz-ze-zdjecia-prezent-na-30-urodziny-dla-kobiety-biznes-woman' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-fitness' %}
 <div class="customify-text-overlay-toggle customify-product-type-buttons" style="margin-top:12px; display:flex; justify-content:center;">
 <div class="customify-product-type-btn" id="textOverlayToggleBtn" data-overlay-open="false">
 Dodać napis? Kliknij tutaj
