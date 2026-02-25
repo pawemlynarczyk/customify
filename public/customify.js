@@ -59,15 +59,427 @@ BACKGROUND
 • Subtle themed decorations.
 
 TEXT
-Render this EXACT text on a plaque at the base:
+{NAME_SECTION}
 
-"{name}"
+RESULT
+Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
+    fields: [
+      { id: 'imiona', label: 'Imię (opcjonalnie)', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
+      { id: 'opis_charakteru', label: 'Opis osoby', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
+    ]
+  },
+  'obraz-ze-zdjecia-karykatura-dla-niej-policjantka': {
+    title: 'Personalizacja',
+    promptTemplate: `Create a caricature figurine based on the provided photo.
 
-CRITICAL for names:
-Use exact Polish characters — ą, ć, ę, ł, ń, ó, ś, ź, ż
-(uppercase: Ą, Ć, Ę, Ł, Ń, Ó, Ś, Ź, Ż)
+STYLE
+• Premium resin statue.
+• Soft cinematic studio lighting.
+• Glossy surfaces, high-end product render.
+• Warm elegant color grading.
+• Slight caricature exaggeration (bigger head, stylish proportions).
 
-Do NOT replace letters.
+FACE — CRITICAL
+• Strongly preserve the identity from the reference photo.
+• Keep facial structure, eyes, nose, mouth, beard/hairline.
+• Natural skin tones.
+• Friendly expressive smile.
+
+CUSTOMIZATION
+The character represents this profession / hobby / personality:
+"{personalization}"
+
+CRITICAL: The overall character should be cohesive — outfit, props, scene, background, podium and decorations must all reference and match the same theme. The podium on which the figurine stands must be styled to fit the profession or hobby. Everything should harmonize and create a unified, coherent whole.
+
+Add visual elements, clothing, props and small scene details related to it.
+Examples:
+• nurse → medical uniform, stethoscope
+• fisherman → fishing rod, fish, outdoor vibe
+• business person → suit, laptop, phone
+• farmer → straw hat, tractor elements
+• gamer, chef, traveler, musician etc.
+
+POSE
+• Character sitting or standing confidently on a podium.
+• The podium must be styled to match the profession or hobby — e.g. medical podium for nurse, boat deck for fisherman, office desk for business person, sports field for athlete. The podium design, shape, materials and decorations should reflect and harmonize with the overall theme.
+• Relaxed, charismatic pose.
+
+OUTFIT
+• Outfit matching the profession or interest.
+• Stylish, slightly exaggerated caricature look.
+
+SCENE
+Mini decorative environment connected with the interest or job.
+Fun but elegant.
+
+BACKGROUND
+• Colors and style of the background must be related to the person's profession or hobby — e.g. soft blues for nurse/medical, warm earth tones for farmer, fresh greens for outdoor/travel, sporty colors for athlete.
+• The backdrop should visually connect with the character's theme, not generic studio.
+• Soft bokeh lights.
+• Subtle themed decorations.
+
+TEXT
+{NAME_SECTION}
+
+RESULT
+Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
+    fields: [
+      { id: 'imiona', label: 'Imię (opcjonalnie)', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
+      { id: 'opis_charakteru', label: 'Opis osoby', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
+    ]
+  },
+  'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka': {
+    title: 'Personalizacja',
+    promptTemplate: `Create a caricature figurine based on the provided photo.
+
+STYLE
+• Premium resin statue.
+• Soft cinematic studio lighting.
+• Glossy surfaces, high-end product render.
+• Warm elegant color grading.
+• Slight caricature exaggeration (bigger head, stylish proportions).
+
+FACE — CRITICAL
+• Strongly preserve the identity from the reference photo.
+• Keep facial structure, eyes, nose, mouth, beard/hairline.
+• Natural skin tones.
+• Friendly expressive smile.
+
+CUSTOMIZATION
+The character represents this profession / hobby / personality:
+"{personalization}"
+
+CRITICAL: The overall character should be cohesive — outfit, props, scene, background, podium and decorations must all reference and match the same theme. The podium on which the figurine stands must be styled to fit the profession or hobby. Everything should harmonize and create a unified, coherent whole.
+
+Add visual elements, clothing, props and small scene details related to it.
+Examples:
+• nurse → medical uniform, stethoscope
+• fisherman → fishing rod, fish, outdoor vibe
+• business person → suit, laptop, phone
+• farmer → straw hat, tractor elements
+• gamer, chef, traveler, musician etc.
+
+POSE
+• Character sitting or standing confidently on a podium.
+• The podium must be styled to match the profession or hobby — e.g. medical podium for nurse, boat deck for fisherman, office desk for business person, sports field for athlete. The podium design, shape, materials and decorations should reflect and harmonize with the overall theme.
+• Relaxed, charismatic pose.
+
+OUTFIT
+• Outfit matching the profession or interest.
+• Stylish, slightly exaggerated caricature look.
+
+SCENE
+Mini decorative environment connected with the interest or job.
+Fun but elegant.
+
+BACKGROUND
+• Colors and style of the background must be related to the person's profession or hobby — e.g. soft blues for nurse/medical, warm earth tones for farmer, fresh greens for outdoor/travel, sporty colors for athlete.
+• The backdrop should visually connect with the character's theme, not generic studio.
+• Soft bokeh lights.
+• Subtle themed decorations.
+
+TEXT
+{NAME_SECTION}
+
+RESULT
+Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
+    fields: [
+      { id: 'imiona', label: 'Imię (opcjonalnie)', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
+      { id: 'opis_charakteru', label: 'Opis osoby', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
+    ]
+  },
+  'obraz-ze-zdjecia-karykatura-dla-niej-lekarka': {
+    title: 'Personalizacja',
+    promptTemplate: `Create a caricature figurine based on the provided photo.
+
+STYLE
+• Premium resin statue.
+• Soft cinematic studio lighting.
+• Glossy surfaces, high-end product render.
+• Warm elegant color grading.
+• Slight caricature exaggeration (bigger head, stylish proportions).
+
+FACE — CRITICAL
+• Strongly preserve the identity from the reference photo.
+• Keep facial structure, eyes, nose, mouth, beard/hairline.
+• Natural skin tones.
+• Friendly expressive smile.
+
+CUSTOMIZATION
+The character represents this profession / hobby / personality:
+"{personalization}"
+
+CRITICAL: The overall character should be cohesive — outfit, props, scene, background, podium and decorations must all reference and match the same theme. The podium on which the figurine stands must be styled to fit the profession or hobby. Everything should harmonize and create a unified, coherent whole.
+
+Add visual elements, clothing, props and small scene details related to it.
+Examples:
+• nurse → medical uniform, stethoscope
+• fisherman → fishing rod, fish, outdoor vibe
+• business person → suit, laptop, phone
+• farmer → straw hat, tractor elements
+• gamer, chef, traveler, musician etc.
+
+POSE
+• Character sitting or standing confidently on a podium.
+• The podium must be styled to match the profession or hobby — e.g. medical podium for nurse, boat deck for fisherman, office desk for business person, sports field for athlete. The podium design, shape, materials and decorations should reflect and harmonize with the overall theme.
+• Relaxed, charismatic pose.
+
+OUTFIT
+• Outfit matching the profession or interest.
+• Stylish, slightly exaggerated caricature look.
+
+SCENE
+Mini decorative environment connected with the interest or job.
+Fun but elegant.
+
+BACKGROUND
+• Colors and style of the background must be related to the person's profession or hobby — e.g. soft blues for nurse/medical, warm earth tones for farmer, fresh greens for outdoor/travel, sporty colors for athlete.
+• The backdrop should visually connect with the character's theme, not generic studio.
+• Soft bokeh lights.
+• Subtle themed decorations.
+
+TEXT
+{NAME_SECTION}
+
+RESULT
+Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
+    fields: [
+      { id: 'imiona', label: 'Imię (opcjonalnie)', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
+      { id: 'opis_charakteru', label: 'Opis osoby', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
+    ]
+  },
+  'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka': {
+    title: 'Personalizacja',
+    promptTemplate: `Create a caricature figurine based on the provided photo.
+
+STYLE
+• Premium resin statue.
+• Soft cinematic studio lighting.
+• Glossy surfaces, high-end product render.
+• Warm elegant color grading.
+• Slight caricature exaggeration (bigger head, stylish proportions).
+
+FACE — CRITICAL
+• Strongly preserve the identity from the reference photo.
+• Keep facial structure, eyes, nose, mouth, beard/hairline.
+• Natural skin tones.
+• Friendly expressive smile.
+
+CUSTOMIZATION
+The character represents this profession / hobby / personality:
+"{personalization}"
+
+CRITICAL: The overall character should be cohesive — outfit, props, scene, background, podium and decorations must all reference and match the same theme. The podium on which the figurine stands must be styled to fit the profession or hobby. Everything should harmonize and create a unified, coherent whole.
+
+Add visual elements, clothing, props and small scene details related to it.
+Examples:
+• nurse → medical uniform, stethoscope
+• fisherman → fishing rod, fish, outdoor vibe
+• business person → suit, laptop, phone
+• farmer → straw hat, tractor elements
+• gamer, chef, traveler, musician etc.
+
+POSE
+• Character sitting or standing confidently on a podium.
+• The podium must be styled to match the profession or hobby — e.g. medical podium for nurse, boat deck for fisherman, office desk for business person, sports field for athlete. The podium design, shape, materials and decorations should reflect and harmonize with the overall theme.
+• Relaxed, charismatic pose.
+
+OUTFIT
+• Outfit matching the profession or interest.
+• Stylish, slightly exaggerated caricature look.
+
+SCENE
+Mini decorative environment connected with the interest or job.
+Fun but elegant.
+
+BACKGROUND
+• Colors and style of the background must be related to the person's profession or hobby — e.g. soft blues for nurse/medical, warm earth tones for farmer, fresh greens for outdoor/travel, sporty colors for athlete.
+• The backdrop should visually connect with the character's theme, not generic studio.
+• Soft bokeh lights.
+• Subtle themed decorations.
+
+TEXT
+{NAME_SECTION}
+
+RESULT
+Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
+    fields: [
+      { id: 'imiona', label: 'Imię (opcjonalnie)', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
+      { id: 'opis_charakteru', label: 'Opis osoby', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
+    ]
+  },
+  'obraz-ze-zdjecia-karykatura-dla-niej-psycholog': {
+    title: 'Personalizacja',
+    promptTemplate: `Create a caricature figurine based on the provided photo.
+
+STYLE
+• Premium resin statue.
+• Soft cinematic studio lighting.
+• Glossy surfaces, high-end product render.
+• Warm elegant color grading.
+• Slight caricature exaggeration (bigger head, stylish proportions).
+
+FACE — CRITICAL
+• Strongly preserve the identity from the reference photo.
+• Keep facial structure, eyes, nose, mouth, beard/hairline.
+• Natural skin tones.
+• Friendly expressive smile.
+
+CUSTOMIZATION
+The character represents this profession / hobby / personality:
+"{personalization}"
+
+CRITICAL: The overall character should be cohesive — outfit, props, scene, background, podium and decorations must all reference and match the same theme. The podium on which the figurine stands must be styled to fit the profession or hobby. Everything should harmonize and create a unified, coherent whole.
+
+Add visual elements, clothing, props and small scene details related to it.
+Examples:
+• nurse → medical uniform, stethoscope
+• fisherman → fishing rod, fish, outdoor vibe
+• business person → suit, laptop, phone
+• farmer → straw hat, tractor elements
+• gamer, chef, traveler, musician etc.
+
+POSE
+• Character sitting or standing confidently on a podium.
+• The podium must be styled to match the profession or hobby — e.g. medical podium for nurse, boat deck for fisherman, office desk for business person, sports field for athlete. The podium design, shape, materials and decorations should reflect and harmonize with the overall theme.
+• Relaxed, charismatic pose.
+
+OUTFIT
+• Outfit matching the profession or interest.
+• Stylish, slightly exaggerated caricature look.
+
+SCENE
+Mini decorative environment connected with the interest or job.
+Fun but elegant.
+
+BACKGROUND
+• Colors and style of the background must be related to the person's profession or hobby — e.g. soft blues for nurse/medical, warm earth tones for farmer, fresh greens for outdoor/travel, sporty colors for athlete.
+• The backdrop should visually connect with the character's theme, not generic studio.
+• Soft bokeh lights.
+• Subtle themed decorations.
+
+TEXT
+{NAME_SECTION}
+
+RESULT
+Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
+    fields: [
+      { id: 'imiona', label: 'Imię (opcjonalnie)', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
+      { id: 'opis_charakteru', label: 'Opis osoby', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
+    ]
+  },
+  'obraz-ze-zdjecia-karykatura-dla-niej-kucharka': {
+    title: 'Personalizacja',
+    promptTemplate: `Create a caricature figurine based on the provided photo.
+
+STYLE
+• Premium resin statue.
+• Soft cinematic studio lighting.
+• Glossy surfaces, high-end product render.
+• Warm elegant color grading.
+• Slight caricature exaggeration (bigger head, stylish proportions).
+
+FACE — CRITICAL
+• Strongly preserve the identity from the reference photo.
+• Keep facial structure, eyes, nose, mouth, beard/hairline.
+• Natural skin tones.
+• Friendly expressive smile.
+
+CUSTOMIZATION
+The character represents this profession / hobby / personality:
+"{personalization}"
+
+CRITICAL: The overall character should be cohesive — outfit, props, scene, background, podium and decorations must all reference and match the same theme. The podium on which the figurine stands must be styled to fit the profession or hobby. Everything should harmonize and create a unified, coherent whole.
+
+Add visual elements, clothing, props and small scene details related to it.
+Examples:
+• nurse → medical uniform, stethoscope
+• fisherman → fishing rod, fish, outdoor vibe
+• business person → suit, laptop, phone
+• farmer → straw hat, tractor elements
+• gamer, chef, traveler, musician etc.
+
+POSE
+• Character sitting or standing confidently on a podium.
+• The podium must be styled to match the profession or hobby — e.g. medical podium for nurse, boat deck for fisherman, office desk for business person, sports field for athlete. The podium design, shape, materials and decorations should reflect and harmonize with the overall theme.
+• Relaxed, charismatic pose.
+
+OUTFIT
+• Outfit matching the profession or interest.
+• Stylish, slightly exaggerated caricature look.
+
+SCENE
+Mini decorative environment connected with the interest or job.
+Fun but elegant.
+
+BACKGROUND
+• Colors and style of the background must be related to the person's profession or hobby — e.g. soft blues for nurse/medical, warm earth tones for farmer, fresh greens for outdoor/travel, sporty colors for athlete.
+• The backdrop should visually connect with the character's theme, not generic studio.
+• Soft bokeh lights.
+• Subtle themed decorations.
+
+TEXT
+{NAME_SECTION}
+
+RESULT
+Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
+    fields: [
+      { id: 'imiona', label: 'Imię (opcjonalnie)', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
+      { id: 'opis_charakteru', label: 'Opis osoby', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
+    ]
+  },
+  'obraz-ze-zdjecia-karykatura-dla-niej-fitness': {
+    title: 'Personalizacja',
+    promptTemplate: `Create a caricature figurine based on the provided photo.
+
+STYLE
+• Premium resin statue.
+• Soft cinematic studio lighting.
+• Glossy surfaces, high-end product render.
+• Warm elegant color grading.
+• Slight caricature exaggeration (bigger head, stylish proportions).
+
+FACE — CRITICAL
+• Strongly preserve the identity from the reference photo.
+• Keep facial structure, eyes, nose, mouth, beard/hairline.
+• Natural skin tones.
+• Friendly expressive smile.
+
+CUSTOMIZATION
+The character represents this profession / hobby / personality:
+"{personalization}"
+
+CRITICAL: The overall character should be cohesive — outfit, props, scene, background, podium and decorations must all reference and match the same theme. The podium on which the figurine stands must be styled to fit the profession or hobby. Everything should harmonize and create a unified, coherent whole.
+
+Add visual elements, clothing, props and small scene details related to it.
+Examples:
+• nurse → medical uniform, stethoscope
+• fisherman → fishing rod, fish, outdoor vibe
+• business person → suit, laptop, phone
+• farmer → straw hat, tractor elements
+• gamer, chef, traveler, musician etc.
+
+POSE
+• Character sitting or standing confidently on a podium.
+• The podium must be styled to match the profession or hobby — e.g. medical podium for nurse, boat deck for fisherman, office desk for business person, sports field for athlete. The podium design, shape, materials and decorations should reflect and harmonize with the overall theme.
+• Relaxed, charismatic pose.
+
+OUTFIT
+• Outfit matching the profession or interest.
+• Stylish, slightly exaggerated caricature look.
+
+SCENE
+Mini decorative environment connected with the interest or job.
+Fun but elegant.
+
+BACKGROUND
+• Colors and style of the background must be related to the person's profession or hobby — e.g. soft blues for nurse/medical, warm earth tones for farmer, fresh greens for outdoor/travel, sporty colors for athlete.
+• The backdrop should visually connect with the character's theme, not generic studio.
+• Soft bokeh lights.
+• Subtle themed decorations.
+
+TEXT
+{NAME_SECTION}
 
 RESULT
 Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
@@ -503,6 +915,13 @@ class CustomifyEmbed {
           ? `Render this EXACT text on a golden plaque at the base:\n"${namesVal.trim()}"\nCRITICAL for names: use exact Polish characters — ą, ć, ę, ł, ń, ó, ś, ź, ż (uppercase: Ą, Ć, Ę, Ł, Ń, Ó, Ś, Ź, Ż). Do NOT replace with a, c, e, l, n, o, s, z. Copy every letter exactly as provided.`
           : 'Do not add any text, plaque or inscription to the image.';
       }
+      // {NAME_SECTION} — warunkowy blok dla pola "name": gdy puste = ZERO tekstu na obrazku, gdy wypełnione = tabliczka
+      if (config.promptTemplate.includes('{NAME_SECTION}')) {
+        const nameVal = replacements['name'] || '';
+        replacements['NAME_SECTION'] = nameVal.trim()
+          ? `Render this EXACT text on a plaque at the base:\n"${nameVal.trim()}"\nCRITICAL for names: use exact Polish characters — ą, ć, ę, ł, ń, ó, ś, ź, ż (uppercase: Ą, Ć, Ę, Ł, Ń, Ó, Ś, Ź, Ż). Do NOT replace letters.`
+          : 'Do NOT add any text, plaque, inscription, or written text to the image. No names, no letters, no words. The image must be completely free of any text.';
+      }
       let prompt = config.promptTemplate;
       Object.keys(replacements).forEach(key => {
         prompt = prompt.replaceAll(`{${key}}`, replacements[key]);
@@ -546,6 +965,12 @@ class CustomifyEmbed {
     const currentUrl = window.location.pathname.toLowerCase();
     return currentUrl.includes('personalizowane-etui-na-telefon-z-twoim-zdjeciem') &&
       !currentUrl.includes('personalizowane-etui-na-telefon-z-twoim-zdjeciem-karykatura');
+  }
+
+  // 💝 Produkty "dla niej" — jeden styl (caricature-new), bez wyboru, generacja od razu po uploadzie
+  isDlaNiejProduct() {
+    const h = this.getProductHandle();
+    return h === 'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-fitness';
   }
 
   getCropConfig() {
@@ -764,7 +1189,7 @@ class CustomifyEmbed {
       }
     }
     // 🎯 Rocznica 50-ta / Dla niej: domyślnie wydruk na szkle + rozmiar A5
-    if (this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-na-50-ta-rocznice' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania') {
+    if (this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-na-50-ta-rocznice' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-fitness') {
       const szkloBtn = document.querySelector('.customify-product-type-btn[data-product-type="szklo"]');
       if (szkloBtn) {
         this.productTypeArea?.querySelectorAll('.customify-product-type-btn').forEach(btn => btn.classList.remove('active'));
@@ -1107,6 +1532,34 @@ class CustomifyEmbed {
     }
     if (currentUrl.includes('obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania')) {
       console.log('💝 [PRODUCT-TYPE] URL = Karykatura dla niej → productType: caricature-new');
+      return 'caricature-new';
+    }
+    if (currentUrl.includes('obraz-ze-zdjecia-karykatura-dla-niej-policjantka')) {
+      console.log('👮 [PRODUCT-TYPE] URL = Karykatura dla niej policjantka → productType: caricature-new');
+      return 'caricature-new';
+    }
+    if (currentUrl.includes('obraz-ze-zdjecia-karykatura-dla-niej-rolniczka')) {
+      console.log('🌾 [PRODUCT-TYPE] URL = Karykatura dla niej rolniczka → productType: caricature-new');
+      return 'caricature-new';
+    }
+    if (currentUrl.includes('obraz-ze-zdjecia-karykatura-dla-niej-lekarka')) {
+      console.log('🩺 [PRODUCT-TYPE] URL = Karykatura dla niej lekarka → productType: caricature-new');
+      return 'caricature-new';
+    }
+    if (currentUrl.includes('obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka')) {
+      console.log('✈️ [PRODUCT-TYPE] URL = Karykatura dla niej podróżniczka → productType: caricature-new');
+      return 'caricature-new';
+    }
+    if (currentUrl.includes('obraz-ze-zdjecia-karykatura-dla-niej-psycholog')) {
+      console.log('🧠 [PRODUCT-TYPE] URL = Karykatura dla niej psycholog → productType: caricature-new');
+      return 'caricature-new';
+    }
+    if (currentUrl.includes('obraz-ze-zdjecia-karykatura-dla-niej-kucharka')) {
+      console.log('👩‍🍳 [PRODUCT-TYPE] URL = Karykatura dla niej kucharka → productType: caricature-new');
+      return 'caricature-new';
+    }
+    if (currentUrl.includes('obraz-ze-zdjecia-karykatura-dla-niej-fitness')) {
+      console.log('💪 [PRODUCT-TYPE] URL = Karykatura dla niej fitness → productType: caricature-new');
       return 'caricature-new';
     }
     if (currentUrl.includes('portret-pary-z-okazji-rocznicy-z-twojego-zdjecia')) {
@@ -4185,7 +4638,13 @@ class CustomifyEmbed {
   showStyles() {
     // 🎵 Dla produktu bez AI nie pokazuj stylów
     if (!this.isSpotifyNoAIProduct()) {
-      this.stylesArea.style.display = 'block';
+      if (this.isDlaNiejProduct()) {
+        this.stylesArea.style.display = 'none';
+        this.selectedStyle = 'caricature-new';
+        console.log('💝 [DLA-NIEJ] Ukryto wybór stylu, auto-select caricature-new');
+      } else {
+        this.stylesArea.style.display = 'block';
+      }
     }
     this.sizeArea.style.display = 'block'; // Pokaż rozmiary od razu
     
@@ -4596,6 +5055,7 @@ class CustomifyEmbed {
 
   /**
    * Aktualizuje dostępność poszczególnych rozmiarów w zależności od typu produktu
+   * Dla szkła: tylko A5 i A4 widoczne. Dla plakat/canvas/digital: A4, A3, A2, A0, A1.
    * Zwraca true, jeśli wybrany rozmiar został zmieniony
    */
   updateSizeAvailability() {
@@ -4604,19 +5064,32 @@ class CustomifyEmbed {
     }
 
     const sizeButtons = Array.from(this.sizeArea.querySelectorAll('.customify-size-btn'));
-    sizeButtons.forEach(btn => {
-      btn.classList.remove('disabled');
-      btn.removeAttribute('aria-disabled');
-    });
+    const szkloSizes = ['a5', 'a4'];
+    const plakatSizes = ['a4', 'a3', 'a2', 'a0', 'a1'];
 
+    if (this.selectedProductType === 'szklo') {
+      sizeButtons.forEach(btn => {
+        const size = btn.dataset.size?.toLowerCase();
+        const isForSzklo = szkloSizes.includes(size);
+        btn.style.display = isForSzklo ? '' : 'none';
+        btn.classList.remove('disabled');
+        btn.removeAttribute('aria-disabled');
+      });
+    } else {
+      sizeButtons.forEach(btn => {
+        const size = btn.dataset.size?.toLowerCase();
+        const isForPlakat = plakatSizes.includes(size);
+        btn.style.display = isForPlakat ? '' : 'none';
+        btn.classList.remove('disabled');
+        btn.removeAttribute('aria-disabled');
+      });
+    }
+
+    const visibleSizes = this.selectedProductType === 'szklo' ? szkloSizes : plakatSizes;
     let selectionChanged = false;
-    if (!sizeButtons.some(btn => btn.dataset.size === this.selectedSize)) {
-      const fallback = sizeButtons[0];
-      if (fallback) {
-        this.selectedSize = fallback.dataset.size;
-      } else {
-        this.selectedSize = null;
-      }
+    if (!visibleSizes.includes(this.selectedSize?.toLowerCase())) {
+      const fallback = visibleSizes[0];
+      this.selectedSize = fallback;
       selectionChanged = true;
     }
 
@@ -6387,7 +6860,12 @@ class CustomifyEmbed {
     
     // Pokaż style AI i przyciski (nie dla produktu bez AI)
     if (!this.isSpotifyNoAIProduct()) {
-      this.stylesArea.style.display = 'block';
+      if (this.isDlaNiejProduct()) {
+        this.stylesArea.style.display = 'none';
+        this.selectedStyle = 'caricature-new';
+      } else {
+        this.stylesArea.style.display = 'block';
+      }
       this.actionsArea.style.display = 'flex';
     }
     
@@ -6406,8 +6884,8 @@ class CustomifyEmbed {
       }
     }
     
-    // Zresetuj wybrane style i rozmiary
-    this.selectedStyle = null;
+    // Zresetuj wybrane style i rozmiary (dla "dla niej" — styl zostaje caricature-new)
+    this.selectedStyle = this.isDlaNiejProduct() ? 'caricature-new' : null;
     this.selectedSize = null;
     this.transformedImage = null;
     this.textOverlayBaseImage = null;
