@@ -1515,7 +1515,7 @@ module.exports = async (req, res) => {
         parameters: {
           image_input: ["USER_IMAGES"],
           aspect_ratio: "3:2",
-          resolution: "1k",
+          resolution: "1K",
           output_format: "jpg"
         }
       },
