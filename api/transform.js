@@ -1509,12 +1509,12 @@ module.exports = async (req, res) => {
       // Styl "dodaj osobę" - nano-banana-2 z wieloma obrazkami (do 4)
       'dodaj-osobe': {
         model: "google/nano-banana-2",
-        prompt: "Combine all the people from the provided reference photos into a single, cohesive, natural-looking photograph. The result must look like a real, candid photo — not an illustration, not a painting, not AI-generated. Use natural lighting, realistic skin tones, authentic clothing textures, and a believable environment. Preserve the EXACT facial features, hair color, hairstyle, and likeness of every person. Place all people together in one natural scene as if they were photographed together in real life. Match lighting, color grading, and perspective across all people. High resolution, sharp details, photorealistic quality. Frame as portrait-oriented photo. All people visible from at least waist up, faces clearly visible and large in the frame.",
+        prompt: "Combine all the people from the provided reference photos into a single, cohesive, natural-looking photograph. The result must look like a real, candid photo — not an illustration, not a painting, not AI-generated. Use natural lighting, realistic skin tones, authentic clothing textures, and a believable environment. Preserve the EXACT facial features, hair color, hairstyle, and likeness of every person. Place all people together in one natural scene as if they were photographed together in real life. Match lighting, color grading, and perspective across all people. High resolution, sharp details, photorealistic quality. Frame as landscape-oriented (horizontal) photo. All people visible from at least waist up, faces clearly visible and large in the frame.",
         apiType: "nano-banana-2",
         productType: "dodaj_osobe",
         parameters: {
           image_input: ["USER_IMAGES"],
-          aspect_ratio: "2:3",
+          aspect_ratio: "3:2",
           resolution: "1k",
           output_format: "jpg"
         }
