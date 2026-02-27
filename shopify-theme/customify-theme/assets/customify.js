@@ -1101,7 +1101,7 @@ class CustomifyEmbed {
         const sceneVal = replacements['SCENE_DESC'] || '';
         replacements['SCENE_DESC_SECTION'] = sceneVal.trim()
           ? `SCENE CONTEXT: The setting and mood of the photo should reflect: ${sceneVal.trim()}. Adapt the environment, clothing style, lighting and background to match this context naturally.`
-          : '';
+          : 'SCENE CONTEXT: Warm, cozy family-style portrait. The mood should feel like a cherished family photo meant to hang on a wall — intimate, heartfelt, with soft warm lighting and a natural, homey background.';
       }
       // {DEDICATION_SECTION} — warunkowy blok dla dedykacji: gdy puste = ZERO tekstu, gdy wypełnione = ozdobny napis
       if (config.promptTemplate.includes('{DEDICATION_SECTION}')) {
