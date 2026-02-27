@@ -487,10 +487,12 @@
                 'teddy_bear': 'portret-dziecka-w-stroju-misia-uroczy-obraz-z-twojego-zdjecia',
                 'winter_princess': 'portret-ze-zdjecia-dla-dziewczynki-zimowa-ksiezniczka-obraz',
                 'snow_queen': 'obraz-ze-zdjecia-krolowa-sniegu-na-tronie-portret-r',
+                'queen_prezent': 'portret-krolowej-obraz-ze-zdjecia-prezent-dla-niej',
                 'neo': 'portret-z-twojego-zdjecia-neon-lights-dla-dziewczyny-prezent',
                 'wanted': 'personalizowany-obraz-z-twojego-zdjecia-dla-mezczyzny-w-stylu-western-wanted',
                 'wanted_k': 'obraz-ze-zdjecia-dla-kobiety-w-stylu-western-wanted-poszukiwana',
                 'superman': 'portret-superbohater-obraz-na-plotnie-z-twojego-zdjecia-superman',
+                'dodaj_osobe': 'dodaj-osobe-do-zdjecia-naturalny-efekt-obraz-plakat-wydruk',
                 'other': 'personalizowany-portret-w-stylu-boho' // Fallback dla nieznanych stylów
               };
               
@@ -655,10 +657,12 @@
                 'teddy_bear': 'portret-dziecka-w-stroju-misia-uroczy-obraz-z-twojego-zdjecia',
                 'winter_princess': 'portret-ze-zdjecia-dla-dziewczynki-zimowa-ksiezniczka-obraz',
                 'snow_queen': 'obraz-ze-zdjecia-krolowa-sniegu-na-tronie-portret-r',
+                'queen_prezent': 'portret-krolowej-obraz-ze-zdjecia-prezent-dla-niej',
                 'neo': 'portret-z-twojego-zdjecia-neon-lights-dla-dziewczyny-prezent',
                 'wanted': 'personalizowany-obraz-z-twojego-zdjecia-dla-mezczyzny-w-stylu-western-wanted',
                 'wanted_k': 'obraz-ze-zdjecia-dla-kobiety-w-stylu-western-wanted-poszukiwana',
                 'superman': 'portret-superbohater-obraz-na-plotnie-z-twojego-zdjecia-superman',
+                'dodaj_osobe': 'dodaj-osobe-do-zdjecia-naturalny-efekt-obraz-plakat-wydruk',
                 'other': 'personalizowany-portret-w-stylu-boho' // Fallback dla nieznanych stylów
               };
               
@@ -682,6 +686,8 @@
                   expectedProductType = 'pixar';
                 } else if (styleKey === 'akwarela' || styleKey.includes('watercolor')) {
                   expectedProductType = 'watercolor';
+                } else if (styleKey === 'krolowa-prezent-1' || styleKey === 'krolowa-prezent-2') {
+                  expectedProductType = 'queen_prezent';
                 } else if (styleKey.includes('krol-') || styleKey.includes('krolowa-')) {
                   expectedProductType = styleKey.includes('krolowa') ? 'queen' : 'king';
                 } else if (styleKey.includes('krolewski') || styleKey.includes('na-tronie') || styleKey.includes('wojenny')) {

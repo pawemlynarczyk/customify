@@ -2130,6 +2130,16 @@
  </script>
 
  {{ content_for_header }}
+ {% if template == 'product' and product.tags contains 'simple-product' %}
+ <style id="simple-product-critical">
+ #customify-app-container { display: none !important; }
+ [id^="BuyButtons-ProductForm-template--"] > div { display: flex !important; visibility: visible !important; opacity: 1 !important; height: auto !important; margin: revert !important; padding: revert !important; flex-wrap: wrap !important; gap: 0.75rem !important; }
+ [id^="BuyButtons-ProductForm-template--"] .shopify-payment-button { display: none !important; }
+ [id^="BuyButtons-ProductForm-template--"] quantity-selector-component { display: flex !important; }
+ [id^="BuyButtons-ProductForm-template--"] button[id^="BuyButtons-ProductSubmitButton"] { display: inline-flex !important; background: #c00 !important; color: #fff !important; width: auto !important; min-width: auto !important; padding: 0.75rem 1.5rem !important; border-radius: 0.25rem !important; font-weight: 600 !important; border: none !important; cursor: pointer !important; }
+ [id^="BuyButtons-ProductForm-template--"] button[id^="BuyButtons-ProductSubmitButton"]:hover { background: #a00 !important; color: #fff !important; }
+ </style>
+ {% endif %}
  </head>
 
  <body class="page-width-{{ settings.page_width }} card-hover-effect-{{ settings.card_hover_effect }}{% if template == 'product' and product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem' %} product-etui{% endif %}">
@@ -2612,16 +2622,17 @@
  <script>
  // Przekaż dane produktu do JavaScript
  {% if product %}
- window.ShopifyProduct = {
- id: {{ product.id }},
- title: {{ product.title | json }},
- handle: {{ product.handle | json }},
- url: {{ product.url | json }},
- imageUrl: {{ product.featured_image | image_url: width: 600 | json }},
- variants: {{ product.variants | json }},
- options: {{ product.options | json }},
- price: {{ product.price | money | json }}
- };
+window.ShopifyProduct = {
+id: {{ product.id }},
+title: {{ product.title | json }},
+handle: {{ product.handle | json }},
+url: {{ product.url | json }},
+imageUrl: {{ product.featured_image | image_url: width: 600 | json }},
+variants: {{ product.variants | json }},
+options: {{ product.options | json }},
+price: {{ product.price | money | json }},
+tags: {{ product.tags | json }}
+};
  console.log('📦 [SHOPIFY PRODUCT] Product data loaded:', window.ShopifyProduct);
  {% endif %}
  </script>
@@ -2711,6 +2722,14 @@ Nadruk na szkle (dodaj podstawkę)
  <div class="customify-product-type-btn active" data-product-type="szklo">
  Nadruk na szkle (dodaj podstawkę)
  </div>
+{% elsif product.handle == 'obraz-ze-zdjecia-karykatura-na-50-ta-rocznice' or product.handle == 'wydruk-na-szkle-biznes-woman-prezent-na-urodziny-dla-kobiety' %}
+ {% comment %} SZKŁO + CYFROWY (bez plakatu i płótna) {% endcomment %}
+ <div class="customify-product-type-btn active" data-product-type="szklo">
+ Nadruk na szkle (dodaj podstawkę)
+ </div>
+ <div class="customify-product-type-btn" data-product-type="digital">
+ Produkt cyfrowy
+ </div>
  {% else %}
  {% comment %} STANDARDOWE OPCJE dla innych produktów {% endcomment %}
  <div class="customify-product-type-btn active" data-product-type="plakat">
@@ -2788,6 +2807,44 @@ Nadruk na szkle (dodaj podstawkę)
  </div>
  <div class="customify-inline-wrapper">
  <div class="customify-embed" id="customifyEmbed">
+ {% if product.handle == 'dodaj-osobe-do-zdjecia-naturalny-efekt-obraz-plakat-wydruk' %}
+ {% comment %} 👥 MULTI-UPLOAD: Grid 2x2 slotów dla produktu "Dodaj osobę do zdjęcia" {% endcomment %}
+ <div class="customify-multi-upload-area" id="multiUploadArea">
+ <h4 style="text-align:center; font-size:1.1rem; font-weight:600; margin:0 0 12px 0; color:#333;">Wgraj zdjęcia osób (max 4)</h4>
+ <div class="multi-upload-grid">
+  <div class="multi-upload-slot" id="multiSlot0">
+   <div class="multi-slot-preview" id="multiSlotPreview0"></div>
+   <div class="multi-slot-placeholder" id="multiSlotPlaceholder0"><span class="multi-slot-icon">+</span><span class="multi-slot-label">Osoba 1 *</span></div>
+   <button class="multi-slot-remove" id="multiSlotRemove0" style="display:none;" type="button">&times;</button>
+   <input type="file" class="multi-slot-input" id="multiSlotInput0" accept="image/*" style="display:none;">
+  </div>
+  <div class="multi-upload-slot" id="multiSlot1">
+   <div class="multi-slot-preview" id="multiSlotPreview1"></div>
+   <div class="multi-slot-placeholder" id="multiSlotPlaceholder1"><span class="multi-slot-icon">+</span><span class="multi-slot-label">Osoba 2</span></div>
+   <button class="multi-slot-remove" id="multiSlotRemove1" style="display:none;" type="button">&times;</button>
+   <input type="file" class="multi-slot-input" id="multiSlotInput1" accept="image/*" style="display:none;">
+  </div>
+  <div class="multi-upload-slot" id="multiSlot2">
+   <div class="multi-slot-preview" id="multiSlotPreview2"></div>
+   <div class="multi-slot-placeholder" id="multiSlotPlaceholder2"><span class="multi-slot-icon">+</span><span class="multi-slot-label">Osoba 3</span></div>
+   <button class="multi-slot-remove" id="multiSlotRemove2" style="display:none;" type="button">&times;</button>
+   <input type="file" class="multi-slot-input" id="multiSlotInput2" accept="image/*" style="display:none;">
+  </div>
+  <div class="multi-upload-slot" id="multiSlot3">
+   <div class="multi-slot-preview" id="multiSlotPreview3"></div>
+   <div class="multi-slot-placeholder" id="multiSlotPlaceholder3"><span class="multi-slot-icon">+</span><span class="multi-slot-label">Osoba 4</span></div>
+   <button class="multi-slot-remove" id="multiSlotRemove3" style="display:none;" type="button">&times;</button>
+   <input type="file" class="multi-slot-input" id="multiSlotInput3" accept="image/*" style="display:none;">
+  </div>
+ </div>
+ <p style="text-align:center; font-size:0.85rem; color:#888; margin:8px 0 0 0;">Wgrano: <span id="multiUploadCount">0</span>/4 zdjęć</p>
+ <div class="customify-error" id="errorMessage" style="display: none;"></div>
+ </div>
+ {% comment %} Ukryty normalny upload — potrzebny dla JS (this.uploadArea, this.fileInput) {% endcomment %}
+ <div class="customify-upload-area" id="uploadArea" style="display:none !important;">
+ <input type="file" id="fileInput" class="customify-file-input" accept="image/*">
+ </div>
+ {% else %}
  <div class="customify-upload-area" id="uploadArea">
  <div class="customify-drop-zone" id="dropZone">
  <div class="drop-zone-content">
@@ -2800,6 +2857,7 @@ Nadruk na szkle (dodaj podstawkę)
  
  <div class="customify-error" id="errorMessage" style="display: none;"></div>
  </div>
+ {% endif %}
 
  <div class="customify-preview" id="previewArea">
  <h4>Twoje zdjęcie:</h4>
@@ -2958,7 +3016,7 @@ Nadruk na szkle (dodaj podstawkę)
  </div>
  {% endif %}
 
- <div class="customify-styles" id="stylesArea" style="{% if product.handle == 'zdjecie-na-szkle-ramka-spotify' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-fitness' %}display: none;{% else %}display: block;{% endif %}">
+ <div class="customify-styles" id="stylesArea" style="{% if product.handle == 'zdjecie-na-szkle-ramka-spotify' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-fitness' or product.handle == 'obraz-ze-zdjecia-biznes-woman-personalizowany-prezent' or product.handle == 'obraz-ze-zdjecia-prezent-na-30-urodziny-dla-kobiety-biznes-woman' or product.handle == 'wydruk-na-szkle-biznes-woman-prezent-na-urodziny-dla-kobiety' or product.handle == 'dodaj-osobe-do-zdjecia-naturalny-efekt-obraz-plakat-wydruk' %}display: none;{% else %}display: block;{% endif %}">
  <h4>{% if product.handle == 'ramka-spotify' %}Popraw Obrazek{% else %}Wybierz styl{% endif %}</h4>
  <div class="customify-style-grid">
  {% comment %} LOGIKA SERVER-SIDE: Filtruj style per produkt {% endcomment %}
@@ -3013,6 +3071,22 @@ Nadruk na szkle (dodaj podstawkę)
 </div>
 {% elsif product.handle == 'obraz-ze-zdjecia-biznes-woman-personalizowany-prezent' %}
 {% comment %} Biznes Woman — portret kobiety w stylu biznes karykatura {% endcomment %}
+<div class="customify-style-card" data-style="caricature-new" style="display: block !important;">
+<div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/style/kobieta_biz_1.jpeg'); background-size: cover; background-position: center;"></div>
+<div class="style-info">
+<div class="style-name">Biznes Woman</div>
+</div>
+</div>
+{% elsif product.handle == 'obraz-ze-zdjecia-prezent-na-30-urodziny-dla-kobiety-biznes-woman' %}
+{% comment %} Prezent na 30 urodziny — ten sam styl Biznes Woman {% endcomment %}
+<div class="customify-style-card" data-style="caricature-new" style="display: block !important;">
+<div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/style/kobieta_biz_1.jpeg'); background-size: cover; background-position: center;"></div>
+<div class="style-info">
+<div class="style-name">Biznes Woman</div>
+</div>
+</div>
+{% elsif product.handle == 'wydruk-na-szkle-biznes-woman-prezent-na-urodziny-dla-kobiety' %}
+{% comment %} Wydruk na szkle Biznes Woman — ten sam styl {% endcomment %}
 <div class="customify-style-card" data-style="caricature-new" style="display: block !important;">
 <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/style/kobieta_biz_1.jpeg'); background-size: cover; background-position: center;"></div>
 <div class="style-info">
@@ -3081,6 +3155,14 @@ Nadruk na szkle (dodaj podstawkę)
 <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/style/3d_couple_50.jpg'); background-size: cover; background-position: center;"></div>
 <div class="style-info">
 <div class="style-name">Dla niej</div>
+</div>
+</div>
+{% elsif product.handle == 'dodaj-osobe-do-zdjecia-naturalny-efekt-obraz-plakat-wydruk' %}
+{% comment %} Dodaj osobę do zdjęcia — Nano Banana 2, multi-upload, 1 styl auto-wybrany {% endcomment %}
+<div class="customify-style-card" data-style="dodaj-osobe" style="display: block !important;">
+<div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/style/3d_couple_50.jpg'); background-size: cover; background-position: center;"></div>
+<div class="style-info">
+<div class="style-name">Naturalny</div>
 </div>
 </div>
 {% elsif product.handle == 'karykatura-na-zamowienie-druk-na-szkle-akrylowym-ramka-z-podswietleniem' %}
@@ -3206,8 +3288,22 @@ Nadruk na szkle (dodaj podstawkę)
  <div class="style-name">Król Imponujący</div>
  </div>
  </div>
- {% elsif product.id == 15389095297349 or product.handle == 'krolowa' or product.handle contains 'krolowa' %}
- {% comment %} TYLKO STYLE KRÓLOWEJ dla produktu królowa {% endcomment %}
+ {% elsif product.handle == 'portret-krolowej-obraz-ze-zdjecia-prezent-dla-niej' %}
+ {% comment %} Portret królowej - prezent dla Niej (2 style, miniaturki krolowa_tron_1/2) {% endcomment %}
+ <div class="customify-style-card" data-style="krolowa-prezent-1">
+ <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/krolowa/krolowa_tron_1.jpg'); background-size: cover; background-position: center;"></div>
+ <div class="style-info">
+ <div class="style-name">Królowa - Prezent 1</div>
+ </div>
+ </div>
+ <div class="customify-style-card" data-style="krolowa-prezent-2">
+ <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/krolowa/krolowa_tron_2.jpeg'); background-size: cover; background-position: center;"></div>
+ <div class="style-info">
+ <div class="style-name">Królowa - Prezent 2</div>
+ </div>
+ </div>
+ {% elsif product.id == 15389095297349 or product.handle == 'krolowa' or product.handle == 'krol-i-krolowa-portrety-krolewskie' %}
+ {% comment %} TYLKO STYLE KRÓLOWEJ dla produktu Król i Królowa (4 style) {% endcomment %}
  <div class="customify-style-card" data-style="krolowa-styl-1">
  <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/krolowa/krolowa-styl-1.jpg'); background-size: cover; background-position: center;"></div>
  <div class="style-info">
@@ -3655,7 +3751,7 @@ Nadruk na szkle (dodaj podstawkę)
 
  <div class="customify-success" id="successMessage"></div>
  
-{% unless product.handle == 'obraz-ze-zdjecia-karykatura-na-50-ta-rocznice' or product.handle == 'obraz-ze-zdjecia-biznes-woman-personalizowany-prezent' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-fitness' %}
+{% unless product.handle == 'obraz-ze-zdjecia-karykatura-na-50-ta-rocznice' or product.handle == 'obraz-ze-zdjecia-biznes-woman-personalizowany-prezent' or product.handle == 'obraz-ze-zdjecia-prezent-na-30-urodziny-dla-kobiety-biznes-woman' or product.handle == 'wydruk-na-szkle-biznes-woman-prezent-na-urodziny-dla-kobiety' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-fitness' or product.handle == 'dodaj-osobe-do-zdjecia-naturalny-efekt-obraz-plakat-wydruk' %}
 <div class="customify-text-overlay-toggle customify-product-type-buttons" style="margin-top:12px; display:flex; justify-content:center;">
 <div class="customify-product-type-btn" id="textOverlayToggleBtn" data-overlay-open="false">
 Dodać napis? Kliknij tutaj
@@ -4145,14 +4241,20 @@ Dodać napis? Kliknij tutaj
  display: none !important;
  }
  
- /* 🎯 Ukryj successMessage i text-overlay-toggle dla ramka-spotify */
- #customify-app-container #successMessage,
- #customify-app-container #resultArea > div.customify-text-overlay-toggle,
- #customify-app-container #resultArea > div.customify-product-type-buttons {
- display: none !important;
- }
- 
- /* 🎨 Panel filtrów Spotify (glfx.js) */
+/* 🎯 Ukryj successMessage i text-overlay-toggle dla ramka-spotify */
+#customify-app-container #successMessage,
+#customify-app-container #resultArea > div.customify-text-overlay-toggle,
+#customify-app-container #resultArea > div.customify-product-type-buttons {
+display: none !important;
+}
+
+/* 🎨 Placeholder w polach personalizacji — bledszy, mniej widoczny */
+#customify-app-container #customFieldsArea input::placeholder {
+color: #c8c8c8 !important;
+opacity: 0.9;
+}
+
+/* 🎨 Panel filtrów Spotify (glfx.js) */
  .spotify-filters-panel {
  margin-top: 20px;
  padding: 0;
@@ -4985,6 +5087,87 @@ Dodać napis? Kliknij tutaj
  font-weight: 700 !important;
  color: #000000 !important; /* CZARNY KOLOR */
  text-decoration: none !important;
+ }
+
+ /* 👥 Multi-upload grid (dodaj osobę do zdjęcia) */
+ .customify-multi-upload-area {
+  padding: 16px 0;
+ }
+ .multi-upload-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  max-width: 380px;
+  margin: 0 auto;
+ }
+ .multi-upload-slot {
+  aspect-ratio: 3/4;
+  border: 2px dashed #ccc;
+  border-radius: 10px;
+  position: relative;
+  cursor: pointer;
+  overflow: hidden;
+  background: #fafafa;
+  transition: border-color 0.2s, box-shadow 0.2s;
+ }
+ .multi-upload-slot:hover {
+  border-color: #999;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+ }
+ .multi-slot-preview {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-radius: 8px;
+ }
+ .multi-slot-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: #aaa;
+ }
+ .multi-slot-icon {
+  font-size: 2rem;
+  font-weight: 300;
+  line-height: 1;
+ }
+ .multi-slot-label {
+  font-size: 0.8rem;
+  font-weight: 500;
+ }
+ .multi-slot-remove {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0,0,0,0.6);
+  color: #fff;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  transition: background 0.2s;
+ }
+ .multi-slot-remove:hover {
+  background: rgba(220,53,69,0.9);
+ }
+ @media (max-width: 480px) {
+  .multi-upload-grid {
+   max-width: 100%;
+   gap: 8px;
+  }
  }
  </style>
  <script>
@@ -6461,13 +6644,55 @@ Dodać napis? Kliknij tutaj
  console.log('✅ [CART] Cart accordion setup complete!');
  });
  </script>
- {% endif %}
+{% endif %}
 
- <div class="customify-footer-poradnik">
- <a href="/blogs/poradnik" class="customify-footer-poradnik__link">Poradnik</a>
- </div>
+{% if template == 'product' and product.tags contains 'simple-product' %}
+<script>
+(function(){
+  function move() {
+    var section = document.querySelector('[id^="ProductInformation-"]');
+    if (!section) return;
+    var col = section.classList.contains('product-details') ? section : section.querySelector('.product-details');
+    if (!col) { var g = section.querySelector('[data-product-grid-content]'); col = g && g.children[1]; }
+    var buyForm = section.querySelector('[id^="BuyButtons-ProductForm-template--"]');
+    if (!col || !buyForm) return;
+    var block = buyForm;
+    while (block.parentElement && block.parentElement !== col) block = block.parentElement;
+    if (block.parentElement === col) col.appendChild(block);
+  }
+  function setupKupButton() {
+    var form = document.querySelector('[id^="BuyButtons-ProductForm-template--"]');
+    if (!form || form.dataset.simpleProductDone) return;
+    var submitBtn = form.querySelector('button[id^="BuyButtons-ProductSubmitButton"]');
+    if (submitBtn) submitBtn.textContent = 'Kup';
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      var btn = form.querySelector('button[type="submit"]');
+      if (btn) { btn.disabled = true; btn.textContent = '…'; }
+      var fid = form.querySelector('input[name="id"]');
+      var qty = form.querySelector('input[name="quantity"]');
+      var variantId = fid ? fid.value : '';
+      var quantity = (qty && parseInt(qty.value, 10)) || 1;
+      var body = JSON.stringify({ items: [ { id: parseInt(variantId, 10), quantity: quantity } ] });
+      fetch((window.Shopify && window.Shopify.routes && window.Shopify.routes.root) ? window.Shopify.routes.root + 'cart/add.js' : '/cart/add.js', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: body }).then(function(r){ return r.json().then(function(data){ return { ok: r.ok, data: data }; }); }).then(function(res) {
+        if (!res.ok && res.data && res.data.description) { if (btn) { btn.disabled = false; btn.textContent = 'Kup'; } alert(res.data.description); return; }
+        window.location.href = '/cart';
+      }).catch(function() { if (btn) { btn.disabled = false; btn.textContent = 'Kup'; } window.location.href = '/cart'; });
+    });
+    form.dataset.simpleProductDone = '1';
+  }
+  function run() { move(); setupKupButton(); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function(){ run(); setTimeout(run,200); setTimeout(run,600); });
+  else { run(); setTimeout(run,200); setTimeout(run,600); }
+})();
+</script>
+{% endif %}
 
- {% sections 'footer-group' %}
+<div class="customify-footer-poradnik">
+<a href="/blogs/poradnik" class="customify-footer-poradnik__link">Poradnik</a>
+</div>
+
+{% sections 'footer-group' %}
 
  <script>
  document.addEventListener('DOMContentLoaded', function() {

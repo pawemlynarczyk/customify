@@ -1268,7 +1268,7 @@ module.exports = async (req, res) => {
   let customerEmailFromGraphQL = null;
 
   try {
-    let { imageData, prompt, style, productType, customerId: bodyCustomerId, email, productHandle, promptAddition, replaceBasePrompt } = req.body;
+    let { imageData, prompt, style, productType, customerId: bodyCustomerId, email, productHandle, promptAddition, replaceBasePrompt, additionalImages } = req.body;
     // ✅ Normalize imageData: accept base64 or data URI
     if (typeof imageData === 'string' && imageData.startsWith('data:image')) {
       imageData = imageData.split(',')[1];
@@ -1504,6 +1504,18 @@ module.exports = async (req, res) => {
           aspect_ratio: "3:4", // Portret pionowy dla druku A3/A2/A1
           output_format: "jpg",
           guidance: 10 // Testowa wartość
+        }
+      },
+      // Styl "dodaj osobę" - nano-banana-2 z wieloma obrazkami (do 4)
+      'dodaj-osobe': {
+        model: "google/nano-banana-2",
+        prompt: "Combine all the people from the provided reference photos into a single, cohesive, natural-looking photograph. The result must look like a real, candid photo — not an illustration, not a painting, not AI-generated. Use natural lighting, realistic skin tones, authentic clothing textures, and a believable environment. Preserve the EXACT facial features, hair color, hairstyle, and likeness of every person. Place all people together in one natural scene as if they were photographed together in real life. Match lighting, color grading, and perspective across all people. High resolution, sharp details, photorealistic quality. Frame as portrait-oriented photo. All people visible from at least waist up, faces clearly visible and large in the frame.",
+        apiType: "nano-banana-2",
+        productType: "dodaj_osobe",
+        parameters: {
+          image_input: ["USER_IMAGES"],
+          aspect_ratio: "2:3",
+          output_format: "jpg"
         }
       },
       // Style boho - używają nano-banana z 1 obrazkiem (tylko użytkownika)
@@ -2937,6 +2949,50 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
         console.log(`📸 [NANO-BANANA] Cats style - Obraz 2 (user): ${imageDataUri.substring(0, 50)}...`);
         console.log(`📸 [NANO-BANANA] image_input array length: ${inputParams.image_input.length}`);
       }
+    } else if (config.apiType === 'nano-banana-2') {
+      // Nano Banana 2 (Gemini 3.1 Flash Image) - obsługuje do 14 obrazków
+      console.log('👥 [NANO-BANANA-2] Multi-image style, uploading images to Vercel Blob...');
+      const baseUrl = 'https://customify-s56o.vercel.app';
+
+      // Upload głównego obrazu na Vercel Blob
+      const mainUploadResponse = await fetch(`${baseUrl}/api/upload-temp-image`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageData: imageDataUri,
+          filename: `multi-main-${Date.now()}.jpg`
+        })
+      });
+
+      if (!mainUploadResponse.ok) {
+        const errorText = await mainUploadResponse.text();
+        console.error('❌ [NANO-BANANA-2] Main image upload failed:', errorText);
+        throw new Error(`Vercel Blob upload failed: ${mainUploadResponse.status}`);
+      }
+
+      const mainUploadResult = await mainUploadResponse.json();
+      const mainImageUrl = mainUploadResult.imageUrl;
+      console.log('✅ [NANO-BANANA-2] Main image uploaded:', mainImageUrl);
+
+      // Buduj tablicę image_input: główny obraz + dodatkowe
+      const imageInputUrls = [mainImageUrl];
+      if (additionalImages && Array.isArray(additionalImages)) {
+        additionalImages.forEach((url, i) => {
+          imageInputUrls.push(url);
+          console.log(`✅ [NANO-BANANA-2] Additional image ${i + 1}: ${url}`);
+        });
+      }
+
+      console.log(`👥 [NANO-BANANA-2] Total images: ${imageInputUrls.length}`);
+
+      inputParams = {
+        prompt: config.prompt,
+        image_input: imageInputUrls,
+        aspect_ratio: config.parameters?.aspect_ratio || '2:3',
+        output_format: config.parameters?.output_format || 'jpg'
+      };
+
+      console.log(`📸 [NANO-BANANA-2] image_input array length: ${inputParams.image_input.length}`);
     } else if (config.apiType === 'replicate-bg-remove') {
       // Background remover - upload to Vercel Blob first (model requires URL)
       console.log('🧼 [BG-REMOVE] Uploading image to Vercel Blob Storage...');

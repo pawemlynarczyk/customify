@@ -40,6 +40,7 @@ Examples:
 • gamer, chef, traveler, musician etc.
 
 POSE
+{YEARS_SECTION}
 • Character sitting or standing confidently on a podium.
 • The podium must be styled to match the profession or hobby — e.g. medical podium for nurse, boat deck for fisherman, office desk for business person, sports field for athlete. The podium design, shape, materials and decorations should reflect and harmonize with the overall theme.
 • Relaxed, charismatic pose.
@@ -64,8 +65,9 @@ TEXT
 RESULT
 Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
     fields: [
-      { id: 'imiona', label: 'Imię (opcjonalnie)', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
-      { id: 'opis_charakteru', label: 'Opis osoby', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
+      { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
+      { id: 'rocznica', label: 'Rocznica / liczba lat', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
+      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
     ]
   },
   'obraz-ze-zdjecia-karykatura-dla-niej-policjantka': {
@@ -100,6 +102,7 @@ Examples:
 • gamer, chef, traveler, musician etc.
 
 POSE
+{YEARS_SECTION}
 • Character sitting or standing confidently on a podium.
 • The podium must be styled to match the profession or hobby — e.g. medical podium for nurse, boat deck for fisherman, office desk for business person, sports field for athlete. The podium design, shape, materials and decorations should reflect and harmonize with the overall theme.
 • Relaxed, charismatic pose.
@@ -124,8 +127,9 @@ TEXT
 RESULT
 Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
     fields: [
-      { id: 'imiona', label: 'Imię (opcjonalnie)', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
-      { id: 'opis_charakteru', label: 'Opis osoby', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
+      { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
+      { id: 'rocznica', label: 'Rocznica / liczba lat', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
+      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
     ]
   },
   'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka': {
@@ -160,6 +164,7 @@ Examples:
 • gamer, chef, traveler, musician etc.
 
 POSE
+{YEARS_SECTION}
 • Character sitting or standing confidently on a podium.
 • The podium must be styled to match the profession or hobby — e.g. medical podium for nurse, boat deck for fisherman, office desk for business person, sports field for athlete. The podium design, shape, materials and decorations should reflect and harmonize with the overall theme.
 • Relaxed, charismatic pose.
@@ -184,8 +189,9 @@ TEXT
 RESULT
 Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
     fields: [
-      { id: 'imiona', label: 'Imię (opcjonalnie)', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
-      { id: 'opis_charakteru', label: 'Opis osoby', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
+      { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
+      { id: 'rocznica', label: 'Rocznica / liczba lat', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
+      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
     ]
   },
   'obraz-ze-zdjecia-karykatura-dla-niej-lekarka': {
@@ -220,6 +226,7 @@ Examples:
 • gamer, chef, traveler, musician etc.
 
 POSE
+{YEARS_SECTION}
 • Character sitting or standing confidently on a podium.
 • The podium must be styled to match the profession or hobby — e.g. medical podium for nurse, boat deck for fisherman, office desk for business person, sports field for athlete. The podium design, shape, materials and decorations should reflect and harmonize with the overall theme.
 • Relaxed, charismatic pose.
@@ -244,8 +251,9 @@ TEXT
 RESULT
 Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
     fields: [
-      { id: 'imiona', label: 'Imię (opcjonalnie)', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
-      { id: 'opis_charakteru', label: 'Opis osoby', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
+      { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
+      { id: 'rocznica', label: 'Rocznica / liczba lat', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
+      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
     ]
   },
   'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka': {
@@ -280,6 +288,7 @@ Examples:
 • gamer, chef, traveler, musician etc.
 
 POSE
+{YEARS_SECTION}
 • Character sitting or standing confidently on a podium.
 • The podium must be styled to match the profession or hobby — e.g. medical podium for nurse, boat deck for fisherman, office desk for business person, sports field for athlete. The podium design, shape, materials and decorations should reflect and harmonize with the overall theme.
 • Relaxed, charismatic pose.
@@ -304,8 +313,9 @@ TEXT
 RESULT
 Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
     fields: [
-      { id: 'imiona', label: 'Imię (opcjonalnie)', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
-      { id: 'opis_charakteru', label: 'Opis osoby', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
+      { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
+      { id: 'rocznica', label: 'Rocznica / liczba lat', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
+      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
     ]
   },
   'obraz-ze-zdjecia-karykatura-dla-niej-psycholog': {
@@ -340,6 +350,7 @@ Examples:
 • gamer, chef, traveler, musician etc.
 
 POSE
+{YEARS_SECTION}
 • Character sitting or standing confidently on a podium.
 • The podium must be styled to match the profession or hobby — e.g. medical podium for nurse, boat deck for fisherman, office desk for business person, sports field for athlete. The podium design, shape, materials and decorations should reflect and harmonize with the overall theme.
 • Relaxed, charismatic pose.
@@ -364,8 +375,9 @@ TEXT
 RESULT
 Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
     fields: [
-      { id: 'imiona', label: 'Imię (opcjonalnie)', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
-      { id: 'opis_charakteru', label: 'Opis osoby', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
+      { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
+      { id: 'rocznica', label: 'Rocznica / liczba lat', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
+      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
     ]
   },
   'obraz-ze-zdjecia-karykatura-dla-niej-kucharka': {
@@ -400,6 +412,7 @@ Examples:
 • gamer, chef, traveler, musician etc.
 
 POSE
+{YEARS_SECTION}
 • Character sitting or standing confidently on a podium.
 • The podium must be styled to match the profession or hobby — e.g. medical podium for nurse, boat deck for fisherman, office desk for business person, sports field for athlete. The podium design, shape, materials and decorations should reflect and harmonize with the overall theme.
 • Relaxed, charismatic pose.
@@ -424,8 +437,9 @@ TEXT
 RESULT
 Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
     fields: [
-      { id: 'imiona', label: 'Imię (opcjonalnie)', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
-      { id: 'opis_charakteru', label: 'Opis osoby', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
+      { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
+      { id: 'rocznica', label: 'Rocznica / liczba lat', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
+      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
     ]
   },
   'obraz-ze-zdjecia-karykatura-dla-niej-fitness': {
@@ -460,6 +474,7 @@ Examples:
 • gamer, chef, traveler, musician etc.
 
 POSE
+{YEARS_SECTION}
 • Character sitting or standing confidently on a podium.
 • The podium must be styled to match the profession or hobby — e.g. medical podium for nurse, boat deck for fisherman, office desk for business person, sports field for athlete. The podium design, shape, materials and decorations should reflect and harmonize with the overall theme.
 • Relaxed, charismatic pose.
@@ -484,8 +499,9 @@ TEXT
 RESULT
 Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
     fields: [
-      { id: 'imiona', label: 'Imię (opcjonalnie)', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
-      { id: 'opis_charakteru', label: 'Opis osoby', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
+      { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
+      { id: 'rocznica', label: 'Rocznica / liczba lat', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
+      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
     ]
   },
   'obraz-ze-zdjecia-biznes-woman-personalizowany-prezent': {
@@ -507,7 +523,7 @@ FACE:
 • Expressive, joyful smiles.
 
 POSE:
-• The woman is sitting on a business party podium.
+• {YEARS_SECTION}
 • Romantic, elegant body language.
 • Hands elegantly on lap.
 
@@ -516,7 +532,7 @@ OUTFITS:
 • Elegant black and gold styling.
 
 SCENE TYPE:
-The occasion is business conference.
+The occasion is business anniversary celebration.
 
 BACKGROUND:
 • Warm golden studio backdrop.
@@ -525,20 +541,112 @@ BACKGROUND:
 • Soft bokeh lights.
 
 TEXT:
-Render this EXACT text on a golden plaque at the base:
-"{NAMES}"
-CRITICAL for names: use exact Polish characters — ą, ć, ę, ł, ń, ó, ś, ź, ż (uppercase: Ą, Ć, Ę, Ł, Ń, Ó, Ś, Ź, Ż). Do NOT replace with a, c, e, l, n, o, s, z. Copy every letter exactly as provided.
-Do NOT show reflections, mirror images or reflections of the text on any surface (floor, podium, glass, etc.). Text appears only on the plaque.
+{NAMES_SECTION}
 
 RESULT:
 A premium 3D anniversary caricature statue, slender elegant figure, luxurious, celebratory, highly polished, photorealistic 3D render.`,
     fields: [
-      { id: 'imiona', label: 'Imię (opcjonalnie)', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'NAMES' }
+      { id: 'rocznica', label: 'Rocznica / liczba lat', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
+      { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'NAMES' }
+    ]
+  },
+  'wydruk-na-szkle-biznes-woman-prezent-na-urodziny-dla-kobiety': {
+    title: 'Personalizacja',
+    promptTemplate: `Create a luxury 3D business caricature figurine.
+
+STYLE:
+• High-end 3D resin sculpture.
+• Soft cinematic studio lighting.
+• Glossy surfaces, premium finish.
+• Warm golden color grading.
+• Slight caricature exaggeration (larger heads, elegant proportions).
+• Slender, graceful body proportions — elegant and refined, NOT bulky or distorted.
+
+FACE:
+• Preserve facial identity and structure.
+• Natural skin tones.
+• Slight beautification (smooth skin, refined details).
+• Expressive, joyful smiles.
+
+POSE:
+• {YEARS_SECTION}
+• Romantic, elegant body language.
+• Hands elegantly on lap.
+
+OUTFITS:
+• Glamorous evening look.
+• Elegant black and gold styling.
+
+SCENE TYPE:
+The occasion is business anniversary celebration.
+
+BACKGROUND:
+• Warm golden studio backdrop.
+• Metallic gold and black decoration.
+• Elegant business bag and other business woman attributes.
+• Soft bokeh lights.
+
+TEXT:
+{NAMES_SECTION}
+
+RESULT:
+A premium 3D anniversary caricature statue, slender elegant figure, luxurious, celebratory, highly polished, photorealistic 3D render.`,
+    fields: [
+      { id: 'rocznica', label: 'Rocznica / liczba lat', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
+      { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'NAMES' }
+    ]
+  },
+  'obraz-ze-zdjecia-prezent-na-30-urodziny-dla-kobiety-biznes-woman': {
+    title: 'Personalizacja',
+    promptTemplate: `Create a luxury 3D business caricature figurine.
+
+STYLE:
+• High-end 3D resin sculpture.
+• Soft cinematic studio lighting.
+• Glossy surfaces, premium finish.
+• Warm golden color grading.
+• Slight caricature exaggeration (larger heads, elegant proportions).
+• Slender, graceful body proportions — elegant and refined, NOT bulky or distorted.
+
+FACE:
+• Preserve facial identity and structure.
+• Natural skin tones.
+• Slight beautification (smooth skin, refined details).
+• Expressive, joyful smiles.
+
+POSE:
+• {YEARS_SECTION}
+• Romantic, elegant body language.
+• Hands elegantly on lap.
+
+OUTFITS:
+• Glamorous evening look.
+• Elegant black and gold styling.
+
+SCENE TYPE:
+The occasion is business anniversary celebration.
+
+BACKGROUND:
+• Warm golden studio backdrop.
+• Metallic gold and black decoration.
+• Elegant business bag and other business woman attributes.
+• Soft bokeh lights.
+
+TEXT:
+{NAMES_SECTION}
+
+RESULT:
+A premium 3D anniversary caricature statue, slender elegant figure, luxurious, celebratory, highly polished, photorealistic 3D render.`,
+    fields: [
+      { id: 'rocznica', label: 'Rocznica / liczba lat', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
+      { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'NAMES' }
     ]
   },
   'obraz-ze-zdjecia-karykatura-na-50-ta-rocznice': {
     title: 'Personalizacja',
     promptTemplate: `Create a luxury 3D anniversary caricature figurine.
+
+CRITICAL: Use ONLY the person(s) visible in the uploaded photo. Do NOT add any extra people. If the photo shows 1 person, show only 1 person. If the photo shows 2 people, show both. Never invent a second person.
 
 STYLE:
 • High-end 3D resin sculpture.
@@ -554,9 +662,9 @@ FACE:
 • Expressive, joyful smiles.
 
 POSE:
-• The couple is sitting on a large metallic gold 3D number "{YEARS}".
+• The person(s) from the photo sitting on a large metallic gold 3D number "{YEARS}".
 • Romantic, elegant body language.
-• Holding champagne glasses.
+• Holding champagne glasses (one per person).
 
 OUTFITS:
 • Glamorous evening look.
@@ -572,17 +680,30 @@ BACKGROUND:
 • Soft bokeh lights.
 
 TEXT:
-Render this EXACT text on a golden plaque at the base:
-"{NAMES}"
-CRITICAL for names: use exact Polish characters — ą, ć, ę, ł, ń, ó, ś, ź, ż (uppercase: Ą, Ć, Ę, Ł, Ń, Ó, Ś, Ź, Ż). Do NOT replace with a, c, e, l, n, o, s, z. Copy every letter exactly as provided.
+{NAMES_SECTION}
 
 RESULT:
 A premium 3D anniversary caricature statue, luxurious, celebratory, highly polished, photorealistic 3D render.`,
     fields: [
-      { id: 'rocznica', label: 'Rocznica', type: 'select', options: ['10', '15', '20', '25', '30', '35', '40', '45', '50', '55', '60', '65', '70'], defaultValue: '50', required: true, promptKey: 'YEARS' },
-      { id: 'imiona', label: 'Imiona (opcjonalnie)', type: 'text', placeholder: 'np. Anna i Marek', required: false, promptKey: 'NAMES' }
+      { id: 'rocznica', label: 'Rocznica / liczba lat', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
+      { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Anna i Marek', required: false, promptKey: 'NAMES' }
     ]
   }
+};
+
+/** Produkty "dla niej" z polem rocznica — używają innej logiki YEARS_SECTION (character zamiast woman, explicit "no numbers" gdy puste). */
+const DLA_NIEJ_WITH_YEARS = ['obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania', 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka', 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka', 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka', 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka', 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog', 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka', 'obraz-ze-zdjecia-karykatura-dla-niej-fitness'];
+
+/** Domyślne wartości "Opis osoby" per produkt — na stałe, niezależne od tytułu. Gdy pole puste, używamy tej wartości. */
+const DEFAULT_PERSONALIZATION_PER_PRODUCT = {
+  'obraz-ze-zdjecia-karykatura-dla-niej-lekarka': 'lekarka, szpital, medycyna, stetoskop',
+  'obraz-ze-zdjecia-karykatura-dla-niej-policjantka': 'policjantka, policja, mundur',
+  'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka': 'rolniczka, farmerka, wieś, rolnictwo',
+  'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka': 'podróżniczka, podróże, walizka',
+  'obraz-ze-zdjecia-karykatura-dla-niej-psycholog': 'psycholog, gabinet',
+  'obraz-ze-zdjecia-karykatura-dla-niej-kucharka': 'kucharka, gotowanie, kuchnia',
+  'obraz-ze-zdjecia-karykatura-dla-niej-fitness': 'fitness, sport, aktywność',
+  'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania': 'elegant, versatile person'
 };
 
 class CustomifyEmbed {
@@ -826,6 +947,14 @@ class CustomifyEmbed {
       'border-radius: 4px'
     ].join(';');
 
+    // Placeholder bledszy — wstrzykuj styl (gwarantowane działanie)
+    if (!document.getElementById('customify-placeholder-style')) {
+      const styleEl = document.createElement('style');
+      styleEl.id = 'customify-placeholder-style';
+      styleEl.textContent = '.customify-personalization-input::placeholder { color: #999 !important; opacity: 0.95 !important; }';
+      document.head.appendChild(styleEl);
+    }
+
     const title = document.createElement('h4');
     title.textContent = config.title || 'Personalizacja';
     title.style.cssText = 'margin: 0 0 10px 0; font-size: 14px; font-weight: 600; color: #222;';
@@ -861,9 +990,15 @@ class CustomifyEmbed {
       } else {
         input = document.createElement('input');
         input.type = 'text';
-        input.placeholder = field.placeholder || '';
+        const ph = field.placeholder || '';
+        input.placeholder = ph;
+        input.dataset.placeholder = ph;
+        input.className = 'customify-personalization-input';
         input.style.cssText = 'width: 100%; padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; box-sizing: border-box;';
         if (field.defaultValue) input.value = field.defaultValue;
+        // Placeholder znika od razu przy focus (kliknięciu), wraca przy blur gdy puste
+        input.addEventListener('focus', () => { input.placeholder = ''; });
+        input.addEventListener('blur', () => { if (!input.value.trim()) input.placeholder = input.dataset.placeholder || ph; });
       }
       input.id = `customField_${field.id}`;
       input.dataset.fieldId = field.id;
@@ -905,15 +1040,34 @@ class CustomifyEmbed {
         let value = el ? el.value.trim() : '';
         if (field.promptKey === 'SCENE_TYPE' && !value) value = 'anniversary';
         if (field.promptKey === 'CHARACTER_DESC' && !value) value = 'Elegant, romantic, celebratory mood.';
-        if (field.promptKey === 'personalization' && !value) value = 'elegant, versatile person';
+        if (field.promptKey === 'personalization' && !value) {
+          const handle = this.getProductHandle();
+          value = (handle && DEFAULT_PERSONALIZATION_PER_PRODUCT[handle]) || 'elegant, versatile person';
+        }
         replacements[field.promptKey] = value;
       });
-      // {NAMES_SECTION} — warunkowy blok: gdy NAMES puste = brak tekstu, gdy wypełnione = tabliczka
+      // {NAMES_SECTION} — warunkowy blok: gdy NAMES puste = ZERO tekstu na obrazku, gdy wypełnione = tabliczka
       if (config.promptTemplate.includes('{NAMES_SECTION}')) {
         const namesVal = replacements['NAMES'] || '';
         replacements['NAMES_SECTION'] = namesVal.trim()
-          ? `Render this EXACT text on a golden plaque at the base:\n"${namesVal.trim()}"\nCRITICAL for names: use exact Polish characters — ą, ć, ę, ł, ń, ó, ś, ź, ż (uppercase: Ą, Ć, Ę, Ł, Ń, Ó, Ś, Ź, Ż). Do NOT replace with a, c, e, l, n, o, s, z. Copy every letter exactly as provided.`
-          : 'Do not add any text, plaque or inscription to the image.';
+          ? `Render this EXACT text on a golden plaque at the base:\n"${namesVal.trim()}"\nCRITICAL for names: use exact Polish characters — ą, ć, ę, ł, ń, ó, ś, ź, ż (uppercase: Ą, Ć, Ę, Ł, Ń, Ó, Ś, Ź, Ż). Do NOT replace with a, c, e, l, n, o, s, z. Copy every letter exactly as provided. Do NOT show reflections of the text on any surface. Text appears only on the plaque.`
+          : 'Do NOT add any text, plaque, inscription, or written text to the image. No names, no letters, no words. The image must be completely free of any text.';
+      }
+      // {YEARS_SECTION} — warunkowy blok: gdy YEARS puste = brak liczby, gdy wypełnione = postać na dużej złotej cyfrze
+      if (config.promptTemplate.includes('{YEARS_SECTION}')) {
+        const yearsVal = replacements['YEARS'] || '';
+        const handle = this.getProductHandle();
+        const isDlaNiejWithYears = handle && DLA_NIEJ_WITH_YEARS.includes(handle);
+        if (yearsVal.trim()) {
+          replacements['YEARS_SECTION'] = isDlaNiejWithYears
+            ? `The character is sitting/standing on or near a large 3D number "${yearsVal.trim()}" — the number's style, color and materials must match the character's profession/hobby theme (e.g. medical blue for nurse, police colors for officer, warm tones for chef). Do NOT use generic metallic gold — adapt to the scene.`
+            : `The woman is sitting on a large metallic gold 3D number "${yearsVal.trim()}" on a business party podium.`;
+        } else {
+          // Gdy puste: NIE dodajemy instrukcji o 3D number — model nie doda losowej liczby. Nie zakazujemy liczb w ogóle (mogą być w imieniu/dedykacji).
+          replacements['YEARS_SECTION'] = isDlaNiejWithYears
+            ? 'The character stands on a podium.'
+            : 'The woman is sitting elegantly on a business party podium.';
+        }
       }
       // {NAME_SECTION} — warunkowy blok dla pola "name": gdy puste = ZERO tekstu na obrazku, gdy wypełnione = tabliczka
       if (config.promptTemplate.includes('{NAME_SECTION}')) {
@@ -967,10 +1121,10 @@ class CustomifyEmbed {
       !currentUrl.includes('personalizowane-etui-na-telefon-z-twoim-zdjeciem-karykatura');
   }
 
-  // 💝 Produkty "dla niej" — jeden styl (caricature-new), bez wyboru, generacja od razu po uploadzie
+  // 💝 Produkty "dla niej" + Biznes Woman — jeden styl (caricature-new), bez wyboru, generacja bez klikania w miniaturkę
   isDlaNiejProduct() {
     const h = this.getProductHandle();
-    return h === 'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-fitness';
+    return h === 'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-fitness' || h === 'obraz-ze-zdjecia-biznes-woman-personalizowany-prezent' || h === 'obraz-ze-zdjecia-prezent-na-30-urodziny-dla-kobiety-biznes-woman' || h === 'wydruk-na-szkle-biznes-woman-prezent-na-urodziny-dla-kobiety';
   }
 
   getCropConfig() {
@@ -1189,7 +1343,7 @@ class CustomifyEmbed {
       }
     }
     // 🎯 Rocznica 50-ta / Dla niej: domyślnie wydruk na szkle + rozmiar A5
-    if (this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-na-50-ta-rocznice' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-fitness') {
+    if (this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-na-50-ta-rocznice' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-fitness' || this.getProductHandle() === 'wydruk-na-szkle-biznes-woman-prezent-na-urodziny-dla-kobiety') {
       const szkloBtn = document.querySelector('.customify-product-type-btn[data-product-type="szklo"]');
       if (szkloBtn) {
         this.productTypeArea?.querySelectorAll('.customify-product-type-btn').forEach(btn => btn.classList.remove('active'));
@@ -1530,6 +1684,14 @@ class CustomifyEmbed {
       console.log('👩‍💼 [PRODUCT-TYPE] URL = Biznes Woman → productType: caricature-new');
       return 'caricature-new';
     }
+    if (currentUrl.includes('wydruk-na-szkle-biznes-woman-prezent-na-urodziny-dla-kobiety')) {
+      console.log('👩‍💼 [PRODUCT-TYPE] URL = Wydruk na szkle Biznes Woman → productType: caricature-new');
+      return 'caricature-new';
+    }
+    if (currentUrl.includes('obraz-ze-zdjecia-prezent-na-30-urodziny-dla-kobiety-biznes-woman')) {
+      console.log('👩‍💼 [PRODUCT-TYPE] URL = Prezent 30 urodziny Biznes Woman → productType: caricature-new');
+      return 'caricature-new';
+    }
     if (currentUrl.includes('obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania')) {
       console.log('💝 [PRODUCT-TYPE] URL = Karykatura dla niej → productType: caricature-new');
       return 'caricature-new';
@@ -1610,6 +1772,10 @@ class CustomifyEmbed {
       console.log('❄️👑 [PRODUCT-TYPE] URL = Królowa Śniegu → productType: snow_queen');
       return 'snow_queen';
     }
+    if (currentUrl.includes('portret-krolowej-obraz-ze-zdjecia-prezent-dla-niej')) {
+      console.log('👑 [PRODUCT-TYPE] URL = Portret królowej prezent → productType: queen_prezent');
+      return 'queen_prezent';
+    }
     if (currentUrl.includes('prezent-na-walentynki-obraz-na-plotnie-z-twojego-zdjecia')) {
       console.log('🌹 [PRODUCT-TYPE] URL = Love Rose → productType: love_rose');
       return 'love_rose';
@@ -1639,6 +1805,8 @@ class CustomifyEmbed {
       'krolowa-styl-2': 'queen',
       'krolowa-styl-3': 'queen',
       'krolowa-styl-4': 'queen',
+      'krolowa-prezent-1': 'queen_prezent',
+      'krolowa-prezent-2': 'queen_prezent',
       'krolewski': 'cats',
       'na-tronie': 'cats',
       'wojenny': 'cats',
@@ -7318,6 +7486,15 @@ function addMobileThumbnails() {
  * INITIALIZATION
  */
 document.addEventListener('DOMContentLoaded', () => {
+  // Simple-product: nie uruchamiaj Customify w ogóle (strona ma tylko przycisk Kup → koszyk)
+  const p = window.ShopifyProduct;
+  if (p && p.tags) {
+    const tags = Array.isArray(p.tags) ? p.tags : String(p.tags).split(',');
+    if (tags.some(t => String(t).toLowerCase().trim() === 'simple-product')) {
+      return;
+    }
+  }
+
   // Initialize Customify app
   const customifyApp = new CustomifyEmbed();
   
