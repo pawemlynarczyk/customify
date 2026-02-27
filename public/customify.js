@@ -40,6 +40,7 @@ Examples:
 • gamer, chef, traveler, musician etc.
 
 POSE
+{YEARS_SECTION}
 • Character sitting or standing confidently on a podium.
 • The podium must be styled to match the profession or hobby — e.g. medical podium for nurse, boat deck for fisherman, office desk for business person, sports field for athlete. The podium design, shape, materials and decorations should reflect and harmonize with the overall theme.
 • Relaxed, charismatic pose.
@@ -64,8 +65,9 @@ TEXT
 RESULT
 Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
     fields: [
-      { id: 'imiona', label: 'Imię (opcjonalnie)', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
-      { id: 'opis_charakteru', label: 'Opis osoby', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
+      { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
+      { id: 'rocznica', label: 'Rocznica / liczba lat', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
+      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
     ]
   },
   'obraz-ze-zdjecia-karykatura-dla-niej-policjantka': {
@@ -100,6 +102,7 @@ Examples:
 • gamer, chef, traveler, musician etc.
 
 POSE
+{YEARS_SECTION}
 • Character sitting or standing confidently on a podium.
 • The podium must be styled to match the profession or hobby — e.g. medical podium for nurse, boat deck for fisherman, office desk for business person, sports field for athlete. The podium design, shape, materials and decorations should reflect and harmonize with the overall theme.
 • Relaxed, charismatic pose.
@@ -124,8 +127,9 @@ TEXT
 RESULT
 Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
     fields: [
-      { id: 'imiona', label: 'Imię (opcjonalnie)', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
-      { id: 'opis_charakteru', label: 'Opis osoby', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
+      { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
+      { id: 'rocznica', label: 'Rocznica / liczba lat', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
+      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
     ]
   },
   'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka': {
@@ -160,6 +164,7 @@ Examples:
 • gamer, chef, traveler, musician etc.
 
 POSE
+{YEARS_SECTION}
 • Character sitting or standing confidently on a podium.
 • The podium must be styled to match the profession or hobby — e.g. medical podium for nurse, boat deck for fisherman, office desk for business person, sports field for athlete. The podium design, shape, materials and decorations should reflect and harmonize with the overall theme.
 • Relaxed, charismatic pose.
@@ -184,8 +189,9 @@ TEXT
 RESULT
 Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
     fields: [
-      { id: 'imiona', label: 'Imię (opcjonalnie)', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
-      { id: 'opis_charakteru', label: 'Opis osoby', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
+      { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
+      { id: 'rocznica', label: 'Rocznica / liczba lat', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
+      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
     ]
   },
   'obraz-ze-zdjecia-karykatura-dla-niej-lekarka': {
@@ -220,6 +226,7 @@ Examples:
 • gamer, chef, traveler, musician etc.
 
 POSE
+{YEARS_SECTION}
 • Character sitting or standing confidently on a podium.
 • The podium must be styled to match the profession or hobby — e.g. medical podium for nurse, boat deck for fisherman, office desk for business person, sports field for athlete. The podium design, shape, materials and decorations should reflect and harmonize with the overall theme.
 • Relaxed, charismatic pose.
@@ -244,8 +251,9 @@ TEXT
 RESULT
 Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
     fields: [
-      { id: 'imiona', label: 'Imię (opcjonalnie)', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
-      { id: 'opis_charakteru', label: 'Opis osoby', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
+      { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
+      { id: 'rocznica', label: 'Rocznica / liczba lat', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
+      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
     ]
   },
   'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka': {
@@ -280,6 +288,7 @@ Examples:
 • gamer, chef, traveler, musician etc.
 
 POSE
+{YEARS_SECTION}
 • Character sitting or standing confidently on a podium.
 • The podium must be styled to match the profession or hobby — e.g. medical podium for nurse, boat deck for fisherman, office desk for business person, sports field for athlete. The podium design, shape, materials and decorations should reflect and harmonize with the overall theme.
 • Relaxed, charismatic pose.
@@ -304,8 +313,9 @@ TEXT
 RESULT
 Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
     fields: [
-      { id: 'imiona', label: 'Imię (opcjonalnie)', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
-      { id: 'opis_charakteru', label: 'Opis osoby', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
+      { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
+      { id: 'rocznica', label: 'Rocznica / liczba lat', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
+      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
     ]
   },
   'obraz-ze-zdjecia-karykatura-dla-niej-psycholog': {
@@ -340,6 +350,7 @@ Examples:
 • gamer, chef, traveler, musician etc.
 
 POSE
+{YEARS_SECTION}
 • Character sitting or standing confidently on a podium.
 • The podium must be styled to match the profession or hobby — e.g. medical podium for nurse, boat deck for fisherman, office desk for business person, sports field for athlete. The podium design, shape, materials and decorations should reflect and harmonize with the overall theme.
 • Relaxed, charismatic pose.
@@ -364,8 +375,9 @@ TEXT
 RESULT
 Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
     fields: [
-      { id: 'imiona', label: 'Imię (opcjonalnie)', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
-      { id: 'opis_charakteru', label: 'Opis osoby', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
+      { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
+      { id: 'rocznica', label: 'Rocznica / liczba lat', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
+      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
     ]
   },
   'obraz-ze-zdjecia-karykatura-dla-niej-kucharka': {
@@ -400,6 +412,7 @@ Examples:
 • gamer, chef, traveler, musician etc.
 
 POSE
+{YEARS_SECTION}
 • Character sitting or standing confidently on a podium.
 • The podium must be styled to match the profession or hobby — e.g. medical podium for nurse, boat deck for fisherman, office desk for business person, sports field for athlete. The podium design, shape, materials and decorations should reflect and harmonize with the overall theme.
 • Relaxed, charismatic pose.
@@ -424,8 +437,9 @@ TEXT
 RESULT
 Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
     fields: [
-      { id: 'imiona', label: 'Imię (opcjonalnie)', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
-      { id: 'opis_charakteru', label: 'Opis osoby', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
+      { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
+      { id: 'rocznica', label: 'Rocznica / liczba lat', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
+      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
     ]
   },
   'obraz-ze-zdjecia-karykatura-dla-niej-fitness': {
@@ -460,6 +474,7 @@ Examples:
 • gamer, chef, traveler, musician etc.
 
 POSE
+{YEARS_SECTION}
 • Character sitting or standing confidently on a podium.
 • The podium must be styled to match the profession or hobby — e.g. medical podium for nurse, boat deck for fisherman, office desk for business person, sports field for athlete. The podium design, shape, materials and decorations should reflect and harmonize with the overall theme.
 • Relaxed, charismatic pose.
@@ -484,8 +499,9 @@ TEXT
 RESULT
 Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
     fields: [
-      { id: 'imiona', label: 'Imię (opcjonalnie)', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
-      { id: 'opis_charakteru', label: 'Opis osoby', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
+      { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
+      { id: 'rocznica', label: 'Rocznica / liczba lat', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
+      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
     ]
   },
   'obraz-ze-zdjecia-biznes-woman-personalizowany-prezent': {
@@ -507,7 +523,7 @@ FACE:
 • Expressive, joyful smiles.
 
 POSE:
-• The woman is sitting on a business party podium.
+• {YEARS_SECTION}
 • Romantic, elegant body language.
 • Hands elegantly on lap.
 
@@ -516,7 +532,7 @@ OUTFITS:
 • Elegant black and gold styling.
 
 SCENE TYPE:
-The occasion is business conference.
+The occasion is business anniversary celebration.
 
 BACKGROUND:
 • Warm golden studio backdrop.
@@ -525,20 +541,112 @@ BACKGROUND:
 • Soft bokeh lights.
 
 TEXT:
-Render this EXACT text on a golden plaque at the base:
-"{NAMES}"
-CRITICAL for names: use exact Polish characters — ą, ć, ę, ł, ń, ó, ś, ź, ż (uppercase: Ą, Ć, Ę, Ł, Ń, Ó, Ś, Ź, Ż). Do NOT replace with a, c, e, l, n, o, s, z. Copy every letter exactly as provided.
-Do NOT show reflections, mirror images or reflections of the text on any surface (floor, podium, glass, etc.). Text appears only on the plaque.
+{NAMES_SECTION}
 
 RESULT:
 A premium 3D anniversary caricature statue, slender elegant figure, luxurious, celebratory, highly polished, photorealistic 3D render.`,
     fields: [
-      { id: 'imiona', label: 'Imię (opcjonalnie)', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'NAMES' }
+      { id: 'rocznica', label: 'Rocznica / liczba lat', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
+      { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'NAMES' }
+    ]
+  },
+  'wydruk-na-szkle-biznes-woman-prezent-na-urodziny-dla-kobiety': {
+    title: 'Personalizacja',
+    promptTemplate: `Create a luxury 3D business caricature figurine.
+
+STYLE:
+• High-end 3D resin sculpture.
+• Soft cinematic studio lighting.
+• Glossy surfaces, premium finish.
+• Warm golden color grading.
+• Slight caricature exaggeration (larger heads, elegant proportions).
+• Slender, graceful body proportions — elegant and refined, NOT bulky or distorted.
+
+FACE:
+• Preserve facial identity and structure.
+• Natural skin tones.
+• Slight beautification (smooth skin, refined details).
+• Expressive, joyful smiles.
+
+POSE:
+• {YEARS_SECTION}
+• Romantic, elegant body language.
+• Hands elegantly on lap.
+
+OUTFITS:
+• Glamorous evening look.
+• Elegant black and gold styling.
+
+SCENE TYPE:
+The occasion is business anniversary celebration.
+
+BACKGROUND:
+• Warm golden studio backdrop.
+• Metallic gold and black decoration.
+• Elegant business bag and other business woman attributes.
+• Soft bokeh lights.
+
+TEXT:
+{NAMES_SECTION}
+
+RESULT:
+A premium 3D anniversary caricature statue, slender elegant figure, luxurious, celebratory, highly polished, photorealistic 3D render.`,
+    fields: [
+      { id: 'rocznica', label: 'Rocznica / liczba lat', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
+      { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'NAMES' }
+    ]
+  },
+  'obraz-ze-zdjecia-prezent-na-30-urodziny-dla-kobiety-biznes-woman': {
+    title: 'Personalizacja',
+    promptTemplate: `Create a luxury 3D business caricature figurine.
+
+STYLE:
+• High-end 3D resin sculpture.
+• Soft cinematic studio lighting.
+• Glossy surfaces, premium finish.
+• Warm golden color grading.
+• Slight caricature exaggeration (larger heads, elegant proportions).
+• Slender, graceful body proportions — elegant and refined, NOT bulky or distorted.
+
+FACE:
+• Preserve facial identity and structure.
+• Natural skin tones.
+• Slight beautification (smooth skin, refined details).
+• Expressive, joyful smiles.
+
+POSE:
+• {YEARS_SECTION}
+• Romantic, elegant body language.
+• Hands elegantly on lap.
+
+OUTFITS:
+• Glamorous evening look.
+• Elegant black and gold styling.
+
+SCENE TYPE:
+The occasion is business anniversary celebration.
+
+BACKGROUND:
+• Warm golden studio backdrop.
+• Metallic gold and black decoration.
+• Elegant business bag and other business woman attributes.
+• Soft bokeh lights.
+
+TEXT:
+{NAMES_SECTION}
+
+RESULT:
+A premium 3D anniversary caricature statue, slender elegant figure, luxurious, celebratory, highly polished, photorealistic 3D render.`,
+    fields: [
+      { id: 'rocznica', label: 'Rocznica / liczba lat', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
+      { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'NAMES' }
     ]
   },
   'obraz-ze-zdjecia-karykatura-na-50-ta-rocznice': {
     title: 'Personalizacja',
     promptTemplate: `Create a luxury 3D anniversary caricature figurine.
+
+CRITICAL: Use ONLY the person(s) visible in the uploaded photo. Do NOT add any extra people. If the photo shows 1 person, show only 1 person. If the photo shows 2 people, show both. Never invent a second person.
 
 STYLE:
 • High-end 3D resin sculpture.
@@ -554,9 +662,9 @@ FACE:
 • Expressive, joyful smiles.
 
 POSE:
-• The couple is sitting on a large metallic gold 3D number "{YEARS}".
+• The person(s) from the photo sitting on a large metallic gold 3D number "{YEARS}".
 • Romantic, elegant body language.
-• Holding champagne glasses.
+• Holding champagne glasses (one per person).
 
 OUTFITS:
 • Glamorous evening look.
@@ -572,17 +680,43 @@ BACKGROUND:
 • Soft bokeh lights.
 
 TEXT:
-Render this EXACT text on a golden plaque at the base:
-"{NAMES}"
-CRITICAL for names: use exact Polish characters — ą, ć, ę, ł, ń, ó, ś, ź, ż (uppercase: Ą, Ć, Ę, Ł, Ń, Ó, Ś, Ź, Ż). Do NOT replace with a, c, e, l, n, o, s, z. Copy every letter exactly as provided.
+{NAMES_SECTION}
 
 RESULT:
 A premium 3D anniversary caricature statue, luxurious, celebratory, highly polished, photorealistic 3D render.`,
     fields: [
-      { id: 'rocznica', label: 'Rocznica', type: 'select', options: ['10', '15', '20', '25', '30', '35', '40', '45', '50', '55', '60', '65', '70'], defaultValue: '50', required: true, promptKey: 'YEARS' },
-      { id: 'imiona', label: 'Imiona (opcjonalnie)', type: 'text', placeholder: 'np. Anna i Marek', required: false, promptKey: 'NAMES' }
+      { id: 'rocznica', label: 'Rocznica / liczba lat', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
+      { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Anna i Marek', required: false, promptKey: 'NAMES' }
+    ]
+  },
+  'dodaj-osobe-do-zdjecia-naturalny-efekt-obraz-plakat-wydruk': {
+    title: 'Personalizacja',
+    multiUpload: true,
+    maxImages: 4,
+    promptTemplate: `Combine all the people from the provided reference photos into a single, cohesive, natural-looking photograph. The result must look like a real, candid photo — not an illustration, not a painting, not AI-generated. Use natural lighting, realistic skin tones, authentic clothing textures, and a believable environment. Preserve the EXACT facial features, hair color, hairstyle, and likeness of every person. Place all people together in one natural scene as if they were photographed together in real life. Match lighting, color grading, and perspective across all people. High resolution, sharp details, photorealistic quality. Frame as portrait-oriented photo. All people visible from at least waist up, faces clearly visible and large in the frame.
+
+{DEDICATION_SECTION}
+
+OUTPUT: A single photorealistic image that looks like a genuine group photograph.`,
+    fields: [
+      { id: 'dedykacja', label: 'Dodaj napis / dedykację', type: 'text', placeholder: 'np. Kochana Mamo, Wesołych Świąt!', required: false, promptKey: 'DEDICATION' }
     ]
   }
+};
+
+/** Produkty "dla niej" z polem rocznica — używają innej logiki YEARS_SECTION (character zamiast woman, explicit "no numbers" gdy puste). */
+const DLA_NIEJ_WITH_YEARS = ['obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania', 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka', 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka', 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka', 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka', 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog', 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka', 'obraz-ze-zdjecia-karykatura-dla-niej-fitness'];
+
+/** Domyślne wartości "Opis osoby" per produkt — na stałe, niezależne od tytułu. Gdy pole puste, używamy tej wartości. */
+const DEFAULT_PERSONALIZATION_PER_PRODUCT = {
+  'obraz-ze-zdjecia-karykatura-dla-niej-lekarka': 'lekarka, szpital, medycyna, stetoskop',
+  'obraz-ze-zdjecia-karykatura-dla-niej-policjantka': 'policjantka, policja, mundur',
+  'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka': 'rolniczka, farmerka, wieś, rolnictwo',
+  'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka': 'podróżniczka, podróże, walizka',
+  'obraz-ze-zdjecia-karykatura-dla-niej-psycholog': 'psycholog, gabinet',
+  'obraz-ze-zdjecia-karykatura-dla-niej-kucharka': 'kucharka, gotowanie, kuchnia',
+  'obraz-ze-zdjecia-karykatura-dla-niej-fitness': 'fitness, sport, aktywność',
+  'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania': 'elegant, versatile person'
 };
 
 class CustomifyEmbed {
@@ -671,6 +805,10 @@ class CustomifyEmbed {
     this.selectedSize = null;
     this.selectedProductType = 'plakat'; // Domyślny wybór: Plakat
     this.transformedImage = null;
+
+    // 📸 Multi-upload (dodaj-osobe)
+    this.multiUploadFiles = [null, null, null, null];
+    this.multiUploadPreviews = [null, null, null, null];
     
     // 🎨 GLFX Filters
     this.glfxInitialized = false;
@@ -826,6 +964,14 @@ class CustomifyEmbed {
       'border-radius: 4px'
     ].join(';');
 
+    // Placeholder bledszy — wstrzykuj styl (gwarantowane działanie)
+    if (!document.getElementById('customify-placeholder-style')) {
+      const styleEl = document.createElement('style');
+      styleEl.id = 'customify-placeholder-style';
+      styleEl.textContent = '.customify-personalization-input::placeholder { color: #999 !important; opacity: 0.95 !important; }';
+      document.head.appendChild(styleEl);
+    }
+
     const title = document.createElement('h4');
     title.textContent = config.title || 'Personalizacja';
     title.style.cssText = 'margin: 0 0 10px 0; font-size: 14px; font-weight: 600; color: #222;';
@@ -861,9 +1007,15 @@ class CustomifyEmbed {
       } else {
         input = document.createElement('input');
         input.type = 'text';
-        input.placeholder = field.placeholder || '';
+        const ph = field.placeholder || '';
+        input.placeholder = ph;
+        input.dataset.placeholder = ph;
+        input.className = 'customify-personalization-input';
         input.style.cssText = 'width: 100%; padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; box-sizing: border-box;';
         if (field.defaultValue) input.value = field.defaultValue;
+        // Placeholder znika od razu przy focus (kliknięciu), wraca przy blur gdy puste
+        input.addEventListener('focus', () => { input.placeholder = ''; });
+        input.addEventListener('blur', () => { if (!input.value.trim()) input.placeholder = input.dataset.placeholder || ph; });
       }
       input.id = `customField_${field.id}`;
       input.dataset.fieldId = field.id;
@@ -905,15 +1057,34 @@ class CustomifyEmbed {
         let value = el ? el.value.trim() : '';
         if (field.promptKey === 'SCENE_TYPE' && !value) value = 'anniversary';
         if (field.promptKey === 'CHARACTER_DESC' && !value) value = 'Elegant, romantic, celebratory mood.';
-        if (field.promptKey === 'personalization' && !value) value = 'elegant, versatile person';
+        if (field.promptKey === 'personalization' && !value) {
+          const handle = this.getProductHandle();
+          value = (handle && DEFAULT_PERSONALIZATION_PER_PRODUCT[handle]) || 'elegant, versatile person';
+        }
         replacements[field.promptKey] = value;
       });
-      // {NAMES_SECTION} — warunkowy blok: gdy NAMES puste = brak tekstu, gdy wypełnione = tabliczka
+      // {NAMES_SECTION} — warunkowy blok: gdy NAMES puste = ZERO tekstu na obrazku, gdy wypełnione = tabliczka
       if (config.promptTemplate.includes('{NAMES_SECTION}')) {
         const namesVal = replacements['NAMES'] || '';
         replacements['NAMES_SECTION'] = namesVal.trim()
-          ? `Render this EXACT text on a golden plaque at the base:\n"${namesVal.trim()}"\nCRITICAL for names: use exact Polish characters — ą, ć, ę, ł, ń, ó, ś, ź, ż (uppercase: Ą, Ć, Ę, Ł, Ń, Ó, Ś, Ź, Ż). Do NOT replace with a, c, e, l, n, o, s, z. Copy every letter exactly as provided.`
-          : 'Do not add any text, plaque or inscription to the image.';
+          ? `Render this EXACT text on a golden plaque at the base:\n"${namesVal.trim()}"\nCRITICAL for names: use exact Polish characters — ą, ć, ę, ł, ń, ó, ś, ź, ż (uppercase: Ą, Ć, Ę, Ł, Ń, Ó, Ś, Ź, Ż). Do NOT replace with a, c, e, l, n, o, s, z. Copy every letter exactly as provided. Do NOT show reflections of the text on any surface. Text appears only on the plaque.`
+          : 'Do NOT add any text, plaque, inscription, or written text to the image. No names, no letters, no words. The image must be completely free of any text.';
+      }
+      // {YEARS_SECTION} — warunkowy blok: gdy YEARS puste = brak liczby, gdy wypełnione = postać na dużej złotej cyfrze
+      if (config.promptTemplate.includes('{YEARS_SECTION}')) {
+        const yearsVal = replacements['YEARS'] || '';
+        const handle = this.getProductHandle();
+        const isDlaNiejWithYears = handle && DLA_NIEJ_WITH_YEARS.includes(handle);
+        if (yearsVal.trim()) {
+          replacements['YEARS_SECTION'] = isDlaNiejWithYears
+            ? `The character is sitting/standing on or near a large 3D number "${yearsVal.trim()}" — the number's style, color and materials must match the character's profession/hobby theme (e.g. medical blue for nurse, police colors for officer, warm tones for chef). Do NOT use generic metallic gold — adapt to the scene.`
+            : `The woman is sitting on a large metallic gold 3D number "${yearsVal.trim()}" on a business party podium.`;
+        } else {
+          // Gdy puste: NIE dodajemy instrukcji o 3D number — model nie doda losowej liczby. Nie zakazujemy liczb w ogóle (mogą być w imieniu/dedykacji).
+          replacements['YEARS_SECTION'] = isDlaNiejWithYears
+            ? 'The character stands on a podium.'
+            : 'The woman is sitting elegantly on a business party podium.';
+        }
       }
       // {NAME_SECTION} — warunkowy blok dla pola "name": gdy puste = ZERO tekstu na obrazku, gdy wypełnione = tabliczka
       if (config.promptTemplate.includes('{NAME_SECTION}')) {
@@ -921,6 +1092,13 @@ class CustomifyEmbed {
         replacements['NAME_SECTION'] = nameVal.trim()
           ? `Render this EXACT text on a plaque at the base:\n"${nameVal.trim()}"\nCRITICAL for names: use exact Polish characters — ą, ć, ę, ł, ń, ó, ś, ź, ż (uppercase: Ą, Ć, Ę, Ł, Ń, Ó, Ś, Ź, Ż). Do NOT replace letters.`
           : 'Do NOT add any text, plaque, inscription, or written text to the image. No names, no letters, no words. The image must be completely free of any text.';
+      }
+      // {DEDICATION_SECTION} — warunkowy blok dla dedykacji: gdy puste = ZERO tekstu, gdy wypełnione = ozdobny napis
+      if (config.promptTemplate.includes('{DEDICATION_SECTION}')) {
+        const dedVal = replacements['DEDICATION'] || '';
+        replacements['DEDICATION_SECTION'] = dedVal.trim()
+          ? `TEXT / DEDICATION:\nAt the bottom of the image, add a beautiful, decorative text inscription that fits the overall composition and color palette. The text reads:\n"${dedVal.trim()}"\nThe font style should be elegant and harmonious with the scene. CRITICAL: use exact Polish characters — ą, ć, ę, ł, ń, ó, ś, ź, ż (uppercase: Ą, Ć, Ę, Ł, Ń, Ó, Ś, Ź, Ż). Do NOT replace with a, c, e, l, n, o, s, z. Copy every letter exactly as provided.`
+          : 'Do NOT add any text, inscription, caption, watermark, or written words to the image. The image must be completely free of any text.';
       }
       let prompt = config.promptTemplate;
       Object.keys(replacements).forEach(key => {
@@ -967,10 +1145,109 @@ class CustomifyEmbed {
       !currentUrl.includes('personalizowane-etui-na-telefon-z-twoim-zdjeciem-karykatura');
   }
 
-  // 💝 Produkty "dla niej" — jeden styl (caricature-new), bez wyboru, generacja od razu po uploadzie
+  // 📸 Produkt multi-upload (dodaj osobę do zdjęcia)
+  isMultiUploadProduct() {
+    const h = this.getProductHandle();
+    return h === 'dodaj-osobe-do-zdjecia-naturalny-efekt-obraz-plakat-wydruk';
+  }
+
+  setupMultiUpload() {
+    if (!this.isMultiUploadProduct()) return;
+    const grid = document.querySelector('.multi-upload-grid');
+    if (!grid) return;
+    grid.querySelectorAll('.multi-upload-slot').forEach((slot, idx) => {
+      const input = slot.querySelector('.multi-slot-input');
+      const placeholder = slot.querySelector('.multi-slot-placeholder');
+      const removeBtn = slot.querySelector('.multi-slot-remove');
+      if (placeholder) {
+        placeholder.addEventListener('click', () => input && input.click());
+      }
+      if (input) {
+        input.addEventListener('change', (e) => {
+          if (e.target.files && e.target.files[0]) {
+            this.handleMultiFileSelect(e.target.files[0], idx);
+          }
+        });
+      }
+      if (removeBtn) {
+        removeBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.removeMultiFile(idx);
+        });
+      }
+    });
+    console.log('📸 [MULTI-UPLOAD] Setup complete, 4 slots ready');
+  }
+
+  handleMultiFileSelect(file, slotIndex) {
+    if (!file || !file.type.startsWith('image/')) {
+      this.showError('Wybierz plik graficzny (JPG, PNG)', 'upload');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      this.showError('Plik jest za duży (max 10MB)', 'upload');
+      return;
+    }
+    this.multiUploadFiles[slotIndex] = file;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      this.multiUploadPreviews[slotIndex] = e.target.result;
+      const slot = document.querySelectorAll('.multi-upload-slot')[slotIndex];
+      if (slot) {
+        const preview = slot.querySelector('.multi-slot-preview');
+        const placeholder = slot.querySelector('.multi-slot-placeholder');
+        const removeBtn = slot.querySelector('.multi-slot-remove');
+        if (preview) {
+          preview.style.backgroundImage = `url(${e.target.result})`;
+          preview.style.display = 'block';
+        }
+        if (placeholder) placeholder.style.display = 'none';
+        if (removeBtn) removeBtn.style.display = 'flex';
+      }
+      this.updateMultiUploadCounter();
+      if (!this.uploadedFile) {
+        this.uploadedFile = file;
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+
+  removeMultiFile(slotIndex) {
+    this.multiUploadFiles[slotIndex] = null;
+    this.multiUploadPreviews[slotIndex] = null;
+    const slot = document.querySelectorAll('.multi-upload-slot')[slotIndex];
+    if (slot) {
+      const preview = slot.querySelector('.multi-slot-preview');
+      const placeholder = slot.querySelector('.multi-slot-placeholder');
+      const removeBtn = slot.querySelector('.multi-slot-remove');
+      const input = slot.querySelector('.multi-slot-input');
+      if (preview) { preview.style.backgroundImage = ''; preview.style.display = 'none'; }
+      if (placeholder) placeholder.style.display = 'flex';
+      if (removeBtn) removeBtn.style.display = 'none';
+      if (input) input.value = '';
+    }
+    this.updateMultiUploadCounter();
+    const remaining = this.getMultiUploadFiles();
+    if (remaining.length === 0) this.uploadedFile = null;
+    else this.uploadedFile = remaining[0];
+  }
+
+  updateMultiUploadCounter() {
+    const counter = document.getElementById('multiUploadCount');
+    if (counter) {
+      const count = this.multiUploadFiles.filter(f => f !== null).length;
+      counter.textContent = count;
+    }
+  }
+
+  getMultiUploadFiles() {
+    return this.multiUploadFiles.filter(f => f !== null);
+  }
+
+  // 💝 Produkty "dla niej" + Biznes Woman — jeden styl (caricature-new), bez wyboru, generacja bez klikania w miniaturkę
   isDlaNiejProduct() {
     const h = this.getProductHandle();
-    return h === 'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-fitness';
+    return h === 'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-fitness' || h === 'obraz-ze-zdjecia-biznes-woman-personalizowany-prezent' || h === 'obraz-ze-zdjecia-prezent-na-30-urodziny-dla-kobiety-biznes-woman' || h === 'wydruk-na-szkle-biznes-woman-prezent-na-urodziny-dla-kobiety';
   }
 
   getCropConfig() {
@@ -1129,6 +1406,7 @@ class CustomifyEmbed {
     } catch (_) {}
     
     this.setupEventListeners();
+    this.setupMultiUpload(); // 📸 Multi-upload slots (jeśli produkt je obsługuje)
     this.positionApp();
     this.showStyles(); // Pokaż style od razu
     this.renderCustomFields(); // Pola personalizacji (jeśli produkt je obsługuje)
@@ -1189,7 +1467,7 @@ class CustomifyEmbed {
       }
     }
     // 🎯 Rocznica 50-ta / Dla niej: domyślnie wydruk na szkle + rozmiar A5
-    if (this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-na-50-ta-rocznice' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-fitness') {
+    if (this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-na-50-ta-rocznice' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-fitness' || this.getProductHandle() === 'wydruk-na-szkle-biznes-woman-prezent-na-urodziny-dla-kobiety') {
       const szkloBtn = document.querySelector('.customify-product-type-btn[data-product-type="szklo"]');
       if (szkloBtn) {
         this.productTypeArea?.querySelectorAll('.customify-product-type-btn').forEach(btn => btn.classList.remove('active'));
@@ -1530,6 +1808,14 @@ class CustomifyEmbed {
       console.log('👩‍💼 [PRODUCT-TYPE] URL = Biznes Woman → productType: caricature-new');
       return 'caricature-new';
     }
+    if (currentUrl.includes('wydruk-na-szkle-biznes-woman-prezent-na-urodziny-dla-kobiety')) {
+      console.log('👩‍💼 [PRODUCT-TYPE] URL = Wydruk na szkle Biznes Woman → productType: caricature-new');
+      return 'caricature-new';
+    }
+    if (currentUrl.includes('obraz-ze-zdjecia-prezent-na-30-urodziny-dla-kobiety-biznes-woman')) {
+      console.log('👩‍💼 [PRODUCT-TYPE] URL = Prezent 30 urodziny Biznes Woman → productType: caricature-new');
+      return 'caricature-new';
+    }
     if (currentUrl.includes('obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania')) {
       console.log('💝 [PRODUCT-TYPE] URL = Karykatura dla niej → productType: caricature-new');
       return 'caricature-new';
@@ -1610,6 +1896,10 @@ class CustomifyEmbed {
       console.log('❄️👑 [PRODUCT-TYPE] URL = Królowa Śniegu → productType: snow_queen');
       return 'snow_queen';
     }
+    if (currentUrl.includes('portret-krolowej-obraz-ze-zdjecia-prezent-dla-niej')) {
+      console.log('👑 [PRODUCT-TYPE] URL = Portret królowej prezent → productType: queen_prezent');
+      return 'queen_prezent';
+    }
     if (currentUrl.includes('prezent-na-walentynki-obraz-na-plotnie-z-twojego-zdjecia')) {
       console.log('🌹 [PRODUCT-TYPE] URL = Love Rose → productType: love_rose');
       return 'love_rose';
@@ -1618,7 +1908,11 @@ class CustomifyEmbed {
       console.log('🦸 [PRODUCT-TYPE] URL = Superpara → productType: superpara');
       return 'superpara';
     }
-    
+    if (currentUrl.includes('dodaj-osobe-do-zdjecia-naturalny-efekt')) {
+      console.log('📸 [PRODUCT-TYPE] URL = Dodaj osobę → productType: dodaj_osobe');
+      return 'dodaj_osobe';
+    }
+
     // 🔄 PRIORYTET 2: Fallback - sprawdź styl (tylko dla starych generacji bez URL)
     console.log('⚠️ [PRODUCT-TYPE] Nie rozpoznano URL, sprawdzam styl:', style);
     
@@ -1639,6 +1933,8 @@ class CustomifyEmbed {
       'krolowa-styl-2': 'queen',
       'krolowa-styl-3': 'queen',
       'krolowa-styl-4': 'queen',
+      'krolowa-prezent-1': 'queen_prezent',
+      'krolowa-prezent-2': 'queen_prezent',
       'krolewski': 'cats',
       'na-tronie': 'cats',
       'wojenny': 'cats',
@@ -1667,9 +1963,10 @@ class CustomifyEmbed {
       'wanted': 'wanted',
       'wanted_k': 'wanted_k',
       'anime': 'anime',
-      'superman': 'superman'
+      'superman': 'superman',
+      'dodaj-osobe': 'dodaj_osobe'
     };
-    
+
     const productType = styleToProductType[style] || 'other';
     console.log('🔄 [PRODUCT-TYPE] Styl:', style, '→ productType:', productType);
     
@@ -4638,7 +4935,11 @@ class CustomifyEmbed {
   showStyles() {
     // 🎵 Dla produktu bez AI nie pokazuj stylów
     if (!this.isSpotifyNoAIProduct()) {
-      if (this.isDlaNiejProduct()) {
+      if (this.isMultiUploadProduct()) {
+        this.stylesArea.style.display = 'none';
+        this.selectedStyle = 'dodaj-osobe';
+        console.log('📸 [MULTI-UPLOAD] Ukryto wybór stylu, auto-select dodaj-osobe');
+      } else if (this.isDlaNiejProduct()) {
         this.stylesArea.style.display = 'none';
         this.selectedStyle = 'caricature-new';
         console.log('💝 [DLA-NIEJ] Ukryto wybór stylu, auto-select caricature-new');
@@ -5490,7 +5791,14 @@ class CustomifyEmbed {
       uploadedFileName: this.uploadedFile?.name
     });
     
-    if (!this.uploadedFile || !this.selectedStyle) {
+    if (this.isMultiUploadProduct()) {
+      const multiFiles = this.getMultiUploadFiles();
+      if (multiFiles.length === 0) {
+        this.showError('Wgraj przynajmniej jedno zdjęcie', 'transform');
+        return;
+      }
+      if (!this.uploadedFile) this.uploadedFile = multiFiles[0];
+    } else if (!this.uploadedFile || !this.selectedStyle) {
       console.error(`❌ [TRANSFORM] Brak wymaganych danych:`, {
         uploadedFile: !!this.uploadedFile,
         selectedStyle: this.selectedStyle
@@ -5666,6 +5974,37 @@ class CustomifyEmbed {
         const cfg = this.getCustomFieldConfig();
         if (cfg && cfg.promptTemplate) requestBody.replaceBasePrompt = true;
         console.log('🎛️ [CUSTOM-FIELDS] Dodano promptAddition do requestBody:', promptAddition.substring(0, 100), cfg && cfg.promptTemplate ? '(replaceBasePrompt)' : '');
+      }
+
+      // 📸 MULTI-UPLOAD: Upload dodatkowych zdjęć do Vercel Blob i dodaj URL-e
+      if (this.isMultiUploadProduct()) {
+        const multiFiles = this.getMultiUploadFiles();
+        const additionalImageUrls = [];
+        for (let i = 1; i < multiFiles.length; i++) {
+          const file = multiFiles[i];
+          const fileBase64 = await this.fileToBase64(file);
+          console.log(`📸 [MULTI-UPLOAD] Uploading image ${i+1}/${multiFiles.length} to Vercel Blob...`);
+          try {
+            const uploadResp = await fetch('https://customify-s56o.vercel.app/api/upload-temp-image', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ imageData: fileBase64, filename: `multi-upload-${Date.now()}-${i}.jpg` })
+            });
+            if (uploadResp.ok) {
+              const uploadResult = await uploadResp.json();
+              if (uploadResult.url) {
+                additionalImageUrls.push(uploadResult.url);
+                console.log(`📸 [MULTI-UPLOAD] Image ${i+1} uploaded:`, uploadResult.url.substring(0, 80));
+              }
+            }
+          } catch (uploadErr) {
+            console.warn(`⚠️ [MULTI-UPLOAD] Failed to upload image ${i+1}:`, uploadErr);
+          }
+        }
+        if (additionalImageUrls.length > 0) {
+          requestBody.additionalImages = additionalImageUrls;
+          console.log(`📸 [MULTI-UPLOAD] Total additional images: ${additionalImageUrls.length}`);
+        }
       }
       
       console.log('📱 [MOBILE] Request body size:', JSON.stringify(requestBody).length, 'bytes');
@@ -6197,6 +6536,9 @@ class CustomifyEmbed {
     // UKRYJ pole upload po przekształceniu
     this.uploadArea.style.display = 'none';
     console.log('🎯 [CUSTOMIFY] uploadArea hidden:', this.uploadArea.style.display);
+    // 📸 UKRYJ multi-upload grid po przekształceniu
+    const multiUploadArea = document.getElementById('multiUploadArea');
+    if (multiUploadArea) multiUploadArea.style.display = 'none';
 
     // Ukryj previewArea po generacji TYLKO dla spotify
     if (this.isSpotifyProduct() && this.previewArea) {
@@ -6860,7 +7202,10 @@ class CustomifyEmbed {
     
     // Pokaż style AI i przyciski (nie dla produktu bez AI)
     if (!this.isSpotifyNoAIProduct()) {
-      if (this.isDlaNiejProduct()) {
+      if (this.isMultiUploadProduct()) {
+        this.stylesArea.style.display = 'none';
+        this.selectedStyle = 'dodaj-osobe';
+      } else if (this.isDlaNiejProduct()) {
         this.stylesArea.style.display = 'none';
         this.selectedStyle = 'caricature-new';
       } else {
@@ -6871,6 +7216,11 @@ class CustomifyEmbed {
     
     // Pokaż pole upload (jeśli było ukryte)
     this.uploadArea.style.display = 'block';
+    // 📸 Multi-upload: pokaż grid
+    const multiUploadArea = document.getElementById('multiUploadArea');
+    if (multiUploadArea && this.isMultiUploadProduct()) {
+      multiUploadArea.style.display = 'block';
+    }
     
     // 📱 Phone case: Hide cart buttons in previewArea
     if (this.isPhonePhotoCaseProduct && this.isPhonePhotoCaseProduct()) {
@@ -6884,8 +7234,8 @@ class CustomifyEmbed {
       }
     }
     
-    // Zresetuj wybrane style i rozmiary (dla "dla niej" — styl zostaje caricature-new)
-    this.selectedStyle = this.isDlaNiejProduct() ? 'caricature-new' : null;
+    // Zresetuj wybrane style i rozmiary
+    this.selectedStyle = this.isMultiUploadProduct() ? 'dodaj-osobe' : (this.isDlaNiejProduct() ? 'caricature-new' : null);
     this.selectedSize = null;
     this.transformedImage = null;
     this.textOverlayBaseImage = null;
@@ -7318,6 +7668,15 @@ function addMobileThumbnails() {
  * INITIALIZATION
  */
 document.addEventListener('DOMContentLoaded', () => {
+  // Simple-product: nie uruchamiaj Customify w ogóle (strona ma tylko przycisk Kup → koszyk)
+  const p = window.ShopifyProduct;
+  if (p && p.tags) {
+    const tags = Array.isArray(p.tags) ? p.tags : String(p.tags).split(',');
+    if (tags.some(t => String(t).toLowerCase().trim() === 'simple-product')) {
+      return;
+    }
+  }
+
   // Initialize Customify app
   const customifyApp = new CustomifyEmbed();
   
