@@ -695,10 +695,13 @@ A premium 3D anniversary caricature statue, luxurious, celebratory, highly polis
     maxImages: 4,
     promptTemplate: `Combine all the people from the provided reference photos into a single, cohesive, natural-looking photograph. The result must look like a real, candid photo — not an illustration, not a painting, not AI-generated. Use natural lighting, realistic skin tones, authentic clothing textures, and a believable environment. Preserve the EXACT facial features, hair color, hairstyle, and likeness of every person. Place all people together in one natural scene as if they were photographed together in real life. Match lighting, color grading, and perspective across all people. High resolution, sharp details, photorealistic quality. Frame as portrait-oriented photo. All people visible from at least waist up, faces clearly visible and large in the frame.
 
+{SCENE_DESC_SECTION}
+
 {DEDICATION_SECTION}
 
 OUTPUT: A single photorealistic image that looks like a genuine group photograph.`,
     fields: [
+      { id: 'scena', label: 'Opisz scenę / klimat zdjęcia', type: 'text', placeholder: 'np. rodzinny obiad, spotkanie biznesowe, piknik w parku', required: false, promptKey: 'SCENE_DESC' },
       { id: 'dedykacja', label: 'Dodaj napis / dedykację', type: 'text', placeholder: 'np. Kochana Mamo, Wesołych Świąt!', required: false, promptKey: 'DEDICATION' }
     ]
   }
@@ -1092,6 +1095,13 @@ class CustomifyEmbed {
         replacements['NAME_SECTION'] = nameVal.trim()
           ? `Render this EXACT text on a plaque at the base:\n"${nameVal.trim()}"\nCRITICAL for names: use exact Polish characters — ą, ć, ę, ł, ń, ó, ś, ź, ż (uppercase: Ą, Ć, Ę, Ł, Ń, Ó, Ś, Ź, Ż). Do NOT replace letters.`
           : 'Do NOT add any text, plaque, inscription, or written text to the image. No names, no letters, no words. The image must be completely free of any text.';
+      }
+      // {SCENE_DESC_SECTION} — warunkowy blok dla opisu sceny: gdy puste = brak instrukcji, gdy wypełnione = opis kontekstu
+      if (config.promptTemplate.includes('{SCENE_DESC_SECTION}')) {
+        const sceneVal = replacements['SCENE_DESC'] || '';
+        replacements['SCENE_DESC_SECTION'] = sceneVal.trim()
+          ? `SCENE CONTEXT: The setting and mood of the photo should reflect: ${sceneVal.trim()}. Adapt the environment, clothing style, lighting and background to match this context naturally.`
+          : '';
       }
       // {DEDICATION_SECTION} — warunkowy blok dla dedykacji: gdy puste = ZERO tekstu, gdy wypełnione = ozdobny napis
       if (config.promptTemplate.includes('{DEDICATION_SECTION}')) {
