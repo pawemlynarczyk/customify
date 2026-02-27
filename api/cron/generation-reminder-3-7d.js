@@ -1,5 +1,5 @@
 /**
- * Cron: przypomnienie „masz generację, nie kupiłeś” – 3 dni i 7 dni po ostatniej generacji.
+ * Cron: przypomnienie „masz generację, nie kupiłeś” – 3, 7 i 14 dni po ostatniej generacji.
  * Źródło: Blob customer-*.json. Wysyłamy tylko do tych, którzy nie kupili (sprawdzenie Orders API).
  * Jeden mail z ostatnią generacją (jedna miniaturka + CTA do Moje generacje).
  */
@@ -12,6 +12,7 @@ const BLOB_TOKEN = process.env.customify_READ_WRITE_TOKEN || process.env.BLOB_RE
 const PREFIX = 'customify/system/stats/generations/';
 const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+const FOURTEEN_DAYS_MS = 14 * 24 * 60 * 60 * 1000;
 const KV_TTL_SEC = 90 * 24 * 3600; // 90 dni
 const THROTTLE_MS = 600;
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -95,13 +96,19 @@ async function getCollectionProducts(shopDomain, accessToken, collectionHandle) 
   }
 }
 
-function buildReminderEmailHtml(imageUrl, is7d, products = []) {
-  const headline = is7d
-    ? 'Twoja generacja wciąż na Ciebie czeka'
-    : 'Masz niezamówiony projekt – dokończ zamówienie';
-  const text = is7d
-    ? 'Nie zapomnij o swoim projekcie. Zobacz go w galerii i zamów wydruk w kilku kliknięciach.'
-    : 'Twój projekt z ostatniej generacji czeka w galerii. Zobacz go i dodaj do koszyka, gdy będziesz gotowy.';
+function buildReminderEmailHtml(imageUrl, variant, products = []) {
+  const headlines = {
+    '3d': 'Twój obraz czeka – dokończ zamówienie, zanim zniknie',
+    '7d': 'Twoja generacja wciąż na Ciebie czeka',
+    '14d': 'Ostatnia szansa – Twój obraz czeka na zamówienie'
+  };
+  const texts = {
+    '3d': 'Twój projekt z ostatniej generacji czeka w galerii. Zobacz go i dodaj do koszyka, gdy będziesz gotowy.',
+    '7d': 'Nie zapomnij o swoim projekcie. Zobacz go w galerii i zamów wydruk w kilku kliknięciach.',
+    '14d': 'Minęły już 2 tygodnie od Twojej ostatniej generacji. Zobacz projekt w galerii i zamów wydruk – to ostatnia szansa.'
+  };
+  const headline = headlines[variant] || headlines['3d'];
+  const text = texts[variant] || texts['3d'];
   const imgSrc = imageUrl || 'https://lumly.pl/cdn/shop/files/w_rece_bez_ramy_d6f06d22-9697-4b0a-b247-c024515a036d.jpg';
   const productRows = [];
   for (let i = 0; i < products.length; i += 3) {
@@ -182,6 +189,7 @@ module.exports = async (req, res) => {
   const now = Date.now();
   const sent3d = [];
   const sent7d = [];
+  const sent14d = [];
   const errors = [];
 
   try {
@@ -232,12 +240,16 @@ module.exports = async (req, res) => {
 
         const key3d = `reminder-3d:${customerId}`;
         const key7d = `reminder-7d:${customerId}`;
+        const key14d = `reminder-14d:${customerId}`;
         const raw3d = await kv.get(key3d);
         const raw7d = await kv.get(key7d);
+        const raw14d = await kv.get(key14d);
         const payload3d = typeof raw3d === 'string' ? (() => { try { return JSON.parse(raw3d); } catch { return raw3d; } })() : raw3d;
         const payload7d = typeof raw7d === 'string' ? (() => { try { return JSON.parse(raw7d); } catch { return raw7d; } })() : raw7d;
+        const payload14d = typeof raw14d === 'string' ? (() => { try { return JSON.parse(raw14d); } catch { return raw14d; } })() : raw14d;
         const lastGenAt3d = payload3d?.lastGenAt ? new Date(payload3d.lastGenAt).getTime() : null;
         const lastGenAt7d = payload7d?.lastGenAt ? new Date(payload7d.lastGenAt).getTime() : null;
+        const lastGenAt14d = payload14d?.lastGenAt ? new Date(payload14d.lastGenAt).getTime() : null;
 
         if (now >= T + THREE_DAYS_MS && lastGenAt3d !== T) {
           await sleep(THROTTLE_MS);
@@ -245,8 +257,8 @@ module.exports = async (req, res) => {
             from: 'Lumly <noreply@notification.lumly.pl>',
             reply_to: 'biuro@lumly.pl',
             to: email,
-            subject: 'Masz niezamówiony projekt – zobacz Moje generacje',
-            html: buildReminderEmailHtml(imageUrl, false, products)
+            subject: 'Twój obraz czeka – dokończ zamówienie, zanim zniknie',
+            html: buildReminderEmailHtml(imageUrl, '3d', products)
           });
           if (sendRes.error) {
             errors.push({ customerId, type: '3d', error: sendRes.error.message || JSON.stringify(sendRes.error) });
@@ -264,7 +276,7 @@ module.exports = async (req, res) => {
             reply_to: 'biuro@lumly.pl',
             to: email,
             subject: 'Twoja generacja wciąż na Ciebie czeka',
-            html: buildReminderEmailHtml(imageUrl, true, products)
+            html: buildReminderEmailHtml(imageUrl, '7d', products)
           });
           if (sendRes.error) {
             errors.push({ customerId, type: '7d', error: sendRes.error.message || JSON.stringify(sendRes.error) });
@@ -273,6 +285,24 @@ module.exports = async (req, res) => {
           await kv.set(key7d, JSON.stringify({ lastGenAt: new Date(T).toISOString(), sentAt: new Date().toISOString() }), { ex: KV_TTL_SEC });
           sent7d.push({ customerId, email: email.substring(0, 12) + '...' });
           console.log(`✅ [REMINDER-3-7D] Wysłano 7d: ${customerId}`);
+        }
+
+        if (now >= T + FOURTEEN_DAYS_MS && lastGenAt14d !== T) {
+          await sleep(THROTTLE_MS);
+          const sendRes = await resend.emails.send({
+            from: 'Lumly <noreply@notification.lumly.pl>',
+            reply_to: 'biuro@lumly.pl',
+            to: email,
+            subject: 'Ostatnia szansa – Twój obraz czeka na zamówienie',
+            html: buildReminderEmailHtml(imageUrl, '14d', products)
+          });
+          if (sendRes.error) {
+            errors.push({ customerId, type: '14d', error: sendRes.error.message || JSON.stringify(sendRes.error) });
+            continue;
+          }
+          await kv.set(key14d, JSON.stringify({ lastGenAt: new Date(T).toISOString(), sentAt: new Date().toISOString() }), { ex: KV_TTL_SEC });
+          sent14d.push({ customerId, email: email.substring(0, 12) + '...' });
+          console.log(`✅ [REMINDER-3-7D] Wysłano 14d: ${customerId}`);
         }
       } catch (err) {
         errors.push({ blob: blob.pathname || blob.url, error: err.message });
@@ -285,8 +315,10 @@ module.exports = async (req, res) => {
       checked: customerBlobs.length,
       sent3d: sent3d.length,
       sent7d: sent7d.length,
+      sent14d: sent14d.length,
       sent3dList: sent3d,
       sent7dList: sent7d,
+      sent14dList: sent14d,
       errors: errors.length ? errors : undefined
     });
   } catch (err) {

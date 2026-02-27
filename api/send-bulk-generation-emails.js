@@ -353,11 +353,13 @@ module.exports = async (req, res) => {
       let emailHtml = customHtml;
       let subject = customSubject;
 
-      // Test szablonu przypomnienia 3d/7d – ta sama treść co do klientów
+      // Test szablonu przypomnienia 3d/7d/14d – ta sama treść co do klientów
       if ((templateType === 'reminder' || collectionHandle === 'reminder') && !customHtml) {
-        const is7d = req.body.reminder7d === true;
-        const headline = is7d ? 'Twoja generacja wciąż na Ciebie czeka' : 'Masz niezamówiony projekt – dokończ zamówienie';
-        const text = is7d ? 'Nie zapomnij o swoim projekcie. Zobacz go w galerii i zamów wydruk w kilku kliknięciach.' : 'Twój projekt z ostatniej generacji czeka w galerii. Zobacz go i dodaj do koszyka, gdy będziesz gotowy.';
+        const variant = req.body.reminder14d === true ? '14d' : (req.body.reminder7d === true ? '7d' : '3d');
+        const headlines = { '3d': 'Twój obraz czeka – dokończ zamówienie, zanim zniknie', '7d': 'Twoja generacja wciąż na Ciebie czeka', '14d': 'Ostatnia szansa – Twój obraz czeka na zamówienie' };
+        const texts = { '3d': 'Twój projekt z ostatniej generacji czeka w galerii. Zobacz go i dodaj do koszyka, gdy będziesz gotowy.', '7d': 'Nie zapomnij o swoim projekcie. Zobacz go w galerii i zamów wydruk w kilku kliknięciach.', '14d': 'Minęły już 2 tygodnie od Twojej ostatniej generacji. Zobacz projekt w galerii i zamów wydruk – to ostatnia szansa.' };
+        const headline = headlines[variant];
+        const text = texts[variant];
         const imgSrc = 'https://lumly.pl/cdn/shop/files/w_rece_bez_ramy_d6f06d22-9697-4b0a-b247-c024515a036d.jpg';
         const products = await getCollectionProducts('see_also');
         const productRows = [];
@@ -369,7 +371,7 @@ module.exports = async (req, res) => {
         const productTable = productRows.length > 0 ? `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse: collapse; margin: 20px 0;">${productRows.join('')}</table>` : '';
         const productsSection = products.length > 0 ? `<div style="margin: 32px 0 12px;"><h3 style="margin: 0 0 12px; font-size: 18px; color: #333;">Zobacz nasze najnowsze produkty</h3>${productTable}<div style="text-align: center; margin: 16px 0 0;"><a href="https://lumly.pl/collections/see_also" style="color: #667eea; text-decoration: none; font-weight: bold; font-size: 14px; border-bottom: 2px solid #667eea; padding-bottom: 2px;">Przeglądaj kolekcję →</a></div></div>` : '';
         emailHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head><body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f5f5f5;"><div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;"><div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 30px; text-align: center;"><h1 style="color: white; margin: 0; font-size: 28px; font-weight: bold;">${headline}</h1></div><div style="padding: 40px 30px; background-color: #ffffff;"><p style="font-size: 16px; color: #555; line-height: 1.6; margin-bottom: 24px;">${text}</p><div style="text-align: center; margin: 30px 0;"><a href="https://lumly.pl/pages/my-generations" style="text-decoration: none;"><img src="${imgSrc}" alt="Twoja generacja" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" /></a></div><div style="text-align: center; margin: 40px 0;"><a href="https://lumly.pl/pages/my-generations" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 16px 40px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;">Zobacz Moje generacje i zamów</a></div>${productsSection}<p style="font-size: 14px; color: #666; margin-top: 24px; padding-top: 16px; border-top: 1px solid #eee; text-align: center;">Pytania? <a href="mailto:biuro@lumly.pl" style="color: #667eea; text-decoration: none; font-weight: bold;">biuro@lumly.pl</a></p></div><div style="background-color: #f9f9f9; padding: 20px 30px; text-align: center; border-top: 1px solid #eee;"><p style="margin: 0; font-size: 12px; color: #999;">© 2025 Lumly.pl - Personalizowane portrety AI</p></div></div></body></html>`;
-        subject = subject || (is7d ? 'Twoja generacja wciąż na Ciebie czeka' : 'Masz niezamówiony projekt – zobacz Moje generacje');
+        subject = subject || (variant === '14d' ? 'Ostatnia szansa – Twój obraz czeka na zamówienie' : (variant === '7d' ? 'Twoja generacja wciąż na Ciebie czeka' : 'Twój obraz czeka – dokończ zamówienie, zanim zniknie'));
       }
 
       const collectionId = req.body.collectionId;
