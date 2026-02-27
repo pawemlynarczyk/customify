@@ -158,81 +158,82 @@ module.exports = async (req, res) => {
       </table>
     ` : '';
 
+    const heroUrl = 'https://vzwqqb14qtsxe2wx.public.blob.vercel-storage.com/customify/mailing/dzien-kobiet-hero.png';
     return `
 <!DOCTYPE html>
-<html>
+<html lang="pl">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dzień Kobiet – Lumly</title>
 </head>
-<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #fdf5f8;">
-  <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
-    <div style="background: linear-gradient(135deg, #9b59b6 0%, #e91e63 100%); padding: 50px 30px; text-align: center;">
-      <h1 style="color: white; margin: 0; font-size: 32px; font-weight: bold; text-shadow: 0 2px 4px rgba(0,0,0,0.2);">
-        🌸 Dzień Kobiet z Lumly.pl
-      </h1>
-      <p style="color: white; margin: 15px 0 0; font-size: 18px; opacity: 0.95;">
-        Wyjątkowy prezent dla Niej – personalizowany portret ze zdjęcia
-      </p>
-    </div>
-    <div style="padding: 40px 30px; background-color: #ffffff;">
-      <p style="font-size: 18px; color: #333; margin: 0 0 20px; line-height: 1.6;">
-        Cześć! 👋
-      </p>
-      <p style="font-size: 16px; color: #555; margin: 0 0 20px; line-height: 1.6;">
-        Dzień Kobiet zbliża się wielkimi krokami! 🌸<br>
-        To idealny moment, żeby stworzyć wyjątkowy prezent - <strong>personalizowany obraz ze zdjęcia</strong> w stylu AI – portret królowej, karykatura zawodowa lub elegancka akwarela.
-      </p>
-      <p style="font-size: 16px; color: #555; margin: 0 0 30px; line-height: 1.6;">
-        Wybierz jeden z naszych <strong>stylów na Dzień Kobiet</strong> i stwórz niepowtarzalny portret, który zachwyci Twoją mamę, partnerkę, koleżankę lub przyjaciółkę! 💐
-      </p>
-      <div style="text-align: center; margin: 35px 0;">
-        <a href="https://lumly.pl/collections/dzien-kobiet" style="display: inline-block; background: linear-gradient(135deg, #9b59b6 0%, #e91e63 100%); color: white; padding: 18px 45px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 18px; box-shadow: 0 4px 12px rgba(155, 89, 182, 0.3);">
-          Zobacz produkty na Dzień Kobiet →
-        </a>
-      </div>
+<body style="margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; background: #f4f4f4;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background: #f4f4f4; padding: 20px 0;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="background: #ffffff; border-radius: 8px; overflow: hidden; max-width: 600px;">
+          <!-- TOP BAR -->
+          <tr>
+            <td style="padding: 12px 20px; text-align: center; background: #fafafa; font-size: 14px; color: #333;">
+              🎁 Pomysł na prezent na Dzień Kobiet • Dostawa przed 8 marca
+            </td>
+          </tr>
+          <!-- HERO IMAGE -->
+          <tr>
+            <td>
+              <a href="https://lumly.pl/collections/dzien-kobiet" style="display: block;">
+                <img src="${heroUrl}" alt="Dzień Kobiet - Portret ze zdjęcia" width="600" style="display: block; width: 100%; max-width: 600px; height: auto;">
+              </a>
+            </td>
+          </tr>
+          <!-- HEADLINE -->
+          <tr>
+            <td style="padding: 24px 40px 16px 40px; text-align: center;">
+              <h1 style="margin: 0; font-size: 28px; color: #222; font-weight: bold;">
+                Zamień zdjęcie w wyjątkowy portret
+              </h1>
+            </td>
+          </tr>
+          <!-- CTA -->
+          <tr>
+            <td align="center" style="padding: 0 40px 24px 40px;">
+              <a href="https://lumly.pl/collections/dzien-kobiet" style="display: inline-block; padding: 16px 34px; font-size: 18px; color: #ffffff; text-decoration: none; border-radius: 30px; background: linear-gradient(90deg, #a44cff, #ff2f6d); font-weight: bold;">
+                Stwórz portret ze zdjęcia
+              </a>
+              <p style="margin: 12px 0 0; font-size: 14px; color: #777;">
+                Od 99 zł • Dostawa 3 dni
+              </p>
+            </td>
+          </tr>
       ${products.length > 0 ? `
-      <div style="margin: 40px 0 20px;">
-        <h2 style="margin: 0 0 20px; font-size: 22px; color: #333; text-align: center;">
-          🌸 Nasze propozycje na Dzień Kobiet
-        </h2>
-        ${productTable}
-        <div style="text-align: center; margin: 25px 0;">
-          <a href="https://lumly.pl/collections/dzien-kobiet" style="color: #9b59b6; text-decoration: none; font-weight: bold; font-size: 16px; border-bottom: 2px solid #9b59b6; padding-bottom: 2px;">
-            Zobacz wszystkie produkty na Dzień Kobiet →
-          </a>
-        </div>
-      </div>
+          <tr>
+            <td style="padding: 20px 30px 24px 30px; background-color: #ffffff;">
+              <h2 style="margin: 0 0 16px; font-size: 22px; color: #333; text-align: center;">
+                🌸 Nasze propozycje na Dzień Kobiet
+              </h2>
+              ${productTable}
+              <div style="text-align: center; margin: 20px 0 0;">
+                <a href="https://lumly.pl/collections/dzien-kobiet" style="color: #9b59b6; text-decoration: none; font-weight: bold; font-size: 16px; border-bottom: 2px solid #9b59b6; padding-bottom: 2px;">
+                  Zobacz wszystkie produkty na Dzień Kobiet →
+                </a>
+              </div>
+            </td>
+          </tr>
       ` : ''}
-      <div style="background: #fdf5f8; padding: 25px; border-radius: 10px; margin: 30px 0; border-left: 4px solid #9b59b6;">
-        <p style="font-size: 15px; color: #555; margin: 0 0 12px; line-height: 1.6;">
-          <strong>💡 Dlaczego warto?</strong>
-        </p>
-        <ul style="font-size: 14px; color: #666; margin: 0; padding-left: 20px; line-height: 1.8;">
-          <li>Wyjątkowe, personalizowane prezenty</li>
-          <li>Wysoka jakość wydruku na płótnie</li>
-          <li>Szybka realizacja zamówienia</li>
-          <li>Darmowa dostawa przy zamówieniach powyżej 200 zł</li>
-        </ul>
-      </div>
-      <p style="font-size: 15px; color: #555; line-height: 1.6; margin: 30px 0 20px; text-align: center;">
-        Zobacz swoje wcześniejsze efekty: 
-        <a href="https://lumly.pl/pages/my-generations" style="color: #9b59b6; text-decoration: none; font-weight: bold;">Moje generacje</a>
-      </p>
-      <p style="font-size: 14px; color: #666; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; text-align: center;">
-        Masz pytania? Napisz do nas: 
-        <a href="mailto:biuro@lumly.pl" style="color: #9b59b6; text-decoration: none; font-weight: bold;">biuro@lumly.pl</a>
-      </p>
-    </div>
-    <div style="background: linear-gradient(135deg, #fdf5f8 0%, #f3e5f5 100%); padding: 25px 30px; text-align: center; border-top: 1px solid #f3e5f5;">
-      <p style="margin: 0 0 10px; font-size: 12px; color: #999;">
-        © 2025 Lumly.pl - Personalizowane portrety AI
-      </p>
-      <p style="margin: 0; font-size: 11px; color: #bbb;">
-        <a href="#" style="color: #999; text-decoration: underline;">Wypisz się z newslettera</a>
-      </p>
-    </div>
-  </div>
+          <tr>
+            <td style="background: linear-gradient(135deg, #fdf5f8 0%, #f3e5f5 100%); padding: 25px 30px; text-align: center; border-top: 1px solid #f3e5f5;">
+              <p style="margin: 0 0 10px; font-size: 12px; color: #999;">
+                © 2025 Lumly.pl - Personalizowane portrety AI
+              </p>
+              <p style="margin: 0; font-size: 11px; color: #bbb;">
+                <a href="#" style="color: #999; text-decoration: underline;">Wypisz się z newslettera</a>
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
 </body>
 </html>
     `;
@@ -342,27 +343,31 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const { customers, testEmail, collectionHandle } = req.body;
+    const { customers, testEmail, collectionHandle, templateType } = req.body;
 
     // Jeśli testEmail, wyślij tylko do niego (nie wymaga customers)
-    // Dodano obsługę custom subject/html przez payload (fallback do domyślnego)
     if (testEmail) {
       console.log(`📧 [BULK-EMAIL] Wysyłam testowy email do: ${testEmail}`);
 
-      const {
-        subject: customSubject,
-        html: customHtml
-      } = req.body || {};
-
-      // Jeśli collectionHandle === 'walentynki', pobierz produkty i użyj template walentynkowego
+      const { subject: customSubject, html: customHtml } = req.body || {};
       let emailHtml = customHtml;
       let subject = customSubject;
 
-      // Obsługa collectionHandle (handle) lub collectionId (ID)
+      // Test szablonu przypomnienia 3d/7d – ta sama treść co do klientów
+      if ((templateType === 'reminder' || collectionHandle === 'reminder') && !customHtml) {
+        const is7d = req.body.reminder7d === true;
+        const headline = is7d ? 'Twoja generacja wciąż na Ciebie czeka' : 'Masz niezamówiony projekt – dokończ zamówienie';
+        const text = is7d ? 'Nie zapomnij o swoim projekcie. Zobacz go w galerii i zamów wydruk w kilku kliknięciach.' : 'Twój projekt z ostatniej generacji czeka w galerii. Zobacz go i dodaj do koszyka, gdy będziesz gotowy.';
+        const imgSrc = 'https://lumly.pl/cdn/shop/files/w_rece_bez_ramy_d6f06d22-9697-4b0a-b247-c024515a036d.jpg';
+        emailHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head><body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f5f5f5;"><div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;"><div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 30px; text-align: center;"><h1 style="color: white; margin: 0; font-size: 28px; font-weight: bold;">${headline}</h1></div><div style="padding: 40px 30px; background-color: #ffffff;"><p style="font-size: 16px; color: #555; line-height: 1.6; margin-bottom: 24px;">${text}</p><div style="text-align: center; margin: 30px 0;"><a href="https://lumly.pl/pages/my-generations" style="text-decoration: none;"><img src="${imgSrc}" alt="Twoja generacja" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" /></a></div><div style="text-align: center; margin: 40px 0;"><a href="https://lumly.pl/pages/my-generations" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 16px 40px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;">Zobacz Moje generacje i zamów</a></div><p style="font-size: 14px; color: #666; margin-top: 24px; padding-top: 16px; border-top: 1px solid #eee; text-align: center;">Pytania? <a href="mailto:biuro@lumly.pl" style="color: #667eea; text-decoration: none; font-weight: bold;">biuro@lumly.pl</a></p></div><div style="background-color: #f9f9f9; padding: 20px 30px; text-align: center; border-top: 1px solid #eee;"><p style="margin: 0; font-size: 12px; color: #999;">© 2025 Lumly.pl - Personalizowane portrety AI</p></div></div></body></html>`;
+        subject = subject || (is7d ? 'Twoja generacja wciąż na Ciebie czeka' : 'Masz niezamówiony projekt – zobacz Moje generacje');
+      }
+
       const collectionId = req.body.collectionId;
       const collectionIdentifier = collectionId || collectionHandle;
-      
-      if (collectionIdentifier && !customHtml) {
+      const usedReminder = templateType === 'reminder' || collectionHandle === 'reminder';
+
+      if (collectionIdentifier && !customHtml && !usedReminder) {
         const products = await getCollectionProducts(collectionIdentifier);
         const isDzienKobiet = (collectionHandle === 'dzien-kobiet' || collectionIdentifier === 'dzien-kobiet');
         if (isDzienKobiet) {
