@@ -1515,6 +1515,7 @@ module.exports = async (req, res) => {
         parameters: {
           image_input: ["USER_IMAGES"],
           aspect_ratio: "2:3",
+          resolution: "1k",
           output_format: "jpg"
         }
       },
@@ -2991,6 +2992,9 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
         aspect_ratio: config.parameters?.aspect_ratio || '2:3',
         output_format: config.parameters?.output_format || 'jpg'
       };
+      if (config.parameters?.resolution) {
+        inputParams.resolution = config.parameters.resolution;
+      }
 
       console.log(`📸 [NANO-BANANA-2] image_input array length: ${inputParams.image_input.length}`);
     } else if (config.apiType === 'replicate-bg-remove') {
