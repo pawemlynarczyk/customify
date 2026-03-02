@@ -523,7 +523,7 @@ FACE — CRITICAL
 
 CUSTOMIZATION
 The character represents this profession / hobby / personality:
-"szefowa sklepu spożywczego, {personalization}"
+"{personalization}"
 
 CRITICAL: The overall character should be cohesive — outfit, props, scene, background, podium and decorations must all reference and match the same theme. The podium on which the figurine stands must be styled to fit the profession or hobby. Everything should harmonize and create a unified, coherent whole.
 
@@ -584,7 +584,7 @@ FACE — CRITICAL
 
 CUSTOMIZATION
 The character represents this profession / hobby / personality:
-"kobieta fitness, {personalization}"
+"{personalization}"
 
 CRITICAL: The overall character should be cohesive — outfit, props, scene, background, podium and decorations must all reference and match the same theme. The podium on which the figurine stands must be styled to fit the profession or hobby. Everything should harmonize and create a unified, coherent whole.
 
@@ -646,7 +646,7 @@ FACE — CRITICAL
 
 CUSTOMIZATION
 The character represents this profession / hobby / personality:
-"kobieta fitness, {personalization}"
+"{personalization}"
 
 CRITICAL: The overall character should be cohesive — outfit, props, scene, background, podium and decorations must all reference and match the same theme. The podium on which the figurine stands must be styled to fit the profession or hobby. Everything should harmonize and create a unified, coherent whole.
 
