@@ -101,7 +101,7 @@ module.exports = async (req, res) => {
 
     console.log('📊 [LIST-BLOB-IMAGES] Request params:', { prefix, limit, cursor, sortBy, sortOrder, category });
 
-    const MAX_PAGES_PER_REQUEST = 5;
+    const MAX_PAGES_PER_REQUEST = 12;
     const BLOBS_PER_PAGE = 1000;
     const maxBlobsThisRequest = Math.min(parseInt(limit, 10) || 3000, MAX_PAGES_PER_REQUEST * BLOBS_PER_PAGE);
 
@@ -110,7 +110,6 @@ module.exports = async (req, res) => {
     let pageCount = 0;
     let truncatedToLastN = false;
 
-    // Domyślnie customify/temp/ = OBRAZKI (wygenerowane, upload). customify/ daje najpierw JSON (generations).
     const effectivePrefix = prefix || 'customify/temp/';
     console.log(`📊 [LIST-BLOB-IMAGES] Using prefix: "${effectivePrefix}", maxBlobsThisRequest: ${maxBlobsThisRequest}`);
 
