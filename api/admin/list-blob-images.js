@@ -9,42 +9,46 @@ const { checkRateLimit, getClientIP } = require('../../utils/vercelRateLimiter')
 
 /**
  * Buduje mapę imageUrl → productType z plików JSON w customify/system/stats/generations/
- * jsonBlobs powinny być posortowane po dacie (najnowsze pierwsze), żeby najpierw czytać pliki z ostatnimi generacjami.
+ * jsonBlobs powinny być posortowane po dacie (najnowsze pierwsze).
+ * Ograniczenie do 80 plików + batching - zapobiega 504 timeout (800 równoległych fetchów = timeout).
  */
 async function buildProductTypeMap(jsonBlobs) {
   const urlToProductType = {};
   const pathnameToProductType = {};
-  const MAX_JSON_FETCH = 800; // Więcej plików = lepsze dopasowanie (najpierw najnowsze dzięki sortowaniu)
+  const MAX_JSON_FETCH = 80;
+  const BATCH_SIZE = 10;
   const toFetch = jsonBlobs.slice(0, MAX_JSON_FETCH);
 
-  await Promise.all(toFetch.map(async (blob) => {
-    try {
-      const resp = await fetch(blob.url, { signal: AbortSignal.timeout(5000) });
-      if (!resp.ok) return;
-      const data = await resp.json();
-      const generations = data?.generations || [];
-      for (const gen of generations) {
-        const url = gen.imageUrl || gen.watermarkedImageUrl;
-        const pt = gen.productType || gen.style || 'other';
-        if (url && pt) {
-          urlToProductType[url] = pt;
-          try {
-            const pathFromUrl = new URL(url).pathname.replace(/^\//, '');
-            if (pathFromUrl) {
-              pathnameToProductType[pathFromUrl] = pt;
-              const fn = pathFromUrl.split('/').pop();
-              if (fn) pathnameToProductType[fn] = pt;
-              // Ścieżka bez prefiksu customify/ (na wypadek innego formatu w list())
-              const pathWithoutPrefix = pathFromUrl.replace(/^customify\/?/, '');
-              if (pathWithoutPrefix) pathnameToProductType[pathWithoutPrefix] = pt;
-            }
-          } catch (_) {}
+  for (let i = 0; i < toFetch.length; i += BATCH_SIZE) {
+    const batch = toFetch.slice(i, i + BATCH_SIZE);
+    await Promise.all(batch.map(async (blob) => {
+      try {
+        const resp = await fetch(blob.url, { signal: AbortSignal.timeout(3000) });
+        if (!resp.ok) return;
+        const data = await resp.json();
+        const generations = data?.generations || [];
+        for (const gen of generations) {
+          const url = gen.imageUrl || gen.watermarkedImageUrl;
+          const pt = gen.productType || gen.style || 'other';
+          if (url && pt) {
+            urlToProductType[url] = pt;
+            try {
+              const pathFromUrl = new URL(url).pathname.replace(/^\//, '');
+              if (pathFromUrl) {
+                pathnameToProductType[pathFromUrl] = pt;
+                const fn = pathFromUrl.split('/').pop();
+                if (fn) pathnameToProductType[fn] = pt;
+                const pathWithoutPrefix = pathFromUrl.replace(/^customify\/?/, '');
+                if (pathWithoutPrefix) pathnameToProductType[pathWithoutPrefix] = pt;
+              }
+            } catch (_) {}
+          }
         }
+      } catch (e) {
+        // Cicho ignoruj błędy fetch
       }
-    } catch (e) {
-      // Cicho ignoruj błędy fetch
-    }
-  }));
+    }));
+  }
 
   console.log(`📊 [LIST-BLOB-IMAGES] productType map: ${Object.keys(urlToProductType).length} URLs, ${Object.keys(pathnameToProductType).length} pathnames (z ${toFetch.length} plików JSON)`);
   return { urlToProductType, pathnameToProductType };
@@ -93,50 +97,47 @@ module.exports = async (req, res) => {
       return res.status(429).json({ error: 'Rate limit exceeded' });
     }
 
-    // Zwiększ domyślny limit do 5000 żeby pokazać więcej najnowszych obrazków
-    const { prefix, limit = 5000, cursor, sortBy = 'date', sortOrder = 'desc', category } = req.query;
+    const { prefix, limit = 3000, cursor, sortBy = 'date', sortOrder = 'desc', category } = req.query;
 
     console.log('📊 [LIST-BLOB-IMAGES] Request params:', { prefix, limit, cursor, sortBy, sortOrder, category });
 
-    // ⚠️ KRYTYCZNE: Pobierz WSZYSTKIE bloby bez limitu, żeby sortowanie działało poprawnie
-    // Vercel Blob list() zwraca bloby w kolejności alfabetycznej, nie po dacie
-    // Musimy pobrać wszystko i posortować po stronie serwera
+    const MAX_PAGES_PER_REQUEST = 5;
+    const BLOBS_PER_PAGE = 1000;
+    const maxBlobsThisRequest = Math.min(parseInt(limit, 10) || 3000, MAX_PAGES_PER_REQUEST * BLOBS_PER_PAGE);
+
     const allBlobs = [];
     let nextCursor = cursor || undefined;
-    let fetchedCount = 0;
-    const maxFetch = 20000; // Trzymamy w pamięci max 20k, ale nie urywamy paginacji (żeby dojść do najnowszych)
+    let pageCount = 0;
     let truncatedToLastN = false;
-    
-    // Pobieraj wszystkie strony (pagination)
-    // ✅ ZAWSZE używaj prefix 'customify/' żeby pobierać tylko nasze pliki
+
     const effectivePrefix = prefix || 'customify/';
-    console.log(`📊 [LIST-BLOB-IMAGES] Using prefix: "${effectivePrefix}"`);
-    
+    console.log(`📊 [LIST-BLOB-IMAGES] Using prefix: "${effectivePrefix}", maxBlobsThisRequest: ${maxBlobsThisRequest}`);
+
     do {
+      if (allBlobs.length >= maxBlobsThisRequest) {
+        console.log(`📊 [LIST-BLOB-IMAGES] Reached limit ${maxBlobsThisRequest}, stopping pagination (anti-504)`);
+        break;
+      }
+
       const blobsBatch = await list({
         prefix: effectivePrefix,
-        limit: 1000, // Pobieraj po 1000 na raz
+        limit: BLOBS_PER_PAGE,
         cursor: nextCursor,
-        token: process.env.customify_READ_WRITE_TOKEN
+        token: process.env.customify_READ_WRITE_TOKEN || process.env.BLOB_READ_WRITE_TOKEN
       });
-      
+
       allBlobs.push(...blobsBatch.blobs);
-      fetchedCount += blobsBatch.blobs.length;
+      pageCount++;
       nextCursor = blobsBatch.cursor;
-      
-      console.log(`📊 [LIST-BLOB-IMAGES] Fetched ${fetchedCount} blobs so far, has more: ${!!nextCursor}`);
-      
-      // Jeśli jest bardzo dużo plików, NIE przerywaj (bo najnowsze są na końcu alfabetycznej listy),
-      // tylko utrzymuj bufor ostatnich maxFetch elementów.
-      if (allBlobs.length > maxFetch) {
-        const toDrop = allBlobs.length - maxFetch;
+
+      console.log(`📊 [LIST-BLOB-IMAGES] Page ${pageCount}: +${blobsBatch.blobs.length} blobs, total ${allBlobs.length}, hasMore: ${!!nextCursor}`);
+
+      if (allBlobs.length > maxBlobsThisRequest) {
+        const toDrop = allBlobs.length - maxBlobsThisRequest;
         allBlobs.splice(0, toDrop);
         truncatedToLastN = true;
-        if (fetchedCount >= maxFetch && fetchedCount - blobsBatch.blobs.length < maxFetch) {
-          console.warn(`⚠️ [LIST-BLOB-IMAGES] Buffering last ${maxFetch} blobs (repo has more than ${maxFetch}).`);
-        }
       }
-    } while (nextCursor);
+    } while (nextCursor && pageCount < MAX_PAGES_PER_REQUEST);
     
     const blobs = { blobs: allBlobs, cursor: nextCursor };
 
@@ -244,7 +245,6 @@ module.exports = async (req, res) => {
         filename.startsWith('ai-') ||
         filename.startsWith('text-overlay-')
       ) {
-        console.log(`✅ [CATEGORIZE] ${pathname}: AI generated file → wygenerowane`);
         return 'wygenerowane';
       }
       
@@ -266,9 +266,6 @@ module.exports = async (req, res) => {
       // 5. UPLOAD - oryginalne zdjęcia użytkownika w customify/temp/
       // ────────────────────────────────────────────────────────────────────────
       if (path.startsWith('customify/temp/')) {
-        // Wszystko w temp/ co nie jest generation-* lub ai-* to UPLOAD
-        // (oryginalne zdjęcia przed transformacją)
-        console.log(`📤 [CATEGORIZE] ${pathname}: temp/ file (not AI) → upload`);
         return 'upload';
       }
       
