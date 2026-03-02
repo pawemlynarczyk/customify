@@ -251,11 +251,15 @@ module.exports = async (req, res) => {
 
     // KROK 1: Utwórz produkt BEZ obrazka (najpierw potrzebujemy product ID)
     // 🚨 ROLLBACK: START - Konfiguracja produktu cyfrowego
+    const uniqueSuffix = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
     const productData = {
       product: {
         title: (isDigitalProduct || productType === 'etui')
           ? `${productTypeName} - Styl ${style}`
           : `${productTypeName} - Rozmiar ${sizeName}`,
+        handle: (isDigitalProduct || productType === 'etui')
+          ? `custom-${style}-${uniqueSuffix}`
+          : `custom-${sizeName}-${uniqueSuffix}`,
         body_html: isDigitalProduct
           ? `
             <p><strong>Spersonalizowany produkt cyfrowy z AI</strong></p>
