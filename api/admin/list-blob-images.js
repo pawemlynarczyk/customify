@@ -110,7 +110,8 @@ module.exports = async (req, res) => {
     let pageCount = 0;
     let truncatedToLastN = false;
 
-    const effectivePrefix = prefix || 'customify/';
+    // Domyślnie customify/temp/ = OBRAZKI (wygenerowane, upload). customify/ daje najpierw JSON (generations).
+    const effectivePrefix = prefix || 'customify/temp/';
     console.log(`📊 [LIST-BLOB-IMAGES] Using prefix: "${effectivePrefix}", maxBlobsThisRequest: ${maxBlobsThisRequest}`);
 
     do {
