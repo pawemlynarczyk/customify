@@ -191,6 +191,8 @@ module.exports = async (req, res) => {
   const sent7d = [];
   const sent14d = [];
   const errors = [];
+  const dryRun = (req.url || '').includes('dryRun=1');
+  const diagnostics = dryRun ? { skipped: { noEmail: 0, noLastGen: 0, bought: 0 }, wouldSend: { '3d': 0, '7d': 0, '14d': 0 } } : null;
 
   try {
     let cursor;
@@ -210,7 +212,7 @@ module.exports = async (req, res) => {
       if (!cursor || customerBlobs.length >= 2000) break;
     } while (cursor);
 
-    console.log(`📧 [REMINDER-3-7D] Sprawdzam ${customerBlobs.length} plików customer-*.json`);
+    console.log(`📧 [REMINDER-3-7D] Sprawdzam ${customerBlobs.length} plików customer-*.json${dryRun ? ' [DRY RUN]' : ''}`);
 
     const products = await getCollectionProducts(shopDomain, accessToken, 'see_also');
     if (products.length > 0) console.log(`📧 [REMINDER-3-7D] Pobrano ${products.length} produktów z kolekcji see_also`);
@@ -224,10 +226,16 @@ module.exports = async (req, res) => {
         if (!customerId) continue;
 
         const email = data.email || data.generations?.[0]?.email;
-        if (!email || typeof email !== 'string' || !email.includes('@')) continue;
+        if (!email || typeof email !== 'string' || !email.includes('@')) {
+          if (diagnostics) diagnostics.skipped.noEmail++;
+          continue;
+        }
 
         const lastGenDate = data.lastGenerationDate || data.generations?.[0]?.date || data.generations?.[0]?.timestamp;
-        if (!lastGenDate) continue;
+        if (!lastGenDate) {
+          if (diagnostics) diagnostics.skipped.noLastGen++;
+          continue;
+        }
         const T = new Date(lastGenDate).getTime();
         if (Number.isNaN(T)) continue;
 
@@ -236,7 +244,10 @@ module.exports = async (req, res) => {
         const imageUrl = lastGen?.watermarkedImageUrl || lastGen?.imageUrl || null;
 
         const bought = await customerBoughtCustomify(shopDomain, accessToken, customerId);
-        if (bought) continue;
+        if (bought) {
+          if (diagnostics) diagnostics.skipped.bought++;
+          continue;
+        }
 
         const key3d = `reminder-3d:${customerId}`;
         const key7d = `reminder-7d:${customerId}`;
@@ -252,57 +263,69 @@ module.exports = async (req, res) => {
         const lastGenAt14d = payload14d?.lastGenAt ? new Date(payload14d.lastGenAt).getTime() : null;
 
         if (now >= T + THREE_DAYS_MS && lastGenAt3d !== T) {
-          await sleep(THROTTLE_MS);
-          const sendRes = await resend.emails.send({
-            from: 'Lumly <noreply@notification.lumly.pl>',
-            reply_to: 'biuro@lumly.pl',
-            to: email,
-            subject: 'Twój obraz czeka – dokończ zamówienie, zanim zniknie',
-            html: buildReminderEmailHtml(imageUrl, '3d', products)
-          });
-          if (sendRes.error) {
-            errors.push({ customerId, type: '3d', error: sendRes.error.message || JSON.stringify(sendRes.error) });
-            continue;
+          if (dryRun) {
+            diagnostics.wouldSend['3d']++;
+          } else {
+            await sleep(THROTTLE_MS);
+            const sendRes = await resend.emails.send({
+              from: 'Lumly <noreply@notification.lumly.pl>',
+              reply_to: 'biuro@lumly.pl',
+              to: email,
+              subject: 'Twój obraz czeka – dokończ zamówienie, zanim zniknie',
+              html: buildReminderEmailHtml(imageUrl, '3d', products)
+            });
+            if (sendRes.error) {
+              errors.push({ customerId, type: '3d', error: sendRes.error.message || JSON.stringify(sendRes.error) });
+              continue;
+            }
+            await kv.set(key3d, JSON.stringify({ lastGenAt: new Date(T).toISOString(), sentAt: new Date().toISOString() }), { ex: KV_TTL_SEC });
+            sent3d.push({ customerId, email: email.substring(0, 12) + '...' });
+            console.log(`✅ [REMINDER-3-7D] Wysłano 3d: ${customerId}`);
           }
-          await kv.set(key3d, JSON.stringify({ lastGenAt: new Date(T).toISOString(), sentAt: new Date().toISOString() }), { ex: KV_TTL_SEC });
-          sent3d.push({ customerId, email: email.substring(0, 12) + '...' });
-          console.log(`✅ [REMINDER-3-7D] Wysłano 3d: ${customerId}`);
         }
 
         if (now >= T + SEVEN_DAYS_MS && lastGenAt7d !== T) {
-          await sleep(THROTTLE_MS);
-          const sendRes = await resend.emails.send({
-            from: 'Lumly <noreply@notification.lumly.pl>',
-            reply_to: 'biuro@lumly.pl',
-            to: email,
-            subject: 'Twoja generacja wciąż na Ciebie czeka',
-            html: buildReminderEmailHtml(imageUrl, '7d', products)
-          });
-          if (sendRes.error) {
-            errors.push({ customerId, type: '7d', error: sendRes.error.message || JSON.stringify(sendRes.error) });
-            continue;
+          if (dryRun) {
+            diagnostics.wouldSend['7d']++;
+          } else {
+            await sleep(THROTTLE_MS);
+            const sendRes = await resend.emails.send({
+              from: 'Lumly <noreply@notification.lumly.pl>',
+              reply_to: 'biuro@lumly.pl',
+              to: email,
+              subject: 'Twoja generacja wciąż na Ciebie czeka',
+              html: buildReminderEmailHtml(imageUrl, '7d', products)
+            });
+            if (sendRes.error) {
+              errors.push({ customerId, type: '7d', error: sendRes.error.message || JSON.stringify(sendRes.error) });
+              continue;
+            }
+            await kv.set(key7d, JSON.stringify({ lastGenAt: new Date(T).toISOString(), sentAt: new Date().toISOString() }), { ex: KV_TTL_SEC });
+            sent7d.push({ customerId, email: email.substring(0, 12) + '...' });
+            console.log(`✅ [REMINDER-3-7D] Wysłano 7d: ${customerId}`);
           }
-          await kv.set(key7d, JSON.stringify({ lastGenAt: new Date(T).toISOString(), sentAt: new Date().toISOString() }), { ex: KV_TTL_SEC });
-          sent7d.push({ customerId, email: email.substring(0, 12) + '...' });
-          console.log(`✅ [REMINDER-3-7D] Wysłano 7d: ${customerId}`);
         }
 
         if (now >= T + FOURTEEN_DAYS_MS && lastGenAt14d !== T) {
-          await sleep(THROTTLE_MS);
-          const sendRes = await resend.emails.send({
-            from: 'Lumly <noreply@notification.lumly.pl>',
-            reply_to: 'biuro@lumly.pl',
-            to: email,
-            subject: 'Ostatnia szansa – Twój obraz czeka na zamówienie',
-            html: buildReminderEmailHtml(imageUrl, '14d', products)
-          });
-          if (sendRes.error) {
-            errors.push({ customerId, type: '14d', error: sendRes.error.message || JSON.stringify(sendRes.error) });
-            continue;
+          if (dryRun) {
+            diagnostics.wouldSend['14d']++;
+          } else {
+            await sleep(THROTTLE_MS);
+            const sendRes = await resend.emails.send({
+              from: 'Lumly <noreply@notification.lumly.pl>',
+              reply_to: 'biuro@lumly.pl',
+              to: email,
+              subject: 'Ostatnia szansa – Twój obraz czeka na zamówienie',
+              html: buildReminderEmailHtml(imageUrl, '14d', products)
+            });
+            if (sendRes.error) {
+              errors.push({ customerId, type: '14d', error: sendRes.error.message || JSON.stringify(sendRes.error) });
+              continue;
+            }
+            await kv.set(key14d, JSON.stringify({ lastGenAt: new Date(T).toISOString(), sentAt: new Date().toISOString() }), { ex: KV_TTL_SEC });
+            sent14d.push({ customerId, email: email.substring(0, 12) + '...' });
+            console.log(`✅ [REMINDER-3-7D] Wysłano 14d: ${customerId}`);
           }
-          await kv.set(key14d, JSON.stringify({ lastGenAt: new Date(T).toISOString(), sentAt: new Date().toISOString() }), { ex: KV_TTL_SEC });
-          sent14d.push({ customerId, email: email.substring(0, 12) + '...' });
-          console.log(`✅ [REMINDER-3-7D] Wysłano 14d: ${customerId}`);
         }
       } catch (err) {
         errors.push({ blob: blob.pathname || blob.url, error: err.message });
@@ -310,7 +333,7 @@ module.exports = async (req, res) => {
       }
     }
 
-    return res.status(200).json({
+    const payload = {
       success: true,
       checked: customerBlobs.length,
       sent3d: sent3d.length,
@@ -320,7 +343,12 @@ module.exports = async (req, res) => {
       sent7dList: sent7d,
       sent14dList: sent14d,
       errors: errors.length ? errors : undefined
-    });
+    };
+    if (diagnostics) {
+      payload.dryRun = true;
+      payload.diagnostics = diagnostics;
+    }
+    return res.status(200).json(payload);
   } catch (err) {
     console.error('❌ [REMINDER-3-7D]', err);
     return res.status(500).json({ error: err.message, errors });

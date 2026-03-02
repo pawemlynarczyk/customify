@@ -17,9 +17,13 @@
     {
       "path": "/api/cron/cleanup-old-blobs",
       "schedule": "15 3 * * *"
+    },
+    {
+      "path": "/api/cron/generation-reminder-3-7d",
+      "schedule": "0 19 * * *"
     }
   ],
-  "buildCommand": "echo 'Force rebuild v7 - analytics system'",
+  "buildCommand": "echo 'Force rebuild v8 - register generation-reminder cron'",
   "outputDirectory": "public",
   "installCommand": "echo 'Force install'",
   "cleanUrls": false,
