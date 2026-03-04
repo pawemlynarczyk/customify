@@ -54,9 +54,13 @@ module.exports = async (req, res) => {
     });
 
     if (!imageResponse.ok) {
-      console.error('❌ [PROXY-IMAGE] Failed to fetch image:', imageResponse.status);
+      // Przy 404 loguj pełny URL (bez query), żeby w Vercel logs widać było który blob nie istnieje
+      const logUrl = url.replace(/\?.*/, '');
+      console.error('❌ [PROXY-IMAGE] Failed to fetch image:', imageResponse.status, logUrl);
       return res.status(imageResponse.status).json({ 
-        error: 'Failed to fetch image from Vercel Blob',
+        error: imageResponse.status === 404 
+          ? 'Image not found (may have expired or been cleaned up)' 
+          : 'Failed to fetch image from Vercel Blob',
         status: imageResponse.status
       });
     }

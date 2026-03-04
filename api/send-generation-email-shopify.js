@@ -56,6 +56,8 @@ module.exports = async (req, res) => {
       'realistyczny': 'Realistyczny',
       'krol-krolewski': 'Król - Królewski',
       'krolowa-krolewska': 'Królowa - Królewska',
+      'krolowa-prezent-1': 'Królowa - Prezent 1',
+      'krolowa-prezent-2': 'Królowa - Prezent 2',
       'krolewski': 'Królewski',
       'barokowy': 'Barokowy',
       'renesansowy': 'Renesansowy',

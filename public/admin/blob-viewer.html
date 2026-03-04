@@ -438,8 +438,8 @@
         document.getElementById('mainContent').style.display = 'block';
         document.getElementById('logoutBtn').style.display = 'block';
         
-        // Domyślnie pokaż ostatnie 5 dni (tylko jeśli user nie ustawił własnych dat)
-        setDefaultLastDaysIfEmpty(5);
+        // Domyślnie pokaż tylko dzisiaj (tylko jeśli user nie ustawił własnych dat)
+        setDefaultLastDaysIfEmpty(1);
         loadImages(true);
       } else {
         document.getElementById('loginForm').style.display = 'block';

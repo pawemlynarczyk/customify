@@ -625,6 +625,8 @@ async function saveGenerationHandler(req, res) {
                 'akwarela': 'Akwarela',
                 'karykatura': 'Karykatura',
                 'krol-krolewski': 'Król - Królewski',
+                'krolowa-prezent-1': 'Królowa - Prezent 1',
+                'krolowa-prezent-2': 'Królowa - Prezent 2',
                 'krolewski': 'Królewski',
                 'barokowy': 'Barokowy',
                 'renesansowy': 'Renesansowy',

@@ -1013,6 +1013,13 @@ OUTPUT: A single photorealistic image that looks like a genuine group photograph
       { id: 'scena', label: 'Opisz scenę / klimat zdjęcia', type: 'text', placeholder: 'np. rodzinny obiad, spotkanie biznesowe, piknik w parku', required: false, promptKey: 'SCENE_DESC' },
       { id: 'dedykacja', label: 'Dodaj napis / dedykację', type: 'text', placeholder: 'np. Kochana Mamo, Wesołych Świąt!', required: false, promptKey: 'DEDICATION' }
     ]
+  },
+  'prezent-na-walentynki-obraz-na-plotnie-z-twojego-zdjecia': {
+    title: 'Personalizacja',
+    promptTemplate: `Transform this photo of a couple into a romantic, semi-realistic digital painting illustration. The couple is elegantly dressed, posed in a close, intimate embrace, full of love and passion, but both faces are turned forward, looking toward the viewer instead of at each other. The woman wears a flowing, glamorous red gown, the man in a stylish dark suit. Surround them with large, detailed red roses and soft decorative floral elements. Add a vintage romantic poster aesthetic with a soft cream background and a classic ribbon banner that says "{BANNER_TEXT}" placed at the top of the composition.{BANNER_POLISH_INSTRUCTION} Warm, soft lighting, smooth painterly skin, cinematic shading, ultra-detailed, elegant, dreamy, Valentine's Day illustration, romance novel cover art style, symmetrical composition, highly polished digital art. masterpiece, ultra detailed, soft glow, romantic fantasy, luxury illustration, glossy finish, art nouveau influence, poster design, decorative frame.`,
+    fields: [
+      { id: 'napis_banner', label: 'Napis na wstędze (zastąpi LOVE)', type: 'text', placeholder: 'np. Anna i Marek, zawsze razem', required: false, promptKey: 'BANNER_TEXT' }
+    ]
   }
 };
 
@@ -1424,6 +1431,14 @@ class CustomifyEmbed {
           ? `TEXT / DEDICATION:\nAt the bottom of the image, add a beautiful, decorative text inscription that fits the overall composition and color palette. The text reads:\n"${dedVal.trim()}"\nThe font style should be elegant and harmonious with the scene. CRITICAL: use exact Polish characters — ą, ć, ę, ł, ń, ó, ś, ź, ż (uppercase: Ą, Ć, Ę, Ł, Ń, Ó, Ś, Ź, Ż). Do NOT replace with a, c, e, l, n, o, s, z. Copy every letter exactly as provided.`
           : 'Do NOT add any text, inscription, caption, watermark, or written words to the image. The image must be completely free of any text.';
       }
+      // {BANNER_TEXT} i {BANNER_POLISH_INSTRUCTION} — Love Rose: napis na wstędze (domyślnie LOVE)
+      if (config.promptTemplate.includes('{BANNER_TEXT}')) {
+        const bannerVal = replacements['BANNER_TEXT'] || '';
+        replacements['BANNER_TEXT'] = bannerVal.trim() || 'LOVE';
+        replacements['BANNER_POLISH_INSTRUCTION'] = bannerVal.trim()
+          ? ' CRITICAL for the banner text: use exact Polish characters — ą, ć, ę, ł, ń, ó, ś, ź, ż (uppercase: Ą, Ć, Ę, Ł, Ń, Ó, Ś, Ź, Ż). Do NOT replace with a, c, e, l, n, o, s, z. Copy every letter exactly as provided.'
+          : '';
+      }
       let prompt = config.promptTemplate;
       Object.keys(replacements).forEach(key => {
         prompt = prompt.replaceAll(`{${key}}`, replacements[key]);
@@ -1572,6 +1587,11 @@ class CustomifyEmbed {
   isDlaNiejProduct() {
     const h = this.getProductHandle();
     return h === 'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-fitness' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-szefowa' || h === 'active-woman-portret-ze-zdjecia-na-rocznice-dla-kolezanki-kobiety-druk-na-szkle' || h === 'active-woman-portret-ze-zdjecia-na-18-urodziny-dla-dziewczyny-druk-na-szkle-copy' || h === 'portret-na-18-urodziny-dla-dziewczyny-magic-z-wlasnego-zdjecia-druk-na-szkle' || h === 'portret-ze-zdjecia-na-30-rocznice-dla-nauczycielki-karykatura-na-prezent' || h === 'obraz-ze-zdjecia-biznes-woman-personalizowany-prezent' || h === 'obraz-ze-zdjecia-prezent-na-30-urodziny-dla-kobiety-biznes-woman' || h === 'wydruk-na-szkle-biznes-woman-prezent-na-urodziny-dla-kobiety';
+  }
+
+  // 🌹 Produkt Love Rose — jeden styl (love-rose), ukryty wybór, pole na napis zastępujący LOVE
+  isLoveRoseProduct() {
+    return this.getProductHandle() === 'prezent-na-walentynki-obraz-na-plotnie-z-twojego-zdjecia';
   }
 
   getCropConfig() {
@@ -5287,6 +5307,10 @@ class CustomifyEmbed {
         this.stylesArea.style.display = 'none';
         this.selectedStyle = 'caricature-new';
         console.log('💝 [DLA-NIEJ] Ukryto wybór stylu, auto-select caricature-new');
+      } else if (this.isLoveRoseProduct()) {
+        this.stylesArea.style.display = 'none';
+        this.selectedStyle = 'love-rose';
+        console.log('🌹 [LOVE-ROSE] Ukryto wybór stylu, auto-select love-rose');
       } else {
         this.stylesArea.style.display = 'block';
       }
@@ -7552,6 +7576,9 @@ class CustomifyEmbed {
       } else if (this.isDlaNiejProduct()) {
         this.stylesArea.style.display = 'none';
         this.selectedStyle = 'caricature-new';
+      } else if (this.isLoveRoseProduct()) {
+        this.stylesArea.style.display = 'none';
+        this.selectedStyle = 'love-rose';
       } else {
         this.stylesArea.style.display = 'block';
       }
@@ -7579,7 +7606,7 @@ class CustomifyEmbed {
     }
     
     // Zresetuj wybrane style i rozmiary
-    this.selectedStyle = this.isMultiUploadProduct() ? 'dodaj-osobe' : (this.isDlaNiejProduct() ? 'caricature-new' : null);
+    this.selectedStyle = this.isMultiUploadProduct() ? 'dodaj-osobe' : (this.isDlaNiejProduct() ? 'caricature-new' : (this.isLoveRoseProduct() ? 'love-rose' : null));
     this.selectedSize = null;
     this.transformedImage = null;
     this.textOverlayBaseImage = null;

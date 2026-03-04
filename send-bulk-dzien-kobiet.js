@@ -6,6 +6,7 @@ const fs = require('fs');
 const BASE_URL = 'https://customify-s56o.vercel.app';
 const COLLECTION_HANDLE = 'dzien-kobiet';
 const BATCH_SIZE = 100; // Wysyłka po 100 maili
+const MAX_EMAILS = 0; // Limit: wyślij tylko X maili (0 = bez limitu, 200 = test)
 const DELAY_BETWEEN_EMAILS = 1000; // 1 sekunda między mailami (rate limiting)
 const DELAY_BETWEEN_BATCHES = 5000; // 5 sekund przerwy między partiami
 
@@ -186,6 +187,11 @@ async function main() {
   if (allCustomers.length === 0) {
     console.log('⚠️  Brak klientów do wysłania');
     process.exit(0);
+  }
+
+  if (MAX_EMAILS > 0) {
+    allCustomers = allCustomers.slice(0, MAX_EMAILS);
+    console.log(`📌 Limit: wysyłka tylko ${MAX_EMAILS} maili\n`);
   }
 
   const batches = [];

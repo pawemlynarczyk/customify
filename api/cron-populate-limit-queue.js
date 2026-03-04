@@ -37,7 +37,9 @@ module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
-  const shopDomain = process.env.SHOPIFY_STORE_DOMAIN || 'customify-ok.myshopify.com';
+  // Admin API działa tylko na domenie myshopify.com – nie na domenie sklepu (np. lumly.pl)
+  const envDomain = process.env.SHOPIFY_STORE_DOMAIN || process.env.SHOP_DOMAIN || '';
+  const shopDomain = (envDomain && envDomain.includes('myshopify.com')) ? envDomain : 'customify-ok.myshopify.com';
   const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
   if (!accessToken) return res.status(500).json({ error: 'SHOPIFY_ACCESS_TOKEN not configured' });
 
@@ -45,7 +47,7 @@ module.exports = async (req, res) => {
   const ttlSeconds = 60 * 60 * 48; // 48h
 
   let pageCount = 0;
-  const maxPages = 100; // bezpieczeństwo
+  const maxPages = 3; // tylko 3 strony × 100 = 300 klientów (wystarczy do uzupełnienia kolejki)
   let cursor = null;
   let hasNextPage = true;
 
@@ -80,16 +82,37 @@ module.exports = async (req, res) => {
 
     const variables = { first: 100, after: cursor };
 
-    try {
-      const response = await fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Shopify-Access-Token': accessToken
-        },
-        body: JSON.stringify({ query, variables })
-      });
+    const doFetch = () => fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Shopify-Access-Token': accessToken
+      },
+      body: JSON.stringify({ query, variables })
+    });
 
+    const maxRetries = 3;
+    const retryDelayMs = 5000;
+    let response;
+    let lastErr;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      response = await doFetch();
+      if (response.ok) break;
+      // 503, 502, 429 = tymczasowe – ponów po chwili
+      if ((response.status === 503 || response.status === 502 || response.status === 429) && attempt < maxRetries) {
+        console.warn(`⚠️ [CRON-POPULATE-QUEUE] Shopify ${response.status}, retry ${attempt}/${maxRetries} za ${retryDelayMs}ms...`);
+        await new Promise((r) => setTimeout(r, retryDelayMs));
+        lastErr = null;
+        continue;
+      }
+      lastErr = response;
+      break;
+    }
+
+    if (lastErr) response = lastErr;
+
+    try {
       // ✅ Sprawdź status odpowiedzi przed parsowaniem JSON
       if (!response.ok) {
         const contentType = response.headers.get('content-type') || '';
@@ -99,9 +122,7 @@ module.exports = async (req, res) => {
           const errorData = await response.json();
           errorBody = JSON.stringify(errorData);
         } else {
-          // HTML lub inny format - pobierz jako tekst
           errorBody = await response.text();
-          // Ogranicz do pierwszych 500 znaków żeby nie logować całej strony HTML
           errorBody = errorBody.substring(0, 500);
         }
         

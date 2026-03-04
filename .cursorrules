@@ -1328,3 +1328,74 @@ git push origin main
 # 6. Poczekaj 1-2 minuty na wdrożenie Vercel
 # 7. Przetestuj na https://lumly.pl/products/portret-w-stylu-gta-...
 ```
+
+## 🎨 DODAWANIE PRODUKTÓW "KARYKATURA DLA NIEJ"
+
+Produkty typu Podróżniczka, Lekarka, Policjantka itd. (https://lumly.pl/products/obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka) — jeden styl `caricature-new`, pola personalizacji, ukryty wybór stylu.
+
+### **📋 KROK 1: PRODUCT_FIELD_CONFIGS w `public/customify.js`**
+
+Dodaj wpis z kluczem = product handle (dokładnie z URL):
+
+```javascript
+'obraz-ze-zdjecia-karykatura-dla-niej-NOWY': {
+  title: 'Personalizacja',
+  promptTemplate: `Create a caricature figurine... (kopiuj z istniejącego, np. podrozniczka)
+CUSTOMIZATION: "{personalization}"
+{YEARS_SECTION}
+{NAME_SECTION}
+...`,
+  fields: [
+    { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
+    { id: 'rocznica', label: 'Rocznica / liczba lat', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
+    { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. ...', required: false, promptKey: 'personalization' }
+  ]
+}
+```
+
+### **📋 KROK 2: DLA_NIEJ_WITH_YEARS w `public/customify.js`**
+
+Dodaj handle do tablicy (jeśli produkt ma pole rocznica):
+
+```javascript
+const DLA_NIEJ_WITH_YEARS = [..., 'obraz-ze-zdjecia-karykatura-dla-niej-NOWY'];
+```
+
+### **📋 KROK 3: DEFAULT_PERSONALIZATION_PER_PRODUCT w `public/customify.js`**
+
+Domyślny opis przy pustym polu "Opis osoby":
+
+```javascript
+'obraz-ze-zdjecia-karykatura-dla-niej-NOWY': 'zawód, hobby, charakterystyka',
+```
+
+### **📋 KROK 4: isDlaNiejProduct() w `public/customify.js`**
+
+Dodaj handle do warunku — ukrywa stylesArea, ustawia caricature-new:
+
+```javascript
+return h === '...' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-NOWY';
+```
+
+### **📋 KROK 5: getProductType() w `public/customify.js`**
+
+Mapowanie URL → productType (caricature-new):
+
+```javascript
+if (currentUrl.includes('obraz-ze-zdjecia-karykatura-dla-niej-NOWY')) {
+  return 'caricature-new';
+}
+```
+
+### **📋 KROK 6: theme.liquid (opcjonalnie)**
+
+Jeśli produkt ma domyślnie szkło — dodaj do warunku `product.handle == '...'` (np. linia ~1480 dla default szkło).
+
+### **✅ CHECKLIST PRODUKT "DLA NIEJ":**
+
+- [ ] PRODUCT_FIELD_CONFIGS (handle jako klucz)
+- [ ] DLA_NIEJ_WITH_YEARS (jeśli ma pole rocznica)
+- [ ] DEFAULT_PERSONALIZATION_PER_PRODUCT
+- [ ] isDlaNiejProduct()
+- [ ] getProductType()
+- [ ] npm run deploy + git push

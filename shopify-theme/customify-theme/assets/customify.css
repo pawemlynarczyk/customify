@@ -3009,6 +3009,12 @@ button[id^="BuyButtons-ProductSubmitButton"],
  .customify-text-overlay-panel .text-overlay-input::placeholder {
  color: rgba(17, 17, 17, 0.45) !important;
  }
+
+/* 🎨 Placeholder w polach personalizacji (imię, rocznica, opis) — bledszy, mniej widoczny */
+#customify-app-container #customFieldsArea input::placeholder {
+ color: #b8b8b8 !important;
+ opacity: 0.85;
+ }
  /* Desktop: mocniejsze obramowanie i kontrast dla pola i selectów */
  @media (min-width: 769px) {
  .customify-text-overlay-panel .text-overlay-input-wrapper,
