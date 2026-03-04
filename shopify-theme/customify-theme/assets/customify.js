@@ -1020,11 +1020,24 @@ OUTPUT: A single photorealistic image that looks like a genuine group photograph
     fields: [
       { id: 'napis_banner', label: 'Napis na wstędze (zastąpi LOVE)', type: 'text', placeholder: 'np. Anna i Marek, zawsze razem', required: false, promptKey: 'BANNER_TEXT' }
     ]
+  },
+  'portret-zakochana-para-krolewska-prezent-na-walentynki-personalizowany': {
+    title: 'Personalizacja',
+    promptTemplate: `Transform this photo of a couple into a majestic royal fantasy illustration. The couple is portrayed as a king and queen in a passionate, elegant embrace, both clearly wearing royal crowns. The woman wears a luxurious, flowing crimson royal gown with gold embroidery and an ornate queen's crown. The man wears an ornate dark royal suit or ceremonial uniform with gold details, medals, a regal cape, and a distinguished king's crown. Surround them with rich red roses and subtle royal decorative elements. Add a grand palace-inspired background with soft glowing light, marble textures, and a romantic, fairytale atmosphere. Include a classic ornamental banner with the words "{BANNER_TEXT}" in an elegant royal font.{BANNER_POLISH_INSTRUCTION} Cinematic lighting, soft glow, ultra-detailed, painterly, semi-realistic digital art, fantasy romance novel cover, symmetrical composition, highly polished, luxurious and dramatic.`,
+    fields: [
+      { id: 'napis_banner', label: 'Napis na banerze (zastąpi Neverending Love)', type: 'text', placeholder: 'np. Królowie Miłości już 15 lat razem', required: false, promptKey: 'BANNER_TEXT' }
+    ]
   }
 };
 
 /** Produkty "dla niej" z polem rocznica — używają innej logiki YEARS_SECTION (character zamiast woman, explicit "no numbers" gdy puste). */
 const DLA_NIEJ_WITH_YEARS = ['obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania', 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka', 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka', 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka', 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka', 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog', 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka', 'obraz-ze-zdjecia-karykatura-dla-niej-fitness', 'obraz-ze-zdjecia-karykatura-dla-niej-szefowa', 'active-woman-portret-ze-zdjecia-na-rocznice-dla-kolezanki-kobiety-druk-na-szkle', 'active-woman-portret-ze-zdjecia-na-18-urodziny-dla-dziewczyny-druk-na-szkle-copy', 'portret-na-18-urodziny-dla-dziewczyny-magic-z-wlasnego-zdjecia-druk-na-szkle', 'portret-ze-zdjecia-na-30-rocznice-dla-nauczycielki-karykatura-na-prezent'];
+
+/** Domyślne napisy na banerze per produkt (gdy pole puste). */
+const DEFAULT_BANNER_TEXT_PER_PRODUCT = {
+  'prezent-na-walentynki-obraz-na-plotnie-z-twojego-zdjecia': 'LOVE',
+  'portret-zakochana-para-krolewska-prezent-na-walentynki-personalizowany': 'Neverending Love'
+};
 
 /** Domyślne wartości "Opis osoby" per produkt — na stałe, niezależne od tytułu. Gdy pole puste, używamy tej wartości. */
 const DEFAULT_PERSONALIZATION_PER_PRODUCT = {
@@ -1431,10 +1444,12 @@ class CustomifyEmbed {
           ? `TEXT / DEDICATION:\nAt the bottom of the image, add a beautiful, decorative text inscription that fits the overall composition and color palette. The text reads:\n"${dedVal.trim()}"\nThe font style should be elegant and harmonious with the scene. CRITICAL: use exact Polish characters — ą, ć, ę, ł, ń, ó, ś, ź, ż (uppercase: Ą, Ć, Ę, Ł, Ń, Ó, Ś, Ź, Ż). Do NOT replace with a, c, e, l, n, o, s, z. Copy every letter exactly as provided.`
           : 'Do NOT add any text, inscription, caption, watermark, or written words to the image. The image must be completely free of any text.';
       }
-      // {BANNER_TEXT} i {BANNER_POLISH_INSTRUCTION} — Love Rose: napis na wstędze (domyślnie LOVE)
+      // {BANNER_TEXT} i {BANNER_POLISH_INSTRUCTION} — Love Rose / Royal Love: napis na banerze
       if (config.promptTemplate.includes('{BANNER_TEXT}')) {
         const bannerVal = replacements['BANNER_TEXT'] || '';
-        replacements['BANNER_TEXT'] = bannerVal.trim() || 'LOVE';
+        const handle = this.getProductHandle();
+        const defaultBanner = (handle && DEFAULT_BANNER_TEXT_PER_PRODUCT[handle]) || 'LOVE';
+        replacements['BANNER_TEXT'] = bannerVal.trim() || defaultBanner;
         replacements['BANNER_POLISH_INSTRUCTION'] = bannerVal.trim()
           ? ' CRITICAL for the banner text: use exact Polish characters — ą, ć, ę, ł, ń, ó, ś, ź, ż (uppercase: Ą, Ć, Ę, Ł, Ń, Ó, Ś, Ź, Ż). Do NOT replace with a, c, e, l, n, o, s, z. Copy every letter exactly as provided.'
           : '';
@@ -1592,6 +1607,11 @@ class CustomifyEmbed {
   // 🌹 Produkt Love Rose — jeden styl (love-rose), ukryty wybór, pole na napis zastępujący LOVE
   isLoveRoseProduct() {
     return this.getProductHandle() === 'prezent-na-walentynki-obraz-na-plotnie-z-twojego-zdjecia';
+  }
+
+  // 💕 Produkt Royal Love — jeden styl (royal-love), ukryty wybór, pole na napis zastępujący Neverending Love
+  isRoyalLoveProduct() {
+    return this.getProductHandle() === 'portret-zakochana-para-krolewska-prezent-na-walentynki-personalizowany';
   }
 
   getCropConfig() {
@@ -2268,6 +2288,10 @@ class CustomifyEmbed {
       console.log('🌹 [PRODUCT-TYPE] URL = Love Rose → productType: love_rose');
       return 'love_rose';
     }
+    if (currentUrl.includes('portret-zakochana-para-krolewska-prezent-na-walentynki-personalizowany')) {
+      console.log('💕 [PRODUCT-TYPE] URL = Royal Love → productType: royal_love');
+      return 'royal_love';
+    }
     if (currentUrl.includes('prezent-na-walentynki-superpara-obraz-na-plotnie-z-twojego-zdjecia')) {
       console.log('🦸 [PRODUCT-TYPE] URL = Superpara → productType: superpara');
       return 'superpara';
@@ -2316,6 +2340,7 @@ class CustomifyEmbed {
       'akwarela': 'watercolor',
       'openai-art': 'openai-art', // OpenAI GPT-Image-1 style
       'love-rose': 'love_rose', // Love Rose - OpenAI GPT-Image-1.5 via Replicate
+      'royal-love': 'royal_love', // Royal Love - OpenAI GPT-Image-1.5 via Replicate
       'szkic-love': 'szkic_love', // Szkic Love - OpenAI GPT-Image-1.5 via Replicate
       'jak-z-bajki': 'jak_z_bajki', // Jak z bajki - OpenAI GPT-Image-1.5 via Replicate
       'superpara': 'superpara', // Superpara - OpenAI GPT-Image-1.5 via Replicate
@@ -5311,6 +5336,10 @@ class CustomifyEmbed {
         this.stylesArea.style.display = 'none';
         this.selectedStyle = 'love-rose';
         console.log('🌹 [LOVE-ROSE] Ukryto wybór stylu, auto-select love-rose');
+      } else if (this.isRoyalLoveProduct()) {
+        this.stylesArea.style.display = 'none';
+        this.selectedStyle = 'royal-love';
+        console.log('💕 [ROYAL-LOVE] Ukryto wybór stylu, auto-select royal-love');
       } else {
         this.stylesArea.style.display = 'block';
       }
@@ -7579,6 +7608,9 @@ class CustomifyEmbed {
       } else if (this.isLoveRoseProduct()) {
         this.stylesArea.style.display = 'none';
         this.selectedStyle = 'love-rose';
+      } else if (this.isRoyalLoveProduct()) {
+        this.stylesArea.style.display = 'none';
+        this.selectedStyle = 'royal-love';
       } else {
         this.stylesArea.style.display = 'block';
       }
@@ -7606,7 +7638,7 @@ class CustomifyEmbed {
     }
     
     // Zresetuj wybrane style i rozmiary
-    this.selectedStyle = this.isMultiUploadProduct() ? 'dodaj-osobe' : (this.isDlaNiejProduct() ? 'caricature-new' : (this.isLoveRoseProduct() ? 'love-rose' : null));
+    this.selectedStyle = this.isMultiUploadProduct() ? 'dodaj-osobe' : (this.isDlaNiejProduct() ? 'caricature-new' : (this.isLoveRoseProduct() ? 'love-rose' : (this.isRoyalLoveProduct() ? 'royal-love' : null)));
     this.selectedSize = null;
     this.transformedImage = null;
     this.textOverlayBaseImage = null;
