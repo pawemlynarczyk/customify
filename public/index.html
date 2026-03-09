@@ -405,7 +405,10 @@
                             },
                             body: JSON.stringify({
                                 imageData: base64,
-                                prompt: prompt
+                                style: 'caricature-new',
+                                productType: 'caricature-new',
+                                promptAddition: prompt,
+                                replaceBasePrompt: true
                             })
                         });
 

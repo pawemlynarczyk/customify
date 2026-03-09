@@ -689,6 +689,110 @@ Premium collectible caricature statue, highly detailed, playful but luxurious, p
       { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. fitness, sport, siłownia', required: false, promptKey: 'personalization' }
     ]
   },
+  'portret-ze-zdjecia-prezent-na-urodziny-dla-kolezanki-szefowej-salon-spa': {
+    title: 'Personalizacja',
+    promptTemplate: `Create a caricature figurine based on the provided photo.
+
+STYLE
+• Premium resin statue.
+• Soft cinematic studio lighting.
+• Glossy surfaces, high-end product render.
+• Warm elegant color grading.
+• Slight caricature exaggeration (bigger head, stylish proportions).
+
+FACE — CRITICAL
+• Strongly preserve the identity from the reference photo.
+• Keep facial structure, eyes, nose, mouth, beard/hairline.
+• Natural skin tones.
+• Friendly expressive smile.
+
+CUSTOMIZATION
+The character represents this profession / hobby / personality:
+"{personalization}"
+
+CRITICAL: The overall character should be cohesive — outfit, props, scene, background, podium and decorations must all reference and match the same theme. The podium on which the figurine stands must be styled to fit the profession or hobby. Everything should harmonize and create a unified, coherent whole.
+
+Add visual elements, clothing, props and small scene details related to it.
+Examples:
+• nurse → medical uniform, stethoscope
+• fisherman → fishing rod, fish, outdoor vibe
+• business person → suit, laptop, phone
+• farmer → straw hat, tractor elements
+• salon/spa → manicure, nails, eyelashes, beauty aesthetic
+
+POSE
+{YEARS_SECTION}
+• Character sitting or standing confidently on a podium.
+• The podium must be styled to match the profession or hobby.
+• Relaxed, charismatic pose.
+
+OUTFIT
+• Outfit matching the profession or interest.
+• Stylish, slightly exaggerated caricature look.
+
+SCENE
+Mini decorative environment connected with the interest or job.
+Fun but elegant.
+
+BACKGROUND
+• Colors and style of the background must be related to the person's profession or hobby.
+• Soft bokeh lights.
+• Subtle themed decorations.
+
+TEXT
+{NAME_SECTION}
+
+RESULT
+Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
+    fields: [
+      { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
+      { id: 'rocznica', label: 'Rocznica / liczba lat', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
+      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. salon manicure, tipsy, rzęsy', required: false, promptKey: 'personalization' }
+    ]
+  },
+  'portret-ze-zdjecia-superbohater-prezent-dla-chlopca': {
+    title: 'Personalizacja',
+    promptTemplate: `Create a cinematic superhero poster based on the provided photo of a boy.
+
+CRITICAL IDENTITY PRESERVATION
+- Strongly preserve the identity of the boy from the reference photo.
+- Keep the same face shape, eyes, nose, mouth, smile, skin tone, hairstyle, and overall facial proportions.
+- The superhero must clearly look like the same boy from the uploaded photo, not a generic child.
+- Do not beautify, age up, age down, or significantly alter facial features.
+- Preserve the natural likeness as accurately as possible.
+
+SUBJECT
+- A young boy flying high above a modern city skyline.
+- Dynamic classic superhero pose, front view, one fist extended forward.
+- Body angled slightly toward the viewer, as if soaring through the air.
+- Joyful, confident, energetic expression.
+
+OUTFIT
+- A sleek blue superhero suit with subtle red accents.
+- A large gold star emblem on the chest.
+- A flowing red cape moving naturally in the wind.
+- Costume should look premium, cinematic, realistic, and slightly textured.
+
+COMPOSITION
+- Vertical superhero movie poster composition.
+- The boy is centered and dominant in the frame.
+- Aerial city view below with skyscrapers, long streets, and distant water in the background.
+- Strong sense of height and motion.
+
+LIGHTING & STYLE
+- Golden hour / sunset lighting.
+- Warm cinematic glow, soft highlights on the face and costume.
+- Atmospheric haze over the city.
+- Ultra-detailed, realistic, epic cinematic look.
+- Sharp focus on the face.
+- Premium movie-poster quality.
+
+TEXT
+{NAME_SECTION}`,
+    fields: [
+      { id: 'imiona', label: 'Wpisz imię (pojawią się na plakacie w stylu filmów o superbohaterach)', type: 'text', placeholder: 'np. Kuba, Wojtek', required: false, promptKey: 'name' }
+    ]
+  },
   'portret-na-18-urodziny-dla-dziewczyny-magic-z-wlasnego-zdjecia-druk-na-szkle': {
     title: 'Personalizacja',
     promptTemplate: `Create a caricature figurine based on the provided photo.
@@ -1016,28 +1120,34 @@ OUTPUT: A single photorealistic image that looks like a genuine group photograph
   },
   'prezent-na-walentynki-obraz-na-plotnie-z-twojego-zdjecia': {
     title: 'Personalizacja',
-    promptTemplate: `Transform this photo of a couple into a romantic, semi-realistic digital painting illustration. The couple is elegantly dressed, posed in a close, intimate embrace, full of love and passion, but both faces are turned forward, looking toward the viewer instead of at each other. The woman wears a flowing, glamorous red gown, the man in a stylish dark suit. Surround them with large, detailed red roses and soft decorative floral elements. Add a vintage romantic poster aesthetic with a soft cream background and a classic ribbon banner that says "{BANNER_TEXT}" placed at the top of the composition.{BANNER_POLISH_INSTRUCTION} Warm, soft lighting, smooth painterly skin, cinematic shading, ultra-detailed, elegant, dreamy, Valentine's Day illustration, romance novel cover art style, symmetrical composition, highly polished digital art. masterpiece, ultra detailed, soft glow, romantic fantasy, luxury illustration, glossy finish, art nouveau influence, poster design, decorative frame.`,
+    promptTemplate: `Transform this photo of a couple into a romantic, semi-realistic digital painting illustration. The couple is elegantly dressed, posed in a close, intimate embrace, full of love and passion, but both faces are turned forward, looking toward the viewer instead of at each other. The woman wears a flowing, glamorous red gown, the man in a stylish dark suit. Surround them with large, detailed red roses and soft decorative floral elements. Add a vintage romantic poster aesthetic with a soft cream background.
+{BANNER_SECTION}
+Warm, soft lighting, smooth painterly skin, cinematic shading, ultra-detailed, elegant, dreamy, Valentine's Day illustration, romance novel cover art style, symmetrical composition, highly polished digital art. masterpiece, ultra detailed, soft glow, romantic fantasy, luxury illustration, glossy finish, art nouveau influence, poster design, decorative frame.`,
     fields: [
-      { id: 'napis_banner', label: 'Napis na wstędze (zastąpi LOVE)', type: 'text', placeholder: 'np. Anna i Marek, zawsze razem', required: false, promptKey: 'BANNER_TEXT' }
+      { id: 'napis_banner', label: 'Dodaj napis, pojawi się na wstędze na obrazku', type: 'text', placeholder: 'np. Anna i Marek, zawsze razem', required: false, promptKey: 'BANNER_TEXT' }
     ]
   },
   'portret-zakochana-para-krolewska-prezent-na-walentynki-personalizowany': {
     title: 'Personalizacja',
-    promptTemplate: `Transform this photo of a couple into a majestic royal fantasy illustration. The couple is portrayed as a king and queen in a passionate, elegant embrace, both clearly wearing royal crowns. The woman wears a luxurious, flowing crimson royal gown with gold embroidery and an ornate queen's crown. The man wears an ornate dark royal suit or ceremonial uniform with gold details, medals, a regal cape, and a distinguished king's crown. Surround them with rich red roses and subtle royal decorative elements. Add a grand palace-inspired background with soft glowing light, marble textures, and a romantic, fairytale atmosphere. Include a classic ornamental banner with the words "{BANNER_TEXT}" in an elegant royal font.{BANNER_POLISH_INSTRUCTION} Cinematic lighting, soft glow, ultra-detailed, painterly, semi-realistic digital art, fantasy romance novel cover, symmetrical composition, highly polished, luxurious and dramatic.`,
+    promptTemplate: `Transform this photo of a couple into a majestic royal fantasy illustration. The couple is portrayed as a king and queen in a passionate, elegant embrace, both clearly wearing royal crowns. The woman wears a luxurious, flowing crimson royal gown with gold embroidery and an ornate queen's crown. The man wears an ornate dark royal suit or ceremonial uniform with gold details, medals, a regal cape, and a distinguished king's crown. Surround them with rich red roses and subtle royal decorative elements. Add a grand palace-inspired background with soft glowing light, marble textures, and a romantic, fairytale atmosphere.
+{BANNER_SECTION}
+Cinematic lighting, soft glow, ultra-detailed, painterly, semi-realistic digital art, fantasy romance novel cover, symmetrical composition, highly polished, luxurious and dramatic.`,
     fields: [
-      { id: 'napis_banner', label: 'Napis na banerze (zastąpi Neverending Love)', type: 'text', placeholder: 'np. Królowie Miłości już 15 lat razem', required: false, promptKey: 'BANNER_TEXT' }
+      { id: 'napis_banner', label: 'Dodaj napis, pojawi się na wstędze na obrazku', type: 'text', placeholder: 'np. Królowie Miłości już 15 lat razem', required: false, promptKey: 'BANNER_TEXT' }
+    ]
+  },
+  'portret-w-stylu-gta-obraz-na-plotnie-z-twojego-zdjecia-super-prezent': {
+    title: 'Personalizacja',
+    promptTemplate: `Transform this photo into a GTA-style cover scene with thick outlines, vibrant colors, and high-contrast shadows. Place characters close to the camera with clearly visible faces in dramatic poses wearing sunglasses, hats, or chains, surrounded by city streets, neon lights, speeding cars, palm trees, flying money, and subtle explosions, in a semi-realistic comic-book style with slightly exaggerated proportions and cinematic lighting.
+{GTA_TEXT_SECTION}`,
+    fields: [
+      { id: 'napis_gta', label: 'Możesz dodać napis, pojawi się na dole obrazka', type: 'text', placeholder: 'np. Power Couple', required: false, promptKey: 'GTA_TEXT' }
     ]
   }
 };
 
 /** Produkty "dla niej" z polem rocznica — używają innej logiki YEARS_SECTION (character zamiast woman, explicit "no numbers" gdy puste). */
-const DLA_NIEJ_WITH_YEARS = ['obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania', 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka', 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka', 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka', 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka', 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog', 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka', 'obraz-ze-zdjecia-karykatura-dla-niej-fitness', 'obraz-ze-zdjecia-karykatura-dla-niej-szefowa', 'active-woman-portret-ze-zdjecia-na-rocznice-dla-kolezanki-kobiety-druk-na-szkle', 'active-woman-portret-ze-zdjecia-na-18-urodziny-dla-dziewczyny-druk-na-szkle-copy', 'portret-na-18-urodziny-dla-dziewczyny-magic-z-wlasnego-zdjecia-druk-na-szkle', 'portret-ze-zdjecia-na-30-rocznice-dla-nauczycielki-karykatura-na-prezent'];
-
-/** Domyślne napisy na banerze per produkt (gdy pole puste). */
-const DEFAULT_BANNER_TEXT_PER_PRODUCT = {
-  'prezent-na-walentynki-obraz-na-plotnie-z-twojego-zdjecia': 'LOVE',
-  'portret-zakochana-para-krolewska-prezent-na-walentynki-personalizowany': 'Neverending Love'
-};
+const DLA_NIEJ_WITH_YEARS = ['obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania', 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka', 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka', 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka', 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka', 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog', 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka', 'obraz-ze-zdjecia-karykatura-dla-niej-fitness', 'obraz-ze-zdjecia-karykatura-dla-niej-szefowa', 'active-woman-portret-ze-zdjecia-na-rocznice-dla-kolezanki-kobiety-druk-na-szkle', 'active-woman-portret-ze-zdjecia-na-18-urodziny-dla-dziewczyny-druk-na-szkle-copy', 'portret-ze-zdjecia-prezent-na-urodziny-dla-kolezanki-szefowej-salon-spa', 'portret-na-18-urodziny-dla-dziewczyny-magic-z-wlasnego-zdjecia-druk-na-szkle', 'portret-ze-zdjecia-na-30-rocznice-dla-nauczycielki-karykatura-na-prezent'];
 
 /** Domyślne wartości "Opis osoby" per produkt — na stałe, niezależne od tytułu. Gdy pole puste, używamy tej wartości. */
 const DEFAULT_PERSONALIZATION_PER_PRODUCT = {
@@ -1051,6 +1161,7 @@ const DEFAULT_PERSONALIZATION_PER_PRODUCT = {
   'obraz-ze-zdjecia-karykatura-dla-niej-szefowa': 'szefowa sklepu spożywczego, produkty, zarządzanie',
   'active-woman-portret-ze-zdjecia-na-rocznice-dla-kolezanki-kobiety-druk-na-szkle': 'fitness, sport, aktywność fizyczna',
   'active-woman-portret-ze-zdjecia-na-18-urodziny-dla-dziewczyny-druk-na-szkle-copy': 'fitness, sport, aktywność fizyczna',
+  'portret-ze-zdjecia-prezent-na-urodziny-dla-kolezanki-szefowej-salon-spa': 'salon manicure, tipsy, rzęsy',
   'portret-na-18-urodziny-dla-dziewczyny-magic-z-wlasnego-zdjecia-druk-na-szkle': 'glamorous woman, sequin dress, Hollywood red carpet, paparazzi, spotlights, champagne, black and gold luxury',
   'portret-ze-zdjecia-na-30-rocznice-dla-nauczycielki-karykatura-na-prezent': 'teacher, smart blazer, blackboard with chalk drawings, warm classroom, bookshelves, cozy academic atmosphere',
   'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania': 'elegant, versatile person'
@@ -1423,11 +1534,15 @@ class CustomifyEmbed {
             : 'The woman is sitting elegantly on a business party podium.';
         }
       }
-      // {NAME_SECTION} — warunkowy blok dla pola "name": gdy puste = ZERO tekstu na obrazku, gdy wypełnione = tabliczka
+      // {NAME_SECTION} — warunkowy blok dla pola "name": gdy puste = ZERO tekstu na obrazku, gdy wypełnione = tabliczka lub napis w stylu superbohatera
       if (config.promptTemplate.includes('{NAME_SECTION}')) {
         const nameVal = replacements['name'] || '';
+        const handle = this.getProductHandle();
+        const isSuperheroBoy = handle === 'portret-ze-zdjecia-superbohater-prezent-dla-chlopca';
         replacements['NAME_SECTION'] = nameVal.trim()
-          ? `Render this EXACT text on a plaque at the base:\n"${nameVal.trim()}"\nCRITICAL for names: use exact Polish characters — ą, ć, ę, ł, ń, ó, ś, ź, ż (uppercase: Ą, Ć, Ę, Ł, Ń, Ó, Ś, Ź, Ż). Do NOT replace letters.`
+          ? (isSuperheroBoy
+              ? `Add large bold cinematic title text at the bottom of the image, in the style of superhero movie posters (dramatic, heroic font, bold outlines, high contrast). The text must read exactly: "${nameVal.trim()}". CRITICAL: use exact Polish characters — ą, ć, ę, ł, ń, ó, ś, ź, ż (uppercase: Ą, Ć, Ę, Ł, Ń, Ó, Ś, Ź, Ż). Do NOT replace letters. The text should feel like a movie title from a superhero film.`
+              : `Render this EXACT text on a plaque at the base:\n"${nameVal.trim()}"\nCRITICAL for names: use exact Polish characters — ą, ć, ę, ł, ń, ó, ś, ź, ż (uppercase: Ą, Ć, Ę, Ł, Ń, Ó, Ś, Ź, Ż). Do NOT replace letters.`)
           : 'Do NOT add any text, plaque, inscription, or written text to the image. No names, no letters, no words. The image must be completely free of any text.';
       }
       // {SCENE_DESC_SECTION} — warunkowy blok dla opisu sceny: gdy puste = brak instrukcji, gdy wypełnione = opis kontekstu
@@ -1444,15 +1559,21 @@ class CustomifyEmbed {
           ? `TEXT / DEDICATION:\nAt the bottom of the image, add a beautiful, decorative text inscription that fits the overall composition and color palette. The text reads:\n"${dedVal.trim()}"\nThe font style should be elegant and harmonious with the scene. CRITICAL: use exact Polish characters — ą, ć, ę, ł, ń, ó, ś, ź, ż (uppercase: Ą, Ć, Ę, Ł, Ń, Ó, Ś, Ź, Ż). Do NOT replace with a, c, e, l, n, o, s, z. Copy every letter exactly as provided.`
           : 'Do NOT add any text, inscription, caption, watermark, or written words to the image. The image must be completely free of any text.';
       }
-      // {BANNER_TEXT} i {BANNER_POLISH_INSTRUCTION} — Love Rose / Royal Love: napis na banerze
-      if (config.promptTemplate.includes('{BANNER_TEXT}')) {
+      // {BANNER_SECTION} — Love Rose / Royal Love: gdy puste = brak wstęgi/napisu, gdy wypełnione = wstęga z tekstem
+      // Royal Love: napis na DOLE (więcej tekstu się zmieści), Love Rose: na górze
+      if (config.promptTemplate.includes('{BANNER_SECTION}')) {
         const bannerVal = replacements['BANNER_TEXT'] || '';
-        const handle = this.getProductHandle();
-        const defaultBanner = (handle && DEFAULT_BANNER_TEXT_PER_PRODUCT[handle]) || 'LOVE';
-        replacements['BANNER_TEXT'] = bannerVal.trim() || defaultBanner;
-        replacements['BANNER_POLISH_INSTRUCTION'] = bannerVal.trim()
-          ? ' CRITICAL for the banner text: use exact Polish characters — ą, ć, ę, ł, ń, ó, ś, ź, ż (uppercase: Ą, Ć, Ę, Ł, Ń, Ó, Ś, Ź, Ż). Do NOT replace with a, c, e, l, n, o, s, z. Copy every letter exactly as provided.'
-          : '';
+        const bannerPlace = this.isRoyalLoveProduct() ? 'placed at the bottom of the composition' : 'placed at the top of the composition';
+        replacements['BANNER_SECTION'] = bannerVal.trim()
+          ? `Add a classic ribbon/ornamental banner that says "${bannerVal.trim()}" ${bannerPlace}. CRITICAL for the banner text: use exact Polish characters — ą, ć, ę, ł, ń, ó, ś, ź, ż (uppercase: Ą, Ć, Ę, Ł, Ń, Ó, Ś, Ź, Ż). Do NOT replace with a, c, e, l, n, o, s, z. Copy every letter exactly as provided.`
+          : 'Do NOT add any banner, ribbon, text, inscription, or written words to the image. No banner, no text at all. The image must be completely free of any banner or written text.';
+      }
+      // {GTA_TEXT_SECTION} — GTA: gdy puste = brak napisu, gdy wypełnione = napis na dole w stylu GTA
+      if (config.promptTemplate.includes('{GTA_TEXT_SECTION}')) {
+        const gtaVal = replacements['GTA_TEXT'] || '';
+        replacements['GTA_TEXT_SECTION'] = gtaVal.trim()
+          ? `At the bottom of the image, add the following text in bold GTA-style comic-book font, matching the vibrant game cover aesthetic with thick outlines and high contrast: "${gtaVal.trim()}". CRITICAL: use exact Polish characters — ą, ć, ę, ł, ń, ó, ś, ź, ż (uppercase: Ą, Ć, Ę, Ł, Ń, Ó, Ś, Ź, Ż). Do NOT replace with a, c, e, l, n, o, s, z. Copy every letter exactly as provided. Keep the GTA visual style throughout.`
+          : 'Do NOT add any text, caption, or written words to the image. No text at all. The image must be completely free of any text.';
       }
       let prompt = config.promptTemplate;
       Object.keys(replacements).forEach(key => {
@@ -1601,7 +1722,12 @@ class CustomifyEmbed {
   // 💝 Produkty "dla niej" + Biznes Woman — jeden styl (caricature-new), bez wyboru, generacja bez klikania w miniaturkę
   isDlaNiejProduct() {
     const h = this.getProductHandle();
-    return h === 'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-fitness' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-szefowa' || h === 'active-woman-portret-ze-zdjecia-na-rocznice-dla-kolezanki-kobiety-druk-na-szkle' || h === 'active-woman-portret-ze-zdjecia-na-18-urodziny-dla-dziewczyny-druk-na-szkle-copy' || h === 'portret-na-18-urodziny-dla-dziewczyny-magic-z-wlasnego-zdjecia-druk-na-szkle' || h === 'portret-ze-zdjecia-na-30-rocznice-dla-nauczycielki-karykatura-na-prezent' || h === 'obraz-ze-zdjecia-biznes-woman-personalizowany-prezent' || h === 'obraz-ze-zdjecia-prezent-na-30-urodziny-dla-kobiety-biznes-woman' || h === 'wydruk-na-szkle-biznes-woman-prezent-na-urodziny-dla-kobiety';
+    return h === 'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-fitness' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-szefowa' || h === 'active-woman-portret-ze-zdjecia-na-rocznice-dla-kolezanki-kobiety-druk-na-szkle' || h === 'active-woman-portret-ze-zdjecia-na-18-urodziny-dla-dziewczyny-druk-na-szkle-copy' || h === 'portret-ze-zdjecia-prezent-na-urodziny-dla-kolezanki-szefowej-salon-spa' || h === 'portret-na-18-urodziny-dla-dziewczyny-magic-z-wlasnego-zdjecia-druk-na-szkle' || h === 'portret-ze-zdjecia-na-30-rocznice-dla-nauczycielki-karykatura-na-prezent' || h === 'obraz-ze-zdjecia-biznes-woman-personalizowany-prezent' || h === 'obraz-ze-zdjecia-prezent-na-30-urodziny-dla-kobiety-biznes-woman' || h === 'wydruk-na-szkle-biznes-woman-prezent-na-urodziny-dla-kobiety';
+  }
+
+  // 🦸 Produkt Superbohater dla chłopca — Nano Banana, ukryty wybór, pole imienia
+  isSuperheroBoyProduct() {
+    return this.getProductHandle() === 'portret-ze-zdjecia-superbohater-prezent-dla-chlopca';
   }
 
   // 🌹 Produkt Love Rose — jeden styl (love-rose), ukryty wybór, pole na napis zastępujący LOVE
@@ -1612,6 +1738,11 @@ class CustomifyEmbed {
   // 💕 Produkt Royal Love — jeden styl (royal-love), ukryty wybór, pole na napis zastępujący Neverending Love
   isRoyalLoveProduct() {
     return this.getProductHandle() === 'portret-zakochana-para-krolewska-prezent-na-walentynki-personalizowany';
+  }
+
+  // 🎮 Produkt GTA — jeden styl (gta), ukryty wybór, pole na napis na dole obrazka
+  isGTAProduct() {
+    return this.getProductHandle() === 'portret-w-stylu-gta-obraz-na-plotnie-z-twojego-zdjecia-super-prezent';
   }
 
   getCropConfig() {
@@ -1831,7 +1962,7 @@ class CustomifyEmbed {
       }
     }
     // 🎯 Rocznica 50-ta / Dla niej: domyślnie wydruk na szkle + rozmiar A5
-    if (this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-na-50-ta-rocznice' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-fitness' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-szefowa' || this.getProductHandle() === 'active-woman-portret-ze-zdjecia-na-rocznice-dla-kolezanki-kobiety-druk-na-szkle' || this.getProductHandle() === 'active-woman-portret-ze-zdjecia-na-18-urodziny-dla-dziewczyny-druk-na-szkle-copy' || this.getProductHandle() === 'portret-na-18-urodziny-dla-dziewczyny-magic-z-wlasnego-zdjecia-druk-na-szkle' || this.getProductHandle() === 'portret-ze-zdjecia-na-30-rocznice-dla-nauczycielki-karykatura-na-prezent' || this.getProductHandle() === 'wydruk-na-szkle-biznes-woman-prezent-na-urodziny-dla-kobiety') {
+    if (this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-na-50-ta-rocznice' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-fitness' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-szefowa' || this.getProductHandle() === 'active-woman-portret-ze-zdjecia-na-rocznice-dla-kolezanki-kobiety-druk-na-szkle' || this.getProductHandle() === 'active-woman-portret-ze-zdjecia-na-18-urodziny-dla-dziewczyny-druk-na-szkle-copy' || this.getProductHandle() === 'portret-ze-zdjecia-prezent-na-urodziny-dla-kolezanki-szefowej-salon-spa' || this.getProductHandle() === 'portret-na-18-urodziny-dla-dziewczyny-magic-z-wlasnego-zdjecia-druk-na-szkle' || this.getProductHandle() === 'portret-ze-zdjecia-na-30-rocznice-dla-nauczycielki-karykatura-na-prezent' || this.getProductHandle() === 'wydruk-na-szkle-biznes-woman-prezent-na-urodziny-dla-kobiety') {
       const szkloBtn = document.querySelector('.customify-product-type-btn[data-product-type="szklo"]');
       if (szkloBtn) {
         this.productTypeArea?.querySelectorAll('.customify-product-type-btn').forEach(btn => btn.classList.remove('active'));
@@ -2224,6 +2355,10 @@ class CustomifyEmbed {
       console.log('🎂 [PRODUCT-TYPE] URL = Active woman 18 urodziny → productType: caricature-new');
       return 'caricature-new';
     }
+    if (currentUrl.includes('portret-ze-zdjecia-prezent-na-urodziny-dla-kolezanki-szefowej-salon-spa')) {
+      console.log('💅 [PRODUCT-TYPE] URL = Szefowa salon spa → productType: caricature-new');
+      return 'caricature-new';
+    }
     if (currentUrl.includes('portret-na-18-urodziny-dla-dziewczyny-magic-z-wlasnego-zdjecia-druk-na-szkle')) {
       console.log('✨ [PRODUCT-TYPE] URL = Magic 18 urodziny → productType: caricature-new');
       return 'caricature-new';
@@ -2296,6 +2431,10 @@ class CustomifyEmbed {
       console.log('🦸 [PRODUCT-TYPE] URL = Superpara → productType: superpara');
       return 'superpara';
     }
+    if (currentUrl.includes('portret-w-stylu-gta-obraz-na-plotnie-z-twojego-zdjecia-super-prezent') || currentUrl.includes('portret-w-stylu-gta')) {
+      console.log('🎮 [PRODUCT-TYPE] URL = GTA → productType: gta');
+      return 'gta';
+    }
     if (currentUrl.includes('dodaj-osobe-do-zdjecia-naturalny-efekt')) {
       console.log('📸 [PRODUCT-TYPE] URL = Dodaj osobę → productType: dodaj_osobe');
       return 'dodaj_osobe';
@@ -2331,6 +2470,7 @@ class CustomifyEmbed {
       'zamkowy': 'para_krolewska',
       'krolewski-para': 'para_krolewska',
       'superhero_kid': 'superhero',
+      'superhero_boy': 'superhero',
       'karykatura': 'caricature',
       'caricature-new': 'caricature-new',
       'karykatura-olowek': 'caricature-new',
@@ -2341,6 +2481,7 @@ class CustomifyEmbed {
       'openai-art': 'openai-art', // OpenAI GPT-Image-1 style
       'love-rose': 'love_rose', // Love Rose - OpenAI GPT-Image-1.5 via Replicate
       'royal-love': 'royal_love', // Royal Love - OpenAI GPT-Image-1.5 via Replicate
+      'gta': 'gta', // GTA - OpenAI GPT-Image-1.5 via Replicate
       'szkic-love': 'szkic_love', // Szkic Love - OpenAI GPT-Image-1.5 via Replicate
       'jak-z-bajki': 'jak_z_bajki', // Jak z bajki - OpenAI GPT-Image-1.5 via Replicate
       'superpara': 'superpara', // Superpara - OpenAI GPT-Image-1.5 via Replicate
@@ -5332,6 +5473,10 @@ class CustomifyEmbed {
         this.stylesArea.style.display = 'none';
         this.selectedStyle = 'caricature-new';
         console.log('💝 [DLA-NIEJ] Ukryto wybór stylu, auto-select caricature-new');
+      } else if (this.isSuperheroBoyProduct()) {
+        this.stylesArea.style.display = 'none';
+        this.selectedStyle = 'superhero_boy';
+        console.log('🦸 [SUPERHERO] Ukryto wybór stylu, auto-select superhero_boy');
       } else if (this.isLoveRoseProduct()) {
         this.stylesArea.style.display = 'none';
         this.selectedStyle = 'love-rose';
@@ -5340,6 +5485,10 @@ class CustomifyEmbed {
         this.stylesArea.style.display = 'none';
         this.selectedStyle = 'royal-love';
         console.log('💕 [ROYAL-LOVE] Ukryto wybór stylu, auto-select royal-love');
+      } else if (this.isGTAProduct()) {
+        this.stylesArea.style.display = 'none';
+        this.selectedStyle = 'gta';
+        console.log('🎮 [GTA] Ukryto wybór stylu, auto-select gta');
       } else {
         this.stylesArea.style.display = 'block';
       }
@@ -7605,12 +7754,18 @@ class CustomifyEmbed {
       } else if (this.isDlaNiejProduct()) {
         this.stylesArea.style.display = 'none';
         this.selectedStyle = 'caricature-new';
+      } else if (this.isSuperheroBoyProduct()) {
+        this.stylesArea.style.display = 'none';
+        this.selectedStyle = 'superhero_boy';
       } else if (this.isLoveRoseProduct()) {
         this.stylesArea.style.display = 'none';
         this.selectedStyle = 'love-rose';
       } else if (this.isRoyalLoveProduct()) {
         this.stylesArea.style.display = 'none';
         this.selectedStyle = 'royal-love';
+      } else if (this.isGTAProduct()) {
+        this.stylesArea.style.display = 'none';
+        this.selectedStyle = 'gta';
       } else {
         this.stylesArea.style.display = 'block';
       }
@@ -7638,7 +7793,7 @@ class CustomifyEmbed {
     }
     
     // Zresetuj wybrane style i rozmiary
-    this.selectedStyle = this.isMultiUploadProduct() ? 'dodaj-osobe' : (this.isDlaNiejProduct() ? 'caricature-new' : (this.isLoveRoseProduct() ? 'love-rose' : (this.isRoyalLoveProduct() ? 'royal-love' : null)));
+    this.selectedStyle = this.isMultiUploadProduct() ? 'dodaj-osobe' : (this.isDlaNiejProduct() ? 'caricature-new' : (this.isSuperheroBoyProduct() ? 'superhero_boy' : (this.isLoveRoseProduct() ? 'love-rose' : (this.isRoyalLoveProduct() ? 'royal-love' : (this.isGTAProduct() ? 'gta' : null)))));
     this.selectedSize = null;
     this.transformedImage = null;
     this.textOverlayBaseImage = null;
