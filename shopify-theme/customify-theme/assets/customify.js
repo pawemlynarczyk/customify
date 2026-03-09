@@ -752,17 +752,17 @@ Premium collectible caricature statue, highly detailed, playful but luxurious, p
   },
   'portret-ze-zdjecia-superbohater-prezent-dla-chlopca': {
     title: 'Personalizacja',
-    promptTemplate: `Create a cinematic superhero poster based on the provided photo of a boy.
+    promptTemplate: `Create a cinematic young superhero poster based on the provided photo
 
 CRITICAL IDENTITY PRESERVATION
-- Strongly preserve the identity of the boy from the reference photo.
+- Strongly preserve the identity of the person from the reference photo.
 - Keep the same face shape, eyes, nose, mouth, smile, skin tone, hairstyle, and overall facial proportions.
-- The superhero must clearly look like the same boy from the uploaded photo, not a generic child.
+- The superhero must clearly look like the same person from the uploaded photo, not a generic child.
 - Do not beautify, age up, age down, or significantly alter facial features.
 - Preserve the natural likeness as accurately as possible.
 
 SUBJECT
-- A young boy flying high above a modern city skyline.
+- Superboy flying high above a modern city skyline.
 - Dynamic classic superhero pose, front view, one fist extended forward.
 - Body angled slightly toward the viewer, as if soaring through the air.
 - Joyful, confident, energetic expression.
@@ -775,7 +775,7 @@ OUTFIT
 
 COMPOSITION
 - Vertical superhero movie poster composition.
-- The boy is centered and dominant in the frame.
+- The person is centered and dominant in the frame.
 - Aerial city view below with skyscrapers, long streets, and distant water in the background.
 - Strong sense of height and motion.
 
