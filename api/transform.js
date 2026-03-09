@@ -1951,6 +1951,16 @@ module.exports = async (req, res) => {
           background_type: "rgba"
         }
       },
+      // 📷 Retusz starych zdjęć - FLUX Kontext Restore (prezent dla dziadków)
+      'retusz-starych-zdjec': {
+        model: "flux-kontext-apps/restore-image",
+        apiType: "replicate-restore",
+        productType: "retusz_starych_zdjec",
+        parameters: {
+          output_format: "png",
+          safety_tolerance: 2
+        }
+      },
       // 🎨 Anime style - Photo to Anime
       'anime': {
         model: "qwen-edit-apps/qwen-image-edit-plus-lora-photo-to-anime",
@@ -3041,6 +3051,34 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
         reverse: config.parameters?.reverse || false,
         threshold: config.parameters?.threshold ?? 0,
         background_type: config.parameters?.background_type || 'rgba'
+      };
+    } else if (config.apiType === 'replicate-restore') {
+      // Retusz starych zdjęć - flux-kontext-apps/restore-image (wymaga URL)
+      console.log('📷 [RESTORE] Uploading image to Vercel Blob Storage...');
+      const baseUrl = 'https://customify-s56o.vercel.app';
+      const uploadResponse = await fetch(`${baseUrl}/api/upload-temp-image`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageData: imageDataUri,
+          filename: `restore-${Date.now()}.jpg`
+        })
+      });
+
+      if (!uploadResponse.ok) {
+        const errorText = await uploadResponse.text();
+        console.error('❌ [RESTORE] Vercel Blob upload failed:', errorText);
+        throw new Error(`Vercel Blob upload failed: ${uploadResponse.status} - ${errorText}`);
+      }
+
+      const uploadResult = await uploadResponse.json();
+      const userImageUrl = uploadResult.imageUrl;
+      console.log('✅ [RESTORE] User image uploaded:', userImageUrl);
+
+      inputParams = {
+        input_image: userImageUrl,
+        output_format: config.parameters?.output_format || 'png',
+        safety_tolerance: config.parameters?.safety_tolerance ?? 2
       };
     } else if (config.model.includes('qwen-image-edit-plus-lora-photo-to-anime')) {
       // Qwen Photo-to-Anime model - upload to Vercel Blob first (model requires URL)

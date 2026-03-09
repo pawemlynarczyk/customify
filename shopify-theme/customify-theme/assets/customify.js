@@ -1745,6 +1745,11 @@ class CustomifyEmbed {
     return this.getProductHandle() === 'portret-w-stylu-gta-obraz-na-plotnie-z-twojego-zdjecia-super-prezent';
   }
 
+  // 📷 Produkt Retusz starych zdjęć (prezent dla dziadków) — FLUX Kontext Restore
+  isRetuszStarychZdjecProduct() {
+    return this.getProductHandle() === 'prezent-dla-dziadkow-retusz-starych-zdjec';
+  }
+
   getCropConfig() {
     return { aspectRatio: 1, width: 1024, height: 1024, filePrefix: 'spotify-crop' };
   }
@@ -2439,6 +2444,10 @@ class CustomifyEmbed {
       console.log('📸 [PRODUCT-TYPE] URL = Dodaj osobę → productType: dodaj_osobe');
       return 'dodaj_osobe';
     }
+    if (currentUrl.includes('prezent-dla-dziadkow-retusz-starych-zdjec')) {
+      console.log('📷 [PRODUCT-TYPE] URL = Retusz starych zdjęć → productType: retusz_starych_zdjec');
+      return 'retusz_starych_zdjec';
+    }
 
     // 🔄 PRIORYTET 2: Fallback - sprawdź styl (tylko dla starych generacji bez URL)
     console.log('⚠️ [PRODUCT-TYPE] Nie rozpoznano URL, sprawdzam styl:', style);
@@ -2494,7 +2503,8 @@ class CustomifyEmbed {
       'wanted_k': 'wanted_k',
       'anime': 'anime',
       'superman': 'superman',
-      'dodaj-osobe': 'dodaj_osobe'
+      'dodaj-osobe': 'dodaj_osobe',
+      'retusz-starych-zdjec': 'retusz_starych_zdjec'
     };
 
     const productType = styleToProductType[style] || 'other';
@@ -5489,6 +5499,10 @@ class CustomifyEmbed {
         this.stylesArea.style.display = 'none';
         this.selectedStyle = 'gta';
         console.log('🎮 [GTA] Ukryto wybór stylu, auto-select gta');
+      } else if (this.isRetuszStarychZdjecProduct()) {
+        this.stylesArea.style.display = 'none';
+        this.selectedStyle = 'retusz-starych-zdjec';
+        console.log('📷 [RETUSZ] Ukryto wybór stylu, auto-select retusz-starych-zdjec');
       } else {
         this.stylesArea.style.display = 'block';
       }
@@ -6655,7 +6669,7 @@ class CustomifyEmbed {
           console.warn('⚠️ [IMAGE-HASH] Image already used response from API:', errorJson);
           const baseMessage = errorJson.message || 'Dla tego zdjęcia wynik jest gotowy, zobacz poniżej. Spróbuj inne zdjęcie, albo inne produkty';
           // Utwórz komunikat z linkiem do innych produktów
-          const messageWithLink = `${baseMessage} <a href="/collections/all" style="color: #0066cc; text-decoration: underline;">Zobacz inne produkty</a>`;
+          const messageWithLink = `${baseMessage} <a href="/collections/see_also" style="color: #0066cc; text-decoration: underline;">Zobacz inne produkty</a>`;
           this.showErrorWithHTML(messageWithLink, 'transform');
           return;
         }
@@ -7766,6 +7780,9 @@ class CustomifyEmbed {
       } else if (this.isGTAProduct()) {
         this.stylesArea.style.display = 'none';
         this.selectedStyle = 'gta';
+      } else if (this.isRetuszStarychZdjecProduct()) {
+        this.stylesArea.style.display = 'none';
+        this.selectedStyle = 'retusz-starych-zdjec';
       } else {
         this.stylesArea.style.display = 'block';
       }
@@ -7793,7 +7810,7 @@ class CustomifyEmbed {
     }
     
     // Zresetuj wybrane style i rozmiary
-    this.selectedStyle = this.isMultiUploadProduct() ? 'dodaj-osobe' : (this.isDlaNiejProduct() ? 'caricature-new' : (this.isSuperheroBoyProduct() ? 'superhero_boy' : (this.isLoveRoseProduct() ? 'love-rose' : (this.isRoyalLoveProduct() ? 'royal-love' : (this.isGTAProduct() ? 'gta' : null)))));
+    this.selectedStyle = this.isMultiUploadProduct() ? 'dodaj-osobe' : (this.isDlaNiejProduct() ? 'caricature-new' : (this.isSuperheroBoyProduct() ? 'superhero_boy' : (this.isLoveRoseProduct() ? 'love-rose' : (this.isRoyalLoveProduct() ? 'royal-love' : (this.isGTAProduct() ? 'gta' : (this.isRetuszStarychZdjecProduct() ? 'retusz-starych-zdjec' : null))))));
     this.selectedSize = null;
     this.transformedImage = null;
     this.textOverlayBaseImage = null;
