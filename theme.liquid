@@ -1070,14 +1070,8 @@
 
  if (result.orderId) {
  hiddenProperties['_Order ID Full'] = result.orderId;
- console.log('✅ [CUSTOMIFY] _Order ID Full added to hiddenProperties:', result.orderId);
  } else {
- console.error('❌ [CUSTOMIFY] result.orderId is missing!', {
- hasResult: !!result,
- resultKeys: result ? Object.keys(result) : [],
- orderId: result?.orderId,
- shortOrderId: result?.shortOrderId
- });
+ console.error('❌ [CUSTOMIFY] result.orderId missing');
  }
  
  // ✅ BEZ WATERMARKU - dla admina do realizacji zamówienia (krótki ~100 znaków, nie base64!)

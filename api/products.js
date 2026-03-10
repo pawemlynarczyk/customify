@@ -302,9 +302,8 @@ module.exports = async (req, res) => {
             ? `${productTypeName} - ${style}`
             : `${productTypeName} - ${sizeName}`,
           price: totalPrice.toFixed(2), // ✅ NAPRAWIONE: Shopify przyjmuje PLN jako string (np. "79.99")
-          inventory_quantity: 10,
-          inventory_management: null,
-          inventory_policy: 'continue',
+          inventory_quantity: 100,
+          inventory_management: 'shopify',
           fulfillment_service: 'manual',
           requires_shipping: !isDigitalProduct // 🚨 ROLLBACK: Variant cyfrowy nie wymaga wysyłki
         }]
