@@ -1030,10 +1030,10 @@
  } else if (this.selectedProductType === 'spotify_frame') {
  productTypeName = 'Ramka Spotify ze zdjęciem';
  } else if (this.selectedProductType === 'szklo') {
- productTypeName = standLabelForTitle ? `Wydruk na szkle na podstawce ${standLabelForTitle}` : 'Obraz na szkle – nadruk UV';
+ productTypeName = standLabelForTitle ? `Wydruk na szkle na podstawce ${standLabelForTitle}` : 'Wydruk na szkle';
  } else if (this.selectedProductType === 'plakat' || this.selectedProductType === 'canvas') {
  const base = this.selectedProductType === 'plakat' ? 'Plakat' : 'Obraz na płótnie (canvas)';
- productTypeName = frameLabel ? `${base} w ramce ${frameLabel}` : base;
+ productTypeName = frameLabel ? `${base} w ramce za szkłem ${frameLabel}` : base;
  } else {
  productTypeName = 'Obraz na płótnie (canvas)';
  }

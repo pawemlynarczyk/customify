@@ -234,11 +234,11 @@ module.exports = async (req, res) => {
     } else if (productType === 'szklo') {
       productTypeName = standLabel
         ? `Wydruk na szkle na podstawce ${standLabel}`
-        : 'Obraz na szkle – nadruk UV';
+        : 'Wydruk na szkle';
       sizeName = size === 'a5' ? '15×21 cm' : size === 'a4' ? '20×30 cm' : '20×30 cm';
     } else if (productType === 'plakat' || productType === 'canvas') {
       const base = productType === 'plakat' ? 'Plakat' : 'Obraz na płótnie (canvas)';
-      productTypeName = frameLabel ? `${base} w ramce ${frameLabel}` : base;
+      productTypeName = frameLabel ? `${base} w ramce za szkłem ${frameLabel}` : base;
       sizeName = size === 'a5' ? '15×21 cm' : size === 'a4' ? '20×30 cm' : size === 'a3' ? '30×45 cm' : size === 'a2' ? '40×60 cm' : size === 'a0' ? '50×75 cm' : size === 'a1' ? '60×90 cm' : (size?.toUpperCase() || 'standard');
     } else {
       productTypeName = 'Obraz na płótnie (canvas)';

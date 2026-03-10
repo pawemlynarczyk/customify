@@ -1171,7 +1171,7 @@ const DEFAULT_PERSONALIZATION_PER_PRODUCT = {
 const PRODUCT_TYPE_LABELS = {
   plakat: 'Plakat – wydruk na papierze fotograficznym',
   canvas: 'Obraz na płótnie (canvas)',
-  szklo: 'Obraz na szkle – nadruk UV',
+  szklo: 'Wydruk na szkle',
   digital: 'Plik cyfrowy do pobrania',
   spotify_frame: 'Ramka Spotify ze zdjęciem',
   etui: 'Etui na telefon z Twoim zdjęciem'
@@ -7396,10 +7396,10 @@ class CustomifyEmbed {
           if (this.isPhonePhotoCaseProduct && this.isPhonePhotoCaseProduct()) {
             productTypeName = PRODUCT_TYPE_LABELS.etui;
           } else if (this.selectedProductType === 'szklo') {
-            productTypeName = standLabelForTitle ? `Wydruk na szkle na podstawce ${standLabelForTitle}` : PRODUCT_TYPE_LABELS.szklo;
+            productTypeName = standLabelForTitle ? `Wydruk na szkle na podstawce ${standLabelForTitle}` : 'Wydruk na szkle';
           } else if (this.selectedProductType === 'plakat' || this.selectedProductType === 'canvas') {
             const base = this.selectedProductType === 'plakat' ? 'Plakat' : 'Obraz na płótnie (canvas)';
-            productTypeName = frameLabel ? `${base} w ramce ${frameLabel}` : base;
+            productTypeName = frameLabel ? `${base} w ramce za szkłem ${frameLabel}` : base;
           } else {
             productTypeName = PRODUCT_TYPE_LABELS[this.selectedProductType] || PRODUCT_TYPE_LABELS.canvas;
           }
