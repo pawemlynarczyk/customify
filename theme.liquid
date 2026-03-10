@@ -302,8 +302,8 @@
  })();
  </script>
 
- <link rel="stylesheet" href="{{ 'customify.css' | asset_url }}">
- {% if product and product.handle == 'ramka-spotify' or product.handle == 'zdjecie-na-szkle-ramka-spotify' or product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem' %}
+<link rel="stylesheet" href="{{ 'customify.css' | asset_url }}">
+{% if product and product.handle == 'ramka-spotify' or product.handle == 'zdjecie-na-szkle-ramka-spotify' or product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem' %}
  <link rel="stylesheet" href="https://unpkg.com/cropperjs@1.6.2/dist/cropper.min.css">
  {% endif %}
 
@@ -1012,45 +1012,47 @@
  console.log('🛒 [CUSTOMIFY] Variant ID type:', typeof result.variantId);
  console.log('🛒 [CUSTOMIFY] Variant ID length:', result.variantId.toString().length);
 
- // 🚨 ROLLBACK: START - Nazwa typu produktu z obsługą cyfrowego i etui
- const productTypeName = this.isPhonePhotoCaseProduct && this.isPhonePhotoCaseProduct()
- ? 'Etui na telefon' // 📱 Etui
- : this.selectedProductType === 'plakat' 
- ? 'Plakat' 
- : this.selectedProductType === 'szklo'
- ? 'Nadruk na szkle' // 🆕 Szkło
- : this.selectedProductType === 'digital'
- ? 'Produkt cyfrowy'
- : 'Obraz na płótnie';
- // 🚨 ROLLBACK: END - Nazwa typu produktu
+ // Nazwa rodzaju wydruku – wszystkie parametry w tytule
  const selectedFrame = (this.selectedProductType === 'plakat' && window.CustomifyFrame && window.CustomifyFrame.color)
  ? window.CustomifyFrame.color
- : 'none';
- const frameLabelMap = { none: 'brak', black: 'czarna', white: 'biała', wood: 'drewno' };
- const frameLabel = frameLabelMap[selectedFrame] || 'brak';
- 
- // 🆕 Mapowanie dla podstawki (szkło)
- const standLabelMap = { none: 'brak', wood: 'podstawka drewniana', led: 'podstawka drewniana z LED' };
- const standLabel = standLabelMap[selectedStand] || 'brak';
+ : (this.selectedProductType === 'canvas' && window.CustomifyFrame && window.CustomifyFrame.color) ? window.CustomifyFrame.color : 'none';
+ const frameLabelMap = { none: null, black: 'czarna', white: 'biała', wood: 'drewno' };
+ const frameLabel = frameLabelMap[selectedFrame] || frameLabelMap[(selectedFrame || '').toLowerCase()] || null;
+ const standLabelMapTitle = { none: null, wood: 'drewnianej', led: 'LED' };
+ const standLabelForTitle = standLabelMapTitle[(selectedStand || 'none').toLowerCase()] || null;
+ const standLabelForRamka = { none: 'brak', wood: 'podstawka drewniana', led: 'podstawka drewniana z LED' }[(selectedStand || 'none').toLowerCase()] || 'brak';
+ const frameLabelForRamka = { none: 'brak', black: 'czarna', white: 'biała', wood: 'drewno' }[(selectedFrame || 'none').toLowerCase()] || 'brak';
+ let productTypeName;
+ if (this.isPhonePhotoCaseProduct && this.isPhonePhotoCaseProduct()) {
+ productTypeName = 'Etui na telefon z Twoim zdjęciem';
+ } else if (this.selectedProductType === 'digital') {
+ productTypeName = 'Plik cyfrowy do pobrania';
+ } else if (this.selectedProductType === 'spotify_frame') {
+ productTypeName = 'Ramka Spotify ze zdjęciem';
+ } else if (this.selectedProductType === 'szklo') {
+ productTypeName = standLabelForTitle ? `Wydruk na szkle na podstawce ${standLabelForTitle}` : 'Obraz na szkle – nadruk UV';
+ } else if (this.selectedProductType === 'plakat' || this.selectedProductType === 'canvas') {
+ const base = this.selectedProductType === 'plakat' ? 'Plakat' : 'Obraz na płótnie (canvas)';
+ productTypeName = frameLabel ? `${base} w ramce ${frameLabel}` : base;
+ } else {
+ productTypeName = 'Obraz na płótnie (canvas)';
+ }
 
  console.log('🖼️ [CUSTOMIFY FRAME DEBUG]:', {
  selectedProductType: this.selectedProductType,
- 'window.CustomifyFrame': window.CustomifyFrame,
  selectedFrame: selectedFrame,
- frameLabel: frameLabel,
- 'window.CustomifyStand': window.CustomifyStand,
+ frameLabel: frameLabelForRamka,
  selectedStand: selectedStand,
- standLabel: standLabel
+ productTypeName: productTypeName
  });
 
- const shortOrderId = result.shortOrderId || (result.orderId ? result.orderId.split('-').pop() : Date.now().toString());
+ // Order ID nie pokazywany userowi (tylko _Order ID Full w hiddenProperties dla admina)
 
  // 🚨 ROLLBACK: START - Properties dla produktu cyfrowego i etui
  const visibleProperties = {};
  if (this.isPhonePhotoCaseProduct && this.isPhonePhotoCaseProduct()) {
- // 📱 Etui: nie pokazuj Ramka ani Rozmiar w koszyku
+ // 📱 Etui: nie pokazuj Ramka ani Rozmiar w koszyku (Order ID ukryty - user nie potrzebuje)
  visibleProperties['Rodzaj wydruku'] = productTypeName;
- visibleProperties['Order ID'] = shortOrderId;
  const brandLabel = this.getPhoneBrandLabel ? this.getPhoneBrandLabel() : (this.selectedPhoneBrand || '');
  const modelLabel = this.getPhoneModelLabel ? this.getPhoneModelLabel() : (this.selectedPhoneModel || '');
  if (brandLabel) visibleProperties['Marka'] = brandLabel;
@@ -1058,8 +1060,7 @@
  } else {
  visibleProperties['Rozmiar'] = isDigitalProduct ? 'Plik do pobrania' : this.getSizeDimension(this.selectedSize);
  visibleProperties['Rodzaj wydruku'] = productTypeName;
- visibleProperties['Ramka'] = isDigitalProduct ? 'brak' : (this.selectedProductType === 'szklo' ? `podstawka - ${standLabel}` : `ramka - ${frameLabel}`);
- visibleProperties['Order ID'] = shortOrderId;
+ visibleProperties['Ramka'] = isDigitalProduct ? 'brak' : (this.selectedProductType === 'szklo' ? `podstawka - ${standLabelForRamka}` : `ramka - ${frameLabelForRamka}`);
  }
  // 🚨 ROLLBACK: END - Properties dla produktu cyfrowego i etui
 
@@ -2367,6 +2368,8 @@
  </a>
  </div>
 
+ {% comment %} Na stronie koszyka - tylko logo, bez menu i ikon {% endcomment %}
+ {% unless template == 'cart' %}
  <div class="header-right">
  <div class="header-user">
  {% if customer %}
@@ -2414,8 +2417,10 @@
  </div>
  </div>
  </div>
+ {% endunless %}
  </div>
 
+ {% unless template == 'cart' %}
  <div class="header-bottom">
  <div class="header-container">
  <nav class="header-nav">
@@ -2435,6 +2440,7 @@
  </nav>
  </div>
  </div>
+ {% endunless %}
 
  </header>
 
@@ -2537,9 +2543,6 @@
  {% if template contains 'collection' %}
  <div class="custom-collection-wrapper">
  <h1 class="custom-collection-title">{{ collection.title }}</h1>
- {% if collection.description != blank %}
- <div class="custom-collection-description">{{ collection.description }}</div>
- {% endif %}
  {% if collection.products_count > 0 %}
  {% if collection.handle == 'all' %}
  {% paginate collection.products by 1000 %}
@@ -2601,6 +2604,9 @@
  {% endif %}
  {% else %}
  <div class="custom-collection-empty">Brak produktów do wyświetlenia.</div>
+ {% endif %}
+ {% if collection.description != blank %}
+ <div class="custom-collection-description">{{ collection.description }}</div>
  {% endif %}
  </div>
  {% endif %}

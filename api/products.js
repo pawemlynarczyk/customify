@@ -212,22 +212,36 @@ module.exports = async (req, res) => {
 
     // Creating product with AI image
 
-    // Zmapuj productType i size na polskie nazwy (rozbudowane – koszyk, zamówienie)
-    const PRODUCT_TYPE_LABELS = {
-      plakat: 'Plakat – wydruk na papierze fotograficznym',
-      canvas: 'Obraz na płótnie (canvas)',
-      szklo: 'Obraz na szkle – nadruk UV',
-      digital: 'Plik cyfrowy do pobrania',
-      spotify_frame: 'Ramka Spotify ze zdjęciem',
-      etui: 'Etui na telefon z Twoim zdjęciem'
-    };
+    // Buduj tytuł produktu z wszystkimi parametrami (koszyk, zamówienie)
+    const frameLabelMap = { none: null, black: 'czarna', white: 'biała', wood: 'drewno' };
+    const standLabelMap = { none: null, wood: 'drewnianej', led: 'LED' };
+    const fc = (frameColor || 'none').toLowerCase();
+    const st = (standType || 'none').toLowerCase();
+    const frameLabel = frameLabelMap[fc] || null;
+    const standLabel = standLabelMap[st] || null;
+
     let productTypeName, sizeName;
     
     if (isDigitalProduct) {
-      productTypeName = PRODUCT_TYPE_LABELS.digital;
+      productTypeName = 'Plik cyfrowy do pobrania';
       sizeName = 'Plik do pobrania';
+    } else if (productType === 'etui') {
+      productTypeName = 'Etui na telefon z Twoim zdjęciem';
+      sizeName = 'Etui na telefon';
+    } else if (productType === 'spotify_frame') {
+      productTypeName = 'Ramka Spotify ze zdjęciem';
+      sizeName = size === 'a4' ? '20×30 cm' : size === 'a3' ? '30×45 cm' : size === 'a2' ? '40×60 cm' : size === 'a0' ? '50×75 cm' : size === 'a1' ? '60×90 cm' : (size || '20×30 cm');
+    } else if (productType === 'szklo') {
+      productTypeName = standLabel
+        ? `Wydruk na szkle na podstawce ${standLabel}`
+        : 'Obraz na szkle – nadruk UV';
+      sizeName = size === 'a5' ? '15×21 cm' : size === 'a4' ? '20×30 cm' : '20×30 cm';
+    } else if (productType === 'plakat' || productType === 'canvas') {
+      const base = productType === 'plakat' ? 'Plakat' : 'Obraz na płótnie (canvas)';
+      productTypeName = frameLabel ? `${base} w ramce ${frameLabel}` : base;
+      sizeName = size === 'a5' ? '15×21 cm' : size === 'a4' ? '20×30 cm' : size === 'a3' ? '30×45 cm' : size === 'a2' ? '40×60 cm' : size === 'a0' ? '50×75 cm' : size === 'a1' ? '60×90 cm' : (size?.toUpperCase() || 'standard');
     } else {
-      productTypeName = PRODUCT_TYPE_LABELS[productType] || PRODUCT_TYPE_LABELS.canvas;
+      productTypeName = 'Obraz na płótnie (canvas)';
       sizeName = size === 'etui'
         ? 'Etui na telefon'  // 📱 Etui - brak rozmiaru
         : size === 'a5'

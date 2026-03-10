@@ -1167,6 +1167,16 @@ const DEFAULT_PERSONALIZATION_PER_PRODUCT = {
   'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania': 'elegant, versatile person'
 };
 
+// 🏷️ Rozbudowane nazwy rodzajów wydruku (koszyk, zamówienie) – jedno źródło prawdy
+const PRODUCT_TYPE_LABELS = {
+  plakat: 'Plakat – wydruk na papierze fotograficznym',
+  canvas: 'Obraz na płótnie (canvas)',
+  szklo: 'Obraz na szkle – nadruk UV',
+  digital: 'Plik cyfrowy do pobrania',
+  spotify_frame: 'Ramka Spotify ze zdjęciem',
+  etui: 'Etui na telefon z Twoim zdjęciem'
+};
+
 class CustomifyEmbed {
   constructor() {
     this.uploadArea = document.getElementById('uploadArea');
@@ -6741,7 +6751,11 @@ class CustomifyEmbed {
         // showResult() użyje watermarkedImageUrl jeśli dostępny, w przeciwnym razie transformedImage
         await this.showResult(result.transformedImage);
         if (!this.isPhonePhotoCaseProduct || !this.isPhonePhotoCaseProduct()) {
-          this.showSuccess('Projekt poprawny możesz wybrać rozmiar i zamówić wydruk');
+          if (customerInfo) {
+            this.showSuccess('Obraz zapisany, jest dostępny w sekcji <a href="https://lumly.pl/pages/my-generations" target="_blank" rel="noopener">Moje obrazy</a>.', { html: true });
+          } else {
+            this.showSuccess('Obraz zapisany! Możesz go zobaczyć później w sekcji Twoje obrazy - Poniżej.');
+          }
         }
         
         // ✅ UKRYJ PASEK POSTĘPU - obraz jest już widoczny, reszta działa w tle
@@ -7369,30 +7383,28 @@ class CustomifyEmbed {
           console.log('🛒 [CUSTOMIFY] Variant ID type:', typeof result.variantId);
           console.log('🛒 [CUSTOMIFY] Variant ID length:', result.variantId.toString().length);
           
-          // NAPRAWIONA METODA: Użyj bezpośredniego przekierowania zamiast formularza
-          const productTypeName = this.selectedProductType === 'plakat'
-            ? 'Plakat'
-            : this.selectedProductType === 'szklo'
-              ? 'Nadruk na szkle'
-              : this.selectedProductType === 'digital'
-                ? 'Produkt cyfrowy'
-                : this.selectedProductType === 'spotify_frame'
-                  ? 'Ramka Spotify'
-                  : 'Obraz na płótnie';
-          
-          // ✅ Wylicz opis ramki do właściwości koszyka
-          const selectedFrame = (this.selectedProductType === 'plakat' && window.CustomifyFrame && window.CustomifyFrame.color)
-            ? window.CustomifyFrame.color
-            : 'none';
-          const frameLabelMap = { none: 'brak', black: 'czarna', white: 'biała', wood: 'drewno' };
-          const frameLabel = frameLabelMap[selectedFrame] || 'brak';
-          
-          console.log('🖼️ [CUSTOMIFY FRAME DEBUG]:', {
-            selectedProductType: this.selectedProductType,
-            'window.CustomifyFrame': window.CustomifyFrame,
-            selectedFrame: selectedFrame,
-            frameLabel: frameLabel
-          });
+          // Tytuł z wszystkimi parametrami (ramka, podstawka)
+          const selectedFrame = ((this.selectedProductType === 'plakat' || this.selectedProductType === 'canvas') && window.CustomifyFrame && window.CustomifyFrame.color)
+            ? window.CustomifyFrame.color : 'none';
+          const selectedStand = (this.selectedProductType === 'szklo' && window.CustomifyStand && window.CustomifyStand.type)
+            ? window.CustomifyStand.type : 'none';
+          const frameLabelMap = { none: null, black: 'czarna', white: 'biała', wood: 'drewno' };
+          const frameLabel = frameLabelMap[(selectedFrame || 'none').toLowerCase()] || null;
+          const standLabelMap = { none: null, wood: 'drewnianej', led: 'LED' };
+          const standLabelForTitle = standLabelMap[(selectedStand || 'none').toLowerCase()] || null;
+          let productTypeName;
+          if (this.isPhonePhotoCaseProduct && this.isPhonePhotoCaseProduct()) {
+            productTypeName = PRODUCT_TYPE_LABELS.etui;
+          } else if (this.selectedProductType === 'szklo') {
+            productTypeName = standLabelForTitle ? `Wydruk na szkle na podstawce ${standLabelForTitle}` : PRODUCT_TYPE_LABELS.szklo;
+          } else if (this.selectedProductType === 'plakat' || this.selectedProductType === 'canvas') {
+            const base = this.selectedProductType === 'plakat' ? 'Plakat' : 'Obraz na płótnie (canvas)';
+            productTypeName = frameLabel ? `${base} w ramce ${frameLabel}` : base;
+          } else {
+            productTypeName = PRODUCT_TYPE_LABELS[this.selectedProductType] || PRODUCT_TYPE_LABELS.canvas;
+          }
+          const standLabelForRamka = { none: 'brak', wood: 'podstawka drewniana', led: 'podstawka drewniana z LED' }[(selectedStand || 'none').toLowerCase()] || 'brak';
+          const frameLabelForRamka = { none: 'brak', black: 'czarna', white: 'biała', wood: 'drewno' }[(selectedFrame || 'none').toLowerCase()] || 'brak';
           
           const shortOrderId = result.shortOrderId || (result.orderId ? result.orderId.split('-').pop() : Date.now().toString());
           
@@ -7400,10 +7412,9 @@ class CustomifyEmbed {
           const spotifyArtist = (this.spotifyArtistInput?.value || '').trim().slice(0, 60);
 
           const properties = {
-            'Rozmiar': this.getSizeDimension(this.selectedSize),  // ✅ Przekaż wymiar (np. "20×30 cm") zamiast kodu (np. "a4")
-            'Rodzaj wydruku': productTypeName,  // ✅ Dodano rodzaj wydruku
-            'Ramka': `ramka - ${frameLabel}`,  // ✅ Informacja o wybranej ramce (tylko dla plakatu)
-            'Order ID': shortOrderId  // ✅ Skrócony ID zamówienia widoczny dla klienta
+            'Rozmiar': this.getSizeDimension(this.selectedSize),
+            'Rodzaj wydruku': productTypeName,
+            'Ramka': this.selectedProductType === 'szklo' ? `podstawka - ${standLabelForRamka}` : `ramka - ${frameLabelForRamka}`
           };
           if (this.isSpotifyProduct()) {
             if (spotifyTitle) properties['Tytuł utworu'] = spotifyTitle;
@@ -8064,8 +8075,12 @@ class CustomifyEmbed {
     }
   }
 
-  showSuccess(message) {
-    this.successMessage.textContent = message;
+  showSuccess(message, options = {}) {
+    if (options.html) {
+      this.successMessage.innerHTML = message;
+    } else {
+      this.successMessage.textContent = message;
+    }
     this.successMessage.style.display = 'block';
   }
 
