@@ -212,25 +212,22 @@ module.exports = async (req, res) => {
 
     // Creating product with AI image
 
-    // Zmapuj productType i size na polskie nazwy
-    // 🚨 ROLLBACK: START - Obsługa produktu cyfrowego w nazwach
+    // Zmapuj productType i size na polskie nazwy (rozbudowane – koszyk, zamówienie)
+    const PRODUCT_TYPE_LABELS = {
+      plakat: 'Plakat – wydruk na papierze fotograficznym',
+      canvas: 'Obraz na płótnie (canvas)',
+      szklo: 'Obraz na szkle – nadruk UV',
+      digital: 'Plik cyfrowy do pobrania',
+      spotify_frame: 'Ramka Spotify ze zdjęciem',
+      etui: 'Etui na telefon z Twoim zdjęciem'
+    };
     let productTypeName, sizeName;
     
     if (isDigitalProduct) {
-      // Produkt cyfrowy - bez rozmiaru fizycznego
-      productTypeName = 'Produkt cyfrowy';
+      productTypeName = PRODUCT_TYPE_LABELS.digital;
       sizeName = 'Plik do pobrania';
     } else {
-      // Produkt fizyczny - normalna logika
-      productTypeName = productType === 'plakat' 
-        ? 'Plakat' 
-        : productType === 'szklo' 
-          ? 'Nadruk na szkle'  // 🆕 Szkło
-          : productType === 'spotify_frame'
-            ? 'Ramka Spotify'
-            : productType === 'etui'
-              ? 'Etui na telefon'  // 📱 Etui
-              : 'Obraz na płótnie'; // Canvas
+      productTypeName = PRODUCT_TYPE_LABELS[productType] || PRODUCT_TYPE_LABELS.canvas;
       sizeName = size === 'etui'
         ? 'Etui na telefon'  // 📱 Etui - brak rozmiaru
         : size === 'a5'
