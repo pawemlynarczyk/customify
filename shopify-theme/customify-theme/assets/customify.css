@@ -1883,6 +1883,49 @@ main {
   align-items: start;
 }
 
+/* Koszyk: ukryj TYLKO kontrolki ilości (+/- i input), NIE cały komponent – w przeciwnym razie ukrywał się symbol Usuń! */
+body.template-cart quantity-selector-component .quantity-minus,
+body.template-cart quantity-selector-component .quantity-plus,
+body.template-cart quantity-selector-component input[type="number"],
+body.template-cart quantity-selector-component input[name="quantity"],
+body.template-cart quantity-input .quantity-minus,
+body.template-cart quantity-input .quantity-plus,
+body.template-cart quantity-input input {
+  display: none !important;
+}
+/* Przycisk Usuń w koszyku – ZAWSZE widoczny (w tym ikona kosza SVG) */
+body.template-cart .cart-items a[href*="quantity=0"],
+body.template-cart .cart-items a[href*="cart/change"],
+body.template-cart .cart-items .cart-item__remove,
+body.template-cart .cart-items .line-item__remove,
+body.template-cart .cart-items button[aria-label*="Remove"],
+body.template-cart .cart-items button[aria-label*="Usuń"],
+body.template-cart .cart-items [data-cart-remove],
+body.template-cart tr[role="row"] a[href*="quantity=0"],
+body.template-cart tr[role="row"] a[href*="cart/change"],
+body.template-cart tr[role="row"] button[aria-label*="Remove"],
+body.template-cart tr[role="row"] button[aria-label*="Usuń"] {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  color: #c00 !important;
+  visibility: visible !important;
+}
+body.template-cart .cart-items a[href*="quantity=0"] svg,
+body.template-cart .cart-items button[aria-label*="Usuń"] svg,
+body.template-cart .cart-items button[aria-label*="Remove"] svg,
+body.template-cart tr[role="row"] button[aria-label="Usuń"] svg,
+body.template-cart tr[role="row"] a[href*="quantity=0"] svg {
+  display: inline-block !important;
+  visibility: visible !important;
+  flex-shrink: 0;
+}
+/* Ikona kosza – kolor spójny z tekstem Usuń */
+body.template-cart [aria-label="Usuń"] svg,
+body.template-cart .cart-items [aria-label="Usuń"] {
+  color: #c00;
+}
+
 /* ========================================
    CUSTOMER REVIEWS SECTION
    ======================================== */
@@ -3579,5 +3622,12 @@ padding: 10px 12px !important;
 
 /* Ukryj sekcję BuyButtons dla konkretnego szablonu (żądanie użytkownika) */
 #BuyButtons-ProductForm-template--28524657639749__main > div {
+  display: none !important;
+}
+
+/* Ukryj małą cenę obok miniaturki produktu w koszyku */
+body.template-cart .cart-items__cell--media .cart-items__price,
+body.template-cart .cart-items__cell--media dl,
+body.template-cart .cart-items__cell--media .price {
   display: none !important;
 }
