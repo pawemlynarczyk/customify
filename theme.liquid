@@ -5945,28 +5945,14 @@ console.log('🙈 [CUSTOMIFY CART] Ukryto property:', propertyName);
  console.log(`✅ [CUSTOMIFY CART] Wyłączono linki dla ${cartItems.length} produktów`);
  }
  
-function hideCartProperties() {
-document.querySelectorAll('dt').forEach(dt => {
-const t = dt.textContent.trim();
-if (t === 'Rozmiar' || t === 'Rodzaj wydruku') {
-dt.style.display = 'none';
-const dd = dt.nextElementSibling;
-if (dd && dd.tagName === 'DD') dd.style.display = 'none';
-}
-});
-document.querySelectorAll('.cart-items__cell--info .price, .cart-items__cell--info .cart-items__price, .cart-items__cell--info .cart-item__price, td.cart-items__cell--info [class*="price"]').forEach(el => {
-el.style.display = 'none';
-});
-}
-
 if (document.readyState === 'loading') {
-document.addEventListener('DOMContentLoaded', () => { disableAIProductLinks(); hideCartProperties(); });
+document.addEventListener('DOMContentLoaded', disableAIProductLinks);
 } else {
-disableAIProductLinks(); hideCartProperties();
+disableAIProductLinks();
 }
 
 document.addEventListener('cart:updated', () => {
-setTimeout(() => { disableAIProductLinks(); hideCartProperties(); }, 500);
+setTimeout(disableAIProductLinks, 500);
 });
  
  // Obserwuj zmiany w DOM (dla dynamicznych aktualizacji koszyka)

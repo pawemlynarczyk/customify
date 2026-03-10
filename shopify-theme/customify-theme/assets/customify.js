@@ -8120,9 +8120,76 @@ class CustomifyEmbed {
 }
 
 /**
+ * CART - ukryj Order ID, Cena (w properties), sekcja ilości
+ */
+function hideCartOrderIdQuantityCena() {
+  const items = document.querySelectorAll('.cart-item, .cart-items__row, tr[role="row"]');
+  items.forEach(r => {
+    r.querySelectorAll('.cart-items__properties dt').forEach(dt => {
+      const t = (dt.textContent || '').trim().toLowerCase();
+      const dd = dt.nextElementSibling;
+      if ((t.includes('order id') || t === 'cena') && dd) {
+        dt.style.display = dd.style.display = 'none';
+      }
+    });
+    // Ukryj TYLKO kontrolki ilości (+/-, input), nie cały komponent – inaczej ukrywa się symbol Usuń
+    const quantitySelectors = 'quantity-selector-component .quantity-minus, quantity-selector-component .quantity-plus, quantity-selector-component input, quantity-input .quantity-minus, quantity-input .quantity-plus, quantity-input input';
+    r.querySelectorAll(quantitySelectors).forEach(x => { x.style.display = 'none'; });
+    // Przycisk usuwania – pokaż (ZACHOWAJ ikonę kosza SVG! el.textContent usuwało ją)
+    const removeSelectors = 'a[href*="quantity=0"], a[href*="cart/change"], .cart-item__remove, .line-item__remove, [data-cart-remove], button[aria-label*="Remove"], button[aria-label*="Usuń"]';
+    r.querySelectorAll(removeSelectors).forEach(el => {
+      el.style.display = '';
+      el.style.visibility = 'visible';
+      if (el.querySelector('svg')) {
+        // Ma ikonę – zachowaj SVG, usuń resztę (np. "Remove"), dodaj "Usuń"
+        const svg = el.querySelector('svg');
+        el.innerHTML = '';
+        el.appendChild(svg.cloneNode(true));
+        const txt = document.createElement('span');
+        txt.className = 'customify-remove-text';
+        txt.textContent = ' Usuń';
+        el.appendChild(txt);
+      } else {
+        // Brak ikony – dodaj ikonę kosza + tekst
+        const iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>';
+        el.innerHTML = iconSvg + ' <span class="customify-remove-text">Usuń</span>';
+      }
+      el.setAttribute('aria-label', 'Usuń');
+    });
+    // Fallback: znajdź w komórce ilości cokolwiek z "Remove"
+    r.querySelectorAll('td:nth-child(3) a, td:nth-child(3) button').forEach(el => {
+      if ((el.textContent || '').trim().toLowerCase().includes('remove') || (el.getAttribute('aria-label') || '').toLowerCase().includes('remove')) {
+        el.style.display = '';
+        el.style.visibility = 'visible';
+        if (el.querySelector('svg')) {
+          const svg = el.querySelector('svg');
+          el.innerHTML = '';
+          el.appendChild(svg.cloneNode(true));
+          const txt = document.createElement('span');
+          txt.className = 'customify-remove-text';
+          txt.textContent = ' Usuń';
+          el.appendChild(txt);
+        } else {
+          const iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>';
+          el.innerHTML = iconSvg + ' <span class="customify-remove-text">Usuń</span>';
+        }
+        el.setAttribute('aria-label', 'Usuń');
+      }
+    });
+  });
+  // Nagłówek kolumny – zmień na "Usuń" zamiast "Ilość"
+  document.querySelectorAll('.cart-items th:nth-child(3)').forEach(h => {
+    h.style.display = '';
+    const t = (h.textContent || '').trim().toLowerCase();
+    if (t.includes('ilość') || t.includes('quantity')) h.textContent = 'Usuń';
+  });
+}
+
+/**
  * CART INTEGRATION - AI Image Display
  */
 function initCartIntegration() {
+  if (window.location.pathname.includes('/cart')) hideCartOrderIdQuantityCena();
   // Znajdź wszystkie elementy koszyka z AI obrazkami
   const cartItems = document.querySelectorAll('.cart-item, .cart-items__row');
   
