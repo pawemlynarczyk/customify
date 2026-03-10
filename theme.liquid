@@ -5684,7 +5684,6 @@ currentUrl.includes('nauczycielki-karykatura-na-prezent');
  * Wszystkie produkty w sklepie są AI - nie ma potrzeby filtrowania
  */
  (function() {
- console.log('🛒 [CUSTOMIFY CART] Inicjalizacja wyłączania linków produktów AI');
  
  // Funkcja dodawania watermarku do obrazka
  async function addWatermarkToImage(imageUrl) {
@@ -5814,14 +5813,14 @@ currentUrl.includes('nauczycielki-karykatura-na-prezent');
  }
  
  function disableAIProductLinks() {
- console.log('🛒 [CUSTOMIFY CART] Wyłączam linki dla wszystkich produktów w koszyku...');
+
  
  // Znajdź wszystkie elementy koszyka (różne selektory dla różnych motywów)
  const cartItems = document.querySelectorAll(
  '.cart-item, .cart-items__table-row, .cart-items__row, [data-line-item], .line-item, .cart__line-item, tr[role="row"]'
  );
  
- console.log('🛒 [CUSTOMIFY CART] Znaleziono elementów koszyka:', cartItems.length);
+
  
  cartItems.forEach((item, index) => {
  // Znajdź wszystkie linki w tym elemencie (miniaturka + tytuł)
@@ -5946,18 +5945,29 @@ console.log('🙈 [CUSTOMIFY CART] Ukryto property:', propertyName);
  console.log(`✅ [CUSTOMIFY CART] Wyłączono linki dla ${cartItems.length} produktów`);
  }
  
- // Uruchom po załadowaniu DOM
- if (document.readyState === 'loading') {
- document.addEventListener('DOMContentLoaded', disableAIProductLinks);
- } else {
- disableAIProductLinks();
- }
- 
- // Uruchom ponownie po zmianach w koszyku (Ajax Cart)
- document.addEventListener('cart:updated', () => {
- console.log('🛒 [CUSTOMIFY CART] Koszyk zaktualizowany - ponowne skanowanie');
- setTimeout(disableAIProductLinks, 500);
- });
+function hideCartProperties() {
+document.querySelectorAll('dt').forEach(dt => {
+const t = dt.textContent.trim();
+if (t === 'Rozmiar' || t === 'Rodzaj wydruku') {
+dt.style.display = 'none';
+const dd = dt.nextElementSibling;
+if (dd && dd.tagName === 'DD') dd.style.display = 'none';
+}
+});
+document.querySelectorAll('.cart-items__cell--info .price, .cart-items__cell--info .cart-items__price, .cart-items__cell--info .cart-item__price, td.cart-items__cell--info [class*="price"]').forEach(el => {
+el.style.display = 'none';
+});
+}
+
+if (document.readyState === 'loading') {
+document.addEventListener('DOMContentLoaded', () => { disableAIProductLinks(); hideCartProperties(); });
+} else {
+disableAIProductLinks(); hideCartProperties();
+}
+
+document.addEventListener('cart:updated', () => {
+setTimeout(() => { disableAIProductLinks(); hideCartProperties(); }, 500);
+});
  
  // Obserwuj zmiany w DOM (dla dynamicznych aktualizacji koszyka)
  const observer = new MutationObserver((mutations) => {
@@ -5971,11 +5981,11 @@ console.log('🙈 [CUSTOMIFY CART] Ukryto property:', propertyName);
  });
  
  if (isLightboxChange) {
- console.log('🛒 [CUSTOMIFY CART] Zmiana w lightbox - ignoruję');
+
  return;
  }
  
- console.log('🛒 [CUSTOMIFY CART] Wykryto zmiany w DOM - ponowne skanowanie');
+
  disableAIProductLinks();
  });
  
