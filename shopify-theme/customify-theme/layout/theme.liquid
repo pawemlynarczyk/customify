@@ -2720,25 +2720,23 @@ tags: {{ product.tags | json }}
  
  <div id="customify-app-container" class="customify-shopify-container">
  
- <div class="customify-product-type-selector{% if product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem' %} hide-for-phone-case{% endif %}" id="productTypeArea" style="display: block; margin-bottom: 10px;">
- <h4 style="text-align: left; font-size: 0.95rem; font-weight: 600;">Rodzaj wydruku:</h4>
- <div class="customify-product-type-buttons">
- {% comment %} FILTRUJ RODZAJE WYDRUKU PER PRODUKT - TYLKO ramka-spotify ma wyłącznie szkło {% endcomment %}
+{%- assign _sd = false -%}{%- if product.handle contains 'szkle' or product.handle contains 'szklo' or product.handle contains 'akryl' or product.handle contains 'karykatura-dla-niej' -%}{%- assign _sd = true -%}{%- endif -%}
+<div class="customify-product-type-selector{% if product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem' %} hide-for-phone-case{% endif %}" id="productTypeArea" style="display: block; margin-bottom: 10px;">
+<h4 style="text-align: left; font-size: 0.95rem; font-weight: 600;">Rodzaj wydruku:</h4>
+<div class="customify-product-type-buttons">
 {% if product.handle == 'ramka-spotify' or product.handle == 'zdjecie-na-szkle-ramka-spotify' %}
-{% comment %} TYLKO SZKŁO - ramka Spotify (specjalny produkt) {% endcomment %}
 <div class="customify-product-type-btn active" data-product-type="szklo">
 Nadruk na szkle (dodaj podstawkę)
 </div>
 {% else %}
- {% comment %} STANDARDOWE OPCJE dla innych produktów {% endcomment %}
- <div class="customify-product-type-btn active" data-product-type="plakat">
+ <div class="customify-product-type-btn{% unless _sd %} active{% endunless %}" data-product-type="plakat">
  Plakat (dodaj ramkę)
  </div>
  <div class="customify-product-type-btn" data-product-type="canvas">
  Obraz na płótnie
  </div>
  
- <div class="customify-product-type-btn" data-product-type="szklo">
+ <div class="customify-product-type-btn{% if _sd %} active{% endif %}" data-product-type="szklo">
  Nadruk na szkle (dodaj podstawkę)
  </div>
  
@@ -2747,22 +2745,22 @@ Nadruk na szkle (dodaj podstawkę)
  </div>
  
  {% endif %}
- </div>
+</div>
  
- <div class="frame-color-selector" id="frameSelector" aria-expanded="false">
- <button type="button" class="frame-toggle" id="frameToggle">
- Ramka: <span id="frameCurrentLabel">Brak ramki</span>
- <span class="frame-caret">▼</span>
- </button>
- <div class="frame-options" id="frameOptions" style="display: none;">
- <div class="frame-option" data-frame="none" aria-selected="true">Brak ramki</div>
- <div class="frame-option" data-frame="black">Czarna</div>
- <div class="frame-option" data-frame="white">Biała</div>
- <div class="frame-option" data-frame="wood">Drewno</div>
- </div>
- </div>
+<div class="frame-color-selector" id="frameSelector" aria-expanded="false"{% if _sd %} style="display: none;"{% endif %}>
+<button type="button" class="frame-toggle" id="frameToggle">
+Ramka: <span id="frameCurrentLabel">Brak ramki</span>
+<span class="frame-caret">▼</span>
+</button>
+<div class="frame-options" id="frameOptions" style="display: none;">
+<div class="frame-option" data-frame="none" aria-selected="true">Brak ramki</div>
+<div class="frame-option" data-frame="black">Czarna</div>
+<div class="frame-option" data-frame="white">Biała</div>
+<div class="frame-option" data-frame="wood">Drewno</div>
+</div>
+</div>
 
- <div class="stand-selector" id="standSelector" aria-expanded="false" style="display: none;">
+<div class="stand-selector" id="standSelector" aria-expanded="false"{% unless _sd %} style="display: none;"{% endunless %}>
  <button type="button" class="stand-toggle" id="standToggle">
  Podstawka: <span id="standCurrentLabel">Brak podstawki</span>
  <span class="stand-caret">▼</span>
@@ -5566,12 +5564,14 @@ opacity: 0.9;
  });
  });
  
- // 🆕 AUTO-INICJALIZACJA dla produktów ze szkłem
- var currentUrl = window.location.pathname.toLowerCase();
- var isSzkloProduct = currentUrl.includes('karykatura-na-zamowienie-druk-na-szkle-akrylowym-ramka-z-podswietleniem') || 
- currentUrl.includes('prezent-dla-babci-i-dziadka-portret-na-na-szkle-akrylowym-ze-zdjecia-karykatura') ||
- currentUrl.includes('dziadkowie-krolowie-nadruk-na-szkle') ||
- currentUrl.includes('portret-pary-personalizowany-obraz-na-szkle-akrylowym');
+// 🆕 AUTO-INICJALIZACJA dla produktów ze szkłem
+var currentUrl = window.location.pathname.toLowerCase();
+var isSzkloProduct = currentUrl.includes('szkle') ||
+currentUrl.includes('szklo') ||
+currentUrl.includes('akryl') ||
+currentUrl.includes('karykatura-dla-niej') ||
+currentUrl.includes('salon-spa') ||
+currentUrl.includes('nauczycielki-karykatura-na-prezent');
  
  if (isSzkloProduct) {
  console.log('🔍 [SZKLO] Produkt ze szkłem wykryty - automatyczne filtrowanie rozmiarów');
