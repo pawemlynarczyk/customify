@@ -213,7 +213,7 @@ module.exports = async (req, res) => {
     // Creating product with AI image
 
     // Buduj tytuł produktu z wszystkimi parametrami (koszyk, zamówienie)
-    const frameLabelMap = { none: null, black: 'czarna', white: 'biała', wood: 'drewno' };
+    const frameLabelMap = { none: null, black: 'czarnej', white: 'białej', wood: 'drewnianej' };
     const standLabelMap = { none: null, wood: 'drewnianej', led: 'LED' };
     const fc = (frameColor || 'none').toLowerCase();
     const st = (standType || 'none').toLowerCase();
@@ -238,7 +238,7 @@ module.exports = async (req, res) => {
       sizeName = size === 'a5' ? '15×21 cm' : size === 'a4' ? '20×30 cm' : '20×30 cm';
     } else if (productType === 'plakat' || productType === 'canvas') {
       const base = productType === 'plakat' ? 'Plakat' : 'Obraz na płótnie (canvas)';
-      productTypeName = frameLabel ? `${base} w ramce za szkłem ${frameLabel}` : base;
+      productTypeName = frameLabel ? `${base} w ${frameLabel} ramce za szkłem` : base;
       sizeName = size === 'a5' ? '15×21 cm' : size === 'a4' ? '20×30 cm' : size === 'a3' ? '30×45 cm' : size === 'a2' ? '40×60 cm' : size === 'a0' ? '50×75 cm' : size === 'a1' ? '60×90 cm' : (size?.toUpperCase() || 'standard');
     } else {
       productTypeName = 'Obraz na płótnie (canvas)';

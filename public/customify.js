@@ -7388,7 +7388,7 @@ class CustomifyEmbed {
             ? window.CustomifyFrame.color : 'none';
           const selectedStand = (this.selectedProductType === 'szklo' && window.CustomifyStand && window.CustomifyStand.type)
             ? window.CustomifyStand.type : 'none';
-          const frameLabelMap = { none: null, black: 'czarna', white: 'biała', wood: 'drewno' };
+          const frameLabelMap = { none: null, black: 'czarnej', white: 'białej', wood: 'drewnianej' };
           const frameLabel = frameLabelMap[(selectedFrame || 'none').toLowerCase()] || null;
           const standLabelMap = { none: null, wood: 'drewnianej', led: 'LED' };
           const standLabelForTitle = standLabelMap[(selectedStand || 'none').toLowerCase()] || null;
@@ -7399,7 +7399,7 @@ class CustomifyEmbed {
             productTypeName = standLabelForTitle ? `Wydruk na szkle na podstawce ${standLabelForTitle}` : 'Wydruk na szkle';
           } else if (this.selectedProductType === 'plakat' || this.selectedProductType === 'canvas') {
             const base = this.selectedProductType === 'plakat' ? 'Plakat' : 'Obraz na płótnie (canvas)';
-            productTypeName = frameLabel ? `${base} w ramce za szkłem ${frameLabel}` : base;
+            productTypeName = frameLabel ? `${base} w ${frameLabel} ramce za szkłem` : base;
           } else {
             productTypeName = PRODUCT_TYPE_LABELS[this.selectedProductType] || PRODUCT_TYPE_LABELS.canvas;
           }
