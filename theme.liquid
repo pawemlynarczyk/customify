@@ -5600,10 +5600,10 @@ currentUrl.includes('nauczycielki-karykatura-na-prezent');
  </script>
  {% endif %}
 
- {% comment %} CUSTOMIFY CART INTEGRATION {% endcomment %}
- {% if template contains 'cart' %}
- <style>
- .cart-item__ai-image {
+{% comment %} CUSTOMIFY CART INTEGRATION {% endcomment %}
+{% if template contains 'cart' %}
+<style>
+.cart-item__ai-image {
  width: 80px;
  height: 80px;
  object-fit: cover;
@@ -5870,19 +5870,21 @@ currentUrl.includes('nauczycielki-karykatura-na-prezent');
  console.log('✅ [CUSTOMIFY CART] Znaleziono URL z watermarkiem:', watermarkedUrl);
  }
 
- // ✅ UKRYJ "Styl AI" i wszystkie ukryte properties
- if (propertyName.startsWith('_') || 
- normalizedName.includes('ai_image_') || 
- normalizedName.includes('styl ai') || 
- normalizedName === 'stylai' ||
- propertyName === 'Styl AI' ||
- propertyName.toLowerCase() === 'styl ai' ||
- propertyName.includes('Styl AI') ||
- propertyName.includes('styl ai')) {
- dt.style.display = 'none';
- prop.style.display = 'none';
- console.log('🙈 [CUSTOMIFY CART] Ukryto property:', propertyName);
- }
+// ✅ UKRYJ "Styl AI", "Rozmiar", "Rodzaj wydruku" i wszystkie ukryte properties
+if (propertyName.startsWith('_') || 
+normalizedName.includes('ai_image_') || 
+normalizedName.includes('styl ai') || 
+normalizedName === 'stylai' ||
+propertyName === 'Styl AI' ||
+propertyName.toLowerCase() === 'styl ai' ||
+propertyName.includes('Styl AI') ||
+propertyName.includes('styl ai') ||
+propertyName === 'Rozmiar' ||
+propertyName === 'Rodzaj wydruku') {
+dt.style.display = 'none';
+prop.style.display = 'none';
+console.log('🙈 [CUSTOMIFY CART] Ukryto property:', propertyName);
+}
  });
  }
  
