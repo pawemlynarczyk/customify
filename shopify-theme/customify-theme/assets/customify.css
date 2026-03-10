@@ -3631,3 +3631,11 @@ body.template-cart .cart-items__cell--media dl,
 body.template-cart .cart-items__cell--media .price {
   display: none !important;
 }
+
+/* Ukryj cenę w kolumnie info (ta mała 99,00 zł pod właściwościami) */
+body.template-cart .cart-items__cell--info .cart-items__price,
+body.template-cart .cart-items__cell--info .price,
+body.template-cart td.cart-items__cell--info .price--end,
+body.template-cart .cart-items__cell--info .cart-item__price {
+  display: none !important;
+}

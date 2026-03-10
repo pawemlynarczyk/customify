@@ -5850,8 +5850,8 @@ currentUrl.includes('nauczycielki-karykatura-na-prezent');
  const cartItem = link.closest('.cart-item, .cart-items__table-row, tr[role="row"]');
  let watermarkedUrl = null;
  
- if (cartItem) {
- const properties = cartItem.querySelectorAll('.cart-items__properties dd, dd[data-property]');
+if (cartItem) {
+const properties = cartItem.querySelectorAll('dd, .product-option dd');
  properties.forEach(prop => {
  const dt = prop.previousElementSibling;
  if (!dt) return;
