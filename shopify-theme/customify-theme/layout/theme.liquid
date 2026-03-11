@@ -1070,14 +1070,8 @@
 
  if (result.orderId) {
  hiddenProperties['_Order ID Full'] = result.orderId;
- console.log('✅ [CUSTOMIFY] _Order ID Full added to hiddenProperties:', result.orderId);
  } else {
- console.error('❌ [CUSTOMIFY] result.orderId is missing!', {
- hasResult: !!result,
- resultKeys: result ? Object.keys(result) : [],
- orderId: result?.orderId,
- shortOrderId: result?.shortOrderId
- });
+ console.error('❌ [CUSTOMIFY] result.orderId missing');
  }
  
  // ✅ BEZ WATERMARKU - dla admina do realizacji zamówienia (krótki ~100 znaków, nie base64!)
@@ -3013,7 +3007,7 @@ Ramka: <span id="frameCurrentLabel">Brak ramki</span>
  </div>
  {% endif %}
 
- <div class="customify-styles" id="stylesArea" style="{% if product.handle == 'zdjecie-na-szkle-ramka-spotify' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-fitness' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-szefowa' or product.handle == 'active-woman-portret-ze-zdjecia-na-rocznice-dla-kolezanki-kobiety-druk-na-szkle' or product.handle == 'active-woman-portret-ze-zdjecia-na-18-urodziny-dla-dziewczyny-druk-na-szkle-copy' or product.handle == 'portret-ze-zdjecia-prezent-na-urodziny-dla-kolezanki-szefowej-salon-spa' or product.handle == 'portret-ze-zdjecia-superbohater-prezent-dla-chlopca' or product.handle == 'portret-na-18-urodziny-dla-dziewczyny-magic-z-wlasnego-zdjecia-druk-na-szkle' or product.handle == 'portret-ze-zdjecia-na-30-rocznice-dla-nauczycielki-karykatura-na-prezent' or product.handle == 'obraz-ze-zdjecia-biznes-woman-personalizowany-prezent' or product.handle == 'obraz-ze-zdjecia-prezent-na-30-urodziny-dla-kobiety-biznes-woman' or product.handle == 'wydruk-na-szkle-biznes-woman-prezent-na-urodziny-dla-kobiety' or product.handle == 'dodaj-osobe-do-zdjecia-naturalny-efekt-obraz-plakat-wydruk' or product.handle == 'prezent-dla-dziadkow-retusz-starych-zdjec' or product.handle == 'prezent-na-walentynki-obraz-na-plotnie-z-twojego-zdjecia' or product.handle == 'portret-zakochana-para-krolewska-prezent-na-walentynki-personalizowany' %}display: none;{% else %}display: block;{% endif %}">
+ <div class="customify-styles" id="stylesArea" style="{% if product.handle == 'zdjecie-na-szkle-ramka-spotify' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-fitness' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-szefowa' or product.handle == 'karykatura-rolnik-ze-zdjecia-personalizowany-prezent-dla-mezczyzny' or product.handle == 'active-woman-portret-ze-zdjecia-na-rocznice-dla-kolezanki-kobiety-druk-na-szkle' or product.handle == 'active-woman-portret-ze-zdjecia-na-18-urodziny-dla-dziewczyny-druk-na-szkle-copy' or product.handle == 'portret-ze-zdjecia-prezent-na-urodziny-dla-kolezanki-szefowej-salon-spa' or product.handle == 'portret-ze-zdjecia-superbohater-prezent-dla-chlopca' or product.handle == 'portret-na-18-urodziny-dla-dziewczyny-magic-z-wlasnego-zdjecia-druk-na-szkle' or product.handle == 'portret-ze-zdjecia-na-30-rocznice-dla-nauczycielki-karykatura-na-prezent' or product.handle == 'obraz-ze-zdjecia-biznes-woman-personalizowany-prezent' or product.handle == 'obraz-ze-zdjecia-prezent-na-30-urodziny-dla-kobiety-biznes-woman' or product.handle == 'wydruk-na-szkle-biznes-woman-prezent-na-urodziny-dla-kobiety' or product.handle == 'dodaj-osobe-do-zdjecia-naturalny-efekt-obraz-plakat-wydruk' or product.handle == 'prezent-dla-dziadkow-retusz-starych-zdjec' or product.handle == 'prezent-na-walentynki-obraz-na-plotnie-z-twojego-zdjecia' or product.handle == 'portret-zakochana-para-krolewska-prezent-na-walentynki-personalizowany' %}display: none;{% else %}display: block;{% endif %}">
  <h4>{% if product.handle == 'ramka-spotify' %}Popraw Obrazek{% else %}Wybierz styl{% endif %}</h4>
  <div class="customify-style-grid">
  {% comment %} LOGIKA SERVER-SIDE: Filtruj style per produkt {% endcomment %}
@@ -3160,6 +3154,14 @@ Ramka: <span id="frameCurrentLabel">Brak ramki</span>
 <div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/style/3d_couple_50.jpg'); background-size: cover; background-position: center;"></div>
 <div class="style-info">
 <div class="style-name">Dla niej</div>
+</div>
+</div>
+{% elsif product.handle == 'karykatura-rolnik-ze-zdjecia-personalizowany-prezent-dla-mezczyzny' %}
+{% comment %} Karykatura rolnik — dla mężczyzny, preset rolnik, styl caricature-new {% endcomment %}
+<div class="customify-style-card" data-style="caricature-new" style="display: block !important;">
+<div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/style/3d_couple_50.jpg'); background-size: cover; background-position: center;"></div>
+<div class="style-info">
+<div class="style-name">Dla niego</div>
 </div>
 </div>
 {% elsif product.handle == 'active-woman-portret-ze-zdjecia-na-rocznice-dla-kolezanki-kobiety-druk-na-szkle' %}
@@ -3812,7 +3814,7 @@ Ramka: <span id="frameCurrentLabel">Brak ramki</span>
 
  <div class="customify-success" id="successMessage"></div>
  
-{% unless product.handle == 'obraz-ze-zdjecia-karykatura-na-50-ta-rocznice' or product.handle == 'obraz-ze-zdjecia-biznes-woman-personalizowany-prezent' or product.handle == 'obraz-ze-zdjecia-prezent-na-30-urodziny-dla-kobiety-biznes-woman' or product.handle == 'wydruk-na-szkle-biznes-woman-prezent-na-urodziny-dla-kobiety' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-fitness' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-szefowa' or product.handle == 'active-woman-portret-ze-zdjecia-na-rocznice-dla-kolezanki-kobiety-druk-na-szkle' or product.handle == 'active-woman-portret-ze-zdjecia-na-18-urodziny-dla-dziewczyny-druk-na-szkle-copy' or product.handle == 'portret-ze-zdjecia-prezent-na-urodziny-dla-kolezanki-szefowej-salon-spa' or product.handle == 'portret-ze-zdjecia-superbohater-prezent-dla-chlopca' or product.handle == 'portret-na-18-urodziny-dla-dziewczyny-magic-z-wlasnego-zdjecia-druk-na-szkle' or product.handle == 'portret-ze-zdjecia-na-30-rocznice-dla-nauczycielki-karykatura-na-prezent' or product.handle == 'dodaj-osobe-do-zdjecia-naturalny-efekt-obraz-plakat-wydruk' or product.handle == 'prezent-na-walentynki-obraz-na-plotnie-z-twojego-zdjecia' or product.handle == 'portret-zakochana-para-krolewska-prezent-na-walentynki-personalizowany' or product.handle == 'portret-w-stylu-gta-obraz-na-plotnie-z-twojego-zdjecia-super-prezent' %}
+{% unless product.handle == 'obraz-ze-zdjecia-karykatura-na-50-ta-rocznice' or product.handle == 'obraz-ze-zdjecia-biznes-woman-personalizowany-prezent' or product.handle == 'obraz-ze-zdjecia-prezent-na-30-urodziny-dla-kobiety-biznes-woman' or product.handle == 'wydruk-na-szkle-biznes-woman-prezent-na-urodziny-dla-kobiety' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-fitness' or product.handle == 'obraz-ze-zdjecia-karykatura-dla-niej-szefowa' or product.handle == 'karykatura-rolnik-ze-zdjecia-personalizowany-prezent-dla-mezczyzny' or product.handle == 'active-woman-portret-ze-zdjecia-na-rocznice-dla-kolezanki-kobiety-druk-na-szkle' or product.handle == 'active-woman-portret-ze-zdjecia-na-18-urodziny-dla-dziewczyny-druk-na-szkle-copy' or product.handle == 'portret-ze-zdjecia-prezent-na-urodziny-dla-kolezanki-szefowej-salon-spa' or product.handle == 'portret-ze-zdjecia-superbohater-prezent-dla-chlopca' or product.handle == 'portret-na-18-urodziny-dla-dziewczyny-magic-z-wlasnego-zdjecia-druk-na-szkle' or product.handle == 'portret-ze-zdjecia-na-30-rocznice-dla-nauczycielki-karykatura-na-prezent' or product.handle == 'dodaj-osobe-do-zdjecia-naturalny-efekt-obraz-plakat-wydruk' or product.handle == 'prezent-na-walentynki-obraz-na-plotnie-z-twojego-zdjecia' or product.handle == 'portret-zakochana-para-krolewska-prezent-na-walentynki-personalizowany' or product.handle == 'portret-w-stylu-gta-obraz-na-plotnie-z-twojego-zdjecia-super-prezent' %}
 <div class="customify-text-overlay-toggle customify-product-type-buttons" style="margin-top:12px; display:flex; justify-content:center;">
 <div class="customify-product-type-btn" id="textOverlayToggleBtn" data-overlay-open="false">
 Dodać napis? Kliknij tutaj
@@ -5690,7 +5692,6 @@ currentUrl.includes('nauczycielki-karykatura-na-prezent');
  * Wszystkie produkty w sklepie są AI - nie ma potrzeby filtrowania
  */
  (function() {
- console.log('🛒 [CUSTOMIFY CART] Inicjalizacja wyłączania linków produktów AI');
  
  // Funkcja dodawania watermarku do obrazka
  async function addWatermarkToImage(imageUrl) {
@@ -5820,14 +5821,14 @@ currentUrl.includes('nauczycielki-karykatura-na-prezent');
  }
  
  function disableAIProductLinks() {
- console.log('🛒 [CUSTOMIFY CART] Wyłączam linki dla wszystkich produktów w koszyku...');
+
  
  // Znajdź wszystkie elementy koszyka (różne selektory dla różnych motywów)
  const cartItems = document.querySelectorAll(
  '.cart-item, .cart-items__table-row, .cart-items__row, [data-line-item], .line-item, .cart__line-item, tr[role="row"]'
  );
  
- console.log('🛒 [CUSTOMIFY CART] Znaleziono elementów koszyka:', cartItems.length);
+
  
  cartItems.forEach((item, index) => {
  // Znajdź wszystkie linki w tym elemencie (miniaturka + tytuł)
@@ -5856,8 +5857,8 @@ currentUrl.includes('nauczycielki-karykatura-na-prezent');
  const cartItem = link.closest('.cart-item, .cart-items__table-row, tr[role="row"]');
  let watermarkedUrl = null;
  
- if (cartItem) {
- const properties = cartItem.querySelectorAll('.cart-items__properties dd, dd[data-property]');
+if (cartItem) {
+const properties = cartItem.querySelectorAll('dd, .product-option dd');
  properties.forEach(prop => {
  const dt = prop.previousElementSibling;
  if (!dt) return;
@@ -5952,18 +5953,15 @@ console.log('🙈 [CUSTOMIFY CART] Ukryto property:', propertyName);
  console.log(`✅ [CUSTOMIFY CART] Wyłączono linki dla ${cartItems.length} produktów`);
  }
  
- // Uruchom po załadowaniu DOM
- if (document.readyState === 'loading') {
- document.addEventListener('DOMContentLoaded', disableAIProductLinks);
- } else {
- disableAIProductLinks();
- }
- 
- // Uruchom ponownie po zmianach w koszyku (Ajax Cart)
- document.addEventListener('cart:updated', () => {
- console.log('🛒 [CUSTOMIFY CART] Koszyk zaktualizowany - ponowne skanowanie');
- setTimeout(disableAIProductLinks, 500);
- });
+if (document.readyState === 'loading') {
+document.addEventListener('DOMContentLoaded', disableAIProductLinks);
+} else {
+disableAIProductLinks();
+}
+
+document.addEventListener('cart:updated', () => {
+setTimeout(disableAIProductLinks, 500);
+});
  
  // Obserwuj zmiany w DOM (dla dynamicznych aktualizacji koszyka)
  const observer = new MutationObserver((mutations) => {
@@ -5977,11 +5975,11 @@ console.log('🙈 [CUSTOMIFY CART] Ukryto property:', propertyName);
  });
  
  if (isLightboxChange) {
- console.log('🛒 [CUSTOMIFY CART] Zmiana w lightbox - ignoruję');
+
  return;
  }
  
- console.log('🛒 [CUSTOMIFY CART] Wykryto zmiany w DOM - ponowne skanowanie');
+
  disableAIProductLinks();
  });
  

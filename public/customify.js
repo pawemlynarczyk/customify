@@ -565,6 +565,68 @@ Premium collectible caricature statue, highly detailed, playful but luxurious, p
       { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. szefowa sklepu, produkty spożywcze', required: false, promptKey: 'personalization' }
     ]
   },
+  'karykatura-rolnik-ze-zdjecia-personalizowany-prezent-dla-mezczyzny': {
+    title: 'Personalizacja',
+    promptTemplate: `Create a caricature figurine based on the provided photo.
+
+STYLE
+• Premium resin statue.
+• Soft cinematic studio lighting.
+• Glossy surfaces, high-end product render.
+• Warm elegant color grading.
+• Slight caricature exaggeration (bigger head, stylish proportions).
+
+FACE — CRITICAL
+• Strongly preserve the identity from the reference photo.
+• Keep facial structure, eyes, nose, mouth, beard/hairline.
+• Natural skin tones.
+• Friendly expressive smile.
+
+CUSTOMIZATION
+The character represents this profession / hobby / personality:
+"{personalization}"
+
+CRITICAL: The overall character should be cohesive — outfit, props, scene, background, podium and decorations must all reference and match the same theme. The podium on which the figurine stands must be styled to fit the profession or hobby. Everything should harmonize and create a unified, coherent whole.
+
+Add visual elements, clothing, props and small scene details related to it.
+Examples:
+• nurse → medical uniform, stethoscope
+• fisherman → fishing rod, fish, outdoor vibe
+• business person → suit, laptop, phone
+• farmer → straw hat, tractor elements
+• gamer, chef, traveler, musician etc.
+
+POSE
+{YEARS_SECTION}
+• Character sitting or standing confidently on a podium.
+• The podium must be styled to match the profession or hobby — e.g. medical podium for nurse, boat deck for fisherman, office desk for business person, sports field for athlete. The podium design, shape, materials and decorations should reflect and harmonize with the overall theme.
+• Relaxed, charismatic pose.
+
+OUTFIT
+• Outfit matching the profession or interest.
+• Stylish, slightly exaggerated caricature look.
+
+SCENE
+Mini decorative environment connected with the interest or job.
+Fun but elegant.
+
+BACKGROUND
+• Colors and style of the background must be related to the person's profession or hobby — e.g. soft blues for nurse/medical, warm earth tones for farmer, fresh greens for outdoor/travel, sporty colors for athlete.
+• The backdrop should visually connect with the character's theme, not generic studio.
+• Soft bokeh lights.
+• Subtle themed decorations.
+
+TEXT
+{NAME_SECTION}
+
+RESULT
+Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
+    fields: [
+      { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Jan', required: false, promptKey: 'name' },
+      { id: 'rocznica', label: 'Rocznica / liczba lat', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
+      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. rolnik, wędkarz, sport', required: false, promptKey: 'personalization' }
+    ]
+  },
   'active-woman-portret-ze-zdjecia-na-rocznice-dla-kolezanki-kobiety-druk-na-szkle': {
     title: 'Personalizacja',
     promptTemplate: `Create a caricature figurine based on the provided photo.
@@ -1147,7 +1209,7 @@ Cinematic lighting, soft glow, ultra-detailed, painterly, semi-realistic digital
 };
 
 /** Produkty "dla niej" z polem rocznica — używają innej logiki YEARS_SECTION (character zamiast woman, explicit "no numbers" gdy puste). */
-const DLA_NIEJ_WITH_YEARS = ['obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania', 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka', 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka', 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka', 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka', 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog', 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka', 'obraz-ze-zdjecia-karykatura-dla-niej-fitness', 'obraz-ze-zdjecia-karykatura-dla-niej-szefowa', 'active-woman-portret-ze-zdjecia-na-rocznice-dla-kolezanki-kobiety-druk-na-szkle', 'active-woman-portret-ze-zdjecia-na-18-urodziny-dla-dziewczyny-druk-na-szkle-copy', 'portret-ze-zdjecia-prezent-na-urodziny-dla-kolezanki-szefowej-salon-spa', 'portret-na-18-urodziny-dla-dziewczyny-magic-z-wlasnego-zdjecia-druk-na-szkle', 'portret-ze-zdjecia-na-30-rocznice-dla-nauczycielki-karykatura-na-prezent'];
+const DLA_NIEJ_WITH_YEARS = ['obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania', 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka', 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka', 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka', 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka', 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog', 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka', 'obraz-ze-zdjecia-karykatura-dla-niej-fitness', 'obraz-ze-zdjecia-karykatura-dla-niej-szefowa', 'karykatura-rolnik-ze-zdjecia-personalizowany-prezent-dla-mezczyzny', 'active-woman-portret-ze-zdjecia-na-rocznice-dla-kolezanki-kobiety-druk-na-szkle', 'active-woman-portret-ze-zdjecia-na-18-urodziny-dla-dziewczyny-druk-na-szkle-copy', 'portret-ze-zdjecia-prezent-na-urodziny-dla-kolezanki-szefowej-salon-spa', 'portret-na-18-urodziny-dla-dziewczyny-magic-z-wlasnego-zdjecia-druk-na-szkle', 'portret-ze-zdjecia-na-30-rocznice-dla-nauczycielki-karykatura-na-prezent'];
 
 /** Domyślne wartości "Opis osoby" per produkt — na stałe, niezależne od tytułu. Gdy pole puste, używamy tej wartości. */
 const DEFAULT_PERSONALIZATION_PER_PRODUCT = {
@@ -1164,7 +1226,8 @@ const DEFAULT_PERSONALIZATION_PER_PRODUCT = {
   'portret-ze-zdjecia-prezent-na-urodziny-dla-kolezanki-szefowej-salon-spa': 'salon manicure, tipsy, rzęsy',
   'portret-na-18-urodziny-dla-dziewczyny-magic-z-wlasnego-zdjecia-druk-na-szkle': 'glamorous woman, sequin dress, Hollywood red carpet, paparazzi, spotlights, champagne, black and gold luxury',
   'portret-ze-zdjecia-na-30-rocznice-dla-nauczycielki-karykatura-na-prezent': 'teacher, smart blazer, blackboard with chalk drawings, warm classroom, bookshelves, cozy academic atmosphere',
-  'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania': 'elegant, versatile person'
+  'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania': 'elegant, versatile person',
+  'karykatura-rolnik-ze-zdjecia-personalizowany-prezent-dla-mezczyzny': 'rolnik, farmer, wieś, rolnictwo'
 };
 
 // 🏷️ Rozbudowane nazwy rodzajów wydruku (koszyk, zamówienie) – jedno źródło prawdy
@@ -1732,7 +1795,7 @@ class CustomifyEmbed {
   // 💝 Produkty "dla niej" + Biznes Woman — jeden styl (caricature-new), bez wyboru, generacja bez klikania w miniaturkę
   isDlaNiejProduct() {
     const h = this.getProductHandle();
-    return h === 'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-fitness' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-szefowa' || h === 'active-woman-portret-ze-zdjecia-na-rocznice-dla-kolezanki-kobiety-druk-na-szkle' || h === 'active-woman-portret-ze-zdjecia-na-18-urodziny-dla-dziewczyny-druk-na-szkle-copy' || h === 'portret-ze-zdjecia-prezent-na-urodziny-dla-kolezanki-szefowej-salon-spa' || h === 'portret-na-18-urodziny-dla-dziewczyny-magic-z-wlasnego-zdjecia-druk-na-szkle' || h === 'portret-ze-zdjecia-na-30-rocznice-dla-nauczycielki-karykatura-na-prezent' || h === 'obraz-ze-zdjecia-biznes-woman-personalizowany-prezent' || h === 'obraz-ze-zdjecia-prezent-na-30-urodziny-dla-kobiety-biznes-woman' || h === 'wydruk-na-szkle-biznes-woman-prezent-na-urodziny-dla-kobiety';
+    return h === 'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-fitness' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-szefowa' || h === 'karykatura-rolnik-ze-zdjecia-personalizowany-prezent-dla-mezczyzny' || h === 'active-woman-portret-ze-zdjecia-na-rocznice-dla-kolezanki-kobiety-druk-na-szkle' || h === 'active-woman-portret-ze-zdjecia-na-18-urodziny-dla-dziewczyny-druk-na-szkle-copy' || h === 'portret-ze-zdjecia-prezent-na-urodziny-dla-kolezanki-szefowej-salon-spa' || h === 'portret-na-18-urodziny-dla-dziewczyny-magic-z-wlasnego-zdjecia-druk-na-szkle' || h === 'portret-ze-zdjecia-na-30-rocznice-dla-nauczycielki-karykatura-na-prezent' || h === 'obraz-ze-zdjecia-biznes-woman-personalizowany-prezent' || h === 'obraz-ze-zdjecia-prezent-na-30-urodziny-dla-kobiety-biznes-woman' || h === 'wydruk-na-szkle-biznes-woman-prezent-na-urodziny-dla-kobiety';
   }
 
   // 🦸 Produkt Superbohater dla chłopca — Nano Banana, ukryty wybór, pole imienia
@@ -1977,7 +2040,7 @@ class CustomifyEmbed {
       }
     }
     // 🎯 Rocznica 50-ta / Dla niej: domyślnie wydruk na szkle + rozmiar A5
-    if (this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-na-50-ta-rocznice' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-fitness' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-szefowa' || this.getProductHandle() === 'active-woman-portret-ze-zdjecia-na-rocznice-dla-kolezanki-kobiety-druk-na-szkle' || this.getProductHandle() === 'active-woman-portret-ze-zdjecia-na-18-urodziny-dla-dziewczyny-druk-na-szkle-copy' || this.getProductHandle() === 'portret-ze-zdjecia-prezent-na-urodziny-dla-kolezanki-szefowej-salon-spa' || this.getProductHandle() === 'portret-na-18-urodziny-dla-dziewczyny-magic-z-wlasnego-zdjecia-druk-na-szkle' || this.getProductHandle() === 'portret-ze-zdjecia-na-30-rocznice-dla-nauczycielki-karykatura-na-prezent' || this.getProductHandle() === 'wydruk-na-szkle-biznes-woman-prezent-na-urodziny-dla-kobiety') {
+    if (this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-na-50-ta-rocznice' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-fitness' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-szefowa' || this.getProductHandle() === 'karykatura-rolnik-ze-zdjecia-personalizowany-prezent-dla-mezczyzny' || this.getProductHandle() === 'active-woman-portret-ze-zdjecia-na-rocznice-dla-kolezanki-kobiety-druk-na-szkle' || this.getProductHandle() === 'active-woman-portret-ze-zdjecia-na-18-urodziny-dla-dziewczyny-druk-na-szkle-copy' || this.getProductHandle() === 'portret-ze-zdjecia-prezent-na-urodziny-dla-kolezanki-szefowej-salon-spa' || this.getProductHandle() === 'portret-na-18-urodziny-dla-dziewczyny-magic-z-wlasnego-zdjecia-druk-na-szkle' || this.getProductHandle() === 'portret-ze-zdjecia-na-30-rocznice-dla-nauczycielki-karykatura-na-prezent' || this.getProductHandle() === 'wydruk-na-szkle-biznes-woman-prezent-na-urodziny-dla-kobiety') {
       const szkloBtn = document.querySelector('.customify-product-type-btn[data-product-type="szklo"]');
       if (szkloBtn) {
         this.productTypeArea?.querySelectorAll('.customify-product-type-btn').forEach(btn => btn.classList.remove('active'));
@@ -2360,6 +2423,10 @@ class CustomifyEmbed {
     }
     if (currentUrl.includes('obraz-ze-zdjecia-karykatura-dla-niej-szefowa')) {
       console.log('🛒 [PRODUCT-TYPE] URL = Karykatura dla niej szefowa → productType: caricature-new');
+      return 'caricature-new';
+    }
+    if (currentUrl.includes('karykatura-rolnik-ze-zdjecia-personalizowany-prezent-dla-mezczyzny')) {
+      console.log('🎣 [PRODUCT-TYPE] URL = Karykatura wędkarz / rolnik dla chłopaka → productType: caricature-new');
       return 'caricature-new';
     }
     if (currentUrl.includes('active-woman-portret-ze-zdjecia-na-rocznice-dla-kolezanki-kobiety-druk-na-szkle')) {
@@ -8120,9 +8187,76 @@ class CustomifyEmbed {
 }
 
 /**
+ * CART - ukryj Order ID, Cena (w properties), sekcja ilości
+ */
+function hideCartOrderIdQuantityCena() {
+  const items = document.querySelectorAll('.cart-item, .cart-items__row, tr[role="row"]');
+  items.forEach(r => {
+    r.querySelectorAll('.cart-items__properties dt').forEach(dt => {
+      const t = (dt.textContent || '').trim().toLowerCase();
+      const dd = dt.nextElementSibling;
+      if ((t.includes('order id') || t === 'cena') && dd) {
+        dt.style.display = dd.style.display = 'none';
+      }
+    });
+    // Ukryj TYLKO kontrolki ilości (+/-, input), nie cały komponent – inaczej ukrywa się symbol Usuń
+    const quantitySelectors = 'quantity-selector-component .quantity-minus, quantity-selector-component .quantity-plus, quantity-selector-component input, quantity-input .quantity-minus, quantity-input .quantity-plus, quantity-input input';
+    r.querySelectorAll(quantitySelectors).forEach(x => { x.style.display = 'none'; });
+    // Przycisk usuwania – pokaż (ZACHOWAJ ikonę kosza SVG! el.textContent usuwało ją)
+    const removeSelectors = 'a[href*="quantity=0"], a[href*="cart/change"], .cart-item__remove, .line-item__remove, [data-cart-remove], button[aria-label*="Remove"], button[aria-label*="Usuń"]';
+    r.querySelectorAll(removeSelectors).forEach(el => {
+      el.style.display = '';
+      el.style.visibility = 'visible';
+      if (el.querySelector('svg')) {
+        // Ma ikonę – zachowaj SVG, usuń resztę (np. "Remove"), dodaj "Usuń"
+        const svg = el.querySelector('svg');
+        el.innerHTML = '';
+        el.appendChild(svg.cloneNode(true));
+        const txt = document.createElement('span');
+        txt.className = 'customify-remove-text';
+        txt.textContent = ' Usuń';
+        el.appendChild(txt);
+      } else {
+        // Brak ikony – dodaj ikonę kosza + tekst
+        const iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>';
+        el.innerHTML = iconSvg + ' <span class="customify-remove-text">Usuń</span>';
+      }
+      el.setAttribute('aria-label', 'Usuń');
+    });
+    // Fallback: znajdź w komórce ilości cokolwiek z "Remove"
+    r.querySelectorAll('td:nth-child(3) a, td:nth-child(3) button').forEach(el => {
+      if ((el.textContent || '').trim().toLowerCase().includes('remove') || (el.getAttribute('aria-label') || '').toLowerCase().includes('remove')) {
+        el.style.display = '';
+        el.style.visibility = 'visible';
+        if (el.querySelector('svg')) {
+          const svg = el.querySelector('svg');
+          el.innerHTML = '';
+          el.appendChild(svg.cloneNode(true));
+          const txt = document.createElement('span');
+          txt.className = 'customify-remove-text';
+          txt.textContent = ' Usuń';
+          el.appendChild(txt);
+        } else {
+          const iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>';
+          el.innerHTML = iconSvg + ' <span class="customify-remove-text">Usuń</span>';
+        }
+        el.setAttribute('aria-label', 'Usuń');
+      }
+    });
+  });
+  // Nagłówek kolumny – zmień na "Usuń" zamiast "Ilość"
+  document.querySelectorAll('.cart-items th:nth-child(3)').forEach(h => {
+    h.style.display = '';
+    const t = (h.textContent || '').trim().toLowerCase();
+    if (t.includes('ilość') || t.includes('quantity')) h.textContent = 'Usuń';
+  });
+}
+
+/**
  * CART INTEGRATION - AI Image Display
  */
 function initCartIntegration() {
+  if (window.location.pathname.includes('/cart')) hideCartOrderIdQuantityCena();
   // Znajdź wszystkie elementy koszyka z AI obrazkami
   const cartItems = document.querySelectorAll('.cart-item, .cart-items__row');
   
