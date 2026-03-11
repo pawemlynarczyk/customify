@@ -8617,6 +8617,7 @@ document.addEventListener('click', function(e) {
 setInterval(fixDialogImages, 300);
 
 
+
 // ====================================================
 // DYNAMICZNE PRZENOSZENIE SEKCJI RODZAJU I ROZMIARU
 // ====================================================
@@ -8980,6 +8981,9 @@ currentUrl.includes('nauczycielki-karykatura-na-prezent');
 // ====================================================
 // CART WATERMARK INTEGRATION
 // ====================================================
+ (function() {
+ 
+ // Funkcja dodawania watermarku do obrazka
  async function addWatermarkToImage(imageUrl) {
  return new Promise((resolve, reject) => {
  const img = new Image();
@@ -9278,16 +9282,13 @@ setTimeout(disableAIProductLinks, 500);
  
  console.log('✅ [CUSTOMIFY CART] Inicjalizacja zakończona - obserwuję zmiany');
  })();
- {% endif %}
-
- {% comment %} CUSTOMIFY CHECKOUT INTEGRATION - Wyłącz linki produktów {% endcomment %}
- /**
- * CUSTOMIFY: Wyłącz linki do wszystkich produktów w checkout
- * Działa również w checkout (Shopify Plus) i thank you page
 
 // ====================================================
 // CHECKOUT LINK MODIFICATION
 // ====================================================
+ (function() {
+ // Sprawdź czy jesteśmy na checkout lub thank you page
+ const isCheckout = window.location.pathname.includes('/checkout') || 
  window.location.pathname.includes('/thank_you') ||
  window.Shopify?.Checkout;
  
@@ -9443,16 +9444,18 @@ setTimeout(disableAIProductLinks, 500);
  console.log('✅ [CUSTOMIFY CHECKOUT] Inicjalizacja zakończona');
  })();
 
- {% comment %} CUSTOMIFY CUSTOMER REVIEWS {% endcomment %}
- {% if template contains 'product' %}
- <style>
- /* Style dla gwiazdek w opiniach - BARDZIEJ SPECYFICZNE */
- .customer-reviews-section .star,
- .stars-rating .star,
 
 // ====================================================
 // CONTACT PAGE FUNCTIONALITY
 // ====================================================
+ document.addEventListener('DOMContentLoaded', function() {
+ // Sprawdź czy jesteśmy na stronie kontakt
+ if (window.location.pathname.includes('/pages/kontakt') || window.location.pathname.includes('/policies/contact-information')) {
+ // Czekaj chwilę, żeby DOM się załadował
+ setTimeout(function() {
+ // Znajdź główną treść strony - szukaj po różnych selektorach
+ let targetElement = null;
+ 
  // Próbuj znaleźć główną sekcję z treścią
  const selectors = [
  '#MainContent',
@@ -9689,5 +9692,3 @@ setTimeout(disableAIProductLinks, 500);
  }
  });
 
- </body>
-</html>{% comment %} Cache bust: 1761686705 {% endcomment %}
