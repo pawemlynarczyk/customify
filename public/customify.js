@@ -1312,6 +1312,52 @@ A premium 3D anniversary caricature statue, slender elegant figure, luxurious, c
       { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'NAMES' }
     ]
   },
+  'obraz-ze-zdjecia-prezent-na-50-urodziny-dla-kobiety-biznes-woman': {
+    title: 'Personalizacja',
+    promptTemplate: `Create a luxury 3D business caricature figurine.
+
+STYLE:
+• High-end 3D resin sculpture.
+• Soft cinematic studio lighting.
+• Glossy surfaces, premium finish.
+• Warm golden color grading.
+• Slight caricature exaggeration (larger heads, elegant proportions).
+• Slender, graceful body proportions — elegant and refined, NOT bulky or distorted.
+
+FACE:
+• Preserve facial identity and structure.
+• Natural skin tones.
+• Slight beautification (smooth skin, refined details).
+• Expressive, joyful smiles.
+
+POSE:
+• {YEARS_SECTION}
+• Romantic, elegant body language.
+• Hands elegantly on lap.
+
+OUTFITS:
+• Glamorous evening look.
+• Elegant black and gold styling.
+
+SCENE TYPE:
+The occasion is business anniversary celebration.
+
+BACKGROUND:
+• Warm golden studio backdrop.
+• Metallic gold and black decoration.
+• Elegant business bag and other business woman attributes.
+• Soft bokeh lights.
+
+TEXT:
+{NAMES_SECTION}
+
+RESULT:
+A premium 3D anniversary caricature statue, slender elegant figure, luxurious, celebratory, highly polished, photorealistic 3D render.`,
+    fields: [
+      { id: 'rocznica', label: 'Rocznica / liczba lat', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
+      { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'NAMES' }
+    ]
+  },
   'obraz-ze-zdjecia-prezent-na-30-urodziny-dla-kobiety-biznes-woman': {
     title: 'Personalizacja',
     promptTemplate: `Create a luxury 3D business caricature figurine.
@@ -2087,7 +2133,7 @@ class CustomifyEmbed {
   // 💝 Produkty "dla niej" + Biznes Woman — jeden styl (caricature-new), bez wyboru, generacja bez klikania w miniaturkę
   isDlaNiejProduct() {
     const h = this.getProductHandle();
-    return h === 'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-fitness' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-szefowa' || h === 'karykatura-rolnik-ze-zdjecia-personalizowany-prezent-dla-mezczyzny' || h === 'kulturysta-karykatura-ze-zdjecia-prezent-dla-mezczyzny' || h === 'karykatura-wedkarz-portret-ze-zdjecia-personalizowany-prezent-dla-faceta' || h === 'obraz-ze-zdjecia-karykatura-policjant-prezent-dla-faceta' || h === 'obraz-ze-zdjecia-prezent-dla-chlopca-pilkarz' || h === 'active-woman-portret-ze-zdjecia-na-rocznice-dla-kolezanki-kobiety-druk-na-szkle' || h === 'active-woman-portret-ze-zdjecia-na-18-urodziny-dla-dziewczyny-druk-na-szkle-copy' || h === 'portret-ze-zdjecia-prezent-na-urodziny-dla-kolezanki-szefowej-salon-spa' || h === 'portret-na-18-urodziny-dla-dziewczyny-magic-z-wlasnego-zdjecia-druk-na-szkle' || h === 'portret-ze-zdjecia-na-30-rocznice-dla-nauczycielki-karykatura-na-prezent' || h === 'obraz-ze-zdjecia-biznes-woman-personalizowany-prezent' || h === 'obraz-ze-zdjecia-prezent-na-30-urodziny-dla-kobiety-biznes-woman' || h === 'wydruk-na-szkle-biznes-woman-prezent-na-urodziny-dla-kobiety';
+    return h === 'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-fitness' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-szefowa' || h === 'karykatura-rolnik-ze-zdjecia-personalizowany-prezent-dla-mezczyzny' || h === 'kulturysta-karykatura-ze-zdjecia-prezent-dla-mezczyzny' || h === 'karykatura-wedkarz-portret-ze-zdjecia-personalizowany-prezent-dla-faceta' || h === 'obraz-ze-zdjecia-karykatura-policjant-prezent-dla-faceta' || h === 'obraz-ze-zdjecia-prezent-dla-chlopca-pilkarz' || h === 'active-woman-portret-ze-zdjecia-na-rocznice-dla-kolezanki-kobiety-druk-na-szkle' || h === 'active-woman-portret-ze-zdjecia-na-18-urodziny-dla-dziewczyny-druk-na-szkle-copy' || h === 'portret-ze-zdjecia-prezent-na-urodziny-dla-kolezanki-szefowej-salon-spa' || h === 'portret-na-18-urodziny-dla-dziewczyny-magic-z-wlasnego-zdjecia-druk-na-szkle' || h === 'portret-ze-zdjecia-na-30-rocznice-dla-nauczycielki-karykatura-na-prezent' || h === 'obraz-ze-zdjecia-biznes-woman-personalizowany-prezent' || h === 'obraz-ze-zdjecia-prezent-na-30-urodziny-dla-kobiety-biznes-woman' || h === 'obraz-ze-zdjecia-prezent-na-50-urodziny-dla-kobiety-biznes-woman' || h === 'wydruk-na-szkle-biznes-woman-prezent-na-urodziny-dla-kobiety';
   }
 
   // 🦸 Produkt Superbohater dla chłopca — Nano Banana, ukryty wybór, pole imienia
@@ -2332,7 +2378,7 @@ class CustomifyEmbed {
       }
     }
     // 🎯 Rocznica 50-ta / Dla niej: domyślnie wydruk na szkle + rozmiar A5
-    if (this.getProductHandle() === 'obraz-ze-zdjecia-pary-na-50-ta-rocznice-wydruk-na-szkle' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-na-50-ta-rocznice' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-fitness' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-szefowa' || this.getProductHandle() === 'karykatura-rolnik-ze-zdjecia-personalizowany-prezent-dla-mezczyzny' || this.getProductHandle() === 'kulturysta-karykatura-ze-zdjecia-prezent-dla-mezczyzny' || this.getProductHandle() === 'karykatura-wedkarz-portret-ze-zdjecia-personalizowany-prezent-dla-faceta' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-policjant-prezent-dla-faceta' || this.getProductHandle() === 'obraz-ze-zdjecia-prezent-dla-chlopca-pilkarz' || this.getProductHandle() === 'active-woman-portret-ze-zdjecia-na-rocznice-dla-kolezanki-kobiety-druk-na-szkle' || this.getProductHandle() === 'active-woman-portret-ze-zdjecia-na-18-urodziny-dla-dziewczyny-druk-na-szkle-copy' || this.getProductHandle() === 'portret-ze-zdjecia-prezent-na-urodziny-dla-kolezanki-szefowej-salon-spa' || this.getProductHandle() === 'portret-na-18-urodziny-dla-dziewczyny-magic-z-wlasnego-zdjecia-druk-na-szkle' || this.getProductHandle() === 'portret-ze-zdjecia-na-30-rocznice-dla-nauczycielki-karykatura-na-prezent' || this.getProductHandle() === 'wydruk-na-szkle-biznes-woman-prezent-na-urodziny-dla-kobiety') {
+    if (this.getProductHandle() === 'obraz-ze-zdjecia-pary-na-50-ta-rocznice-wydruk-na-szkle' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-na-50-ta-rocznice' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-fitness' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-szefowa' || this.getProductHandle() === 'karykatura-rolnik-ze-zdjecia-personalizowany-prezent-dla-mezczyzny' || this.getProductHandle() === 'kulturysta-karykatura-ze-zdjecia-prezent-dla-mezczyzny' || this.getProductHandle() === 'karykatura-wedkarz-portret-ze-zdjecia-personalizowany-prezent-dla-faceta' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-policjant-prezent-dla-faceta' || this.getProductHandle() === 'obraz-ze-zdjecia-prezent-dla-chlopca-pilkarz' || this.getProductHandle() === 'active-woman-portret-ze-zdjecia-na-rocznice-dla-kolezanki-kobiety-druk-na-szkle' || this.getProductHandle() === 'active-woman-portret-ze-zdjecia-na-18-urodziny-dla-dziewczyny-druk-na-szkle-copy' || this.getProductHandle() === 'portret-ze-zdjecia-prezent-na-urodziny-dla-kolezanki-szefowej-salon-spa' || this.getProductHandle() === 'portret-na-18-urodziny-dla-dziewczyny-magic-z-wlasnego-zdjecia-druk-na-szkle' || this.getProductHandle() === 'portret-ze-zdjecia-na-30-rocznice-dla-nauczycielki-karykatura-na-prezent' || this.getProductHandle() === 'obraz-ze-zdjecia-prezent-na-50-urodziny-dla-kobiety-biznes-woman' || this.getProductHandle() === 'wydruk-na-szkle-biznes-woman-prezent-na-urodziny-dla-kobiety') {
       const szkloBtn = document.querySelector('.customify-product-type-btn[data-product-type="szklo"]');
       if (szkloBtn) {
         this.productTypeArea?.querySelectorAll('.customify-product-type-btn').forEach(btn => btn.classList.remove('active'));
@@ -2679,6 +2725,10 @@ class CustomifyEmbed {
     }
     if (currentUrl.includes('wydruk-na-szkle-biznes-woman-prezent-na-urodziny-dla-kobiety')) {
       console.log('👩‍💼 [PRODUCT-TYPE] URL = Wydruk na szkle Biznes Woman → productType: caricature-new');
+      return 'caricature-new';
+    }
+    if (currentUrl.includes('obraz-ze-zdjecia-prezent-na-50-urodziny-dla-kobiety-biznes-woman')) {
+      console.log('👩‍💼 [PRODUCT-TYPE] URL = Biznes Woman 50 urodziny → productType: caricature-new');
       return 'caricature-new';
     }
     if (currentUrl.includes('obraz-ze-zdjecia-prezent-na-30-urodziny-dla-kobiety-biznes-woman')) {
