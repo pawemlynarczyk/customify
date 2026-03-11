@@ -1300,6 +1300,53 @@ A premium 3D anniversary caricature statue, slender elegant figure, luxurious, c
       { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'NAMES' }
     ]
   },
+  'obraz-ze-zdjecia-pary-na-50-ta-rocznice-wydruk-na-szkle': {
+    title: 'Personalizacja',
+    promptTemplate: `Create a luxury 3D anniversary caricature figurine.
+
+CRITICAL: Use ONLY the person(s) visible in the uploaded photo. Do NOT add any extra people. If the photo shows 1 person, show only 1 person. If the photo shows 2 people, show both. Never invent a second person.
+
+STYLE:
+• High-end 3D resin sculpture.
+• Soft cinematic studio lighting.
+• Glossy surfaces, premium finish.
+• Warm golden color grading.
+• Slight caricature exaggeration (larger heads, elegant proportions).
+
+FACE:
+• Preserve facial identity and structure.
+• Natural skin tones.
+• Slight beautification (smooth skin, refined details).
+• Expressive, joyful smiles.
+
+POSE:
+• The person(s) from the photo sitting on a large metallic gold 3D number "{YEARS}".
+• Romantic, elegant body language.
+• Holding champagne glasses (one per person).
+
+OUTFITS:
+• Glamorous evening look.
+• Elegant black and gold styling.
+
+SCENE TYPE:
+The occasion is anniversary. The decorations, props and mood: romantic lighting, subtle hearts, elegant decor.
+
+BACKGROUND:
+• Warm golden studio backdrop.
+• Metallic gold and black balloons.
+• Elegant gift boxes with gold ribbons.
+• Soft bokeh lights.
+
+TEXT:
+{NAMES_SECTION}
+
+RESULT:
+A premium 3D anniversary caricature statue, luxurious, celebratory, highly polished, photorealistic 3D render.`,
+    fields: [
+      { id: 'rocznica', label: 'Rocznica / liczba lat', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
+      { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Anna i Marek', required: false, promptKey: 'NAMES' }
+    ]
+  },
   'obraz-ze-zdjecia-karykatura-na-50-ta-rocznice': {
     title: 'Personalizacja',
     promptTemplate: `Create a luxury 3D anniversary caricature figurine.
@@ -2226,7 +2273,7 @@ class CustomifyEmbed {
       }
     }
     // 🎯 Rocznica 50-ta / Dla niej: domyślnie wydruk na szkle + rozmiar A5
-    if (this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-na-50-ta-rocznice' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-fitness' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-szefowa' || this.getProductHandle() === 'karykatura-rolnik-ze-zdjecia-personalizowany-prezent-dla-mezczyzny' || this.getProductHandle() === 'kulturysta-karykatura-ze-zdjecia-prezent-dla-mezczyzny' || this.getProductHandle() === 'karykatura-wedkarz-portret-ze-zdjecia-personalizowany-prezent-dla-faceta' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-policjant-prezent-dla-faceta' || this.getProductHandle() === 'active-woman-portret-ze-zdjecia-na-rocznice-dla-kolezanki-kobiety-druk-na-szkle' || this.getProductHandle() === 'active-woman-portret-ze-zdjecia-na-18-urodziny-dla-dziewczyny-druk-na-szkle-copy' || this.getProductHandle() === 'portret-ze-zdjecia-prezent-na-urodziny-dla-kolezanki-szefowej-salon-spa' || this.getProductHandle() === 'portret-na-18-urodziny-dla-dziewczyny-magic-z-wlasnego-zdjecia-druk-na-szkle' || this.getProductHandle() === 'portret-ze-zdjecia-na-30-rocznice-dla-nauczycielki-karykatura-na-prezent' || this.getProductHandle() === 'wydruk-na-szkle-biznes-woman-prezent-na-urodziny-dla-kobiety') {
+    if (this.getProductHandle() === 'obraz-ze-zdjecia-pary-na-50-ta-rocznice-wydruk-na-szkle' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-na-50-ta-rocznice' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-fitness' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-szefowa' || this.getProductHandle() === 'karykatura-rolnik-ze-zdjecia-personalizowany-prezent-dla-mezczyzny' || this.getProductHandle() === 'kulturysta-karykatura-ze-zdjecia-prezent-dla-mezczyzny' || this.getProductHandle() === 'karykatura-wedkarz-portret-ze-zdjecia-personalizowany-prezent-dla-faceta' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-policjant-prezent-dla-faceta' || this.getProductHandle() === 'active-woman-portret-ze-zdjecia-na-rocznice-dla-kolezanki-kobiety-druk-na-szkle' || this.getProductHandle() === 'active-woman-portret-ze-zdjecia-na-18-urodziny-dla-dziewczyny-druk-na-szkle-copy' || this.getProductHandle() === 'portret-ze-zdjecia-prezent-na-urodziny-dla-kolezanki-szefowej-salon-spa' || this.getProductHandle() === 'portret-na-18-urodziny-dla-dziewczyny-magic-z-wlasnego-zdjecia-druk-na-szkle' || this.getProductHandle() === 'portret-ze-zdjecia-na-30-rocznice-dla-nauczycielki-karykatura-na-prezent' || this.getProductHandle() === 'wydruk-na-szkle-biznes-woman-prezent-na-urodziny-dla-kobiety') {
       const szkloBtn = document.querySelector('.customify-product-type-btn[data-product-type="szklo"]');
       if (szkloBtn) {
         this.productTypeArea?.querySelectorAll('.customify-product-type-btn').forEach(btn => btn.classList.remove('active'));
@@ -2557,6 +2604,10 @@ class CustomifyEmbed {
     }
     if (currentUrl.includes('plakat-ze-zdjecia-w-stylu-komiks')) {
       console.log('🖍️ [PRODUCT-TYPE] URL = Komiks (test) → productType: caricature-new');
+      return 'caricature-new';
+    }
+    if (currentUrl.includes('obraz-ze-zdjecia-pary-na-50-ta-rocznice-wydruk-na-szkle')) {
+      console.log('💑 [PRODUCT-TYPE] URL = Para rocznica wydruk na szkle → productType: caricature-new');
       return 'caricature-new';
     }
     if (currentUrl.includes('obraz-ze-zdjecia-karykatura-na-50-ta-rocznice')) {
