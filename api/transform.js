@@ -23,6 +23,7 @@ const WHITELISTED_IPS = new Set([
 // 🧪 Lista emaili testowych (pomijają WSZYSTKIE limity dla testowania)
 const TEST_EMAILS = new Set([
   'pawel.mlynarczyk@internetcapital.pl', // Admin email - bypass wszystkich limitów
+  'fabrykaetui@gmail.com', // Bez limitu transformacji
 ]);
 
 /**

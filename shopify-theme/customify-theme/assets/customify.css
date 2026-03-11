@@ -3639,6 +3639,20 @@ body.template-cart td.cart-items__cell--info .price--end,
 body.template-cart .cart-items__cell--info .cart-item__price {
   display: none !important;
 }
+
+/* Ukryj małą cenę pod szczegółami koszyka – szersze selektory (Horizon, Dawn, inne motywy) */
+body.template-cart .cart-item .price,
+body.template-cart .cart-items__row .price,
+body.template-cart .line-item .price,
+body.template-cart .cart-item__details .price,
+body.template-cart .cart__line-item .price,
+body.template-cart .cart-items__cell--total .price,
+body.template-cart .cart-item div:has(> span.visually-hidden + span),
+body.template-cart .cart-items__row div:has(> span.visually-hidden + span),
+body.template-cart tr[role="row"] div:has(> span.visually-hidden + span),
+body.template-cart [class*="cart-items"] div:has(> span.visually-hidden + span) {
+  display: none !important;
+}
 .cart-item__ai-image {
  width: 80px;
  height: 80px;
