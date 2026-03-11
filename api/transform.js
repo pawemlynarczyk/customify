@@ -1952,14 +1952,17 @@ module.exports = async (req, res) => {
           background_type: "rgba"
         }
       },
-      // 📷 Retusz starych zdjęć - FLUX Kontext Restore (prezent dla dziadków)
+      // 📷 Retusz starych zdjęć - Nano Banana 2 (Replicate), prezent dla dziadków
       'retusz-starych-zdjec': {
-        model: "flux-kontext-apps/restore-image",
-        apiType: "replicate-restore",
+        model: "google/nano-banana-2",
+        prompt: "Restore and enhance this old photo into a professional DSLR-quality portrait with vivid, natural colour and fine detail. Use advanced AI upscaling to achieve results comparable to a Canon EOS R6 II.\nSTRICT REQUIREMENTS — DO NOT ALTER:\nFacial expression, mouth position, eye shape, and gaze direction must be pixel-accurate to the original\nNo smile enhancement, no eye widening, no skin smoothing, no facial reshaping of any kind",
+        apiType: "nano-banana-2",
         productType: "retusz_starych_zdjec",
         parameters: {
-          output_format: "png",
-          safety_tolerance: 2
+          image_input: ["USER_IMAGE"],
+          resolution: "1K",
+          aspect_ratio: "match_input_image",
+          output_format: "jpg"
         }
       },
       // 🎨 Anime style - Photo to Anime
