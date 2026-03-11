@@ -3527,6 +3527,10 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
       if (output) {
         if (config.model.includes('nano-banana')) {
           imageUrl = output;
+        } else if (config.apiType === 'replicate-restore' && Array.isArray(output)) {
+          // flux-kontext-apps/restore-image zwraca 2 zdjęcia: [przed, po] – używamy ostatniego (zretuszowany)
+          imageUrl = output[output.length - 1];
+          console.log(`📷 [RESTORE] Output ma ${output.length} obrazów – używam ostatniego (po retuszu):`, imageUrl);
         } else if (Array.isArray(output)) {
           imageUrl = output[0];
         } else if (typeof output === 'string') {
