@@ -769,19 +769,6 @@ header:not(.header-main) {
 }
 
 
-/* Ukryj domyślną wyszukiwarkę Shopify */
-.search-form,
-form.search-form,
-.header-top .search-form,
-banner .search-form {
-  display: none !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-  height: 0 !important;
-  width: 0 !important;
-  overflow: hidden !important;
-}
-
 /* Kontener po prawej stronie */
 .header-right {
   display: flex;
@@ -789,6 +776,66 @@ banner .search-form {
   gap: 20px;
   flex-shrink: 0;
   order: 3;
+}
+
+/* Wyszukiwarka w headerze */
+.header-search {
+  display: flex;
+  align-items: center;
+  flex-shrink: 1;
+  min-width: 0;
+}
+.header-search-form {
+  display: flex;
+  align-items: center;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  background: #f1f3f5;
+  overflow: hidden;
+  max-width: 220px;
+}
+.header-search-form:focus-within {
+  border-color: #868e96;
+  background: #fff;
+}
+.header-search-input {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 12px;
+  border: 0;
+  font-size: 14px;
+  outline: none;
+  background: transparent;
+}
+.header-search-form:focus-within .header-search-input {
+  background: #fff;
+}
+.header-search-input::placeholder {
+  color: #6c757d;
+}
+.header-search-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  border: 0;
+  border-left: 1px solid #dee2e6;
+  background: #e9ecef;
+  color: #495057;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.header-search-button:hover {
+  background: #dee2e6;
+}
+@media (max-width: 768px) {
+  .header-search-form {
+    max-width: 140px;
+  }
+  .header-search-input {
+    padding: 6px 10px;
+    font-size: 13px;
+  }
 }
 
 /* Linki użytkownika */

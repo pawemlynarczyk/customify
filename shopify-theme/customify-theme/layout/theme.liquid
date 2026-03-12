@@ -4,8 +4,9 @@
  class="no-js{% if request.design_mode %} shopify-design-mode{% endif %}"
  lang="{{ request.locale.iso_code }}"
 >
- <head>
- {%- render 'stylesheets' -%}
+<head>
+<meta name="p:domain_verify" content="926947e6828011a24f7e3976ae564880"/>
+{%- render 'stylesheets' -%}
 
  {%- if settings.favicon != blank -%}
  <link
@@ -2394,6 +2395,17 @@
  </div>
  </div>
  {% endif %}
+ </div>
+
+ <div class="header-search">
+ <form action="{{ routes.search_url }}" method="get" class="header-search-form" role="search">
+ <input type="search" name="q" placeholder="Szukaj..." class="header-search-input" value="{{ search.terms | escape }}" aria-label="Szukaj">
+ <button type="submit" class="header-search-button" aria-label="Szukaj">
+ <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+ <path d="M21 21l-5.5-5.5M19 10.5a7.5 7.5 0 11-15 0 7.5 7.5 0 0115 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+ </svg>
+ </button>
+ </form>
  </div>
 
  <div class="header-cart">
