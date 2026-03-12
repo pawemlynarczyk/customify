@@ -262,69 +262,38 @@ module.exports = async (req, res) => {
         const lastGenAt7d = payload7d?.lastGenAt ? new Date(payload7d.lastGenAt).getTime() : null;
         const lastGenAt14d = payload14d?.lastGenAt ? new Date(payload14d.lastGenAt).getTime() : null;
 
-        if (now >= T + THREE_DAYS_MS && lastGenAt3d !== T) {
-          if (dryRun) {
-            diagnostics.wouldSend['3d']++;
-          } else {
-            await sleep(THROTTLE_MS);
-            const sendRes = await resend.emails.send({
-              from: 'Lumly <noreply@notification.lumly.pl>',
-              reply_to: 'biuro@lumly.pl',
-              to: email,
-              subject: 'Twój obraz czeka – dokończ zamówienie, zanim zniknie',
-              html: buildReminderEmailHtml(imageUrl, '3d', products)
-            });
-            if (sendRes.error) {
-              errors.push({ customerId, type: '3d', error: sendRes.error.message || JSON.stringify(sendRes.error) });
-              continue;
-            }
-            await kv.set(key3d, JSON.stringify({ lastGenAt: new Date(T).toISOString(), sentAt: new Date().toISOString() }), { ex: KV_TTL_SEC });
-            sent3d.push({ customerId, email: email.substring(0, 12) + '...' });
-            console.log(`✅ [REMINDER-3-7D] Wysłano 3d: ${customerId}`);
-          }
-        }
+        // Maks. 1 mail dziennie na klienta: wysyłamy tylko najwyższy zaległy próg (14d > 7d > 3d)
+        const due14d = now >= T + FOURTEEN_DAYS_MS && lastGenAt14d !== T;
+        const due7d = now >= T + SEVEN_DAYS_MS && lastGenAt7d !== T;
+        const due3d = now >= T + THREE_DAYS_MS && lastGenAt3d !== T;
 
-        if (now >= T + SEVEN_DAYS_MS && lastGenAt7d !== T) {
-          if (dryRun) {
-            diagnostics.wouldSend['7d']++;
-          } else {
-            await sleep(THROTTLE_MS);
-            const sendRes = await resend.emails.send({
-              from: 'Lumly <noreply@notification.lumly.pl>',
-              reply_to: 'biuro@lumly.pl',
-              to: email,
-              subject: 'Twoja generacja wciąż na Ciebie czeka',
-              html: buildReminderEmailHtml(imageUrl, '7d', products)
-            });
-            if (sendRes.error) {
-              errors.push({ customerId, type: '7d', error: sendRes.error.message || JSON.stringify(sendRes.error) });
-              continue;
-            }
-            await kv.set(key7d, JSON.stringify({ lastGenAt: new Date(T).toISOString(), sentAt: new Date().toISOString() }), { ex: KV_TTL_SEC });
-            sent7d.push({ customerId, email: email.substring(0, 12) + '...' });
-            console.log(`✅ [REMINDER-3-7D] Wysłano 7d: ${customerId}`);
-          }
-        }
+        let variant = null;
+        if (due14d) variant = '14d';
+        else if (due7d) variant = '7d';
+        else if (due3d) variant = '3d';
 
-        if (now >= T + FOURTEEN_DAYS_MS && lastGenAt14d !== T) {
+        if (variant) {
+          const subjects = { '3d': 'Twój obraz czeka – dokończ zamówienie, zanim zniknie', '7d': 'Twoja generacja wciąż na Ciebie czeka', '14d': 'Ostatnia szansa – Twój obraz czeka na zamówienie' };
+          const keys = { '3d': key3d, '7d': key7d, '14d': key14d };
+          const lists = { '3d': sent3d, '7d': sent7d, '14d': sent14d };
           if (dryRun) {
-            diagnostics.wouldSend['14d']++;
+            diagnostics.wouldSend[variant]++;
           } else {
             await sleep(THROTTLE_MS);
             const sendRes = await resend.emails.send({
               from: 'Lumly <noreply@notification.lumly.pl>',
               reply_to: 'biuro@lumly.pl',
               to: email,
-              subject: 'Ostatnia szansa – Twój obraz czeka na zamówienie',
-              html: buildReminderEmailHtml(imageUrl, '14d', products)
+              subject: subjects[variant],
+              html: buildReminderEmailHtml(imageUrl, variant, products)
             });
             if (sendRes.error) {
-              errors.push({ customerId, type: '14d', error: sendRes.error.message || JSON.stringify(sendRes.error) });
-              continue;
+              errors.push({ customerId, type: variant, error: sendRes.error.message || JSON.stringify(sendRes.error) });
+            } else {
+              await kv.set(keys[variant], JSON.stringify({ lastGenAt: new Date(T).toISOString(), sentAt: new Date().toISOString() }), { ex: KV_TTL_SEC });
+              lists[variant].push({ customerId, email: email.substring(0, 12) + '...' });
+              console.log(`✅ [REMINDER-3-7D] Wysłano ${variant}: ${customerId}`);
             }
-            await kv.set(key14d, JSON.stringify({ lastGenAt: new Date(T).toISOString(), sentAt: new Date().toISOString() }), { ex: KV_TTL_SEC });
-            sent14d.push({ customerId, email: email.substring(0, 12) + '...' });
-            console.log(`✅ [REMINDER-3-7D] Wysłano 14d: ${customerId}`);
           }
         }
       } catch (err) {
