@@ -887,6 +887,75 @@ async function segmindBecomeImage(imageUrl, styleImageUrl, styleParameters = {})
   throw lastError || new Error('Segmind become-image failed after all retries');
 }
 
+/**
+ * Segmind Nano Banana 2 (fallback gdy Replicate nie działa).
+ * API: POST https://api.segmind.com/v1/nano-banana-2
+ * Docs: prompt, image_urls[], aspect_ratio, output_format, output_resolution, safety_tolerance, thinking_level, web_search, seed
+ * Zwraca: URL obrazu na Vercel Blob (Segmind zwraca binary image).
+ * @param {Object} inputParams - Te same parametry co dla Replicate: prompt, image_input (array URL), aspect_ratio, output_format, resolution
+ * @returns {Promise<string>} URL wygenerowanego obrazu (Vercel Blob)
+ */
+async function segmindNanoBanana2(inputParams) {
+  const SEGMIND_API_KEY = process.env.SEGMIND_API_KEY;
+  if (!SEGMIND_API_KEY) {
+    throw new Error('SEGMIND_API_KEY not configured - add it in Vercel environment variables');
+  }
+
+  // Mapowanie aspect_ratio: Replicate "match_input_image" → Segmind "auto"
+  let aspectRatio = inputParams.aspect_ratio || '1:1';
+  if (aspectRatio === 'match_input_image') aspectRatio = 'auto';
+
+  const body = {
+    prompt: inputParams.prompt,
+    image_urls: (inputParams.image_input && Array.isArray(inputParams.image_input)) ? inputParams.image_input : [],
+    aspect_ratio: aspectRatio,
+    output_format: (inputParams.output_format || 'jpg').replace(/jpeg/i, 'jpg'),
+    output_resolution: inputParams.resolution || '1K',
+    safety_tolerance: 6,
+    thinking_level: 'minimal'
+  };
+
+  console.log('🍌 [SEGMIND-NB2] Calling Segmind nano-banana-2 (fallback)...');
+  const response = await fetch('https://api.segmind.com/v1/nano-banana-2', {
+    method: 'POST',
+    headers: {
+      'x-api-key': SEGMIND_API_KEY,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(body)
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('❌ [SEGMIND-NB2] API error:', response.status, errorText.substring(0, 300));
+    throw new Error(`Segmind nano-banana-2: ${response.status} - ${errorText}`);
+  }
+
+  const contentType = response.headers.get('content-type') || '';
+  const imageBuffer = await response.arrayBuffer();
+  const base64Image = Buffer.from(imageBuffer).toString('base64');
+  const mimeType = contentType.includes('png') ? 'image/png' : 'image/jpeg';
+  const dataUri = `data:${mimeType};base64,${base64Image}`;
+
+  // Upload do Vercel Blob, żeby zwrócić URL (jak Replicate)
+  const baseUrl = 'https://customify-s56o.vercel.app';
+  const uploadResponse = await fetch(`${baseUrl}/api/upload-temp-image`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      imageData: dataUri,
+      filename: `segmind-nb2-${Date.now()}.jpg`
+    })
+  });
+  if (!uploadResponse.ok) {
+    const err = await uploadResponse.text();
+    throw new Error(`Vercel Blob upload after Segmind failed: ${err}`);
+  }
+  const uploadResult = await uploadResponse.json();
+  console.log('✅ [SEGMIND-NB2] Fallback succeeded, image URL:', uploadResult.imageUrl ? uploadResult.imageUrl.substring(0, 60) + '...' : '');
+  return uploadResult.imageUrl;
+}
+
 // Function to handle OpenAI DALL-E 3 API
 async function openaiImageGeneration(prompt, parameters = {}) {
   if (!openai) {
@@ -3497,6 +3566,11 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
             console.warn(`⚠️ [REPLICATE] Replicate error (attempt ${attempt}) – skipping retry, using OpenAI fallback`);
             break;
           }
+          // Dla nano-banana-2: maksymalnie 2 próby na Replicate, potem Segmind
+          if (config.apiType === 'nano-banana-2' && attempt >= 2) {
+            console.warn(`⚠️ [REPLICATE] nano-banana-2 failed ${attempt} times – switching to Segmind fallback`);
+            break;
+          }
           if (isRetryable && attempt < maxRetries) {
             const delay = retryDelay * Math.pow(2, attempt - 1); // Exponential backoff: 2s, 4s, 8s
             console.warn(`⚠️ [REPLICATE] Server error (attempt ${attempt}/${maxRetries}) - retrying in ${delay}ms...`);
@@ -3506,6 +3580,11 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
           } else {
             // Non-retryable error or max retries reached
             console.error(`❌ [REPLICATE] Prediction failed after ${attempt} attempts:`, error);
+            // Dla nano-banana-2: break zamiast throw – przejdź do fallbacku Segmind
+            if (config.apiType === 'nano-banana-2') {
+              console.warn(`⚠️ [REPLICATE] nano-banana-2 non-retryable error – switching to Segmind fallback`);
+              break;
+            }
             throw error;
           }
         }
@@ -3520,6 +3599,16 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
             console.log('✅ [OPENAI-FALLBACK] Fallback succeeded');
           } catch (fallbackErr) {
             console.warn('⚠️ [OPENAI-FALLBACK] Fallback failed:', fallbackErr?.message || fallbackErr);
+            throw lastError || new Error('Replicate prediction failed after all retries');
+          }
+        } else if (config.apiType === 'nano-banana-2') {
+          // Fallback na Segmind Nano Banana 2 gdy Replicate nie działa (dodaj osobę, retusz starych zdjęć)
+          try {
+            console.log('🔄 [REPLICATE] Replicate nano-banana-2 failed – trying Segmind nano-banana-2 fallback');
+            imageUrl = await segmindNanoBanana2(inputParams);
+            console.log('✅ [SEGMIND-NB2-FALLBACK] Fallback succeeded');
+          } catch (fallbackErr) {
+            console.warn('⚠️ [SEGMIND-NB2-FALLBACK] Fallback failed:', fallbackErr?.message || fallbackErr);
             throw lastError || new Error('Replicate prediction failed after all retries');
           }
         } else {
