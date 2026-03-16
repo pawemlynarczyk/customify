@@ -1,5 +1,6 @@
 // Poprawiona ścieżka: z api/webhooks/orders/ do utils/ trzeba 3 poziomy w górę (../../../)
 const Sentry = require('../../../utils/sentry');
+const { kv } = require('@vercel/kv');
 
 module.exports = async (req, res) => {
   console.log('🛒 [ORDER-PAID-WEBHOOK] Order paid webhook received');
@@ -26,6 +27,21 @@ module.exports = async (req, res) => {
     if (customifyProducts.length === 0) {
       console.log('🛒 [ORDER-PAID-WEBHOOK] No Customify products in this order');
       return res.status(200).json({ message: 'No Customify products to hide' });
+    }
+
+    // 📊 ATRYBUCJA EMAIL: sprawdź czy klient kliknął mail przed zakupem
+    const customerId = order.customer?.id;
+    if (customerId) {
+      try {
+        const raw = await kv.get(`email-click:${customerId}`);
+        const clickData = typeof raw === 'string' ? (() => { try { return JSON.parse(raw); } catch { return null; } })() : raw;
+        if (clickData?.type) {
+          await kv.incr(`email-stats:${clickData.type}:purchases`);
+          console.log(`📊 [ORDER-PAID-WEBHOOK] Zakup przypisany do maila: ${clickData.type} (customerId: ${customerId})`);
+        }
+      } catch (kvErr) {
+        console.warn('⚠️ [ORDER-PAID-WEBHOOK] Błąd atrybucji emaila (non-fatal):', kvErr.message);
+      }
     }
     
     const shop = process.env.SHOP_DOMAIN || 'customify-ok.myshopify.com';

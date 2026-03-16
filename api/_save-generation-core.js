@@ -5,8 +5,15 @@
  */
 
 const { put, head, get } = require('@vercel/blob');
+const { kv } = require('@vercel/kv');
 const { checkRateLimit, getClientIP } = require('../utils/vercelRateLimiter');
 const Sentry = require('../utils/sentry');
+
+const EMAIL_TRACKING_BASE = 'https://customify-s56o.vercel.app';
+function emailTrackingUrl(type, customerId, target) {
+  const cidPart = customerId ? `&cid=${encodeURIComponent(customerId)}` : '';
+  return `${EMAIL_TRACKING_BASE}/api/email-click?type=${type}${cidPart}&url=${encodeURIComponent(target)}`;
+}
 
 const toSafeString = (value) => {
   if (value === null || value === undefined) {
@@ -663,12 +670,12 @@ async function saveGenerationHandler(req, res) {
       <p style="font-size: 18px; color: #333; margin-bottom: 20px;">Cześć! 👋</p>
       <p style="font-size: 16px; color: #555; line-height: 1.6; margin-bottom: 30px;">Twój obraz został utworzony, zobacz efekt poniżej:</p>
       <div style="text-align: center; margin: 30px 0;">
-        <a href="https://lumly.pl/pages/my-generations" style="text-decoration: none;">
+        <a href="${emailTrackingUrl('generation', customerId, 'https://lumly.pl/pages/my-generations')}" style="text-decoration: none;">
           <img src="${finalImageUrlForEmail}" alt="Twoja generacja AI" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); cursor: pointer;" />
         </a>
       </div>
       <div style="text-align: center; margin: 40px 0;">
-        <a href="https://lumly.pl/pages/my-generations" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 16px 40px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;">Zobacz swoje obrazy</a>
+        <a href="${emailTrackingUrl('generation', customerId, 'https://lumly.pl/pages/my-generations')}" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 16px 40px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;">Zobacz swoje obrazy</a>
       </div>
       <p style="font-size: 14px; color: #666; margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; text-align: center;">Jeśli masz do nas jakieś pytania lub chcesz coś zmienić w obrazku, napisz do nas: <a href="mailto:biuro@lumly.pl" style="color: #667eea; text-decoration: none; font-weight: bold;">biuro@lumly.pl</a></p>
     </div>
@@ -705,6 +712,7 @@ async function saveGenerationHandler(req, res) {
               
               console.log('✅ [SAVE-GENERATION] Email wysłany pomyślnie!');
               console.log('✅ [SAVE-GENERATION] Resend ID:', resendId);
+              kv.incr('email-stats:generation:sent').catch(() => {});
             }
           } catch (emailError) {
             console.error('❌ [SAVE-GENERATION] Exception podczas wysyłania emaila:', emailError);

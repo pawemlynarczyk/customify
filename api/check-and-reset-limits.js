@@ -7,6 +7,12 @@ const { kv } = require('@vercel/kv');
 const { Resend } = require('resend');
 const { isKVConfigured } = require('../utils/vercelKVLimiter');
 
+const EMAIL_TRACKING_BASE = 'https://customify-s56o.vercel.app';
+function creditsTrackingUrl(customerId, target) {
+  const cidPart = customerId ? `&cid=${encodeURIComponent(customerId)}` : '';
+  return `${EMAIL_TRACKING_BASE}/api/email-click?type=credits${cidPart}&url=${encodeURIComponent(target)}`;
+}
+
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 const PRODUCTS = [
@@ -82,7 +88,9 @@ const PRODUCT_TABLE = (() => {
   `;
 })();
 
-function buildEmailHtml() {
+function buildEmailHtml(customerId = null) {
+  const ctaHref = creditsTrackingUrl(customerId, 'https://lumly.pl/products/personalizowany-portret-w-stylu-boho');
+  const galHref = creditsTrackingUrl(customerId, 'https://lumly.pl/pages/my-generations');
   return `
 <!DOCTYPE html>
 <html>
@@ -100,10 +108,10 @@ function buildEmailHtml() {
         Właśnie dodaliśmy do Twojego konta nowe kredyty. Masz ponownie <strong>4 kredyty</strong> i możesz dalej tworzyć obrazy.
       </p>
       <div style="text-align: center; margin: 28px 0;">
-        <a href="https://lumly.pl/products/personalizowany-portret-w-stylu-boho" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 16px 40px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;">Zacznij tworzyć →</a>
+        <a href="${ctaHref}" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 16px 40px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;">Zacznij tworzyć →</a>
       </div>
       <p style="font-size: 15px; color: #555; line-height: 1.6; margin: 0 0 14px;">
-        Zobacz swoje wcześniejsze efekty: <a href="https://lumly.pl/pages/my-generations" style="color: #667eea; text-decoration: none; font-weight: bold;">Moje generacje</a>
+        Zobacz swoje wcześniejsze efekty: <a href="${galHref}" style="color: #667eea; text-decoration: none; font-weight: bold;">Moje generacje</a>
       </p>
 
       <div style="margin: 32px 0 12px; text-align: left;">
@@ -131,7 +139,7 @@ function buildEmailHtml() {
 // Helper: sleep for throttling
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-async function sendCreditEmail(to, retryCount = 0) {
+async function sendCreditEmail(to, customerId = null, retryCount = 0) {
   if (!process.env.RESEND_API_KEY) {
     console.warn('⚠️ [RESET-LIMITS] Brak RESEND_API_KEY - pomijam email');
     return { success: false, error: 'RESEND_API_KEY missing' };
@@ -142,7 +150,7 @@ async function sendCreditEmail(to, retryCount = 0) {
       from: 'Lumly <noreply@notification.lumly.pl>',
       to,
       subject: 'Dodaliśmy Ci nowe kredyty – możesz znowu generować!',
-      html: buildEmailHtml()
+      html: buildEmailHtml(customerId)
     });
 
     // Resend może zwrócić error w result zamiast rzucić exception
@@ -152,7 +160,7 @@ async function sendCreditEmail(to, retryCount = 0) {
         const waitTime = (retryCount + 1) * 1000; // 1s, 2s, 3s
         console.warn(`⚠️ [RESET-LIMITS] Rate limit 429, retry ${retryCount + 1}/3 za ${waitTime}ms...`);
         await sleep(waitTime);
-        return sendCreditEmail(to, retryCount + 1);
+        return sendCreditEmail(to, customerId, retryCount + 1);
       }
       console.error('❌ [RESET-LIMITS] Resend error:', result.error);
       return { success: false, error: result.error.message || JSON.stringify(result.error) };
@@ -167,7 +175,7 @@ async function sendCreditEmail(to, retryCount = 0) {
       const waitTime = (retryCount + 1) * 1000;
       console.warn(`⚠️ [RESET-LIMITS] Rate limit 429 (exception), retry ${retryCount + 1}/3 za ${waitTime}ms...`);
       await sleep(waitTime);
-      return sendCreditEmail(to, retryCount + 1);
+      return sendCreditEmail(to, customerId, retryCount + 1);
     }
     console.error('❌ [RESET-LIMITS] Błąd wysyłania emaila:', error);
     return { success: false, error: error.message };
@@ -337,10 +345,11 @@ module.exports = async (req, res) => {
         if (email) {
           // Throttle: 600ms między mailami (Resend limit: 2/s)
           await sleep(600);
-          const emailResult = await sendCreditEmail(email);
+          const emailResult = await sendCreditEmail(email, customerId);
           
           if (emailResult.success) {
             emailSent = true;
+            kv.incr('email-stats:credits:sent').catch(() => {});
             
             // Zapisz informację o wysłanym mailu do KV (dla statystyk)
             if (isKVConfigured()) {

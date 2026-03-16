@@ -96,7 +96,15 @@ async function getCollectionProducts(shopDomain, accessToken, collectionHandle) 
   }
 }
 
-function buildReminderEmailHtml(imageUrl, variant, products = []) {
+const BASE_URL = 'https://customify-s56o.vercel.app';
+
+function trackingUrl(type, customerId, target) {
+  const encoded = encodeURIComponent(target);
+  const cidPart = customerId ? `&cid=${encodeURIComponent(customerId)}` : '';
+  return `${BASE_URL}/api/email-click?type=${type}${cidPart}&url=${encoded}`;
+}
+
+function buildReminderEmailHtml(imageUrl, variant, products = [], customerId = null) {
   const headlines = {
     '3d': 'Twój obraz czeka – dokończ zamówienie, zanim zniknie',
     '7d': 'Twoja generacja wciąż na Ciebie czeka',
@@ -110,6 +118,9 @@ function buildReminderEmailHtml(imageUrl, variant, products = []) {
   const headline = headlines[variant] || headlines['3d'];
   const text = texts[variant] || texts['3d'];
   const imgSrc = imageUrl || 'https://lumly.pl/cdn/shop/files/w_rece_bez_ramy_d6f06d22-9697-4b0a-b247-c024515a036d.jpg';
+  const emailType = `reminder_${variant}`;
+  const ctaHref = trackingUrl(emailType, customerId, 'https://lumly.pl/pages/my-generations');
+  const imgHref = ctaHref;
   const productRows = [];
   for (let i = 0; i < products.length; i += 3) {
     const rowItems = products.slice(i, i + 3);
@@ -133,12 +144,12 @@ function buildReminderEmailHtml(imageUrl, variant, products = []) {
     <div style="padding: 40px 30px; background-color: #ffffff;">
       <p style="font-size: 16px; color: #555; line-height: 1.6; margin-bottom: 24px;">${text}</p>
       <div style="text-align: center; margin: 30px 0;">
-        <a href="https://lumly.pl/pages/my-generations" style="text-decoration: none;">
+        <a href="${imgHref}" style="text-decoration: none;">
           <img src="${imgSrc}" alt="Twoja generacja" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
         </a>
       </div>
       <div style="text-align: center; margin: 40px 0;">
-        <a href="https://lumly.pl/pages/my-generations" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 16px 40px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;">Zobacz Moje generacje i zamów</a>
+        <a href="${ctaHref}" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 16px 40px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;">Zobacz Moje generacje i zamów</a>
       </div>
       ${productsSection}
       <p style="font-size: 14px; color: #666; margin-top: 24px; padding-top: 16px; border-top: 1px solid #eee; text-align: center;">Pytania? <a href="mailto:biuro@lumly.pl" style="color: #667eea; text-decoration: none; font-weight: bold;">biuro@lumly.pl</a></p>
@@ -285,12 +296,13 @@ module.exports = async (req, res) => {
               reply_to: 'biuro@lumly.pl',
               to: email,
               subject: subjects[variant],
-              html: buildReminderEmailHtml(imageUrl, variant, products)
+              html: buildReminderEmailHtml(imageUrl, variant, products, customerId)
             });
             if (sendRes.error) {
               errors.push({ customerId, type: variant, error: sendRes.error.message || JSON.stringify(sendRes.error) });
             } else {
               await kv.set(keys[variant], JSON.stringify({ lastGenAt: new Date(T).toISOString(), sentAt: new Date().toISOString() }), { ex: KV_TTL_SEC });
+              await kv.incr(`email-stats:reminder_${variant}:sent`).catch(() => {});
               lists[variant].push({ customerId, email: email.substring(0, 12) + '...' });
               console.log(`✅ [REMINDER-3-7D] Wysłano ${variant}: ${customerId}`);
             }
