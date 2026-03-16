@@ -471,17 +471,18 @@
                 return;
               }
               
-              // Mapuj productType → productHandle
+              // Mapuj productType → productHandle (fallback dla generacji bez zapisanego productHandle)
               const productTypeToHandle = {
                 'boho': 'personalizowany-portret-w-stylu-boho',
                 'king': 'krol-portret-personalizowany',
                 'queen': 'krol-portret-personalizowany',
                 'cats': 'koty-krolewskie',
                 'caricature': 'karykatura-z-twojego-zdjecia-obraz',
-                'watercolor': 'obraz-ze-zdjecia-akwarela', // ✅ Segmind Become-Image (akwarela)
-                'oil_paints': 'obraz-ze-zdjecia-personalizowany-prezent-dla-niej-akwarela', // ✅ Farby Olejne - Prezent dla Niej
-                'para_krolewska': localStorage.getItem('customify_product_handle_15548464693573') || 'portret-pary-z-okazji-rocznicy-z-twojego-zdjecia', // ✅ Stały handle + fallback z cache
-                'pixar': 'zdjecie-w-stylu-anime-personalizowane-z-twojego-zdjecia-obraz', // ✅ Unikalny productType dla stylu Pixar (produkt ID: 15306975215941)
+                'caricature-new': 'karykatura-z-twojego-zdjecia-obraz', // ✅ DODANE: caricature-new (karykatura dla niej/rocznica) - bez productHandle spada tu
+                'watercolor': 'obraz-ze-zdjecia-akwarela',
+                'oil_paints': 'obraz-ze-zdjecia-personalizowany-prezent-dla-niej-akwarela',
+                'para_krolewska': localStorage.getItem('customify_product_handle_15548464693573') || 'portret-pary-z-okazji-rocznicy-z-twojego-zdjecia',
+                'pixar': 'zdjecie-w-stylu-anime-personalizowane-z-twojego-zdjecia-obraz',
                 'superhero': 'portret-ze-zdjecia-superbohater-prezent-dla-chlopca',
                 'unicorn': 'portret-dziecka-w-stroju-jednorozca-obraz-ze-zdjecia-dla-dziewczynki',
                 'teddy_bear': 'portret-dziecka-w-stroju-misia-uroczy-obraz-z-twojego-zdjecia',
@@ -494,7 +495,7 @@
                 'superman': 'portret-superbohater-obraz-na-plotnie-z-twojego-zdjecia-superman',
                 'dodaj_osobe': 'dodaj-osobe-do-zdjecia-naturalny-efekt-obraz-plakat-wydruk',
                 'retusz_starych_zdjec': 'prezent-dla-dziadkow-retusz-starych-zdjec',
-                'other': 'personalizowany-portret-w-stylu-boho' // Fallback dla nieznanych stylów
+                'other': 'personalizowany-portret-w-stylu-boho'
               };
               
               let productHandle = null;
@@ -644,15 +645,16 @@
               // ✅ SKALOWALNE ROZWIĄZANIE: Mapuj productType → productHandle (działa dla wszystkich stylów obecnych i przyszłych)
               const productTypeToHandle = {
                 'boho': 'personalizowany-portret-w-stylu-boho',
-                'king': 'krol-portret-personalizowany', // ✅ POPRAWNY HANDLE: krol-portret-personalizowany
-                'queen': 'krol-portret-personalizowany', // ✅ POPRAWNY HANDLE: krol-portret-personalizowany
+                'king': 'krol-portret-personalizowany',
+                'queen': 'krol-portret-personalizowany',
                 'cats': 'koty-krolewskie',
                 'caricature': 'karykatura-z-twojego-zdjecia-obraz',
-                'watercolor': 'obraz-ze-zdjecia-akwarela', // ✅ Segmind Become-Image (akwarela)
-                'watercolor_stable': 'watercolor', // ✅ Unikalny productType dla stylu Watercolor (Stable Diffusion)
-                'oil_paints': 'obraz-ze-zdjecia-personalizowany-prezent-dla-niej-akwarela', // ✅ Farby Olejne - Prezent dla Niej
-                'para_krolewska': localStorage.getItem('customify_product_handle_15548464693573') || 'portret-pary-z-okazji-rocznicy-z-twojego-zdjecia', // ✅ Stały handle + fallback z cache
-                'pixar': 'zdjecie-w-stylu-anime-personalizowane-z-twojego-zdjecia-obraz', // ✅ Unikalny productType dla stylu Pixar (produkt ID: 15306975215941)
+                'caricature-new': 'karykatura-z-twojego-zdjecia-obraz', // ✅ DODANE: caricature-new (karykatura dla niej/rocznica) - bez productHandle spada tu
+                'watercolor': 'obraz-ze-zdjecia-akwarela',
+                'watercolor_stable': 'watercolor',
+                'oil_paints': 'obraz-ze-zdjecia-personalizowany-prezent-dla-niej-akwarela',
+                'para_krolewska': localStorage.getItem('customify_product_handle_15548464693573') || 'portret-pary-z-okazji-rocznicy-z-twojego-zdjecia',
+                'pixar': 'zdjecie-w-stylu-anime-personalizowane-z-twojego-zdjecia-obraz',
                 'superhero': 'portret-ze-zdjecia-superbohater-prezent-dla-chlopca',
                 'unicorn': 'portret-dziecka-w-stroju-jednorozca-obraz-ze-zdjecia-dla-dziewczynki',
                 'teddy_bear': 'portret-dziecka-w-stroju-misia-uroczy-obraz-z-twojego-zdjecia',
@@ -665,7 +667,7 @@
                 'superman': 'portret-superbohater-obraz-na-plotnie-z-twojego-zdjecia-superman',
                 'dodaj_osobe': 'dodaj-osobe-do-zdjecia-naturalny-efekt-obraz-plakat-wydruk',
                 'retusz_starych_zdjec': 'prezent-dla-dziadkow-retusz-starych-zdjec',
-                'other': 'personalizowany-portret-w-stylu-boho' // Fallback dla nieznanych stylów
+                'other': 'personalizowany-portret-w-stylu-boho'
               };
               
               // ✅ PRIORYTET 1: Użyj productHandle z generacji (jeśli jest dostępny - dla nowych generacji)
