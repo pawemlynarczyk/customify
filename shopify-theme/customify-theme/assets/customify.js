@@ -7296,20 +7296,22 @@ class CustomifyEmbed {
         const cfg = this.getCustomFieldConfig();
         if (cfg && cfg.promptTemplate) requestBody.replaceBasePrompt = true;
         console.log('🎛️ [CUSTOM-FIELDS] Dodano promptAddition do requestBody:', promptAddition.substring(0, 100), cfg && cfg.promptTemplate ? '(replaceBasePrompt)' : '');
+      }
 
-        // 📊 PERSONALIZATION LOG: Zbierz surowe wartości pól do logowania
-        if (cfg && cfg.fields) {
-          const rawFields = {};
-          cfg.fields.forEach(field => {
-            const el = document.getElementById(`customField_${field.id}`);
-            if (el && el.value && el.value.trim()) {
-              rawFields[field.id] = el.value.trim();
-            }
-          });
-          if (Object.keys(rawFields).length > 0) {
-            requestBody.personalizationFields = rawFields;
-            requestBody.productHandle = this.getProductHandle();
+      // 📊 PERSONALIZATION LOG: Zbierz surowe wartości pól ZAWSZE (niezależnie od promptAddition)
+      const cfgForLog = this.getCustomFieldConfig();
+      if (cfgForLog && cfgForLog.fields) {
+        const rawFields = {};
+        cfgForLog.fields.forEach(field => {
+          const el = document.getElementById(`customField_${field.id}`);
+          if (el && el.value && el.value.trim()) {
+            rawFields[field.id] = el.value.trim();
           }
+        });
+        if (Object.keys(rawFields).length > 0) {
+          requestBody.personalizationFields = rawFields;
+          requestBody.productHandle = this.getProductHandle();
+          console.log('📊 [PERSONALIZATION] Zbieranie pól do logu:', rawFields);
         }
       }
 

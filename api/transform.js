@@ -4385,21 +4385,26 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
       })
     }).catch((err) => console.warn('📊 [TRANSFORM] login-modal-stats event send failed:', err?.message || err));
 
-    // 📊 PERSONALIZATION LOG: Zapisz wpis jeśli użytkownik wypełnił pola personalizacji
+    // 📊 PERSONALIZATION LOG: Zapisz wpis PRZED res.json() żeby Vercel nie zamknął funkcji
     if (personalizationFields && Object.keys(personalizationFields).length > 0) {
-      fetch('https://customify-s56o.vercel.app/api/admin/personalization-log', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          timestamp: new Date().toISOString(),
-          productHandle: productHandle || null,
-          style: style || null,
-          customerId: customerId || null,
-          deviceToken: deviceToken || null,
-          ip: ip || null,
-          fields: personalizationFields
-        })
-      }).catch((err) => console.warn('📊 [TRANSFORM] personalization-log save failed:', err?.message || err));
+      try {
+        await fetch('https://customify-s56o.vercel.app/api/admin/personalization-log', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            timestamp: new Date().toISOString(),
+            productHandle: productHandle || null,
+            style: style || null,
+            customerId: customerId || null,
+            deviceToken: deviceToken || null,
+            ip: ip || null,
+            fields: personalizationFields
+          })
+        });
+        console.log('📊 [TRANSFORM] personalization-log saved OK');
+      } catch (err) {
+        console.warn('📊 [TRANSFORM] personalization-log save failed:', err?.message || err);
+      }
     }
 
     res.json(responseData);
