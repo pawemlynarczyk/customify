@@ -706,7 +706,7 @@ CUSTOMIZATION
 The character represents this profession / hobby / personality:
 "{personalization}"
 
-CRITICAL: The overall character should be cohesive — outfit, props, scene, background, podium and decorations must all reference and match the same theme. The podium on which the figurine stands must be styled to fit the firefighter profession. Everything should harmonize and create a unified, coherent whole.
+CRITICAL: The overall character should be cohesive — outfit, props, scene, background, podium and decorations must all reference and match the same theme. The podium on which the figurine stands must be styled to fit the profession or hobby described above. Everything should harmonize and create a unified, coherent whole.
 
 Add visual elements, clothing, props and small scene details related to it.
 Examples:
@@ -716,22 +716,23 @@ Examples:
 
 POSE
 {YEARS_SECTION}
-• Character standing heroically on a podium styled to match the firefighter / rescue theme.
-• Heroic, strong pose — brave hero of the day vibe.
-• The podium design should reference firefighting — e.g. red and gold tones, flames motif, fire hose coil at the base.
+• Character sitting or standing confidently on a podium styled to match the profession or hobby.
+• The podium must be styled to match the theme — the design, shape, materials and decorations should reflect and harmonize with the overall theme.
+• Relaxed, charismatic pose.
 
 OUTFIT
-• Classic firefighter turnout gear — heavy jacket with reflective stripes, fire helmet, boots.
+• Outfit matching the profession or interest.
 • Stylish, slightly exaggerated caricature look.
 
 SCENE
-Mini decorative environment — fire station, fire truck silhouette, ladders, flames in the background.
-Fun but heroic.
+Mini decorative environment connected with the profession or hobby described above.
+Fun but professional.
 
 BACKGROUND
-• Colors related to firefighting — deep reds, oranges, gold accents, dark smoke tones.
-• Subtle themed decorations — fire helmet, axe, hose, flames.
+• Colors and style of the background must be related to the person's profession or hobby.
+• The backdrop should visually connect with the character's theme, not generic studio.
 • Soft bokeh lights.
+• Subtle themed decorations.
 
 TEXT
 {NAME_SECTION}
@@ -765,7 +766,7 @@ CUSTOMIZATION
 The character represents this profession / hobby / personality:
 "{personalization}"
 
-CRITICAL: The overall character should be cohesive — outfit, props, scene, background, podium and decorations must all reference and match the same theme. The podium on which the figurine stands must be styled to fit the doctor / medical profession. Everything should harmonize and create a unified, coherent whole.
+CRITICAL: The overall character should be cohesive — outfit, props, scene, background, podium and decorations must all reference and match the same theme. The podium on which the figurine stands must be styled to fit the profession or hobby described above. Everything should harmonize and create a unified, coherent whole.
 
 Add visual elements, clothing, props and small scene details related to it.
 Examples:
@@ -775,22 +776,23 @@ Examples:
 
 POSE
 {YEARS_SECTION}
-• Character standing confidently on a podium styled to match the medical / doctor theme.
-• Professional, confident pose — top doctor vibe.
-• The podium design should reference medicine — e.g. red cross motif, caduceus symbol, hospital white tones.
+• Character sitting or standing confidently on a podium styled to match the profession or hobby.
+• The podium must be styled to match the theme — the design, shape, materials and decorations should reflect and harmonize with the overall theme.
+• Relaxed, charismatic pose.
 
 OUTFIT
-• Classic doctor outfit — white lab coat, stethoscope around neck, name badge.
+• Outfit matching the profession or interest.
 • Stylish, slightly exaggerated caricature look.
 
 SCENE
-Mini decorative environment — hospital corridor, examination room, medical equipment, health charts.
+Mini decorative environment connected with the profession or hobby described above.
 Fun but professional.
 
 BACKGROUND
-• Colors related to medicine — clean whites, hospital greens, soft blues.
-• Subtle themed decorations — caduceus, stethoscope, medical cross, pill bottles.
+• Colors and style of the background must be related to the person's profession or hobby.
+• The backdrop should visually connect with the character's theme, not generic studio.
 • Soft bokeh lights.
+• Subtle themed decorations.
 
 TEXT
 {NAME_SECTION}
@@ -824,7 +826,7 @@ CUSTOMIZATION
 The character represents this profession / hobby / personality:
 "{personalization}"
 
-CRITICAL: The overall character should be cohesive — outfit, props, scene, background, podium and decorations must all reference and match the same theme. The podium on which the figurine stands must be styled to fit the construction worker profession. Everything should harmonize and create a unified, coherent whole.
+CRITICAL: The overall character should be cohesive — outfit, props, scene, background, podium and decorations must all reference and match the same theme. The podium on which the figurine stands must be styled to fit the profession or hobby described above. Everything should harmonize and create a unified, coherent whole.
 
 Add visual elements, clothing, props and small scene details related to it.
 Examples:
@@ -834,22 +836,23 @@ Examples:
 
 POSE
 {YEARS_SECTION}
-• Character standing confidently on a podium styled to match the construction / building theme.
-• Strong, proud pose — master builder vibe.
-• The podium design should reference construction — e.g. concrete platform, brick pattern, tools arranged around the base.
+• Character sitting or standing confidently on a podium styled to match the profession or hobby.
+• The podium must be styled to match the theme — the design, shape, materials and decorations should reflect and harmonize with the overall theme.
+• Relaxed, charismatic pose.
 
 OUTFIT
-• Classic construction worker outfit — hard hat (yellow or orange), safety vest, work boots, tool belt.
+• Outfit matching the profession or interest.
 • Stylish, slightly exaggerated caricature look.
 
 SCENE
-Mini decorative environment — construction site, scaffolding, bricks, blueprints, tools scattered around.
+Mini decorative environment connected with the profession or hobby described above.
 Fun but professional.
 
 BACKGROUND
-• Colors related to construction — warm oranges, yellows, brick reds, concrete grays.
-• Subtle themed decorations — crane silhouette, blueprint rolls, ladder elements.
+• Colors and style of the background must be related to the person's profession or hobby.
+• The backdrop should visually connect with the character's theme, not generic studio.
 • Soft bokeh lights.
+• Subtle themed decorations.
 
 TEXT
 {NAME_SECTION}
@@ -954,22 +957,23 @@ Examples:
 
 POSE
 {YEARS_SECTION}
-• Character standing confidently on a podium styled to match the police/law enforcement theme.
-• Heroic, confident pose — like a proud officer of the law.
-• The podium design should reference law enforcement — e.g. police shield motif, black and blue colors.
+• Character sitting or standing confidently on a podium styled to match the profession or hobby.
+• The podium must be styled to match the theme — the design, shape, materials and decorations should reflect and harmonize with the overall theme.
+• Relaxed, charismatic pose.
 
 OUTFIT
-• Full police uniform — jacket, badge, cap.
+• Outfit matching the profession or interest.
 • Stylish, slightly exaggerated caricature look.
 
 SCENE
-Mini decorative environment — police precinct, patrol car, law enforcement atmosphere.
+Mini decorative environment connected with the profession or hobby described above.
 Fun but professional.
 
 BACKGROUND
-• Colors related to law enforcement — deep blues, dark navy, police badge gold accents.
-• Subtle themed decorations — sirens, badge motifs, city silhouette.
+• Colors and style of the background must be related to the person's profession or hobby.
+• The backdrop should visually connect with the character's theme, not generic studio.
 • Soft bokeh lights.
+• Subtle themed decorations.
 
 TEXT
 {NAME_SECTION}
