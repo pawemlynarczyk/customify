@@ -2,15 +2,22 @@
 // GET: zwraca log wpisów personalizacji (z opcjonalnym filtrem)
 // POST: dodaje nowy wpis (wywoływane z transform.js)
 
-const { put, list, head } = require('@vercel/blob');
+const { put, list } = require('@vercel/blob');
 
 const BLOB_KEY = 'customify/system/stats/personalization-log.json';
 const MAX_ENTRIES = 2000;
 const ADMIN_TOKEN = process.env.ADMIN_STATS_TOKEN;
 
+const getBlobToken = () => {
+  const token = process.env.customify_READ_WRITE_TOKEN || process.env.BLOB_READ_WRITE_TOKEN;
+  if (!token) throw new Error('Missing BLOB_READ_WRITE_TOKEN');
+  return token;
+};
+
 async function readLog() {
   try {
-    const { blobs } = await list({ prefix: 'customify/system/stats/personalization-log' });
+    const blobToken = getBlobToken();
+    const { blobs } = await list({ prefix: 'customify/system/stats/personalization-log', token: blobToken });
     if (!blobs || blobs.length === 0) return [];
     const latest = blobs.sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt))[0];
     const res = await fetch(latest.url);
@@ -22,10 +29,12 @@ async function readLog() {
 }
 
 async function writeLog(entries) {
+  const blobToken = getBlobToken();
   await put(BLOB_KEY, JSON.stringify(entries), {
     access: 'public',
     contentType: 'application/json',
-    addRandomSuffix: false
+    addRandomSuffix: false,
+    token: blobToken
   });
 }
 
