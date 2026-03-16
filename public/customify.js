@@ -65,7 +65,7 @@ TEXT
 RESULT
 Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
     fields: [
-      { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
+      { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
       { id: 'rocznica', label: 'Rocznica / liczba lat', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
       { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
     ]
@@ -127,7 +127,7 @@ TEXT
 RESULT
 Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
     fields: [
-      { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
+      { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
       { id: 'rocznica', label: 'Rocznica / liczba lat', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
       { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
     ]
@@ -189,7 +189,7 @@ TEXT
 RESULT
 Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
     fields: [
-      { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
+      { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
       { id: 'rocznica', label: 'Rocznica / liczba lat', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
       { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
     ]
@@ -251,7 +251,7 @@ TEXT
 RESULT
 Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
     fields: [
-      { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
+      { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
       { id: 'rocznica', label: 'Rocznica / liczba lat', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
       { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
     ]
@@ -313,7 +313,7 @@ TEXT
 RESULT
 Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
     fields: [
-      { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
+      { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
       { id: 'rocznica', label: 'Rocznica / liczba lat', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
       { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
     ]
@@ -375,7 +375,7 @@ TEXT
 RESULT
 Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
     fields: [
-      { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
+      { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
       { id: 'rocznica', label: 'Rocznica / liczba lat', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
       { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
     ]
@@ -437,7 +437,7 @@ TEXT
 RESULT
 Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
     fields: [
-      { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
+      { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
       { id: 'rocznica', label: 'Rocznica / liczba lat', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
       { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
     ]
@@ -499,7 +499,7 @@ TEXT
 RESULT
 Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
     fields: [
-      { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
+      { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
       { id: 'rocznica', label: 'Rocznica / liczba lat', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
       { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
     ]
@@ -560,7 +560,7 @@ TEXT
 RESULT
 Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
     fields: [
-      { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
+      { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
       { id: 'rocznica', label: 'Rocznica / liczba lat', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
       { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. szefowa sklepu, produkty spożywcze', required: false, promptKey: 'personalization' }
     ]
@@ -622,7 +622,7 @@ TEXT
 RESULT
 Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
     fields: [
-      { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Jan', required: false, promptKey: 'name' },
+      { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Jan', required: false, promptKey: 'name' },
       { id: 'rocznica', label: 'Rocznica / liczba lat', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
       { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. rolnik, wędkarz, sport', required: false, promptKey: 'personalization' }
     ]
@@ -680,7 +680,7 @@ TEXT
 RESULT
 Premium collectible caricature statue of a football champion — highly detailed, playful but luxurious, product-photo quality render.`,
     fields: [
-      { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Kacper', required: false, promptKey: 'name' },
+      { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Kacper', required: false, promptKey: 'name' },
       { id: 'rocznica', label: 'Rocznica / liczba lat', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
       { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. piłkarz, zwycięzca, sport', required: false, promptKey: 'personalization' }
     ]
@@ -739,7 +739,7 @@ TEXT
 RESULT
 Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
     fields: [
-      { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Karol', required: false, promptKey: 'name' },
+      { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Karol', required: false, promptKey: 'name' },
       { id: 'rocznica', label: 'Rocznica / liczba lat', type: 'text', placeholder: 'np. 35', required: false, promptKey: 'YEARS' },
       { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. strażak, ratownik, bohater', required: false, promptKey: 'personalization' }
     ]
@@ -798,7 +798,7 @@ TEXT
 RESULT
 Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
     fields: [
-      { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Piotr', required: false, promptKey: 'name' },
+      { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Piotr', required: false, promptKey: 'name' },
       { id: 'rocznica', label: 'Rocznica / liczba lat', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
       { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. lekarz, chirurg, pediatra', required: false, promptKey: 'personalization' }
     ]
@@ -857,7 +857,7 @@ TEXT
 RESULT
 Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
     fields: [
-      { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Marek', required: false, promptKey: 'name' },
+      { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Marek', required: false, promptKey: 'name' },
       { id: 'rocznica', label: 'Rocznica / liczba lat', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
       { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. budowlaniec, murarz, majster', required: false, promptKey: 'personalization' }
     ]
@@ -916,7 +916,7 @@ TEXT
 RESULT
 Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
     fields: [
-      { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Tomek', required: false, promptKey: 'name' },
+      { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Tomek', required: false, promptKey: 'name' },
       { id: 'rocznica', label: 'Rocznica / liczba lat', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
       { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. kierowca tira, trasa, podróże', required: false, promptKey: 'personalization' }
     ]
@@ -975,7 +975,7 @@ TEXT
 RESULT
 Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
     fields: [
-      { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Marek', required: false, promptKey: 'name' },
+      { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Marek', required: false, promptKey: 'name' },
       { id: 'rocznica', label: 'Rocznica / liczba lat', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
       { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. policjant, detektyw, straż', required: false, promptKey: 'personalization' }
     ]
@@ -1037,7 +1037,7 @@ TEXT
 RESULT
 Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
     fields: [
-      { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Jan', required: false, promptKey: 'name' },
+      { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Jan', required: false, promptKey: 'name' },
       { id: 'rocznica', label: 'Rocznica / liczba lat', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
       { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. wędkarz, ryby, jezioro', required: false, promptKey: 'personalization' }
     ]
@@ -1099,7 +1099,7 @@ TEXT
 RESULT
 Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
     fields: [
-      { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Jan', required: false, promptKey: 'name' },
+      { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Jan', required: false, promptKey: 'name' },
       { id: 'rocznica', label: 'Rocznica / liczba lat', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
       { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. kulturysta, siłownia, sport', required: false, promptKey: 'personalization' }
     ]
@@ -1161,7 +1161,7 @@ TEXT
 RESULT
 Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
     fields: [
-      { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
+      { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
       { id: 'rocznica', label: 'Rocznica / liczba lat', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
       { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. fitness, sport, siłownia', required: false, promptKey: 'personalization' }
     ]
@@ -1223,7 +1223,7 @@ TEXT
 RESULT
 Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
     fields: [
-      { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
+      { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
       { id: 'rocznica', label: 'Rocznica / liczba lat', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
       { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. fitness, sport, siłownia', required: false, promptKey: 'personalization' }
     ]
@@ -1284,7 +1284,7 @@ TEXT
 RESULT
 Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
     fields: [
-      { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
+      { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
       { id: 'rocznica', label: 'Rocznica / liczba lat', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
       { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. salon manicure, tipsy, rzęsy', required: false, promptKey: 'personalization' }
     ]
@@ -1389,7 +1389,7 @@ TEXT
 RESULT
 Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
     fields: [
-      { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Ania', required: false, promptKey: 'name' },
+      { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Ania', required: false, promptKey: 'name' },
       { id: 'rocznica', label: 'Rocznica / liczba lat', type: 'text', placeholder: 'np. 40', required: false, promptKey: 'YEARS' },
       { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. fitness, podróże, moda', required: false, promptKey: 'personalization' }
     ]
@@ -1451,7 +1451,7 @@ TEXT
 RESULT
 Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
     fields: [
-      { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
+      { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
       { id: 'rocznica', label: 'Rocznica / liczba lat', type: 'text', placeholder: 'np. 18, 25, 30', required: false, promptKey: 'YEARS' },
       { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. glamour, Hollywood, czerwony dywan', required: false, promptKey: 'personalization' }
     ]
@@ -1513,7 +1513,7 @@ TEXT
 RESULT
 Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
     fields: [
-      { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
+      { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
       { id: 'rocznica', label: 'Rocznica / liczba lat', type: 'text', placeholder: 'np. 10, 25, 30', required: false, promptKey: 'YEARS' },
       { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. nauczycielka, szkoła, książki', required: false, promptKey: 'personalization' }
     ]
@@ -1561,7 +1561,7 @@ RESULT:
 A premium 3D anniversary caricature statue, slender elegant figure, luxurious, celebratory, highly polished, photorealistic 3D render.`,
     fields: [
       { id: 'rocznica', label: 'Rocznica / liczba lat', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
-      { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'NAMES' }
+      { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'NAMES' }
     ]
   },
   'wydruk-na-szkle-biznes-woman-prezent-na-urodziny-dla-kobiety': {
@@ -1607,7 +1607,7 @@ RESULT:
 A premium 3D anniversary caricature statue, slender elegant figure, luxurious, celebratory, highly polished, photorealistic 3D render.`,
     fields: [
       { id: 'rocznica', label: 'Rocznica / liczba lat', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
-      { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'NAMES' }
+      { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'NAMES' }
     ]
   },
   'obraz-ze-zdjecia-prezent-na-50-urodziny-dla-kobiety-biznes-woman': {
@@ -1653,7 +1653,7 @@ RESULT:
 A premium 3D anniversary caricature statue, slender elegant figure, luxurious, celebratory, highly polished, photorealistic 3D render.`,
     fields: [
       { id: 'rocznica', label: 'Rocznica / liczba lat', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
-      { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'NAMES' }
+      { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'NAMES' }
     ]
   },
   'obraz-ze-zdjecia-prezent-na-30-urodziny-dla-kobiety-biznes-woman': {
@@ -1699,7 +1699,7 @@ RESULT:
 A premium 3D anniversary caricature statue, slender elegant figure, luxurious, celebratory, highly polished, photorealistic 3D render.`,
     fields: [
       { id: 'rocznica', label: 'Rocznica / liczba lat', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
-      { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'NAMES' }
+      { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'NAMES' }
     ]
   },
   'obraz-ze-zdjecia-pary-na-50-ta-rocznice-wydruk-na-szkle': {
@@ -1746,7 +1746,7 @@ RESULT:
 A premium 3D anniversary caricature statue, luxurious, celebratory, highly polished, photorealistic 3D render.`,
     fields: [
       { id: 'rocznica', label: 'Rocznica / liczba lat', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
-      { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Anna i Marek', required: false, promptKey: 'NAMES' }
+      { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Anna i Marek', required: false, promptKey: 'NAMES' }
     ]
   },
   'obraz-ze-zdjecia-karykatura-na-50-ta-rocznice': {
@@ -1793,7 +1793,7 @@ RESULT:
 A premium 3D anniversary caricature statue, luxurious, celebratory, highly polished, photorealistic 3D render.`,
     fields: [
       { id: 'rocznica', label: 'Rocznica / liczba lat', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
-      { id: 'imiona', label: 'Wpisz Imię, dedykację', type: 'text', placeholder: 'np. Anna i Marek', required: false, promptKey: 'NAMES' }
+      { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Anna i Marek', required: false, promptKey: 'NAMES' }
     ]
   },
   'dodaj-osobe-do-zdjecia-naturalny-efekt-obraz-plakat-wydruk': {
