@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Historia Personalizacji - Customify</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f0f2f5;
+      padding: 20px;
+      color: #333;
+    }
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    h1 {
+      color: #1a237e;
+      font-size: 26px;
+      margin-bottom: 6px;
+    }
+    .subtitle { color: #666; font-size: 14px; margin-bottom: 20px; }
+
+    /* LOGIN */
+    #loginSection {
+      background: white;
+      border-radius: 12px;
+      padding: 40px;
+      max-width: 400px;
+      margin: 60px auto;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    #loginSection h2 { margin-bottom: 16px; color: #1a237e; }
+    #loginSection input {
+      width: 100%; padding: 10px 14px; border: 1px solid #ddd;
+      border-radius: 8px; font-size: 15px; margin-bottom: 12px;
+    }
+    #loginSection button {
+      width: 100%; padding: 12px; background: #1a237e; color: white;
+      border: none; border-radius: 8px; font-size: 15px; cursor: pointer;
+    }
+    #loginSection button:hover { background: #283593; }
+
+    /* STATS CARDS */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    .stat-card {
+      background: white;
+      border-radius: 10px;
+      padding: 16px 20px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+    .stat-card .val {
+      font-size: 28px;
+      font-weight: 700;
+      color: #1a237e;
+    }
+    .stat-card .lbl {
+      font-size: 12px;
+      color: #888;
+      margin-top: 2px;
+    }
+
+    /* FILTERS */
+    .filters {
+      background: white;
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: flex-end;
+    }
+    .filters label { font-size: 12px; color: #666; display: block; margin-bottom: 4px; }
+    .filters input, .filters select {
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 7px;
+      font-size: 14px;
+      min-width: 160px;
+    }
+    .btn {
+      padding: 8px 18px;
+      border: none;
+      border-radius: 7px;
+      font-size: 14px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .btn-primary { background: #1a237e; color: white; }
+    .btn-primary:hover { background: #283593; }
+    .btn-secondary { background: #eee; color: #333; }
+    .btn-secondary:hover { background: #e0e0e0; }
+    .btn-export { background: #2e7d32; color: white; }
+    .btn-export:hover { background: #388e3c; }
+
+    /* TWO COLUMNS */
+    .main-layout {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 16px;
+      align-items: start;
+    }
+    @media (max-width: 900px) { .main-layout { grid-template-columns: 1fr; } }
+
+    /* TABLE */
+    .table-wrap {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      overflow: hidden;
+    }
+    .table-header {
+      padding: 14px 20px;
+      border-bottom: 1px solid #f0f0f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .table-header h3 { font-size: 15px; color: #333; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th {
+      background: #f8f9ff;
+      padding: 10px 14px;
+      text-align: left;
+      font-weight: 600;
+      color: #555;
+      border-bottom: 1px solid #e8e8e8;
+      white-space: nowrap;
+    }
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #f4f4f4;
+      vertical-align: top;
+    }
+    tr:hover td { background: #f9faff; }
+    tr:last-child td { border-bottom: none; }
+    .product-chip {
+      background: #e8eaf6;
+      color: #3949ab;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      display: inline-block;
+      max-width: 200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .opis-cell {
+      max-width: 200px;
+      color: #555;
+      font-style: italic;
+    }
+    .imie-cell { font-weight: 600; color: #1a237e; }
+    .date-cell { color: #888; font-size: 12px; white-space: nowrap; }
+    .empty { text-align: center; padding: 40px; color: #aaa; }
+
+    /* SIDEBAR */
+    .sidebar { display: flex; flex-direction: column; gap: 16px; }
+    .sidebar-card {
+      background: white;
+      border-radius: 10px;
+      padding: 16px 18px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+    .sidebar-card h4 { font-size: 14px; color: #333; margin-bottom: 12px; font-weight: 700; }
+
+    /* PRODUCT STATS */
+    .prod-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 5px 0;
+      border-bottom: 1px solid #f4f4f4;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .prod-row:hover { background: #f8f9ff; }
+    .prod-row:last-child { border-bottom: none; }
+    .prod-name {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 12px;
+      color: #444;
+    }
+    .prod-count {
+      font-weight: 700;
+      color: #1a237e;
+      min-width: 28px;
+      text-align: right;
+    }
+    .prod-bar {
+      height: 4px;
+      background: #e8eaf6;
+      border-radius: 2px;
+      margin-top: 3px;
+    }
+    .prod-bar-fill {
+      height: 4px;
+      background: #3949ab;
+      border-radius: 2px;
+    }
+
+    /* TOP WORDS */
+    .word-cloud { display: flex; flex-wrap: wrap; gap: 6px; }
+    .word-tag {
+      background: #e8f5e9;
+      color: #2e7d32;
+      padding: 3px 8px;
+      border-radius: 10px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .word-tag:hover { background: #c8e6c9; }
+    .word-tag .cnt { color: #888; font-size: 10px; }
+
+    .loading { text-align: center; padding: 30px; color: #888; }
+    .error { background: #ffebee; color: #c62828; padding: 12px 16px; border-radius: 8px; margin-bottom: 12px; }
+  </style>
+</head>
+<body>
+
+<div id="loginSection">
+  <h2>🔐 Panel Personalizacji</h2>
+  <p style="color:#666;font-size:13px;margin-bottom:16px;">Podaj token admina</p>
+  <input type="password" id="tokenInput" placeholder="Token admina" />
+  <button onclick="doLogin()">Zaloguj</button>
+  <div id="loginError" style="color:#c62828;margin-top:10px;font-size:13px;"></div>
+</div>
+
+<div id="mainSection" style="display:none;">
+  <div class="container">
+    <h1>📝 Historia Personalizacji</h1>
+    <p class="subtitle">Wszystkie wpisy użytkowników z pól personalizacji produktów</p>
+
+    <div class="stats-row" id="statsRow">
+      <div class="stat-card"><div class="val" id="statTotal">—</div><div class="lbl">Wszystkich wpisów</div></div>
+      <div class="stat-card"><div class="val" id="statFiltered">—</div><div class="lbl">Przefiltrowanych</div></div>
+      <div class="stat-card"><div class="val" id="statProducts">—</div><div class="lbl">Unikalnych produktów</div></div>
+      <div class="stat-card"><div class="val" id="statToday">—</div><div class="lbl">Dzisiaj</div></div>
+    </div>
+
+    <div class="filters">
+      <div>
+        <label>Szukaj (imię/opis)</label>
+        <input type="text" id="filterSearch" placeholder="np. Anna, lekarz..." oninput="applyFilters()" />
+      </div>
+      <div>
+        <label>Produkt</label>
+        <select id="filterProduct" onchange="applyFilters()">
+          <option value="">Wszystkie produkty</option>
+        </select>
+      </div>
+      <div>
+        <label>Od daty</label>
+        <input type="date" id="filterFrom" onchange="applyFilters()" />
+      </div>
+      <div>
+        <label>Do daty</label>
+        <input type="date" id="filterTo" onchange="applyFilters()" />
+      </div>
+      <button class="btn btn-secondary" onclick="clearFilters()">Wyczyść</button>
+      <button class="btn btn-export" onclick="exportCSV()">⬇ Eksport CSV</button>
+    </div>
+
+    <div class="main-layout">
+      <!-- TABLE -->
+      <div class="table-wrap">
+        <div class="table-header">
+          <h3>Wpisy personalizacji</h3>
+          <span id="tableCount" style="font-size:13px;color:#888;"></span>
+        </div>
+        <div id="tableContainer">
+          <div class="loading">Ładowanie danych...</div>
+        </div>
+      </div>
+
+      <!-- SIDEBAR -->
+      <div class="sidebar">
+        <div class="sidebar-card">
+          <h4>📊 Produkty (top)</h4>
+          <div id="productStats"><div class="loading" style="padding:10px;">...</div></div>
+        </div>
+        <div class="sidebar-card">
+          <h4>🔤 Popularne słowa (opis)</h4>
+          <div id="wordCloud"><div class="loading" style="padding:10px;">...</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const API_BASE = 'https://customify-s56o.vercel.app/api/admin/personalization-log';
+  let adminToken = '';
+  let allData = null;
+  let currentFiltered = [];
+
+  function doLogin() {
+    const t = document.getElementById('tokenInput').value.trim();
+    if (!t) { document.getElementById('loginError').textContent = 'Podaj token'; return; }
+    adminToken = t;
+    loadData();
+  }
+
+  document.getElementById('tokenInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doLogin();
+  });
+
+  async function loadData() {
+    const params = new URLSearchParams({ token: adminToken, limit: 500 });
+    const search = document.getElementById('filterSearch')?.value.trim();
+    const product = document.getElementById('filterProduct')?.value;
+    const dateFrom = document.getElementById('filterFrom')?.value;
+    const dateTo = document.getElementById('filterTo')?.value;
+    if (search) params.set('search', search);
+    if (product) params.set('product', product);
+    if (dateFrom) params.set('dateFrom', dateFrom);
+    if (dateTo) params.set('dateTo', dateTo);
+
+    document.getElementById('tableContainer').innerHTML = '<div class="loading">Ładowanie...</div>';
+
+    try {
+      const res = await fetch(`${API_BASE}?${params}`);
+      if (res.status === 401) {
+        document.getElementById('loginError').textContent = 'Błędny token';
+        return;
+      }
+      const data = await res.json();
+      allData = data;
+      currentFiltered = data.entries || [];
+
+      document.getElementById('loginSection').style.display = 'none';
+      document.getElementById('mainSection').style.display = 'block';
+
+      renderStats(data);
+      renderTable(currentFiltered);
+      renderProductStats(data.stats?.productCounts || {});
+      renderWordCloud(data.stats?.topWords || []);
+      populateProductFilter(data.stats?.productCounts || {});
+    } catch (err) {
+      document.getElementById('tableContainer').innerHTML = `<div class="error">Błąd: ${err.message}</div>`;
+    }
+  }
+
+  function renderStats(data) {
+    document.getElementById('statTotal').textContent = data.total || 0;
+    document.getElementById('statFiltered').textContent = data.filtered || 0;
+    document.getElementById('statProducts').textContent = Object.keys(data.stats?.productCounts || {}).length;
+    const today = new Date().toISOString().slice(0, 10);
+    const todayCount = (data.entries || []).filter(e => e.timestamp?.startsWith(today)).length;
+    document.getElementById('statToday').textContent = todayCount;
+  }
+
+  function renderTable(entries) {
+    document.getElementById('tableCount').textContent = `${entries.length} wpisów`;
+    if (!entries.length) {
+      document.getElementById('tableContainer').innerHTML = '<div class="empty">Brak wpisów dla wybranych filtrów</div>';
+      return;
+    }
+    const rows = entries.map(e => {
+      const dt = e.timestamp ? new Date(e.timestamp).toLocaleString('pl-PL') : '—';
+      const handle = e.productHandle || '—';
+      const shortHandle = handle.replace(/-/g, ' ').slice(0, 35) + (handle.length > 35 ? '…' : '');
+      return `<tr>
+        <td class="date-cell">${dt}</td>
+        <td><span class="product-chip" title="${handle}">${shortHandle}</span></td>
+        <td class="imie-cell">${esc(e.imie || '—')}</td>
+        <td>${esc(e.rocznica || '—')}</td>
+        <td class="opis-cell">${esc(e.opis || '—')}</td>
+      </tr>`;
+    }).join('');
+
+    document.getElementById('tableContainer').innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Produkt</th>
+            <th>Imię / dedykacja</th>
+            <th>Rocznica / lata</th>
+            <th>Opis osoby</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+  }
+
+  function renderProductStats(counts) {
+    const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 15);
+    if (!sorted.length) { document.getElementById('productStats').innerHTML = '<div style="color:#aaa;font-size:13px;">Brak danych</div>'; return; }
+    const max = sorted[0][1];
+    document.getElementById('productStats').innerHTML = sorted.map(([handle, count]) => {
+      const short = handle.replace(/-/g, ' ').slice(0, 32) + (handle.length > 32 ? '…' : '');
+      const pct = Math.round(count / max * 100);
+      return `<div class="prod-row" onclick="filterByProduct('${handle}')" title="Filtruj: ${handle}">
+        <div>
+          <div class="prod-name">${short}</div>
+          <div class="prod-bar"><div class="prod-bar-fill" style="width:${pct}%"></div></div>
+        </div>
+        <div class="prod-count">${count}</div>
+      </div>`;
+    }).join('');
+  }
+
+  function renderWordCloud(words) {
+    if (!words.length) { document.getElementById('wordCloud').innerHTML = '<div style="color:#aaa;font-size:13px;">Brak danych</div>'; return; }
+    document.getElementById('wordCloud').innerHTML = `<div class="word-cloud">${
+      words.map(w => `<span class="word-tag" onclick="searchWord('${w.word}')">${w.word} <span class="cnt">${w.count}</span></span>`).join('')
+    }</div>`;
+  }
+
+  function populateProductFilter(counts) {
+    const sel = document.getElementById('filterProduct');
+    const current = sel.value;
+    // Zachowaj istniejące opcje + dodaj nowe
+    const existing = Array.from(sel.options).map(o => o.value);
+    Object.keys(counts).sort().forEach(handle => {
+      if (!existing.includes(handle)) {
+        const opt = document.createElement('option');
+        opt.value = handle;
+        const short = handle.replace(/-/g, ' ').slice(0, 50);
+        opt.textContent = short;
+        sel.appendChild(opt);
+      }
+    });
+    if (current) sel.value = current;
+  }
+
+  function applyFilters() {
+    clearTimeout(applyFilters._t);
+    applyFilters._t = setTimeout(loadData, 400);
+  }
+
+  function clearFilters() {
+    document.getElementById('filterSearch').value = '';
+    document.getElementById('filterProduct').value = '';
+    document.getElementById('filterFrom').value = '';
+    document.getElementById('filterTo').value = '';
+    loadData();
+  }
+
+  function filterByProduct(handle) {
+    document.getElementById('filterProduct').value = handle;
+    loadData();
+  }
+
+  function searchWord(word) {
+    document.getElementById('filterSearch').value = word;
+    loadData();
+  }
+
+  function exportCSV() {
+    if (!currentFiltered.length) return;
+    const headers = ['Data', 'Produkt', 'Imię / dedykacja', 'Rocznica / lata', 'Opis osoby', 'CustomerId'];
+    const rows = currentFiltered.map(e => [
+      e.timestamp || '',
+      e.productHandle || '',
+      e.imie || '',
+      e.rocznica || '',
+      e.opis || '',
+      e.customerId || ''
+    ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(';'));
+    const csv = [headers.join(';'), ...rows].join('\n');
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `personalizacje_${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+  }
+
+  function esc(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+</script>
+</body>
+</html>

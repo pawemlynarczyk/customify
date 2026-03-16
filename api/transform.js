@@ -1269,7 +1269,7 @@ module.exports = async (req, res) => {
   let customerEmailFromGraphQL = null;
 
   try {
-    let { imageData, prompt, style, productType, customerId: bodyCustomerId, email, productHandle, promptAddition, replaceBasePrompt, additionalImages } = req.body;
+    let { imageData, prompt, style, productType, customerId: bodyCustomerId, email, productHandle, promptAddition, replaceBasePrompt, additionalImages, personalizationFields } = req.body;
     // ✅ Normalize imageData: accept base64 or data URI
     if (typeof imageData === 'string' && imageData.startsWith('data:image')) {
       imageData = imageData.split(',')[1];
@@ -4384,7 +4384,24 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
         timestamp: new Date().toISOString()
       })
     }).catch((err) => console.warn('📊 [TRANSFORM] login-modal-stats event send failed:', err?.message || err));
-    
+
+    // 📊 PERSONALIZATION LOG: Zapisz wpis jeśli użytkownik wypełnił pola personalizacji
+    if (personalizationFields && Object.keys(personalizationFields).length > 0) {
+      fetch('https://customify-s56o.vercel.app/api/admin/personalization-log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          timestamp: new Date().toISOString(),
+          productHandle: productHandle || null,
+          style: style || null,
+          customerId: customerId || null,
+          deviceToken: deviceToken || null,
+          ip: ip || null,
+          fields: personalizationFields
+        })
+      }).catch((err) => console.warn('📊 [TRANSFORM] personalization-log save failed:', err?.message || err));
+    }
+
     res.json(responseData);
   } catch (error) {
     console.error('AI transformation error:', error);

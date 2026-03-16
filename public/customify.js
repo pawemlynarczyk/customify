@@ -7296,6 +7296,21 @@ class CustomifyEmbed {
         const cfg = this.getCustomFieldConfig();
         if (cfg && cfg.promptTemplate) requestBody.replaceBasePrompt = true;
         console.log('🎛️ [CUSTOM-FIELDS] Dodano promptAddition do requestBody:', promptAddition.substring(0, 100), cfg && cfg.promptTemplate ? '(replaceBasePrompt)' : '');
+
+        // 📊 PERSONALIZATION LOG: Zbierz surowe wartości pól do logowania
+        if (cfg && cfg.fields) {
+          const rawFields = {};
+          cfg.fields.forEach(field => {
+            const el = document.getElementById(`customField_${field.id}`);
+            if (el && el.value && el.value.trim()) {
+              rawFields[field.id] = el.value.trim();
+            }
+          });
+          if (Object.keys(rawFields).length > 0) {
+            requestBody.personalizationFields = rawFields;
+            requestBody.productHandle = this.getProductHandle();
+          }
+        }
       }
 
       // 📸 MULTI-UPLOAD: Upload dodatkowych zdjęć do Vercel Blob i dodaj URL-e
@@ -8181,7 +8196,20 @@ class CustomifyEmbed {
             if (brandLabel) properties['Marka'] = brandLabel;
             if (modelLabel) properties['Model'] = modelLabel;
           }
-          
+
+          // 📊 PERSONALIZATION: Dodaj surowe wartości pól personalizacji do properties zamówienia
+          const cfg = this.getCustomFieldConfig();
+          if (cfg && cfg.fields) {
+            cfg.fields.forEach(field => {
+              const el = document.getElementById(`customField_${field.id}`);
+              if (el && el.value && el.value.trim()) {
+                if (field.id === 'imiona') properties['Imię / dedykacja'] = el.value.trim();
+                if (field.id === 'rocznica') properties['Rocznica / lata'] = el.value.trim();
+                if (field.id === 'opis_charakteru') properties['Opis osoby'] = el.value.trim();
+              }
+            });
+          }
+
           const noteAttributes = {};
           
           // ✅ Dodaj tylko techniczne informacje dla admina (bez "Styl AI" - nie pokazywane w koszyku)
