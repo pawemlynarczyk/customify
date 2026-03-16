@@ -883,32 +883,34 @@ CUSTOMIZATION
 The character represents this profession / hobby / personality:
 "{personalization}"
 
-CRITICAL: The overall character should be cohesive — outfit, props, scene, background, podium and decorations must all reference and match the same theme. The podium on which the figurine stands must be styled to fit the truck driver profession. Everything should harmonize and create a unified, coherent whole.
+CRITICAL: The overall character should be cohesive — outfit, props, scene, background, podium and decorations must all reference and match the same theme. The podium on which the figurine stands must be styled to fit the profession or hobby described above. Everything should harmonize and create a unified, coherent whole.
 
 Add visual elements, clothing, props and small scene details related to it.
 Examples:
 • truck driver → flannel shirt, cap, big rig truck, steering wheel, road map
-• long-haul driver → sunglasses, road, highway, semi-truck cabin, fuel cans
-• trucker → travel mug, CB radio, truck keys, highway scenery
+• mechanic → overalls, wrench, car lift, garage, sport car
+• chef → apron, toque, kitchen tools, restaurant atmosphere
+• fisherman → fishing rod, fish, lake, outdoor vibe
 
 POSE
 {YEARS_SECTION}
-• Character standing confidently on a podium styled to match the trucker / road-life theme.
-• Proud, relaxed pose — king of the road vibe.
-• The podium design should reference trucking — e.g. truck cab silhouette, road lines, dashboard details.
+• Character sitting or standing confidently on a podium styled to match the profession or hobby.
+• The podium must be styled to match the theme — the design, shape, materials and decorations should reflect and harmonize with the overall theme.
+• Relaxed, charismatic pose.
 
 OUTFIT
-• Classic trucker outfit — flannel shirt or jacket, cap, jeans, work boots.
+• Outfit matching the profession or interest.
 • Stylish, slightly exaggerated caricature look.
 
 SCENE
-Mini decorative environment — open road, highway, semi-truck cab, rest stop atmosphere.
+Mini decorative environment connected with the profession or hobby described above.
 Fun but professional.
 
 BACKGROUND
-• Colors related to road life — warm sunset highway, asphalt grays, golden horizon.
-• Subtle themed decorations — truck silhouettes, road signs, map elements.
+• Colors and style of the background must be related to the person's profession or hobby.
+• The backdrop should visually connect with the character's theme, not generic studio.
 • Soft bokeh lights.
+• Subtle themed decorations.
 
 TEXT
 {NAME_SECTION}
