@@ -67,7 +67,7 @@ Premium collectible caricature statue, highly detailed, playful but luxurious, p
     fields: [
       { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
       { id: 'rocznica', label: 'Rocznica / liczba lat - liczba pojawi się na obrazku', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
-      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
+      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby - tekst nie pojawi się na obrazku ale decyduje o jego wyglądzie', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
     ]
   },
   'obraz-ze-zdjecia-karykatura-dla-niej-policjantka': {
@@ -129,7 +129,7 @@ Premium collectible caricature statue, highly detailed, playful but luxurious, p
     fields: [
       { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
       { id: 'rocznica', label: 'Rocznica / liczba lat - liczba pojawi się na obrazku', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
-      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
+      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby - tekst nie pojawi się na obrazku ale decyduje o jego wyglądzie', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
     ]
   },
   'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka': {
@@ -191,7 +191,7 @@ Premium collectible caricature statue, highly detailed, playful but luxurious, p
     fields: [
       { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
       { id: 'rocznica', label: 'Rocznica / liczba lat - liczba pojawi się na obrazku', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
-      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
+      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby - tekst nie pojawi się na obrazku ale decyduje o jego wyglądzie', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
     ]
   },
   'obraz-ze-zdjecia-karykatura-dla-niej-lekarka': {
@@ -253,7 +253,7 @@ Premium collectible caricature statue, highly detailed, playful but luxurious, p
     fields: [
       { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
       { id: 'rocznica', label: 'Rocznica / liczba lat - liczba pojawi się na obrazku', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
-      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
+      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby - tekst nie pojawi się na obrazku ale decyduje o jego wyglądzie', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
     ]
   },
   'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka': {
@@ -315,7 +315,7 @@ Premium collectible caricature statue, highly detailed, playful but luxurious, p
     fields: [
       { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
       { id: 'rocznica', label: 'Rocznica / liczba lat - liczba pojawi się na obrazku', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
-      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
+      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby - tekst nie pojawi się na obrazku ale decyduje o jego wyglądzie', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
     ]
   },
   'obraz-ze-zdjecia-karykatura-dla-niej-psycholog': {
@@ -377,7 +377,7 @@ Premium collectible caricature statue, highly detailed, playful but luxurious, p
     fields: [
       { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
       { id: 'rocznica', label: 'Rocznica / liczba lat - liczba pojawi się na obrazku', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
-      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
+      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby - tekst nie pojawi się na obrazku ale decyduje o jego wyglądzie', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
     ]
   },
   'obraz-ze-zdjecia-karykatura-dla-niej-kucharka': {
@@ -439,7 +439,7 @@ Premium collectible caricature statue, highly detailed, playful but luxurious, p
     fields: [
       { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
       { id: 'rocznica', label: 'Rocznica / liczba lat - liczba pojawi się na obrazku', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
-      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
+      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby - tekst nie pojawi się na obrazku ale decyduje o jego wyglądzie', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
     ]
   },
   'obraz-ze-zdjecia-karykatura-dla-niej-fitness': {
@@ -501,7 +501,7 @@ Premium collectible caricature statue, highly detailed, playful but luxurious, p
     fields: [
       { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
       { id: 'rocznica', label: 'Rocznica / liczba lat - liczba pojawi się na obrazku', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
-      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
+      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby - tekst nie pojawi się na obrazku ale decyduje o jego wyglądzie', type: 'text', placeholder: 'np. pielęgniarka, podróże | nauczycielka, sport', required: false, promptKey: 'personalization' }
     ]
   },
   'obraz-ze-zdjecia-karykatura-dla-niej-szefowa': {
@@ -562,7 +562,7 @@ Premium collectible caricature statue, highly detailed, playful but luxurious, p
     fields: [
       { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
       { id: 'rocznica', label: 'Rocznica / liczba lat - liczba pojawi się na obrazku', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
-      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. szefowa sklepu, produkty spożywcze', required: false, promptKey: 'personalization' }
+      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby - tekst nie pojawi się na obrazku ale decyduje o jego wyglądzie', type: 'text', placeholder: 'np. szefowa sklepu, produkty spożywcze', required: false, promptKey: 'personalization' }
     ]
   },
   'karykatura-rolnik-ze-zdjecia-personalizowany-prezent-dla-mezczyzny': {
@@ -624,7 +624,7 @@ Premium collectible caricature statue, highly detailed, playful but luxurious, p
     fields: [
       { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Jan', required: false, promptKey: 'name' },
       { id: 'rocznica', label: 'Rocznica / liczba lat - liczba pojawi się na obrazku', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
-      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. rolnik, wędkarz, sport', required: false, promptKey: 'personalization' }
+      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby - tekst nie pojawi się na obrazku ale decyduje o jego wyglądzie', type: 'text', placeholder: 'np. rolnik, wędkarz, sport', required: false, promptKey: 'personalization' }
     ]
   },
   'obraz-ze-zdjecia-prezent-dla-chlopca-pilkarz': {
@@ -682,7 +682,7 @@ Premium collectible caricature statue of a football champion — highly detailed
     fields: [
       { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Kacper', required: false, promptKey: 'name' },
       { id: 'rocznica', label: 'Rocznica / liczba lat - liczba pojawi się na obrazku', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
-      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. piłkarz, zwycięzca, sport', required: false, promptKey: 'personalization' }
+      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby - tekst nie pojawi się na obrazku ale decyduje o jego wyglądzie', type: 'text', placeholder: 'np. piłkarz, zwycięzca, sport', required: false, promptKey: 'personalization' }
     ]
   },
   'fotoobraz-strazaka-ze-zdjecia-prezent-na-35-urodziny-dla-meza': {
@@ -741,7 +741,7 @@ Premium collectible caricature statue, highly detailed, playful but luxurious, p
     fields: [
       { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Karol', required: false, promptKey: 'name' },
       { id: 'rocznica', label: 'Rocznica / liczba lat - liczba pojawi się na obrazku', type: 'text', placeholder: 'np. 35', required: false, promptKey: 'YEARS' },
-      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. strażak, ratownik, bohater', required: false, promptKey: 'personalization' }
+      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby - tekst nie pojawi się na obrazku ale decyduje o jego wyglądzie', type: 'text', placeholder: 'np. strażak, ratownik, bohater', required: false, promptKey: 'personalization' }
     ]
   },
   'portret-ze-zdjecia-dla-lekarza-personalizowany-plakat-na-urodziny-dla-chlopaka': {
@@ -800,7 +800,7 @@ Premium collectible caricature statue, highly detailed, playful but luxurious, p
     fields: [
       { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Piotr', required: false, promptKey: 'name' },
       { id: 'rocznica', label: 'Rocznica / liczba lat - liczba pojawi się na obrazku', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
-      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. lekarz, chirurg, pediatra', required: false, promptKey: 'personalization' }
+      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby - tekst nie pojawi się na obrazku ale decyduje o jego wyglądzie', type: 'text', placeholder: 'np. lekarz, chirurg, pediatra', required: false, promptKey: 'personalization' }
     ]
   },
   'prezent-ze-zdjecia-dla-budowlanca-personalizowany-obraz-dla-taty': {
@@ -859,7 +859,7 @@ Premium collectible caricature statue, highly detailed, playful but luxurious, p
     fields: [
       { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Marek', required: false, promptKey: 'name' },
       { id: 'rocznica', label: 'Rocznica / liczba lat - liczba pojawi się na obrazku', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
-      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. budowlaniec, murarz, majster', required: false, promptKey: 'personalization' }
+      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby - tekst nie pojawi się na obrazku ale decyduje o jego wyglądzie', type: 'text', placeholder: 'np. budowlaniec, murarz, majster', required: false, promptKey: 'personalization' }
     ]
   },
   'prezent-z-wlasnym-zdjeciem-dla-kierowcy-tira-personalizowany-obraz': {
@@ -918,7 +918,7 @@ Premium collectible caricature statue, highly detailed, playful but luxurious, p
     fields: [
       { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Tomek', required: false, promptKey: 'name' },
       { id: 'rocznica', label: 'Rocznica / liczba lat - liczba pojawi się na obrazku', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
-      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. kierowca tira, trasa, podróże', required: false, promptKey: 'personalization' }
+      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby - tekst nie pojawi się na obrazku ale decyduje o jego wyglądzie', type: 'text', placeholder: 'np. kierowca tira, trasa, podróże', required: false, promptKey: 'personalization' }
     ]
   },
   'obraz-ze-zdjecia-karykatura-policjant-prezent-dla-faceta': {
@@ -977,7 +977,7 @@ Premium collectible caricature statue, highly detailed, playful but luxurious, p
     fields: [
       { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Marek', required: false, promptKey: 'name' },
       { id: 'rocznica', label: 'Rocznica / liczba lat - liczba pojawi się na obrazku', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
-      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. policjant, detektyw, straż', required: false, promptKey: 'personalization' }
+      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby - tekst nie pojawi się na obrazku ale decyduje o jego wyglądzie', type: 'text', placeholder: 'np. policjant, detektyw, straż', required: false, promptKey: 'personalization' }
     ]
   },
   'karykatura-wedkarz-portret-ze-zdjecia-personalizowany-prezent-dla-faceta': {
@@ -1039,7 +1039,7 @@ Premium collectible caricature statue, highly detailed, playful but luxurious, p
     fields: [
       { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Jan', required: false, promptKey: 'name' },
       { id: 'rocznica', label: 'Rocznica / liczba lat - liczba pojawi się na obrazku', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
-      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. wędkarz, ryby, jezioro', required: false, promptKey: 'personalization' }
+      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby - tekst nie pojawi się na obrazku ale decyduje o jego wyglądzie', type: 'text', placeholder: 'np. wędkarz, ryby, jezioro', required: false, promptKey: 'personalization' }
     ]
   },
   'kulturysta-karykatura-ze-zdjecia-prezent-dla-mezczyzny': {
@@ -1101,7 +1101,7 @@ Premium collectible caricature statue, highly detailed, playful but luxurious, p
     fields: [
       { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Jan', required: false, promptKey: 'name' },
       { id: 'rocznica', label: 'Rocznica / liczba lat - liczba pojawi się na obrazku', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
-      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. kulturysta, siłownia, sport', required: false, promptKey: 'personalization' }
+      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby - tekst nie pojawi się na obrazku ale decyduje o jego wyglądzie', type: 'text', placeholder: 'np. kulturysta, siłownia, sport', required: false, promptKey: 'personalization' }
     ]
   },
   'active-woman-portret-ze-zdjecia-na-rocznice-dla-kolezanki-kobiety-druk-na-szkle': {
@@ -1163,7 +1163,7 @@ Premium collectible caricature statue, highly detailed, playful but luxurious, p
     fields: [
       { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
       { id: 'rocznica', label: 'Rocznica / liczba lat - liczba pojawi się na obrazku', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
-      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. fitness, sport, siłownia', required: false, promptKey: 'personalization' }
+      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby - tekst nie pojawi się na obrazku ale decyduje o jego wyglądzie', type: 'text', placeholder: 'np. fitness, sport, siłownia', required: false, promptKey: 'personalization' }
     ]
   },
   'active-woman-portret-ze-zdjecia-na-18-urodziny-dla-dziewczyny-druk-na-szkle-copy': {
@@ -1225,7 +1225,7 @@ Premium collectible caricature statue, highly detailed, playful but luxurious, p
     fields: [
       { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
       { id: 'rocznica', label: 'Rocznica / liczba lat - liczba pojawi się na obrazku', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
-      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. fitness, sport, siłownia', required: false, promptKey: 'personalization' }
+      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby - tekst nie pojawi się na obrazku ale decyduje o jego wyglądzie', type: 'text', placeholder: 'np. fitness, sport, siłownia', required: false, promptKey: 'personalization' }
     ]
   },
   'portret-ze-zdjecia-prezent-na-urodziny-dla-kolezanki-szefowej-salon-spa': {
@@ -1286,7 +1286,7 @@ Premium collectible caricature statue, highly detailed, playful but luxurious, p
     fields: [
       { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
       { id: 'rocznica', label: 'Rocznica / liczba lat - liczba pojawi się na obrazku', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
-      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. salon manicure, tipsy, rzęsy', required: false, promptKey: 'personalization' }
+      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby - tekst nie pojawi się na obrazku ale decyduje o jego wyglądzie', type: 'text', placeholder: 'np. salon manicure, tipsy, rzęsy', required: false, promptKey: 'personalization' }
     ]
   },
   'portret-ze-zdjecia-superbohater-prezent-dla-chlopca': {
@@ -1391,7 +1391,7 @@ Premium collectible caricature statue, highly detailed, playful but luxurious, p
     fields: [
       { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Ania', required: false, promptKey: 'name' },
       { id: 'rocznica', label: 'Rocznica / liczba lat - liczba pojawi się na obrazku', type: 'text', placeholder: 'np. 40', required: false, promptKey: 'YEARS' },
-      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. fitness, podróże, moda', required: false, promptKey: 'personalization' }
+      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby - tekst nie pojawi się na obrazku ale decyduje o jego wyglądzie', type: 'text', placeholder: 'np. fitness, podróże, moda', required: false, promptKey: 'personalization' }
     ]
   },
   'portret-na-18-urodziny-dla-dziewczyny-magic-z-wlasnego-zdjecia-druk-na-szkle': {
@@ -1453,7 +1453,7 @@ Premium collectible caricature statue, highly detailed, playful but luxurious, p
     fields: [
       { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
       { id: 'rocznica', label: 'Rocznica / liczba lat - liczba pojawi się na obrazku', type: 'text', placeholder: 'np. 18, 25, 30', required: false, promptKey: 'YEARS' },
-      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. glamour, Hollywood, czerwony dywan', required: false, promptKey: 'personalization' }
+      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby - tekst nie pojawi się na obrazku ale decyduje o jego wyglądzie', type: 'text', placeholder: 'np. glamour, Hollywood, czerwony dywan', required: false, promptKey: 'personalization' }
     ]
   },
   'portret-ze-zdjecia-na-30-rocznice-dla-nauczycielki-karykatura-na-prezent': {
@@ -1515,7 +1515,7 @@ Premium collectible caricature statue, highly detailed, playful but luxurious, p
     fields: [
       { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Anna', required: false, promptKey: 'name' },
       { id: 'rocznica', label: 'Rocznica / liczba lat - liczba pojawi się na obrazku', type: 'text', placeholder: 'np. 10, 25, 30', required: false, promptKey: 'YEARS' },
-      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby', type: 'text', placeholder: 'np. nauczycielka, szkoła, książki', required: false, promptKey: 'personalization' }
+      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby - tekst nie pojawi się na obrazku ale decyduje o jego wyglądzie', type: 'text', placeholder: 'np. nauczycielka, szkoła, książki', required: false, promptKey: 'personalization' }
     ]
   },
   'obraz-ze-zdjecia-biznes-woman-personalizowany-prezent': {
