@@ -34,6 +34,7 @@ async function writeLog(entries) {
     access: 'public',
     contentType: 'application/json',
     addRandomSuffix: false,
+    allowOverwrite: true,
     token: blobToken
   });
 }

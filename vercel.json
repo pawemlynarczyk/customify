@@ -1,5 +1,8 @@
 {
   "version": 2,
+  "rewrites": [
+    { "source": "/admin/personalization-log", "destination": "/admin/personalization-log.html" }
+  ],
   "functions": {
     "api/**/*.js": {
       "maxDuration": 300
