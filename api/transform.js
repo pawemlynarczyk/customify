@@ -916,14 +916,22 @@ async function segmindNanoBanana2(inputParams) {
   };
 
   console.log('🍌 [SEGMIND-NB2] Calling Segmind nano-banana-2 (fallback)...');
-  const response = await fetch('https://api.segmind.com/v1/nano-banana-2', {
-    method: 'POST',
-    headers: {
-      'x-api-key': SEGMIND_API_KEY,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(body)
-  });
+  const nb2Controller = new AbortController();
+  const nb2Timeout = setTimeout(() => nb2Controller.abort(), 90000); // 90s max
+  let response;
+  try {
+    response = await fetch('https://api.segmind.com/v1/nano-banana-2', {
+      method: 'POST',
+      headers: {
+        'x-api-key': SEGMIND_API_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body),
+      signal: nb2Controller.signal
+    });
+  } finally {
+    clearTimeout(nb2Timeout);
+  }
 
   if (!response.ok) {
     const errorText = await response.text();
@@ -3513,7 +3521,7 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
         try {
           // Add timeout and better error handling (following Replicate docs)
           const timeoutPromise = new Promise((_, reject) => {
-            setTimeout(() => reject(new Error('Request timeout - model took too long')), 300000); // 5 minutes
+            setTimeout(() => reject(new Error('Request timeout - model took too long')), 70000); // 70s per attempt (3 retries = max 210s < Vercel 300s limit)
           });
 
           console.log(`🚀 [REPLICATE] Starting prediction with model: ${config.model} (attempt ${attempt}/${maxRetries})`);
