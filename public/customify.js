@@ -8033,6 +8033,9 @@ class CustomifyEmbed {
     // Pokaż pasek postępu dla koszyka
     this.showCartLoading();
 
+    // ⚠️ FLAGA: Produkt już został utworzony w Shopify → NIE TWÓRZ ponownie przy retry (duplikat!)
+    let productCreated = false;
+
     try {
       // Pobierz ID produktu z różnych możliwych źródeł
       const productId = 
@@ -8167,6 +8170,7 @@ class CustomifyEmbed {
       console.log('🛒 [CUSTOMIFY] API response:', result);
 
       if (result.success) {
+        productCreated = true; // ✅ Produkt istnieje w Shopify - retry NIE może tworzyć kolejnego
         this.showSuccess('✅ ' + (result.message || 'Produkt został utworzony!'));
         console.log('✅ [CUSTOMIFY] Product created:', result.product);
         
@@ -8291,27 +8295,57 @@ class CustomifyEmbed {
             return;
           }
           
-    // ✅ ZAPISZ NOTE ATTRIBUTES (linki dla admina)
+    // ✅ ZAPISZ NOTE ATTRIBUTES (linki dla admina) — timeout 8s, nie blokuje koszyka
     if (Object.keys(noteAttributes).length > 0) {
       try {
-        await this.updateCartNoteAttributes(noteAttributes);
+        await Promise.race([
+          this.updateCartNoteAttributes(noteAttributes),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('noteAttributes timeout')), 8000))
+        ]);
         console.log('✅ [CUSTOMIFY] Note attributes updated successfully');
       } catch (error) {
-        console.error('⚠️ [CUSTOMIFY] Failed to update cart note attributes:', error);
+        console.error('⚠️ [CUSTOMIFY] Note attributes failed (nie blokuje koszyka):', error.message);
       }
     }
-    
-    // ✅ DODAJ DO KOSZYKA PRZEZ DIRECT NAVIGATION (jak w rules)
-    console.log('✅ [CUSTOMIFY] Adding to cart via direct navigation');
-    
-    // Ukryj pasek postępu
-    this.hideCartLoading();
-    
-    // Przekieruj bezpośrednio do koszyka (zamiast fetch)
-    // ✅ DODANO: Małe opóźnienie dla pewności zapisu atrybutów
-    setTimeout(() => {
-      window.location.href = cartUrl;
-    }, 300);
+
+    // ✅ DODAJ DO KOSZYKA PRZEZ POST /cart/add.js (zamiast GET redirect)
+    // POST: dostajemy JSON response → wiemy czy się udało
+    // Retry tylko cart add (nie tworzy nowego produktu) → fix race condition "produkt nie gotowy"
+    console.log('✅ [CUSTOMIFY] Adding to cart via POST /cart/add.js');
+    const cartRoot = (window.Shopify && window.Shopify.routes && window.Shopify.routes.root) || '/';
+    let cartAddAttempt = 0;
+    let cartAdded = false;
+    while (cartAddAttempt < 3 && !cartAdded) {
+      if (cartAddAttempt > 0) {
+        console.log(`🔄 [CUSTOMIFY] Cart add retry ${cartAddAttempt}/2 — produkt może nie być jeszcze gotowy`);
+        await new Promise(r => setTimeout(r, 1200 * cartAddAttempt)); // 1.2s, 2.4s
+      }
+      try {
+        const addResponse = await fetch(cartRoot + 'cart/add.js', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ items: [{ id: parseInt(result.variantId, 10), quantity: 1, properties }] })
+        });
+        const addResult = await addResponse.json();
+        if (addResponse.ok && addResult.items && addResult.items.length > 0) {
+          cartAdded = true;
+          console.log('✅ [CUSTOMIFY] Added to cart via POST successfully');
+          this.hideCartLoading();
+          window.location.href = cartRoot + 'cart';
+        } else {
+          const errMsg = addResult.description || addResult.message || addResult.error || 'Błąd dodawania';
+          console.warn(`⚠️ [CUSTOMIFY] Cart add attempt ${cartAddAttempt + 1} failed:`, errMsg);
+          cartAddAttempt++;
+        }
+      } catch (addErr) {
+        console.warn(`⚠️ [CUSTOMIFY] Cart add attempt ${cartAddAttempt + 1} error:`, addErr.message);
+        cartAddAttempt++;
+      }
+    }
+    if (!cartAdded) {
+      this.hideCartLoading();
+      this.showError('❌ Nie udało się dodać do koszyka. Spróbuj ponownie.', 'cart');
+    }
         }
       } else {
         console.error('❌ [CUSTOMIFY] Product creation failed:', result);
@@ -8322,7 +8356,8 @@ class CustomifyEmbed {
       console.error('❌ [CUSTOMIFY] Add to cart error:', error);
       
       // ✅ RETRY LOGIC: Ponów próbę dla network errors (max 3 próby)
-      if (retryCount < 3 && (
+      // ⚠️ TYLKO jeśli produkt NIE ZOSTAŁ JESZCZE UTWORZONY — inaczej powstają duplikaty w Shopify!
+      if (!productCreated && retryCount < 3 && (
         error.name === 'AbortError' || 
         (error?.message && error.message.includes('Failed to fetch')) || 
         (error?.message && error.message.includes('NetworkError')) ||
