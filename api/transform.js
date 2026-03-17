@@ -4515,7 +4515,8 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
     // 📊 PERSONALIZATION LOG: Zapisz wpis PRZED res.json() żeby Vercel nie zamknął funkcji
     if (personalizationFields && Object.keys(personalizationFields).length > 0) {
       try {
-        await fetch('https://customify-s56o.vercel.app/api/admin/personalization-log', {
+        // ⏰ Timeout 10s: nie blokuj transform na logowaniu personalizacji
+        await fetchWithTimeout('https://customify-s56o.vercel.app/api/admin/personalization-log', 10000, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

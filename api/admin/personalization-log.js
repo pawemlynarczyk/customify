@@ -6,6 +6,14 @@ const { put, list } = require('@vercel/blob');
 
 const BLOB_KEY = 'customify/system/stats/personalization-log.json';
 const MAX_ENTRIES = 2000;
+
+// ⏰ Helper: operacje Blob z timeoutem
+async function withTimeout(promise, timeoutMs, op) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error(`Timeout: ${op} after ${timeoutMs}ms`)), timeoutMs))
+  ]);
+}
 const ADMIN_TOKEN = process.env.ADMIN_STATS_TOKEN;
 
 const getBlobToken = () => {
@@ -17,10 +25,10 @@ const getBlobToken = () => {
 async function readLog() {
   try {
     const blobToken = getBlobToken();
-    const { blobs } = await list({ prefix: 'customify/system/stats/personalization-log', token: blobToken });
+    const { blobs } = await withTimeout(list({ prefix: 'customify/system/stats/personalization-log', token: blobToken }), 8000, 'list blobs');
     if (!blobs || blobs.length === 0) return [];
     const latest = blobs.sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt))[0];
-    const res = await fetch(latest.url);
+    const res = await withTimeout(fetch(latest.url), 10000, 'fetch log');
     if (!res.ok) return [];
     return await res.json();
   } catch {
@@ -30,13 +38,13 @@ async function readLog() {
 
 async function writeLog(entries) {
   const blobToken = getBlobToken();
-  await put(BLOB_KEY, JSON.stringify(entries), {
+  await withTimeout(put(BLOB_KEY, JSON.stringify(entries), {
     access: 'public',
     contentType: 'application/json',
     addRandomSuffix: false,
     allowOverwrite: true,
     token: blobToken
-  });
+  }), 15000, 'put log');
 }
 
 module.exports = async (req, res) => {
