@@ -5545,9 +5545,44 @@ opacity: 0.9;
  </div>
  {% endif %}
 
- {% if template == 'cart' %}
- <div class="page-width" style="margin: 60px auto; max-width: 1200px;">
- <div class="product-details-accordion">
+{% if template == 'cart' %}
+<div class="page-width" style="margin: 40px auto 60px; max-width: 1200px;">
+<div style="display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; padding: 24px 16px; border-top: 1px solid rgba(0,0,0,0.08);">
+
+  <div style="display: flex; align-items: center; gap: 10px; background: #f9f9f9; border: 1px solid #e8e8e8; border-radius: 10px; padding: 14px 20px; min-width: 180px; flex: 1; max-width: 240px;">
+    <span style="font-size: 28px; line-height: 1;">🔒</span>
+    <div>
+      <div style="font-weight: 700; font-size: 14px; color: #111;">Bezpieczna płatność</div>
+      <div style="font-size: 12px; color: #777; margin-top: 2px;">BLIK, karta, Przelewy24</div>
+    </div>
+  </div>
+
+  <div style="display: flex; align-items: center; gap: 10px; background: #f9f9f9; border: 1px solid #e8e8e8; border-radius: 10px; padding: 14px 20px; min-width: 180px; flex: 1; max-width: 240px;">
+    <span style="font-size: 28px; line-height: 1;">📦</span>
+    <div>
+      <div style="font-weight: 700; font-size: 14px; color: #111;">Wysyłka w 3–5 dni</div>
+      <div style="font-size: 12px; color: #777; margin-top: 2px;">InPost Paczkomat lub kurier</div>
+    </div>
+  </div>
+
+  <div style="display: flex; align-items: center; gap: 10px; background: #f9f9f9; border: 1px solid #e8e8e8; border-radius: 10px; padding: 14px 20px; min-width: 180px; flex: 1; max-width: 240px;">
+    <span style="font-size: 28px; line-height: 1;">↩️</span>
+    <div>
+      <div style="font-weight: 700; font-size: 14px; color: #111;">Zwrot w 30 dni</div>
+      <div style="font-size: 12px; color: #777; margin-top: 2px;">100% zwrotu bez pytań</div>
+    </div>
+  </div>
+
+  <div style="display: flex; align-items: center; gap: 10px; background: #f9f9f9; border: 1px solid #e8e8e8; border-radius: 10px; padding: 14px 20px; min-width: 180px; flex: 1; max-width: 240px;">
+    <span style="font-size: 28px; line-height: 1;">⭐</span>
+    <div>
+      <div style="font-weight: 700; font-size: 14px; color: #111;">4.8/5 ocena klientów</div>
+      <div style="font-size: 12px; color: #777; margin-top: 2px;">Ponad 5 000 zadowolonych</div>
+    </div>
+  </div>
+
+</div>
+<div style="display: none;"><!-- stare akordeony zastąpione przez trust badges -->
 
  <div class="accordion-item" data-accordion="guarantee" style="border: 2px solid #4CAF50; border-radius: 8px; margin-bottom: 12px;">
  <div class="accordion-header" style="background: #E8F5E9;">
@@ -5795,53 +5830,9 @@ opacity: 0.9;
  </div>
  </div>
 
- </div>
- </div>
-
- <script>
- document.addEventListener('DOMContentLoaded', function() {
- console.log('🛒 [CART] Initializing cart accordion...');
- 
- // Znajdź wszystkie accordion items na stronie koszyka
- const accordionItems = document.querySelectorAll('.accordion-item');
- 
- if (!accordionItems || accordionItems.length === 0) {
- console.log('⚠️ [CART] No accordion items found');
- return;
- }
- 
- console.log('✅ [CART] Found', accordionItems.length, 'accordion items');
- 
- // Dodaj event listener do każdego accordion header
- accordionItems.forEach((item, index) => {
- const header = item.querySelector('.accordion-header');
- 
- if (!header) {
- console.log('⚠️ [CART] No header found for item', index);
- return;
- }
- 
- // Event listener - toggle klasy expanded
- header.addEventListener('click', () => {
- const isExpanded = item.classList.contains('expanded');
- 
- if (isExpanded) {
- // Zwiń
- item.classList.remove('expanded');
- console.log('🔽 [CART] Collapsed:', item.dataset.accordion);
- } else {
- // Rozwiń
- item.classList.add('expanded');
- console.log('🔼 [CART] Expanded:', item.dataset.accordion);
- }
- });
- 
- console.log('✅ [CART] Accordion item', index, 'setup complete');
- });
- 
- console.log('✅ [CART] Cart accordion setup complete!');
- });
- </script>
+</div>
+</div>
+</div>
 {% endif %}
 
 {% if template == 'product' and product.tags contains 'simple-product' %}
