@@ -16,6 +16,7 @@ const FOURTEEN_DAYS_MS = 14 * 24 * 60 * 60 * 1000;
 const KV_TTL_SEC = 90 * 24 * 3600; // 90 dni
 const THROTTLE_MS = 600;
 const EVALUATION_BATCH_SIZE = 25;
+const MAX_SENDS_PER_RUN = 250;
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 function isCustomifyLineItem(item) {
@@ -339,8 +340,11 @@ module.exports = async (req, res) => {
     if (!dryRun) {
       const subjects = { '3d': 'Twój obraz czeka – dokończ zamówienie, zanim zniknie', '7d': 'Twoja generacja wciąż na Ciebie czeka', '14d': 'Ostatnia szansa – Twój obraz czeka na zamówienie' };
       const lists = { '3d': sent3d, '7d': sent7d, '14d': sent14d };
+      const limitedCandidates = candidates.slice(0, MAX_SENDS_PER_RUN);
 
-      for (const candidate of candidates) {
+      console.log(`📧 [REMINDER-3-7D] Wysyłam ${limitedCandidates.length}/${candidates.length} kandydatów w tym przebiegu`);
+
+      for (const candidate of limitedCandidates) {
         const { customerId, email, T, imageUrl, variant, keys } = candidate;
         await sleep(THROTTLE_MS);
         const sendRes = await resend.emails.send({
@@ -368,6 +372,7 @@ module.exports = async (req, res) => {
       sent3d: sent3d.length,
       sent7d: sent7d.length,
       sent14d: sent14d.length,
+      remainingCandidates: dryRun ? candidates.length : Math.max(candidates.length - MAX_SENDS_PER_RUN, 0),
       sent3dList: sent3d,
       sent7dList: sent7d,
       sent14dList: sent14d,
