@@ -15,6 +15,7 @@ const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 const FOURTEEN_DAYS_MS = 14 * 24 * 60 * 60 * 1000;
 const KV_TTL_SEC = 90 * 24 * 3600; // 90 dni
 const THROTTLE_MS = 600;
+const EVALUATION_BATCH_SIZE = 25;
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 function isCustomifyLineItem(item) {
@@ -250,89 +251,114 @@ module.exports = async (req, res) => {
     if (products.length > 0) console.log(`📧 [REMINDER-3-7D] Pobrano ${products.length} produktów z kolekcji see_also`);
     console.log(`📧 [REMINDER-3-7D] Pobrano ${recentPurchasesByCustomerId.size} klientów z zakupami Customify z ostatnich 16 dni`);
 
-    for (const blob of customerBlobs) {
-      try {
-        const fetchRes = await fetch(blob.url);
-        if (!fetchRes.ok) continue;
-        const data = await fetchRes.json();
-        const customerId = data.customerId || (blob.pathname || blob.name || '').match(/customer-([^.]+)/)?.[1];
-        if (!customerId) continue;
+    const candidates = [];
 
-        const email = data.email || data.generations?.[0]?.email;
-        if (!email || typeof email !== 'string' || !email.includes('@')) {
-          if (diagnostics) diagnostics.skipped.noEmail++;
-          continue;
-        }
+    for (let offset = 0; offset < customerBlobs.length; offset += EVALUATION_BATCH_SIZE) {
+      const batch = customerBlobs.slice(offset, offset + EVALUATION_BATCH_SIZE);
+      const results = await Promise.all(batch.map(async (blob) => {
+        try {
+          const fetchRes = await fetch(blob.url);
+          if (!fetchRes.ok) return null;
 
-        const lastGenDate = data.lastGenerationDate || data.generations?.[0]?.date || data.generations?.[0]?.timestamp;
-        if (!lastGenDate) {
-          if (diagnostics) diagnostics.skipped.noLastGen++;
-          continue;
-        }
-        const T = new Date(lastGenDate).getTime();
-        if (Number.isNaN(T)) continue;
+          const data = await fetchRes.json();
+          const customerId = data.customerId || (blob.pathname || blob.name || '').match(/customer-([^.]+)/)?.[1];
+          if (!customerId) return null;
 
-        const generations = Array.isArray(data.generations) ? data.generations : [];
-        const lastGen = generations[0] || generations[generations.length - 1];
-        const imageUrl = lastGen?.watermarkedImageUrl || lastGen?.imageUrl || null;
-
-        const lastPurchaseAt = recentPurchasesByCustomerId.get(String(customerId));
-        if (lastPurchaseAt && lastPurchaseAt > T) {
-          if (diagnostics) diagnostics.skipped.bought++;
-          continue;
-        }
-
-        const key3d = `reminder-3d:${customerId}`;
-        const key7d = `reminder-7d:${customerId}`;
-        const key14d = `reminder-14d:${customerId}`;
-        const raw3d = await kv.get(key3d);
-        const raw7d = await kv.get(key7d);
-        const raw14d = await kv.get(key14d);
-        const payload3d = typeof raw3d === 'string' ? (() => { try { return JSON.parse(raw3d); } catch { return raw3d; } })() : raw3d;
-        const payload7d = typeof raw7d === 'string' ? (() => { try { return JSON.parse(raw7d); } catch { return raw7d; } })() : raw7d;
-        const payload14d = typeof raw14d === 'string' ? (() => { try { return JSON.parse(raw14d); } catch { return raw14d; } })() : raw14d;
-        const lastGenAt3d = payload3d?.lastGenAt ? new Date(payload3d.lastGenAt).getTime() : null;
-        const lastGenAt7d = payload7d?.lastGenAt ? new Date(payload7d.lastGenAt).getTime() : null;
-        const lastGenAt14d = payload14d?.lastGenAt ? new Date(payload14d.lastGenAt).getTime() : null;
-
-        // Maks. 1 mail dziennie na klienta: wysyłamy tylko najwyższy zaległy próg (14d > 7d > 3d)
-        const due14d = now >= T + FOURTEEN_DAYS_MS && lastGenAt14d !== T;
-        const due7d = now >= T + SEVEN_DAYS_MS && lastGenAt7d !== T;
-        const due3d = now >= T + THREE_DAYS_MS && lastGenAt3d !== T;
-
-        let variant = null;
-        if (due14d) variant = '14d';
-        else if (due7d) variant = '7d';
-        else if (due3d) variant = '3d';
-
-        if (variant) {
-          const subjects = { '3d': 'Twój obraz czeka – dokończ zamówienie, zanim zniknie', '7d': 'Twoja generacja wciąż na Ciebie czeka', '14d': 'Ostatnia szansa – Twój obraz czeka na zamówienie' };
-          const keys = { '3d': key3d, '7d': key7d, '14d': key14d };
-          const lists = { '3d': sent3d, '7d': sent7d, '14d': sent14d };
-          if (dryRun) {
-            diagnostics.wouldSend[variant]++;
-          } else {
-            await sleep(THROTTLE_MS);
-            const sendRes = await resend.emails.send({
-              from: 'Lumly <noreply@notification.lumly.pl>',
-              reply_to: 'biuro@lumly.pl',
-              to: email,
-              subject: subjects[variant],
-              html: buildReminderEmailHtml(imageUrl, variant, products, customerId)
-            });
-            if (sendRes.error) {
-              errors.push({ customerId, type: variant, error: sendRes.error.message || JSON.stringify(sendRes.error) });
-            } else {
-              await kv.set(keys[variant], JSON.stringify({ lastGenAt: new Date(T).toISOString(), sentAt: new Date().toISOString() }), { ex: KV_TTL_SEC });
-              await kv.incr(`email-stats:reminder_${variant}:sent`).catch(() => {});
-              lists[variant].push({ customerId, email: email.substring(0, 12) + '...' });
-              console.log(`✅ [REMINDER-3-7D] Wysłano ${variant}: ${customerId}`);
-            }
+          const email = data.email || data.generations?.[0]?.email;
+          if (!email || typeof email !== 'string' || !email.includes('@')) {
+            return { skip: 'noEmail' };
           }
+
+          const lastGenDate = data.lastGenerationDate || data.generations?.[0]?.date || data.generations?.[0]?.timestamp;
+          if (!lastGenDate) {
+            return { skip: 'noLastGen' };
+          }
+
+          const T = new Date(lastGenDate).getTime();
+          if (Number.isNaN(T)) return null;
+
+          const lastPurchaseAt = recentPurchasesByCustomerId.get(String(customerId));
+          if (lastPurchaseAt && lastPurchaseAt > T) {
+            return { skip: 'bought' };
+          }
+
+          const generations = Array.isArray(data.generations) ? data.generations : [];
+          const lastGen = generations[0] || generations[generations.length - 1];
+          const imageUrl = lastGen?.watermarkedImageUrl || lastGen?.imageUrl || null;
+
+          const key3d = `reminder-3d:${customerId}`;
+          const key7d = `reminder-7d:${customerId}`;
+          const key14d = `reminder-14d:${customerId}`;
+          const [raw3d, raw7d, raw14d] = await Promise.all([
+            kv.get(key3d),
+            kv.get(key7d),
+            kv.get(key14d)
+          ]);
+          const payload3d = typeof raw3d === 'string' ? (() => { try { return JSON.parse(raw3d); } catch { return raw3d; } })() : raw3d;
+          const payload7d = typeof raw7d === 'string' ? (() => { try { return JSON.parse(raw7d); } catch { return raw7d; } })() : raw7d;
+          const payload14d = typeof raw14d === 'string' ? (() => { try { return JSON.parse(raw14d); } catch { return raw14d; } })() : raw14d;
+          const lastGenAt3d = payload3d?.lastGenAt ? new Date(payload3d.lastGenAt).getTime() : null;
+          const lastGenAt7d = payload7d?.lastGenAt ? new Date(payload7d.lastGenAt).getTime() : null;
+          const lastGenAt14d = payload14d?.lastGenAt ? new Date(payload14d.lastGenAt).getTime() : null;
+
+          const due14d = now >= T + FOURTEEN_DAYS_MS && lastGenAt14d !== T;
+          const due7d = now >= T + SEVEN_DAYS_MS && lastGenAt7d !== T;
+          const due3d = now >= T + THREE_DAYS_MS && lastGenAt3d !== T;
+
+          let variant = null;
+          if (due14d) variant = '14d';
+          else if (due7d) variant = '7d';
+          else if (due3d) variant = '3d';
+
+          if (!variant) return null;
+
+          return { customerId, email, T, imageUrl, variant, keys: { '3d': key3d, '7d': key7d, '14d': key14d } };
+        } catch (err) {
+          return { error: err.message, blob: blob.pathname || blob.url };
         }
-      } catch (err) {
-        errors.push({ blob: blob.pathname || blob.url, error: err.message });
-        console.warn(`⚠️ [REMINDER-3-7D] Błąd dla ${blob.pathname}:`, err.message);
+      }));
+
+      for (const result of results) {
+        if (!result) continue;
+        if (result.error) {
+          errors.push({ blob: result.blob, error: result.error });
+          continue;
+        }
+        if (result.skip) {
+          if (diagnostics && diagnostics.skipped[result.skip] !== undefined) diagnostics.skipped[result.skip]++;
+          continue;
+        }
+
+        candidates.push(result);
+        if (dryRun) diagnostics.wouldSend[result.variant]++;
+      }
+    }
+
+    console.log(`📧 [REMINDER-3-7D] Kandydaci do wysyłki: ${candidates.length}${dryRun ? ' [DRY RUN]' : ''}`);
+
+    if (!dryRun) {
+      const subjects = { '3d': 'Twój obraz czeka – dokończ zamówienie, zanim zniknie', '7d': 'Twoja generacja wciąż na Ciebie czeka', '14d': 'Ostatnia szansa – Twój obraz czeka na zamówienie' };
+      const lists = { '3d': sent3d, '7d': sent7d, '14d': sent14d };
+
+      for (const candidate of candidates) {
+        const { customerId, email, T, imageUrl, variant, keys } = candidate;
+        await sleep(THROTTLE_MS);
+        const sendRes = await resend.emails.send({
+          from: 'Lumly <noreply@notification.lumly.pl>',
+          reply_to: 'biuro@lumly.pl',
+          to: email,
+          subject: subjects[variant],
+          html: buildReminderEmailHtml(imageUrl, variant, products, customerId)
+        });
+        if (sendRes.error) {
+          errors.push({ customerId, type: variant, error: sendRes.error.message || JSON.stringify(sendRes.error) });
+          continue;
+        }
+
+        await kv.set(keys[variant], JSON.stringify({ lastGenAt: new Date(T).toISOString(), sentAt: new Date().toISOString() }), { ex: KV_TTL_SEC });
+        await kv.incr(`email-stats:reminder_${variant}:sent`).catch(() => {});
+        lists[variant].push({ customerId, email: email.substring(0, 12) + '...' });
+        console.log(`✅ [REMINDER-3-7D] Wysłano ${variant}: ${customerId}`);
       }
     }
 
