@@ -6,6 +6,7 @@ const { kv } = require('@vercel/kv');
 const EMAIL_TYPES = [
   { key: 'generation',   label: '🎨 Po generacji',     desc: '"Twój projekt jest gotowy!"' },
   { key: 'credits',      label: '🔄 Reset kredytów',   desc: '"Dodaliśmy Ci nowe kredyty"' },
+  { key: 'reminder_1d',  label: '📅 Przypomnienie 1d', desc: '"Twój obraz AI jest gotowy – odbierz go teraz"' },
   { key: 'reminder_3d',  label: '📅 Przypomnienie 3d', desc: '"Twój obraz czeka..."' },
   { key: 'reminder_7d',  label: '📅 Przypomnienie 7d', desc: '"Twoja generacja wciąż czeka"' },
   { key: 'reminder_14d', label: '📅 Przypomnienie 14d',desc: '"Ostatnia szansa..."' },

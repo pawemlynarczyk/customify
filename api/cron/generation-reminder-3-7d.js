@@ -10,10 +10,10 @@ const { Resend } = require('resend');
 
 const BLOB_TOKEN = process.env.customify_READ_WRITE_TOKEN || process.env.BLOB_READ_WRITE_TOKEN;
 const PREFIX = 'customify/system/stats/generations/';
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 const FOURTEEN_DAYS_MS = 14 * 24 * 60 * 60 * 1000;
-const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 const KV_TTL_SEC = 90 * 24 * 3600; // 90 dni
 const THROTTLE_MS = 600;
 const EVALUATION_BATCH_SIZE = 25;
@@ -219,12 +219,13 @@ module.exports = async (req, res) => {
   const shopDomain = process.env.SHOPIFY_STORE_DOMAIN || 'customify-ok.myshopify.com';
   const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
   const now = Date.now();
+  const sent1d = [];
   const sent3d = [];
   const sent7d = [];
   const sent14d = [];
   const errors = [];
   const dryRun = (req.url || '').includes('dryRun=1');
-  const diagnostics = dryRun ? { skipped: { noEmail: 0, noLastGen: 0, bought: 0 }, wouldSend: { '3d': 0, '7d': 0, '14d': 0 } } : null;
+  const diagnostics = dryRun ? { skipped: { noEmail: 0, noLastGen: 0, bought: 0 }, wouldSend: { '1d': 0, '3d': 0, '7d': 0, '14d': 0 } } : null;
 
   try {
     let cursor;
@@ -288,35 +289,38 @@ module.exports = async (req, res) => {
           const lastGen = generations[0] || generations[generations.length - 1];
           const imageUrl = lastGen?.watermarkedImageUrl || lastGen?.imageUrl || null;
 
-          const key3d = `reminder-3d:${customerId}`;
-          const key7d = `reminder-7d:${customerId}`;
-          const key14d = `reminder-14d:${customerId}`;
-          const [raw3d, raw7d, raw14d] = await Promise.all([
-            kv.get(key3d),
-            kv.get(key7d),
-            kv.get(key14d)
-          ]);
-          const payload3d = typeof raw3d === 'string' ? (() => { try { return JSON.parse(raw3d); } catch { return raw3d; } })() : raw3d;
-          const payload7d = typeof raw7d === 'string' ? (() => { try { return JSON.parse(raw7d); } catch { return raw7d; } })() : raw7d;
-          const payload14d = typeof raw14d === 'string' ? (() => { try { return JSON.parse(raw14d); } catch { return raw14d; } })() : raw14d;
-          const lastGenAt3d = payload3d?.lastGenAt ? new Date(payload3d.lastGenAt).getTime() : null;
-          const lastGenAt7d = payload7d?.lastGenAt ? new Date(payload7d.lastGenAt).getTime() : null;
-          const lastGenAt14d = payload14d?.lastGenAt ? new Date(payload14d.lastGenAt).getTime() : null;
+        const key1d = `reminder-1d:${customerId}`;
+        const key3d = `reminder-3d:${customerId}`;
+        const key7d = `reminder-7d:${customerId}`;
+        const key14d = `reminder-14d:${customerId}`;
+        const [raw1d, raw3d, raw7d, raw14d] = await Promise.all([
+          kv.get(key1d),
+          kv.get(key3d),
+          kv.get(key7d),
+          kv.get(key14d)
+        ]);
+        const parse = (r) => typeof r === 'string' ? (() => { try { return JSON.parse(r); } catch { return r; } })() : r;
+        const lastGenAt1d  = parse(raw1d)?.lastGenAt  ? new Date(parse(raw1d).lastGenAt).getTime()  : null;
+        const lastGenAt3d  = parse(raw3d)?.lastGenAt  ? new Date(parse(raw3d).lastGenAt).getTime()  : null;
+        const lastGenAt7d  = parse(raw7d)?.lastGenAt  ? new Date(parse(raw7d).lastGenAt).getTime()  : null;
+        const lastGenAt14d = parse(raw14d)?.lastGenAt ? new Date(parse(raw14d).lastGenAt).getTime() : null;
 
           const ageMs = now - T;
-          // Ścisłe okna 1-dniowe: mail idzie raz dokładnie w 3., 7. i 14. dobie
+          // Ścisłe okna 1-dniowe: mail idzie raz dokładnie w 1., 3., 7. i 14. dobie
+          const due1d  = ageMs >= ONE_DAY_MS       && ageMs < ONE_DAY_MS       + ONE_DAY_MS && lastGenAt1d  !== T;
           const due3d  = ageMs >= THREE_DAYS_MS    && ageMs < THREE_DAYS_MS    + ONE_DAY_MS && lastGenAt3d  !== T;
           const due7d  = ageMs >= SEVEN_DAYS_MS    && ageMs < SEVEN_DAYS_MS    + ONE_DAY_MS && lastGenAt7d  !== T;
           const due14d = ageMs >= FOURTEEN_DAYS_MS && ageMs < FOURTEEN_DAYS_MS + ONE_DAY_MS && lastGenAt14d !== T;
 
           let variant = null;
-          if (due3d)       variant = '3d';
+          if (due1d)       variant = '1d';
+          else if (due3d)  variant = '3d';
           else if (due7d)  variant = '7d';
           else if (due14d) variant = '14d';
 
           if (!variant) return null;
 
-          return { customerId, email, T, imageUrl, variant, keys: { '3d': key3d, '7d': key7d, '14d': key14d } };
+          return { customerId, email, T, imageUrl, variant, keys: { '1d': key1d, '3d': key3d, '7d': key7d, '14d': key14d } };
         } catch (err) {
           return { error: err.message, blob: blob.pathname || blob.url };
         }
@@ -341,8 +345,13 @@ module.exports = async (req, res) => {
     console.log(`📧 [REMINDER-3-7D] Kandydaci do wysyłki: ${candidates.length}${dryRun ? ' [DRY RUN]' : ''}`);
 
     if (!dryRun) {
-      const subjects = { '3d': 'Twój obraz czeka – dokończ zamówienie, zanim zniknie', '7d': 'Twoja generacja wciąż na Ciebie czeka', '14d': 'Ostatnia szansa – Twój obraz czeka na zamówienie' };
-      const lists = { '3d': sent3d, '7d': sent7d, '14d': sent14d };
+      const subjects = {
+        '1d':  'Twój obraz AI jest gotowy – odbierz go teraz',
+        '3d':  'Twój obraz czeka – dokończ zamówienie, zanim zniknie',
+        '7d':  'Twoja generacja wciąż na Ciebie czeka',
+        '14d': 'Ostatnia szansa – Twój obraz czeka na zamówienie'
+      };
+      const lists = { '1d': sent1d, '3d': sent3d, '7d': sent7d, '14d': sent14d };
       const limitedCandidates = candidates.slice(0, MAX_SENDS_PER_RUN);
 
       console.log(`📧 [REMINDER-3-7D] Wysyłam ${limitedCandidates.length}/${candidates.length} kandydatów w tym przebiegu`);
@@ -372,10 +381,12 @@ module.exports = async (req, res) => {
     const payload = {
       success: true,
       checked: customerBlobs.length,
+      sent1d: sent1d.length,
       sent3d: sent3d.length,
       sent7d: sent7d.length,
       sent14d: sent14d.length,
       remainingCandidates: dryRun ? candidates.length : Math.max(candidates.length - MAX_SENDS_PER_RUN, 0),
+      sent1dList: sent1d,
       sent3dList: sent3d,
       sent7dList: sent7d,
       sent14dList: sent14d,
