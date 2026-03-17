@@ -3749,33 +3749,40 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
         }
         // Jeśli to URL z Replicate (nie Vercel Blob), uploaduj do Vercel Blob przez SDK
         // Replicate URLs wygasają po 24h - musimy zapisać do Vercel Blob dla trwałości
-        else if (imageUrl.includes('replicate.delivery') || imageUrl.includes('pbxt')) {
-          console.log(`📤 [TRANSFORM] Wykryto URL z Replicate - uploaduję do Vercel Blob (SDK)...`);
+        else if (imageUrl.includes('replicate.delivery') || imageUrl.includes('pbxt') || imageUrl.includes('vercel-storage.com')) {
+          const isAlreadyInBlob = imageUrl.includes('vercel-storage.com');
+          console.log(`📤 [TRANSFORM] Wykryto URL ${isAlreadyInBlob ? 'Vercel Blob (segmind fallback)' : 'z Replicate'} - ${isAlreadyInBlob ? 'pomijam re-upload, nakładam watermark' : 'uploaduję do Vercel Blob (SDK)'}...`);
           
           try {
             // Sprawdź czy token jest skonfigurowany
             if (!process.env.customify_READ_WRITE_TOKEN) {
               console.warn('⚠️ [TRANSFORM] customify_READ_WRITE_TOKEN not configured - używam URL z Replicate (wygaśnie po 24h)');
             } else {
-              // Pobierz obraz z Replicate
+              // Pobierz obraz (z Replicate lub z Vercel Blob - segmind fallback)
               const imageResponse = await fetch(imageUrl);
               if (imageResponse.ok) {
                 const imageBuffer = await imageResponse.arrayBuffer();
                 const buffer = Buffer.from(imageBuffer);
-                console.log(`📦 [TRANSFORM] Replicate image size: ${buffer.length} bytes (${(buffer.length / 1024 / 1024).toFixed(2)} MB)`);
+                console.log(`📦 [TRANSFORM] Image size: ${buffer.length} bytes (${(buffer.length / 1024 / 1024).toFixed(2)} MB)`);
                 
-                // ✅ ZAPISZ OBRAZEK BEZ WATERMARKU (do realizacji zamówienia)
-                const timestamp = Date.now();
-                const uniqueFilename = `customify/temp/generation-${timestamp}.jpg`;
-                
-                const blob = await put(uniqueFilename, buffer, {
-                  access: 'public',
-                  contentType: 'image/jpeg',
-                  token: process.env.customify_READ_WRITE_TOKEN,
-                });
-                
-                finalImageUrl = blob.url;
-                console.log(`✅ [TRANSFORM] Obraz BEZ watermarku zapisany w Vercel Blob (SDK): ${finalImageUrl.substring(0, 50)}...`);
+                if (isAlreadyInBlob) {
+                  // ✅ URL segmind-nb2 już jest w Vercel Blob - użyj bez re-uploadu
+                  finalImageUrl = imageUrl;
+                  console.log(`✅ [TRANSFORM] Obraz BEZ watermarku już w Vercel Blob (segmind-nb2): ${finalImageUrl.substring(0, 50)}...`);
+                } else {
+                  // ✅ ZAPISZ OBRAZEK BEZ WATERMARKU (do realizacji zamówienia) - dla Replicate
+                  const timestamp = Date.now();
+                  const uniqueFilename = `customify/temp/generation-${timestamp}.jpg`;
+                  
+                  const blob = await put(uniqueFilename, buffer, {
+                    access: 'public',
+                    contentType: 'image/jpeg',
+                    token: process.env.customify_READ_WRITE_TOKEN,
+                  });
+                  
+                  finalImageUrl = blob.url;
+                  console.log(`✅ [TRANSFORM] Obraz BEZ watermarku zapisany w Vercel Blob (SDK): ${finalImageUrl.substring(0, 50)}...`);
+                }
                 
                 // ✅ WATERMARK WYMAGANY - zastosuj backend watermark PNG
                 try {
