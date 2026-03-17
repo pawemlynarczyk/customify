@@ -28,7 +28,7 @@ function isCustomifyLineItem(item) {
   );
 }
 
-async function getRecentCustomifyPurchases(shopDomain, accessToken, daysBack = 16) {
+async function getRecentCustomifyPurchases(shopDomain, accessToken, daysBack = 30) {
   const allowedStatus = new Set(['paid', 'partially_paid']);
   const createdAtMin = new Date(Date.now() - daysBack * 24 * 60 * 60 * 1000).toISOString();
   let url = `https://${shopDomain}/admin/api/2024-01/orders.json?status=any&limit=250&created_at_min=${encodeURIComponent(createdAtMin)}`;
@@ -247,10 +247,10 @@ module.exports = async (req, res) => {
 
     const [products, recentPurchasesByCustomerId] = await Promise.all([
       getCollectionProducts(shopDomain, accessToken, 'see_also'),
-      getRecentCustomifyPurchases(shopDomain, accessToken, 16)
+      getRecentCustomifyPurchases(shopDomain, accessToken, 30)
     ]);
     if (products.length > 0) console.log(`📧 [REMINDER-3-7D] Pobrano ${products.length} produktów z kolekcji see_also`);
-    console.log(`📧 [REMINDER-3-7D] Pobrano ${recentPurchasesByCustomerId.size} klientów z zakupami Customify z ostatnich 16 dni`);
+    console.log(`📧 [REMINDER-3-7D] Pobrano ${recentPurchasesByCustomerId.size} klientów z zakupami Customify z ostatnich 30 dni`);
 
     const candidates = [];
 
@@ -302,9 +302,10 @@ module.exports = async (req, res) => {
           const lastGenAt7d = payload7d?.lastGenAt ? new Date(payload7d.lastGenAt).getTime() : null;
           const lastGenAt14d = payload14d?.lastGenAt ? new Date(payload14d.lastGenAt).getTime() : null;
 
-          const due14d = now >= T + FOURTEEN_DAYS_MS && lastGenAt14d !== T;
-          const due7d = now >= T + SEVEN_DAYS_MS && lastGenAt7d !== T;
-          const due3d = now >= T + THREE_DAYS_MS && lastGenAt3d !== T;
+          const ageMs = now - T;
+          const due14d = ageMs >= FOURTEEN_DAYS_MS && ageMs < 28 * 24 * 60 * 60 * 1000 && lastGenAt14d !== T;
+          const due7d = ageMs >= SEVEN_DAYS_MS && ageMs < FOURTEEN_DAYS_MS && lastGenAt7d !== T;
+          const due3d = ageMs >= THREE_DAYS_MS && ageMs < SEVEN_DAYS_MS && lastGenAt3d !== T;
 
           let variant = null;
           if (due14d) variant = '14d';
