@@ -18,11 +18,11 @@ async function blobPutWithTimeout(filename, buffer, options, timeoutMs = 20000) 
 }
 
 // ⏰ Helper: fetch() z timeoutem (zapobiega 504 gdy pobieranie trwa za długo)
-async function fetchWithTimeout(url, timeoutMs = 15000) {
+async function fetchWithTimeout(url, timeoutMs = 15000, options = {}) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const response = await fetch(url, { signal: controller.signal });
+    const response = await fetch(url, { ...options, signal: controller.signal });
     clearTimeout(timeoutId);
     return response;
   } catch (err) {
@@ -3938,7 +3938,8 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
               productType: saveData.productType
             });
             
-            const saveResponse = await fetch('https://customify-s56o.vercel.app/api/save-generation-v2', {
+            // ⏰ Timeout 30s: save-generation-v2 nie może blokować transform (kaskada 504)
+            const saveResponse = await fetchWithTimeout('https://customify-s56o.vercel.app/api/save-generation-v2', 30000, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(saveData)
