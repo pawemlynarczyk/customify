@@ -13,6 +13,7 @@ const PREFIX = 'customify/system/stats/generations/';
 const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 const FOURTEEN_DAYS_MS = 14 * 24 * 60 * 60 * 1000;
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 const KV_TTL_SEC = 90 * 24 * 3600; // 90 dni
 const THROTTLE_MS = 600;
 const EVALUATION_BATCH_SIZE = 25;
@@ -303,14 +304,15 @@ module.exports = async (req, res) => {
           const lastGenAt14d = payload14d?.lastGenAt ? new Date(payload14d.lastGenAt).getTime() : null;
 
           const ageMs = now - T;
-          const due14d = ageMs >= FOURTEEN_DAYS_MS && ageMs < 28 * 24 * 60 * 60 * 1000 && lastGenAt14d !== T;
-          const due7d = ageMs >= SEVEN_DAYS_MS && ageMs < FOURTEEN_DAYS_MS && lastGenAt7d !== T;
-          const due3d = ageMs >= THREE_DAYS_MS && ageMs < SEVEN_DAYS_MS && lastGenAt3d !== T;
+          // Ścisłe okna 1-dniowe: mail idzie raz dokładnie w 3., 7. i 14. dobie
+          const due3d  = ageMs >= THREE_DAYS_MS    && ageMs < THREE_DAYS_MS    + ONE_DAY_MS && lastGenAt3d  !== T;
+          const due7d  = ageMs >= SEVEN_DAYS_MS    && ageMs < SEVEN_DAYS_MS    + ONE_DAY_MS && lastGenAt7d  !== T;
+          const due14d = ageMs >= FOURTEEN_DAYS_MS && ageMs < FOURTEEN_DAYS_MS + ONE_DAY_MS && lastGenAt14d !== T;
 
           let variant = null;
-          if (due14d) variant = '14d';
-          else if (due7d) variant = '7d';
-          else if (due3d) variant = '3d';
+          if (due3d)       variant = '3d';
+          else if (due7d)  variant = '7d';
+          else if (due14d) variant = '14d';
 
           if (!variant) return null;
 
