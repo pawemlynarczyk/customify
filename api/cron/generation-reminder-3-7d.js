@@ -26,31 +26,49 @@ function isCustomifyLineItem(item) {
   );
 }
 
-async function customerBoughtCustomify(shopDomain, accessToken, customerId) {
+async function getRecentCustomifyPurchases(shopDomain, accessToken, daysBack = 16) {
   const allowedStatus = new Set(['paid', 'partially_paid']);
-  let url = `https://${shopDomain}/admin/api/2024-01/orders.json?customer_id=${customerId}&status=any&limit=250`;
+  const createdAtMin = new Date(Date.now() - daysBack * 24 * 60 * 60 * 1000).toISOString();
+  let url = `https://${shopDomain}/admin/api/2024-01/orders.json?status=any&limit=250&created_at_min=${encodeURIComponent(createdAtMin)}`;
   let pageCount = 0;
-  const maxPages = 5;
+  const maxPages = 10;
+  const purchasesByCustomerId = new Map();
 
   while (url && pageCount < maxPages) {
     pageCount++;
     const res = await fetch(url, {
       headers: { 'X-Shopify-Access-Token': accessToken }
     });
-    if (!res.ok) return false;
+    if (!res.ok) {
+      throw new Error(`Shopify orders fetch failed: ${res.status}`);
+    }
+
     const data = await res.json();
     const orders = data.orders || [];
+
     for (const order of orders) {
       if (order.cancelled_at) continue;
       if (!allowedStatus.has(order.financial_status)) continue;
-      const hasCustomify = (order.line_items || []).some(isCustomifyLineItem);
-      if (hasCustomify) return true;
+      if (!(order.line_items || []).some(isCustomifyLineItem)) continue;
+
+      const customerId = order.customer?.id;
+      if (!customerId) continue;
+
+      const paidAt = new Date(order.processed_at || order.created_at || order.updated_at).getTime();
+      if (Number.isNaN(paidAt)) continue;
+
+      const current = purchasesByCustomerId.get(String(customerId));
+      if (!current || paidAt > current) {
+        purchasesByCustomerId.set(String(customerId), paidAt);
+      }
     }
+
     const link = res.headers.get('link');
     const nextMatch = link && link.match(/<([^>]+)>;\s*rel="next"/);
     url = nextMatch ? nextMatch[1] : null;
   }
-  return false;
+
+  return purchasesByCustomerId;
 }
 
 function sleep(ms) {
@@ -225,8 +243,12 @@ module.exports = async (req, res) => {
 
     console.log(`📧 [REMINDER-3-7D] Sprawdzam ${customerBlobs.length} plików customer-*.json${dryRun ? ' [DRY RUN]' : ''}`);
 
-    const products = await getCollectionProducts(shopDomain, accessToken, 'see_also');
+    const [products, recentPurchasesByCustomerId] = await Promise.all([
+      getCollectionProducts(shopDomain, accessToken, 'see_also'),
+      getRecentCustomifyPurchases(shopDomain, accessToken, 16)
+    ]);
     if (products.length > 0) console.log(`📧 [REMINDER-3-7D] Pobrano ${products.length} produktów z kolekcji see_also`);
+    console.log(`📧 [REMINDER-3-7D] Pobrano ${recentPurchasesByCustomerId.size} klientów z zakupami Customify z ostatnich 16 dni`);
 
     for (const blob of customerBlobs) {
       try {
@@ -254,8 +276,8 @@ module.exports = async (req, res) => {
         const lastGen = generations[0] || generations[generations.length - 1];
         const imageUrl = lastGen?.watermarkedImageUrl || lastGen?.imageUrl || null;
 
-        const bought = await customerBoughtCustomify(shopDomain, accessToken, customerId);
-        if (bought) {
+        const lastPurchaseAt = recentPurchasesByCustomerId.get(String(customerId));
+        if (lastPurchaseAt && lastPurchaseAt > T) {
           if (diagnostics) diagnostics.skipped.bought++;
           continue;
         }
