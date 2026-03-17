@@ -76,77 +76,121 @@
  dsn: "https://562a1a160e90a597f0236fd8c6b13301@o4510439439925248.ingest.de.sentry.io/4510439517257808",
  environment: "production",
  tracesSampleRate: 0.1,
- beforeSend(event, hint) {
- // ✅ FILTRUJ BŁĘDY VIEW TRANSITION - nie loguj do Sentry (tylko animacje, nie wpływają na funkcjonalność)
- if (event.exception && event.exception.values) {
- const firstException = event.exception.values[0];
- const errorMessage = firstException?.value || '';
- const errorType = firstException?.type || '';
- 
- const isViewTransitionError = 
- errorMessage.includes('view transition') ||
- errorMessage.includes('ViewTransition') ||
- errorMessage.includes('Skipping view transition') ||
- errorMessage.includes('skipTransition') ||
- (errorType === 'AbortError' && errorMessage.includes('transition')) ||
- (errorType === 'AbortError' && errorMessage.toLowerCase().includes('skip'));
- 
- if (isViewTransitionError) {
- console.debug('🔇 [SENTRY] Ignoruję błąd view transition:', errorMessage);
- return null; // Nie wysyłaj do Sentry
- }
- }
- 
- // ✅ Dodaj tag customify do wszystkich błędów
- if (event.tags) {
- event.tags.customify = 'true';
- } else {
- event.tags = { customify: 'true' };
- }
- if (event.user) {
- event.user.id = {{ customer.id | json }};
- event.user.email = {{ customer.email | json }};
- }
- return event;
- }
- });
- 
- Sentry.setUser({
- id: {{ customer.id | json }},
- email: {{ customer.email | json }}
- });
- {% else %}
- Sentry.init({
- dsn: "https://562a1a160e90a597f0236fd8c6b13301@o4510439439925248.ingest.de.sentry.io/4510439517257808",
- environment: "production",
- tracesSampleRate: 0.1,
- beforeSend(event, hint) {
- // ✅ FILTRUJ BŁĘDY VIEW TRANSITION - nie loguj do Sentry (tylko animacje, nie wpływają na funkcjonalność)
- if (event.exception && event.exception.values) {
- const firstException = event.exception.values[0];
- const errorMessage = firstException?.value || '';
- const errorType = firstException?.type || '';
- 
- const isViewTransitionError = 
- errorMessage.includes('view transition') ||
- errorMessage.includes('ViewTransition') ||
- errorMessage.includes('Skipping view transition') ||
- errorMessage.includes('skipTransition') ||
- (errorType === 'AbortError' && errorMessage.includes('transition')) ||
- (errorType === 'AbortError' && errorMessage.toLowerCase().includes('skip'));
- 
- if (isViewTransitionError) {
- console.debug('🔇 [SENTRY] Ignoruję błąd view transition:', errorMessage);
- return null; // Nie wysyłaj do Sentry
- }
- }
- 
- // ✅ Dodaj tag customify do wszystkich błędów
- if (event.tags) {
- event.tags.customify = 'true';
- } else {
- event.tags = { customify: 'true' };
- }
+    beforeSend(event, hint) {
+    if (event.exception && event.exception.values) {
+    const firstException = event.exception.values[0];
+    const errorMessage = firstException?.value || '';
+    const errorType = firstException?.type || '';
+    const frames = firstException?.stacktrace?.frames || [];
+    const topFrame = frames[frames.length - 1] || {};
+    const filename = topFrame.filename || event.request?.url || '';
+
+    // ✅ FILTRUJ BŁĘDY VIEW TRANSITION
+    const isViewTransitionError = 
+    errorMessage.includes('view transition') ||
+    errorMessage.includes('ViewTransition') ||
+    errorMessage.includes('Skipping view transition') ||
+    errorMessage.includes('skipTransition') ||
+    (errorType === 'AbortError' && errorMessage.includes('transition')) ||
+    (errorType === 'AbortError' && errorMessage.toLowerCase().includes('skip'));
+    if (isViewTransitionError) { return null; }
+
+    // 🔇 B1: Horizon critical.js — #aspectRatioHelper (stara cache — zniknie samo)
+    if (errorMessage.includes('processNewElements') && filename.includes('critical.js')) { return null; }
+
+    // 🔇 B2: ES Modules @theme/component — stara przeglądarka lub cache
+    if (errorMessage.includes("does not start with '/'") || errorMessage.includes('@theme/')) { return null; }
+
+    // 🔇 B3: Horizon predictive-search — brak empty markup
+    if (errorMessage.includes('No empty section markup') || filename.includes('predictive-search')) { return null; }
+
+    // 🔇 B4: Horizon OverflowList — Invalid element types
+    if (errorMessage.includes('Invalid element types in') && errorMessage.includes('OverflowList')) { return null; }
+
+    // 🔇 B5: SyntaxError na starych przeglądarkach — nasze/motywu pliki JS
+    if (errorType === 'SyntaxError' && (
+    errorMessage.includes("Unexpected token '}'") ||
+    errorMessage.includes("Unexpected token ']'") ||
+    errorMessage.includes("Unexpected identifier") ||
+    errorMessage.includes("Unexpected token '.'")
+    )) { return null; }
+
+    // 🔇 B6: Shopify CDN lazy-load fail — shop-cart-sync
+    if (errorMessage.includes('Failed to fetch dynamically imported module') || errorMessage.includes('shop-cart-sync')) { return null; }
+    }
+
+    // ✅ Dodaj tag customify do wszystkich błędów
+    if (event.tags) {
+    event.tags.customify = 'true';
+    } else {
+    event.tags = { customify: 'true' };
+    }
+    if (event.user) {
+    event.user.id = {{ customer.id | json }};
+    event.user.email = {{ customer.email | json }};
+    }
+    return event;
+    }
+    });
+    
+    Sentry.setUser({
+    id: {{ customer.id | json }},
+    email: {{ customer.email | json }}
+    });
+    {% else %}
+    Sentry.init({
+    dsn: "https://562a1a160e90a597f0236fd8c6b13301@o4510439439925248.ingest.de.sentry.io/4510439517257808",
+    environment: "production",
+    tracesSampleRate: 0.1,
+    beforeSend(event, hint) {
+    if (event.exception && event.exception.values) {
+    const firstException = event.exception.values[0];
+    const errorMessage = firstException?.value || '';
+    const errorType = firstException?.type || '';
+    const frames = firstException?.stacktrace?.frames || [];
+    const topFrame = frames[frames.length - 1] || {};
+    const filename = topFrame.filename || event.request?.url || '';
+
+    // ✅ FILTRUJ BŁĘDY VIEW TRANSITION
+    const isViewTransitionError = 
+    errorMessage.includes('view transition') ||
+    errorMessage.includes('ViewTransition') ||
+    errorMessage.includes('Skipping view transition') ||
+    errorMessage.includes('skipTransition') ||
+    (errorType === 'AbortError' && errorMessage.includes('transition')) ||
+    (errorType === 'AbortError' && errorMessage.toLowerCase().includes('skip'));
+    if (isViewTransitionError) { return null; }
+
+    // 🔇 B1: Horizon critical.js — #aspectRatioHelper (stara cache — zniknie samo)
+    if (errorMessage.includes('processNewElements') && filename.includes('critical.js')) { return null; }
+
+    // 🔇 B2: ES Modules @theme/component — stara przeglądarka lub cache
+    if (errorMessage.includes("does not start with '/'") || errorMessage.includes('@theme/')) { return null; }
+
+    // 🔇 B3: Horizon predictive-search — brak empty markup
+    if (errorMessage.includes('No empty section markup') || filename.includes('predictive-search')) { return null; }
+
+    // 🔇 B4: Horizon OverflowList — Invalid element types
+    if (errorMessage.includes('Invalid element types in') && errorMessage.includes('OverflowList')) { return null; }
+
+    // 🔇 B5: SyntaxError na starych przeglądarkach
+    if (errorType === 'SyntaxError' && (
+    errorMessage.includes("Unexpected token '}'") ||
+    errorMessage.includes("Unexpected token ']'") ||
+    errorMessage.includes("Unexpected identifier") ||
+    errorMessage.includes("Unexpected token '.'")
+    )) { return null; }
+
+    // 🔇 B6: Shopify CDN lazy-load fail — shop-cart-sync
+    if (errorMessage.includes('Failed to fetch dynamically imported module') || errorMessage.includes('shop-cart-sync')) { return null; }
+    }
+
+    // ✅ Dodaj tag customify do wszystkich błędów
+    if (event.tags) {
+    event.tags.customify = 'true';
+    } else {
+    event.tags = { customify: 'true' };
+    }
  return event;
  }
  });
@@ -337,7 +381,9 @@
  {% endif %}
  </script>
  
- <script src="{{ 'customify.js' | asset_url }}?v=9" defer></script>
+ <!-- B5: Wykryj stare przeglądarki które nie obsługują nowoczesnego JS -->
+<script nomodule>window.CUSTOMIFY_LEGACY_BROWSER = true;</script>
+<script src="{{ 'customify.js' | asset_url }}?v=9" defer></script>
  {% if product and product.handle == 'ramka-spotify' or product.handle == 'zdjecie-na-szkle-ramka-spotify' or product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem' %}
  <script src="https://unpkg.com/cropperjs@1.6.2/dist/cropper.min.js" defer></script>
  {% if product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem' %}

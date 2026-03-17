@@ -9140,6 +9140,15 @@ function addMobileThumbnails() {
  * INITIALIZATION
  */
 document.addEventListener('DOMContentLoaded', () => {
+  // B5: Stara przeglądarka bez obsługi ES Modules / nowoczesnego JS
+  if (window.CUSTOMIFY_LEGACY_BROWSER) {
+    const container = document.getElementById('customify-app-container');
+    if (container) {
+      container.innerHTML = '<div style="background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:16px;margin:16px 0;font-family:sans-serif;font-size:14px;color:#856404"><strong>⚠️ Twoja przeglądarka jest za stara</strong><br>Personalizacja zdjęć wymaga nowszej przeglądarki. Zaktualizuj przeglądarkę do najnowszej wersji (Chrome, Safari, Firefox) lub spróbuj na innym urządzeniu.</div>';
+    }
+    return;
+  }
+
   // Simple-product: nie uruchamiaj Customify w ogóle (strona ma tylko przycisk Kup → koszyk)
   const p = window.ShopifyProduct;
   if (p && p.tags) {
