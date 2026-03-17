@@ -7,6 +7,13 @@
 const { head } = require('@vercel/blob');
 const { checkRateLimit, getClientIP } = require('../utils/vercelRateLimiter');
 
+async function withTimeout(promise, timeoutMs, operationName) {
+  const timeoutPromise = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error(`Timeout: ${operationName} after ${timeoutMs}ms`)), timeoutMs)
+  );
+  return Promise.race([promise, timeoutPromise]);
+}
+
 module.exports = async (req, res) => {
   console.log(`📥 [GET-CUSTOMER-GENERATIONS] API called - Method: ${req.method}`);
   
@@ -79,9 +86,10 @@ module.exports = async (req, res) => {
 
     // Pobierz plik z Vercel Blob Storage
     try {
-      const blob = await head(blobPath, {
-        token: process.env.customify_READ_WRITE_TOKEN
-      }).catch(() => null);
+      const blob = await withTimeout(
+        head(blobPath, { token: process.env.customify_READ_WRITE_TOKEN }).catch(() => null),
+        8000, 'head blob'
+      ).catch(() => null);
       
       if (!blob || !blob.url) {
         return res.json({
@@ -94,8 +102,8 @@ module.exports = async (req, res) => {
         });
       }
 
-      // Pobierz zawartość pliku
-      const response = await fetch(blob.url);
+      // Pobierz zawartość pliku z timeoutem
+      const response = await withTimeout(fetch(blob.url), 10000, 'fetch blob content');
       if (!response.ok) {
         return res.status(500).json({
           error: 'Failed to fetch generations file',

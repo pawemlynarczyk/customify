@@ -8,6 +8,28 @@ const { checkIPLimit, incrementIPLimit, checkDeviceTokenLimit, incrementDeviceTo
 const Sentry = require('../utils/sentry');
 const { put } = require('@vercel/blob');
 const { trackError, trackAction, getRecentError } = require('../utils/userFlowTracker');
+
+// ⏰ Helper: put() do Vercel Blob z timeoutem (zapobiega 504 gdy Blob jest wolny)
+async function blobPutWithTimeout(filename, buffer, options, timeoutMs = 20000) {
+  const timeoutPromise = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error(`Blob put timeout after ${timeoutMs}ms for: ${filename}`)), timeoutMs)
+  );
+  return Promise.race([put(filename, buffer, options), timeoutPromise]);
+}
+
+// ⏰ Helper: fetch() z timeoutem (zapobiega 504 gdy pobieranie trwa za długo)
+async function fetchWithTimeout(url, timeoutMs = 15000) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeoutId);
+    return response;
+  } catch (err) {
+    clearTimeout(timeoutId);
+    throw err;
+  }
+}
 // Canvas composer removed - composition done on frontend
 
 // 🚫 Lista IP zablokowanych całkowicie (tymczasowe banowanie nadużyć)
@@ -3707,11 +3729,11 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
             const timestamp = Date.now();
             const uniqueFilename = `customify/temp/generation-${timestamp}.${extension}`;
             
-            const blob = await put(uniqueFilename, imageBuffer, {
+            const blob = await blobPutWithTimeout(uniqueFilename, imageBuffer, {
               access: 'public',
               contentType: contentType,
               token: process.env.customify_READ_WRITE_TOKEN,
-            });
+            }, 20000);
             
                 finalImageUrl = blob.url;
                 console.log(`✅ [TRANSFORM] Obraz BEZ watermarku zapisany w Vercel Blob (SDK): ${finalImageUrl.substring(0, 50)}...`);
@@ -3732,11 +3754,11 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
                   const watermarkExt = watermarkOutputFormat === 'png' ? 'png' : 'jpg';
                   const watermarkedFilename = `customify/temp/generation-watermarked-${watermarkedTimestamp}.${watermarkExt}`;
                   
-                  const watermarkedBlob = await put(watermarkedFilename, watermarkedBuffer, {
+                  const watermarkedBlob = await blobPutWithTimeout(watermarkedFilename, watermarkedBuffer, {
                     access: 'public',
                     contentType: watermarkOutputFormat === 'png' ? 'image/png' : 'image/jpeg',
                     token: process.env.customify_READ_WRITE_TOKEN,
-                  });
+                  }, 20000);
                   
                   watermarkedImageUrl = watermarkedBlob.url;
                   console.log(`✅ [TRANSFORM] Obraz Z watermarkem zapisany: ${watermarkedImageUrl.substring(0, 50)}...`);
@@ -3767,7 +3789,7 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
               console.warn('⚠️ [TRANSFORM] customify_READ_WRITE_TOKEN not configured - używam URL z Replicate (wygaśnie po 24h)');
             } else {
               // Pobierz obraz (z Replicate lub z Vercel Blob - segmind fallback)
-              const imageResponse = await fetch(imageUrl);
+              const imageResponse = await fetchWithTimeout(imageUrl, 15000);
               if (imageResponse.ok) {
                 const imageBuffer = await imageResponse.arrayBuffer();
                 const buffer = Buffer.from(imageBuffer);
@@ -3782,11 +3804,11 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
                   const timestamp = Date.now();
                   const uniqueFilename = `customify/temp/generation-${timestamp}.jpg`;
                   
-                  const blob = await put(uniqueFilename, buffer, {
+                  const blob = await blobPutWithTimeout(uniqueFilename, buffer, {
                     access: 'public',
                     contentType: 'image/jpeg',
                     token: process.env.customify_READ_WRITE_TOKEN,
-                  });
+                  }, 20000);
                   
                   finalImageUrl = blob.url;
                   console.log(`✅ [TRANSFORM] Obraz BEZ watermarku zapisany w Vercel Blob (SDK): ${finalImageUrl.substring(0, 50)}...`);
@@ -3808,11 +3830,11 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
                   const watermarkExt = watermarkOutputFormat === 'png' ? 'png' : 'jpg';
                   const watermarkedFilename = `customify/temp/generation-watermarked-${watermarkedTimestamp}.${watermarkExt}`;
                   
-                  const watermarkedBlob = await put(watermarkedFilename, watermarkedBuffer, {
+                  const watermarkedBlob = await blobPutWithTimeout(watermarkedFilename, watermarkedBuffer, {
                     access: 'public',
                     contentType: watermarkOutputFormat === 'png' ? 'image/png' : 'image/jpeg',
                     token: process.env.customify_READ_WRITE_TOKEN,
-                  });
+                  }, 20000);
                   
                   watermarkedImageUrl = watermarkedBlob.url;
                   console.log(`✅ [TRANSFORM] Obraz Z watermarkem zapisany: ${watermarkedImageUrl.substring(0, 50)}...`);

@@ -1,5 +1,13 @@
 const { put } = require('@vercel/blob');
 
+// ⏰ Helper: put() z timeoutem zapobiega 504 gdy Vercel Blob jest wolny
+async function blobPutWithTimeout(filename, buffer, options, timeoutMs = 20000) {
+  const timeoutPromise = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error(`Blob put timeout after ${timeoutMs}ms`)), timeoutMs)
+  );
+  return Promise.race([put(filename, buffer, options), timeoutPromise]);
+}
+
 module.exports = async (req, res) => {
   // Set CORS headers
   const origin = req.headers.origin;
@@ -77,11 +85,11 @@ module.exports = async (req, res) => {
     console.log('📝 [VERCEL-BLOB] Content type:', contentType);
 
     // Upload to Vercel Blob Storage with custom token for organized storage
-    const blob = await put(uniqueFilename, imageBuffer, {
+    const blob = await blobPutWithTimeout(uniqueFilename, imageBuffer, {
       access: 'public',
       contentType: contentType,
       token: process.env.customify_READ_WRITE_TOKEN,
-    });
+    }, 20000);
 
     console.log('✅ [VERCEL-BLOB] Image uploaded successfully:', blob.url);
 

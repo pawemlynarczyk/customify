@@ -9,6 +9,14 @@ const { kv } = require('@vercel/kv');
 const { checkRateLimit, getClientIP } = require('../utils/vercelRateLimiter');
 const Sentry = require('../utils/sentry');
 
+// ⏰ Helper: dowolna operacja z timeoutem (zapobiega 504 gdy Blob/Shopify API jest wolne)
+async function withTimeout(promise, timeoutMs, operationName) {
+  const timeoutPromise = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error(`Timeout: ${operationName} after ${timeoutMs}ms`)), timeoutMs)
+  );
+  return Promise.race([promise, timeoutPromise]);
+}
+
 const EMAIL_TRACKING_BASE = 'https://customify-s56o.vercel.app';
 function emailTrackingUrl(type, customerId, target) {
   const cidPart = customerId ? `&cid=${encodeURIComponent(customerId)}` : '';
@@ -271,14 +279,15 @@ async function saveGenerationHandler(req, res) {
     // Pobierz istniejące generacje z Vercel Blob Storage
     let existingData = null;
     try {
-      // Spróbuj sprawdzić czy plik istnieje używając head()
-      let existingBlob = await head(blobPath, {
-        token: process.env.customify_READ_WRITE_TOKEN
-      }).catch(() => null);
+      // Spróbuj sprawdzić czy plik istnieje używając head() z timeoutem
+      let existingBlob = await withTimeout(
+        head(blobPath, { token: process.env.customify_READ_WRITE_TOKEN }).catch(() => null),
+        8000, 'head blobPath'
+      ).catch(() => null);
       
       if (existingBlob && existingBlob.url) {
-        // Plik istnieje - pobierz go
-        const existingResponse = await fetch(existingBlob.url);
+        // Plik istnieje - pobierz go z timeoutem
+        const existingResponse = await withTimeout(fetch(existingBlob.url), 10000, 'fetch existing blob');
         if (existingResponse.ok) {
           existingData = await existingResponse.json();
           console.log(`📊 [SAVE-GENERATION] Existing data found: ${existingData.generations?.length || 0} generations`);
@@ -286,12 +295,13 @@ async function saveGenerationHandler(req, res) {
       } else if (legacyBlobPath) {
         // Spróbuj odczytać z legacy ścieżki
         console.log('📂 [SAVE-GENERATION] Trying legacy blob path:', legacyBlobPath);
-        existingBlob = await head(legacyBlobPath, {
-          token: process.env.customify_READ_WRITE_TOKEN
-        }).catch(() => null);
+        existingBlob = await withTimeout(
+          head(legacyBlobPath, { token: process.env.customify_READ_WRITE_TOKEN }).catch(() => null),
+          8000, 'head legacyBlobPath'
+        ).catch(() => null);
 
         if (existingBlob && existingBlob.url) {
-          const legacyResponse = await fetch(existingBlob.url);
+          const legacyResponse = await withTimeout(fetch(existingBlob.url), 10000, 'fetch legacy blob');
           if (legacyResponse.ok) {
             existingData = await legacyResponse.json();
             console.log(`📊 [SAVE-GENERATION] Legacy data found: ${existingData.generations?.length || 0} generations`);
@@ -301,7 +311,7 @@ async function saveGenerationHandler(req, res) {
         console.log(`📊 [SAVE-GENERATION] No existing file found - creating new`);
       }
     } catch (blobError) {
-      console.error('❌ [SAVE-GENERATION] Error reading existing file:', blobError);
+      console.error('❌ [SAVE-GENERATION] Error reading existing file (timeout or error):', blobError.message);
       // Kontynuuj - utworzymy nowy rekord
     }
 
@@ -349,12 +359,12 @@ async function saveGenerationHandler(req, res) {
       const jsonData = JSON.stringify(dataToSave, null, 2);
       const jsonBuffer = Buffer.from(jsonData, 'utf-8');
       
-      const blob = await put(blobPath, jsonBuffer, {
+      const blob = await withTimeout(put(blobPath, jsonBuffer, {
         access: 'public',
         contentType: 'application/json',
         token: process.env.customify_READ_WRITE_TOKEN,
         allowOverwrite: true
-      });
+      }), 15000, 'put main blob');
       
       console.log(`✅ [SAVE-GENERATION] Saved to Blob: ${blob.url}`);
       
@@ -364,15 +374,16 @@ async function saveGenerationHandler(req, res) {
           const deviceBlobPath = `${statsPrefix}/device-${deviceToken}.json`;
           const productType = newGeneration.productType || 'other';
           
-          // ✅ Pobierz istniejący plik (jeśli istnieje)
+          // ✅ Pobierz istniejący plik (jeśli istnieje) z timeoutem
           let existingDeviceData = null;
           try {
-            const existingBlob = await head(deviceBlobPath, {
-              token: process.env.customify_READ_WRITE_TOKEN
-            }).catch(() => null);
+            const existingBlob = await withTimeout(
+              head(deviceBlobPath, { token: process.env.customify_READ_WRITE_TOKEN }).catch(() => null),
+              8000, 'head deviceBlobPath'
+            ).catch(() => null);
             
             if (existingBlob && existingBlob.url) {
-              const existingResponse = await fetch(existingBlob.url);
+              const existingResponse = await withTimeout(fetch(existingBlob.url), 10000, 'fetch device blob');
               if (existingResponse.ok) {
                 existingDeviceData = await existingResponse.json();
                 console.log(`📊 [SAVE-GENERATION] Existing device token data found`);
@@ -434,12 +445,12 @@ async function saveGenerationHandler(req, res) {
           const deviceJsonData = JSON.stringify(deviceData, null, 2);
           const deviceJsonBuffer = Buffer.from(deviceJsonData, 'utf-8');
           
-          await put(deviceBlobPath, deviceJsonBuffer, {
+          await withTimeout(put(deviceBlobPath, deviceJsonBuffer, {
             access: 'public',
             contentType: 'application/json',
             token: process.env.customify_READ_WRITE_TOKEN,
-            allowOverwrite: true // ✅ Nadpisuj - aktualizujemy per productType
-          });
+            allowOverwrite: true
+          }), 15000, 'put device blob');
           console.log(`✅ [SAVE-GENERATION] Saved device token (${productType}): ${deviceBlobPath}, generationsByProductType:`, deviceData.generationsByProductType);
         } catch (deviceBlobError) {
           console.warn(`⚠️ [SAVE-GENERATION] Failed to save device token:`, deviceBlobError.message);
@@ -545,14 +556,14 @@ async function saveGenerationHandler(req, res) {
           console.warn('⚠️ [SAVE-GENERATION] Usunięto imageUrl z metafield (przekracza limit)');
         }
         
-        // ✅ Najpierw sprawdź czy metafield już istnieje
-        const checkMetafieldResponse = await fetch(`https://${shop}/admin/api/2023-10/customers/${customerId}/metafields.json?namespace=customify&key=generation_ready`, {
+        // ✅ Najpierw sprawdź czy metafield już istnieje (z timeoutem 10s)
+        const checkMetafieldResponse = await withTimeout(fetch(`https://${shop}/admin/api/2023-10/customers/${customerId}/metafields.json?namespace=customify&key=generation_ready`, {
           method: 'GET',
           headers: {
             'X-Shopify-Access-Token': accessToken,
             'Content-Type': 'application/json'
           }
-        });
+        }), 10000, 'check shopify metafield');
         
         let metafieldResponse;
         let metafieldId = null;
@@ -567,8 +578,8 @@ async function saveGenerationHandler(req, res) {
         
         // ✅ Jeśli metafield istnieje - użyj PUT (aktualizacja), jeśli nie - użyj POST (tworzenie)
         if (metafieldId) {
-          // Aktualizuj istniejący metafield
-          metafieldResponse = await fetch(`https://${shop}/admin/api/2023-10/customers/${customerId}/metafields/${metafieldId}.json`, {
+          // Aktualizuj istniejący metafield (z timeoutem 10s)
+          metafieldResponse = await withTimeout(fetch(`https://${shop}/admin/api/2023-10/customers/${customerId}/metafields/${metafieldId}.json`, {
             method: 'PUT',
             headers: {
               'X-Shopify-Access-Token': accessToken,
@@ -580,10 +591,10 @@ async function saveGenerationHandler(req, res) {
                 value: JSON.stringify(metafieldData)
               }
             })
-          });
+          }), 10000, 'update shopify metafield PUT');
         } else {
-          // Utwórz nowy metafield
-          metafieldResponse = await fetch(`https://${shop}/admin/api/2023-10/customers/${customerId}/metafields.json`, {
+          // Utwórz nowy metafield (z timeoutem 10s)
+          metafieldResponse = await withTimeout(fetch(`https://${shop}/admin/api/2023-10/customers/${customerId}/metafields.json`, {
             method: 'POST',
             headers: {
               'X-Shopify-Access-Token': accessToken,
@@ -597,7 +608,7 @@ async function saveGenerationHandler(req, res) {
                 type: 'json'
               }
             })
-          });
+          }), 10000, 'create shopify metafield POST');
         }
         
         const metafieldResult = await metafieldResponse.json();
