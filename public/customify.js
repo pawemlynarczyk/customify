@@ -2465,6 +2465,12 @@ class CustomifyEmbed {
     return this.getProductHandle() === 'portret-w-stylu-gta-obraz-na-plotnie-z-twojego-zdjecia-super-prezent';
   }
 
+  // 🎤 Produkt Hip-Hop — jeden styl (hiphop), ukryty wybór stylu
+  isHipHopProduct() {
+    const h = this.getProductHandle();
+    return h === 'portret-w-stylu-hip-hop-obraz-na-plotnie-z-twojego-zdjecia' || h === 'portret-ze-zdjecia-hip-hop-personalizowany-obraz-na-plotnie';
+  }
+
   // 📷 Produkt Retusz starych zdjęć (prezent dla dziadków) — FLUX Kontext Restore
   isRetuszStarychZdjecProduct() {
     return this.getProductHandle() === 'prezent-dla-dziadkow-retusz-starych-zdjec';
@@ -3208,6 +3214,10 @@ class CustomifyEmbed {
       console.log('🎮 [PRODUCT-TYPE] URL = GTA → productType: gta');
       return 'gta';
     }
+    if (currentUrl.includes('portret-w-stylu-hip-hop-obraz-na-plotnie') || currentUrl.includes('portret-ze-zdjecia-hip-hop')) {
+      console.log('🎤 [PRODUCT-TYPE] URL = Hip-Hop → productType: hiphop');
+      return 'hiphop';
+    }
     if (currentUrl.includes('dodaj-osobe-do-zdjecia-naturalny-efekt')) {
       console.log('📸 [PRODUCT-TYPE] URL = Dodaj osobę → productType: dodaj_osobe');
       return 'dodaj_osobe';
@@ -3259,6 +3269,7 @@ class CustomifyEmbed {
       'love-rose': 'love_rose', // Love Rose - OpenAI GPT-Image-1.5 via Replicate
       'royal-love': 'royal_love', // Royal Love - OpenAI GPT-Image-1.5 via Replicate
       'gta': 'gta', // GTA - OpenAI GPT-Image-1.5 via Replicate
+      'hiphop': 'hiphop', // Hip-Hop - OpenAI GPT-Image-1.5 via Replicate
       'szkic-love': 'szkic_love', // Szkic Love - OpenAI GPT-Image-1.5 via Replicate
       'jak-z-bajki': 'jak_z_bajki', // Jak z bajki - OpenAI GPT-Image-1.5 via Replicate
       'superpara': 'superpara', // Superpara - OpenAI GPT-Image-1.5 via Replicate
@@ -6166,6 +6177,11 @@ class CustomifyEmbed {
   }
 
   showPreview(file) {
+    if (typeof FileReader === 'undefined') {
+      console.error('❌ [UPLOAD] FileReader nie jest obsługiwany przez tę przeglądarkę');
+      this.showError('Twoja przeglądarka nie obsługuje wgrywania zdjęć. Zaktualizuj przeglądarkę lub spróbuj na innym urządzeniu.');
+      return;
+    }
     const reader = new FileReader();
     reader.onload = (e) => {
       // Walidacja rozdzielczości obrazu
@@ -6267,6 +6283,10 @@ class CustomifyEmbed {
         this.stylesArea.style.display = 'none';
         this.selectedStyle = 'gta';
         console.log('🎮 [GTA] Ukryto wybór stylu, auto-select gta');
+      } else if (this.isHipHopProduct()) {
+        this.stylesArea.style.display = 'none';
+        this.selectedStyle = 'hiphop';
+        console.log('🎤 [HIP-HOP] Ukryto wybór stylu, auto-select hiphop');
       } else if (this.isRetuszStarychZdjecProduct()) {
         this.stylesArea.style.display = 'none';
         this.selectedStyle = 'retusz-starych-zdjec';
@@ -8416,6 +8436,10 @@ class CustomifyEmbed {
   }
 
   convertToBase64(file, resolve, reject) {
+    if (typeof FileReader === 'undefined') {
+      reject(new Error('FileReader nie jest obsługiwany przez tę przeglądarkę. Zaktualizuj przeglądarkę.'));
+      return;
+    }
     const reader = new FileReader();
     reader.readAsDataURL(file);
     reader.onload = () => {
@@ -8579,6 +8603,9 @@ class CustomifyEmbed {
       } else if (this.isGTAProduct()) {
         this.stylesArea.style.display = 'none';
         this.selectedStyle = 'gta';
+      } else if (this.isHipHopProduct()) {
+        this.stylesArea.style.display = 'none';
+        this.selectedStyle = 'hiphop';
       } else if (this.isRetuszStarychZdjecProduct()) {
         this.stylesArea.style.display = 'none';
         this.selectedStyle = 'retusz-starych-zdjec';
@@ -8609,7 +8636,7 @@ class CustomifyEmbed {
     }
     
     // Zresetuj wybrane style i rozmiary
-    this.selectedStyle = this.isMultiUploadProduct() ? 'dodaj-osobe' : (this.isDlaNiejProduct() ? 'caricature-new' : (this.isSuperheroBoyProduct() ? 'superhero_boy' : (this.isLoveRoseProduct() ? 'love-rose' : (this.isRoyalLoveProduct() ? 'royal-love' : (this.isGTAProduct() ? 'gta' : (this.isRetuszStarychZdjecProduct() ? 'retusz-starych-zdjec' : null))))));
+    this.selectedStyle = this.isMultiUploadProduct() ? 'dodaj-osobe' : (this.isDlaNiejProduct() ? 'caricature-new' : (this.isSuperheroBoyProduct() ? 'superhero_boy' : (this.isLoveRoseProduct() ? 'love-rose' : (this.isRoyalLoveProduct() ? 'royal-love' : (this.isGTAProduct() ? 'gta' : (this.isHipHopProduct() ? 'hiphop' : (this.isRetuszStarychZdjecProduct() ? 'retusz-starych-zdjec' : null)))))));
     this.selectedSize = null;
     this.transformedImage = null;
     this.textOverlayBaseImage = null;

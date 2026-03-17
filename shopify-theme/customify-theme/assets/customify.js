@@ -706,7 +706,7 @@ CUSTOMIZATION
 The character represents this profession / hobby / personality:
 "{personalization}"
 
-CRITICAL: The overall character should be cohesive — outfit, props, scene, background, podium and decorations must all reference and match the same theme. The podium on which the figurine stands must be styled to fit the firefighter profession. Everything should harmonize and create a unified, coherent whole.
+CRITICAL: The overall character should be cohesive — outfit, props, scene, background, podium and decorations must all reference and match the same theme. The podium on which the figurine stands must be styled to fit the profession or hobby described above. Everything should harmonize and create a unified, coherent whole.
 
 Add visual elements, clothing, props and small scene details related to it.
 Examples:
@@ -716,22 +716,23 @@ Examples:
 
 POSE
 {YEARS_SECTION}
-• Character standing heroically on a podium styled to match the firefighter / rescue theme.
-• Heroic, strong pose — brave hero of the day vibe.
-• The podium design should reference firefighting — e.g. red and gold tones, flames motif, fire hose coil at the base.
+• Character sitting or standing confidently on a podium styled to match the profession or hobby.
+• The podium must be styled to match the theme — the design, shape, materials and decorations should reflect and harmonize with the overall theme.
+• Relaxed, charismatic pose.
 
 OUTFIT
-• Classic firefighter turnout gear — heavy jacket with reflective stripes, fire helmet, boots.
+• Outfit matching the profession or interest.
 • Stylish, slightly exaggerated caricature look.
 
 SCENE
-Mini decorative environment — fire station, fire truck silhouette, ladders, flames in the background.
-Fun but heroic.
+Mini decorative environment connected with the profession or hobby described above.
+Fun but professional.
 
 BACKGROUND
-• Colors related to firefighting — deep reds, oranges, gold accents, dark smoke tones.
-• Subtle themed decorations — fire helmet, axe, hose, flames.
+• Colors and style of the background must be related to the person's profession or hobby.
+• The backdrop should visually connect with the character's theme, not generic studio.
 • Soft bokeh lights.
+• Subtle themed decorations.
 
 TEXT
 {NAME_SECTION}
@@ -765,7 +766,7 @@ CUSTOMIZATION
 The character represents this profession / hobby / personality:
 "{personalization}"
 
-CRITICAL: The overall character should be cohesive — outfit, props, scene, background, podium and decorations must all reference and match the same theme. The podium on which the figurine stands must be styled to fit the doctor / medical profession. Everything should harmonize and create a unified, coherent whole.
+CRITICAL: The overall character should be cohesive — outfit, props, scene, background, podium and decorations must all reference and match the same theme. The podium on which the figurine stands must be styled to fit the profession or hobby described above. Everything should harmonize and create a unified, coherent whole.
 
 Add visual elements, clothing, props and small scene details related to it.
 Examples:
@@ -775,22 +776,23 @@ Examples:
 
 POSE
 {YEARS_SECTION}
-• Character standing confidently on a podium styled to match the medical / doctor theme.
-• Professional, confident pose — top doctor vibe.
-• The podium design should reference medicine — e.g. red cross motif, caduceus symbol, hospital white tones.
+• Character sitting or standing confidently on a podium styled to match the profession or hobby.
+• The podium must be styled to match the theme — the design, shape, materials and decorations should reflect and harmonize with the overall theme.
+• Relaxed, charismatic pose.
 
 OUTFIT
-• Classic doctor outfit — white lab coat, stethoscope around neck, name badge.
+• Outfit matching the profession or interest.
 • Stylish, slightly exaggerated caricature look.
 
 SCENE
-Mini decorative environment — hospital corridor, examination room, medical equipment, health charts.
+Mini decorative environment connected with the profession or hobby described above.
 Fun but professional.
 
 BACKGROUND
-• Colors related to medicine — clean whites, hospital greens, soft blues.
-• Subtle themed decorations — caduceus, stethoscope, medical cross, pill bottles.
+• Colors and style of the background must be related to the person's profession or hobby.
+• The backdrop should visually connect with the character's theme, not generic studio.
 • Soft bokeh lights.
+• Subtle themed decorations.
 
 TEXT
 {NAME_SECTION}
@@ -824,7 +826,7 @@ CUSTOMIZATION
 The character represents this profession / hobby / personality:
 "{personalization}"
 
-CRITICAL: The overall character should be cohesive — outfit, props, scene, background, podium and decorations must all reference and match the same theme. The podium on which the figurine stands must be styled to fit the construction worker profession. Everything should harmonize and create a unified, coherent whole.
+CRITICAL: The overall character should be cohesive — outfit, props, scene, background, podium and decorations must all reference and match the same theme. The podium on which the figurine stands must be styled to fit the profession or hobby described above. Everything should harmonize and create a unified, coherent whole.
 
 Add visual elements, clothing, props and small scene details related to it.
 Examples:
@@ -834,22 +836,23 @@ Examples:
 
 POSE
 {YEARS_SECTION}
-• Character standing confidently on a podium styled to match the construction / building theme.
-• Strong, proud pose — master builder vibe.
-• The podium design should reference construction — e.g. concrete platform, brick pattern, tools arranged around the base.
+• Character sitting or standing confidently on a podium styled to match the profession or hobby.
+• The podium must be styled to match the theme — the design, shape, materials and decorations should reflect and harmonize with the overall theme.
+• Relaxed, charismatic pose.
 
 OUTFIT
-• Classic construction worker outfit — hard hat (yellow or orange), safety vest, work boots, tool belt.
+• Outfit matching the profession or interest.
 • Stylish, slightly exaggerated caricature look.
 
 SCENE
-Mini decorative environment — construction site, scaffolding, bricks, blueprints, tools scattered around.
+Mini decorative environment connected with the profession or hobby described above.
 Fun but professional.
 
 BACKGROUND
-• Colors related to construction — warm oranges, yellows, brick reds, concrete grays.
-• Subtle themed decorations — crane silhouette, blueprint rolls, ladder elements.
+• Colors and style of the background must be related to the person's profession or hobby.
+• The backdrop should visually connect with the character's theme, not generic studio.
 • Soft bokeh lights.
+• Subtle themed decorations.
 
 TEXT
 {NAME_SECTION}
@@ -883,32 +886,34 @@ CUSTOMIZATION
 The character represents this profession / hobby / personality:
 "{personalization}"
 
-CRITICAL: The overall character should be cohesive — outfit, props, scene, background, podium and decorations must all reference and match the same theme. The podium on which the figurine stands must be styled to fit the truck driver profession. Everything should harmonize and create a unified, coherent whole.
+CRITICAL: The overall character should be cohesive — outfit, props, scene, background, podium and decorations must all reference and match the same theme. The podium on which the figurine stands must be styled to fit the profession or hobby described above. Everything should harmonize and create a unified, coherent whole.
 
 Add visual elements, clothing, props and small scene details related to it.
 Examples:
 • truck driver → flannel shirt, cap, big rig truck, steering wheel, road map
-• long-haul driver → sunglasses, road, highway, semi-truck cabin, fuel cans
-• trucker → travel mug, CB radio, truck keys, highway scenery
+• mechanic → overalls, wrench, car lift, garage, sport car
+• chef → apron, toque, kitchen tools, restaurant atmosphere
+• fisherman → fishing rod, fish, lake, outdoor vibe
 
 POSE
 {YEARS_SECTION}
-• Character standing confidently on a podium styled to match the trucker / road-life theme.
-• Proud, relaxed pose — king of the road vibe.
-• The podium design should reference trucking — e.g. truck cab silhouette, road lines, dashboard details.
+• Character sitting or standing confidently on a podium styled to match the profession or hobby.
+• The podium must be styled to match the theme — the design, shape, materials and decorations should reflect and harmonize with the overall theme.
+• Relaxed, charismatic pose.
 
 OUTFIT
-• Classic trucker outfit — flannel shirt or jacket, cap, jeans, work boots.
+• Outfit matching the profession or interest.
 • Stylish, slightly exaggerated caricature look.
 
 SCENE
-Mini decorative environment — open road, highway, semi-truck cab, rest stop atmosphere.
+Mini decorative environment connected with the profession or hobby described above.
 Fun but professional.
 
 BACKGROUND
-• Colors related to road life — warm sunset highway, asphalt grays, golden horizon.
-• Subtle themed decorations — truck silhouettes, road signs, map elements.
+• Colors and style of the background must be related to the person's profession or hobby.
+• The backdrop should visually connect with the character's theme, not generic studio.
 • Soft bokeh lights.
+• Subtle themed decorations.
 
 TEXT
 {NAME_SECTION}
@@ -952,22 +957,23 @@ Examples:
 
 POSE
 {YEARS_SECTION}
-• Character standing confidently on a podium styled to match the police/law enforcement theme.
-• Heroic, confident pose — like a proud officer of the law.
-• The podium design should reference law enforcement — e.g. police shield motif, black and blue colors.
+• Character sitting or standing confidently on a podium styled to match the profession or hobby.
+• The podium must be styled to match the theme — the design, shape, materials and decorations should reflect and harmonize with the overall theme.
+• Relaxed, charismatic pose.
 
 OUTFIT
-• Full police uniform — jacket, badge, cap.
+• Outfit matching the profession or interest.
 • Stylish, slightly exaggerated caricature look.
 
 SCENE
-Mini decorative environment — police precinct, patrol car, law enforcement atmosphere.
+Mini decorative environment connected with the profession or hobby described above.
 Fun but professional.
 
 BACKGROUND
-• Colors related to law enforcement — deep blues, dark navy, police badge gold accents.
-• Subtle themed decorations — sirens, badge motifs, city silhouette.
+• Colors and style of the background must be related to the person's profession or hobby.
+• The backdrop should visually connect with the character's theme, not generic studio.
 • Soft bokeh lights.
+• Subtle themed decorations.
 
 TEXT
 {NAME_SECTION}
@@ -2459,6 +2465,12 @@ class CustomifyEmbed {
     return this.getProductHandle() === 'portret-w-stylu-gta-obraz-na-plotnie-z-twojego-zdjecia-super-prezent';
   }
 
+  // 🎤 Produkt Hip-Hop — jeden styl (hiphop), ukryty wybór stylu
+  isHipHopProduct() {
+    const h = this.getProductHandle();
+    return h === 'portret-w-stylu-hip-hop-obraz-na-plotnie-z-twojego-zdjecia' || h === 'portret-ze-zdjecia-hip-hop-personalizowany-obraz-na-plotnie';
+  }
+
   // 📷 Produkt Retusz starych zdjęć (prezent dla dziadków) — FLUX Kontext Restore
   isRetuszStarychZdjecProduct() {
     return this.getProductHandle() === 'prezent-dla-dziadkow-retusz-starych-zdjec';
@@ -3202,6 +3214,10 @@ class CustomifyEmbed {
       console.log('🎮 [PRODUCT-TYPE] URL = GTA → productType: gta');
       return 'gta';
     }
+    if (currentUrl.includes('portret-w-stylu-hip-hop-obraz-na-plotnie') || currentUrl.includes('portret-ze-zdjecia-hip-hop')) {
+      console.log('🎤 [PRODUCT-TYPE] URL = Hip-Hop → productType: hiphop');
+      return 'hiphop';
+    }
     if (currentUrl.includes('dodaj-osobe-do-zdjecia-naturalny-efekt')) {
       console.log('📸 [PRODUCT-TYPE] URL = Dodaj osobę → productType: dodaj_osobe');
       return 'dodaj_osobe';
@@ -3253,6 +3269,7 @@ class CustomifyEmbed {
       'love-rose': 'love_rose', // Love Rose - OpenAI GPT-Image-1.5 via Replicate
       'royal-love': 'royal_love', // Royal Love - OpenAI GPT-Image-1.5 via Replicate
       'gta': 'gta', // GTA - OpenAI GPT-Image-1.5 via Replicate
+      'hiphop': 'hiphop', // Hip-Hop - OpenAI GPT-Image-1.5 via Replicate
       'szkic-love': 'szkic_love', // Szkic Love - OpenAI GPT-Image-1.5 via Replicate
       'jak-z-bajki': 'jak_z_bajki', // Jak z bajki - OpenAI GPT-Image-1.5 via Replicate
       'superpara': 'superpara', // Superpara - OpenAI GPT-Image-1.5 via Replicate
@@ -6160,6 +6177,11 @@ class CustomifyEmbed {
   }
 
   showPreview(file) {
+    if (typeof FileReader === 'undefined') {
+      console.error('❌ [UPLOAD] FileReader nie jest obsługiwany przez tę przeglądarkę');
+      this.showError('Twoja przeglądarka nie obsługuje wgrywania zdjęć. Zaktualizuj przeglądarkę lub spróbuj na innym urządzeniu.');
+      return;
+    }
     const reader = new FileReader();
     reader.onload = (e) => {
       // Walidacja rozdzielczości obrazu
@@ -6261,6 +6283,10 @@ class CustomifyEmbed {
         this.stylesArea.style.display = 'none';
         this.selectedStyle = 'gta';
         console.log('🎮 [GTA] Ukryto wybór stylu, auto-select gta');
+      } else if (this.isHipHopProduct()) {
+        this.stylesArea.style.display = 'none';
+        this.selectedStyle = 'hiphop';
+        console.log('🎤 [HIP-HOP] Ukryto wybór stylu, auto-select hiphop');
       } else if (this.isRetuszStarychZdjecProduct()) {
         this.stylesArea.style.display = 'none';
         this.selectedStyle = 'retusz-starych-zdjec';
@@ -8410,6 +8436,10 @@ class CustomifyEmbed {
   }
 
   convertToBase64(file, resolve, reject) {
+    if (typeof FileReader === 'undefined') {
+      reject(new Error('FileReader nie jest obsługiwany przez tę przeglądarkę. Zaktualizuj przeglądarkę.'));
+      return;
+    }
     const reader = new FileReader();
     reader.readAsDataURL(file);
     reader.onload = () => {
@@ -8573,6 +8603,9 @@ class CustomifyEmbed {
       } else if (this.isGTAProduct()) {
         this.stylesArea.style.display = 'none';
         this.selectedStyle = 'gta';
+      } else if (this.isHipHopProduct()) {
+        this.stylesArea.style.display = 'none';
+        this.selectedStyle = 'hiphop';
       } else if (this.isRetuszStarychZdjecProduct()) {
         this.stylesArea.style.display = 'none';
         this.selectedStyle = 'retusz-starych-zdjec';
@@ -8603,7 +8636,7 @@ class CustomifyEmbed {
     }
     
     // Zresetuj wybrane style i rozmiary
-    this.selectedStyle = this.isMultiUploadProduct() ? 'dodaj-osobe' : (this.isDlaNiejProduct() ? 'caricature-new' : (this.isSuperheroBoyProduct() ? 'superhero_boy' : (this.isLoveRoseProduct() ? 'love-rose' : (this.isRoyalLoveProduct() ? 'royal-love' : (this.isGTAProduct() ? 'gta' : (this.isRetuszStarychZdjecProduct() ? 'retusz-starych-zdjec' : null))))));
+    this.selectedStyle = this.isMultiUploadProduct() ? 'dodaj-osobe' : (this.isDlaNiejProduct() ? 'caricature-new' : (this.isSuperheroBoyProduct() ? 'superhero_boy' : (this.isLoveRoseProduct() ? 'love-rose' : (this.isRoyalLoveProduct() ? 'royal-love' : (this.isGTAProduct() ? 'gta' : (this.isHipHopProduct() ? 'hiphop' : (this.isRetuszStarychZdjecProduct() ? 'retusz-starych-zdjec' : null)))))));
     this.selectedSize = null;
     this.transformedImage = null;
     this.textOverlayBaseImage = null;

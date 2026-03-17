@@ -4518,14 +4518,18 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
     // Provide more specific error messages
     let errorMessage = 'AI transformation failed';
     let statusCode = 500;
+    // A2/A3: flagi dla "oczekiwanych" błędów - nie logujemy jako error w Sentry
+    let isExpectedError = false;
     
     // Check if error has user-friendly message (e.g., moderation blocked)
     if (error.code === 'MODERATION_BLOCKED' || error.userMessage) {
       errorMessage = error.userMessage || 'Zdjęcie zostało odrzucone przez system bezpieczeństwa. Użyj zdjęcia portretowego w stroju codziennym, z wyraźną twarzą, ale bez głębokich dekoltów i strojów kąpielowych.';
       statusCode = 400;
+      isExpectedError = true; // A2: moderacja AI - zachowanie celowe, nie błąd
     } else if (error.message.includes('NSFW') || error.message.includes('content detected')) {
       errorMessage = 'Obraz został odrzucony przez filtr bezpieczeństwa. Spróbuj użyć innego zdjęcia lub stylu. Upewnij się, że zdjęcie jest odpowiednie dla wszystkich widzów.';
       statusCode = 400;
+      isExpectedError = true; // A2: moderacja AI
     } else if (error.message.includes('CUDA out of memory')) {
       errorMessage = 'Model is currently overloaded. Please try again in a few minutes or try a different style.';
       statusCode = 503;
@@ -4538,18 +4542,20 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
     } else if (error.message.includes('402') || error.message.includes('Payment Required') || error.message.includes('spend limit')) {
       errorMessage = 'AI service temporarily unavailable due to billing limits. Please try again later or contact support.';
       statusCode = 402;
-    } else if (error.message.includes('503') || error.message.includes('Service Unavailable') || error.message.includes('Internal server error')) {
+    } else if (error.message.includes('503') || error.message.includes('Service Unavailable') || error.message.includes('Internal server error') || error.message.includes('high demand') || error.message.includes('E003')) {
       errorMessage = 'Serwis AI jest tymczasowo niedostępny. Spróbuj za 5–10 minut.';
       statusCode = 503;
+      isExpectedError = true; // A3: Replicate przeciążony (E003) - zewnętrzny serwis, nie nasz błąd
     } else if (error.message.includes('half cropped face') || error.message.includes('Source image contains')) {
       errorMessage = 'CROPPED_FACE';
       statusCode = 400;
     }
     
     // ✅ SENTRY: Loguj błąd transformacji
+    // A2/A3: dla "oczekiwanych" błędów (moderacja, zewnętrzne przeciążenie) - tylko warn, nie error
     Sentry.withScope((scope) => {
       scope.setTag('customify', 'true');
-      scope.setTag('error_type', 'transform_failed');
+      scope.setTag('error_type', isExpectedError ? 'expected_error' : 'transform_failed');
       scope.setTag('endpoint', 'transform');
       scope.setContext('transform', {
         customerId: req.body?.customerId || null,
@@ -4557,7 +4563,12 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
         productType: req.body?.productType || null,
         statusCode: statusCode
       });
-      Sentry.captureException(error);
+      if (isExpectedError) {
+        // Moderacja AI i Replicate E003 - loguj jako warning, nie error
+        Sentry.captureMessage(error.message || errorMessage, 'warning');
+      } else {
+        Sentry.captureException(error);
+      }
     });
     
     // Dla CROPPED_FACE zwracamy przyjazny komunikat w polu message
