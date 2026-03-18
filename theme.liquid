@@ -5546,6 +5546,12 @@ opacity: 0.9;
  {% endif %}
 
 {% if template == 'cart' %}
+<style>
+  /* Ukryj całą stopkę (FAQ, newsletter, footer) tylko na stronie koszyka */
+  [id^="shopify-section-sections--28536885281093"] {
+    display: none !important;
+  }
+</style>
 <div class="page-width" style="margin: 40px auto 60px; max-width: 1200px;">
 <div style="display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; padding: 24px 16px; border-top: 1px solid rgba(0,0,0,0.08);">
 
