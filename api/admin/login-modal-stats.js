@@ -379,104 +379,107 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: 'Missing eventType' });
     }
 
-    // ✅ ZWRÓĆ 200 NATYCHMIAST - nie czekaj na wolne operacje Blob
-    // Zapobiega 504 timeoutom gdy Blob Storage jest wolny pod obciążeniem
+    // Zapis synchroniczny z timeoutem 8s - setImmediate w Vercel nie jest niezawodny
+    // (Vercel może zamrozić funkcję po res.json(), zanim setImmediate zdąży się wykonać)
     const eventId = `event-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    res.json({ success: true, message: 'Event received', eventId });
 
-    // Przetwarzaj w tle (po wysłaniu odpowiedzi do klienta)
-    setImmediate(async () => {
+    const writeWithTimeout = async () => {
+      const blobToken = getBlobToken();
+      let statsData;
       try {
-        const blobToken = getBlobToken();
-        let statsData;
-        try {
-          statsData = await loadStatsFile(blobToken, { includeLegacy: false });
-        } catch (error) {
-          statsData = { stats: createEmptyStats(), sourcePath: null, versions: [] };
-        }
-        let stats = ensureStatsStructure(statsData.stats || createEmptyStats());
-
-        const newEvent = {
-          id: eventId,
-          eventType,
-          usedCount: usedCount || null,
-          limit: limit || null,
-          productUrl: productUrl || null,
-          ip,
-          timestamp: timestamp || new Date().toISOString()
-        };
-
-        stats.events.push(newEvent);
-
-        if (eventType === 'login_modal_page_entry') stats.summary.totalEntries++;
-        if (eventType === 'ai_generation_success') stats.summary.totalGenerations++;
-        if (eventType === 'login_modal_shown') stats.summary.totalShown++;
-        if (eventType === 'login_modal_register_click') stats.summary.totalRegisterClicks++;
-        if (eventType === 'login_modal_login_click') stats.summary.totalLoginClicks++;
-        if (eventType === 'login_modal_cancel_click') stats.summary.totalCancelClicks++;
-        if (eventType === 'login_modal_auto_redirect') stats.summary.totalAutoRedirects++;
-        if (eventType === 'login_modal_register_success') stats.summary.totalRegisterSuccess++;
-        if (eventType === 'login_modal_login_success') stats.summary.totalLoginSuccess++;
-
-        if (productUrl) {
-          const productKey = getProductKeyFromUrl(productUrl);
-          if (!stats.byProduct[productKey]) {
-            stats.byProduct[productKey] = defaultBreakdown();
-          } else {
-            stats.byProduct[productKey] = { ...defaultBreakdown(), ...stats.byProduct[productKey] };
-          }
-          if (eventType === 'login_modal_page_entry') stats.byProduct[productKey].entries++;
-          if (eventType === 'ai_generation_success') stats.byProduct[productKey].generations++;
-          if (eventType === 'login_modal_shown') stats.byProduct[productKey].shown++;
-          if (eventType === 'login_modal_register_click') stats.byProduct[productKey].registerClicks++;
-          if (eventType === 'login_modal_login_click') stats.byProduct[productKey].loginClicks++;
-          if (eventType === 'login_modal_cancel_click') stats.byProduct[productKey].cancelClicks++;
-          if (eventType === 'login_modal_auto_redirect') stats.byProduct[productKey].autoRedirects++;
-          if (eventType === 'login_modal_register_success') stats.byProduct[productKey].registerSuccess++;
-          if (eventType === 'login_modal_login_success') stats.byProduct[productKey].loginSuccess++;
-        }
-
-        const dateKey = new Date().toISOString().split('T')[0];
-        if (!stats.byDate[dateKey]) {
-          stats.byDate[dateKey] = defaultBreakdown();
-        } else {
-          stats.byDate[dateKey] = { ...defaultBreakdown(), ...stats.byDate[dateKey] };
-        }
-        if (eventType === 'login_modal_page_entry') stats.byDate[dateKey].entries++;
-        if (eventType === 'ai_generation_success') stats.byDate[dateKey].generations++;
-        if (eventType === 'login_modal_shown') stats.byDate[dateKey].shown++;
-        if (eventType === 'login_modal_register_click') stats.byDate[dateKey].registerClicks++;
-        if (eventType === 'login_modal_login_click') stats.byDate[dateKey].loginClicks++;
-        if (eventType === 'login_modal_cancel_click') stats.byDate[dateKey].cancelClicks++;
-        if (eventType === 'login_modal_auto_redirect') stats.byDate[dateKey].autoRedirects++;
-        if (eventType === 'login_modal_register_success') stats.byDate[dateKey].registerSuccess++;
-        if (eventType === 'login_modal_login_success') stats.byDate[dateKey].loginSuccess++;
-
-        if (stats.events.length > 1000) {
-          stats.events = stats.events.slice(-1000);
-        }
-        stats.lastUpdated = new Date().toISOString();
-
-        const newStatsPath = `${STATS_NEW_PREFIX}stats-${Date.now()}.json`;
-        const blob = await put(newStatsPath, JSON.stringify(stats, null, 2), {
-          access: 'public',
-          token: blobToken,
-          contentType: 'application/json',
-          allowOverwrite: true
-        });
-        const storedPath = blob.pathname || newStatsPath;
-
-        if (statsData.sourcePath === STATS_FILE_PATH) {
-          del(STATS_FILE_PATH, { token: blobToken }).catch(() => {});
-        }
-        await cleanupOldVersions(blobToken, [...(statsData.versions || []), { pathname: storedPath, uploadedAt: new Date().toISOString() }]);
-        console.log('✅ [LOGIN-MODAL-STATS] Background write OK:', eventType);
-      } catch (bgError) {
-        console.error('❌ [LOGIN-MODAL-STATS] Background write failed:', bgError?.message || bgError);
+        statsData = await loadStatsFile(blobToken, { includeLegacy: false });
+      } catch (error) {
+        statsData = { stats: createEmptyStats(), sourcePath: null, versions: [] };
       }
-    });
+      let stats = ensureStatsStructure(statsData.stats || createEmptyStats());
 
-    return;
+      const newEvent = {
+        id: eventId,
+        eventType,
+        usedCount: usedCount || null,
+        limit: limit || null,
+        productUrl: productUrl || null,
+        ip,
+        timestamp: timestamp || new Date().toISOString()
+      };
+
+      stats.events.push(newEvent);
+
+      if (eventType === 'login_modal_page_entry') stats.summary.totalEntries++;
+      if (eventType === 'ai_generation_success') stats.summary.totalGenerations++;
+      if (eventType === 'login_modal_shown') stats.summary.totalShown++;
+      if (eventType === 'login_modal_register_click') stats.summary.totalRegisterClicks++;
+      if (eventType === 'login_modal_login_click') stats.summary.totalLoginClicks++;
+      if (eventType === 'login_modal_cancel_click') stats.summary.totalCancelClicks++;
+      if (eventType === 'login_modal_auto_redirect') stats.summary.totalAutoRedirects++;
+      if (eventType === 'login_modal_register_success') stats.summary.totalRegisterSuccess++;
+      if (eventType === 'login_modal_login_success') stats.summary.totalLoginSuccess++;
+
+      if (productUrl) {
+        const productKey = getProductKeyFromUrl(productUrl);
+        if (!stats.byProduct[productKey]) {
+          stats.byProduct[productKey] = defaultBreakdown();
+        } else {
+          stats.byProduct[productKey] = { ...defaultBreakdown(), ...stats.byProduct[productKey] };
+        }
+        if (eventType === 'login_modal_page_entry') stats.byProduct[productKey].entries++;
+        if (eventType === 'ai_generation_success') stats.byProduct[productKey].generations++;
+        if (eventType === 'login_modal_shown') stats.byProduct[productKey].shown++;
+        if (eventType === 'login_modal_register_click') stats.byProduct[productKey].registerClicks++;
+        if (eventType === 'login_modal_login_click') stats.byProduct[productKey].loginClicks++;
+        if (eventType === 'login_modal_cancel_click') stats.byProduct[productKey].cancelClicks++;
+        if (eventType === 'login_modal_auto_redirect') stats.byProduct[productKey].autoRedirects++;
+        if (eventType === 'login_modal_register_success') stats.byProduct[productKey].registerSuccess++;
+        if (eventType === 'login_modal_login_success') stats.byProduct[productKey].loginSuccess++;
+      }
+
+      const dateKey = new Date().toISOString().split('T')[0];
+      if (!stats.byDate[dateKey]) {
+        stats.byDate[dateKey] = defaultBreakdown();
+      } else {
+        stats.byDate[dateKey] = { ...defaultBreakdown(), ...stats.byDate[dateKey] };
+      }
+      if (eventType === 'login_modal_page_entry') stats.byDate[dateKey].entries++;
+      if (eventType === 'ai_generation_success') stats.byDate[dateKey].generations++;
+      if (eventType === 'login_modal_shown') stats.byDate[dateKey].shown++;
+      if (eventType === 'login_modal_register_click') stats.byDate[dateKey].registerClicks++;
+      if (eventType === 'login_modal_login_click') stats.byDate[dateKey].loginClicks++;
+      if (eventType === 'login_modal_cancel_click') stats.byDate[dateKey].cancelClicks++;
+      if (eventType === 'login_modal_auto_redirect') stats.byDate[dateKey].autoRedirects++;
+      if (eventType === 'login_modal_register_success') stats.byDate[dateKey].registerSuccess++;
+      if (eventType === 'login_modal_login_success') stats.byDate[dateKey].loginSuccess++;
+
+      if (stats.events.length > 1000) {
+        stats.events = stats.events.slice(-1000);
+      }
+      stats.lastUpdated = new Date().toISOString();
+
+      const newStatsPath = `${STATS_NEW_PREFIX}stats-${Date.now()}.json`;
+      const blob = await put(newStatsPath, JSON.stringify(stats, null, 2), {
+        access: 'public',
+        token: blobToken,
+        contentType: 'application/json',
+        allowOverwrite: true
+      });
+      const storedPath = blob.pathname || newStatsPath;
+
+      if (statsData.sourcePath === STATS_FILE_PATH) {
+        del(STATS_FILE_PATH, { token: blobToken }).catch(() => {});
+      }
+      await cleanupOldVersions(blobToken, [...(statsData.versions || []), { pathname: storedPath, uploadedAt: new Date().toISOString() }]);
+      console.log('✅ [LOGIN-MODAL-STATS] Write OK:', eventType);
+    };
+
+    try {
+      await Promise.race([
+        writeWithTimeout(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Blob write timeout')), 8000))
+      ]);
+    } catch (writeError) {
+      console.error('❌ [LOGIN-MODAL-STATS] Write failed:', writeError?.message || writeError);
+    }
+
+    return res.json({ success: true, message: 'Event received', eventId });
   }
 
   // GET - pobierz statystyki

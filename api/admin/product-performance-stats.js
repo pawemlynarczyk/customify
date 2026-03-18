@@ -421,89 +421,91 @@ const handler = async (req, res) => {
       return res.status(400).json({ error: 'Missing eventType or productId' });
     }
 
-    // ✅ ZWRÓĆ 200 NATYCHMIAST - nie czekaj na wolne operacje Blob
-    // Zapobiega 504 timeoutom gdy Blob Storage jest wolny pod obciążeniem
-    res.json({ success: true });
+    // Zapis synchroniczny z timeoutem 8s - setImmediate w Vercel nie jest niezawodny
+    // (Vercel może zamrozić funkcję po res.json(), zanim setImmediate zdąży się wykonać)
+    const writeWithTimeout = async () => {
+      const blobToken = getBlobToken();
+      const statsData = await loadStatsFile(blobToken);
+      const stats = ensureStatsStructure(cloneDeep(statsData.stats || createEmptyStats()));
 
-    // Przetwarzaj w tle (po wysłaniu odpowiedzi do klienta)
-    setImmediate(async () => {
-      try {
-        const blobToken = getBlobToken();
-        const statsData = await loadStatsFile(blobToken);
-        const stats = ensureStatsStructure(cloneDeep(statsData.stats || createEmptyStats()));
+      const productKey = String(productId);
+      const dateKey = new Date(timestamp || Date.now()).toISOString().split('T')[0];
 
-        const productKey = String(productId);
-        const dateKey = new Date(timestamp || Date.now()).toISOString().split('T')[0];
+      if (!stats.byProduct[productKey]) stats.byProduct[productKey] = defaultBreakdown();
+      if (!stats.byDate[dateKey]) stats.byDate[dateKey] = defaultBreakdown();
+      if (!stats.byProductDate[productKey]) stats.byProductDate[productKey] = {};
+      if (!stats.byProductDate[productKey][dateKey]) stats.byProductDate[productKey][dateKey] = defaultBreakdown();
 
-        if (!stats.byProduct[productKey]) stats.byProduct[productKey] = defaultBreakdown();
-        if (!stats.byDate[dateKey]) stats.byDate[dateKey] = defaultBreakdown();
-        if (!stats.byProductDate[productKey]) stats.byProductDate[productKey] = {};
-        if (!stats.byProductDate[productKey][dateKey]) stats.byProductDate[productKey][dateKey] = defaultBreakdown();
-
-        if (eventType === 'product_view') {
-          stats.summary.totalViews++;
-          stats.byProduct[productKey].views++;
-          stats.byDate[dateKey].views++;
-          stats.byProductDate[productKey][dateKey].views++;
-        }
-        if (eventType === 'generate_click') {
-          stats.summary.totalGenerateClicks++;
-          stats.byProduct[productKey].generateClicks++;
-          stats.byDate[dateKey].generateClicks++;
-          stats.byProductDate[productKey][dateKey].generateClicks++;
-        }
-        if (eventType === 'api_success') {
-          stats.summary.totalApiSuccess++;
-          stats.byProduct[productKey].apiSuccess++;
-          stats.byDate[dateKey].apiSuccess++;
-          stats.byProductDate[productKey][dateKey].apiSuccess++;
-        }
-        if (eventType === 'api_error') {
-          stats.summary.totalApiError++;
-          stats.byProduct[productKey].apiError++;
-          stats.byDate[dateKey].apiError++;
-          stats.byProductDate[productKey][dateKey].apiError++;
-        }
-        if (eventType === 'validation_error') {
-          stats.summary.totalValidationErrors++;
-          stats.byProduct[productKey].validationErrors++;
-          stats.byDate[dateKey].validationErrors++;
-          stats.byProductDate[productKey][dateKey].validationErrors++;
-
-          const msg = validationMessage ? String(validationMessage).trim().slice(0, 120) : 'unknown';
-          if (!stats.validationByProductDateMessage[productKey]) stats.validationByProductDateMessage[productKey] = {};
-          if (!stats.validationByProductDateMessage[productKey][dateKey]) stats.validationByProductDateMessage[productKey][dateKey] = {};
-          const messagesMap = stats.validationByProductDateMessage[productKey][dateKey];
-          messagesMap[msg] = (messagesMap[msg] || 0) + 1;
-        }
-
-        stats.productsMeta[productKey] = {
-          id: productKey,
-          handle: productHandle || stats.productsMeta[productKey]?.handle || null,
-          title: productTitle || stats.productsMeta[productKey]?.title || null,
-          productUrl: productUrl || stats.productsMeta[productKey]?.productUrl || null,
-          imageUrl: imageUrl || stats.productsMeta[productKey]?.imageUrl || null,
-          lastSeenAt: new Date().toISOString()
-        };
-
-        stats.lastUpdated = new Date().toISOString();
-
-        const newStatsPath = `${STATS_PREFIX}stats-${Date.now()}.json`;
-        const blob = await put(newStatsPath, JSON.stringify(stats, null, 2), {
-          access: 'public',
-          token: blobToken,
-          contentType: 'application/json',
-          allowOverwrite: true
-        });
-
-        const storedPath = blob.pathname || newStatsPath;
-        await cleanupOldVersions(blobToken, [...(statsData.versions || []), { pathname: storedPath, uploadedAt: new Date().toISOString() }]);
-      } catch (bgError) {
-        console.error('❌ [PRODUCT-STATS] Background write failed:', bgError?.message || bgError);
+      if (eventType === 'product_view') {
+        stats.summary.totalViews++;
+        stats.byProduct[productKey].views++;
+        stats.byDate[dateKey].views++;
+        stats.byProductDate[productKey][dateKey].views++;
       }
-    });
+      if (eventType === 'generate_click') {
+        stats.summary.totalGenerateClicks++;
+        stats.byProduct[productKey].generateClicks++;
+        stats.byDate[dateKey].generateClicks++;
+        stats.byProductDate[productKey][dateKey].generateClicks++;
+      }
+      if (eventType === 'api_success') {
+        stats.summary.totalApiSuccess++;
+        stats.byProduct[productKey].apiSuccess++;
+        stats.byDate[dateKey].apiSuccess++;
+        stats.byProductDate[productKey][dateKey].apiSuccess++;
+      }
+      if (eventType === 'api_error') {
+        stats.summary.totalApiError++;
+        stats.byProduct[productKey].apiError++;
+        stats.byDate[dateKey].apiError++;
+        stats.byProductDate[productKey][dateKey].apiError++;
+      }
+      if (eventType === 'validation_error') {
+        stats.summary.totalValidationErrors++;
+        stats.byProduct[productKey].validationErrors++;
+        stats.byDate[dateKey].validationErrors++;
+        stats.byProductDate[productKey][dateKey].validationErrors++;
 
-    return;
+        const msg = validationMessage ? String(validationMessage).trim().slice(0, 120) : 'unknown';
+        if (!stats.validationByProductDateMessage[productKey]) stats.validationByProductDateMessage[productKey] = {};
+        if (!stats.validationByProductDateMessage[productKey][dateKey]) stats.validationByProductDateMessage[productKey][dateKey] = {};
+        const messagesMap = stats.validationByProductDateMessage[productKey][dateKey];
+        messagesMap[msg] = (messagesMap[msg] || 0) + 1;
+      }
+
+      stats.productsMeta[productKey] = {
+        id: productKey,
+        handle: productHandle || stats.productsMeta[productKey]?.handle || null,
+        title: productTitle || stats.productsMeta[productKey]?.title || null,
+        productUrl: productUrl || stats.productsMeta[productKey]?.productUrl || null,
+        imageUrl: imageUrl || stats.productsMeta[productKey]?.imageUrl || null,
+        lastSeenAt: new Date().toISOString()
+      };
+
+      stats.lastUpdated = new Date().toISOString();
+
+      const newStatsPath = `${STATS_PREFIX}stats-${Date.now()}.json`;
+      const blob = await put(newStatsPath, JSON.stringify(stats, null, 2), {
+        access: 'public',
+        token: blobToken,
+        contentType: 'application/json',
+        allowOverwrite: true
+      });
+
+      const storedPath = blob.pathname || newStatsPath;
+      await cleanupOldVersions(blobToken, [...(statsData.versions || []), { pathname: storedPath, uploadedAt: new Date().toISOString() }]);
+    };
+
+    try {
+      await Promise.race([
+        writeWithTimeout(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Blob write timeout')), 8000))
+      ]);
+    } catch (writeError) {
+      console.error('❌ [PRODUCT-STATS] Write failed:', writeError?.message || writeError);
+    }
+
+    return res.json({ success: true });
   }
 
   if (req.method === 'GET') {
