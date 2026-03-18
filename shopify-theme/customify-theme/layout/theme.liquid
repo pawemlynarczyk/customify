@@ -5555,6 +5555,21 @@ opacity: 0.9;
   .customify-footer-poradnik {
     display: none !important;
   }
+  /* Powiększ obrazek produktu w koszyku */
+  .cart-items__item {
+    --cart-item-media-width-min: 4rem !important;
+    --cart-item-media-width-max: 10rem !important;
+  }
+  .cart-items__item .cart-items__media {
+    width: 10rem !important;
+    min-width: 10rem !important;
+    max-width: 10rem !important;
+  }
+  @container cart-items (min-width: 720px) {
+    .cart-items__item {
+      grid-template-columns: 10rem 1fr 1fr minmax(6rem, auto) !important;
+    }
+  }
 </style>
 <div class="page-width" style="margin: 40px auto 60px; max-width: 1200px;">
 <div style="display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; padding: 24px 16px; border-top: 1px solid rgba(0,0,0,0.08);">
