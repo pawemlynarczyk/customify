@@ -48,6 +48,20 @@ const TEST_EMAILS = new Set([
   'fabrykaetui@gmail.com', // Bez limitu transformacji
 ]);
 
+// 🚫 Lista zablokowanych emaili (brak możliwości dodawania kredytów / generacji)
+const BLOCKED_EMAILS = new Set([
+  'angelika.pacewicz@gmail.com',
+]);
+
+/**
+ * Sprawdza czy użytkownik jest zablokowany (nie może używać generacji)
+ * @param {string} email - Email użytkownika
+ * @returns {boolean} - true jeśli zablokowany
+ */
+function isBlockedUser(email) {
+  return email && BLOCKED_EMAILS.has(email.toLowerCase());
+}
+
 /**
  * Sprawdza czy użytkownik jest na liście testowej (bypass wszystkich limitów)
  * @param {string} email - Email użytkownika
@@ -1398,6 +1412,12 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: 'Image data is required' });
     }
     
+    // 🚫 BLOKADA: Sprawdź czy email z body jest zablokowany (przed limitami)
+    if (isBlockedUser(email || null)) {
+      console.warn(`🚫 [TRANSFORM] Zablokowany użytkownik (email z body):`, email ? email.substring(0, 15) + '...' : 'brak');
+      return res.status(403).json({ error: 'blocked', blocked: true });
+    }
+
     // 🧪 BYPASS: Sprawdź czy użytkownik jest na liście testowej (przed wszystkimi limitami)
     // ✅ Email używany tylko do test bypass (dla zalogowanych można sprawdzić przez customerId)
     // ⚠️ Zaktualizujemy isTest po pobraniu email z GraphQL (dla zalogowanych)
@@ -2547,6 +2567,12 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
         // customerEmailFromGraphQL jest już zdefiniowany na wyższym poziomie scope
         customerEmailFromGraphQL = customer?.email || null;
         
+        // 🚫 BLOKADA: Sprawdź czy zalogowany użytkownik jest na liście zablokowanych
+        if (isBlockedUser(customerEmailFromGraphQL)) {
+          console.warn(`🚫 [TRANSFORM] Zablokowany użytkownik (zalogowany):`, customerEmailFromGraphQL ? customerEmailFromGraphQL.substring(0, 15) + '...' : 'brak');
+          return res.status(403).json({ error: 'blocked', blocked: true });
+        }
+        
         if (!customer) {
           console.error(`❌ [METAFIELD-CHECK] Brak customer w response:`, metafieldData);
         }
@@ -2880,8 +2906,13 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
           });
 
           // 🕒 Zapisz do KV info o osiągniętym limicie (kolejka do automatycznego resetu/mailingu)
+          // Kredyty można dodać tylko raz – jeśli już były doładowane, nie dodawaj do kolejki
           if (customerId) {
             try {
+              const alreadyRefilled = isKVConfigured() ? await kv.get(`credits-refilled:${customerId}`) : null;
+              if (alreadyRefilled) {
+                console.log('⏭️ [LIMIT-QUEUE] Pomijam – kredyty już były dodane raz:', customerId);
+              } else {
               const key = `limit-reached:${customerId}`;
               const payload = {
                 timestamp: new Date().toISOString(),
@@ -2905,6 +2936,7 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
                   key,
                   existingTimestamp: existingPayload?.timestamp || null
                 });
+              }
               }
             } catch (kvErr) {
               console.error('⚠️ [LIMIT-QUEUE] Nie udało się zapisać do KV:', kvErr);
@@ -4309,8 +4341,13 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
           });
           
           // ✅ Dodaj do kolejki limit-reached natychmiast po osiągnięciu limitu (bez czekania na 5. próbę)
+          // Kredyty można dodać tylko raz – jeśli już były doładowane, nie dodawaj do kolejki
           if (!isTest && customerId && savedTotal >= 4) {
             try {
+              const alreadyRefilled = isKVConfigured() ? await kv.get(`credits-refilled:${customerId}`) : null;
+              if (alreadyRefilled) {
+                console.log('⏭️ [LIMIT-QUEUE] Pomijam po inkrementacji – kredyty już były dodane raz:', customerId);
+              } else {
               const totalLimit = 4; // 4 darmowe generacje TOTAL dla zalogowanych
               const key = `limit-reached:${customerId}`;
               const payload = {
@@ -4334,6 +4371,7 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
                   key,
                   existingTimestamp: existingPayload?.timestamp || null
                 });
+              }
               }
             } catch (kvErr) {
               console.error('⚠️ [LIMIT-QUEUE] Nie udało się zapisać do KV po inkrementacji:', kvErr);

@@ -332,6 +332,16 @@ module.exports = async (req, res) => {
         }
 
         const customerId = key.replace('limit-reached:', '');
+        // Kredyty można dodać tylko raz – jeśli już były doładowane, pomijamy
+        if (isKVConfigured()) {
+          const alreadyRefilled = await kv.get(`credits-refilled:${customerId}`);
+          if (alreadyRefilled) {
+            console.log('⏭️ [RESET-LIMITS] Pomijam – kredyty już były dodane raz:', customerId);
+            await kv.del(key);
+            continue;
+          }
+        }
+
         const customer = await getUsageData(shopDomain, accessToken, customerId);
         const email = customer?.email;
         const metafieldId = customer?.metafield?.id || null;
@@ -383,9 +393,12 @@ module.exports = async (req, res) => {
 
         // Usuń wpis z kolejki TYLKO jeśli email się wysłał lub nie ma emaila
         if (emailSent) {
+          if (isKVConfigured()) {
+            await kv.set(`credits-refilled:${customerId}`, '1'); // tylko raz można dodać kredyty
+          }
           await kv.del(key);
           resetCount += 1;
-          console.log('✅ [RESET-LIMITS] Zresetowano limity i wysłano email:', { customerId, email });
+          console.log('✅ [RESET-LIMITS] Zresetowano limity i wysłano email (jedyny doładowanie):', { customerId, email });
         }
       } catch (errItem) {
         errors.push({ key, error: errItem.message });

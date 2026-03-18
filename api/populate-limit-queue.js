@@ -127,6 +127,14 @@ module.exports = async (req, res) => {
       // Dodaj do kolejki TYLKO jeśli usage >= 4
       if (usageCount >= 4) {
         const customerId = customer.id.replace('gid://shopify/Customer/', '');
+        // Kredyty można dodać tylko raz – pomijaj jeśli już były doładowane
+        try {
+          const alreadyRefilled = await kv.get(`credits-refilled:${customerId}`);
+          if (alreadyRefilled) {
+            skippedCount++;
+            continue;
+          }
+        } catch (_) { /* KV error – dodaj do kolejki */ }
         const key = `limit-reached:${customerId}`;
         
         const payload = {

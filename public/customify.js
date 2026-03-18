@@ -3689,35 +3689,49 @@ class CustomifyEmbed {
    * Zapisuje obraz base64 do Vercel Blob Storage i zwraca URL
    */
   async saveToVercelBlob(base64String, filename) {
-    try {
-      console.log('📤 [VERCEL-BLOB] Uploading to Vercel Blob Storage...');
-      
-      const response = await fetch('https://customify-s56o.vercel.app/api/upload-temp-image', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          imageData: base64String,
-          filename: filename,
-        }),
-      });
+    const maxAttempts = 3;
+    const isRetryable = (err) => err?.message && (
+      err.message.includes('Failed to fetch') ||
+      err.message.includes('NetworkError') ||
+      err.message.includes('Load failed') ||
+      err.message.includes('Error completing request') ||
+      err.message.includes('network failure')
+    );
 
-      if (!response.ok) {
-        throw new Error(`Failed to upload: ${response.status} ${response.statusText}`);
-      }
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        console.log(`📤 [VERCEL-BLOB] Upload attempt ${attempt}/${maxAttempts}...`);
+        const response = await fetch('https://customify-s56o.vercel.app/api/upload-temp-image', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            imageData: base64String,
+            filename: filename,
+          }),
+        });
 
-      const result = await response.json();
-      
-      if (result.success && result.url) {
-        console.log('✅ [VERCEL-BLOB] Uploaded successfully:', result.url);
-        return result.url;
-      } else {
+        if (!response.ok) {
+          throw new Error(`Failed to upload: ${response.status} ${response.statusText}`);
+        }
+
+        const result = await response.json();
+        if (result.success && result.url) {
+          console.log('✅ [VERCEL-BLOB] Uploaded successfully:', result.url);
+          return result.url;
+        }
         throw new Error('No URL in response');
+      } catch (error) {
+        console.warn(`❌ [VERCEL-BLOB] Attempt ${attempt}/${maxAttempts} failed:`, error?.message || error);
+        if (attempt < maxAttempts && isRetryable(error)) {
+          const delay = attempt * 1500;
+          console.log(`🔄 [VERCEL-BLOB] Retrying in ${delay}ms...`);
+          await new Promise(r => setTimeout(r, delay));
+        } else {
+          throw error;
+        }
       }
-    } catch (error) {
-      console.error('❌ [VERCEL-BLOB] Error uploading:', error);
-      throw error;
     }
   }
 
@@ -7612,12 +7626,15 @@ class CustomifyEmbed {
     } catch (error) {
       console.error('📱 [MOBILE] Transform error:', error);
       
-      // Retry logic for network errors
-      if (retryCount < 3 && (
-        error.name === 'AbortError' || 
-        (error?.message && error.message.includes('Failed to fetch')) || 
-        (error?.message && error.message.includes('NetworkError'))
-      )) {
+      // Retry logic for network errors (w tym "Error completing request", "Load failed" z Sentry)
+      const isNetworkError = error?.message && (
+        error.message.includes('Failed to fetch') ||
+        error.message.includes('NetworkError') ||
+        error.message.includes('Load failed') ||
+        error.message.includes('Error completing request') ||
+        error.message.includes('network failure')
+      );
+      if (retryCount < 3 && (error.name === 'AbortError' || isNetworkError)) {
         console.log(`🔄 [MOBILE] Retrying in 2 seconds... (attempt ${retryCount + 1}/3)`);
         alert(`🔄 Ponawiam próbę ${retryCount + 1}/3...`);
         setTimeout(() => {
@@ -7630,8 +7647,8 @@ class CustomifyEmbed {
       
       if (error.name === 'AbortError') {
         errorMessage = 'Przekroczono limit czasu (5 minut). Spróbuj ponownie.';
-      } else if (error?.message && error.message.includes('Failed to fetch')) {
-        errorMessage = 'Błąd sieci. Sprawdź połączenie internetowe.';
+      } else if (error?.message && (error.message.includes('Failed to fetch') || error.message.includes('Error completing request') || error.message.includes('Load failed'))) {
+        errorMessage = 'Błąd sieci. Sprawdź połączenie internetowe i spróbuj ponownie.';
       } else if (error?.message && error.message.includes('NetworkError')) {
         errorMessage = 'Błąd sieci. Spróbuj ponownie za chwilę.';
       } else if (error?.message && error.message.includes('TypeError')) {
@@ -8340,12 +8357,14 @@ class CustomifyEmbed {
       
       // ✅ RETRY LOGIC: Ponów próbę dla network errors (max 3 próby)
       // ⚠️ TYLKO jeśli produkt NIE ZOSTAŁ JESZCZE UTWORZONY — inaczej powstają duplikaty w Shopify!
-      if (!productCreated && retryCount < 3 && (
-        error.name === 'AbortError' || 
-        (error?.message && error.message.includes('Failed to fetch')) || 
-        (error?.message && error.message.includes('NetworkError')) ||
-        (error?.message && error.message.includes('Load failed'))
-      )) {
+      const isNetworkErrorCart = error?.message && (
+        error.message.includes('Failed to fetch') ||
+        error.message.includes('NetworkError') ||
+        error.message.includes('Load failed') ||
+        error.message.includes('Error completing request') ||
+        error.message.includes('network failure')
+      );
+      if (!productCreated && retryCount < 3 && (error.name === 'AbortError' || isNetworkErrorCart)) {
         const retryDelay = (retryCount + 1) * 2000; // 2s, 4s, 6s
         console.log(`🔄 [CUSTOMIFY] Retrying addToCart in ${retryDelay}ms... (attempt ${retryCount + 1}/3)`);
         this.showError(`🔄 Błąd sieci - ponawiam próbę ${retryCount + 1}/3...`, 'cart');
@@ -8362,9 +8381,9 @@ class CustomifyEmbed {
       
       if (error.name === 'AbortError') {
         errorMessage = '❌ Przekroczono limit czasu (30 sekund). Spróbuj ponownie.';
-      } else if (error?.message && error.message.includes('Failed to fetch')) {
+      } else if (error?.message && (error.message.includes('Failed to fetch') || error.message.includes('Error completing request') || error.message.includes('Load failed'))) {
         errorMessage = '❌ Błąd sieci. Sprawdź połączenie internetowe i spróbuj ponownie.';
-      } else if (error?.message && (error.message.includes('NetworkError') || error.message.includes('Load failed'))) {
+      } else if (error?.message && error.message.includes('NetworkError')) {
         errorMessage = '❌ Błąd sieci. Spróbuj ponownie za chwilę.';
       } else if (error?.message) {
         errorMessage = '❌ Błąd: ' + error.message;

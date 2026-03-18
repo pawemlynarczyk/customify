@@ -13,6 +13,15 @@ const TEST_EMAILS = new Set([
   'fabrykaetui@gmail.com', // Bez limitu transformacji
 ]);
 
+// 🚫 Lista zablokowanych emaili (brak możliwości dodawania kredytów / generacji) – musi być zsynchronizowana z api/transform.js
+const BLOCKED_EMAILS = new Set([
+  'angelika.pacewicz@gmail.com',
+]);
+
+function isBlockedUser(email) {
+  return email && BLOCKED_EMAILS.has(email.toLowerCase());
+}
+
 /**
  * Sprawdza czy użytkownik jest na liście testowej (bypass wszystkich limitów)
  * @param {string} email - Email użytkownika
@@ -188,6 +197,18 @@ module.exports = async (req, res) => {
     // 🧪 BYPASS: Test users mają nieograniczone generacje
     const customerEmail = customer?.email || null;
     const isTest = isTestUser(customerEmail);
+    
+    // 🚫 BLOKADA: Zablokowani użytkownicy nie mogą dodawać kredytów
+    if (isBlockedUser(customerEmail)) {
+      console.warn(`🚫 [CHECK-USAGE] Zablokowany użytkownik:`, customerEmail ? customerEmail.substring(0, 15) + '...' : 'brak');
+      return res.status(403).json({
+        error: 'blocked',
+        blocked: true,
+        usedCount: 4,
+        totalLimit: 4,
+        remainingCount: 0
+      });
+    }
     
     if (isTest) {
       console.log(`🧪 [CHECK-USAGE] Test user - zwracam nieograniczone generacje`);

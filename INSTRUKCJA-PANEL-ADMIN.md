@@ -5,12 +5,19 @@
 1. ✅ **Panel Admin HTML**: `public/admin-generations.html`
 2. ✅ **Endpoint API**: `/api/admin-generations` (już istnieje)
 3. ✅ **Funkcjonalności**: Przeglądanie, filtrowanie, statystyki
+4. ✅ **Historia personalizacji**: `public/admin/personalization-log.html` — wpisy pól (imię, rocznica, opis osoby)
 
 ## 🚀 Jak używać:
 
 ### Krok 1: Otwórz panel admin
 1. Przejdź do: https://customify-s56o.vercel.app/admin-generations.html
 2. Panel automatycznie załaduje wszystkie generacje
+
+### Panel: Historia personalizacji (imię, rocznica, opis)
+- **URL**: https://customify-s56o.vercel.app/admin/personalization-log.html (działa też: `/admin/personalization-log`)
+- **Logowanie**: Token admina (zmienna `ADMIN_STATS_TOKEN`)
+- **Zawartość**: Tabela wpisów z pól personalizacji (imię/dedykacja, rocznica, opis osoby), filtry, statystyki produktów, chmura słów, eksport CSV
+- **Źródło danych**: Vercel Blob `customify/system/stats/personalization-log.json` (zapisywane z `api/transform.js` po każdej generacji z polami)
 
 ### Krok 2: Przeglądaj generacje
 - **Wszystkie generacje**: Kliknij "📋 Wszystkie" aby załadować wszystkie generacje

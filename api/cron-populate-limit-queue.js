@@ -167,6 +167,10 @@ module.exports = async (req, res) => {
         const customerId = String(node.id || '').replace('gid://shopify/Customer/', '');
         if (!customerId) continue;
 
+        // Kredyty można dodać tylko raz – pomijaj jeśli już były doładowane
+        const alreadyRefilled = await kv.get(`credits-refilled:${customerId}`);
+        if (alreadyRefilled) continue;
+
         const key = `limit-reached:${customerId}`;
 
         // ✅ nie nadpisuj istniejącego wpisu (ważne dla cooldown 1h)
