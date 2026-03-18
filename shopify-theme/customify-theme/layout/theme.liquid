@@ -1183,39 +1183,53 @@
  return;
  }
 
- // ✅ Użyj cart/add.js (POST) zamiast GET - lepsza obsługa błędów Shopify
- const cartRoot = (window.Shopify && window.Shopify.routes && window.Shopify.routes.root) || '/';
- const addToCartUrl = cartRoot + 'cart/add.js';
- const addPayload = {
- items: [{
- id: parseInt(result.variantId, 10),
- quantity: 1,
- properties: truncatedCartProperties
- }]
- };
- console.log('🛒 [CUSTOMIFY] Adding via cart/add.js POST:', addToCartUrl);
- try {
- const addResponse = await fetch(addToCartUrl, {
- method: 'POST',
- headers: { 'Content-Type': 'application/json' },
- body: JSON.stringify(addPayload)
- });
- const addResult = await addResponse.json();
- if (addResponse.ok && addResult.items && addResult.items.length > 0) {
- console.log('✅ [CUSTOMIFY] Added to cart successfully');
- this.hideCartLoading();
- window.location.href = cartRoot + 'cart';
- } else {
- const errMsg = addResult.description || addResult.message || addResult.error || 'Nie udało się dodać do koszyka';
- console.error('❌ [CUSTOMIFY] Cart add 422 error - full response:', JSON.stringify(addResult));
- this.hideCartLoading();
- this.showError('❌ ' + errMsg);
- }
- } catch (addErr) {
- console.error('❌ [CUSTOMIFY] Cart add fetch error:', addErr);
- this.hideCartLoading();
- this.showError('❌ Błąd dodawania do koszyka. Spróbuj ponownie.');
- }
+// ✅ Użyj cart/add.js (POST) z retry — Shopify ma eventual consistency po stworzeniu produktu
+// Przez chwilę koszyk może widzieć zapas 0 zanim silnik inventory się zsynchronizuje
+const cartRoot = (window.Shopify && window.Shopify.routes && window.Shopify.routes.root) || '/';
+const addToCartUrl = cartRoot + 'cart/add.js';
+const addPayload = {
+items: [{
+id: parseInt(result.variantId, 10),
+quantity: 1,
+properties: truncatedCartProperties
+}]
+};
+console.log('🛒 [CUSTOMIFY] Adding via cart/add.js POST:', addToCartUrl);
+let cartAdded = false;
+for (let attempt = 0; attempt < 4 && !cartAdded; attempt++) {
+if (attempt > 0) {
+const delay = attempt * 1500; // 1.5s, 3s, 4.5s
+console.log(`🔄 [CUSTOMIFY] Cart add retry ${attempt}/3 (Shopify inventory sync) — czekam ${delay}ms...`);
+await new Promise(r => setTimeout(r, delay));
+}
+try {
+const addResponse = await fetch(addToCartUrl, {
+method: 'POST',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify(addPayload)
+});
+const addResult = await addResponse.json();
+if (addResponse.ok && addResult.items && addResult.items.length > 0) {
+cartAdded = true;
+console.log('✅ [CUSTOMIFY] Added to cart successfully');
+this.hideCartLoading();
+window.location.href = cartRoot + 'cart';
+} else {
+const errMsg = addResult.description || addResult.message || addResult.error || 'Nie udało się dodać do koszyka';
+console.error(`❌ [CUSTOMIFY] Cart add attempt ${attempt + 1} failed (422):`, JSON.stringify(addResult));
+if (attempt === 3) {
+this.hideCartLoading();
+this.showError('❌ ' + errMsg);
+}
+}
+} catch (addErr) {
+console.error(`❌ [CUSTOMIFY] Cart add fetch error (attempt ${attempt + 1}):`, addErr);
+if (attempt === 3) {
+this.hideCartLoading();
+this.showError('❌ Błąd dodawania do koszyka. Spróbuj ponownie.');
+}
+}
+}
  }
  } else {
  console.error('❌ [CUSTOMIFY] Product creation failed:', result);
