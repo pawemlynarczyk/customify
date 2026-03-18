@@ -227,6 +227,19 @@
       background: #f5f5f5;
       color: #757575;
     }
+
+    .user-info {
+      font-size: 11px;
+      color: #1565C0;
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+    }
+    .user-info-unknown {
+      color: #9e9e9e;
+    }
     
     .image-info .filename {
       word-break: break-all;
@@ -970,6 +983,21 @@
           } else {
             typeHtml = '';
           }
+          // Dane użytkownika (tylko dla wygenerowanych)
+          let userHtml = '';
+          if (image.category === 'wygenerowane') {
+            if (image.userEmail) {
+              const safeEmail = image.userEmail.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+              const shopifyUrl = image.userId
+                ? `https://customify-ok.myshopify.com/admin/customers/${image.userId}`
+                : null;
+              userHtml = shopifyUrl
+                ? `<div class="user-info" title="Klient Shopify: ${safeEmail}">👤 <a href="${shopifyUrl}" target="_blank" style="color:#1565C0;text-decoration:none;">${safeEmail}</a></div>`
+                : `<div class="user-info" title="${safeEmail}">👤 ${safeEmail}</div>`;
+            } else {
+              userHtml = `<div class="user-info user-info-unknown">👤 Niezalogowany</div>`;
+            }
+          }
           // Obrazek - normalne wyświetlanie z retry logic
           card.innerHTML = `
             <input type="checkbox" class="checkbox" ${isSelected ? 'checked' : ''} 
@@ -981,6 +1009,7 @@
             <div class="image-info">
               <span class="category ${image.category}">${image.category}</span>
               ${typeHtml}
+              ${userHtml}
               <div class="filename">${fileName}</div>
               <div class="date">${new Date(image.uploadedAt).toLocaleString('pl-PL')}</div>
             </div>

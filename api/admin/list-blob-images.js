@@ -15,6 +15,8 @@ const { checkRateLimit, getClientIP } = require('../../utils/vercelRateLimiter')
 async function buildProductTypeMap(jsonBlobs) {
   const urlToProductType = {};
   const pathnameToProductType = {};
+  const urlToUser = {};
+  const pathnameToUser = {};
   const MAX_JSON_FETCH = 80;
   const BATCH_SIZE = 10;
   const toFetch = jsonBlobs.slice(0, MAX_JSON_FETCH);
@@ -26,20 +28,39 @@ async function buildProductTypeMap(jsonBlobs) {
         const resp = await fetch(blob.url, { signal: AbortSignal.timeout(3000) });
         if (!resp.ok) return;
         const data = await resp.json();
+        // Dane użytkownika z pliku JSON (customerId, email)
+        const fileEmail = data?.email || null;
+        const fileCustomerId = data?.customerId || null;
         const generations = data?.generations || [];
         for (const gen of generations) {
           const url = gen.imageUrl || gen.watermarkedImageUrl;
           const pt = gen.productType || gen.style || 'other';
-          if (url && pt) {
-            urlToProductType[url] = pt;
+          if (url) {
+            if (pt) {
+              urlToProductType[url] = pt;
+            }
+            // Zapisz dane użytkownika dla każdego URL z tej generacji
+            if (fileEmail || fileCustomerId) {
+              urlToUser[url] = { email: fileEmail, customerId: fileCustomerId };
+            }
             try {
               const pathFromUrl = new URL(url).pathname.replace(/^\//, '');
               if (pathFromUrl) {
-                pathnameToProductType[pathFromUrl] = pt;
-                const fn = pathFromUrl.split('/').pop();
-                if (fn) pathnameToProductType[fn] = pt;
-                const pathWithoutPrefix = pathFromUrl.replace(/^customify\/?/, '');
-                if (pathWithoutPrefix) pathnameToProductType[pathWithoutPrefix] = pt;
+                if (pt) {
+                  pathnameToProductType[pathFromUrl] = pt;
+                  const fn = pathFromUrl.split('/').pop();
+                  if (fn) pathnameToProductType[fn] = pt;
+                  const pathWithoutPrefix = pathFromUrl.replace(/^customify\/?/, '');
+                  if (pathWithoutPrefix) pathnameToProductType[pathWithoutPrefix] = pt;
+                }
+                if (fileEmail || fileCustomerId) {
+                  const userEntry = { email: fileEmail, customerId: fileCustomerId };
+                  pathnameToUser[pathFromUrl] = userEntry;
+                  const fn = pathFromUrl.split('/').pop();
+                  if (fn) pathnameToUser[fn] = userEntry;
+                  const pathWithoutPrefix = pathFromUrl.replace(/^customify\/?/, '');
+                  if (pathWithoutPrefix) pathnameToUser[pathWithoutPrefix] = userEntry;
+                }
               }
             } catch (_) {}
           }
@@ -51,7 +72,8 @@ async function buildProductTypeMap(jsonBlobs) {
   }
 
   console.log(`📊 [LIST-BLOB-IMAGES] productType map: ${Object.keys(urlToProductType).length} URLs, ${Object.keys(pathnameToProductType).length} pathnames (z ${toFetch.length} plików JSON)`);
-  return { urlToProductType, pathnameToProductType };
+  console.log(`📊 [LIST-BLOB-IMAGES] user map: ${Object.keys(urlToUser).length} URLs z danymi użytkownika`);
+  return { urlToProductType, pathnameToProductType, urlToUser, pathnameToUser };
 }
 
 module.exports = async (req, res) => {
@@ -312,7 +334,7 @@ module.exports = async (req, res) => {
       const bt = (b.uploadedAt && new Date(b.uploadedAt).getTime()) || 0;
       return bt - at;
     });
-    const { urlToProductType, pathnameToProductType } = await buildProductTypeMap(jsonBlobsSorted);
+    const { urlToProductType, pathnameToProductType, urlToUser, pathnameToUser } = await buildProductTypeMap(jsonBlobsSorted);
 
     // Filtruj po kategorii jeśli podano (PO liczeniu statystyk!)
     let categorizedBlobs = allCategorizedBlobs;
@@ -361,9 +383,11 @@ module.exports = async (req, res) => {
       const isJson = pathname.toLowerCase().endsWith('.json');
       const filenameOnly = pathname.split('/').pop() || '';
       
-      // productType dla wygenerowanych - lookup z JSON (URL, pathname, path bez prefiksu, filename)
+      // productType + dane użytkownika dla wygenerowanych - lookup z JSON
       let productType = null;
       let uploadType = null; // dla kategorii "upload" - który styl zapisał oryginał
+      let userEmail = null;
+      let userId = null;
       if (blob.category === 'wygenerowane') {
         const pathWithoutPrefix = pathname.replace(/^customify\/?/, '');
         productType = urlToProductType[blob.url] 
@@ -371,6 +395,16 @@ module.exports = async (req, res) => {
           || (pathWithoutPrefix ? pathnameToProductType[pathWithoutPrefix] : null)
           || (filenameOnly ? pathnameToProductType[filenameOnly] : null) 
           || null;
+        // Lookup użytkownika (email, customerId) - bez dodatkowych requestów
+        const userInfo = urlToUser[blob.url]
+          || pathnameToUser[pathname]
+          || (pathWithoutPrefix ? pathnameToUser[pathWithoutPrefix] : null)
+          || (filenameOnly ? pathnameToUser[filenameOnly] : null)
+          || null;
+        if (userInfo) {
+          userEmail = userInfo.email || null;
+          userId = userInfo.customerId ? String(userInfo.customerId) : null;
+        }
       } else if (blob.category === 'upload') {
         const fn = filenameOnly.toLowerCase();
         for (const [prefix, label] of Object.entries(uploadPrefixToLabel)) {
@@ -414,6 +448,8 @@ module.exports = async (req, res) => {
         category: blob.category,
         productType: productType, // karykatura, king, cats, phone, boho, etc.
         uploadType: uploadType, // dla upload: Karykatura, Akwarela, GTA, itd.
+        userEmail: userEmail, // email użytkownika (tylko dla wygenerowanych, tylko zalogowani)
+        userId: userId, // Shopify customerId (tylko dla wygenerowanych, tylko zalogowani)
         isJson: isJson,
         contentType: blob.contentType || (isJson ? 'application/json' : 'image')
       };
