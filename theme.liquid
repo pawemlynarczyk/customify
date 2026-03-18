@@ -1230,6 +1230,25 @@ window.location.href = cartRoot + 'cart';
 const errMsg = addResult.description || addResult.message || addResult.error || 'Nie udało się dodać do koszyka';
 console.error(`❌ [CUSTOMIFY] Cart add attempt ${attempt + 1} failed (422):`, JSON.stringify(addResult));
 if (attempt === 3) {
+// ❌ WSZYSTKIE PRÓBY NIEUDANE — zaloguj do Sentry jako krytyczny błąd
+if (typeof Sentry !== 'undefined') {
+Sentry.withScope(scope => {
+scope.setLevel('error');
+scope.setTag('error_type', 'cart_add_failed');
+scope.setTag('style', this.selectedStyle || 'unknown');
+scope.setTag('size', this.selectedSize || 'unknown');
+scope.setContext('cart_add_failure', {
+variantId: result.variantId,
+productId: result.productId || result.product?.id,
+shopifyError: errMsg,
+shopifyResponse: JSON.stringify(addResult).substring(0, 300),
+attempts: 4,
+url: window.location.href,
+productTitle: result.product?.title || 'unknown'
+});
+Sentry.captureMessage(`Cart add failed after 4 attempts: ${errMsg}`, 'error');
+});
+}
 this.hideCartLoading();
 this.showError('❌ ' + errMsg);
 }
@@ -1237,14 +1256,35 @@ this.showError('❌ ' + errMsg);
 } catch (addErr) {
 console.error(`❌ [CUSTOMIFY] Cart add fetch error (attempt ${attempt + 1}):`, addErr);
 if (attempt === 3) {
+if (typeof Sentry !== 'undefined') {
+Sentry.withScope(scope => {
+scope.setLevel('error');
+scope.setTag('error_type', 'cart_add_network_error');
+scope.setContext('cart_add_failure', { error: addErr.message, attempts: 4, url: window.location.href });
+Sentry.captureMessage(`Cart add network error after 4 attempts: ${addErr.message}`, 'error');
+});
+}
 this.hideCartLoading();
 this.showError('❌ Błąd dodawania do koszyka. Spróbuj ponownie.');
 }
 }
 }
+if (!cartAdded) {
+console.error('❌ [CUSTOMIFY] Cart add FAILED after all retries — produkt stworzony ale nie dodany do koszyka!');
+}
  }
  } else {
  console.error('❌ [CUSTOMIFY] Product creation failed:', result);
+ if (typeof Sentry !== 'undefined') {
+ Sentry.withScope(scope => {
+ scope.setLevel('error');
+ scope.setTag('error_type', 'product_creation_failed');
+ scope.setTag('style', this.selectedStyle || 'unknown');
+ scope.setTag('size', this.selectedSize || 'unknown');
+ scope.setContext('product_creation', { error: result.error, result: JSON.stringify(result).substring(0, 300), url: window.location.href });
+ Sentry.captureMessage(`Product creation failed: ${result.error || 'unknown'}`, 'error');
+ });
+ }
  this.hideCartLoading();
  this.showError('❌ Błąd podczas tworzenia produktu: ' + (result.error || 'Nieznany błąd'));
  }
