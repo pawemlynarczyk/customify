@@ -96,7 +96,7 @@
     if (isViewTransitionError) { return null; }
 
     // 🔇 B1: Horizon critical.js — #aspectRatioHelper (stara cache — zniknie samo)
-    if (errorMessage.includes('processNewElements') && filename.includes('critical.js')) { return null; }
+    if (errorMessage.includes('processNewElements')) { return null; }
 
     // 🔇 B2: ES Modules @theme/component — stara przeglądarka lub cache
     if (errorMessage.includes("does not start with '/'") || errorMessage.includes('@theme/')) { return null; }
@@ -162,7 +162,7 @@
     if (isViewTransitionError) { return null; }
 
     // 🔇 B1: Horizon critical.js — #aspectRatioHelper (stara cache — zniknie samo)
-    if (errorMessage.includes('processNewElements') && filename.includes('critical.js')) { return null; }
+    if (errorMessage.includes('processNewElements')) { return null; }
 
     // 🔇 B2: ES Modules @theme/component — stara przeglądarka lub cache
     if (errorMessage.includes("does not start with '/'") || errorMessage.includes('@theme/')) { return null; }
