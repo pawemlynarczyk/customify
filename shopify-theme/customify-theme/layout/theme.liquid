@@ -309,19 +309,22 @@
  const errorMessage = error.message || event.message || '';
  
  // ✅ Sprawdź czy to błąd view transition
- const isViewTransitionError = 
- errorMessage.includes('view transition') ||
- errorMessage.includes('ViewTransition') ||
- errorMessage.includes('skipTransition') ||
- errorMessage.includes('Skipping view transition') ||
- error.name === 'AbortError' && errorMessage.includes('transition');
- 
- if (isViewTransitionError) {
- // ✅ Ignoruj - to tylko animacje, nie wpływają na funkcjonalność
- console.debug('🔇 [VIEW-TRANSITION] Ignoruję błąd animacji:', errorMessage);
- event.preventDefault();
- return false; // Nie loguj do Sentry
- }
+const isViewTransitionError = 
+errorMessage.includes('view transition') ||
+errorMessage.includes('ViewTransition') ||
+errorMessage.includes('skipTransition') ||
+errorMessage.includes('Skipping view transition') ||
+errorMessage.includes('Transition was aborted') ||
+errorMessage.includes('transition was aborted') ||
+(error.name === 'AbortError' && errorMessage.includes('transition')) ||
+(error.name === 'InvalidStateError' && errorMessage.includes('aborted'));
+
+if (isViewTransitionError) {
+// ✅ Ignoruj - to tylko animacje przejść Shopify Horizon (nie wpływają na funkcjonalność)
+console.debug('🔇 [VIEW-TRANSITION] Ignoruję błąd animacji:', errorMessage);
+event.preventDefault();
+return false; // Nie loguj do Sentry
+}
  }, true);
  
  // ✅ VIEW TRANSITION PROMISE REJECTION HANDLER
@@ -329,19 +332,22 @@
  const error = event.reason || event;
  const errorMessage = error?.message || String(error) || '';
  
- const isViewTransitionError = 
- errorMessage.includes('view transition') ||
- errorMessage.includes('ViewTransition') ||
- errorMessage.includes('skipTransition') ||
- errorMessage.includes('Skipping view transition') ||
- (error?.name === 'AbortError' && errorMessage.includes('transition'));
- 
- if (isViewTransitionError) {
- // ✅ Ignoruj - to tylko animacje
- console.debug('🔇 [VIEW-TRANSITION] Ignoruję promise rejection animacji:', errorMessage);
- event.preventDefault();
- }
- });
+const isViewTransitionError = 
+errorMessage.includes('view transition') ||
+errorMessage.includes('ViewTransition') ||
+errorMessage.includes('skipTransition') ||
+errorMessage.includes('Skipping view transition') ||
+errorMessage.includes('Transition was aborted') ||
+errorMessage.includes('transition was aborted') ||
+(error?.name === 'AbortError' && errorMessage.includes('transition')) ||
+(error?.name === 'InvalidStateError' && errorMessage.includes('aborted'));
+
+if (isViewTransitionError) {
+// ✅ Ignoruj - to tylko animacje przejść Shopify Horizon (nie wpływają na funkcjonalność)
+console.debug('🔇 [VIEW-TRANSITION] Ignoruję promise rejection animacji:', errorMessage);
+event.preventDefault();
+}
+});
  
  console.log('✅ [VIEW-TRANSITION-HANDLER] View transition error handler zainstalowany');
  })();
