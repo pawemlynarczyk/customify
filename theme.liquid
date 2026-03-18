@@ -140,6 +140,7 @@
     id: {{ customer.id | json }},
     email: {{ customer.email | json }}
     });
+    window.__customerEmail = {{ customer.email | json }};
     {% else %}
     Sentry.init({
     dsn: "https://562a1a160e90a597f0236fd8c6b13301@o4510439439925248.ingest.de.sentry.io/4510439517257808",
@@ -1230,7 +1231,7 @@ window.location.href = cartRoot + 'cart';
 const errMsg = addResult.description || addResult.message || addResult.error || 'Nie udało się dodać do koszyka';
 console.error(`❌ [CUSTOMIFY] Cart add attempt ${attempt + 1} failed (422):`, JSON.stringify(addResult));
 if (attempt === 3) {
-// ❌ WSZYSTKIE PRÓBY NIEUDANE — zaloguj do Sentry jako krytyczny błąd
+// ❌ WSZYSTKIE PRÓBY NIEUDANE — zaloguj do Sentry + wyślij email alert
 if (typeof Sentry !== 'undefined') {
 Sentry.withScope(scope => {
 scope.setLevel('error');
@@ -1249,6 +1250,22 @@ productTitle: result.product?.title || 'unknown'
 Sentry.captureMessage(`Cart add failed after 4 attempts: ${errMsg}`, 'error');
 });
 }
+// 📧 Wyślij email alert do biuro@onliner.one
+fetch('https://customify-s56o.vercel.app/api/cart-add-alert', {
+method: 'POST',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify({
+variantId: result.variantId,
+productId: result.productId || result.product?.id,
+productTitle: result.product?.title || 'unknown',
+shopifyError: errMsg,
+style: this.selectedStyle || 'unknown',
+size: this.selectedSize || 'unknown',
+url: window.location.href,
+userEmail: window.__customerEmail || null,
+attempts: 4
+})
+}).catch(e => console.warn('⚠️ [CART-ALERT] Email send failed (nie blokuje):', e.message));
 this.hideCartLoading();
 this.showError('❌ ' + errMsg);
 }
