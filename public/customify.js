@@ -3547,20 +3547,7 @@ class CustomifyEmbed {
 
     // Overlay z informacjami
     const overlay = document.createElement('div');
-    overlay.style.cssText = `
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: linear-gradient(transparent, rgba(0,0,0,0.8));
-      color: white;
-      padding: 8px;
-      font-size: 0.8rem;
-    `;
-    overlay.innerHTML = `
-      <div style="font-weight: 600;">${generation.style}</div>
-      <div style="opacity: 0.8;">${generation.size}</div>
-    `;
+    overlay.style.cssText = `display: none;`;
 
     // Hover effect
     item.addEventListener('mouseenter', () => {
