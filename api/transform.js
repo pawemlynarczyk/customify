@@ -3524,6 +3524,18 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
     } else {
       // ✅ INNE STYLE - UŻYWAJ REPLICATE
       console.log('🎨 [REPLICATE] Using Replicate for non-king styles');
+
+      // 🚨 FEATURE FLAG: FORCE_SEGMIND_NB2=true → pomiń Replicate, idź od razu na Segmind nano-banana-2
+      if (config.apiType === 'nano-banana-2' && process.env.FORCE_SEGMIND_NB2 === 'true') {
+        console.log('🔀 [FORCE-SEGMIND] FORCE_SEGMIND_NB2=true – pomijam Replicate, używam Segmind nano-banana-2 bezpośrednio');
+        try {
+          imageUrl = await segmindNanoBanana2(inputParams);
+          console.log('✅ [FORCE-SEGMIND] Segmind nano-banana-2 succeeded');
+        } catch (forceFallbackErr) {
+          console.error('❌ [FORCE-SEGMIND] Segmind nano-banana-2 failed:', forceFallbackErr?.message || forceFallbackErr);
+          return res.status(500).json({ error: 'AI generation failed. Please try again.' });
+        }
+      } else {
       
       // Check if Replicate is available
       if (!replicate) {
@@ -3665,6 +3677,7 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
           return res.status(500).json({ error: 'Invalid response format from AI model' });
         }
       }
+      } // end else (FORCE_SEGMIND_NB2 disabled)
     }
 
     // ✅ SPOTIFY FRAME: Kompozycja robiona na FRONTENDZIE (canvas w przeglądarce)
