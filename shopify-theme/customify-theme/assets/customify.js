@@ -1862,7 +1862,7 @@ const DEFAULT_PERSONALIZATION_PER_PRODUCT = {
   'active-woman-portret-ze-zdjecia-na-rocznice-dla-kolezanki-kobiety-druk-na-szkle': 'fitness, sport, aktywność fizyczna',
   'active-woman-portret-ze-zdjecia-na-18-urodziny-dla-dziewczyny-druk-na-szkle-copy': 'fitness, sport, aktywność fizyczna',
   'portret-ze-zdjecia-prezent-na-urodziny-dla-kolezanki-szefowej-salon-spa': 'salon manicure, tipsy, rzęsy',
-  'portret-na-18-urodziny-dla-dziewczyny-magic-z-wlasnego-zdjecia-druk-na-szkle': 'glamorous woman, sequin dress, Hollywood red carpet, paparazzi, spotlights, champagne, black and gold luxury',
+  'portret-na-18-urodziny-dla-dziewczyny-magic-z-wlasnego-zdjecia-druk-na-szkle': 'glamorous woman, red sequin dress, Hollywood red carpet, paparazzi, spotlights, champagne, black and gold luxury',
   'obraz-ze-zdjecia-prezent-na-40-urodziny-dla-kobiety-czerwony-dywan': 'glamorous woman, red carpet, elegant dress, Hollywood spotlight, birthday celebration, 40th birthday',
   'portret-ze-zdjecia-na-30-rocznice-dla-nauczycielki-karykatura-na-prezent': 'teacher, smart blazer, blackboard with chalk drawings, warm classroom, bookshelves, cozy academic atmosphere',
   'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania': 'elegant, versatile person',
@@ -4577,21 +4577,17 @@ class CustomifyEmbed {
     console.log('💾 [USAGE] Saved return URL to localStorage:', returnUrl);
     console.log('💾 [USAGE] Timestamp:', Date.now());
     
-    // Użyj pełnego URL z domeną - Shopify potrzebuje pełnego URL dla return_url
-    const fullReturnUrl = window.location.origin + returnUrl;
-    console.log('🌐 [DEBUG] Full return URL:', fullReturnUrl);
+    // Nowe Customer Accounts Shopify (account.lumly.pl) wymagają /customer_authentication/login?return_to=ŚCIEŻKA
+    // Dokumentacja: https://shopify.dev/docs/storefronts/themes/login (changelog Dec 19, 2024)
+    // WAŻNE: return_to przyjmuje TYLKO ścieżkę względną (nie pełny URL)
+    const encodedReturnPath = encodeURIComponent(returnUrl);
+    console.log('🔐 [DEBUG] Encoded return path:', encodedReturnPath);
     
-    // Shopify Customer Account może wymagać specjalnego formatu return_url
-    const encodedReturnUrl = encodeURIComponent(fullReturnUrl);
-    console.log('🔐 [DEBUG] Encoded return URL:', encodedReturnUrl);
+    // Jeden endpoint dla rejestracji i logowania (nowe konta Shopify nie mają osobnego /register)
+    const registerUrl = `/customer_authentication/login?return_to=${encodedReturnPath}`;
+    const loginUrl = `/customer_authentication/login?return_to=${encodedReturnPath}`;
     
-    const registerUrl = `/account/register?return_url=${encodedReturnUrl}`;
-    const loginUrl = `/account/login?return_url=${encodedReturnUrl}`;
-    
-    console.log('🔗 [DEBUG] Register URL:', registerUrl);
-    console.log('🔗 [DEBUG] Login URL:', loginUrl);
-    console.log('🔗 [DEBUG] Register URL (decoded):', decodeURIComponent(registerUrl));
-    console.log('🔗 [DEBUG] Login URL (decoded):', decodeURIComponent(loginUrl));
+    console.log('🔗 [DEBUG] Login/Register URL:', loginUrl);
     
     const markAuthIntent = (type) => {
       try {
