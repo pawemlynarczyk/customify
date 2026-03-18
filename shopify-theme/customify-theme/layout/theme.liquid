@@ -2193,50 +2193,79 @@
  <body class="page-width-{{ settings.page_width }} card-hover-effect-{{ settings.card_hover_effect }}{% if template == 'product' and product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem' %} product-etui{% endif %}">
  {% render 'skip-to-content-link', href: '#MainContent', text: 'accessibility.skip_to_text' %}
 
- <script>
- (function() {
- const isLoggedIn = {{ customer.id | json }} !== null;
- if (!isLoggedIn) {
- return;
- }
- try {
- const authIntent = localStorage.getItem('customify_auth_intent');
- if (!authIntent) {
- return;
- }
- const timestampRaw = localStorage.getItem('customify_auth_intent_timestamp');
- const timestamp = timestampRaw ? parseInt(timestampRaw, 10) : null;
- const authSource = localStorage.getItem('customify_auth_source');
- const MAX_AGE_MS = 30 * 60 * 1000; // 30 minut na wysłanie zdarzenia
- if (timestamp && (Date.now() - timestamp) > MAX_AGE_MS) {
- localStorage.removeItem('customify_auth_intent');
- localStorage.removeItem('customify_auth_intent_timestamp');
- localStorage.removeItem('customify_auth_source');
- return;
- }
- const isRegisterIntent = authIntent.startsWith('register');
- const eventType = isRegisterIntent ? 'login_modal_register_success' : 'login_modal_login_success';
- fetch('https://customify-s56o.vercel.app/api/admin/login-modal-stats', {
- method: 'POST',
- headers: { 'Content-Type': 'application/json' },
- body: JSON.stringify({
- eventType,
- productUrl: authSource || localStorage.getItem('customify_return_url') || window.location.pathname,
- timestamp: new Date().toISOString(),
- sourcePage: window.location.pathname
- })
- }).catch(function(err) {
- console.warn('📊 [AUTH SUCCESS] Failed to send event:', err);
- }).finally(function() {
- localStorage.removeItem('customify_auth_intent');
- localStorage.removeItem('customify_auth_intent_timestamp');
- localStorage.removeItem('customify_auth_source');
- });
- } catch (error) {
- console.warn('📊 [AUTH SUCCESS] Tracking error:', error);
- }
- })();
- </script>
+<script>
+(function() {
+// ============================================================
+// RETURN REDIRECT - wróć na stronę produktu po zalogowaniu
+// Żeby wyłączyć: zmień ENABLE_RETURN_REDIRECT na false + npm run deploy
+// ============================================================
+var ENABLE_RETURN_REDIRECT = true;
+
+var isLoggedIn = {{ customer.id | json }} !== null;
+if (!isLoggedIn) return;
+
+try {
+  var authIntent = localStorage.getItem('customify_auth_intent');
+  if (!authIntent) return;
+
+  var timestampRaw = localStorage.getItem('customify_auth_intent_timestamp');
+  var timestamp = timestampRaw ? parseInt(timestampRaw, 10) : null;
+  var authSource = localStorage.getItem('customify_auth_source');
+  var returnUrl = localStorage.getItem('customify_return_url') || authSource;
+  var MAX_AGE_MS = 30 * 60 * 1000;
+
+  if (timestamp && (Date.now() - timestamp) > MAX_AGE_MS) {
+    localStorage.removeItem('customify_auth_intent');
+    localStorage.removeItem('customify_auth_intent_timestamp');
+    localStorage.removeItem('customify_auth_source');
+    localStorage.removeItem('customify_return_url');
+    localStorage.removeItem('customify_return_url_timestamp');
+    return;
+  }
+
+  var isRegisterIntent = authIntent.startsWith('register');
+  var eventType = isRegisterIntent ? 'login_modal_register_success' : 'login_modal_login_success';
+
+  // Wyślij analytics (fire and forget - nie czekamy na odpowiedź)
+  fetch('https://customify-s56o.vercel.app/api/admin/login-modal-stats', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      eventType: eventType,
+      productUrl: authSource || returnUrl || window.location.pathname,
+      timestamp: new Date().toISOString(),
+      sourcePage: window.location.pathname
+    })
+  }).catch(function(err) {
+    console.warn('📊 [AUTH SUCCESS] Failed to send event:', err);
+  });
+
+  // Wyczyść klucze auth_intent natychmiast (synchronicznie)
+  localStorage.removeItem('customify_auth_intent');
+  localStorage.removeItem('customify_auth_intent_timestamp');
+  localStorage.removeItem('customify_auth_source');
+
+  // Wróć na stronę produktu po zalogowaniu
+  if (ENABLE_RETURN_REDIRECT && returnUrl) {
+    var currentPath = window.location.pathname + window.location.search;
+    localStorage.removeItem('customify_return_url');
+    localStorage.removeItem('customify_return_url_timestamp');
+    if (currentPath !== returnUrl) {
+      console.log('🔄 [RETURN-REDIRECT] Wracam na stronę produktu:', returnUrl);
+      window.location.href = returnUrl;
+      return;
+    }
+    console.log('✅ [RETURN-REDIRECT] Już na właściwej stronie:', currentPath);
+  } else {
+    localStorage.removeItem('customify_return_url');
+    localStorage.removeItem('customify_return_url_timestamp');
+  }
+
+} catch (error) {
+  console.warn('📊 [AUTH SUCCESS] Tracking error:', error);
+}
+})();
+</script>
 
  <script>
  (function() {
