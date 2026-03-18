@@ -85,17 +85,20 @@
     const topFrame = frames[frames.length - 1] || {};
     const filename = topFrame.filename || event.request?.url || '';
 
-    // ✅ FILTRUJ BŁĘDY VIEW TRANSITION
+    // ✅ FILTRUJ BŁĘDY VIEW TRANSITION (Shopify Horizon — nie nasz kod)
     const isViewTransitionError = 
     errorMessage.includes('view transition') ||
     errorMessage.includes('ViewTransition') ||
     errorMessage.includes('Skipping view transition') ||
     errorMessage.includes('skipTransition') ||
+    errorMessage.includes('Transition was aborted') ||
+    errorMessage.includes('transition was aborted') ||
     (errorType === 'AbortError' && errorMessage.includes('transition')) ||
-    (errorType === 'AbortError' && errorMessage.toLowerCase().includes('skip'));
+    (errorType === 'AbortError' && errorMessage.toLowerCase().includes('skip')) ||
+    (errorType === 'InvalidStateError' && errorMessage.includes('aborted'));
     if (isViewTransitionError) { return null; }
 
-    // 🔇 B1: Horizon critical.js — #aspectRatioHelper (stara cache — zniknie samo)
+    // 🔇 B1: Horizon critical.js / paginated-list.js — processNewElements
     if (errorMessage.includes('processNewElements')) { return null; }
 
     // 🔇 B2: ES Modules @theme/component — stara przeglądarka lub cache
@@ -151,17 +154,20 @@
     const topFrame = frames[frames.length - 1] || {};
     const filename = topFrame.filename || event.request?.url || '';
 
-    // ✅ FILTRUJ BŁĘDY VIEW TRANSITION
+    // ✅ FILTRUJ BŁĘDY VIEW TRANSITION (Shopify Horizon — nie nasz kod)
     const isViewTransitionError = 
     errorMessage.includes('view transition') ||
     errorMessage.includes('ViewTransition') ||
     errorMessage.includes('Skipping view transition') ||
     errorMessage.includes('skipTransition') ||
+    errorMessage.includes('Transition was aborted') ||
+    errorMessage.includes('transition was aborted') ||
     (errorType === 'AbortError' && errorMessage.includes('transition')) ||
-    (errorType === 'AbortError' && errorMessage.toLowerCase().includes('skip'));
+    (errorType === 'AbortError' && errorMessage.toLowerCase().includes('skip')) ||
+    (errorType === 'InvalidStateError' && errorMessage.includes('aborted'));
     if (isViewTransitionError) { return null; }
 
-    // 🔇 B1: Horizon critical.js — #aspectRatioHelper (stara cache — zniknie samo)
+    // 🔇 B1: Horizon critical.js / paginated-list.js — processNewElements
     if (errorMessage.includes('processNewElements')) { return null; }
 
     // 🔇 B2: ES Modules @theme/component — stara przeglądarka lub cache
