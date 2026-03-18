@@ -54,13 +54,26 @@ module.exports = async (req, res) => {
     });
 
     if (!imageResponse.ok) {
-      // Przy 404 loguj pełny URL (bez query), żeby w Vercel logs widać było który blob nie istnieje
       const logUrl = url.replace(/\?.*/, '');
+      if (imageResponse.status === 404) {
+        // Obraz wyczyszczony przez cleanup (>30 dni) - zwróć placeholder SVG zamiast JSON błędu
+        // Dzięki temu <img> tag pokazuje placeholder, a logi Vercel nie są zasypane 404
+        console.warn('⚠️ [PROXY-IMAGE] Image expired/cleaned up (404), returning placeholder:', logUrl.split('/').pop());
+        const placeholder = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="500" viewBox="0 0 400 500">
+  <rect width="400" height="500" fill="#f5f5f5"/>
+  <rect x="150" y="180" width="100" height="80" rx="8" fill="#ddd"/>
+  <circle cx="175" cy="205" r="12" fill="#bbb"/>
+  <polygon points="150,260 200,210 250,260" fill="#bbb"/>
+  <text x="200" y="320" text-anchor="middle" font-family="Arial" font-size="13" fill="#999">Obraz niedostępny</text>
+  <text x="200" y="340" text-anchor="middle" font-family="Arial" font-size="11" fill="#bbb">(wygasł po 30 dniach)</text>
+</svg>`;
+        res.setHeader('Content-Type', 'image/svg+xml');
+        res.setHeader('Cache-Control', 'public, max-age=3600');
+        return res.status(200).send(placeholder);
+      }
       console.error('❌ [PROXY-IMAGE] Failed to fetch image:', imageResponse.status, logUrl);
       return res.status(imageResponse.status).json({ 
-        error: imageResponse.status === 404 
-          ? 'Image not found (may have expired or been cleaned up)' 
-          : 'Failed to fetch image from Vercel Blob',
+        error: 'Failed to fetch image from Vercel Blob',
         status: imageResponse.status
       });
     }
