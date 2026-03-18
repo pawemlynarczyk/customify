@@ -323,17 +323,28 @@ module.exports = async (req, res) => {
       statystyki: allCategorizedBlobs.filter(b => b.category === 'statystyki').length
     };
 
-    // Lookup productType z plików JSON (customify/system/stats/generations/)
-    const jsonBlobs = blobs.blobs.filter(b => {
-      const p = (b.pathname || '').toLowerCase();
-      return p.startsWith('customify/system/stats/generations/') && p.endsWith('.json');
-    });
-    // Sortuj po dacie (najnowsze pierwsze) – wtedy buildProductTypeMap czyta najpierw pliki z ostatnimi generacjami
-    const jsonBlobsSorted = [...jsonBlobs].sort((a, b) => {
-      const at = (a.uploadedAt && new Date(a.uploadedAt).getTime()) || 0;
-      const bt = (b.uploadedAt && new Date(b.uploadedAt).getTime()) || 0;
-      return bt - at;
-    });
+    // Lookup productType + danych użytkownika z plików JSON (customify/system/stats/generations/)
+    // WAŻNE: Osobny list call - pliki JSON są pod innym prefixem niż obrazy (customify/temp/)
+    // dlatego nie ma ich w blobs.blobs i trzeba je pobrać oddzielnie (1 szybki call, tylko metadane)
+    let jsonBlobsSorted = [];
+    try {
+      const statsToken = process.env.customify_READ_WRITE_TOKEN || process.env.BLOB_READ_WRITE_TOKEN;
+      const statsListResult = await list({
+        prefix: 'customify/system/stats/generations/',
+        limit: 200,
+        token: statsToken
+      });
+      jsonBlobsSorted = (statsListResult.blobs || [])
+        .filter(b => (b.pathname || '').toLowerCase().endsWith('.json'))
+        .sort((a, b) => {
+          const at = (a.uploadedAt && new Date(a.uploadedAt).getTime()) || 0;
+          const bt = (b.uploadedAt && new Date(b.uploadedAt).getTime()) || 0;
+          return bt - at;
+        });
+      console.log(`📊 [LIST-BLOB-IMAGES] Stats JSON files found: ${jsonBlobsSorted.length}`);
+    } catch (statsListErr) {
+      console.warn(`⚠️ [LIST-BLOB-IMAGES] Nie udało się pobrać stats JSON files:`, statsListErr.message);
+    }
     const { urlToProductType, pathnameToProductType, urlToUser, pathnameToUser } = await buildProductTypeMap(jsonBlobsSorted);
 
     // Filtruj po kategorii jeśli podano (PO liczeniu statystyk!)
