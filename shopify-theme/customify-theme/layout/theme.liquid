@@ -2309,9 +2309,33 @@ try {
   var isRegisterIntent = authIntent.startsWith('register');
   var eventType = isRegisterIntent ? 'login_modal_register_success' : 'login_modal_login_success';
 
-  // Wyślij analytics (fire and forget - nie czekamy na odpowiedź)
+  // Wyczyść klucze auth_intent przed fetch (nie potrzebujemy ich po tym punkcie)
+  localStorage.removeItem('customify_auth_intent');
+  localStorage.removeItem('customify_auth_intent_timestamp');
+  localStorage.removeItem('customify_auth_source');
+
+  // Przygotuj redirect (może być null jeśli już na właściwej stronie)
+  var redirectTarget = null;
+  if (ENABLE_RETURN_REDIRECT && returnUrl) {
+    var currentPath = window.location.pathname + window.location.search;
+    localStorage.removeItem('customify_return_url');
+    localStorage.removeItem('customify_return_url_timestamp');
+    if (currentPath !== returnUrl) {
+      redirectTarget = returnUrl;
+      console.log('🔄 [RETURN-REDIRECT] Zaplanowano powrót na:', returnUrl);
+    } else {
+      console.log('✅ [RETURN-REDIRECT] Już na właściwej stronie:', currentPath);
+    }
+  } else {
+    localStorage.removeItem('customify_return_url');
+    localStorage.removeItem('customify_return_url_timestamp');
+  }
+
+  // Wyślij analytics z keepalive:true — przeglądarka gwarantuje wysłanie nawet przy nawigacji
+  // fix: race condition — redirect przeniesiony do finally() żeby fetch zdążył dotrzeć do serwera
   fetch('https://customify-s56o.vercel.app/api/admin/login-modal-stats', {
     method: 'POST',
+    keepalive: true,
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       eventType: eventType,
@@ -2321,28 +2345,11 @@ try {
     })
   }).catch(function(err) {
     console.warn('📊 [AUTH SUCCESS] Failed to send event:', err);
-  });
-
-  // Wyczyść klucze auth_intent natychmiast (synchronicznie)
-  localStorage.removeItem('customify_auth_intent');
-  localStorage.removeItem('customify_auth_intent_timestamp');
-  localStorage.removeItem('customify_auth_source');
-
-  // Wróć na stronę produktu po zalogowaniu
-  if (ENABLE_RETURN_REDIRECT && returnUrl) {
-    var currentPath = window.location.pathname + window.location.search;
-    localStorage.removeItem('customify_return_url');
-    localStorage.removeItem('customify_return_url_timestamp');
-    if (currentPath !== returnUrl) {
-      console.log('🔄 [RETURN-REDIRECT] Wracam na stronę produktu:', returnUrl);
-      window.location.href = returnUrl;
-      return;
+  }).finally(function() {
+    if (redirectTarget) {
+      window.location.href = redirectTarget;
     }
-    console.log('✅ [RETURN-REDIRECT] Już na właściwej stronie:', currentPath);
-  } else {
-    localStorage.removeItem('customify_return_url');
-    localStorage.removeItem('customify_return_url_timestamp');
-  }
+  });
 
 } catch (error) {
   console.warn('📊 [AUTH SUCCESS] Tracking error:', error);
@@ -5682,7 +5689,7 @@ opacity: 0.9;
   <div style="display: flex; align-items: center; gap: 10px; background: #f9f9f9; border: 1px solid #e8e8e8; border-radius: 10px; padding: 14px 20px; min-width: 180px; flex: 1; max-width: 240px;">
     <img src="https://jakimkurierem.pl/logo_kuriera/inpost_logo.png" alt="InPost" style="width: 48px; height: 40px; object-fit: contain; flex-shrink: 0;">
     <div>
-      <div style="font-weight: 700; font-size: 14px; color: #111;">Wysyłka w 3–5 dni</div>
+      <div style="font-weight: 700; font-size: 14px; color: #111;">Szybka realizacja natychmiast po zleceniu projektu</div>
       <div style="font-size: 12px; color: #777; margin-top: 2px;">InPost Paczkomat lub kurier</div>
     </div>
   </div>
