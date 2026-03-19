@@ -4915,7 +4915,8 @@ class CustomifyEmbed {
    * Pokazuje licznik użyć w UI
    */
   async showUsageCounter() {
-    console.log('🔍 [USAGE] showUsageCounter() called');
+    // Licznik ukryty - użytkownik zobaczy komunikat dopiero gdy wyczerpie limit
+    return;
     
     // Usage counter initialization
     const customerInfo = this.getCustomerInfo();
