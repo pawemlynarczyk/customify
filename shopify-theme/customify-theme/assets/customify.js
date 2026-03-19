@@ -8201,7 +8201,6 @@ class CustomifyEmbed {
 
       if (result.success) {
         productCreated = true; // ✅ Produkt istnieje w Shopify - retry NIE może tworzyć kolejnego
-        this.showSuccess('✅ ' + (result.message || 'Produkt został utworzony!'));
         console.log('✅ [CUSTOMIFY] Product created:', result.product);
         
         // Obraz AI jest już głównym obrazem produktu
