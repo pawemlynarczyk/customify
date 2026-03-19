@@ -7545,9 +7545,32 @@ class CustomifyEmbed {
         await this.showResult(result.transformedImage);
         if (!this.isPhonePhotoCaseProduct || !this.isPhonePhotoCaseProduct()) {
           if (customerInfo) {
+            // Zalogowany: pokaż bazowy komunikat, potem dołącz liczbę pozostałych prób
             this.showSuccess('Obraz zapisany, jest dostępny w sekcji <a href="https://lumly.pl/pages/my-generations" target="_blank" rel="noopener">Moje obrazy</a>.', { html: true });
+            fetch('https://customify-s56o.vercel.app/api/check-usage', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ customerId: customerInfo.customerId, customerAccessToken: customerInfo.customerAccessToken })
+            }).then(r => r.ok ? r.json() : null).then(d => {
+              if (d && this.successMessage && this.successMessage.style.display !== 'none') {
+                const remaining = d.remainingCount || 0;
+                const total = d.totalLimit || 4;
+                const usageNote = remaining > 0
+                  ? ` <span style="color:#888;font-size:0.88em">Pozostało <strong>${remaining} z ${total}</strong> prób.</span>`
+                  : ` <span style="color:#c0392b;font-size:0.88em">Wykorzystano wszystkie próby (${total}/${total}).</span>`;
+                this.successMessage.innerHTML += usageNote;
+              }
+            }).catch(() => {});
           } else {
-            this.showSuccess('Obraz zapisany! Możesz go zobaczyć później w sekcji Twoje obrazy - Poniżej.');
+            // Niezalogowany: inkrementuj najpierw, potem pokaż z pozostałymi próbami
+            const _ptLocal = this.getProductTypeFromStyle(this.selectedStyle);
+            this.incrementLocalUsage(_ptLocal);
+            const _newUsed = this.getLocalUsageCount(_ptLocal);
+            const _remaining = Math.max(0, 2 - _newUsed);
+            const _usageNote = _remaining > 0
+              ? ` <span style="color:#888;font-size:0.88em">Pozostało <strong>${_remaining} z 2</strong> prób.</span>`
+              : '';
+            this.showSuccess(`Obraz zapisany! Możesz go zobaczyć w sekcji Twoje obrazy poniżej.${_usageNote}`, { html: true });
           }
         }
         
@@ -7611,16 +7634,8 @@ class CustomifyEmbed {
           console.error('❌ [CACHE] Failed to save AI generation:', error);
         });
         
-        // ✅ USAGE LIMITS: Inkrementuj licznik dla niezalogowanych (zalogowani są inkrementowani w API)
-        if (!customerInfo) {
-          const productType = this.getProductTypeFromStyle(this.selectedStyle);
-          this.incrementLocalUsage(productType);
-          // Usage count incremented after successful transform (per productType)
-        } else {
-          // Zalogowani - odśwież licznik z API (został zaktualizowany w backend)
-          this.showUsageCounter();
-          // Counter refreshed for logged-in user
-        }
+        // Niezalogowani: inkrementacja przeniesiona do bloku komunikatu sukcesu (wyżej)
+        // Zalogowani: inkrementacja w backend API (automatyczna)
       } else {
         this.showError('Błąd podczas transformacji: ' + (result.error || 'Nieznany błąd'), 'transform');
       }
