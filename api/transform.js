@@ -2059,6 +2059,49 @@ module.exports = async (req, res) => {
           n: 1
         }
       },
+      // Obraz karykatura ołówkiem na zamówienie — te same modele co karykatura-prezent, osobne slugi (nazwy/prompty tylko tu)
+      'olowkiem-zam-karykatura': {
+        model: "segmind/caricature-style",
+        prompt: "Create a caricature portrait based on the uploaded photo. Exaggerate facial features, make it humorous and cartoon-like while maintaining likeness. Use bold lines, vibrant colors, and comedic proportions typical of caricature art.",
+        apiType: "segmind-caricature",
+        productType: "caricature",
+        parameters: {
+          image: "USER_IMAGE",
+          size: "1024x1536",
+          quality: "medium",
+          background: "opaque",
+          output_format: "jpeg",
+          output_compression: 85
+        }
+      },
+      'olowkiem-zam-nowoczesna': {
+        model: "openai/gpt-image-1.5",
+        prompt: "Create a soft, flattering caricature while keeping the people clearly recognizable.\n\nSTYLE:\n\n• Smooth, clean colors with a soft marker-and-colored-pencil look.\n\n• Natural, balanced skin tones (no yellow or sepia filter).\n\n• Gentle outlines and soft shading with mild exaggeration of expressive features.\n\nFACE & BEAUTY:\n\n• Preserve facial structure and identity.\n\n• Slightly enhance beauty: smooth skin, reduce wrinkles or harsh details.\n\n• Keep eyes natural and expressive.\n\nBACKGROUND:\n\n• Keep the original background, but softly stylize it to match the caricature style.\n\n• Do NOT remove or replace the background.\n\nEXAGGERATION:\n\n• Larger heads and slightly smaller bodies, but still natural and flattering.\n\n• Exaggerate only smiles, eyebrows, and cheeks — no distortion of identity.\n\nRESULT:\n\nA natural-color, soft, flattering caricature with preserved background and strong likeness.",
+        productType: "caricature-new",
+        parameters: {
+          aspect_ratio: "2:3",
+          quality: "medium",
+          background: "auto",
+          output_format: "jpeg",
+          input_fidelity: "high",
+          number_of_images: 1,
+          output_compression: 90,
+          moderation: "low"
+        }
+      },
+      'olowkiem-zam-szkic': {
+        model: "gpt-image-1",
+        prompt: "keep faces of the persons recognizable. Generate a premium caricature portrait with exaggerated proportions:\n\nlarge expressive head, small body, elegant ink illustration style.\n\nProportions should clearly look like caricature but still artistic and refined.\n\nKeep facial likeness high. Clean white background.",
+        apiType: "openai-caricature",
+        productType: "caricature-new",
+        parameters: {
+          model: "gpt-image-1",
+          size: "1024x1536",
+          output_format: "jpeg",
+          background: "opaque",
+          n: 1
+        }
+      },
       // 🎵 Spotify frame - usuwanie tła
       'usun-tlo': {
         model: "851-labs/background-remover:a029dff38972b5fda4ec5d75d7d1cd25aeff621d2cf4946a41055d7db66b80bc",

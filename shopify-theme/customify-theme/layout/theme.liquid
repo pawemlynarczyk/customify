@@ -3223,6 +3223,26 @@ Ramka: <span id="frameCurrentLabel">Brak ramki</span>
  <div class="style-name">Szkic ołówkiem</div>
  </div>
  </div>
+{% elsif product.handle == 'obraz-ze-zdjecia-karykatura-olowkiem-na-zamowienie' %}
+{% comment %} Kopia stylów z karykatura-prezent — osobne data-style + nazwy (można zmieniać niezależnie od oryginału) {% endcomment %}
+<div class="customify-style-card" data-style="olowkiem-zam-karykatura">
+<div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/karykat/caricature_2.png'); background-size: cover; background-position: center;"></div>
+<div class="style-info">
+<div class="style-name">Bazowa karykatura</div>
+</div>
+</div>
+<div class="customify-style-card" data-style="olowkiem-zam-nowoczesna" style="display: block !important;">
+<div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/karykat/nowoczesna_2.png'); background-size: cover; background-position: center;"></div>
+<div class="style-info">
+<div class="style-name">Kolorowa karykatura</div>
+</div>
+</div>
+<div class="customify-style-card" data-style="olowkiem-zam-szkic" style="display: block !important;">
+<div class="style-image" style="background-image: url('https://customify-s56o.vercel.app/karykat/olowek.png'); background-size: cover; background-position: center;"></div>
+<div class="style-info">
+<div class="style-name">Szkic artystyczny</div>
+</div>
+</div>
 {% elsif product.handle == 'obraz-ze-zdjecia-pary-na-50-ta-rocznice-wydruk-na-szkle' %}
 {% comment %} Para rocznica wydruk na szkle — styl Rocznica biznes (kopia z 50-ta) {% endcomment %}
 <div class="customify-style-card" data-style="caricature-new" style="display: block !important;">
