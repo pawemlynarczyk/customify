@@ -2476,6 +2476,11 @@ class CustomifyEmbed {
     return this.getProductHandle() === 'prezent-dla-dziadkow-retusz-starych-zdjec';
   }
 
+  // ✏️ Produkt Szkic ołówkowy — Nano Banana 2
+  isSzkicOlowekProduct() {
+    return this.getProductHandle() === 'szkic-ze-zdjecia-obraz-na-plotnie-plakat-ramka';
+  }
+
   getCropConfig() {
     return { aspectRatio: 1, width: 1024, height: 1024, filePrefix: 'spotify-crop' };
   }
@@ -3226,6 +3231,10 @@ class CustomifyEmbed {
       console.log('📷 [PRODUCT-TYPE] URL = Retusz starych zdjęć → productType: retusz_starych_zdjec');
       return 'retusz_starych_zdjec';
     }
+    if (currentUrl.includes('szkic-ze-zdjecia-obraz-na-plotnie-plakat-ramka')) {
+      console.log('✏️ [PRODUCT-TYPE] URL = Szkic ołówkowy → productType: szkic_olowek');
+      return 'szkic_olowek';
+    }
 
     // 🔄 PRIORYTET 2: Fallback - sprawdź styl (tylko dla starych generacji bez URL)
     console.log('⚠️ [PRODUCT-TYPE] Nie rozpoznano URL, sprawdzam styl:', style);
@@ -3283,7 +3292,8 @@ class CustomifyEmbed {
       'anime': 'anime',
       'superman': 'superman',
       'dodaj-osobe': 'dodaj_osobe',
-      'retusz-starych-zdjec': 'retusz_starych_zdjec'
+      'retusz-starych-zdjec': 'retusz_starych_zdjec',
+      'szkic-olowek': 'szkic_olowek'
     };
 
     const productType = styleToProductType[style] || 'other';
@@ -6289,6 +6299,10 @@ class CustomifyEmbed {
         this.stylesArea.style.display = 'none';
         this.selectedStyle = 'retusz-starych-zdjec';
         console.log('📷 [RETUSZ] Ukryto wybór stylu, auto-select retusz-starych-zdjec');
+      } else if (this.isSzkicOlowekProduct()) {
+        this.stylesArea.style.display = 'none';
+        this.selectedStyle = 'szkic-olowek';
+        console.log('✏️ [SZKIC] Ukryto wybór stylu, auto-select szkic-olowek');
       } else {
         this.stylesArea.style.display = 'block';
       }
@@ -8662,6 +8676,9 @@ class CustomifyEmbed {
       } else if (this.isRetuszStarychZdjecProduct()) {
         this.stylesArea.style.display = 'none';
         this.selectedStyle = 'retusz-starych-zdjec';
+      } else if (this.isSzkicOlowekProduct()) {
+        this.stylesArea.style.display = 'none';
+        this.selectedStyle = 'szkic-olowek';
       } else {
         this.stylesArea.style.display = 'block';
       }
@@ -8689,7 +8706,7 @@ class CustomifyEmbed {
     }
     
     // Zresetuj wybrane style i rozmiary
-    this.selectedStyle = this.isMultiUploadProduct() ? 'dodaj-osobe' : (this.isDlaNiejProduct() ? 'caricature-new' : (this.isSuperheroBoyProduct() ? 'superhero_boy' : (this.isLoveRoseProduct() ? 'love-rose' : (this.isRoyalLoveProduct() ? 'royal-love' : (this.isGTAProduct() ? 'gta' : (this.isHipHopProduct() ? 'hiphop' : (this.isRetuszStarychZdjecProduct() ? 'retusz-starych-zdjec' : null)))))));
+    this.selectedStyle = this.isMultiUploadProduct() ? 'dodaj-osobe' : (this.isDlaNiejProduct() ? 'caricature-new' : (this.isSuperheroBoyProduct() ? 'superhero_boy' : (this.isLoveRoseProduct() ? 'love-rose' : (this.isRoyalLoveProduct() ? 'royal-love' : (this.isGTAProduct() ? 'gta' : (this.isHipHopProduct() ? 'hiphop' : (this.isRetuszStarychZdjecProduct() ? 'retusz-starych-zdjec' : (this.isSzkicOlowekProduct() ? 'szkic-olowek' : null))))))));
     this.selectedSize = null;
     this.transformedImage = null;
     this.textOverlayBaseImage = null;

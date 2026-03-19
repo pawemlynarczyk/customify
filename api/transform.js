@@ -2084,6 +2084,19 @@ module.exports = async (req, res) => {
           output_format: "jpg"
         }
       },
+      // ✏️ Szkic ołówkowy - Nano Banana 2, czarno-biały portret
+      'szkic-olowek': {
+        model: "google/nano-banana-2",
+        prompt: "Pencil sketch portrait. Preserve the faces of all persons unchanged and make them look attractive. The entire image must be strictly black and white — no color whatsoever. The background behind the subjects must be heavily blurred and only visible immediately around the characters; further from the subjects it fades to pure white, like an unfinished pencil drawing on white paper.",
+        apiType: "nano-banana-2",
+        productType: "szkic_olowek",
+        parameters: {
+          image_input: ["USER_IMAGE"],
+          resolution: "1K",
+          aspect_ratio: "2:3",
+          output_format: "jpg"
+        }
+      },
       // 🎨 Anime style - Photo to Anime
       'anime': {
         model: "qwen-edit-apps/qwen-image-edit-plus-lora-photo-to-anime",
