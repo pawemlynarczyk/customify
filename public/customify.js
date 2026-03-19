@@ -7581,9 +7581,12 @@ class CustomifyEmbed {
             this.incrementLocalUsage(_ptLocal);
             const _newUsed = this.getLocalUsageCount(); // suma wszystkich typów (limit 2 jest globalny)
             const _remaining = Math.max(0, 2 - _newUsed);
-            const _usageNote = _remaining > 0
-              ? ` <span style="color:#888;font-size:0.88em">Pozostało <strong>${_remaining} z 2</strong> prób.</span>`
-              : '';
+            let _usageNote;
+            if (_remaining > 0) {
+              _usageNote = ` <span style="color:#888;font-size:0.88em">Pozostało <strong>${_remaining} z 2</strong> prób.</span>`;
+            } else {
+              _usageNote = ` <span style="color:#c0392b;font-size:0.88em">Wykorzystałeś bezpłatne próby. <a href="/account/login" style="color:#c0392b;text-decoration:underline">Zaloguj się</a>, aby uzyskać więcej.</span>`;
+            }
             this.showSuccess(`Obraz zapisany! Możesz go zobaczyć w sekcji Twoje obrazy poniżej.${_usageNote}`, { html: true });
           }
         }
