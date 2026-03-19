@@ -2047,16 +2047,18 @@ module.exports = async (req, res) => {
         }
       },
       'karykatura-olowek': {
-        model: "gpt-image-1",
-        prompt: "keep faces of the persons recognizable. Generate a premium caricature portrait with exaggerated proportions:\n\nlarge expressive head, small body, elegant ink illustration style.\n\nProportions should clearly look like caricature but still artistic and refined.\n\nKeep facial likeness high. Clean white background.",
-        apiType: "openai-caricature",
+        model: "openai/gpt-image-1.5",
+        prompt: "Create a caricature portrait based on the uploaded photo. Exaggerate facial features, make it humorous and cartoon-like while maintaining likeness. Use bold lines, and comedic proportions typical of caricature art. Make it black and white like pencil sketch",
         productType: "caricature-new",
         parameters: {
-          model: "gpt-image-1",
-          size: "1024x1536",
+          aspect_ratio: "2:3",
+          quality: "medium",
+          background: "auto",
           output_format: "jpeg",
-          background: "opaque",
-          n: 1
+          input_fidelity: "high",
+          number_of_images: 1,
+          output_compression: 90,
+          moderation: "low"
         }
       },
       // Obraz karykatura ołówkiem na zamówienie — te same modele co karykatura-prezent, osobne slugi (nazwy/prompty tylko tu)
@@ -2090,16 +2092,18 @@ module.exports = async (req, res) => {
         }
       },
       'olowkiem-zam-szkic': {
-        model: "gpt-image-1",
-        prompt: "keep faces of the persons recognizable. Generate a premium caricature portrait with exaggerated proportions:\n\nlarge expressive head, small body, elegant ink illustration style.\n\nProportions should clearly look like caricature but still artistic and refined.\n\nKeep facial likeness high. Clean white background.",
-        apiType: "openai-caricature",
+        model: "openai/gpt-image-1.5",
+        prompt: "Create a caricature portrait based on the uploaded photo. Exaggerate facial features, make it humorous and cartoon-like while maintaining likeness. Use bold lines, and comedic proportions typical of caricature art. Make it black and white like pencil sketch",
         productType: "caricature-new",
         parameters: {
-          model: "gpt-image-1",
-          size: "1024x1536",
+          aspect_ratio: "2:3",
+          quality: "medium",
+          background: "auto",
           output_format: "jpeg",
-          background: "opaque",
-          n: 1
+          input_fidelity: "high",
+          number_of_images: 1,
+          output_compression: 90,
+          moderation: "low"
         }
       },
       // 🎵 Spotify frame - usuwanie tła
