@@ -3270,6 +3270,7 @@ class CustomifyEmbed {
       'karykatura': 'caricature',
       'caricature-new': 'caricature-new',
       'karykatura-olowek': 'caricature-new',
+      'karykatura-prezent-szkic': 'caricature-new',
       'olowkiem-zam-karykatura': 'caricature',
       'olowkiem-zam-nowoczesna': 'caricature-new',
       'olowkiem-zam-szkic': 'caricature-new',
