@@ -7579,7 +7579,7 @@ class CustomifyEmbed {
             // Niezalogowany: inkrementuj najpierw, potem pokaż z pozostałymi próbami
             const _ptLocal = this.getProductTypeFromStyle(this.selectedStyle);
             this.incrementLocalUsage(_ptLocal);
-            const _newUsed = this.getLocalUsageCount(_ptLocal);
+            const _newUsed = this.getLocalUsageCount(); // suma wszystkich typów (limit 2 jest globalny)
             const _remaining = Math.max(0, 2 - _newUsed);
             const _usageNote = _remaining > 0
               ? ` <span style="color:#888;font-size:0.88em">Pozostało <strong>${_remaining} z 2</strong> prób.</span>`
