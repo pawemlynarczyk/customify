@@ -7576,18 +7576,7 @@ class CustomifyEmbed {
               }
             }).catch(() => {});
           } else {
-            // Niezalogowany: inkrementuj najpierw, potem pokaż z pozostałymi próbami
-            const _ptLocal = this.getProductTypeFromStyle(this.selectedStyle);
-            this.incrementLocalUsage(_ptLocal);
-            const _newUsed = this.getLocalUsageCount(); // suma wszystkich typów (limit 2 jest globalny)
-            const _remaining = Math.max(0, 2 - _newUsed);
-            let _usageNote;
-            if (_remaining > 0) {
-              _usageNote = ` <span style="color:#888;font-size:0.88em">Pozostało <strong>${_remaining} z 2</strong> prób.</span>`;
-            } else {
-              _usageNote = ` <span style="color:#c0392b;font-size:0.88em">Wykorzystałeś bezpłatne próby. <a href="/account/login" style="color:#c0392b;text-decoration:underline">Zaloguj się</a>, aby uzyskać więcej.</span>`;
-            }
-            this.showSuccess(`Obraz zapisany! Możesz go zobaczyć w sekcji Twoje obrazy poniżej.${_usageNote}`, { html: true });
+            this.showSuccess('Obraz zapisany! Możesz go zobaczyć później w sekcji Twoje obrazy - Poniżej.');
           }
         }
         
@@ -7651,8 +7640,11 @@ class CustomifyEmbed {
           console.error('❌ [CACHE] Failed to save AI generation:', error);
         });
         
-        // Niezalogowani: inkrementacja przeniesiona do bloku komunikatu sukcesu (wyżej)
-        // Zalogowani: inkrementacja w backend API (automatyczna)
+        // Niezalogowani: inkrementuj licznik lokalny (zalogowani: backend API robi auto)
+        if (!customerInfo) {
+          const productType = this.getProductTypeFromStyle(this.selectedStyle);
+          this.incrementLocalUsage(productType);
+        }
       } else {
         this.showError('Błąd podczas transformacji: ' + (result.error || 'Nieznany błąd'), 'transform');
       }
