@@ -1233,7 +1233,7 @@ RESULT
 Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
     fields: [
       { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Młoda Para', required: false, promptKey: 'name' },
-      { id: 'opis_charakteru', label: 'Opisz parę, nastrój, szczegóły - tekst nie pojawi się na obrazku ale decyduje o jego wyglądzie', type: 'text', placeholder: 'np. młoda para ślub, romantycznie, elegancko', required: false, promptKey: 'personalization' }
+      { id: 'opis_charakteru', label: 'Opisz lokalizacje, styl, kolory - tekst nie pojawi się na obrazku ale decyduje o jego wyglądzie', type: 'text', placeholder: 'np. młoda para ślub, romantycznie, elegancko', required: false, promptKey: 'personalization' }
     ]
   },
   'karykatura-na-rocznice-slubu-prezent-na-25-30-40-50-lecie': {
@@ -1290,7 +1290,7 @@ Premium collectible caricature statue, highly detailed, playful but luxurious, p
     fields: [
       { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Para na rocznicę', required: false, promptKey: 'name' },
       { id: 'rocznica', label: 'Wpisz liczbę lat rocznicy (np. 25, 30, 40, 50) - liczba pojawi się na obrazie', type: 'text', placeholder: 'np. 25, 30, 40, 50', required: false, promptKey: 'YEARS' },
-      { id: 'opis_charakteru', label: 'Opisz parę, nastrój, szczegóły - tekst nie pojawi się na obrazku ale decyduje o jego wyglądzie', type: 'text', placeholder: 'np. elegancko, złoto, kwiaty, uroczystość', required: false, promptKey: 'personalization' }
+      { id: 'opis_charakteru', label: 'Opisz lokalizacje, styl, kolory - tekst nie pojawi się na obrazku ale decyduje o jego wyglądzie', type: 'text', placeholder: 'np. elegancko, złoto, kwiaty, uroczystość', required: false, promptKey: 'personalization' }
     ]
   },
   'karykatura-wedkarz-portret-ze-zdjecia-personalizowany-prezent-dla-faceta': {
