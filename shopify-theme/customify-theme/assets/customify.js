@@ -29,7 +29,9 @@ CUSTOMIZATION
 The character represents this profession / hobby / personality:
 "{personalization}"
 
-CRITICAL: The overall character should be cohesive — outfit, props, scene, background, podium and decorations must all reference and match the same theme. The podium on which the figurine stands must be styled to fit the profession or hobby. Everything should harmonize and create a unified, coherent whole.
+MANDATORY BASE THEME (non-negotiable): this is always a young wedding couple ("młoda para ślubna"). Keep wedding-couple identity as the core of the image in every case.
+If buyer adds extra description in CUSTOMIZATION, treat it only as secondary accents (colors, props, mood, background details) and never replace the wedding-couple base theme.
+CRITICAL: The overall character should be cohesive — outfit, props, scene, background, podium and decorations must all reference and match the same theme. Everything should harmonize and create a unified, coherent whole.
 
 Add visual elements, clothing, props and small scene details related to it.
 Examples:
@@ -1205,7 +1207,6 @@ Examples:
 • musician / gamer / chef etc.
 
 POSE
-{YEARS_SECTION}
 • Depict the couple from the photo as a stylish, joyful young wedding couple („młoda para ślub”), warm and elegant.
 • Character(s) sitting or standing confidently on a podium styled to match the theme from CUSTOMIZATION above.
 • The podium design, shape, materials and decorations should reflect and harmonize with the overall theme.
@@ -1232,7 +1233,6 @@ RESULT
 Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
     fields: [
       { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Młoda Para', required: false, promptKey: 'name' },
-      { id: 'rocznica', label: 'Liczba lat / rocznica (jubileusz) — opcjonalne, puste = brak liczby na obrazku', type: 'text', placeholder: 'np. 1, 5, 10', required: false, promptKey: 'YEARS' },
       { id: 'opis_charakteru', label: 'Opisz parę, nastrój, szczegóły - tekst nie pojawi się na obrazku ale decyduje o jego wyglądzie', type: 'text', placeholder: 'np. młoda para ślub, romantycznie, elegancko', required: false, promptKey: 'personalization' }
     ]
   },
@@ -2111,11 +2111,11 @@ const PODROZNICY_PARA_PRODUCT_HANDLE = 'karykatura-pary-podroznikow-ze-zdjecia-p
 const MLODA_PARA_SLUB_PRODUCT_HANDLE = 'karykatura-slubna-ze-zdjecia-prezent-dla-mlodej-pary';
 
 /** Para — duża cyfra jubileuszowa z pola formularza (dokładnie jak wpisał klient; inna liczba = inna na obrazku). */
-const COUPLE_CUSTOM_YEAR_FIELD_HANDLES = [WIESELI_STARUSZKOWIE_PRODUCT_HANDLE, PODROZNICY_PARA_PRODUCT_HANDLE, MLODA_PARA_SLUB_PRODUCT_HANDLE];
+const COUPLE_CUSTOM_YEAR_FIELD_HANDLES = [WIESELI_STARUSZKOWIE_PRODUCT_HANDLE, PODROZNICY_PARA_PRODUCT_HANDLE];
 /** Produkty z domyślną rocznicą 40, gdy pole YEARS puste. */
 const COUPLE_DEFAULT_40_YEAR_FIELD_HANDLES = [];
 /** Para podróżników — gdy YEARS puste, nie dodawaj żadnej liczby. */
-const COUPLE_NO_DEFAULT_YEAR_FIELD_HANDLES = [PODROZNICY_PARA_PRODUCT_HANDLE, MLODA_PARA_SLUB_PRODUCT_HANDLE];
+const COUPLE_NO_DEFAULT_YEAR_FIELD_HANDLES = [PODROZNICY_PARA_PRODUCT_HANDLE];
 
 /** Personalizacja: baza zawsze w promptcie + opcjonalnie dopisek klienta (opcja B). */
 const PERSONALIZATION_PREPEND_BASE_HANDLES = new Set([
