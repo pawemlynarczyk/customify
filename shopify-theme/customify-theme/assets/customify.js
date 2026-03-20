@@ -6616,9 +6616,9 @@ class CustomifyEmbed {
       // Walidacja rozdzielczości obrazu
       const img = new Image();
       img.onload = () => {
-        // Minimalna rozdzielczość dla wszystkich produktów: 600×600px
-        const minWidth = 600;
-        const minHeight = 600;
+        // Minimalna rozdzielczość dla wszystkich produktów: 500×500px
+        const minWidth = 500;
+        const minHeight = 500;
         
         console.log(`🖼️ [IMAGE] Rozdzielczość: ${img.width}×${img.height}`);
         console.log(`🖼️ [IMAGE] Minimalna rozdzielczość: ${minWidth}×${minHeight}px`);
