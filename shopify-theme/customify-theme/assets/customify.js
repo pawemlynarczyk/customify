@@ -2048,8 +2048,10 @@ const PODROZNICY_PARA_PRODUCT_HANDLE = 'karykatura-pary-podroznikow-ze-zdjecia-p
 
 /** Para — duża cyfra jubileuszowa z pola formularza (dokładnie jak wpisał klient; inna liczba = inna na obrazku). */
 const COUPLE_CUSTOM_YEAR_FIELD_HANDLES = [WIESELI_STARUSZKOWIE_PRODUCT_HANDLE, PODROZNICY_PARA_PRODUCT_HANDLE];
-/** Para podróżników — domyślna rocznica 40, gdy pole YEARS puste. */
-const COUPLE_DEFAULT_40_YEAR_FIELD_HANDLES = [PODROZNICY_PARA_PRODUCT_HANDLE];
+/** Produkty z domyślną rocznicą 40, gdy pole YEARS puste. */
+const COUPLE_DEFAULT_40_YEAR_FIELD_HANDLES = [];
+/** Para podróżników — gdy YEARS puste, nie dodawaj żadnej liczby. */
+const COUPLE_NO_DEFAULT_YEAR_FIELD_HANDLES = [PODROZNICY_PARA_PRODUCT_HANDLE];
 
 /** Personalizacja: baza zawsze w promptcie + opcjonalnie dopisek klienta (opcja B). */
 const PERSONALIZATION_PREPEND_BASE_HANDLES = new Set([
@@ -2479,20 +2481,22 @@ class CustomifyEmbed {
         const isCoupleAnniversary = handle && COUPLE_ANNIVERSARY_FIELD_HANDLES.includes(handle);
         const isCoupleCustomYear = handle && COUPLE_CUSTOM_YEAR_FIELD_HANDLES.includes(handle);
         const isCoupleDefault40Year = handle && COUPLE_DEFAULT_40_YEAR_FIELD_HANDLES.includes(handle);
+        const isCoupleNoDefaultYear = handle && COUPLE_NO_DEFAULT_YEAR_FIELD_HANDLES.includes(handle);
         const isDlaNiejWithYears = handle && DLA_NIEJ_WITH_YEARS.includes(handle);
         // Diamentowe Gody = zawsze 60; "Weseli staruszkowie" = liczba z pola, a gdy puste domyślnie 60
         const rawYearsVal = (replacements['YEARS'] || '').trim();
         const yearsVal = isCoupleAnniversary
           ? '60'
-          : (isCoupleCustomYear ? (rawYearsVal || (isCoupleDefault40Year ? '40' : '60')) : rawYearsVal);
+          : (isCoupleCustomYear ? (rawYearsVal || (isCoupleNoDefaultYear ? '' : (isCoupleDefault40Year ? '40' : '60'))) : rawYearsVal);
         if (yearsVal.trim()) {
           if (isCoupleAnniversary) {
             replacements['YEARS_SECTION'] =
               `The couple is posed with a large, elegant 3D metallic anniversary numeral "60" (sixty — Diamentowe Gody) integrated into the „Diamentowe Gody” composition — platinum, silver, subtle diamond sparkle; materials must feel luxe and ceremonial (not generic birthday). The numeral must read as 60, never a different anniversary number.`;
           } else if (isCoupleCustomYear) {
             const y = yearsVal.trim();
+            const defaultYearText = isCoupleNoDefaultYear ? 'no default number when the field is empty' : `default "${isCoupleDefault40Year ? '40' : '60'}"`;
             replacements['YEARS_SECTION'] =
-              `ANNIVERSARY NUMERAL (buyer-controlled with default):\n• Show a large, elegant 3D celebratory numeral that reads exactly: "${y}".\n• The couple is posed with or integrated with this numeral; style, materials and colors must harmonize with CUSTOMIZATION.\n• CRITICAL: if the buyer enters a number in the form, use that exact value. If the field is left empty, use default "${isCoupleDefault40Year ? '40' : '60'}". Never invent a different jubilee number.`;
+              `ANNIVERSARY NUMERAL (buyer-controlled):\n• Show a large, elegant 3D celebratory numeral that reads exactly: "${y}".\n• The couple is posed with or integrated with this numeral; style, materials and colors must harmonize with CUSTOMIZATION.\n• CRITICAL: if the buyer enters a number in the form, use that exact value. If the field is empty, ${defaultYearText}. Never invent a different jubilee number.`;
           } else {
             replacements['YEARS_SECTION'] = isDlaNiejWithYears
               ? `The character is sitting/standing on or near a large 3D number "${yearsVal.trim()}" — the number's style, color and materials must match the character's profession/hobby theme (e.g. medical blue for nurse, police colors for officer, warm tones for chef). Do NOT use generic metallic gold — adapt to the scene.`
@@ -2505,7 +2509,9 @@ class CustomifyEmbed {
               'The couple is posed with a large elegant metallic "60" as specified for Diamentowe Gody (this branch should not occur — 60 is fixed).';
           } else if (isCoupleCustomYear) {
             replacements['YEARS_SECTION'] =
-              `Show a large elegant metallic "${isCoupleDefault40Year ? '40' : '60'}" as the default jubilee numeral when the number field is empty.`;
+              (isCoupleNoDefaultYear
+                ? 'Do not show any large anniversary numeral when the number field is empty. Keep the couple on a themed podium without a standalone year number.'
+                : `Show a large elegant metallic "${isCoupleDefault40Year ? '40' : '60'}" as the default jubilee numeral when the number field is empty.`);
           } else {
             replacements['YEARS_SECTION'] = isDlaNiejWithYears
               ? 'The character stands on a podium.'
