@@ -9098,6 +9098,9 @@ class CustomifyEmbed {
         this.stylesArea.style.display = 'block';
       }
       this.actionsArea.style.display = 'flex';
+      // Przywróć transformBtn jeśli był ukryty inline stylem (np. przez handleBezZmianStyle)
+      const transformBtnRestore = document.getElementById('transformBtn');
+      if (transformBtnRestore) transformBtnRestore.style.display = '';
     }
     
     // Pokaż pole upload (jeśli było ukryte)
