@@ -1110,6 +1110,70 @@ Premium collectible caricature statue, highly detailed, playful but luxurious, p
       { id: 'opis_charakteru', label: 'Opisz osoby, nastrój, szczegóły - tekst nie pojawi się na obrazku ale decyduje o jego wyglądzie', type: 'text', placeholder: 'np. ogród, złoto, rodzina', required: false, promptKey: 'personalization' }
     ]
   },
+  'karykatura-pary-podroznikow-ze-zdjecia-personalizowany-prezent-dla-pary': {
+    title: 'Personalizacja',
+    promptTemplate: `Create a caricature figurine based on the provided photo.
+
+STYLE
+• Premium resin statue.
+• Soft cinematic studio lighting.
+• Glossy surfaces, high-end product render.
+• Warm elegant color grading.
+• Slight caricature exaggeration (bigger head, stylish proportions).
+
+FACE — CRITICAL
+• Strongly preserve the identity from the reference photo.
+• Keep facial structure, eyes, nose, mouth, beard/hairline.
+• Natural skin tones.
+• Friendly expressive smile.
+
+CUSTOMIZATION
+The character represents this profession / hobby / personality:
+"{personalization}"
+
+CRITICAL: The overall character should be cohesive — outfit, props, scene, background, podium and decorations must all reference and match the same theme. The podium on which the figurine stands must be styled to fit the profession or hobby. Everything should harmonize and create a unified, coherent whole.
+
+Add visual elements, clothing, props and small scene details related to it.
+Examples:
+• travelers/couple travelers → suitcases, passport, map, airplane motifs, adventure vibe
+• nurse → medical uniform, stethoscope
+• fisherman → fishing rod, fish, outdoor vibe
+• business person → suit, laptop, phone
+• farmer → straw hat, tractor elements
+• gamer, chef, musician etc.
+
+POSE
+{YEARS_SECTION}
+• Depict the couple from the photo as stylish, cheerful travelers („podróżnicy”), adventurous but elegant.
+• Character(s) sitting or standing confidently on a podium styled to match the travel theme from CUSTOMIZATION above.
+• The podium design, shape, materials and decorations should reflect and harmonize with the overall theme.
+• Relaxed, charismatic pose.
+
+OUTFIT
+• Outfit matching the profession or interest.
+• Stylish, slightly exaggerated caricature look.
+
+SCENE
+Mini decorative environment connected with the interest or job.
+Fun but elegant.
+
+BACKGROUND
+• Colors and style of the background must be related to the person's profession or hobby — e.g. travel tones, sky accents, world-map motifs, warm adventure palette.
+• The backdrop should visually connect with the character's theme, not generic studio.
+• Soft bokeh lights.
+• Subtle themed decorations.
+
+TEXT
+{NAME_SECTION}
+
+RESULT
+Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
+    fields: [
+      { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Ania i Piotr', required: false, promptKey: 'name' },
+      { id: 'rocznica', label: 'Liczba lat / rocznica (jubileusz) — wpisz cyfrę na obrazku; gdy puste domyślnie 40', type: 'text', placeholder: 'np. 30, 40, 45', required: false, promptKey: 'YEARS' },
+      { id: 'opis_charakteru', label: 'Opisz parę, nastrój, szczegóły - tekst nie pojawi się na obrazku ale decyduje o jego wyglądzie', type: 'text', placeholder: 'np. podróże, walizki, mapa świata, samolot', required: false, promptKey: 'personalization' }
+    ]
+  },
   'karykatura-wedkarz-portret-ze-zdjecia-personalizowany-prezent-dla-faceta': {
     title: 'Personalizacja',
     promptTemplate: `Create a caricature figurine based on the provided photo.
@@ -1979,14 +2043,19 @@ const COUPLE_ANNIVERSARY_FIELD_HANDLES = ['karykatura-pary-na-diamentowe-gody-ze
 const DIAMENTOWE_GODY_PRODUCT_HANDLE = 'karykatura-pary-na-diamentowe-gody-ze-zdjecia-60-rocznica-slubu';
 /** Karykatura „Weseli staruszkowie” — jak Diamentowe Gody (prepend opisu). Handle = lumly.pl/products/karykatura-dziadkow-ze-zdjecia-wesola-para-personalizowany-prezent */
 const WIESELI_STARUSZKOWIE_PRODUCT_HANDLE = 'karykatura-dziadkow-ze-zdjecia-wesola-para-personalizowany-prezent';
+/** Karykatura pary podróżników — domyślna rocznica 40 i styl podróżnicy. */
+const PODROZNICY_PARA_PRODUCT_HANDLE = 'karykatura-pary-podroznikow-ze-zdjecia-personalizowany-prezent-dla-pary';
 
 /** Para — duża cyfra jubileuszowa z pola formularza (dokładnie jak wpisał klient; inna liczba = inna na obrazku). */
-const COUPLE_CUSTOM_YEAR_FIELD_HANDLES = [WIESELI_STARUSZKOWIE_PRODUCT_HANDLE];
+const COUPLE_CUSTOM_YEAR_FIELD_HANDLES = [WIESELI_STARUSZKOWIE_PRODUCT_HANDLE, PODROZNICY_PARA_PRODUCT_HANDLE];
+/** Para podróżników — domyślna rocznica 40, gdy pole YEARS puste. */
+const COUPLE_DEFAULT_40_YEAR_FIELD_HANDLES = [PODROZNICY_PARA_PRODUCT_HANDLE];
 
 /** Personalizacja: baza zawsze w promptcie + opcjonalnie dopisek klienta (opcja B). */
 const PERSONALIZATION_PREPEND_BASE_HANDLES = new Set([
   DIAMENTOWE_GODY_PRODUCT_HANDLE,
-  WIESELI_STARUSZKOWIE_PRODUCT_HANDLE
+  WIESELI_STARUSZKOWIE_PRODUCT_HANDLE,
+  PODROZNICY_PARA_PRODUCT_HANDLE
 ]);
 
 /** Domyślne wartości "Opis osoby" per produkt — na stałe, niezależne od tytułu. Gdy pole puste, używamy tej wartości. */
@@ -2012,6 +2081,7 @@ const DEFAULT_PERSONALIZATION_PER_PRODUCT = {
   'obraz-ze-zdjecia-karykatura-policjant-prezent-dla-faceta': 'policjant, policja, mundur, odznaka',
   'karykatura-pary-na-diamentowe-gody-ze-zdjecia-60-rocznica-slubu': 'Elegancka grafika napisem \u201eDiamentowe Gody\u201d',
   'karykatura-dziadkow-ze-zdjecia-wesola-para-personalizowany-prezent': 'Weseli staruszkowie',
+  'karykatura-pary-podroznikow-ze-zdjecia-personalizowany-prezent-dla-pary': 'Podróżnicy, podróże, walizki, mapa świata',
   'fotoobraz-strazaka-ze-zdjecia-prezent-na-35-urodziny-dla-meza': 'strażak, mundur strażacki, hełm, wąż strażacki, ogień',
   'portret-ze-zdjecia-dla-lekarza-personalizowany-plakat-na-urodziny-dla-chlopaka': 'lekarz, biały fartuch, stetoskop, medycyna',
   'prezent-ze-zdjecia-dla-budowlanca-personalizowany-obraz-dla-taty': 'budowlaniec, murarz, majster, kask, narzędzia',
@@ -2408,12 +2478,13 @@ class CustomifyEmbed {
         const handle = this.getProductHandle();
         const isCoupleAnniversary = handle && COUPLE_ANNIVERSARY_FIELD_HANDLES.includes(handle);
         const isCoupleCustomYear = handle && COUPLE_CUSTOM_YEAR_FIELD_HANDLES.includes(handle);
+        const isCoupleDefault40Year = handle && COUPLE_DEFAULT_40_YEAR_FIELD_HANDLES.includes(handle);
         const isDlaNiejWithYears = handle && DLA_NIEJ_WITH_YEARS.includes(handle);
         // Diamentowe Gody = zawsze 60; "Weseli staruszkowie" = liczba z pola, a gdy puste domyślnie 60
         const rawYearsVal = (replacements['YEARS'] || '').trim();
         const yearsVal = isCoupleAnniversary
           ? '60'
-          : (isCoupleCustomYear ? (rawYearsVal || '60') : rawYearsVal);
+          : (isCoupleCustomYear ? (rawYearsVal || (isCoupleDefault40Year ? '40' : '60')) : rawYearsVal);
         if (yearsVal.trim()) {
           if (isCoupleAnniversary) {
             replacements['YEARS_SECTION'] =
@@ -2421,7 +2492,7 @@ class CustomifyEmbed {
           } else if (isCoupleCustomYear) {
             const y = yearsVal.trim();
             replacements['YEARS_SECTION'] =
-              `ANNIVERSARY NUMERAL (buyer-controlled with default):\n• Show a large, elegant 3D celebratory numeral that reads exactly: "${y}".\n• The couple (cheerful „weseli staruszkowie”) is posed with or integrated with this numeral; style, materials and colors must harmonize with CUSTOMIZATION (warm golds, cozy festive metallics — not a random unrelated digit style).\n• CRITICAL: if the buyer enters a number in the form, use that exact value. If the field is left empty, use default "60". Never invent a different jubilee number.`;
+              `ANNIVERSARY NUMERAL (buyer-controlled with default):\n• Show a large, elegant 3D celebratory numeral that reads exactly: "${y}".\n• The couple is posed with or integrated with this numeral; style, materials and colors must harmonize with CUSTOMIZATION.\n• CRITICAL: if the buyer enters a number in the form, use that exact value. If the field is left empty, use default "${isCoupleDefault40Year ? '40' : '60'}". Never invent a different jubilee number.`;
           } else {
             replacements['YEARS_SECTION'] = isDlaNiejWithYears
               ? `The character is sitting/standing on or near a large 3D number "${yearsVal.trim()}" — the number's style, color and materials must match the character's profession/hobby theme (e.g. medical blue for nurse, police colors for officer, warm tones for chef). Do NOT use generic metallic gold — adapt to the scene.`
@@ -2434,7 +2505,7 @@ class CustomifyEmbed {
               'The couple is posed with a large elegant metallic "60" as specified for Diamentowe Gody (this branch should not occur — 60 is fixed).';
           } else if (isCoupleCustomYear) {
             replacements['YEARS_SECTION'] =
-              'Show a large elegant metallic "60" as the default jubilee numeral when the number field is empty.';
+              `Show a large elegant metallic "${isCoupleDefault40Year ? '40' : '60'}" as the default jubilee numeral when the number field is empty.`;
           } else {
             replacements['YEARS_SECTION'] = isDlaNiejWithYears
               ? 'The character stands on a podium.'
@@ -2635,7 +2706,7 @@ class CustomifyEmbed {
   // 💝 Produkty "dla niej" + Biznes Woman — jeden styl (caricature-new), bez wyboru, generacja bez klikania w miniaturkę
   isDlaNiejProduct() {
     const h = this.getProductHandle();
-    return h === 'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-fitness' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-szefowa' || h === 'karykatura-rolnik-ze-zdjecia-personalizowany-prezent-dla-mezczyzny' || h === 'kulturysta-karykatura-ze-zdjecia-prezent-dla-mezczyzny' || h === 'karykatura-wedkarz-portret-ze-zdjecia-personalizowany-prezent-dla-faceta' || h === 'obraz-ze-zdjecia-karykatura-policjant-prezent-dla-faceta' || h === DIAMENTOWE_GODY_PRODUCT_HANDLE || h === WIESELI_STARUSZKOWIE_PRODUCT_HANDLE || h === 'fotoobraz-strazaka-ze-zdjecia-prezent-na-35-urodziny-dla-meza' || h === 'portret-ze-zdjecia-dla-lekarza-personalizowany-plakat-na-urodziny-dla-chlopaka' || h === 'prezent-ze-zdjecia-dla-budowlanca-personalizowany-obraz-dla-taty' || h === 'prezent-z-wlasnym-zdjeciem-dla-kierowcy-tira-personalizowany-obraz' || h === 'obraz-ze-zdjecia-prezent-dla-chlopca-pilkarz' || h === 'active-woman-portret-ze-zdjecia-na-rocznice-dla-kolezanki-kobiety-druk-na-szkle' || h === 'active-woman-portret-ze-zdjecia-na-18-urodziny-dla-dziewczyny-druk-na-szkle-copy' || h === 'portret-ze-zdjecia-prezent-na-urodziny-dla-kolezanki-szefowej-salon-spa' || h === 'portret-na-18-urodziny-dla-dziewczyny-magic-z-wlasnego-zdjecia-druk-na-szkle' || h === 'obraz-ze-zdjecia-prezent-na-40-urodziny-dla-kobiety-czerwony-dywan' || h === 'portret-ze-zdjecia-na-30-rocznice-dla-nauczycielki-karykatura-na-prezent' || h === 'obraz-ze-zdjecia-biznes-woman-personalizowany-prezent' || h === 'obraz-ze-zdjecia-prezent-na-30-urodziny-dla-kobiety-biznes-woman' || h === 'obraz-ze-zdjecia-prezent-na-50-urodziny-dla-kobiety-biznes-woman' || h === 'wydruk-na-szkle-biznes-woman-prezent-na-urodziny-dla-kobiety';
+    return h === 'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-fitness' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-szefowa' || h === 'karykatura-rolnik-ze-zdjecia-personalizowany-prezent-dla-mezczyzny' || h === 'kulturysta-karykatura-ze-zdjecia-prezent-dla-mezczyzny' || h === 'karykatura-wedkarz-portret-ze-zdjecia-personalizowany-prezent-dla-faceta' || h === 'obraz-ze-zdjecia-karykatura-policjant-prezent-dla-faceta' || h === DIAMENTOWE_GODY_PRODUCT_HANDLE || h === WIESELI_STARUSZKOWIE_PRODUCT_HANDLE || h === PODROZNICY_PARA_PRODUCT_HANDLE || h === 'fotoobraz-strazaka-ze-zdjecia-prezent-na-35-urodziny-dla-meza' || h === 'portret-ze-zdjecia-dla-lekarza-personalizowany-plakat-na-urodziny-dla-chlopaka' || h === 'prezent-ze-zdjecia-dla-budowlanca-personalizowany-obraz-dla-taty' || h === 'prezent-z-wlasnym-zdjeciem-dla-kierowcy-tira-personalizowany-obraz' || h === 'obraz-ze-zdjecia-prezent-dla-chlopca-pilkarz' || h === 'active-woman-portret-ze-zdjecia-na-rocznice-dla-kolezanki-kobiety-druk-na-szkle' || h === 'active-woman-portret-ze-zdjecia-na-18-urodziny-dla-dziewczyny-druk-na-szkle-copy' || h === 'portret-ze-zdjecia-prezent-na-urodziny-dla-kolezanki-szefowej-salon-spa' || h === 'portret-na-18-urodziny-dla-dziewczyny-magic-z-wlasnego-zdjecia-druk-na-szkle' || h === 'obraz-ze-zdjecia-prezent-na-40-urodziny-dla-kobiety-czerwony-dywan' || h === 'portret-ze-zdjecia-na-30-rocznice-dla-nauczycielki-karykatura-na-prezent' || h === 'obraz-ze-zdjecia-biznes-woman-personalizowany-prezent' || h === 'obraz-ze-zdjecia-prezent-na-30-urodziny-dla-kobiety-biznes-woman' || h === 'obraz-ze-zdjecia-prezent-na-50-urodziny-dla-kobiety-biznes-woman' || h === 'wydruk-na-szkle-biznes-woman-prezent-na-urodziny-dla-kobiety';
   }
 
   // 🦸 Produkt Superbohater dla chłopca — Nano Banana, ukryty wybór, pole imienia
@@ -2891,7 +2962,7 @@ class CustomifyEmbed {
       }
     }
     // 🎯 Rocznica 50-ta / Dla niej: domyślnie wydruk na szkle + rozmiar A5
-    if (this.getProductHandle() === 'obraz-ze-zdjecia-pary-na-50-ta-rocznice-wydruk-na-szkle' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-na-50-ta-rocznice' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-fitness' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-szefowa' || this.getProductHandle() === 'karykatura-rolnik-ze-zdjecia-personalizowany-prezent-dla-mezczyzny' || this.getProductHandle() === 'kulturysta-karykatura-ze-zdjecia-prezent-dla-mezczyzny' || this.getProductHandle() === 'karykatura-wedkarz-portret-ze-zdjecia-personalizowany-prezent-dla-faceta' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-policjant-prezent-dla-faceta' || this.getProductHandle() === DIAMENTOWE_GODY_PRODUCT_HANDLE || this.getProductHandle() === WIESELI_STARUSZKOWIE_PRODUCT_HANDLE || this.getProductHandle() === 'fotoobraz-strazaka-ze-zdjecia-prezent-na-35-urodziny-dla-meza' || this.getProductHandle() === 'portret-ze-zdjecia-dla-lekarza-personalizowany-plakat-na-urodziny-dla-chlopaka' || this.getProductHandle() === 'prezent-ze-zdjecia-dla-budowlanca-personalizowany-obraz-dla-taty' || this.getProductHandle() === 'prezent-z-wlasnym-zdjeciem-dla-kierowcy-tira-personalizowany-obraz' || this.getProductHandle() === 'obraz-ze-zdjecia-prezent-dla-chlopca-pilkarz' || this.getProductHandle() === 'active-woman-portret-ze-zdjecia-na-rocznice-dla-kolezanki-kobiety-druk-na-szkle' || this.getProductHandle() === 'active-woman-portret-ze-zdjecia-na-18-urodziny-dla-dziewczyny-druk-na-szkle-copy' || this.getProductHandle() === 'portret-ze-zdjecia-prezent-na-urodziny-dla-kolezanki-szefowej-salon-spa' || this.getProductHandle() === 'portret-na-18-urodziny-dla-dziewczyny-magic-z-wlasnego-zdjecia-druk-na-szkle' || this.getProductHandle() === 'obraz-ze-zdjecia-prezent-na-40-urodziny-dla-kobiety-czerwony-dywan' || this.getProductHandle() === 'portret-ze-zdjecia-na-30-rocznice-dla-nauczycielki-karykatura-na-prezent' || this.getProductHandle() === 'obraz-ze-zdjecia-prezent-na-50-urodziny-dla-kobiety-biznes-woman' || this.getProductHandle() === 'wydruk-na-szkle-biznes-woman-prezent-na-urodziny-dla-kobiety') {
+    if (this.getProductHandle() === 'obraz-ze-zdjecia-pary-na-50-ta-rocznice-wydruk-na-szkle' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-na-50-ta-rocznice' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-fitness' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-szefowa' || this.getProductHandle() === 'karykatura-rolnik-ze-zdjecia-personalizowany-prezent-dla-mezczyzny' || this.getProductHandle() === 'kulturysta-karykatura-ze-zdjecia-prezent-dla-mezczyzny' || this.getProductHandle() === 'karykatura-wedkarz-portret-ze-zdjecia-personalizowany-prezent-dla-faceta' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-policjant-prezent-dla-faceta' || this.getProductHandle() === DIAMENTOWE_GODY_PRODUCT_HANDLE || this.getProductHandle() === WIESELI_STARUSZKOWIE_PRODUCT_HANDLE || this.getProductHandle() === PODROZNICY_PARA_PRODUCT_HANDLE || this.getProductHandle() === 'fotoobraz-strazaka-ze-zdjecia-prezent-na-35-urodziny-dla-meza' || this.getProductHandle() === 'portret-ze-zdjecia-dla-lekarza-personalizowany-plakat-na-urodziny-dla-chlopaka' || this.getProductHandle() === 'prezent-ze-zdjecia-dla-budowlanca-personalizowany-obraz-dla-taty' || this.getProductHandle() === 'prezent-z-wlasnym-zdjeciem-dla-kierowcy-tira-personalizowany-obraz' || this.getProductHandle() === 'obraz-ze-zdjecia-prezent-dla-chlopca-pilkarz' || this.getProductHandle() === 'active-woman-portret-ze-zdjecia-na-rocznice-dla-kolezanki-kobiety-druk-na-szkle' || this.getProductHandle() === 'active-woman-portret-ze-zdjecia-na-18-urodziny-dla-dziewczyny-druk-na-szkle-copy' || this.getProductHandle() === 'portret-ze-zdjecia-prezent-na-urodziny-dla-kolezanki-szefowej-salon-spa' || this.getProductHandle() === 'portret-na-18-urodziny-dla-dziewczyny-magic-z-wlasnego-zdjecia-druk-na-szkle' || this.getProductHandle() === 'obraz-ze-zdjecia-prezent-na-40-urodziny-dla-kobiety-czerwony-dywan' || this.getProductHandle() === 'portret-ze-zdjecia-na-30-rocznice-dla-nauczycielki-karykatura-na-prezent' || this.getProductHandle() === 'obraz-ze-zdjecia-prezent-na-50-urodziny-dla-kobiety-biznes-woman' || this.getProductHandle() === 'wydruk-na-szkle-biznes-woman-prezent-na-urodziny-dla-kobiety') {
       const szkloBtn = document.querySelector('.customify-product-type-btn[data-product-type="szklo"]');
       if (szkloBtn) {
         this.productTypeArea?.querySelectorAll('.customify-product-type-btn').forEach(btn => btn.classList.remove('active'));
@@ -3318,6 +3389,10 @@ class CustomifyEmbed {
     }
     if (currentUrl.includes('karykatura-dziadkow-ze-zdjecia-wesola-para-personalizowany-prezent')) {
       console.log('👴👵 [PRODUCT-TYPE] URL = Weseli staruszkowie → productType: caricature-new');
+      return 'caricature-new';
+    }
+    if (currentUrl.includes('karykatura-pary-podroznikow-ze-zdjecia-personalizowany-prezent-dla-pary')) {
+      console.log('✈️ [PRODUCT-TYPE] URL = Para podróżników → productType: caricature-new');
       return 'caricature-new';
     }
     if (currentUrl.includes('karykatura-wedkarz-portret-ze-zdjecia-personalizowany-prezent-dla-faceta')) {
