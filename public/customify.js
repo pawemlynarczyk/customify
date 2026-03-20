@@ -2409,8 +2409,11 @@ class CustomifyEmbed {
         const isCoupleAnniversary = handle && COUPLE_ANNIVERSARY_FIELD_HANDLES.includes(handle);
         const isCoupleCustomYear = handle && COUPLE_CUSTOM_YEAR_FIELD_HANDLES.includes(handle);
         const isDlaNiejWithYears = handle && DLA_NIEJ_WITH_YEARS.includes(handle);
-        // Diamentowe Gody = zawsze 60 lat — brak pola w formularzu
-        const yearsVal = isCoupleAnniversary ? '60' : (replacements['YEARS'] || '');
+        // Diamentowe Gody = zawsze 60; "Weseli staruszkowie" = liczba z pola, a gdy puste domyślnie 60
+        const rawYearsVal = (replacements['YEARS'] || '').trim();
+        const yearsVal = isCoupleAnniversary
+          ? '60'
+          : (isCoupleCustomYear ? (rawYearsVal || '60') : rawYearsVal);
         if (yearsVal.trim()) {
           if (isCoupleAnniversary) {
             replacements['YEARS_SECTION'] =
@@ -2418,7 +2421,7 @@ class CustomifyEmbed {
           } else if (isCoupleCustomYear) {
             const y = yearsVal.trim();
             replacements['YEARS_SECTION'] =
-              `ANNIVERSARY NUMERAL (from buyer input — MUST match exactly):\n• Show a large, elegant 3D celebratory numeral that reads exactly: "${y}" (same characters/digits as the buyer typed).\n• The couple (cheerful „weseli staruszkowie”) is posed with or integrated with this numeral; style, materials and colors must harmonize with CUSTOMIZATION (warm golds, cozy festive metallics — not a random unrelated digit style).\n• CRITICAL: If the buyer enters a different number in the form, the image MUST show that new value — never reuse another run's number, never default to 50, 60, 70, etc., never invent a jubilee year. The only correct numeral is "${y}".`;
+              `ANNIVERSARY NUMERAL (buyer-controlled with default):\n• Show a large, elegant 3D celebratory numeral that reads exactly: "${y}".\n• The couple (cheerful „weseli staruszkowie”) is posed with or integrated with this numeral; style, materials and colors must harmonize with CUSTOMIZATION (warm golds, cozy festive metallics — not a random unrelated digit style).\n• CRITICAL: if the buyer enters a number in the form, use that exact value. If the field is left empty, use default "60". Never invent a different jubilee number.`;
           } else {
             replacements['YEARS_SECTION'] = isDlaNiejWithYears
               ? `The character is sitting/standing on or near a large 3D number "${yearsVal.trim()}" — the number's style, color and materials must match the character's profession/hobby theme (e.g. medical blue for nurse, police colors for officer, warm tones for chef). Do NOT use generic metallic gold — adapt to the scene.`
@@ -2431,7 +2434,7 @@ class CustomifyEmbed {
               'The couple is posed with a large elegant metallic "60" as specified for Diamentowe Gody (this branch should not occur — 60 is fixed).';
           } else if (isCoupleCustomYear) {
             replacements['YEARS_SECTION'] =
-              '• Pose the couple on the themed podium without a large standalone jubilee numeral. Do NOT show a big 3D anniversary number or invented age/year. If the buyer left the number field empty, do not add random digits.';
+              'Show a large elegant metallic "60" as the default jubilee numeral when the number field is empty.';
           } else {
             replacements['YEARS_SECTION'] = isDlaNiejWithYears
               ? 'The character stands on a podium.'
