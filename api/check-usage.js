@@ -214,11 +214,9 @@ module.exports = async (req, res) => {
       console.log(`🧪 [CHECK-USAGE] Test user - zwracam nieograniczone generacje`);
       return res.json({
         isLoggedIn: true,
-        customerId: customerId,
-        email: customerEmail,
-        totalLimit: 999, // Nieograniczone dla test user
+        totalLimit: 999,
         usedCount: 0,
-        remainingCount: 999, // Nieograniczone dla test user
+        remainingCount: 999,
         message: 'Nieograniczone generacje (test user)',
         isTestUser: true
       });
@@ -237,8 +235,6 @@ module.exports = async (req, res) => {
 
     return res.json({
       isLoggedIn: true,
-      customerId: customerId,
-      email: customer?.email,
       totalLimit: totalLimit,
       usedCount: totalUsed,
       remainingCount: totalRemaining,

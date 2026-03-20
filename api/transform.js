@@ -4068,53 +4068,31 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
             
             if (saveResponse.ok) {
               const saveResult = await saveResponse.json();
-              console.log(`✅ [TRANSFORM] Generacja zapisana w Vercel Blob Storage: ${saveResult.generationId}`);
-              console.log(`📊 [TRANSFORM] Total generations: ${saveResult.totalGenerations || 'unknown'}`);
-              console.log(`🔍 [TRANSFORM] Save-generation-v2 raw response:`, JSON.stringify(saveResult, null, 2));
               
-              // ✅ LOGUJ SZCZEGÓŁY DLA DIAGNOSTYKI (dla Vercel Logs)
+              // ✅ ZWRÓĆ TYLKO NIEWRAŻLIWE DANE DO KLIENTA (bez email, customerId, ip, deviceToken)
               if (saveResult.debug) {
-                console.log(`🔍 [TRANSFORM] customerId w save-generation-v2: ${saveResult.debug.customerId || 'null'}`);
-                console.log(`🔍 [TRANSFORM] customerIdType: ${saveResult.debug.customerIdType || 'null'}`);
-                console.log(`🔍 [TRANSFORM] hasMetafieldUpdate: ${saveResult.debug.hasMetafieldUpdate || false}`);
-                console.log(`🔍 [TRANSFORM] email: ${saveResult.debug.email || 'null'}`);
-                console.log(`🔍 [TRANSFORM] metafieldUpdateAttempted: ${saveResult.debug.metafieldUpdateAttempted || false}`);
-                console.log(`🔍 [TRANSFORM] metafieldUpdateSuccess: ${saveResult.debug.metafieldUpdateSuccess || false}`);
-                console.log(`🔍 [TRANSFORM] metafieldUpdateError: ${saveResult.debug.metafieldUpdateError || 'none'}`);
-                
-                // ✅ ZWRÓĆ DEBUG INFO W RESPONSE (dla przeglądarki)
                 saveGenerationDebug = {
-                  ...saveResult.debug,
-                  generationId: saveResult.generationId || null, // ✅ DODAJ generationId dla aktualizacji watermarku
-                  deviceToken,
-                  ipHash
-                };
-              } else {
-                console.warn('⚠️ [TRANSFORM] save-generation-v2 response nie zawiera debug. Dodaję fallback info.');
-                const fallbackDebug = {
-                  missingDebug: true,
-                  responseKeys: Object.keys(saveResult || {}),
-                  warning: saveResult.warning || null,
-                  message: saveResult.message || null,
+                  metafieldUpdateAttempted: saveResult.debug.metafieldUpdateAttempted ?? false,
+                  metafieldUpdateSuccess: saveResult.debug.metafieldUpdateSuccess ?? false,
+                  metafieldUpdateError: saveResult.debug.metafieldUpdateError ?? null,
                   generationId: saveResult.generationId || null
                 };
-                console.warn('⚠️ [TRANSFORM] Fallback debug info:', JSON.stringify(fallbackDebug, null, 2));
+              } else {
                 saveGenerationDebug = {
-                  ...fallbackDebug,
-                  deviceToken,
-                  ipHash
+                  metafieldUpdateAttempted: false,
+                  metafieldUpdateSuccess: false,
+                  metafieldUpdateError: 'missing debug from save-generation',
+                  generationId: saveResult.generationId || null
                 };
               }
             } else {
               const errorText = await saveResponse.text();
-              console.error('⚠️ [TRANSFORM] Błąd zapisu generacji:', errorText);
-              console.error('⚠️ [TRANSFORM] Status:', saveResponse.status);
-              saveGenerationDebug = { error: errorText, status: saveResponse.status, deviceToken, ipHash };
+              console.error('⚠️ [TRANSFORM] Błąd zapisu generacji:', saveResponse.status);
+              saveGenerationDebug = { metafieldUpdateSuccess: false, metafieldUpdateError: `HTTP ${saveResponse.status}` };
             }
           } catch (saveError) {
-            console.error('⚠️ [TRANSFORM] Błąd zapisu generacji (nie blokuję odpowiedzi):', saveError);
-            console.error('⚠️ [TRANSFORM] Stack:', saveError.stack);
-            saveGenerationDebug = { error: saveError.message, stack: saveError.stack, deviceToken, ipHash };
+            console.error('⚠️ [TRANSFORM] Błąd zapisu generacji (nie blokuję odpowiedzi):', saveError?.message);
+            saveGenerationDebug = { metafieldUpdateSuccess: false, metafieldUpdateError: saveError?.message || 'unknown' };
             // Nie blokuj odpowiedzi - transformacja się udała
           }
         }
@@ -4127,7 +4105,7 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
       // ✅ Brak imageUrl lub finalImageUrl = null (upload przez SDK nie powiódł się)
       const reason = !imageUrl ? 'brak imageUrl' : 'upload przez SDK nie powiódł się (za duży)';
       console.warn(`⚠️ [TRANSFORM] Pomijam zapis generacji - ${reason}`);
-      saveGenerationDebug = { skipped: true, reason, hasImageUrl: !!imageUrl, finalImageUrl: finalImageUrl !== null, deviceToken, ipHash };
+      saveGenerationDebug = { skipped: true, reason, metafieldUpdateSuccess: false };
     }
 
     // ✅ INKREMENTACJA LICZNIKA PO UDANEJ TRANSFORMACJI
@@ -4594,24 +4572,7 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
       productHandle: productHandle || null
     };
     
-    // ✅ BARDZO WIDOCZNE LOGOWANIE - SPRAWDŹ CZY saveGenerationDebug JEST USTAWIONE
-    console.log(`🔍🔍🔍 [TRANSFORM] ===== SPRAWDZAM saveGenerationDebug PRZED RESPONSE =====`);
-    console.log(`🔍 [TRANSFORM] saveGenerationDebug value:`, saveGenerationDebug);
-    console.log(`🔍 [TRANSFORM] saveGenerationDebug type:`, typeof saveGenerationDebug);
-    console.log(`🔍 [TRANSFORM] saveGenerationDebug !== null:`, saveGenerationDebug !== null);
-    
-    // ✅ ZAWSZE DODAJ DEBUG INFO - NAWET JEŚLI JEST NULL (dla debugowania)
     responseData.saveGenerationDebug = saveGenerationDebug;
-    if (saveGenerationDebug !== null) {
-      console.log(`✅ [TRANSFORM] Dodaję saveGenerationDebug do response`);
-      console.log(`🔍 [TRANSFORM] Zwracam debug info do przeglądarki:`, JSON.stringify(saveGenerationDebug, null, 2));
-    } else {
-      console.warn(`⚠️ [TRANSFORM] saveGenerationDebug jest null - DODAJĘ null do response dla debugowania`);
-      console.warn(`⚠️ [TRANSFORM] To może oznaczać, że save-generation-v2 nie został wywołany lub nie zwrócił debug info`);
-    }
-    
-    console.log(`🔍 [TRANSFORM] Final responseData keys:`, Object.keys(responseData));
-    console.log(`🔍 [TRANSFORM] Final responseData.saveGenerationDebug:`, responseData.saveGenerationDebug);
     
     // ✅ LOGOWANIE: Sprawdź czy watermarkedImageUrl jest null (błąd!)
     if (!watermarkedImageUrl) {
@@ -4623,7 +4584,6 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
       console.log(`✅ [TRANSFORM] watermarkedImageUrl OK: ${watermarkedImageUrl.substring(0, 100)}...`);
     }
     
-    console.log(`🔍🔍🔍 [TRANSFORM] ===== KONIEC SPRAWDZANIA saveGenerationDebug =====`);
     
     // ✅ STATS: Zlicz generację AI w panelu login-modal-stats (źródło prawdy = backend, nie frontend)
     const productUrlForStats = (productHandle && String(productHandle).trim()) ? `/products/${String(productHandle).trim()}` : '/products/unknown';

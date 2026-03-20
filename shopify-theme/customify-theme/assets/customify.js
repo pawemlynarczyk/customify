@@ -29,8 +29,6 @@ CUSTOMIZATION
 The character represents this profession / hobby / personality:
 "{personalization}"
 
-MANDATORY BASE THEME (non-negotiable): this is always a young wedding couple ("młoda para ślubna"). Keep wedding-couple identity as the core of the image in every case.
-If buyer adds extra description in CUSTOMIZATION, treat it only as secondary accents (colors, props, mood, background details) and never replace the wedding-couple base theme.
 CRITICAL: The overall character should be cohesive — outfit, props, scene, background, podium and decorations must all reference and match the same theme. Everything should harmonize and create a unified, coherent whole.
 
 Add visual elements, clothing, props and small scene details related to it.
@@ -988,6 +986,65 @@ Premium collectible caricature statue, highly detailed, playful but luxurious, p
       { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby - tekst nie pojawi się na obrazku ale decyduje o jego wyglądzie', type: 'text', placeholder: 'np. policjant, detektyw, straż', required: false, promptKey: 'personalization' }
     ]
   },
+  'obraz-ze-zdjecia-karykatura-szefa': {
+    title: 'Personalizacja',
+    promptTemplate: `Create a caricature figurine based on the provided photo.
+
+STYLE
+• Premium resin statue.
+• Soft cinematic studio lighting.
+• Glossy surfaces, high-end product render.
+• Warm elegant color grading.
+• Slight caricature exaggeration (bigger head, stylish proportions).
+
+FACE — CRITICAL
+• Strongly preserve the identity from the reference photo.
+• Keep facial structure, eyes, nose, mouth, beard/hairline.
+• Natural skin tones.
+• Friendly expressive smile.
+
+CUSTOMIZATION
+The character represents this profession / hobby / personality:
+"{personalization}"
+
+CRITICAL: The overall character should be cohesive — outfit, props, scene, background, podium and decorations must all reference and match the same theme. The podium on which the figurine stands must be styled to fit the profession or hobby. Everything should harmonize and create a unified, coherent whole.
+
+Add visual elements, clothing, props and small scene details related to it.
+Examples:
+• company boss / CEO → suit, tie, office desk, laptop, city skyline, modern boardroom
+• business executive → elegant suit, briefcase, skyscraper, professional atmosphere
+
+POSE
+{YEARS_SECTION}
+• Character sitting or standing confidently on a podium styled to match the profession or hobby.
+• The podium must be styled to match the theme — office desk, executive chair, or modern business podium. The design, shape, materials and decorations should reflect and harmonize with the overall theme.
+• Relaxed, charismatic pose.
+
+OUTFIT
+• Outfit matching the profession or interest — elegant suit, tie, business attire.
+• Stylish, slightly exaggerated caricature look.
+
+SCENE
+Mini decorative environment connected with the profession — office, boardroom, desk with laptop or documents.
+Fun but professional.
+
+BACKGROUND
+• Colors and style of the background must be related to the person's profession — corporate blues, warm wood tones, city skyline, professional office setting.
+• The backdrop should visually connect with the character's theme, not generic studio.
+• Soft bokeh lights.
+• Subtle themed decorations.
+
+TEXT
+{NAME_SECTION}
+
+RESULT
+Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
+    fields: [
+      { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Marek', required: false, promptKey: 'name' },
+      { id: 'rocznica', label: 'Rocznica / liczba lat - liczba pojawi się na obrazku', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
+      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby - tekst nie pojawi się na obrazku ale decyduje o jego wyglądzie', type: 'text', placeholder: 'np. szef firmy, prezes, w biurze', required: false, promptKey: 'personalization' }
+    ]
+  },
   'karykatura-pary-na-diamentowe-gody-ze-zdjecia-60-rocznica-slubu': {
     title: 'Personalizacja',
     promptTemplate: `Create a caricature figurine based on the provided photo.
@@ -1202,7 +1259,6 @@ CRITICAL: The overall character should be cohesive — outfit, props, scene, bac
 Add visual elements, clothing, props and small scene details related to it.
 Examples:
 • young wedding couple → elegant wedding styling, romantic atmosphere, tasteful ceremony accents
-• travelers/couple travelers → suitcases, passport, map, airplane motifs
 • business person → suit, laptop, phone
 • musician / gamer / chef etc.
 
@@ -1353,6 +1409,69 @@ Premium collectible caricature statue, highly detailed, playful but luxurious, p
       { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Jan', required: false, promptKey: 'name' },
       { id: 'rocznica', label: 'Rocznica / liczba lat - liczba pojawi się na obrazku', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
       { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby - tekst nie pojawi się na obrazku ale decyduje o jego wyglądzie', type: 'text', placeholder: 'np. wędkarz, ryby, jezioro', required: false, promptKey: 'personalization' }
+    ]
+  },
+  'karykatura-pilkarza-ze-zdjecia-personalizowany-obraz-dla-chlopaka-dziadka-taty': {
+    title: 'Personalizacja',
+    promptTemplate: `Create a caricature figurine based on the provided photo.
+
+STYLE
+• Premium resin statue.
+• Soft cinematic studio lighting.
+• Glossy surfaces, high-end product render.
+• Warm elegant color grading.
+• Slight caricature exaggeration (bigger head, stylish proportions).
+
+FACE — CRITICAL
+• Strongly preserve the identity from the reference photo.
+• Keep facial structure, eyes, nose, mouth, beard/hairline.
+• Natural skin tones.
+• Friendly expressive smile.
+
+CUSTOMIZATION
+The character represents this profession / hobby / personality:
+"{personalization}"
+
+CRITICAL: The overall character should be cohesive — outfit, props, scene, background, podium and decorations must all reference and match the same theme. The podium on which the figurine stands must be styled to fit the profession or hobby. Everything should harmonize and create a unified, coherent whole.
+
+Add visual elements, clothing, props and small scene details related to it.
+Examples:
+• fisherman → fishing rod, fish, lake/river setting, outdoor vibe, waders or fishing vest
+• footballer → football jersey, ball, trophy, stadium, grass pitch
+• nurse → medical uniform, stethoscope
+• business person → suit, laptop, phone
+• farmer → straw hat, tractor elements
+• gamer, chef, traveler, musician etc.
+
+POSE
+{YEARS_SECTION}
+• Character sitting or standing confidently on a podium.
+• The podium must be styled to match the profession or hobby — e.g. boat deck or lakeside dock for fisherman, football pitch podium for footballer, medical podium for nurse, office desk for business person. The podium design, shape, materials and decorations should reflect and harmonize with the overall theme.
+• Relaxed, charismatic pose.
+
+OUTFIT
+• Outfit matching the profession or interest.
+• Stylish, slightly exaggerated caricature look.
+
+SCENE
+Mini decorative environment connected with the interest or job.
+Fun but elegant.
+
+BACKGROUND
+• Colors and style of the background must be related to the person's profession or hobby — e.g. fresh blues and greens for fisherman/water, green pitch for footballer, soft blues for nurse/medical, warm earth tones for farmer.
+• The backdrop should visually connect with the character's theme, not generic studio.
+• Soft bokeh lights.
+• Subtle themed decorations.
+
+TEXT
+{NAME_SECTION}
+
+RESULT
+Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
+    fields: [
+      { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Jan', required: false, promptKey: 'name' },
+      { id: 'rocznica', label: 'Rocznica / liczba lat - liczba pojawi się na obrazku', type: 'text', placeholder: 'np. 10, 25, 50', required: false, promptKey: 'YEARS' },
+      { id: 'opis_charakteru', label: 'Opisz osobę, jej zawód, hobby - tekst nie pojawi się na obrazku ale decyduje o jego wyglądzie', type: 'text', placeholder: 'np. piłkarz, piłka nożna, football', required: false, promptKey: 'personalization' }
     ]
   },
   'kulturysta-karykatura-ze-zdjecia-prezent-dla-mezczyzny': {
@@ -2154,7 +2273,7 @@ Cinematic lighting, soft glow, ultra-detailed, painterly, semi-realistic digital
 };
 
 /** Produkty "dla niej" z polem rocznica — używają innej logiki YEARS_SECTION (character zamiast woman, explicit "no numbers" gdy puste). */
-const DLA_NIEJ_WITH_YEARS = ['obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania', 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka', 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka', 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka', 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka', 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog', 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka', 'obraz-ze-zdjecia-karykatura-dla-niej-fitness', 'obraz-ze-zdjecia-karykatura-dla-niej-szefowa', 'karykatura-rolnik-ze-zdjecia-personalizowany-prezent-dla-mezczyzny', 'kulturysta-karykatura-ze-zdjecia-prezent-dla-mezczyzny', 'karykatura-wedkarz-portret-ze-zdjecia-personalizowany-prezent-dla-faceta', 'obraz-ze-zdjecia-karykatura-policjant-prezent-dla-faceta', 'fotoobraz-strazaka-ze-zdjecia-prezent-na-35-urodziny-dla-meza', 'portret-ze-zdjecia-dla-lekarza-personalizowany-plakat-na-urodziny-dla-chlopaka', 'prezent-ze-zdjecia-dla-budowlanca-personalizowany-obraz-dla-taty', 'prezent-z-wlasnym-zdjeciem-dla-kierowcy-tira-personalizowany-obraz', 'obraz-ze-zdjecia-prezent-dla-chlopca-pilkarz', 'active-woman-portret-ze-zdjecia-na-rocznice-dla-kolezanki-kobiety-druk-na-szkle', 'active-woman-portret-ze-zdjecia-na-18-urodziny-dla-dziewczyny-druk-na-szkle-copy', 'portret-ze-zdjecia-prezent-na-urodziny-dla-kolezanki-szefowej-salon-spa', 'portret-na-18-urodziny-dla-dziewczyny-magic-z-wlasnego-zdjecia-druk-na-szkle', 'obraz-ze-zdjecia-prezent-na-40-urodziny-dla-kobiety-czerwony-dywan', 'portret-ze-zdjecia-na-30-rocznice-dla-nauczycielki-karykatura-na-prezent'];
+const DLA_NIEJ_WITH_YEARS = ['obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania', 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka', 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka', 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka', 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka', 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog', 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka', 'obraz-ze-zdjecia-karykatura-dla-niej-fitness', 'obraz-ze-zdjecia-karykatura-dla-niej-szefowa', 'karykatura-rolnik-ze-zdjecia-personalizowany-prezent-dla-mezczyzny', 'kulturysta-karykatura-ze-zdjecia-prezent-dla-mezczyzny', 'karykatura-wedkarz-portret-ze-zdjecia-personalizowany-prezent-dla-faceta', 'karykatura-pilkarza-ze-zdjecia-personalizowany-obraz-dla-chlopaka-dziadka-taty', 'obraz-ze-zdjecia-karykatura-policjant-prezent-dla-faceta', 'obraz-ze-zdjecia-karykatura-szefa', 'fotoobraz-strazaka-ze-zdjecia-prezent-na-35-urodziny-dla-meza', 'portret-ze-zdjecia-dla-lekarza-personalizowany-plakat-na-urodziny-dla-chlopaka', 'prezent-ze-zdjecia-dla-budowlanca-personalizowany-obraz-dla-taty', 'prezent-z-wlasnym-zdjeciem-dla-kierowcy-tira-personalizowany-obraz', 'obraz-ze-zdjecia-prezent-dla-chlopca-pilkarz', 'active-woman-portret-ze-zdjecia-na-rocznice-dla-kolezanki-kobiety-druk-na-szkle', 'active-woman-portret-ze-zdjecia-na-18-urodziny-dla-dziewczyny-druk-na-szkle-copy', 'portret-ze-zdjecia-prezent-na-urodziny-dla-kolezanki-szefowej-salon-spa', 'portret-na-18-urodziny-dla-dziewczyny-magic-z-wlasnego-zdjecia-druk-na-szkle', 'obraz-ze-zdjecia-prezent-na-40-urodziny-dla-kobiety-czerwony-dywan', 'portret-ze-zdjecia-na-30-rocznice-dla-nauczycielki-karykatura-na-prezent'];
 
 /** Para + rocznica ślubu — YEARS jako duża cyfra w scenie (nie logika „pojedyncza postać z DLA_NIEJ_WITH_YEARS”). */
 const COUPLE_ANNIVERSARY_FIELD_HANDLES = ['karykatura-pary-na-diamentowe-gody-ze-zdjecia-60-rocznica-slubu'];
@@ -2205,7 +2324,9 @@ const DEFAULT_PERSONALIZATION_PER_PRODUCT = {
   'karykatura-rolnik-ze-zdjecia-personalizowany-prezent-dla-mezczyzny': 'rolnik, farmer, wieś, rolnictwo',
   'kulturysta-karykatura-ze-zdjecia-prezent-dla-mezczyzny': 'kulturysta, bodybuilding, siłownia, mięśnie',
   'karykatura-wedkarz-portret-ze-zdjecia-personalizowany-prezent-dla-faceta': 'wędkarz, wędkarstwo, ryby, jezioro',
+  'karykatura-pilkarza-ze-zdjecia-personalizowany-obraz-dla-chlopaka-dziadka-taty': 'piłkarz, piłka nożna, football, trofeum',
   'obraz-ze-zdjecia-karykatura-policjant-prezent-dla-faceta': 'policjant, policja, mundur, odznaka',
+  'obraz-ze-zdjecia-karykatura-szefa': 'szef firmy, boss, prezes, w biurze',
   'karykatura-pary-na-diamentowe-gody-ze-zdjecia-60-rocznica-slubu': 'Elegancka grafika napisem \u201eDiamentowe Gody\u201d',
   'karykatura-dziadkow-ze-zdjecia-wesola-para-personalizowany-prezent': 'Weseli staruszkowie',
   'karykatura-pary-podroznikow-ze-zdjecia-personalizowany-prezent-dla-pary': 'Podróżnicy, podróże, walizki, mapa świata',
@@ -2839,7 +2960,7 @@ class CustomifyEmbed {
   // 💝 Produkty "dla niej" + Biznes Woman — jeden styl (caricature-new), bez wyboru, generacja bez klikania w miniaturkę
   isDlaNiejProduct() {
     const h = this.getProductHandle();
-    return h === 'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-fitness' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-szefowa' || h === 'karykatura-rolnik-ze-zdjecia-personalizowany-prezent-dla-mezczyzny' || h === 'kulturysta-karykatura-ze-zdjecia-prezent-dla-mezczyzny' || h === 'karykatura-wedkarz-portret-ze-zdjecia-personalizowany-prezent-dla-faceta' || h === 'obraz-ze-zdjecia-karykatura-policjant-prezent-dla-faceta' || h === DIAMENTOWE_GODY_PRODUCT_HANDLE || h === WIESELI_STARUSZKOWIE_PRODUCT_HANDLE || h === PODROZNICY_PARA_PRODUCT_HANDLE || h === MLODA_PARA_SLUB_PRODUCT_HANDLE || h === ROCZNICA_SLUBU_PARA_PRODUCT_HANDLE || h === 'fotoobraz-strazaka-ze-zdjecia-prezent-na-35-urodziny-dla-meza' || h === 'portret-ze-zdjecia-dla-lekarza-personalizowany-plakat-na-urodziny-dla-chlopaka' || h === 'prezent-ze-zdjecia-dla-budowlanca-personalizowany-obraz-dla-taty' || h === 'prezent-z-wlasnym-zdjeciem-dla-kierowcy-tira-personalizowany-obraz' || h === 'obraz-ze-zdjecia-prezent-dla-chlopca-pilkarz' || h === 'active-woman-portret-ze-zdjecia-na-rocznice-dla-kolezanki-kobiety-druk-na-szkle' || h === 'active-woman-portret-ze-zdjecia-na-18-urodziny-dla-dziewczyny-druk-na-szkle-copy' || h === 'portret-ze-zdjecia-prezent-na-urodziny-dla-kolezanki-szefowej-salon-spa' || h === 'portret-na-18-urodziny-dla-dziewczyny-magic-z-wlasnego-zdjecia-druk-na-szkle' || h === 'obraz-ze-zdjecia-prezent-na-40-urodziny-dla-kobiety-czerwony-dywan' || h === 'portret-ze-zdjecia-na-30-rocznice-dla-nauczycielki-karykatura-na-prezent' || h === 'obraz-ze-zdjecia-biznes-woman-personalizowany-prezent' || h === 'obraz-ze-zdjecia-prezent-na-30-urodziny-dla-kobiety-biznes-woman' || h === 'obraz-ze-zdjecia-prezent-na-50-urodziny-dla-kobiety-biznes-woman' || h === 'wydruk-na-szkle-biznes-woman-prezent-na-urodziny-dla-kobiety';
+    return h === 'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-fitness' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-szefowa' || h === 'karykatura-rolnik-ze-zdjecia-personalizowany-prezent-dla-mezczyzny' || h === 'kulturysta-karykatura-ze-zdjecia-prezent-dla-mezczyzny' || h === 'karykatura-wedkarz-portret-ze-zdjecia-personalizowany-prezent-dla-faceta' || h === 'karykatura-pilkarza-ze-zdjecia-personalizowany-obraz-dla-chlopaka-dziadka-taty' || h === 'obraz-ze-zdjecia-karykatura-policjant-prezent-dla-faceta' || h === 'obraz-ze-zdjecia-karykatura-szefa' || h === DIAMENTOWE_GODY_PRODUCT_HANDLE || h === WIESELI_STARUSZKOWIE_PRODUCT_HANDLE || h === PODROZNICY_PARA_PRODUCT_HANDLE || h === MLODA_PARA_SLUB_PRODUCT_HANDLE || h === ROCZNICA_SLUBU_PARA_PRODUCT_HANDLE || h === 'fotoobraz-strazaka-ze-zdjecia-prezent-na-35-urodziny-dla-meza' || h === 'portret-ze-zdjecia-dla-lekarza-personalizowany-plakat-na-urodziny-dla-chlopaka' || h === 'prezent-ze-zdjecia-dla-budowlanca-personalizowany-obraz-dla-taty' || h === 'prezent-z-wlasnym-zdjeciem-dla-kierowcy-tira-personalizowany-obraz' || h === 'obraz-ze-zdjecia-prezent-dla-chlopca-pilkarz' || h === 'active-woman-portret-ze-zdjecia-na-rocznice-dla-kolezanki-kobiety-druk-na-szkle' || h === 'active-woman-portret-ze-zdjecia-na-18-urodziny-dla-dziewczyny-druk-na-szkle-copy' || h === 'portret-ze-zdjecia-prezent-na-urodziny-dla-kolezanki-szefowej-salon-spa' || h === 'portret-na-18-urodziny-dla-dziewczyny-magic-z-wlasnego-zdjecia-druk-na-szkle' || h === 'obraz-ze-zdjecia-prezent-na-40-urodziny-dla-kobiety-czerwony-dywan' || h === 'portret-ze-zdjecia-na-30-rocznice-dla-nauczycielki-karykatura-na-prezent' || h === 'obraz-ze-zdjecia-biznes-woman-personalizowany-prezent' || h === 'obraz-ze-zdjecia-prezent-na-30-urodziny-dla-kobiety-biznes-woman' || h === 'obraz-ze-zdjecia-prezent-na-50-urodziny-dla-kobiety-biznes-woman' || h === 'wydruk-na-szkle-biznes-woman-prezent-na-urodziny-dla-kobiety';
   }
 
   // 🦸 Produkt Superbohater dla chłopca — Nano Banana, ukryty wybór, pole imienia
@@ -3095,7 +3216,7 @@ class CustomifyEmbed {
       }
     }
     // 🎯 Rocznica 50-ta / Dla niej: domyślnie wydruk na szkle + rozmiar A5
-    if (this.getProductHandle() === 'obraz-ze-zdjecia-pary-na-50-ta-rocznice-wydruk-na-szkle' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-na-50-ta-rocznice' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-fitness' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-szefowa' || this.getProductHandle() === 'karykatura-rolnik-ze-zdjecia-personalizowany-prezent-dla-mezczyzny' || this.getProductHandle() === 'kulturysta-karykatura-ze-zdjecia-prezent-dla-mezczyzny' || this.getProductHandle() === 'karykatura-wedkarz-portret-ze-zdjecia-personalizowany-prezent-dla-faceta' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-policjant-prezent-dla-faceta' || this.getProductHandle() === DIAMENTOWE_GODY_PRODUCT_HANDLE || this.getProductHandle() === WIESELI_STARUSZKOWIE_PRODUCT_HANDLE || this.getProductHandle() === PODROZNICY_PARA_PRODUCT_HANDLE || this.getProductHandle() === MLODA_PARA_SLUB_PRODUCT_HANDLE || this.getProductHandle() === ROCZNICA_SLUBU_PARA_PRODUCT_HANDLE || this.getProductHandle() === 'fotoobraz-strazaka-ze-zdjecia-prezent-na-35-urodziny-dla-meza' || this.getProductHandle() === 'portret-ze-zdjecia-dla-lekarza-personalizowany-plakat-na-urodziny-dla-chlopaka' || this.getProductHandle() === 'prezent-ze-zdjecia-dla-budowlanca-personalizowany-obraz-dla-taty' || this.getProductHandle() === 'prezent-z-wlasnym-zdjeciem-dla-kierowcy-tira-personalizowany-obraz' || this.getProductHandle() === 'obraz-ze-zdjecia-prezent-dla-chlopca-pilkarz' || this.getProductHandle() === 'active-woman-portret-ze-zdjecia-na-rocznice-dla-kolezanki-kobiety-druk-na-szkle' || this.getProductHandle() === 'active-woman-portret-ze-zdjecia-na-18-urodziny-dla-dziewczyny-druk-na-szkle-copy' || this.getProductHandle() === 'portret-ze-zdjecia-prezent-na-urodziny-dla-kolezanki-szefowej-salon-spa' || this.getProductHandle() === 'portret-na-18-urodziny-dla-dziewczyny-magic-z-wlasnego-zdjecia-druk-na-szkle' || this.getProductHandle() === 'obraz-ze-zdjecia-prezent-na-40-urodziny-dla-kobiety-czerwony-dywan' || this.getProductHandle() === 'portret-ze-zdjecia-na-30-rocznice-dla-nauczycielki-karykatura-na-prezent' || this.getProductHandle() === 'obraz-ze-zdjecia-prezent-na-50-urodziny-dla-kobiety-biznes-woman' || this.getProductHandle() === 'wydruk-na-szkle-biznes-woman-prezent-na-urodziny-dla-kobiety') {
+    if (this.getProductHandle() === 'obraz-ze-zdjecia-pary-na-50-ta-rocznice-wydruk-na-szkle' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-na-50-ta-rocznice' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-fitness' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-dla-niej-szefowa' || this.getProductHandle() === 'karykatura-rolnik-ze-zdjecia-personalizowany-prezent-dla-mezczyzny' || this.getProductHandle() === 'kulturysta-karykatura-ze-zdjecia-prezent-dla-mezczyzny' || this.getProductHandle() === 'karykatura-wedkarz-portret-ze-zdjecia-personalizowany-prezent-dla-faceta' || this.getProductHandle() === 'karykatura-pilkarza-ze-zdjecia-personalizowany-obraz-dla-chlopaka-dziadka-taty' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-policjant-prezent-dla-faceta' || this.getProductHandle() === 'obraz-ze-zdjecia-karykatura-szefa' || this.getProductHandle() === DIAMENTOWE_GODY_PRODUCT_HANDLE || this.getProductHandle() === WIESELI_STARUSZKOWIE_PRODUCT_HANDLE || this.getProductHandle() === PODROZNICY_PARA_PRODUCT_HANDLE || this.getProductHandle() === MLODA_PARA_SLUB_PRODUCT_HANDLE || this.getProductHandle() === ROCZNICA_SLUBU_PARA_PRODUCT_HANDLE || this.getProductHandle() === 'fotoobraz-strazaka-ze-zdjecia-prezent-na-35-urodziny-dla-meza' || this.getProductHandle() === 'portret-ze-zdjecia-dla-lekarza-personalizowany-plakat-na-urodziny-dla-chlopaka' || this.getProductHandle() === 'prezent-ze-zdjecia-dla-budowlanca-personalizowany-obraz-dla-taty' || this.getProductHandle() === 'prezent-z-wlasnym-zdjeciem-dla-kierowcy-tira-personalizowany-obraz' || this.getProductHandle() === 'obraz-ze-zdjecia-prezent-dla-chlopca-pilkarz' || this.getProductHandle() === 'active-woman-portret-ze-zdjecia-na-rocznice-dla-kolezanki-kobiety-druk-na-szkle' || this.getProductHandle() === 'active-woman-portret-ze-zdjecia-na-18-urodziny-dla-dziewczyny-druk-na-szkle-copy' || this.getProductHandle() === 'portret-ze-zdjecia-prezent-na-urodziny-dla-kolezanki-szefowej-salon-spa' || this.getProductHandle() === 'portret-na-18-urodziny-dla-dziewczyny-magic-z-wlasnego-zdjecia-druk-na-szkle' || this.getProductHandle() === 'obraz-ze-zdjecia-prezent-na-40-urodziny-dla-kobiety-czerwony-dywan' || this.getProductHandle() === 'portret-ze-zdjecia-na-30-rocznice-dla-nauczycielki-karykatura-na-prezent' || this.getProductHandle() === 'obraz-ze-zdjecia-prezent-na-50-urodziny-dla-kobiety-biznes-woman' || this.getProductHandle() === 'wydruk-na-szkle-biznes-woman-prezent-na-urodziny-dla-kobiety') {
       const szkloBtn = document.querySelector('.customify-product-type-btn[data-product-type="szklo"]');
       if (szkloBtn) {
         this.productTypeArea?.querySelectorAll('.customify-product-type-btn').forEach(btn => btn.classList.remove('active'));
@@ -3227,7 +3348,7 @@ class CustomifyEmbed {
           console.warn(`⚠️ [CUSTOMER DETECT] Zwracam null zamiast info z ${source}`);
           return null; // ⚠️ ZWRÓĆ NULL jeśli window.ShopifyCustomer jest null!
         }
-        console.log(`✅ [CUSTOMER DETECT] Zidentyfikowano klienta (${source}):`, info.customerId);
+        // Klient zidentyfikowany (bez logowania customerId)
       }
       return info;
     };
@@ -3516,6 +3637,10 @@ class CustomifyEmbed {
       console.log('👮 [PRODUCT-TYPE] URL = Karykatura policjant → productType: caricature-new');
       return 'caricature-new';
     }
+    if (currentUrl.includes('obraz-ze-zdjecia-karykatura-szefa')) {
+      console.log('👔 [PRODUCT-TYPE] URL = Karykatura szef → productType: caricature-new');
+      return 'caricature-new';
+    }
     if (currentUrl.includes('karykatura-pary-na-diamentowe-gody-ze-zdjecia-60-rocznica-slubu')) {
       console.log('💎 [PRODUCT-TYPE] URL = Diamentowe Gody para → productType: caricature-new');
       return 'caricature-new';
@@ -3538,6 +3663,10 @@ class CustomifyEmbed {
     }
     if (currentUrl.includes('karykatura-wedkarz-portret-ze-zdjecia-personalizowany-prezent-dla-faceta')) {
       console.log('🎣 [PRODUCT-TYPE] URL = Karykatura wędkarz → productType: caricature-new');
+      return 'caricature-new';
+    }
+    if (currentUrl.includes('karykatura-pilkarza-ze-zdjecia-personalizowany-obraz-dla-chlopaka-dziadka-taty')) {
+      console.log('⚽ [PRODUCT-TYPE] URL = Karykatura piłkarz → productType: caricature-new');
       return 'caricature-new';
     }
     if (currentUrl.includes('kulturysta-karykatura-ze-zdjecia-prezent-dla-mezczyzny')) {
@@ -4973,17 +5102,6 @@ class CustomifyEmbed {
         }
         
         const data = await response.json();
-        console.log('📊 [USAGE] API response:', data);
-        console.log('🔍 [USAGE] Detailed response analysis:', {
-          hasRemainingCount: 'remainingCount' in data,
-          remainingCount: data.remainingCount,
-          remainingCountType: typeof data.remainingCount,
-          usedCount: data.usedCount,
-          totalLimit: data.totalLimit,
-          productType: data.productType,
-          byProductType: data.byProductType,
-          calculation: `${data.totalLimit} - ${data.usedCount} = ${data.totalLimit - data.usedCount}`
-        });
         
         if (data.remainingCount <= 0) {
           console.error(`❌ [USAGE] Limit przekroczony - przerwano transformację`);
@@ -4991,7 +5109,7 @@ class CustomifyEmbed {
           return false;
         }
         
-        console.log(`✅ [USAGE] Pozostało ${data.remainingCount} transformacji dla ${productType}`);
+        // Limit OK - remainingCount > 0
         return true;
       } catch (error) {
         console.error('❌ [USAGE] Błąd sprawdzania limitu:', error);
@@ -5704,8 +5822,16 @@ class CustomifyEmbed {
   }
 
   setupEventListeners() {
-    this.uploadArea.addEventListener('click', () => this.fileInput.click());
-    this.fileInput.addEventListener('change', (e) => this.handleFileSelect(e.target.files[0]));
+    this.uploadArea.addEventListener('click', () => {
+      const input = document.getElementById('fileInput');
+      if (input) input.click();
+    });
+    // 🔧 Delegacja na document - działa nawet gdy fileInput jest przeniesiony w DOM (po tryAgain/showResult)
+    document.addEventListener('change', (e) => {
+      if (e.target.id === 'fileInput' && e.target.files?.length > 0) {
+        this.handleFileSelect(e.target.files[0]);
+      }
+    });
     
     this.uploadArea.addEventListener('dragover', (e) => {
       e.preventDefault();
@@ -6587,6 +6713,9 @@ class CustomifyEmbed {
     console.log('🔍 [DEBUG] isCropperProduct = false, normalny upload');
     this.uploadedFile = file;
     this.showPreview(file);
+
+    // 🔧 Reset fileInput.value żeby kolejny wybór (nawet tego samego pliku) zawsze odpalił change
+    if (this.fileInput) this.fileInput.value = '';
 
     // ✅ Google Ads Conversion Tracking - Image Upload Event
     if (typeof gtag !== 'undefined') {
@@ -7621,9 +7750,6 @@ class CustomifyEmbed {
       let promptAddition = null;
       try {
         promptAddition = this.collectCustomFieldsPrompt();
-        if (promptAddition) {
-          console.log('🎛️ [CUSTOM-FIELDS] promptAddition:', promptAddition);
-        }
       } catch (fieldError) {
         this.showError(fieldError.message, 'transform');
         this.hideLoading();
@@ -7714,15 +7840,11 @@ class CustomifyEmbed {
         : (this.isPhonePhotoCaseProduct() && this.phonePhotoCropConfirmed && this.phonePhotoCropDataUrl)
         ? this.phonePhotoCropDataUrl
         : await this.fileToBase64(this.uploadedFile);
-      console.log('📱 [MOBILE] Starting transform request...');
       
       // Create AbortController for timeout
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 300000); // 5 minutes
       
-      console.log('📱 [MOBILE] Sending request to transform API...');
-      console.log('📱 [MOBILE] Base64 length:', base64.length, 'characters');
-      console.log('📱 [MOBILE] Base64 preview:', base64.substring(0, 50) + '...');
       
       // ✅ Użyj productType z stylu (zgodne z backend - config.productType)
       const productType = this.getProductTypeFromStyle(this.selectedStyle);
@@ -7754,7 +7876,6 @@ class CustomifyEmbed {
         requestBody.promptAddition = promptAddition;
         const cfg = this.getCustomFieldConfig();
         if (cfg && cfg.promptTemplate) requestBody.replaceBasePrompt = true;
-        console.log('🎛️ [CUSTOM-FIELDS] Dodano promptAddition do requestBody:', promptAddition.substring(0, 100), cfg && cfg.promptTemplate ? '(replaceBasePrompt)' : '');
       }
 
       // 📊 PERSONALIZATION LOG: Zbierz surowe wartości pól ZAWSZE (niezależnie od promptAddition)
@@ -7770,7 +7891,6 @@ class CustomifyEmbed {
         if (Object.keys(rawFields).length > 0) {
           requestBody.personalizationFields = rawFields;
           requestBody.productHandle = this.getProductHandle();
-          console.log('📊 [PERSONALIZATION] Zbieranie pól do logu:', rawFields);
         }
       }
 
@@ -7805,53 +7925,9 @@ class CustomifyEmbed {
         }
       }
       
-      console.log('📱 [MOBILE] Request body size:', JSON.stringify(requestBody).length, 'bytes');
-      console.log('👤 [MOBILE] Customer info:', customerInfo ? 'zalogowany' : 'niezalogowany');
+      // Logi diagnostyczne - bez promptu, personalizacji, emaila (prywatność)
       
-      // ✅ SZCZEGÓŁOWE LOGOWANIE DLA DIAGNOSTYKI
-      console.log('🔍 [FRONTEND] Customer Info Details:', {
-        customerId: customerInfo?.customerId || 'null',
-        customerIdType: typeof customerInfo?.customerId,
-        email: customerInfo?.email || email || 'null',
-        customerAccessToken: customerInfo?.customerAccessToken || 'null',
-        hasCustomerInfo: !!customerInfo,
-        windowShopifyCustomer: window.ShopifyCustomer ? {
-          id: window.ShopifyCustomer.id,
-          loggedIn: window.ShopifyCustomer.loggedIn,
-          email: window.ShopifyCustomer.email
-        } : 'null'
-      });
       
-      console.log('🔍 [FRONTEND] Request Body (bez imageData):', {
-        // ❌ USUNIĘTO: prompt - backend używa config.prompt
-        style: requestBody.style, // ✅ STYL - API użyje tego do identyfikacji stylu
-        selectedStyle: this.selectedStyle, // ✅ DEBUG: Dodaj selectedStyle
-        productType: requestBody.productType,
-        customerId: requestBody.customerId,
-        customerIdType: typeof requestBody.customerId,
-        customerAccessToken: requestBody.customerAccessToken ? 'present' : 'null',
-        email: requestBody.email,
-        imageDataLength: requestBody.imageData?.length || 0
-      });
-      
-      // ✅ POKAŻ PEŁNY REQUEST BODY (bez imageData dla czytelności)
-      const requestBodyForLog = { ...requestBody };
-      requestBodyForLog.imageData = `[BASE64 DATA: ${requestBody.imageData?.length || 0} characters]`;
-      console.log('📤 [FRONTEND] ===== PEŁNY REQUEST BODY (imageData skrócony) =====');
-      console.log('📤 [FRONTEND]', JSON.stringify(requestBodyForLog, null, 2));
-      console.log('📤 [FRONTEND] style value:', requestBody.style);
-      console.log('📤 [FRONTEND] style type:', typeof requestBody.style);
-      console.log('📤 [FRONTEND] style === undefined:', requestBody.style === undefined);
-      console.log('📤 [FRONTEND] this.selectedStyle:', this.selectedStyle);
-      console.log('📤 [FRONTEND] ====================================================');
-      
-      // ✅ DEBUG: Sprawdź czy selectedStyle jest poprawny
-      console.log('🔍🔍🔍 [FRONTEND-DEBUG] selectedStyle przed wysłaniem:', {
-        selectedStyle: this.selectedStyle,
-        selectedStyleType: typeof this.selectedStyle,
-        styleCard: document.querySelector(`[data-style="${this.selectedStyle}"]`) ? 'found' : 'NOT FOUND'
-        // ❌ USUNIĘTO: promptContainsStyle - prompt nie jest już w request body
-      });
       
       const response = await fetch('https://customify-s56o.vercel.app/api/transform', {
         method: 'POST',
@@ -7864,8 +7940,6 @@ class CustomifyEmbed {
       });
       
       clearTimeout(timeoutId);
-      console.log('📱 [MOBILE] Response received:', response.status, response.statusText);
-      console.log('📱 [MOBILE] Response headers:', Object.fromEntries(response.headers.entries()));
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -7922,57 +7996,14 @@ class CustomifyEmbed {
       }
 
       const result = await response.json();
-      console.log('📱 [MOBILE] Response JSON parsed successfully');
-      
-      // ✅ BARDZO WIDOCZNE LOGOWANIE - SPRAWDŹ CZY JEST saveGenerationDebug
-      console.log('🔍🔍🔍 [FRONTEND] ===== SPRAWDZAM RESPONSE Z TRANSFORM API =====');
-      console.log('🔍 [FRONTEND] Response keys:', Object.keys(result));
-      console.log('🔍 [FRONTEND] hasSaveGenerationDebug:', !!result.saveGenerationDebug);
-      console.log('🔍 [FRONTEND] saveGenerationDebug value:', result.saveGenerationDebug);
-      console.log('✅ [FRONTEND] Transform API Response:', {
-        success: result.success,
-        hasTransformedImage: !!result.transformedImage,
-        transformedImageType: typeof result.transformedImage,
-        transformedImagePreview: result.transformedImage?.substring(0, 100) || 'null',
-        error: result.error || 'none',
-        hasSaveGenerationDebug: !!result.saveGenerationDebug
-      });
-      
-      // ✅ SPRAWDŹ CZY W RESPONSE SĄ DEBUG INFO Z SAVE-GENERATION
-      if (result.saveGenerationDebug) {
-        console.log('🔍🔍🔍 [FRONTEND] ===== ZNALEZIONO saveGenerationDebug W RESPONSE! =====');
-        console.log('🔍 [FRONTEND] Save-generation debug info (z backend):', JSON.stringify(result.saveGenerationDebug, null, 2));
-        console.log('🔍 [FRONTEND] customerId:', result.saveGenerationDebug.customerId || 'null');
-        console.log('🔍 [FRONTEND] metafieldUpdateAttempted:', result.saveGenerationDebug.metafieldUpdateAttempted || false);
-        console.log('🔍 [FRONTEND] metafieldUpdateSuccess:', result.saveGenerationDebug.metafieldUpdateSuccess || false);
-        console.log('🔍 [FRONTEND] metafieldUpdateError:', result.saveGenerationDebug.metafieldUpdateError || 'none');
-        
-        // ✅ POKAŻ W CONSOLE CZY METAFIELD ZOSTAŁ ZAKTUALIZOWANY
-        if (result.saveGenerationDebug.metafieldUpdateSuccess) {
-          console.log('✅ [FRONTEND] Metafield zaktualizowany pomyślnie w Shopify Admin!');
-        } else if (result.saveGenerationDebug.metafieldUpdateAttempted) {
-          console.warn('⚠️ [FRONTEND] Próba aktualizacji metafielda nie powiodła się:', result.saveGenerationDebug.metafieldUpdateError || 'unknown error');
-        } else if (result.saveGenerationDebug.skipped) {
-          console.warn('⚠️ [FRONTEND] Zapis generacji został pominięty:', result.saveGenerationDebug.reason || 'unknown reason');
-        } else {
-          console.warn('⚠️ [FRONTEND] Metafield nie został zaktualizowany - brak customerId lub inny problem');
-        }
-      } else {
-        console.warn('⚠️⚠️⚠️ [FRONTEND] ===== BRAK saveGenerationDebug W RESPONSE! =====');
-        console.warn('⚠️ [FRONTEND] Response keys:', Object.keys(result));
-        console.warn('⚠️ [FRONTEND] Full response:', JSON.stringify(result, null, 2));
-        console.warn('⚠️⚠️⚠️ [FRONTEND] ===== KONIEC SPRAWDZANIA RESPONSE =====');
-      }
       
       if (result.success) {
         this.transformedImage = result.transformedImage;
         // ✅ STATS: Generacje AI zlicza backend (transform.js) – jedna źródło prawdy, bez podwójnego liczenia
         // ✅ ZAPISZ watermarkedImageUrl z backendu (jeśli dostępny)
         this.watermarkedImageUrl = result.watermarkedImageUrl || null;
-        console.log('✅ [TRANSFORM] watermarkedImageUrl z backendu:', this.watermarkedImageUrl?.substring(0, 100) || 'brak');
         // ✅ NOWE: ZAPISZ watermarkedImageBase64 z backendu (dla /api/products - BEZ PONOWNEGO DOWNLOADU)
         this.watermarkedImageBase64 = result.watermarkedImageBase64 || null;
-        console.log('✅ [TRANSFORM] watermarkedImageBase64 z backendu:', this.watermarkedImageBase64 ? `${this.watermarkedImageBase64.length} chars` : 'brak');
         this.hideError(); // Ukryj komunikat błędu po udanej transformacji
         
         // ✅ AWAIT: Czekaj aż wynik zostanie pokazany
@@ -8023,8 +8054,6 @@ class CustomifyEmbed {
         // ✅ Backend zapisuje watermarkedImageUrl w save-generation-v2 automatycznie
         // ✅ NIE WYSYŁAMY już frontend watermarku do /api/update-generation-watermark (stary system)
         if (result.watermarkedImageUrl) {
-          console.log('✅ [TRANSFORM] Backend watermark dostępny:', result.watermarkedImageUrl.substring(0, 100));
-          console.log('✅ [TRANSFORM] Backend watermark zapisany w save-generation automatycznie');
         } else {
           console.warn('⚠️ [TRANSFORM] Backend watermark nie jest dostępny - frontend użyje fallback w showResult()');
         }
@@ -8899,15 +8928,8 @@ class CustomifyEmbed {
 
   fileToBase64(file) {
     return new Promise((resolve, reject) => {
-      console.log('📱 [MOBILE] Converting file to base64...');
-      console.log('📱 [MOBILE] File details:', {
-        name: file.name,
-        size: file.size,
-        type: file.type
-      });
       
       // ZAWSZE kompresuj na frontend (optymalizacja dla Nano Banana)
-      console.log('📱 [MOBILE] Compressing image for Nano Banana optimization...');
       this.compressImage(file).then(compressedFile => {
         this.convertToBase64(compressedFile, resolve, reject);
       }).catch(error => {
@@ -8927,11 +8949,6 @@ class CustomifyEmbed {
     reader.onload = () => {
       const result = reader.result;
       const base64 = result.split(',')[1];
-      console.log('📱 [MOBILE] Base64 conversion successful:', {
-        fullResultLength: result.length,
-        base64Length: base64.length,
-        preview: base64.substring(0, 50) + '...'
-      });
       resolve(base64);
     };
     reader.onerror = error => {
@@ -8968,13 +8985,6 @@ class CustomifyEmbed {
         
         // Konwertuj do blob z kompresją
         canvas.toBlob(blob => {
-          console.log('📱 [MOBILE] Image compressed:', {
-            originalSize: file.size,
-            compressedSize: blob.size,
-            compressionRatio: ((1 - blob.size / file.size) * 100).toFixed(1) + '%',
-            dimensions: `${width}x${height}`,
-            maxSize: maxSize
-          });
           resolve(blob);
         }, 'image/jpeg', 0.85); // 85% jakość (optymalne dla Nano Banana)
       };
@@ -9098,10 +9108,16 @@ class CustomifyEmbed {
         this.stylesArea.style.display = 'block';
       }
       this.actionsArea.style.display = 'flex';
+      // Przywróć transformBtn jeśli był ukryty inline stylem (np. przez handleBezZmianStyle)
+      const transformBtnRestore = document.getElementById('transformBtn');
+      if (transformBtnRestore) transformBtnRestore.style.display = '';
     }
     
     // Pokaż pole upload (jeśli było ukryte)
     this.uploadArea.style.display = 'block';
+    // 🔧 Wyzeruj fileInput żeby kolejny wybór pliku zawsze odpalił change (przeglądarka nie odpala przy tym samym pliku)
+    const fileInputEl = document.getElementById('fileInput');
+    if (fileInputEl) fileInputEl.value = '';
     // 📸 Multi-upload: pokaż grid
     const multiUploadArea = document.getElementById('multiUploadArea');
     if (multiUploadArea && this.isMultiUploadProduct()) {
