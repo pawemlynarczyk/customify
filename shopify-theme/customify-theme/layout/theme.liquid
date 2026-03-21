@@ -6,6 +6,7 @@
 >
 <head>
 <meta name="p:domain_verify" content="926947e6828011a24f7e3976ae564880"/>
+<meta name="msvalidate.01" content="E4F1C907292217ED61E150EDC6ABCB0F" />
 {%- render 'stylesheets' -%}
 
  {%- if settings.favicon != blank -%}
@@ -386,11 +387,9 @@ event.preventDefault();
  firstName: {{ customer.first_name | json }},
  lastName: {{ customer.last_name | json }}
  };
- console.log('✅ [CUSTOMIFY LIQUID] Zalogowany użytkownik:', window.ShopifyCustomer);
  {% else %}
  // Użytkownik niezalogowany
  window.ShopifyCustomer = null;
- console.log('👤 [CUSTOMIFY LIQUID] Użytkownik niezalogowany');
  {% endif %}
  </script>
  
@@ -2816,7 +2815,6 @@ options: {{ product.options | json }},
 price: {{ product.price | money | json }},
 tags: {{ product.tags | json }}
 };
- console.log('📦 [SHOPIFY PRODUCT] Product data loaded:', window.ShopifyProduct);
  {% endif %}
  </script>
 
@@ -2891,7 +2889,7 @@ tags: {{ product.tags | json }}
  
  <div id="customify-app-container" class="customify-shopify-container">
  
-{%- assign _sd = false -%}{%- if product.handle contains 'szkle' or product.handle contains 'szklo' or product.handle contains 'akryl' or product.handle contains 'karykatura-dla-niej' or product.handle == 'obraz-ze-zdjecia-karykatura-policjant-prezent-dla-faceta' or product.handle == 'obraz-ze-zdjecia-karykatura-szefa' or product.handle == 'karykatura-wedkarz-portret-ze-zdjecia-personalizowany-prezent-dla-faceta' or product.handle == 'karykatura-pilkarza-ze-zdjecia-personalizowany-obraz-dla-chlopaka-dziadka-taty' -%}{%- assign _sd = true -%}{%- endif -%}
+{%- assign _sd = false -%}{%- if product.handle contains 'szkle' or product.handle contains 'szklo' or product.handle contains 'akryl' or product.handle contains 'karykatura-dla-niej' or product.handle == 'obraz-ze-zdjecia-karykatura-szefa' -%}{%- assign _sd = true -%}{%- endif -%}
 <div class="customify-product-type-selector{% if product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem' %} hide-for-phone-case{% endif %}" id="productTypeArea" style="display: block; margin-bottom: 10px;">
 <h4 style="text-align: left; font-size: 0.95rem; font-weight: 600;">Rodzaj wydruku:</h4>
 <div class="customify-product-type-buttons">
