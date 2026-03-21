@@ -228,6 +228,21 @@
 
     .loading { text-align: center; padding: 30px; color: #888; }
     .error { background: #ffebee; color: #c62828; padding: 12px 16px; border-radius: 8px; margin-bottom: 12px; }
+
+    /* THUMBNAIL */
+    .thumb-cell { width: 52px; text-align: center; }
+    .thumb-img {
+      width: 44px;
+      height: 58px;
+      object-fit: cover;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+      display: block;
+    }
+    .thumb-img:hover { transform: scale(1.08); box-shadow: 0 2px 8px rgba(0,0,0,0.18); }
+    .thumb-none { color: #ccc; font-size: 18px; }
   </style>
 </head>
 <body>
@@ -374,7 +389,11 @@
       const dt = e.timestamp ? new Date(e.timestamp).toLocaleString('pl-PL') : '—';
       const handle = e.productHandle || '—';
       const shortHandle = handle.replace(/-/g, ' ').slice(0, 35) + (handle.length > 35 ? '…' : '');
+      const thumbHtml = e.imageUrl
+        ? `<a href="${e.imageUrl}" target="_blank" title="Otwórz pełny obraz"><img class="thumb-img" src="${e.imageUrl}" alt="wynik AI" loading="lazy" /></a>`
+        : `<span class="thumb-none">—</span>`;
       return `<tr>
+        <td class="thumb-cell">${thumbHtml}</td>
         <td class="date-cell">${dt}</td>
         <td><span class="product-chip" title="${handle}">${shortHandle}</span></td>
         <td class="imie-cell">${esc(e.imie || '—')}</td>
@@ -387,6 +406,7 @@
       <table>
         <thead>
           <tr>
+            <th>Wynik</th>
             <th>Data</th>
             <th>Produkt</th>
             <th>Imię / dedykacja</th>

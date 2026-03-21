@@ -4611,7 +4611,8 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
             customerId: customerId || null,
             deviceToken: deviceToken || null,
             ip: ip || null,
-            fields: personalizationFields
+            fields: personalizationFields,
+            imageUrl: finalImageUrl || null
           })
         });
         console.log('📊 [TRANSFORM] personalization-log saved OK');

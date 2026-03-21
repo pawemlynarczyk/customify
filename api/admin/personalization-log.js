@@ -55,7 +55,7 @@ module.exports = async (req, res) => {
 
   // POST: zapis nowego wpisu (bez auth — wywoływane tylko z transform.js wewnętrznie)
   if (req.method === 'POST') {
-    const { timestamp, customerId, deviceToken, productHandle, fields, style, ip } = req.body || {};
+    const { timestamp, customerId, deviceToken, productHandle, fields, style, ip, imageUrl } = req.body || {};
     if (!fields || !productHandle) return res.status(400).json({ error: 'Missing fields' });
 
     try {
@@ -70,7 +70,8 @@ module.exports = async (req, res) => {
         ip: ip || null,
         imie: fields.imiona || null,
         rocznica: fields.rocznica || null,
-        opis: fields.opis_charakteru || null
+        opis: fields.opis_charakteru || null,
+        imageUrl: imageUrl || null
       };
       entries.unshift(newEntry);
       // Ogranicz do MAX_ENTRIES
