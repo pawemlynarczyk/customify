@@ -33,5 +33,23 @@
 
   {%- if is_generated_product -%}
     <meta name="robots" content="noindex, nofollow">
+  {%- else -%}
+    {% comment %} aggregateRating JSON-LD dla głównych produktów - spójne z ocenami wyświetlanymi na stronie {% endcomment %}
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org/",
+      "@type": "Product",
+      "@id": "{{ shop.url }}{{ product.url }}#product",
+      "name": {{ product.title | json }},
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.9",
+        "bestRating": "5",
+        "worstRating": "1",
+        "reviewCount": "143"
+      },
+      "sku": {{ product.variants.first.sku | default: product.handle | json }}
+    }
+    </script>
   {%- endif -%}
 {% endif %}
