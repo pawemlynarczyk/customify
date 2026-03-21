@@ -1,0 +1,37 @@
+{% comment %}
+  Noindex dla wygenerowanych produktów zamówień - nie powinny być indeksowane przez Google.
+  Generowane produkty mają handle zaczynający się od "custom-", "nadruk-na-szkle-rozmiar-",
+  "plakat-rozmiar-", "obraz-na-plotnie-rozmiar-", "plakat-w-" lub tytuł zawierający "Rozmiar".
+{% endcomment %}
+{% if template contains 'product' and product %}
+  {%- assign is_generated_product = false -%}
+  {%- if product.handle contains 'custom-' -%}
+    {%- assign is_generated_product = true -%}
+  {%- elsif product.handle contains 'nadruk-na-szkle-rozmiar-' -%}
+    {%- assign is_generated_product = true -%}
+  {%- elsif product.handle contains 'plakat-rozmiar-' -%}
+    {%- assign is_generated_product = true -%}
+  {%- elsif product.handle contains 'obraz-na-plotnie-rozmiar-' -%}
+    {%- assign is_generated_product = true -%}
+  {%- elsif product.handle contains 'plakat-w-bialej-ramce-rozmiar-' -%}
+    {%- assign is_generated_product = true -%}
+  {%- elsif product.handle contains 'plakat-w-czarnej-ramce-rozmiar-' -%}
+    {%- assign is_generated_product = true -%}
+  {%- elsif product.handle contains 'plakat-w-drewnianej-ramce-rozmiar-' -%}
+    {%- assign is_generated_product = true -%}
+  {%- elsif product.handle contains 'wydruk-na-szkle-rozmiar-' -%}
+    {%- assign is_generated_product = true -%}
+  {%- elsif product.tags contains 'customer-order' -%}
+    {%- assign is_generated_product = true -%}
+  {%- elsif product.tags contains 'hidden-from-catalog' -%}
+    {%- assign is_generated_product = true -%}
+  {%- elsif product.title contains ' Rozmiar ' -%}
+    {%- assign is_generated_product = true -%}
+  {%- elsif product.title contains 'Plik cyfrowy do pobrania' -%}
+    {%- assign is_generated_product = true -%}
+  {%- endif -%}
+
+  {%- if is_generated_product -%}
+    <meta name="robots" content="noindex, nofollow">
+  {%- endif -%}
+{% endif %}
