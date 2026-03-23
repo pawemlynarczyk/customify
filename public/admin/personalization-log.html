@@ -117,7 +117,7 @@
       background: white;
       border-radius: 10px;
       box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-      overflow: hidden;
+      overflow-x: auto;
     }
     .table-header {
       padding: 14px 20px;
@@ -457,11 +457,11 @@
         <td class="thumb-cell">${thumbHtml}</td>
         <td class="date-cell">${dt}</td>
         <td><span class="product-chip" title="${handle}">${shortHandle}</span></td>
-        <td>${safeEmail}</td>
-        <td>${attempts}</td>
         <td class="imie-cell">${esc(e.imie || '—')}</td>
         <td>${esc(e.rocznica || '—')}</td>
         <td class="opis-cell">${esc(e.opis || '—')}</td>
+        <td>${safeEmail}</td>
+        <td>${attempts}</td>
       </tr>`;
     }).join('');
 
@@ -472,11 +472,11 @@
             <th>Wynik</th>
             <th style="cursor:pointer;" onclick="setSort('timestamp')">Data${sortArrow('timestamp')}</th>
             <th style="cursor:pointer;" onclick="setSort('product')">Produkt${sortArrow('product')}</th>
-            <th style="cursor:pointer;" onclick="setSort('email')">Email${sortArrow('email')}</th>
-            <th style="cursor:pointer;" onclick="setSort('attempts')">Próby użytkownika${sortArrow('attempts')}</th>
             <th style="cursor:pointer;" onclick="setSort('imie')">Imię / dedykacja${sortArrow('imie')}</th>
             <th>Rocznica / lata</th>
             <th>Opis osoby</th>
+            <th style="cursor:pointer;" onclick="setSort('email')">Email${sortArrow('email')}</th>
+            <th style="cursor:pointer;" onclick="setSort('attempts')">Próby${sortArrow('attempts')}</th>
           </tr>
         </thead>
         <tbody>${rows}</tbody>
