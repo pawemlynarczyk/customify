@@ -6,6 +6,8 @@ const { head } = require('@vercel/blob');
 const { list } = require('@vercel/blob');
 
 const ADMIN_TOKEN = process.env.ADMIN_STATS_TOKEN;
+const FAST_CACHE_TTL_SECONDS = 45;
+const KV_BATCH_SIZE = 200;
 
 async function withTimeout(promise, timeoutMs, op) {
   return Promise.race([
@@ -30,6 +32,31 @@ function parseDateSafe(value) {
   if (!value) return null;
   const ms = Date.parse(value);
   return Number.isNaN(ms) ? null : new Date(ms).toISOString();
+}
+
+function parseJsonSafe(value) {
+  if (!value) return null;
+  if (typeof value === 'object') return value;
+  if (typeof value !== 'string') return null;
+  try {
+    return JSON.parse(value);
+  } catch (_) {
+    return null;
+  }
+}
+
+function chunkArray(arr, size) {
+  const out = [];
+  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+  return out;
+}
+
+async function kvMGetSafe(keys) {
+  if (!keys.length) return [];
+  if (typeof kv.mget === 'function') {
+    return kv.mget(...keys);
+  }
+  return Promise.all(keys.map((k) => kv.get(k)));
 }
 
 async function inferWallReachedAtFromGenerations(customerId, refillAnchorDate) {
@@ -163,6 +190,7 @@ module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Cache-Control', 'private, max-age=15, stale-while-revalidate=30');
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
@@ -172,34 +200,67 @@ module.exports = async (req, res) => {
   }
 
   try {
+    const deepMode = req.query.deep === '1';
+    const limit = Math.max(1, Math.min(parseInt(req.query.limit, 10) || 500, 5000));
+    const cacheKey = `admin:limit-wall-users:v2:${deepMode ? 'deep' : 'fast'}:${limit}`;
+    const cached = await kv.get(cacheKey).catch(() => null);
+    if (cached) {
+      const payload = typeof cached === 'string' ? JSON.parse(cached) : cached;
+      return res.status(200).json({ ...payload, cacheHit: true });
+    }
+
     const refillKeys = await kv.keys('credits-refilled:*');
     const customerIds = refillKeys.map((k) => k.replace('credits-refilled:', '')).filter(Boolean);
     const usageByCustomer = await fetchCustomersUsage(customerIds);
-    const personalizationLastDateMap = await getPersonalizationLastDateMap();
+    const emailKeys = customerIds.map((id) => `credit-email-sent:${id}`);
+    const refillMetaKeys = customerIds.map((id) => `credits-refilled-meta:${id}`);
+    const wallKeys = customerIds.map((id) => `wall-after-refill:${id}`);
+
+    const [emailValues, refillMetaValues, wallValues] = await Promise.all([
+      (async () => {
+        const out = [];
+        for (const batch of chunkArray(emailKeys, KV_BATCH_SIZE)) {
+          const values = await kvMGetSafe(batch);
+          out.push(...values);
+        }
+        return out;
+      })(),
+      (async () => {
+        const out = [];
+        for (const batch of chunkArray(refillMetaKeys, KV_BATCH_SIZE)) {
+          const values = await kvMGetSafe(batch);
+          out.push(...values);
+        }
+        return out;
+      })(),
+      (async () => {
+        const out = [];
+        for (const batch of chunkArray(wallKeys, KV_BATCH_SIZE)) {
+          const values = await kvMGetSafe(batch);
+          out.push(...values);
+        }
+        return out;
+      })()
+    ]);
 
     const rows = [];
-    for (const customerId of customerIds) {
+    const fallbackCandidates = [];
+    for (let i = 0; i < customerIds.length; i++) {
+      const customerId = customerIds[i];
       const usage = usageByCustomer[customerId] || { email: null, usageCount: 0, usageType: null };
-      const emailData = await kv.get(`credit-email-sent:${customerId}`).catch(() => null);
-      const emailPayload = typeof emailData === 'string' ? JSON.parse(emailData) : emailData;
+      const emailData = emailValues[i] || null;
+      const emailPayload = parseJsonSafe(emailData);
       const emailSentAt = emailPayload?.sentAt || null;
-      const refillMetaRaw = await kv.get(`credits-refilled-meta:${customerId}`).catch(() => null);
-      const refillMeta = typeof refillMetaRaw === 'string' ? JSON.parse(refillMetaRaw) : refillMetaRaw;
+      const refillMetaRaw = refillMetaValues[i] || null;
+      const refillMeta = parseJsonSafe(refillMetaRaw);
       const refilledAt = parseDateSafe(refillMeta?.refilledAt) || parseDateSafe(emailSentAt);
 
-      const wallRaw = await kv.get(`wall-after-refill:${customerId}`).catch(() => null);
-      const wallPayload = typeof wallRaw === 'string' ? JSON.parse(wallRaw) : wallRaw;
+      const wallRaw = wallValues[i] || null;
+      const wallPayload = parseJsonSafe(wallRaw);
       let wallReachedAt = parseDateSafe(wallPayload?.reachedAt) || null;
 
-      // Fallback historyczny: jeśli user ma 4/4 po refill, spróbuj wyliczyć datę z pliku generacji.
-      if (!wallReachedAt && usage.usageCount >= 4 && refilledAt) {
-        wallReachedAt = await inferWallReachedAtFromGenerations(customerId, refilledAt);
-      }
       if (!wallReachedAt && usage.usageCount >= 4) {
-        wallReachedAt = await inferWallReachedAtFromGenerations(customerId, null);
-      }
-      if (!wallReachedAt && usage.usageCount >= 4 && personalizationLastDateMap[customerId]) {
-        wallReachedAt = personalizationLastDateMap[customerId];
+        fallbackCandidates.push({ customerId, refilledAt });
       }
 
       rows.push({
@@ -216,21 +277,44 @@ module.exports = async (req, res) => {
       });
     }
 
+    if (fallbackCandidates.length > 0) {
+      // Lżejszy fallback: jedna paczka z personalization-log (bez czytania blobów per klient).
+      const personalizationLastDateMap = await getPersonalizationLastDateMap();
+      for (const row of rows) {
+        if (!row.wallReachedAt && row.usageCount >= 4 && personalizationLastDateMap[row.customerId]) {
+          row.wallReachedAt = personalizationLastDateMap[row.customerId];
+        }
+      }
+    }
+
+    if (deepMode && fallbackCandidates.length > 0) {
+      // Tryb diagnostyczny: kosztowny fallback blob-per-user uruchamiaj tylko na żądanie (?deep=1)
+      for (const row of rows) {
+        if (!row.wallReachedAt && row.usageCount >= 4 && row.refilledAt) {
+          row.wallReachedAt = await inferWallReachedAtFromGenerations(row.customerId, row.refilledAt);
+        }
+        if (!row.wallReachedAt && row.usageCount >= 4) {
+          row.wallReachedAt = await inferWallReachedAtFromGenerations(row.customerId, null);
+        }
+      }
+    }
+
     rows.sort((a, b) => {
       if ((b.usageCount || 0) !== (a.usageCount || 0)) return (b.usageCount || 0) - (a.usageCount || 0);
       return String(a.email || '').localeCompare(String(b.email || ''), 'pl');
     });
 
     const reachedWallAgain = rows.filter((r) => r.reachedWallAgain);
-    const limit = Math.max(1, Math.min(parseInt(req.query.limit, 10) || 500, 5000));
-
-    return res.status(200).json({
+    const payload = {
       success: true,
+      deepMode,
       totalRefilledUsers: rows.length,
       reachedWallAgainCount: reachedWallAgain.length,
       users: rows.slice(0, limit),
       wallUsers: reachedWallAgain.slice(0, limit)
-    });
+    };
+    await kv.set(cacheKey, JSON.stringify(payload), { ex: FAST_CACHE_TTL_SECONDS }).catch(() => {});
+    return res.status(200).json({ ...payload, cacheHit: false });
   } catch (error) {
     console.error('[LIMIT-WALL-USERS] Error:', error);
     return res.status(500).json({ error: error.message });

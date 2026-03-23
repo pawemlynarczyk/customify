@@ -42,6 +42,27 @@ module.exports = async (req, res) => {
       } catch (kvErr) {
         console.warn('⚠️ [ORDER-PAID-WEBHOOK] Błąd atrybucji emaila (non-fatal):', kvErr.message);
       }
+
+      // 📊 Lejek limitu: zakup po wcześniejszym pokazaniu komunikatu o limicie (30 dni, raz per zamówienie)
+      try {
+        const rawLimit = await kv.get(`lf:user:last_limit:${customerId}`);
+        if (rawLimit) {
+          const lim = typeof rawLimit === 'string' ? (() => { try { return JSON.parse(rawLimit); } catch { return null; } })() : rawLimit;
+          if (lim && lim.ts && Date.now() - lim.ts < 30 * 24 * 60 * 60 * 1000) {
+            const pk = `lf:purchase_counted:${customerId}:${order.id}`;
+            const done = await kv.get(pk);
+            if (!done) {
+              await kv.set(pk, '1', { ex: 60 * 60 * 24 * 90 });
+              const day = new Date().toISOString().slice(0, 10);
+              await kv.incr('lf:stats:all:purchase_after_limit');
+              await kv.incr(`lf:stats:day:${day}:purchase_after_limit`);
+              console.log(`📊 [ORDER-PAID-WEBHOOK] Lejek limitu: zakup po komunikacie (customerId: ${customerId}, order: ${order.id})`);
+            }
+          }
+        }
+      } catch (lfErr) {
+        console.warn('⚠️ [ORDER-PAID-WEBHOOK] Błąd lejka limitu (non-fatal):', lfErr.message);
+      }
     }
     
     const shop = process.env.SHOP_DOMAIN || 'customify-ok.myshopify.com';

@@ -3055,12 +3055,26 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
             total_limit: totalLimit,
             product_type: finalProductType
           });
+
+          let limitWallTier = 'first_wall';
+          if (isKVConfigured() && customerId) {
+            try {
+              const secondRefill = await kv.get(`credits-second-refilled:${customerId}`);
+              const firstRefill = await kv.get(`credits-refilled:${customerId}`);
+              if (secondRefill) limitWallTier = 'after_second_refill';
+              else if (firstRefill) limitWallTier = 'after_first_refill';
+              else limitWallTier = 'first_wall';
+            } catch (tierErr) {
+              console.warn('⚠️ [LIMIT-WALL-TIER] KV:', tierErr?.message);
+            }
+          }
           
           return res.status(403).json({
             error: 'Usage limit exceeded',
             message: `Wykorzystałeś wszystkie dostępne transformacje (${totalUsed}/${totalLimit}). Skontaktuj się z nami dla więcej.`,
             usedCount: totalUsed,
-            totalLimit: totalLimit
+            totalLimit: totalLimit,
+            wallTier: limitWallTier
           });
         }
 

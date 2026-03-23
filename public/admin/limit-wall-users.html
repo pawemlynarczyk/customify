@@ -42,6 +42,10 @@
     .ok { background: #e8f5e9; color: #2e7d32; }
     .warn { background: #ffebee; color: #b71c1c; }
     .empty { padding: 35px; text-align: center; color: #999; }
+    .funnel-panel { margin-bottom: 16px; }
+    .funnel-panel .head h3 { font-size: 16px; }
+    .funnel-note { font-size: 12px; color: #666; padding: 0 16px 14px; line-height: 1.45; }
+    .funnel-daily { font-size: 11px; color: #555; padding: 0 16px 14px; max-height: 120px; overflow: auto; }
   </style>
 </head>
 <body>
@@ -56,6 +60,23 @@
   <div id="app" class="container" style="display:none;">
     <h1>🚧 Kto doszedł do ściany po doładowaniu</h1>
     <p class="subtitle">Lista klientów, którzy mieli doładowane kredyty i ponownie wyczerpali limit.</p>
+
+    <div id="funnelWrap" class="panel funnel-panel">
+      <div class="head">
+        <h3>📊 Lejek: komunikat o limicie (KV)</h3>
+        <button class="btn btn-secondary" type="button" onclick="loadFunnelStats()">Odśwież lejek</button>
+      </div>
+      <div class="stats" style="padding: 14px 16px 0;">
+        <div class="card"><div class="v" id="fLimitShown">—</div><div class="l">Pokazano komunikat (łącznie)</div></div>
+        <div class="card"><div class="v" id="fReturned">—</div><div class="l">Powrót: generacja w 14 dni po komunikacie</div></div>
+        <div class="card"><div class="v" id="fPurchase">—</div><div class="l">Zakup w 30 dni po komunikacie</div></div>
+        <div class="card"><div class="v" id="fReturnPct">—</div><div class="l">% powrotu (względem pokazań)</div></div>
+        <div class="card"><div class="v" id="fPurchasePct">—</div><div class="l">% zakupu (względem pokazań)</div></div>
+        <div class="card"><div class="v" id="fNeverPct">—</div><div class="l">% bez powrotu (szac.)</div></div>
+      </div>
+      <p class="funnel-note" id="funnelNote"></p>
+      <pre class="funnel-daily" id="funnelDaily"></pre>
+    </div>
 
     <div class="stats">
       <div class="card"><div class="v" id="sTotal">—</div><div class="l">Wszyscy z doładowaniem</div></div>
@@ -90,6 +111,7 @@
 
   <script>
     const API_URL = 'https://customify-s56o.vercel.app/api/admin/limit-wall-users';
+    const FUNNEL_STATS_URL = 'https://customify-s56o.vercel.app/api/admin/limit-funnel-stats';
     let adminToken = '';
     let allUsers = [];
 
@@ -126,9 +148,55 @@
         document.getElementById('app').style.display = 'block';
         document.getElementById('sTotal').textContent = data.totalRefilledUsers || 0;
         document.getElementById('sWall').textContent = data.reachedWallAgainCount || 0;
+        loadFunnelStats();
         applyFilters();
       } catch (e) {
         wrap.innerHTML = `<div class="empty" style="color:#c62828;">Błąd: ${e.message}</div>`;
+      }
+    }
+
+    async function loadFunnelStats() {
+      const el = (id) => document.getElementById(id);
+      try {
+        const res = await fetch(FUNNEL_STATS_URL, {
+          headers: { Authorization: `Bearer ${adminToken}` }
+        });
+        if (!res.ok) {
+          el('fLimitShown').textContent = '—';
+          el('funnelNote').textContent = 'Nie udało się załadować statystyk lejka (401?).';
+          return;
+        }
+        const d = await res.json();
+        if (!d.kv) {
+          el('fLimitShown').textContent = '0';
+          el('fReturned').textContent = '0';
+          el('fPurchase').textContent = '0';
+          el('fReturnPct').textContent = '—';
+          el('fPurchasePct').textContent = '—';
+          el('fNeverPct').textContent = '—';
+          el('funnelNote').textContent = 'KV nie skonfigurowane – brak danych lejka.';
+          el('funnelDaily').textContent = '';
+          return;
+        }
+        const t = d.totals || {};
+        const r = d.rates || {};
+        el('fLimitShown').textContent = t.limitShown ?? 0;
+        el('fReturned').textContent = t.returnedAfterLimit ?? 0;
+        el('fPurchase').textContent = t.purchaseAfterLimit ?? 0;
+        el('fReturnPct').textContent = r.returnPct != null ? r.returnPct + '%' : '—';
+        el('fPurchasePct').textContent = r.purchasePct != null ? r.purchasePct + '%' : '—';
+        el('fNeverPct').textContent = r.neverReturnedPct != null ? r.neverReturnedPct + '%' : '—';
+        let note = d.note || '';
+        if (r.purchaseOfReturnedPct != null) {
+          note += ' Konwersja zakup wśród powracających: ' + r.purchaseOfReturnedPct + '%.';
+        }
+        el('funnelNote').textContent = note;
+        const daily = Array.isArray(d.daily) ? d.daily : [];
+        el('funnelDaily').textContent = daily.length
+          ? daily.map((x) => `${x.date}: pokazania ${x.limitShown}, powroty ${x.returnedAfterLimit}, zakupy ${x.purchaseAfterLimit}`).join('\n')
+          : '';
+      } catch (e) {
+        el('funnelNote').textContent = 'Błąd: ' + e.message;
       }
     }
 

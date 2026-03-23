@@ -1002,22 +1002,27 @@ FACE — CRITICAL
 • Keep facial structure, eyes, nose, mouth, beard/hairline.
 • Natural skin tones.
 • Friendly expressive smile.
+• Character LOOKING AT THE CAMERA — direct eye contact with viewer.
 
 CUSTOMIZATION
 The character represents this profession / hobby / personality:
 "{personalization}"
 
-CRITICAL: The overall character should be cohesive — outfit, props, scene, background, podium and decorations must all reference and match the same theme. The podium on which the figurine stands must be styled to fit the profession or hobby. Everything should harmonize and create a unified, coherent whole.
+CRITICAL: The overall character should be cohesive — outfit, props, scene, background and decorations must reference and match the same theme. Chair and desk, no podium. Everything should harmonize and create a unified, coherent whole.
 
 Add visual elements, clothing, props and small scene details related to it.
 Examples:
 • company boss / CEO → suit, tie, office desk, laptop, city skyline, modern boardroom
 • business executive → elegant suit, briefcase, skyscraper, professional atmosphere
 
-POSE
+
+POSE — CRITICAL: NO podium. Character in chair, FEET ON THE DESK. This overrides any other pose instructions.
 {YEARS_SECTION}
-• Character sitting or standing confidently on a podium styled to match the profession or hobby.
-• The podium must be styled to match the theme — office desk, executive chair, or modern business podium. The design, shape, materials and decorations should reflect and harmonize with the overall theme.
+• Character SITTING in an executive chair behind the desk, FEET ON THE DESK — mandatory, non-negotiable.
+• Hands behind head — relaxed, confident "boss" pose.
+• View: full view from the side, optionally slightly from above.
+• We see the whole figure, legs on desk, chair, office.
+• Character looking at the camera despite side angle.
 • Relaxed, charismatic pose.
 
 OUTFIT
@@ -1025,8 +1030,9 @@ OUTFIT
 • Stylish, slightly exaggerated caricature look.
 
 SCENE
-Mini decorative environment connected with the profession — office, boardroom, desk with laptop or documents.
-Fun but professional.
+• Desk: papers, phones, documents.
+• Wall: charts, graphs, whiteboard.
+• Office, boardroom — professional atmosphere.
 
 BACKGROUND
 • Colors and style of the background must be related to the person's profession — corporate blues, warm wood tones, city skyline, professional office setting.
@@ -1034,7 +1040,10 @@ BACKGROUND
 • Soft bokeh lights.
 • Subtle themed decorations.
 
-TEXT
+TEXT — CRITICAL: Legibility
+• All text MUST be clean, simple, and fully legible. Use a standard readable font (sans-serif or classic serif).
+• Do NOT use decorative, stylized, or artistic fonts that distort letters.
+• Copy the exact characters provided — do NOT invent, abbreviate, or add extra text.
 {NAME_SECTION}
 
 RESULT
@@ -2301,7 +2310,8 @@ const PERSONALIZATION_PREPEND_BASE_HANDLES = new Set([
   WIESELI_STARUSZKOWIE_PRODUCT_HANDLE,
   PODROZNICY_PARA_PRODUCT_HANDLE,
   MLODA_PARA_SLUB_PRODUCT_HANDLE,
-  ROCZNICA_SLUBU_PARA_PRODUCT_HANDLE
+  ROCZNICA_SLUBU_PARA_PRODUCT_HANDLE,
+  'obraz-ze-zdjecia-karykatura-szefa'
 ]);
 
 /** Domyślne wartości "Opis osoby" per produkt — na stałe, niezależne od tytułu. Gdy pole puste, używamy tej wartości. */
@@ -2726,6 +2736,7 @@ class CustomifyEmbed {
       // {YEARS_SECTION} — warunkowy blok: gdy YEARS puste = brak liczby, gdy wypełnione = postać na dużej złotej cyfrze
       if (config.promptTemplate.includes('{YEARS_SECTION}')) {
         const handle = this.getProductHandle();
+        const isSzefProduct = handle === 'obraz-ze-zdjecia-karykatura-szefa';
         const isCoupleAnniversary = handle && COUPLE_ANNIVERSARY_FIELD_HANDLES.includes(handle);
         const isCoupleCustomYear = handle && COUPLE_CUSTOM_YEAR_FIELD_HANDLES.includes(handle);
         const isCoupleDefault40Year = handle && COUPLE_DEFAULT_40_YEAR_FIELD_HANDLES.includes(handle);
@@ -2736,7 +2747,13 @@ class CustomifyEmbed {
         const yearsVal = isCoupleAnniversary
           ? '60'
           : (isCoupleCustomYear ? (rawYearsVal || (isCoupleNoDefaultYear ? '' : (isCoupleDefault40Year ? '40' : '60'))) : rawYearsVal);
-        if (yearsVal.trim()) {
+        if (isSzefProduct) {
+          if (yearsVal.trim()) {
+            replacements['YEARS_SECTION'] = `The character is sitting on or near a large elegant 3D number "${yearsVal.trim()}" placed ON THE DESK — elegant glass-gold style, glossy, luxury finish. The number is a solid freestanding 3D sculpture object standing on the desk surface.`;
+          } else {
+            replacements['YEARS_SECTION'] = '';
+          }
+        } else if (yearsVal.trim()) {
           if (isCoupleAnniversary) {
             replacements['YEARS_SECTION'] =
               `The couple is posed with a large, elegant 3D metallic anniversary numeral "60" (sixty — Diamentowe Gody) integrated into the „Diamentowe Gody” composition — platinum, silver, subtle diamond sparkle; materials must feel luxe and ceremonial (not generic birthday). The numeral must read as 60, never a different anniversary number.`;
@@ -2773,12 +2790,15 @@ class CustomifyEmbed {
         const handle = this.getProductHandle();
         const isSuperheroBoy = handle === 'portret-ze-zdjecia-superbohater-prezent-dla-chlopca';
         const isDiamentoweGodyPara = handle === DIAMENTOWE_GODY_PRODUCT_HANDLE;
+        const isSzefProduct = handle === 'obraz-ze-zdjecia-karykatura-szefa';
         replacements['NAME_SECTION'] = nameVal.trim()
           ? (isSuperheroBoy
               ? `Add large bold cinematic title text at the bottom of the image, in the style of superhero movie posters (dramatic, heroic font, bold outlines, high contrast). The text must read exactly: "${nameVal.trim()}". CRITICAL: use exact Polish characters — ą, ć, ę, ł, ń, ó, ś, ź, ż (uppercase: Ą, Ć, Ę, Ł, Ń, Ó, Ś, Ź, Ż). Do NOT replace letters. The text should feel like a movie title from a superhero film.`
               : isDiamentoweGodyPara
                 ? `Additionally (below or under the main „Diamentowe Gody" headline), render this EXACT text on a slim elegant silver or gold plaque or subtitle line:\n"${nameVal.trim()}"\nCRITICAL: use exact Polish characters — ą, ć, ę, ł, ń, ó, ś, ź, ż (uppercase: Ą, Ć, Ę, Ł, Ń, Ó, Ś, Ź, Ż). Do NOT replace letters. Do NOT remove or replace the „Diamentowe Gody" headline.`
-                : `Render this EXACT text on a plaque at the base:\n"${nameVal.trim()}"\nCRITICAL for names: use exact Polish characters — ą, ć, ę, ł, ń, ó, ś, ź, ż (uppercase: Ą, Ć, Ę, Ł, Ń, Ó, Ś, Ź, Ż). Do NOT replace letters.`)
+                : isSzefProduct
+                  ? `Render EXACTLY this text on a small plaque ON THE DESK (among papers, next to phone):\n"${nameVal.trim()}"\nCRITICAL: Use a CLEAN, SIMPLE, readable font. Copy each letter exactly — ą, ć, ę, ł, ń, ó, ś, ź, ż (Ą, Ć, Ę, Ł, Ń, Ó, Ś, Ź, Ż). Do NOT use decorative fonts. Do NOT add or change any letters.`
+                  : `Render this EXACT text on a plaque at the base:\n"${nameVal.trim()}"\nCRITICAL for names: use exact Polish characters — ą, ć, ę, ł, ń, ó, ś, ź, ż (uppercase: Ą, Ć, Ę, Ł, Ń, Ó, Ś, Ź, Ż). Do NOT replace letters.`)
           : (isDiamentoweGodyPara
               ? 'Do NOT add any name plaque or extra written line beyond the mandatory „Diamentowe Gody" headline (and optional year styling from POSE). No other text.'
               : 'Do NOT add any text, plaque, inscription, or written text to the image. No names, no letters, no words. The image must be completely free of any text.');
@@ -3268,31 +3288,7 @@ class CustomifyEmbed {
     // to NIE sprawdzaj fallbacków - po prostu zwróć null
     // Sprawdź czy window.ShopifyCustomer istnieje i ma wartość (nie null, nie undefined, nie false)
     if (!window.ShopifyCustomer || window.ShopifyCustomer === null) {
-      console.log('👤 [CUSTOMER DETECT] Shopify Customer is null/undefined/falsy - user not logged in, returning null');
-      console.log('👤 [CUSTOMER DETECT] window.ShopifyCustomer value:', window.ShopifyCustomer);
       return null;
-    }
-    
-    if (!window.__customifyCustomerDebugLogged) {
-      try {
-        console.log('🔍 [CUSTOMER DETECT] Debug sources:', {
-          ShopifyCustomer: window.ShopifyCustomer || null,
-          ShopifyAnalytics: window.ShopifyAnalytics?.meta || null,
-          meta: window.meta || null,
-          __st: window.__st || null,
-          localStorageId: (() => {
-            try {
-              return localStorage.getItem('customify_last_customer_id');
-            } catch (e) {
-              return 'unavailable';
-            }
-          })(),
-          cookies: document.cookie
-        });
-      } catch (e) {
-        console.warn('⚠️ [CUSTOMER DETECT] Debug logging failed:', e);
-      }
-      window.__customifyCustomerDebugLogged = true;
     }
     
     const sanitizeId = (value) => {
@@ -7972,6 +7968,10 @@ class CustomifyEmbed {
           } else {
             const limitMessage = errorJson.message || 'Wykorzystałeś wszystkie dostępne transformacje.';
             this.showError(limitMessage, 'transform');
+            this.trackLimitFunnelShowLimit(customerInfo, {
+              wallTier: errorJson.wallTier || 'unknown',
+              source: 'transform_403'
+            });
           }
 
           return;
@@ -7999,6 +7999,9 @@ class CustomifyEmbed {
       
       if (result.success) {
         this.transformedImage = result.transformedImage;
+        if (customerInfo?.customerId) {
+          this.trackLimitFunnelGenerationSuccess(customerInfo);
+        }
         // ✅ STATS: Generacje AI zlicza backend (transform.js) – jedna źródło prawdy, bez podwójnego liczenia
         // ✅ ZAPISZ watermarkedImageUrl z backendu (jeśli dostępny)
         this.watermarkedImageUrl = result.watermarkedImageUrl || null;
@@ -9290,6 +9293,50 @@ class CustomifyEmbed {
       
       cartLoadingArea.style.display = 'none';
     }
+  }
+
+  /** A/B wariant komunikatu o limicie (raz na przeglądarkę) */
+  getLimitMessageVariant() {
+    try {
+      let v = localStorage.getItem('customify_limit_msg_variant');
+      if (!v) {
+        v = Math.random() < 0.5 ? 'A' : 'B';
+        localStorage.setItem('customify_limit_msg_variant', v);
+      }
+      return v;
+    } catch {
+      return 'default';
+    }
+  }
+
+  /** Lejek limitu → KV (panel /admin/limit-wall-users) */
+  trackLimitFunnelShowLimit(customerInfo, opts = {}) {
+    if (!customerInfo?.customerId) return;
+    const body = {
+      event: 'limit_message_shown',
+      customerId: String(customerInfo.customerId),
+      messageVariant: opts.messageVariant || this.getLimitMessageVariant(),
+      wallTier: opts.wallTier || 'unknown',
+      productHandle: typeof this.getProductHandle === 'function' ? this.getProductHandle() : null,
+      source: opts.source || 'transform_403'
+    };
+    fetch('https://customify-s56o.vercel.app/api/limit-funnel-event', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    }).catch(() => {});
+  }
+
+  trackLimitFunnelGenerationSuccess(customerInfo) {
+    if (!customerInfo?.customerId) return;
+    fetch('https://customify-s56o.vercel.app/api/limit-funnel-event', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        event: 'generation_success',
+        customerId: String(customerInfo.customerId)
+      })
+    }).catch(() => {});
   }
 
   showError(message, location = 'top') {
