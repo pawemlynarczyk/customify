@@ -2999,6 +2999,22 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
                   await kv.set(wallAfterRefillKey, JSON.stringify(wallPayload));
                   console.log('🧱 [WALL-AFTER-REFILL] Zapisano datę dojścia do ściany:', wallPayload);
                 }
+                // Druga szansa: ustaw osobną kolejkę do doładowania po 24h.
+                const secondRefillDone = await kv.get(`credits-second-refilled:${customerId}`);
+                if (!secondRefillDone) {
+                  const secondQueueKey = `limit-reached-second:${customerId}`;
+                  const secondQueueExisting = await kv.get(secondQueueKey);
+                  if (!secondQueueExisting) {
+                    const secondPayload = {
+                      timestamp: new Date().toISOString(),
+                      totalUsed,
+                      totalLimit,
+                      reason: 'reached_again_after_refill'
+                    };
+                    await kv.set(secondQueueKey, JSON.stringify(secondPayload), { ex: 60 * 60 * 24 * 7 }); // 7 dni TTL
+                    console.log('🕒 [LIMIT-QUEUE-2ND] Dodano do kolejki 24h:', { secondQueueKey, secondPayload });
+                  }
+                }
               } else {
               const key = `limit-reached:${customerId}`;
               const payload = {
@@ -4424,6 +4440,22 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
                   };
                   await kv.set(wallAfterRefillKey, JSON.stringify(wallPayload));
                   console.log('🧱 [WALL-AFTER-REFILL] Zapisano datę dojścia do ściany po inkrementacji:', wallPayload);
+                }
+                // Druga szansa: po ponownym dojściu do 4/4 ustaw kolejkę doładowania po 24h.
+                const secondRefillDone = await kv.get(`credits-second-refilled:${customerId}`);
+                if (!secondRefillDone) {
+                  const secondQueueKey = `limit-reached-second:${customerId}`;
+                  const secondQueueExisting = await kv.get(secondQueueKey);
+                  if (!secondQueueExisting) {
+                    const secondPayload = {
+                      timestamp: new Date().toISOString(),
+                      totalUsed: savedTotal,
+                      totalLimit,
+                      reason: 'reached_again_after_refill'
+                    };
+                    await kv.set(secondQueueKey, JSON.stringify(secondPayload), { ex: 60 * 60 * 24 * 7 }); // 7 dni TTL
+                    console.log('🕒 [LIMIT-QUEUE-2ND] Dodano po inkrementacji do kolejki 24h:', { secondQueueKey, secondPayload });
+                  }
                 }
               } else {
               const totalLimit = 4; // 4 darmowe generacje TOTAL dla zalogowanych

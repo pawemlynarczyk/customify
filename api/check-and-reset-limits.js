@@ -291,7 +291,8 @@ module.exports = async (req, res) => {
   }
 
   const now = Date.now();
-  const cooldownMs = 60 * 60 * 1000; // 1h
+  const cooldownMs = 60 * 60 * 1000; // 1h (pierwsze doładowanie)
+  const cooldownSecondMs = 24 * 60 * 60 * 1000; // 24h (drugie doładowanie)
   
   // Parametr force=1 ignoruje cooldown (do ręcznego wymuszenia wysyłki)
   const forceMode = req.query?.force === '1' || req.query?.force === 'true';
@@ -301,10 +302,16 @@ module.exports = async (req, res) => {
 
   try {
     const keys = await kv.keys('limit-reached:*');
-    console.log('🔍 [RESET-LIMITS] Sprawdzam wpisy KV:', keys.length, forceMode ? '(FORCE MODE)' : '');
+    const secondKeys = await kv.keys('limit-reached-second:*');
+    console.log('🔍 [RESET-LIMITS] Sprawdzam wpisy KV:', {
+      firstQueue: keys.length,
+      secondQueue: secondKeys.length,
+      forceMode: !!forceMode
+    });
 
     let processed = 0;
     let resetCount = 0;
+    let secondResetCount = 0;
     const errors = [];
 
     for (const key of keys) {
@@ -406,7 +413,106 @@ module.exports = async (req, res) => {
           }
           await kv.del(key);
           resetCount += 1;
-          console.log('✅ [RESET-LIMITS] Zresetowano limity i wysłano email (jedyny doładowanie):', { customerId, email });
+          console.log('✅ [RESET-LIMITS] Zresetowano limity i wysłano email (pierwsze doładowanie):', { customerId, email });
+        }
+      } catch (errItem) {
+        errors.push({ key, error: errItem.message });
+        console.error('❌ [RESET-LIMITS] Błąd dla wpisu:', key, errItem);
+      }
+    }
+
+    // Druga kolejka: użytkownik po 1. doładowaniu znowu dobił do limitu.
+    for (const key of secondKeys) {
+      processed += 1;
+      try {
+        const raw = await kv.get(key);
+        if (!raw) {
+          await kv.del(key);
+          continue;
+        }
+        let payload;
+        try {
+          payload = typeof raw === 'string' ? JSON.parse(raw) : raw;
+        } catch {
+          payload = raw;
+        }
+        const ts = payload?.timestamp ? Date.parse(payload.timestamp) : null;
+        if (!ts || Number.isNaN(ts)) {
+          console.warn('⚠️ [RESET-LIMITS] Brak poprawnego timestamp (2nd queue), usuwam wpis', key);
+          await kv.del(key);
+          continue;
+        }
+        if (!forceMode && now - ts < cooldownSecondMs) {
+          continue; // jeszcze nie minęły 24h
+        }
+
+        const customerId = key.replace('limit-reached-second:', '');
+        const hasFirstRefill = await kv.get(`credits-refilled:${customerId}`);
+        if (!hasFirstRefill) {
+          // zabezpieczenie: druga kolejka tylko po pierwszym doładowaniu
+          await kv.del(key);
+          continue;
+        }
+        const secondRefillDone = await kv.get(`credits-second-refilled:${customerId}`);
+        if (secondRefillDone) {
+          await kv.del(key);
+          continue;
+        }
+
+        const customer = await getUsageData(shopDomain, accessToken, customerId);
+        const email = customer?.email;
+        const metafieldId = customer?.metafield?.id || null;
+        const currentType = customer?.metafield?.type || 'json';
+
+        // Drugie doładowanie: znów reset do 0 i mail
+        await updateUsageToZero(shopDomain, accessToken, customerId, metafieldId, currentType);
+
+        let emailSent = false;
+        if (email) {
+          await sleep(600);
+          const emailResult = await sendCreditEmail(email, customerId);
+          if (emailResult.success) {
+            emailSent = true;
+            kv.incr('email-stats:credits:sent').catch(() => {});
+            if (isKVConfigured()) {
+              try {
+                const emailKey = `credit-email-sent:${customerId}`;
+                const emailPayload = {
+                  email: email,
+                  customerId: customerId,
+                  sentAt: new Date().toISOString(),
+                  emailId: emailResult.emailId || null,
+                  usageCount: payload.totalUsed || null,
+                  totalLimit: payload.totalLimit || 4,
+                  refillRound: 2
+                };
+                await kv.set(emailKey, JSON.stringify(emailPayload), { ex: 60 * 60 * 24 * 90 });
+              } catch (kvErr) {
+                console.warn('⚠️ [RESET-LIMITS] Nie udało się zapisać informacji o mailu 2nd refill:', kvErr);
+              }
+            }
+          } else {
+            errors.push({ key, error: `Email failed (2nd refill): ${emailResult.error}` });
+            continue;
+          }
+        } else {
+          emailSent = true;
+        }
+
+        if (emailSent) {
+          if (isKVConfigured()) {
+            await kv.set(`credits-second-refilled:${customerId}`, '1'); // druga szansa tylko raz
+            const refillMetaRaw = await kv.get(`credits-refilled-meta:${customerId}`).catch(() => null);
+            const refillMeta = typeof refillMetaRaw === 'string'
+              ? (() => { try { return JSON.parse(refillMetaRaw); } catch { return {}; } })()
+              : (refillMetaRaw || {});
+            refillMeta.secondRefilledAt = new Date().toISOString();
+            refillMeta.secondRefillSource = 'check-and-reset-limits';
+            await kv.set(`credits-refilled-meta:${customerId}`, JSON.stringify(refillMeta));
+          }
+          await kv.del(key);
+          secondResetCount += 1;
+          console.log('✅ [RESET-LIMITS] Zresetowano limity i wysłano email (drugie doładowanie po 24h):', { customerId, email });
         }
       } catch (errItem) {
         errors.push({ key, error: errItem.message });
@@ -418,6 +524,7 @@ module.exports = async (req, res) => {
       success: true,
       processed,
       resetCount,
+      secondResetCount,
       errors
     });
   } catch (error) {
