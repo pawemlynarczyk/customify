@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Użytkownicy po doładowaniu kredytów - Customify</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f4f6fb; color: #222; padding: 20px; }
+    .container { max-width: 1400px; margin: 0 auto; }
+    h1 { font-size: 26px; color: #1a237e; margin-bottom: 6px; }
+    .subtitle { color: #666; margin-bottom: 18px; font-size: 14px; }
+    .login, .panel { background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+    .login { max-width: 420px; margin: 70px auto; padding: 28px; }
+    .login h2 { color: #1a237e; margin-bottom: 8px; font-size: 21px; }
+    .login p { color: #666; margin-bottom: 14px; font-size: 13px; }
+    .login input { width: 100%; padding: 11px 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px; }
+    .btn { border: none; border-radius: 8px; padding: 10px 14px; font-weight: 600; cursor: pointer; }
+    .btn-primary { background: #1a237e; color: #fff; }
+    .btn-primary:hover { background: #283593; }
+    .btn-secondary { background: #eceff1; color: #333; }
+    .btn-secondary:hover { background: #dfe3e6; }
+    .error { color: #c62828; font-size: 13px; margin-top: 8px; }
+
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 14px; }
+    .card { background: #fff; border-radius: 10px; box-shadow: 0 1px 5px rgba(0,0,0,0.06); padding: 14px 16px; }
+    .card .v { font-size: 28px; font-weight: 700; color: #1a237e; }
+    .card .l { color: #777; font-size: 12px; margin-top: 2px; }
+
+    .toolbar { background: #fff; border-radius: 10px; box-shadow: 0 1px 5px rgba(0,0,0,0.06); padding: 12px 14px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
+    .toolbar label { font-size: 12px; color: #666; }
+    .toolbar input, .toolbar select { padding: 8px 10px; border: 1px solid #ddd; border-radius: 7px; min-width: 170px; }
+
+    .panel { overflow: hidden; }
+    .head { border-bottom: 1px solid #eee; padding: 13px 16px; display: flex; justify-content: space-between; align-items: center; }
+    .head h3 { font-size: 15px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { border-bottom: 1px solid #f1f1f1; text-align: left; padding: 9px 12px; vertical-align: top; }
+    th { background: #f8f9ff; color: #555; white-space: nowrap; }
+    tr:hover td { background: #fafcff; }
+    .badge { display: inline-block; border-radius: 999px; padding: 2px 8px; font-size: 11px; font-weight: 600; }
+    .ok { background: #e8f5e9; color: #2e7d32; }
+    .warn { background: #ffebee; color: #b71c1c; }
+    .empty { padding: 35px; text-align: center; color: #999; }
+  </style>
+</head>
+<body>
+  <div id="login" class="login">
+    <h2>🔐 Użytkownicy po doładowaniu</h2>
+    <p>Podaj token admina</p>
+    <input id="tokenInput" type="password" placeholder="Token admina" />
+    <button class="btn btn-primary" onclick="doLogin()">Zaloguj</button>
+    <div id="loginError" class="error"></div>
+  </div>
+
+  <div id="app" class="container" style="display:none;">
+    <h1>🚧 Kto doszedł do ściany po doładowaniu</h1>
+    <p class="subtitle">Lista klientów, którzy mieli doładowane kredyty i ponownie wyczerpali limit.</p>
+
+    <div class="stats">
+      <div class="card"><div class="v" id="sTotal">—</div><div class="l">Wszyscy z doładowaniem</div></div>
+      <div class="card"><div class="v" id="sWall">—</div><div class="l">Doszli ponownie do limitu</div></div>
+      <div class="card"><div class="v" id="sVisible">—</div><div class="l">W tabeli (po filtrach)</div></div>
+    </div>
+
+    <div class="toolbar">
+      <div>
+        <label>Szukaj (email / customerId)</label><br />
+        <input id="q" type="text" placeholder="np. @gmail.com albo 2726..." oninput="applyFilters()" />
+      </div>
+      <div>
+        <label>Status</label><br />
+        <select id="status" onchange="applyFilters()">
+          <option value="all">Wszyscy</option>
+          <option value="wall">Tylko doszli do limitu ponownie</option>
+          <option value="not-wall">Jeszcze nie doszli</option>
+        </select>
+      </div>
+      <button class="btn btn-secondary" onclick="reload()">Odśwież</button>
+    </div>
+
+    <div class="panel">
+      <div class="head">
+        <h3>Lista użytkowników</h3>
+        <span id="count" style="color:#777;font-size:13px;"></span>
+      </div>
+      <div id="tableWrap"><div class="empty">Ładowanie...</div></div>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = 'https://customify-s56o.vercel.app/api/admin/limit-wall-users';
+    let adminToken = '';
+    let allUsers = [];
+
+    function doLogin() {
+      const t = document.getElementById('tokenInput').value.trim();
+      if (!t) {
+        document.getElementById('loginError').textContent = 'Podaj token.';
+        return;
+      }
+      adminToken = t;
+      reload();
+    }
+
+    document.getElementById('tokenInput').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') doLogin();
+    });
+
+    async function reload() {
+      const wrap = document.getElementById('tableWrap');
+      wrap.innerHTML = '<div class="empty">Ładowanie...</div>';
+      try {
+        const params = new URLSearchParams({ limit: '2000' });
+        const res = await fetch(`${API_URL}?${params.toString()}`, {
+          headers: { Authorization: `Bearer ${adminToken}` }
+        });
+        if (res.status === 401) {
+          document.getElementById('loginError').textContent = 'Błędny token.';
+          return;
+        }
+        const data = await res.json();
+        allUsers = Array.isArray(data.users) ? data.users : [];
+
+        document.getElementById('login').style.display = 'none';
+        document.getElementById('app').style.display = 'block';
+        document.getElementById('sTotal').textContent = data.totalRefilledUsers || 0;
+        document.getElementById('sWall').textContent = data.reachedWallAgainCount || 0;
+        applyFilters();
+      } catch (e) {
+        wrap.innerHTML = `<div class="empty" style="color:#c62828;">Błąd: ${e.message}</div>`;
+      }
+    }
+
+    function applyFilters() {
+      const q = (document.getElementById('q').value || '').toLowerCase().trim();
+      const status = document.getElementById('status').value;
+      let rows = [...allUsers];
+
+      if (q) {
+        rows = rows.filter((u) => String(u.email || '').toLowerCase().includes(q) || String(u.customerId || '').includes(q));
+      }
+      if (status === 'wall') rows = rows.filter((u) => !!u.reachedWallAgain);
+      if (status === 'not-wall') rows = rows.filter((u) => !u.reachedWallAgain);
+
+      rows.sort((a, b) => (b.usageCount || 0) - (a.usageCount || 0));
+      document.getElementById('sVisible').textContent = rows.length;
+      renderTable(rows);
+    }
+
+    function renderTable(rows) {
+      const wrap = document.getElementById('tableWrap');
+      document.getElementById('count').textContent = `${rows.length} rekordów`;
+      if (!rows.length) {
+        wrap.innerHTML = '<div class="empty">Brak danych dla filtrów</div>';
+        return;
+      }
+      const body = rows.map((u) => {
+        const badge = u.reachedWallAgain
+          ? '<span class="badge warn">Ponownie 4/4</span>'
+          : '<span class="badge ok">Jeszcze poniżej limitu</span>';
+        const sentAt = u.creditEmailSentAt ? new Date(u.creditEmailSentAt).toLocaleString('pl-PL') : '—';
+        return `<tr>
+          <td>${esc(u.email || '—')}</td>
+          <td>${esc(u.customerId || '—')}</td>
+          <td>${u.usageCount ?? 0}</td>
+          <td>${badge}</td>
+          <td>${esc(sentAt)}</td>
+        </tr>`;
+      }).join('');
+
+      wrap.innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>Email</th>
+              <th>Customer ID</th>
+              <th>Aktualne zużycie</th>
+              <th>Status</th>
+              <th>Data maila o kredytach</th>
+            </tr>
+          </thead>
+          <tbody>${body}</tbody>
+        </table>`;
+    }
+
+    function esc(v) {
+      return String(v)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+  </script>
+</body>
+</html>

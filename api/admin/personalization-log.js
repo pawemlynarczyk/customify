@@ -105,7 +105,9 @@ module.exports = async (req, res) => {
         filtered = filtered.filter(e =>
           (e.imie || '').toLowerCase().includes(q) ||
           (e.opis || '').toLowerCase().includes(q) ||
-          (e.rocznica || '').toLowerCase().includes(q)
+          (e.rocznica || '').toLowerCase().includes(q) ||
+          (e.email || '').toLowerCase().includes(q) ||
+          String(e.customerId || '').toLowerCase().includes(q)
         );
       }
       if (req.query.dateFrom) {

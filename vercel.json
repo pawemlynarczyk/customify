@@ -1,7 +1,8 @@
 {
   "version": 2,
   "rewrites": [
-    { "source": "/admin/personalization-log", "destination": "/admin/personalization-log.html" }
+    { "source": "/admin/personalization-log", "destination": "/admin/personalization-log.html" },
+    { "source": "/admin/limit-wall-users", "destination": "/admin/limit-wall-users.html" }
   ],
   "functions": {
     "api/**/*.js": {
