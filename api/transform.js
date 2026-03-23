@@ -4609,6 +4609,7 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
             productHandle: productHandle || null,
             style: style || null,
             customerId: customerId || null,
+            email: customerEmailFromGraphQL || email || null,
             deviceToken: deviceToken || null,
             ip: ip || null,
             fields: personalizationFields,

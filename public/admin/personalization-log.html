@@ -322,6 +322,64 @@
   let adminToken = '';
   let allData = null;
   let currentFiltered = [];
+  let sortBy = 'timestamp';
+  let sortOrder = 'desc';
+
+  function getUserKey(entry) {
+    const emailKey = (entry.email || '').toLowerCase().trim();
+    if (emailKey) return `email:${emailKey}`;
+    if (entry.customerId) return `cid:${entry.customerId}`;
+    if (entry.deviceToken) return `device:${entry.deviceToken}`;
+    return 'unknown';
+  }
+
+  function buildAttemptsMap(entries) {
+    const map = {};
+    (entries || []).forEach(e => {
+      const key = getUserKey(e);
+      map[key] = (map[key] || 0) + 1;
+    });
+    return map;
+  }
+
+  function normalizeSortValue(entry, key, attemptsMap) {
+    if (key === 'email') return (entry.email || '').toLowerCase();
+    if (key === 'attempts') return attemptsMap[getUserKey(entry)] || 0;
+    if (key === 'timestamp') return entry.timestamp || '';
+    if (key === 'product') return entry.productHandle || '';
+    if (key === 'imie') return entry.imie || '';
+    return '';
+  }
+
+  function sortEntries(entries) {
+    const attemptsMap = buildAttemptsMap(entries);
+    const sorted = [...(entries || [])].sort((a, b) => {
+      const va = normalizeSortValue(a, sortBy, attemptsMap);
+      const vb = normalizeSortValue(b, sortBy, attemptsMap);
+      if (typeof va === 'number' && typeof vb === 'number') {
+        return sortOrder === 'asc' ? va - vb : vb - va;
+      }
+      return sortOrder === 'asc'
+        ? String(va).localeCompare(String(vb), 'pl')
+        : String(vb).localeCompare(String(va), 'pl');
+    });
+    return { sorted, attemptsMap };
+  }
+
+  function setSort(key) {
+    if (sortBy === key) {
+      sortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
+    } else {
+      sortBy = key;
+      sortOrder = key === 'timestamp' ? 'desc' : 'asc';
+    }
+    renderTable(currentFiltered);
+  }
+
+  function sortArrow(key) {
+    if (sortBy !== key) return '';
+    return sortOrder === 'asc' ? ' ▲' : ' ▼';
+  }
 
   function doLogin() {
     const t = document.getElementById('tokenInput').value.trim();
@@ -385,17 +443,22 @@
       document.getElementById('tableContainer').innerHTML = '<div class="empty">Brak wpisów dla wybranych filtrów</div>';
       return;
     }
-    const rows = entries.map(e => {
+    const { sorted, attemptsMap } = sortEntries(entries);
+    const rows = sorted.map(e => {
       const dt = e.timestamp ? new Date(e.timestamp).toLocaleString('pl-PL') : '—';
       const handle = e.productHandle || '—';
       const shortHandle = handle.replace(/-/g, ' ').slice(0, 35) + (handle.length > 35 ? '…' : '');
       const thumbHtml = e.imageUrl
         ? `<a href="${e.imageUrl}" target="_blank" title="Otwórz pełny obraz"><img class="thumb-img" src="${e.imageUrl}" alt="wynik AI" loading="lazy" /></a>`
         : `<span class="thumb-none">—</span>`;
+      const safeEmail = esc(e.email || '—');
+      const attempts = attemptsMap[getUserKey(e)] || 1;
       return `<tr>
         <td class="thumb-cell">${thumbHtml}</td>
         <td class="date-cell">${dt}</td>
         <td><span class="product-chip" title="${handle}">${shortHandle}</span></td>
+        <td>${safeEmail}</td>
+        <td>${attempts}</td>
         <td class="imie-cell">${esc(e.imie || '—')}</td>
         <td>${esc(e.rocznica || '—')}</td>
         <td class="opis-cell">${esc(e.opis || '—')}</td>
@@ -407,9 +470,11 @@
         <thead>
           <tr>
             <th>Wynik</th>
-            <th>Data</th>
-            <th>Produkt</th>
-            <th>Imię / dedykacja</th>
+            <th style="cursor:pointer;" onclick="setSort('timestamp')">Data${sortArrow('timestamp')}</th>
+            <th style="cursor:pointer;" onclick="setSort('product')">Produkt${sortArrow('product')}</th>
+            <th style="cursor:pointer;" onclick="setSort('email')">Email${sortArrow('email')}</th>
+            <th style="cursor:pointer;" onclick="setSort('attempts')">Próby użytkownika${sortArrow('attempts')}</th>
+            <th style="cursor:pointer;" onclick="setSort('imie')">Imię / dedykacja${sortArrow('imie')}</th>
             <th>Rocznica / lata</th>
             <th>Opis osoby</th>
           </tr>
@@ -484,10 +549,13 @@
 
   function exportCSV() {
     if (!currentFiltered.length) return;
-    const headers = ['Data', 'Produkt', 'Imię / dedykacja', 'Rocznica / lata', 'Opis osoby', 'CustomerId'];
+    const attemptsMap = buildAttemptsMap(currentFiltered);
+    const headers = ['Data', 'Produkt', 'Email', 'Próby użytkownika', 'Imię / dedykacja', 'Rocznica / lata', 'Opis osoby', 'CustomerId'];
     const rows = currentFiltered.map(e => [
       e.timestamp || '',
       e.productHandle || '',
+      e.email || '',
+      attemptsMap[getUserKey(e)] || 1,
       e.imie || '',
       e.rocznica || '',
       e.opis || '',
