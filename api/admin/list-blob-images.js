@@ -17,8 +17,8 @@ async function buildProductTypeMap(jsonBlobs) {
   const pathnameToProductType = {};
   const urlToUser = {};
   const pathnameToUser = {};
-  const MAX_JSON_FETCH = 80;
-  const BATCH_SIZE = 10;
+  const MAX_JSON_FETCH = 250;
+  const BATCH_SIZE = 25;
   const toFetch = jsonBlobs.slice(0, MAX_JSON_FETCH);
 
   for (let i = 0; i < toFetch.length; i += BATCH_SIZE) {
@@ -29,13 +29,19 @@ async function buildProductTypeMap(jsonBlobs) {
         if (!resp.ok) return;
         const data = await resp.json();
         // Dane użytkownika z pliku JSON (customerId, email)
+        // Fallback: jeśli top-level puste, spróbuj wyciągnąć customerId z nazwy pliku: customer-123.json
+        const customerIdFromPath = (() => {
+          const path = blob.pathname || '';
+          const match = path.match(/\/customer-([0-9]+)\.json$/i);
+          return match ? match[1] : null;
+        })();
         const fileEmail = data?.email || null;
-        const fileCustomerId = data?.customerId || null;
+        const fileCustomerId = data?.customerId || customerIdFromPath || null;
         const generations = data?.generations || [];
         for (const gen of generations) {
-          const url = gen.imageUrl || gen.watermarkedImageUrl;
+          const urls = [gen.imageUrl, gen.watermarkedImageUrl].filter(Boolean);
           const pt = gen.productType || gen.style || 'other';
-          if (url) {
+          for (const url of urls) {
             if (pt) {
               urlToProductType[url] = pt;
             }
@@ -329,12 +335,25 @@ module.exports = async (req, res) => {
     let jsonBlobsSorted = [];
     try {
       const statsToken = process.env.customify_READ_WRITE_TOKEN || process.env.BLOB_READ_WRITE_TOKEN;
-      const statsListResult = await list({
-        prefix: 'customify/system/stats/generations/',
-        limit: 200,
-        token: statsToken
-      });
-      jsonBlobsSorted = (statsListResult.blobs || [])
+      const maxStatsPages = 4;
+      const statsPerPage = 500;
+      const allStatsBlobs = [];
+      let statsCursor = undefined;
+      let statsPage = 0;
+
+      do {
+        const statsListResult = await list({
+          prefix: 'customify/system/stats/generations/',
+          limit: statsPerPage,
+          cursor: statsCursor,
+          token: statsToken
+        });
+        allStatsBlobs.push(...(statsListResult.blobs || []));
+        statsCursor = statsListResult.cursor;
+        statsPage++;
+      } while (statsCursor && statsPage < maxStatsPages);
+
+      jsonBlobsSorted = allStatsBlobs
         .filter(b => (b.pathname || '').toLowerCase().endsWith('.json'))
         .sort((a, b) => {
           const at = (a.uploadedAt && new Date(a.uploadedAt).getTime()) || 0;

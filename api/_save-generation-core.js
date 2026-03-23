@@ -264,6 +264,8 @@ async function saveGenerationHandler(req, res) {
       id: generationId,
       imageUrl: imageUrl, // ✅ BEZ watermarku (do realizacji zamówienia)
       watermarkedImageUrl: watermarkedImageUrl || null, // ✅ Z watermarkiem (do emaili) - tylko dla zalogowanych
+      customerId: customerId ? String(customerId) : null,
+      email: email || null,
       style: style || 'unknown',
       productType: productType || 'other',
       originalImageUrl: originalImageUrl || null,
@@ -327,6 +329,9 @@ async function saveGenerationHandler(req, res) {
       }
       dataToSave = {
         ...existingData,
+        // Uzupełnij customer/email, jeśli rekord historyczny był zapisany bez tych danych
+        customerId: existingData.customerId || customerId || null,
+        email: existingData.email || email || null,
         // ✅ Aktualizuj IP jeśli nie było wcześniej (dla starych rekordów)
         ip: existingData.ip || finalIp,
         ipHash: existingData.ipHash || ipHashFromBody || null,
