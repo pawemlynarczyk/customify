@@ -161,13 +161,15 @@
         const badge = u.reachedWallAgain
           ? '<span class="badge warn">Wykorzystał wszystko</span>'
           : '<span class="badge ok">Ma jeszcze próby</span>';
-        const sentAt = u.creditEmailSentAt ? new Date(u.creditEmailSentAt).toLocaleString('pl-PL') : '—';
+        const wallAt = u.wallReachedAt ? new Date(u.wallReachedAt).toLocaleString('pl-PL') : '—';
+        const refillAt = u.refilledAt ? new Date(u.refilledAt).toLocaleString('pl-PL') : '—';
         return `<tr>
           <td>${esc(u.email || '—')}</td>
           <td>${esc(u.customerId || '—')}</td>
           <td>${usageLabel}</td>
           <td>${badge}</td>
-          <td>${esc(sentAt)}</td>
+          <td>${esc(wallAt)}</td>
+          <td>${esc(refillAt)}</td>
         </tr>`;
       }).join('');
 
@@ -179,7 +181,8 @@
               <th>Customer ID</th>
               <th>Aktualne zużycie (suma)</th>
               <th>Status</th>
-              <th>Data maila o kredytach</th>
+              <th>Data dojścia do ściany</th>
+              <th>Data doładowania</th>
             </tr>
           </thead>
           <tbody>${body}</tbody>

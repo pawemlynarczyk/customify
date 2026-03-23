@@ -2,6 +2,7 @@
 // Lista użytkowników, którzy dostali doładowanie kredytów i ponownie doszli do limitu.
 
 const { kv } = require('@vercel/kv');
+const { head } = require('@vercel/blob');
 
 const ADMIN_TOKEN = process.env.ADMIN_STATS_TOKEN;
 
@@ -22,6 +23,40 @@ function parseUsageValue(rawValue) {
     // old number_integer format
   }
   return parseInt(rawValue || '0', 10) || 0;
+}
+
+function parseDateSafe(value) {
+  if (!value) return null;
+  const ms = Date.parse(value);
+  return Number.isNaN(ms) ? null : new Date(ms).toISOString();
+}
+
+async function inferWallReachedAtFromGenerations(customerId, refillAnchorDate) {
+  const blobToken = process.env.customify_READ_WRITE_TOKEN || process.env.BLOB_READ_WRITE_TOKEN;
+  if (!blobToken || !refillAnchorDate) return null;
+  const anchorMs = Date.parse(refillAnchorDate);
+  if (Number.isNaN(anchorMs)) return null;
+
+  const path = `customify/system/stats/generations/customer-${customerId}.json`;
+  try {
+    const blob = await withTimeout(head(path, { token: blobToken }), 10000, 'head customer generation blob');
+    if (!blob?.url) return null;
+    const resp = await withTimeout(fetch(blob.url), 12000, 'fetch customer generation blob');
+    if (!resp.ok) return null;
+    const data = await resp.json();
+    const generations = Array.isArray(data?.generations) ? data.generations : [];
+    const afterRefill = generations
+      .map((g) => parseDateSafe(g?.date || g?.timestamp))
+      .filter(Boolean)
+      .filter((iso) => Date.parse(iso) >= anchorMs)
+      .sort((a, b) => Date.parse(a) - Date.parse(b));
+
+    if (afterRefill.length < 4) return null;
+    // Moment osiągnięcia limitu 4/4 po doładowaniu = data 4. generacji po refill.
+    return afterRefill[3];
+  } catch (_) {
+    return null;
+  }
 }
 
 async function fetchCustomersUsage(customerIds) {
@@ -110,6 +145,18 @@ module.exports = async (req, res) => {
       const emailData = await kv.get(`credit-email-sent:${customerId}`).catch(() => null);
       const emailPayload = typeof emailData === 'string' ? JSON.parse(emailData) : emailData;
       const emailSentAt = emailPayload?.sentAt || null;
+      const refillMetaRaw = await kv.get(`credits-refilled-meta:${customerId}`).catch(() => null);
+      const refillMeta = typeof refillMetaRaw === 'string' ? JSON.parse(refillMetaRaw) : refillMetaRaw;
+      const refilledAt = parseDateSafe(refillMeta?.refilledAt) || parseDateSafe(emailSentAt);
+
+      const wallRaw = await kv.get(`wall-after-refill:${customerId}`).catch(() => null);
+      const wallPayload = typeof wallRaw === 'string' ? JSON.parse(wallRaw) : wallRaw;
+      let wallReachedAt = parseDateSafe(wallPayload?.reachedAt) || null;
+
+      // Fallback historyczny: jeśli user ma 4/4 po refill, spróbuj wyliczyć datę z pliku generacji.
+      if (!wallReachedAt && usage.usageCount >= 4 && refilledAt) {
+        wallReachedAt = await inferWallReachedAtFromGenerations(customerId, refilledAt);
+      }
 
       rows.push({
         customerId,
@@ -118,6 +165,8 @@ module.exports = async (req, res) => {
         usageType: usage.usageType,
         reachedWallAgain: usage.usageCount >= 4,
         refillMarker: true,
+        refilledAt,
+        wallReachedAt,
         creditEmailSentAt: emailSentAt,
         creditEmailId: emailPayload?.emailId || null
       });

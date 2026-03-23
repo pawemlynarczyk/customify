@@ -2986,6 +2986,19 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
               const alreadyRefilled = isKVConfigured() ? await kv.get(`credits-refilled:${customerId}`) : null;
               if (alreadyRefilled) {
                 console.log('⏭️ [LIMIT-QUEUE] Pomijam – kredyty już były dodane raz:', customerId);
+                // Użytkownik po doładowaniu ponownie dobił do limitu - zapisz datę "dojścia do ściany".
+                const wallAfterRefillKey = `wall-after-refill:${customerId}`;
+                const existingWallAfterRefill = await kv.get(wallAfterRefillKey);
+                if (!existingWallAfterRefill) {
+                  const wallPayload = {
+                    reachedAt: new Date().toISOString(),
+                    customerId: String(customerId),
+                    usageCount: totalUsed,
+                    source: 'metafield-check'
+                  };
+                  await kv.set(wallAfterRefillKey, JSON.stringify(wallPayload));
+                  console.log('🧱 [WALL-AFTER-REFILL] Zapisano datę dojścia do ściany:', wallPayload);
+                }
               } else {
               const key = `limit-reached:${customerId}`;
               const payload = {
@@ -4399,6 +4412,19 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
               const alreadyRefilled = isKVConfigured() ? await kv.get(`credits-refilled:${customerId}`) : null;
               if (alreadyRefilled) {
                 console.log('⏭️ [LIMIT-QUEUE] Pomijam po inkrementacji – kredyty już były dodane raz:', customerId);
+                // 4. udana próba po doładowaniu = dojście do ściany (zapisz jeśli nie ma).
+                const wallAfterRefillKey = `wall-after-refill:${customerId}`;
+                const existingWallAfterRefill = await kv.get(wallAfterRefillKey);
+                if (!existingWallAfterRefill) {
+                  const wallPayload = {
+                    reachedAt: new Date().toISOString(),
+                    customerId: String(customerId),
+                    usageCount: savedTotal,
+                    source: 'metafield-increment'
+                  };
+                  await kv.set(wallAfterRefillKey, JSON.stringify(wallPayload));
+                  console.log('🧱 [WALL-AFTER-REFILL] Zapisano datę dojścia do ściany po inkrementacji:', wallPayload);
+                }
               } else {
               const totalLimit = 4; // 4 darmowe generacje TOTAL dla zalogowanych
               const key = `limit-reached:${customerId}`;

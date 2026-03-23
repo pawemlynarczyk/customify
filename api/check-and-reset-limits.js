@@ -395,6 +395,14 @@ module.exports = async (req, res) => {
         if (emailSent) {
           if (isKVConfigured()) {
             await kv.set(`credits-refilled:${customerId}`, '1'); // tylko raz można dodać kredyty
+            // Trwałe metadane doładowania (bez TTL) - źródło daty dla panelu i automatyzacji
+            const refillMeta = {
+              customerId,
+              email: email || null,
+              refilledAt: new Date().toISOString(),
+              source: 'check-and-reset-limits'
+            };
+            await kv.set(`credits-refilled-meta:${customerId}`, JSON.stringify(refillMeta));
           }
           await kv.del(key);
           resetCount += 1;
