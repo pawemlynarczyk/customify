@@ -3,6 +3,7 @@
 
 const { kv } = require('@vercel/kv');
 const { head } = require('@vercel/blob');
+const { list } = require('@vercel/blob');
 
 const ADMIN_TOKEN = process.env.ADMIN_STATS_TOKEN;
 
@@ -62,6 +63,36 @@ async function inferWallReachedAtFromGenerations(customerId, refillAnchorDate) {
     return null;
   } catch (_) {
     return null;
+  }
+}
+
+async function getPersonalizationLastDateMap() {
+  const blobToken = process.env.customify_READ_WRITE_TOKEN || process.env.BLOB_READ_WRITE_TOKEN;
+  if (!blobToken) return {};
+  try {
+    const { blobs } = await withTimeout(
+      list({ prefix: 'customify/system/stats/personalization-log', token: blobToken }),
+      10000,
+      'list personalization log blobs'
+    );
+    if (!blobs || blobs.length === 0) return {};
+    const latest = blobs.sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt))[0];
+    const resp = await withTimeout(fetch(latest.url), 12000, 'fetch personalization log');
+    if (!resp.ok) return {};
+    const entries = await resp.json();
+    if (!Array.isArray(entries)) return {};
+    const map = {};
+    for (const e of entries) {
+      const cid = e?.customerId ? String(e.customerId) : null;
+      const ts = parseDateSafe(e?.timestamp);
+      if (!cid || !ts) continue;
+      if (!map[cid] || Date.parse(ts) > Date.parse(map[cid])) {
+        map[cid] = ts;
+      }
+    }
+    return map;
+  } catch (_) {
+    return {};
   }
 }
 
@@ -144,6 +175,7 @@ module.exports = async (req, res) => {
     const refillKeys = await kv.keys('credits-refilled:*');
     const customerIds = refillKeys.map((k) => k.replace('credits-refilled:', '')).filter(Boolean);
     const usageByCustomer = await fetchCustomersUsage(customerIds);
+    const personalizationLastDateMap = await getPersonalizationLastDateMap();
 
     const rows = [];
     for (const customerId of customerIds) {
@@ -162,6 +194,12 @@ module.exports = async (req, res) => {
       // Fallback historyczny: jeśli user ma 4/4 po refill, spróbuj wyliczyć datę z pliku generacji.
       if (!wallReachedAt && usage.usageCount >= 4 && refilledAt) {
         wallReachedAt = await inferWallReachedAtFromGenerations(customerId, refilledAt);
+      }
+      if (!wallReachedAt && usage.usageCount >= 4) {
+        wallReachedAt = await inferWallReachedAtFromGenerations(customerId, null);
+      }
+      if (!wallReachedAt && usage.usageCount >= 4 && personalizationLastDateMap[customerId]) {
+        wallReachedAt = personalizationLastDateMap[customerId];
       }
 
       rows.push({
