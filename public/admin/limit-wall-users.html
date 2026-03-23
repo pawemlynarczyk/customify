@@ -156,14 +156,16 @@
         return;
       }
       const body = rows.map((u) => {
+        const usageTotal = Number(u.usageCount || 0);
+        const usageLabel = `${usageTotal}/4`;
         const badge = u.reachedWallAgain
-          ? '<span class="badge warn">Ponownie 4/4</span>'
-          : '<span class="badge ok">Jeszcze poniżej limitu</span>';
+          ? '<span class="badge warn">Wykorzystał wszystko</span>'
+          : '<span class="badge ok">Ma jeszcze próby</span>';
         const sentAt = u.creditEmailSentAt ? new Date(u.creditEmailSentAt).toLocaleString('pl-PL') : '—';
         return `<tr>
           <td>${esc(u.email || '—')}</td>
           <td>${esc(u.customerId || '—')}</td>
-          <td>${u.usageCount ?? 0}</td>
+          <td>${usageLabel}</td>
           <td>${badge}</td>
           <td>${esc(sentAt)}</td>
         </tr>`;
@@ -175,7 +177,7 @@
             <tr>
               <th>Email</th>
               <th>Customer ID</th>
-              <th>Aktualne zużycie</th>
+              <th>Aktualne zużycie (suma)</th>
               <th>Status</th>
               <th>Data maila o kredytach</th>
             </tr>
