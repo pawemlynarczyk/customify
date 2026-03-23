@@ -33,9 +33,8 @@ function parseDateSafe(value) {
 
 async function inferWallReachedAtFromGenerations(customerId, refillAnchorDate) {
   const blobToken = process.env.customify_READ_WRITE_TOKEN || process.env.BLOB_READ_WRITE_TOKEN;
-  if (!blobToken || !refillAnchorDate) return null;
-  const anchorMs = Date.parse(refillAnchorDate);
-  if (Number.isNaN(anchorMs)) return null;
+  if (!blobToken) return null;
+  const anchorMs = refillAnchorDate ? Date.parse(refillAnchorDate) : null;
 
   const path = `customify/system/stats/generations/customer-${customerId}.json`;
   try {
@@ -45,15 +44,22 @@ async function inferWallReachedAtFromGenerations(customerId, refillAnchorDate) {
     if (!resp.ok) return null;
     const data = await resp.json();
     const generations = Array.isArray(data?.generations) ? data.generations : [];
-    const afterRefill = generations
+    const normalized = generations
       .map((g) => parseDateSafe(g?.date || g?.timestamp))
       .filter(Boolean)
-      .filter((iso) => Date.parse(iso) >= anchorMs)
       .sort((a, b) => Date.parse(a) - Date.parse(b));
 
-    if (afterRefill.length < 4) return null;
-    // Moment osiągnięcia limitu 4/4 po doładowaniu = data 4. generacji po refill.
-    return afterRefill[3];
+    // Główny przypadek: znamy datę doładowania i liczymy 4. generację po refill.
+    if (anchorMs && !Number.isNaN(anchorMs)) {
+      const afterRefill = normalized.filter((iso) => Date.parse(iso) >= anchorMs);
+      if (afterRefill.length >= 4) return afterRefill[3];
+    }
+
+    // Fallback legacy: brak daty refill -> przyjmij "4. najnowszą generację"
+    // jako moment dojścia do 4/4 (dla użytkowników, którzy teraz mają usage=4).
+    const desc = [...normalized].sort((a, b) => Date.parse(b) - Date.parse(a));
+    if (desc.length >= 4) return desc[3];
+    return null;
   } catch (_) {
     return null;
   }
