@@ -241,29 +241,6 @@
         </div>
       </div>
       
-      <!-- By Product -->
-      <div class="section">
-        <h2 class="section-title">📦 Statystyki per Produkt</h2>
-        <table id="productTable">
-          <thead>
-            <tr>
-              <th>Produkt</th>
-              <th>Odsłon</th>
-              <th>Wyświetleń modala</th>
-              <th>Odsłon/modal</th>
-              <th>Generacji AI</th>
-              <th>Rejestracje</th>
-              <th>Logowania</th>
-              <th>Anulowania</th>
-              <th>Auto-redirect</th>
-              <th>Conversion</th>
-            </tr>
-          </thead>
-          <tbody id="productTableBody">
-          </tbody>
-        </table>
-      </div>
-      
       <!-- By Date -->
       <div class="section">
         <h2 class="section-title">📅 Statystyki per Data</h2>
@@ -398,57 +375,38 @@
             `Ostatnia aktualizacja: ${date.toLocaleString('pl-PL')}`;
         }
         
-        // Update product table
-        const productTableBody = document.getElementById('productTableBody');
-        productTableBody.innerHTML = '';
-        
-        const products = Object.entries(stats.byProduct || {})
-          .sort((a, b) => b[1].shown - a[1].shown);
-        
-        products.forEach(([product, data]) => {
-          const totalClicks = data.registerClicks + data.loginClicks;
-          const conversion = data.shown > 0 
-            ? ((totalClicks / data.shown) * 100).toFixed(1) + '%'
-            : '0%';
-          const entries = data.entries || 0;
-          const shown = data.shown || 0;
-          const entriesPerModal = shown > 0 && entries > 0 ? (entries / shown).toFixed(1) : '-';
-          const generations = data.generations || 0;
-          
-          const row = document.createElement('tr');
-          row.innerHTML = `
-            <td><strong>${product}</strong></td>
-            <td>${entries}</td>
-            <td>${shown}</td>
-            <td>${entriesPerModal}</td>
-            <td>${generations}</td>
-            <td>${data.registerClicks}</td>
-            <td>${data.loginClicks}</td>
-            <td>${data.cancelClicks}</td>
-            <td>${data.autoRedirects}</td>
-            <td><strong>${conversion}</strong></td>
-          `;
-          productTableBody.appendChild(row);
-        });
-        
-        // Update date table
+        // Update date table — always show last 30 days (+ older days with data)
         const dateTableBody = document.getElementById('dateTableBody');
         dateTableBody.innerHTML = '';
-        
-        const dates = Object.entries(stats.byDate || {})
-          .sort((a, b) => b[0].localeCompare(a[0]));
-        
-        dates.forEach(([date, data]) => {
+
+        // Build set of last 30 days
+        const byDate = stats.byDate || {};
+        const today = new Date();
+        const allDateKeys = new Set(Object.keys(byDate));
+        for (let i = 0; i < 30; i++) {
+          const d = new Date(today);
+          d.setDate(today.getDate() - i);
+          const key = d.toISOString().split('T')[0];
+          allDateKeys.add(key);
+        }
+
+        const empty = { entries: 0, generations: 0, shown: 0, registerClicks: 0, loginClicks: 0, cancelClicks: 0, autoRedirects: 0, registerSuccess: 0, loginSuccess: 0 };
+        const dates = [...allDateKeys].sort((a, b) => b.localeCompare(a));
+
+        dates.forEach((date) => {
+          const data = byDate[date] || empty;
           const totalClicks = data.registerClicks + data.loginClicks;
-          const conversion = data.shown > 0 
+          const conversion = data.shown > 0
             ? ((totalClicks / data.shown) * 100).toFixed(1) + '%'
             : '0%';
           const entries = data.entries || 0;
           const shown = data.shown || 0;
           const entriesPerModal = shown > 0 && entries > 0 ? (entries / shown).toFixed(1) : '-';
           const generations = data.generations || 0;
-          
+          const isEmpty = !byDate[date];
+
           const row = document.createElement('tr');
+          if (isEmpty) row.style.color = '#bbb';
           row.innerHTML = `
             <td><strong>${date}</strong></td>
             <td>${entries}</td>
