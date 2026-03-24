@@ -41,6 +41,8 @@
     .badge { display: inline-block; border-radius: 999px; padding: 2px 8px; font-size: 11px; font-weight: 600; }
     .ok { background: #e8f5e9; color: #2e7d32; }
     .warn { background: #ffebee; color: #b71c1c; }
+    .bought { background: #e3f2fd; color: #0d47a1; }
+    .no-buy { background: #f5f5f5; color: #757575; }
     .empty { padding: 35px; text-align: center; color: #999; }
     .funnel-panel { margin-bottom: 16px; }
     .funnel-panel .head h3 { font-size: 16px; }
@@ -231,11 +233,17 @@
           : '<span class="badge ok">Ma jeszcze próby</span>';
         const wallAt = u.wallReachedAt ? new Date(u.wallReachedAt).toLocaleString('pl-PL') : '—';
         const refillAt = u.refilledAt ? new Date(u.refilledAt).toLocaleString('pl-PL') : '—';
+        const orders = Number(u.numberOfOrders || 0);
+        const ordersBadge = orders > 0
+          ? `<span class="badge bought">✓ ${orders} zam.</span>`
+          : '<span class="badge no-buy">Brak</span>';
+        const shopifyLink = `<a href="https://customify-ok.myshopify.com/admin/customers/${esc(u.customerId)}" target="_blank" style="font-size:11px;color:#555;">→ Shopify</a>`;
         return `<tr>
           <td>${esc(u.email || '—')}</td>
           <td>${esc(u.customerId || '—')}</td>
           <td>${usageLabel}</td>
           <td>${badge}</td>
+          <td>${ordersBadge} ${shopifyLink}</td>
           <td>${esc(wallAt)}</td>
           <td>${esc(refillAt)}</td>
         </tr>`;
@@ -249,6 +257,7 @@
               <th>Customer ID</th>
               <th>Aktualne zużycie (suma)</th>
               <th>Status</th>
+              <th>Zakup</th>
               <th>Data dojścia do ściany</th>
               <th>Data doładowania</th>
             </tr>

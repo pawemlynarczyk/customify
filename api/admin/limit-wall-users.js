@@ -143,6 +143,7 @@ async function fetchCustomersUsage(customerIds) {
           ... on Customer {
             id
             email
+            numberOfOrders
             metafield(namespace: "customify", key: "usage_count") {
               value
               type
@@ -178,7 +179,8 @@ async function fetchCustomersUsage(customerIds) {
       result[customerId] = {
         email: node.email ? String(node.email).toLowerCase().trim() : null,
         usageCount: parseUsageValue(node.metafield?.value || '0'),
-        usageType: node.metafield?.type || null
+        usageType: node.metafield?.type || null,
+        numberOfOrders: Number(node.numberOfOrders || 0)
       };
     }
   }
@@ -268,6 +270,7 @@ module.exports = async (req, res) => {
         email: usage.email || emailPayload?.email || null,
         usageCount: usage.usageCount,
         usageType: usage.usageType,
+        numberOfOrders: usage.numberOfOrders || 0,
         reachedWallAgain: usage.usageCount >= 4,
         refillMarker: true,
         refilledAt,
