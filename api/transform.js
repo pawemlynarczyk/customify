@@ -3014,6 +3014,23 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
                     await kv.set(secondQueueKey, JSON.stringify(secondPayload), { ex: 60 * 60 * 24 * 7 }); // 7 dni TTL
                     console.log('🕒 [LIMIT-QUEUE-2ND] Dodano do kolejki 24h:', { secondQueueKey, secondPayload });
                   }
+                } else {
+                  // Trzecia szansa: po 2. doładowaniu znowu dobił do limitu → kolejka "ostatnia szansa" po 7 dniach.
+                  const thirdRefillDone = await kv.get(`credits-third-refilled:${customerId}`);
+                  if (!thirdRefillDone) {
+                    const thirdQueueKey = `limit-reached-third:${customerId}`;
+                    const thirdQueueExisting = await kv.get(thirdQueueKey);
+                    if (!thirdQueueExisting) {
+                      const thirdPayload = {
+                        timestamp: new Date().toISOString(),
+                        totalUsed,
+                        totalLimit,
+                        reason: 'reached_third_time'
+                      };
+                      await kv.set(thirdQueueKey, JSON.stringify(thirdPayload), { ex: 60 * 60 * 24 * 14 }); // 14 dni TTL
+                      console.log('🕒 [LIMIT-QUEUE-3RD] Dodano do kolejki 7 dni (ostatnia szansa):', { thirdQueueKey, thirdPayload });
+                    }
+                  }
                 }
               } else {
               const key = `limit-reached:${customerId}`;
@@ -4469,6 +4486,23 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
                     };
                     await kv.set(secondQueueKey, JSON.stringify(secondPayload), { ex: 60 * 60 * 24 * 7 }); // 7 dni TTL
                     console.log('🕒 [LIMIT-QUEUE-2ND] Dodano po inkrementacji do kolejki 24h:', { secondQueueKey, secondPayload });
+                  }
+                } else {
+                  // Trzecia szansa: po 2. doładowaniu znowu dobił do limitu → kolejka "ostatnia szansa" po 7 dniach.
+                  const thirdRefillDone = await kv.get(`credits-third-refilled:${customerId}`);
+                  if (!thirdRefillDone) {
+                    const thirdQueueKey = `limit-reached-third:${customerId}`;
+                    const thirdQueueExisting = await kv.get(thirdQueueKey);
+                    if (!thirdQueueExisting) {
+                      const thirdPayload = {
+                        timestamp: new Date().toISOString(),
+                        totalUsed: savedTotal,
+                        totalLimit,
+                        reason: 'reached_third_time'
+                      };
+                      await kv.set(thirdQueueKey, JSON.stringify(thirdPayload), { ex: 60 * 60 * 24 * 14 }); // 14 dni TTL
+                      console.log('🕒 [LIMIT-QUEUE-3RD] Dodano po inkrementacji do kolejki 7 dni (ostatnia szansa):', { thirdQueueKey, thirdPayload });
+                    }
                   }
                 }
               } else {

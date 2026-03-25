@@ -8,9 +8,9 @@ const { Resend } = require('resend');
 const { isKVConfigured } = require('../utils/vercelKVLimiter');
 
 const EMAIL_TRACKING_BASE = 'https://customify-s56o.vercel.app';
-function creditsTrackingUrl(customerId, target) {
+function creditsTrackingUrl(customerId, target, type = 'credits') {
   const cidPart = customerId ? `&cid=${encodeURIComponent(customerId)}` : '';
-  return `${EMAIL_TRACKING_BASE}/api/email-click?type=credits${cidPart}&url=${encodeURIComponent(target)}`;
+  return `${EMAIL_TRACKING_BASE}/api/email-click?type=${type}${cidPart}&url=${encodeURIComponent(target)}`;
 }
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -136,8 +136,98 @@ function buildEmailHtml(customerId = null) {
 `;
 }
 
+function buildLastChanceEmailHtml(customerId = null) {
+  const ctaHref = creditsTrackingUrl(customerId, 'https://lumly.pl/products/personalizowany-portret-w-stylu-boho', 'last-chance');
+  const galHref = creditsTrackingUrl(customerId, 'https://lumly.pl/pages/my-generations', 'last-chance');
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f5f5f5;">
+  <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+    <div style="background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); padding: 40px 30px; text-align: center;">
+      <p style="color: rgba(255,255,255,0.85); margin: 0 0 12px; font-size: 14px; letter-spacing: 1px; text-transform: uppercase;">Ostatnia szansa</p>
+      <h1 style="color: white; margin: 0; font-size: 28px; font-weight: bold; line-height: 1.3;">Dodaliśmy Ci ostatnie kredyty</h1>
+    </div>
+    <div style="padding: 32px 30px; background-color: #ffffff;">
+      <p style="font-size: 16px; color: #333; margin: 0 0 16px; line-height: 1.6;">
+        Wiesz, że wygenerowałeś już sporo obrazów — a żaden nie trafił do wydruku? 😟
+      </p>
+      <p style="font-size: 16px; color: #555; margin: 0 0 20px; line-height: 1.6;">
+        Dajemy Ci <strong>ostatnie 4 kredyty</strong>. To naprawdę ostatnia szansa — wykorzystaj je, żeby zamówić swój portret i zobaczyć go w realu.
+      </p>
+      <div style="background: #fff8f8; border-left: 4px solid #e74c3c; padding: 16px 20px; border-radius: 4px; margin: 24px 0;">
+        <p style="margin: 0; font-size: 15px; color: #555; line-height: 1.6;">
+          💡 <strong>Wskazówka:</strong> Zamów wydruk jeszcze dzisiaj — ceny zaczynają się od 49 zł, a realizacja to tylko kilka dni.
+        </p>
+      </div>
+      <div style="text-align: center; margin: 28px 0;">
+        <a href="${ctaHref}" style="display: inline-block; background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); color: white; padding: 16px 40px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;">Zacznij tworzyć →</a>
+      </div>
+      <p style="font-size: 15px; color: #555; line-height: 1.6; margin: 0 0 14px;">
+        Wróć do swoich wcześniejszych generacji: <a href="${galHref}" style="color: #e74c3c; text-decoration: none; font-weight: bold;">Moje generacje</a>
+      </p>
+      <div style="margin: 32px 0 12px; text-align: left;">
+        <h3 style="margin: 0 0 12px; font-size: 16px; color: #333;">Zobacz wszystkie produkty</h3>
+        <a href="https://lumly.pl/collections/see_also" style="color: #e74c3c; text-decoration: none; font-weight: bold; font-size: 14px;">Przeglądaj kolekcję →</a>
+      </div>
+      <div style="margin: 14px 0 20px;">
+        ${PRODUCT_TABLE}
+      </div>
+      <p style="font-size: 14px; color: #666; margin-top: 24px; padding-top: 16px; border-top: 1px solid #eee; text-align: center;">
+        Masz pytania? Napisz: <a href="mailto:biuro@lumly.pl" style="color: #e74c3c; text-decoration: none; font-weight: bold;">biuro@lumly.pl</a>
+      </p>
+    </div>
+    <div style="background-color: #f9f9f9; padding: 18px 30px; text-align: center; border-top: 1px solid #eee;">
+      <p style="margin: 0; font-size: 12px; color: #999;">© 2025 Lumly.pl - Personalizowane portrety AI</p>
+    </div>
+  </div>
+</body>
+</html>
+`;
+}
+
 // Helper: sleep for throttling
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+async function sendLastChanceEmail(to, customerId = null, retryCount = 0) {
+  if (!process.env.RESEND_API_KEY) {
+    console.warn('⚠️ [RESET-LIMITS] Brak RESEND_API_KEY - pomijam email ostatnia szansa');
+    return { success: false, error: 'RESEND_API_KEY missing' };
+  }
+  try {
+    const result = await resend.emails.send({
+      from: 'Lumly <noreply@notification.lumly.pl>',
+      to,
+      subject: 'Ostatnia szansa – dodaliśmy Ci ostatnie kredyty',
+      html: buildLastChanceEmailHtml(customerId)
+    });
+    if (result.error) {
+      if (result.error.statusCode === 429 && retryCount < 3) {
+        const waitTime = (retryCount + 1) * 1000;
+        console.warn(`⚠️ [RESET-LIMITS] Rate limit 429 (last-chance), retry ${retryCount + 1}/3 za ${waitTime}ms...`);
+        await sleep(waitTime);
+        return sendLastChanceEmail(to, customerId, retryCount + 1);
+      }
+      console.error('❌ [RESET-LIMITS] Resend error (last-chance):', result.error);
+      return { success: false, error: result.error.message || JSON.stringify(result.error) };
+    }
+    const emailId = result.data?.id || result.id || null;
+    console.log('✅ [RESET-LIMITS] Email "ostatnia szansa" wysłany:', { to, emailId });
+    return { success: true, emailId };
+  } catch (error) {
+    if (error.statusCode === 429 && retryCount < 3) {
+      const waitTime = (retryCount + 1) * 1000;
+      await sleep(waitTime);
+      return sendLastChanceEmail(to, customerId, retryCount + 1);
+    }
+    console.error('❌ [RESET-LIMITS] Błąd wysyłania emaila last-chance:', error);
+    return { success: false, error: error.message };
+  }
+}
 
 async function sendCreditEmail(to, customerId = null, retryCount = 0) {
   if (!process.env.RESEND_API_KEY) {
@@ -303,15 +393,18 @@ module.exports = async (req, res) => {
   try {
     const keys = await kv.keys('limit-reached:*');
     const secondKeys = await kv.keys('limit-reached-second:*');
+    const thirdKeys = await kv.keys('limit-reached-third:*');
     console.log('🔍 [RESET-LIMITS] Sprawdzam wpisy KV:', {
       firstQueue: keys.length,
       secondQueue: secondKeys.length,
+      thirdQueue: thirdKeys.length,
       forceMode: !!forceMode
     });
 
     let processed = 0;
     let resetCount = 0;
     let secondResetCount = 0;
+    let thirdResetCount = 0;
     const errors = [];
 
     for (const key of keys) {
@@ -520,11 +613,114 @@ module.exports = async (req, res) => {
       }
     }
 
+    // Trzecia kolejka: "ostatnia szansa" po 7 dniach od 3. dojścia do limitu.
+    const cooldownThirdMs = 7 * 24 * 60 * 60 * 1000; // 7 dni
+    for (const key of thirdKeys) {
+      processed += 1;
+      try {
+        const raw = await kv.get(key);
+        if (!raw) {
+          await kv.del(key);
+          continue;
+        }
+        let payload;
+        try {
+          payload = typeof raw === 'string' ? JSON.parse(raw) : raw;
+        } catch {
+          payload = raw;
+        }
+        const ts = payload?.timestamp ? Date.parse(payload.timestamp) : null;
+        if (!ts || Number.isNaN(ts)) {
+          console.warn('⚠️ [RESET-LIMITS] Brak poprawnego timestamp (3rd queue), usuwam wpis', key);
+          await kv.del(key);
+          continue;
+        }
+        if (!forceMode && now - ts < cooldownThirdMs) {
+          continue; // jeszcze nie minęło 7 dni
+        }
+
+        const customerId = key.replace('limit-reached-third:', '');
+
+        // Zabezpieczenie: wymagaj żeby 1. i 2. doładowanie było zrobione
+        const hasFirstRefill = await kv.get(`credits-refilled:${customerId}`);
+        const hasSecondRefill = await kv.get(`credits-second-refilled:${customerId}`);
+        if (!hasFirstRefill || !hasSecondRefill) {
+          await kv.del(key);
+          continue;
+        }
+
+        const thirdRefillDone = await kv.get(`credits-third-refilled:${customerId}`);
+        if (thirdRefillDone) {
+          await kv.del(key);
+          continue;
+        }
+
+        const customer = await getUsageData(shopDomain, accessToken, customerId);
+        const email = customer?.email;
+        const metafieldId = customer?.metafield?.id || null;
+        const currentType = customer?.metafield?.type || 'json';
+
+        await updateUsageToZero(shopDomain, accessToken, customerId, metafieldId, currentType);
+
+        let emailSent = false;
+        if (email) {
+          await sleep(600);
+          const emailResult = await sendLastChanceEmail(email, customerId);
+          if (emailResult.success) {
+            emailSent = true;
+            kv.incr('email-stats:credits:sent').catch(() => {});
+            if (isKVConfigured()) {
+              try {
+                const emailKey = `credit-email-sent:${customerId}`;
+                const emailPayload = {
+                  email,
+                  customerId,
+                  sentAt: new Date().toISOString(),
+                  emailId: emailResult.emailId || null,
+                  usageCount: payload.totalUsed || null,
+                  totalLimit: payload.totalLimit || 4,
+                  refillRound: 3
+                };
+                await kv.set(emailKey, JSON.stringify(emailPayload), { ex: 60 * 60 * 24 * 90 });
+              } catch (kvErr) {
+                console.warn('⚠️ [RESET-LIMITS] Nie udało się zapisać info o mailu 3rd refill:', kvErr);
+              }
+            }
+          } else {
+            errors.push({ key, error: `Email failed (3rd refill): ${emailResult.error}` });
+            continue;
+          }
+        } else {
+          emailSent = true;
+        }
+
+        if (emailSent) {
+          if (isKVConfigured()) {
+            await kv.set(`credits-third-refilled:${customerId}`, '1');
+            const refillMetaRaw = await kv.get(`credits-refilled-meta:${customerId}`).catch(() => null);
+            const refillMeta = typeof refillMetaRaw === 'string'
+              ? (() => { try { return JSON.parse(refillMetaRaw); } catch { return {}; } })()
+              : (refillMetaRaw || {});
+            refillMeta.thirdRefilledAt = new Date().toISOString();
+            refillMeta.thirdRefillSource = 'check-and-reset-limits';
+            await kv.set(`credits-refilled-meta:${customerId}`, JSON.stringify(refillMeta));
+          }
+          await kv.del(key);
+          thirdResetCount += 1;
+          console.log('✅ [RESET-LIMITS] Zresetowano limity i wysłano email (trzecie doładowanie - ostatnia szansa):', { customerId, email });
+        }
+      } catch (errItem) {
+        errors.push({ key, error: errItem.message });
+        console.error('❌ [RESET-LIMITS] Błąd dla wpisu (3rd queue):', key, errItem);
+      }
+    }
+
     return res.status(200).json({
       success: true,
       processed,
       resetCount,
       secondResetCount,
+      thirdResetCount,
       errors
     });
   } catch (error) {
