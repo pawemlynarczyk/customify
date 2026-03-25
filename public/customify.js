@@ -2353,16 +2353,17 @@ const PODROZNICY_PARA_PRODUCT_HANDLE = 'karykatura-pary-podroznikow-ze-zdjecia-p
 const MLODA_PARA_SLUB_PRODUCT_HANDLE = 'karykatura-slubna-ze-zdjecia-prezent-dla-mlodej-pary';
 /** Karykatura rocznicowa ślubu — ma pole liczby, ale bez domyślnej liczby gdy puste. */
 const ROCZNICA_SLUBU_PARA_PRODUCT_HANDLE = 'karykatura-na-rocznice-slubu-prezent-na-25-30-40-50-lecie';
-/** Karykatura 50 rocznica slubu — ma pole liczby, ale bez domyślnej liczby gdy puste. */
+/** Karykatura 50 rocznica slubu — domyślna liczba 50 w prompcie gdy pole YEARS puste. */
 const ROCZNICA_50_SLUBU_PRODUCT_HANDLE = 'karykatura-na-50-rocznice-slubu-prezent-na-50-lecie';
 
 /** Para — duża cyfra jubileuszowa z pola formularza (dokładnie jak wpisał klient; inna liczba = inna na obrazku). */
 const COUPLE_CUSTOM_YEAR_FIELD_HANDLES = [WIESELI_STARUSZKOWIE_PRODUCT_HANDLE, PODROZNICY_PARA_PRODUCT_HANDLE, ROCZNICA_SLUBU_PARA_PRODUCT_HANDLE, ROCZNICA_50_SLUBU_PRODUCT_HANDLE];
 /** Produkty z domyślną rocznicą 40, gdy pole YEARS puste. */
 const COUPLE_DEFAULT_40_YEAR_FIELD_HANDLES = [];
-/** Produkty z domyślną rocznicą 50, gdy pole YEARS puste (50 rocznica slubu). */
-/** Para podróżników — gdy YEARS puste, nie dodawaj żadnej liczby. */
-const COUPLE_NO_DEFAULT_YEAR_FIELD_HANDLES = [PODROZNICY_PARA_PRODUCT_HANDLE, ROCZNICA_SLUBU_PARA_PRODUCT_HANDLE, ROCZNICA_50_SLUBU_PRODUCT_HANDLE];
+/** Produkty z domyślną rocznicą 50, gdy pole YEARS puste (tylko 50-lecie ślubu). */
+const COUPLE_DEFAULT_50_YEAR_FIELD_HANDLES = [ROCZNICA_50_SLUBU_PRODUCT_HANDLE];
+/** Para podróżników / ogólna rocznica — gdy YEARS puste, nie dodawaj domyślnej liczby (albo inna reguła per produkt). */
+const COUPLE_NO_DEFAULT_YEAR_FIELD_HANDLES = [PODROZNICY_PARA_PRODUCT_HANDLE, ROCZNICA_SLUBU_PARA_PRODUCT_HANDLE];
 
 /** Personalizacja: baza zawsze w promptcie + opcjonalnie dopisek klienta (opcja B). */
 const PERSONALIZATION_PREPEND_BASE_HANDLES = new Set([
@@ -2802,13 +2803,13 @@ class CustomifyEmbed {
         const isCoupleAnniversary = handle && COUPLE_ANNIVERSARY_FIELD_HANDLES.includes(handle);
         const isCoupleCustomYear = handle && COUPLE_CUSTOM_YEAR_FIELD_HANDLES.includes(handle);
         const isCoupleDefault40Year = handle && COUPLE_DEFAULT_40_YEAR_FIELD_HANDLES.includes(handle);
+        const isCoupleDefault50Year = handle && COUPLE_DEFAULT_50_YEAR_FIELD_HANDLES.includes(handle);
         const isCoupleNoDefaultYear = handle && COUPLE_NO_DEFAULT_YEAR_FIELD_HANDLES.includes(handle);
-        const isDlaNiejWithYears = handle && DLA_NIEJ_WITH_YEARS.includes(handle);
-        // Diamentowe Gody = zawsze 60; "Weseli staruszkowie" = liczba z pola, a gdy puste domyślnie 60
+        // Diamentowe Gody = zawsze 60; 50-lecie produkt = domyślnie 50; "Weseli staruszkowie" = liczba z pola, a gdy puste domyślnie 60
         const rawYearsVal = (replacements['YEARS'] || '').trim();
         const yearsVal = isCoupleAnniversary
           ? '60'
-          : (isCoupleCustomYear ? (rawYearsVal || (isCoupleNoDefaultYear ? '' : (isCoupleDefault40Year ? '40' : '60'))) : rawYearsVal);
+          : (isCoupleCustomYear ? (rawYearsVal || (isCoupleNoDefaultYear ? '' : (isCoupleDefault50Year ? '50' : (isCoupleDefault40Year ? '40' : '60')))) : rawYearsVal);
         if (isSzefProduct) {
           if (yearsVal.trim()) {
             replacements['YEARS_SECTION'] = `The character is sitting on or near a large elegant 3D number "${yearsVal.trim()}" placed ON THE DESK — elegant glass-gold style, glossy, luxury finish. The number is a solid freestanding 3D sculpture object standing on the desk surface.`;
@@ -2821,7 +2822,7 @@ class CustomifyEmbed {
               `The couple is posed with a large, elegant 3D metallic anniversary numeral "60" (sixty — Diamentowe Gody) integrated into the „Diamentowe Gody” composition — platinum, silver, subtle diamond sparkle; materials must feel luxe and ceremonial (not generic birthday). The numeral must read as 60, never a different anniversary number.`;
           } else if (isCoupleCustomYear) {
             const y = yearsVal.trim();
-            const defaultYearText = isCoupleNoDefaultYear ? 'no default number when the field is empty' : `default "${isCoupleDefault40Year ? '40' : '60'}"`;
+            const defaultYearText = isCoupleNoDefaultYear ? 'no default number when the field is empty' : `default "${isCoupleDefault50Year ? '50' : (isCoupleDefault40Year ? '40' : '60')}"`;
             replacements['YEARS_SECTION'] =
               `ANNIVERSARY NUMERAL (buyer-controlled):\n• Show a large, elegant 3D celebratory numeral that reads exactly: "${y}".\n• The couple is posed with or integrated with this numeral; style, materials and colors must harmonize with CUSTOMIZATION.\n• CRITICAL: if the buyer enters a number in the form, use that exact value. If the field is empty, ${defaultYearText}. Never invent a different jubilee number.`;
           } else {
@@ -2838,7 +2839,7 @@ class CustomifyEmbed {
             replacements['YEARS_SECTION'] =
               (isCoupleNoDefaultYear
                 ? 'Do not show any large anniversary numeral when the number field is empty. Keep the couple on a themed podium without a standalone year number.'
-                : `Show a large elegant metallic "${isCoupleDefault40Year ? '40' : '60'}" as the default jubilee numeral when the number field is empty.`);
+                : `Show a large elegant metallic "${isCoupleDefault50Year ? '50' : (isCoupleDefault40Year ? '40' : '60')}" as the default jubilee numeral when the number field is empty.`);
           } else {
             replacements['YEARS_SECTION'] = isDlaNiejWithYears
               ? 'The character stands on a podium.'
@@ -3042,7 +3043,7 @@ class CustomifyEmbed {
   // 💝 Produkty "dla niej" + Biznes Woman — jeden styl (caricature-new), bez wyboru, generacja bez klikania w miniaturkę
   isDlaNiejProduct() {
     const h = this.getProductHandle();
-    return h === 'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-fitness' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-szefowa' || h === 'karykatura-rolnik-ze-zdjecia-personalizowany-prezent-dla-mezczyzny' || h === 'kulturysta-karykatura-ze-zdjecia-prezent-dla-mezczyzny' || h === 'karykatura-wedkarz-portret-ze-zdjecia-personalizowany-prezent-dla-faceta' || h === 'karykatura-pilkarza-ze-zdjecia-personalizowany-obraz-dla-chlopaka-dziadka-taty' || h === 'obraz-ze-zdjecia-karykatura-policjant-prezent-dla-faceta' || h === 'obraz-ze-zdjecia-karykatura-szefa' || h === DIAMENTOWE_GODY_PRODUCT_HANDLE || h === WIESELI_STARUSZKOWIE_PRODUCT_HANDLE || h === PODROZNICY_PARA_PRODUCT_HANDLE || h === MLODA_PARA_SLUB_PRODUCT_HANDLE || h === ROCZNICA_SLUBU_PARA_PRODUCT_HANDLE || h === 'fotoobraz-strazaka-ze-zdjecia-prezent-na-35-urodziny-dla-meza' || h === 'portret-ze-zdjecia-dla-lekarza-personalizowany-plakat-na-urodziny-dla-chlopaka' || h === 'prezent-ze-zdjecia-dla-budowlanca-personalizowany-obraz-dla-taty' || h === 'prezent-z-wlasnym-zdjeciem-dla-kierowcy-tira-personalizowany-obraz' || h === 'obraz-ze-zdjecia-prezent-dla-chlopca-pilkarz' || h === 'active-woman-portret-ze-zdjecia-na-rocznice-dla-kolezanki-kobiety-druk-na-szkle' || h === 'active-woman-portret-ze-zdjecia-na-18-urodziny-dla-dziewczyny-druk-na-szkle-copy' || h === 'portret-ze-zdjecia-prezent-na-urodziny-dla-kolezanki-szefowej-salon-spa' || h === 'portret-na-18-urodziny-dla-dziewczyny-magic-z-wlasnego-zdjecia-druk-na-szkle' || h === 'obraz-ze-zdjecia-prezent-na-40-urodziny-dla-kobiety-czerwony-dywan' || h === 'portret-ze-zdjecia-na-30-rocznice-dla-nauczycielki-karykatura-na-prezent' || h === 'obraz-ze-zdjecia-biznes-woman-personalizowany-prezent' || h === 'obraz-ze-zdjecia-prezent-na-30-urodziny-dla-kobiety-biznes-woman' || h === 'obraz-ze-zdjecia-prezent-na-50-urodziny-dla-kobiety-biznes-woman' || h === 'wydruk-na-szkle-biznes-woman-prezent-na-urodziny-dla-kobiety';
+    return h === 'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-fitness' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-szefowa' || h === 'karykatura-rolnik-ze-zdjecia-personalizowany-prezent-dla-mezczyzny' || h === 'kulturysta-karykatura-ze-zdjecia-prezent-dla-mezczyzny' || h === 'karykatura-wedkarz-portret-ze-zdjecia-personalizowany-prezent-dla-faceta' || h === 'karykatura-pilkarza-ze-zdjecia-personalizowany-obraz-dla-chlopaka-dziadka-taty' || h === 'obraz-ze-zdjecia-karykatura-policjant-prezent-dla-faceta' || h === 'obraz-ze-zdjecia-karykatura-szefa' || h === DIAMENTOWE_GODY_PRODUCT_HANDLE || h === WIESELI_STARUSZKOWIE_PRODUCT_HANDLE || h === PODROZNICY_PARA_PRODUCT_HANDLE || h === MLODA_PARA_SLUB_PRODUCT_HANDLE || h === ROCZNICA_SLUBU_PARA_PRODUCT_HANDLE || h === ROCZNICA_50_SLUBU_PRODUCT_HANDLE || h === 'fotoobraz-strazaka-ze-zdjecia-prezent-na-35-urodziny-dla-meza' || h === 'portret-ze-zdjecia-dla-lekarza-personalizowany-plakat-na-urodziny-dla-chlopaka' || h === 'prezent-ze-zdjecia-dla-budowlanca-personalizowany-obraz-dla-taty' || h === 'prezent-z-wlasnym-zdjeciem-dla-kierowcy-tira-personalizowany-obraz' || h === 'obraz-ze-zdjecia-prezent-dla-chlopca-pilkarz' || h === 'active-woman-portret-ze-zdjecia-na-rocznice-dla-kolezanki-kobiety-druk-na-szkle' || h === 'active-woman-portret-ze-zdjecia-na-18-urodziny-dla-dziewczyny-druk-na-szkle-copy' || h === 'portret-ze-zdjecia-prezent-na-urodziny-dla-kolezanki-szefowej-salon-spa' || h === 'portret-na-18-urodziny-dla-dziewczyny-magic-z-wlasnego-zdjecia-druk-na-szkle' || h === 'obraz-ze-zdjecia-prezent-na-40-urodziny-dla-kobiety-czerwony-dywan' || h === 'portret-ze-zdjecia-na-30-rocznice-dla-nauczycielki-karykatura-na-prezent' || h === 'obraz-ze-zdjecia-biznes-woman-personalizowany-prezent' || h === 'obraz-ze-zdjecia-prezent-na-30-urodziny-dla-kobiety-biznes-woman' || h === 'obraz-ze-zdjecia-prezent-na-50-urodziny-dla-kobiety-biznes-woman' || h === 'wydruk-na-szkle-biznes-woman-prezent-na-urodziny-dla-kobiety';
   }
 
   // 🦸 Produkt Superbohater dla chłopca — Nano Banana, ukryty wybór, pole imienia
