@@ -1358,6 +1358,63 @@ Premium collectible caricature statue, highly detailed, playful but luxurious, p
       { id: 'opis_charakteru', label: 'Opisz lokalizacje, styl, kolory - tekst nie pojawi się na obrazku ale decyduje o jego wyglądzie', type: 'text', placeholder: 'np. elegancko, złoto, kwiaty, uroczystość', required: false, promptKey: 'personalization' }
     ]
   },
+  'karykatura-na-50-rocznice-slubu-prezent-na-50-lecie': {
+    title: 'Personalizacja',
+    promptTemplate: `Create a caricature figurine based on the provided photo.
+
+STYLE
+• Premium resin statue.
+• Soft cinematic studio lighting.
+• Glossy surfaces, high-end product render.
+• Warm elegant color grading.
+• Slight caricature exaggeration (bigger head, stylish proportions).
+
+FACE — CRITICAL
+• Strongly preserve the identity from the reference photo.
+• Keep facial structure, eyes, nose, mouth, beard/hairline.
+• Natural skin tones.
+• Friendly expressive smile.
+
+CUSTOMIZATION
+The character represents this profession / hobby / personality:
+"{personalization}"
+
+MANDATORY BASE THEME (non-negotiable): this is always a golden wedding anniversary couple ("złote gody — 50. rocznica ślubu"). Keep the golden-50th-anniversary identity as the core of the image. Gold and warmth dominate the palette.
+If buyer adds extra description in CUSTOMIZATION, treat it only as secondary accents (colors, props, mood, background details) and never replace the anniversary-couple base theme.
+CRITICAL: The overall character should be cohesive — outfit, props, scene, background, podium and decorations must all reference and match the same theme. Everything should harmonize and create a unified, coherent whole.
+
+POSE
+{YEARS_SECTION}
+• Depict the couple from the photo as elegant, joyful golden-anniversary partners ("złote gody"), warm and celebratory.
+• Character(s) sitting or standing confidently on a podium styled to match the anniversary theme from CUSTOMIZATION above.
+• The podium design, shape, materials and decorations should reflect and harmonize with the overall theme.
+• Relaxed, charismatic pose.
+
+OUTFIT
+• Outfit matching the profession or interest.
+• Stylish, slightly exaggerated caricature look.
+
+SCENE
+Mini decorative environment connected with the interest or job.
+Fun but elegant.
+
+BACKGROUND
+• Colors and style of the background must be related to the person's profession or hobby.
+• The backdrop should visually connect with the character's theme, not generic studio.
+• Soft bokeh lights.
+• Subtle themed decorations.
+
+TEXT
+{NAME_SECTION}
+
+RESULT
+Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
+    fields: [
+      { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Kasia i Tomek - Złote Gody', required: false, promptKey: 'name' },
+      { id: 'rocznica', label: 'Wpisz liczbę lat rocznicy - domyślnie 50', type: 'text', placeholder: 'np. 50', required: false, promptKey: 'YEARS' },
+      { id: 'opis_charakteru', label: 'Opisz lokalizacje, styl, kolory - tekst nie pojawi się na obrazku ale decyduje o jego wyglądzie', type: 'text', placeholder: 'np. złoto, kwiaty, uroczystość, ogród', required: false, promptKey: 'personalization' }
+    ]
+  },
   'karykatura-wedkarz-portret-ze-zdjecia-personalizowany-prezent-dla-faceta': {
     title: 'Personalizacja',
     promptTemplate: `Create a caricature figurine based on the provided photo.
@@ -2296,11 +2353,15 @@ const PODROZNICY_PARA_PRODUCT_HANDLE = 'karykatura-pary-podroznikow-ze-zdjecia-p
 const MLODA_PARA_SLUB_PRODUCT_HANDLE = 'karykatura-slubna-ze-zdjecia-prezent-dla-mlodej-pary';
 /** Karykatura rocznicowa ślubu — ma pole liczby, ale bez domyślnej liczby gdy puste. */
 const ROCZNICA_SLUBU_PARA_PRODUCT_HANDLE = 'karykatura-na-rocznice-slubu-prezent-na-25-30-40-50-lecie';
+/** Karykatura Złote Gody — 50. rocznica ślubu; domyślna liczba 50 gdy pole puste. */
+const ZLOTE_GODY_PRODUCT_HANDLE = 'karykatura-na-50-rocznice-slubu-prezent-na-50-lecie';
 
 /** Para — duża cyfra jubileuszowa z pola formularza (dokładnie jak wpisał klient; inna liczba = inna na obrazku). */
-const COUPLE_CUSTOM_YEAR_FIELD_HANDLES = [WIESELI_STARUSZKOWIE_PRODUCT_HANDLE, PODROZNICY_PARA_PRODUCT_HANDLE, ROCZNICA_SLUBU_PARA_PRODUCT_HANDLE];
+const COUPLE_CUSTOM_YEAR_FIELD_HANDLES = [WIESELI_STARUSZKOWIE_PRODUCT_HANDLE, PODROZNICY_PARA_PRODUCT_HANDLE, ROCZNICA_SLUBU_PARA_PRODUCT_HANDLE, ZLOTE_GODY_PRODUCT_HANDLE];
 /** Produkty z domyślną rocznicą 40, gdy pole YEARS puste. */
 const COUPLE_DEFAULT_40_YEAR_FIELD_HANDLES = [];
+/** Produkty z domyślną rocznicą 50, gdy pole YEARS puste (Złote Gody). */
+const COUPLE_DEFAULT_50_YEAR_FIELD_HANDLES = [ZLOTE_GODY_PRODUCT_HANDLE];
 /** Para podróżników — gdy YEARS puste, nie dodawaj żadnej liczby. */
 const COUPLE_NO_DEFAULT_YEAR_FIELD_HANDLES = [PODROZNICY_PARA_PRODUCT_HANDLE, ROCZNICA_SLUBU_PARA_PRODUCT_HANDLE];
 
@@ -2311,6 +2372,7 @@ const PERSONALIZATION_PREPEND_BASE_HANDLES = new Set([
   PODROZNICY_PARA_PRODUCT_HANDLE,
   MLODA_PARA_SLUB_PRODUCT_HANDLE,
   ROCZNICA_SLUBU_PARA_PRODUCT_HANDLE,
+  ZLOTE_GODY_PRODUCT_HANDLE,
   'obraz-ze-zdjecia-karykatura-szefa'
 ]);
 
@@ -2342,6 +2404,7 @@ const DEFAULT_PERSONALIZATION_PER_PRODUCT = {
   'karykatura-pary-podroznikow-ze-zdjecia-personalizowany-prezent-dla-pary': 'Podróżnicy, podróże, walizki, mapa świata',
   'karykatura-slubna-ze-zdjecia-prezent-dla-mlodej-pary': 'Młoda para ślub',
   'karykatura-na-rocznice-slubu-prezent-na-25-30-40-50-lecie': 'Para na rocznicę ślubu, elegancka celebracja',
+  'karykatura-na-50-rocznice-slubu-prezent-na-50-lecie': 'Złote Gody — 50. rocznica ślubu, złoty elegancki wystrój',
   'fotoobraz-strazaka-ze-zdjecia-prezent-na-35-urodziny-dla-meza': 'strażak, mundur strażacki, hełm, wąż strażacki, ogień',
   'portret-ze-zdjecia-dla-lekarza-personalizowany-plakat-na-urodziny-dla-chlopaka': 'lekarz, biały fartuch, stetoskop, medycyna',
   'prezent-ze-zdjecia-dla-budowlanca-personalizowany-obraz-dla-taty': 'budowlaniec, murarz, majster, kask, narzędzia',
@@ -2740,13 +2803,14 @@ class CustomifyEmbed {
         const isCoupleAnniversary = handle && COUPLE_ANNIVERSARY_FIELD_HANDLES.includes(handle);
         const isCoupleCustomYear = handle && COUPLE_CUSTOM_YEAR_FIELD_HANDLES.includes(handle);
         const isCoupleDefault40Year = handle && COUPLE_DEFAULT_40_YEAR_FIELD_HANDLES.includes(handle);
+        const isCoupleDefault50Year = handle && COUPLE_DEFAULT_50_YEAR_FIELD_HANDLES.includes(handle);
         const isCoupleNoDefaultYear = handle && COUPLE_NO_DEFAULT_YEAR_FIELD_HANDLES.includes(handle);
         const isDlaNiejWithYears = handle && DLA_NIEJ_WITH_YEARS.includes(handle);
-        // Diamentowe Gody = zawsze 60; "Weseli staruszkowie" = liczba z pola, a gdy puste domyślnie 60
+        // Diamentowe Gody = zawsze 60; Złote Gody = domyślnie 50; "Weseli staruszkowie" = liczba z pola, a gdy puste domyślnie 60
         const rawYearsVal = (replacements['YEARS'] || '').trim();
         const yearsVal = isCoupleAnniversary
           ? '60'
-          : (isCoupleCustomYear ? (rawYearsVal || (isCoupleNoDefaultYear ? '' : (isCoupleDefault40Year ? '40' : '60'))) : rawYearsVal);
+          : (isCoupleCustomYear ? (rawYearsVal || (isCoupleNoDefaultYear ? '' : (isCoupleDefault50Year ? '50' : (isCoupleDefault40Year ? '40' : '60')))) : rawYearsVal);
         if (isSzefProduct) {
           if (yearsVal.trim()) {
             replacements['YEARS_SECTION'] = `The character is sitting on or near a large elegant 3D number "${yearsVal.trim()}" placed ON THE DESK — elegant glass-gold style, glossy, luxury finish. The number is a solid freestanding 3D sculpture object standing on the desk surface.`;
@@ -2759,7 +2823,7 @@ class CustomifyEmbed {
               `The couple is posed with a large, elegant 3D metallic anniversary numeral "60" (sixty — Diamentowe Gody) integrated into the „Diamentowe Gody” composition — platinum, silver, subtle diamond sparkle; materials must feel luxe and ceremonial (not generic birthday). The numeral must read as 60, never a different anniversary number.`;
           } else if (isCoupleCustomYear) {
             const y = yearsVal.trim();
-            const defaultYearText = isCoupleNoDefaultYear ? 'no default number when the field is empty' : `default "${isCoupleDefault40Year ? '40' : '60'}"`;
+            const defaultYearText = isCoupleNoDefaultYear ? 'no default number when the field is empty' : `default "${isCoupleDefault50Year ? '50' : (isCoupleDefault40Year ? '40' : '60')}"`;
             replacements['YEARS_SECTION'] =
               `ANNIVERSARY NUMERAL (buyer-controlled):\n• Show a large, elegant 3D celebratory numeral that reads exactly: "${y}".\n• The couple is posed with or integrated with this numeral; style, materials and colors must harmonize with CUSTOMIZATION.\n• CRITICAL: if the buyer enters a number in the form, use that exact value. If the field is empty, ${defaultYearText}. Never invent a different jubilee number.`;
           } else {
@@ -2776,7 +2840,7 @@ class CustomifyEmbed {
             replacements['YEARS_SECTION'] =
               (isCoupleNoDefaultYear
                 ? 'Do not show any large anniversary numeral when the number field is empty. Keep the couple on a themed podium without a standalone year number.'
-                : `Show a large elegant metallic "${isCoupleDefault40Year ? '40' : '60'}" as the default jubilee numeral when the number field is empty.`);
+                : `Show a large elegant metallic "${isCoupleDefault50Year ? '50' : (isCoupleDefault40Year ? '40' : '60')}" as the default jubilee numeral when the number field is empty.`);
           } else {
             replacements['YEARS_SECTION'] = isDlaNiejWithYears
               ? 'The character stands on a podium.'
@@ -3655,6 +3719,10 @@ class CustomifyEmbed {
     }
     if (currentUrl.includes('karykatura-na-rocznice-slubu-prezent-na-25-30-40-50-lecie')) {
       console.log('💍 [PRODUCT-TYPE] URL = Rocznica ślubu 25/30/40/50 → productType: caricature-new');
+      return 'caricature-new';
+    }
+    if (currentUrl.includes('karykatura-na-50-rocznice-slubu-prezent-na-50-lecie')) {
+      console.log('🥇 [PRODUCT-TYPE] URL = Złote Gody 50-lecie → productType: caricature-new');
       return 'caricature-new';
     }
     if (currentUrl.includes('karykatura-wedkarz-portret-ze-zdjecia-personalizowany-prezent-dla-faceta')) {
