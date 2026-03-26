@@ -3086,9 +3086,14 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
             }
           }
           
+          const limitMessage =
+            limitWallTier === 'first_wall'
+              ? `Wykorzystałeś wszystkie dostępne transformacje (${totalUsed}/${totalLimit}). Wypełnij krótki formularz — po przesłaniu doładujemy konto i wyślemy maila.`
+              : `Wykorzystałeś wszystkie dostępne transformacje (${totalUsed}/${totalLimit}). Następnego dnia możemy zwiększyć limit i wyślemy Ci maila z informacją.`;
+
           return res.status(403).json({
             error: 'Usage limit exceeded',
-            message: `Wykorzystałeś wszystkie dostępne transformacje (${totalUsed}/${totalLimit}). Skontaktuj się z nami dla więcej.`,
+            message: limitMessage,
             usedCount: totalUsed,
             totalLimit: totalLimit,
             wallTier: limitWallTier

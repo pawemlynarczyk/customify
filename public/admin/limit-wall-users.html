@@ -80,6 +80,17 @@
       <pre class="funnel-daily" id="funnelDaily"></pre>
     </div>
 
+    <div id="feedbackWrap" class="panel funnel-panel" style="margin-bottom: 16px;">
+      <div class="head">
+        <h3>📝 Formularz pierwszej ściany (feedback + doładowanie)</h3>
+        <button class="btn btn-secondary" type="button" onclick="loadFeedbackList()">Odśwież odpowiedzi</button>
+      </div>
+      <p class="funnel-note" style="padding: 0 16px 10px;">
+        Odpowiedzi zapisane po wysłaniu formularza przez klienta (pierwsze skończenie limitu). Kolejne ściany — tylko komunikat e‑mail „następnego dnia”.
+      </p>
+      <div id="feedbackTableWrap" style="padding: 0 16px 16px;"><div class="empty" style="padding:20px;">Kliknij „Odśwież odpowiedzi”.</div></div>
+    </div>
+
     <div class="stats">
       <div class="card"><div class="v" id="sTotal">—</div><div class="l">Wszyscy z doładowaniem</div></div>
       <div class="card"><div class="v" id="sWall">—</div><div class="l">Doszli ponownie do limitu</div></div>
@@ -114,6 +125,7 @@
   <script>
     const API_URL = 'https://customify-s56o.vercel.app/api/admin/limit-wall-users';
     const FUNNEL_STATS_URL = 'https://customify-s56o.vercel.app/api/admin/limit-funnel-stats';
+    const FEEDBACK_LIST_URL = 'https://customify-s56o.vercel.app/api/admin/limit-wall-feedback-list';
     let adminToken = '';
     let allUsers = [];
 
@@ -151,9 +163,59 @@
         document.getElementById('sTotal').textContent = data.totalRefilledUsers || 0;
         document.getElementById('sWall').textContent = data.reachedWallAgainCount || 0;
         loadFunnelStats();
+        loadFeedbackList();
         applyFilters();
       } catch (e) {
         wrap.innerHTML = `<div class="empty" style="color:#c62828;">Błąd: ${e.message}</div>`;
+      }
+    }
+
+    async function loadFeedbackList() {
+      const wrap = document.getElementById('feedbackTableWrap');
+      wrap.innerHTML = '<div class="empty" style="padding:16px;">Ładowanie…</div>';
+      try {
+        const res = await fetch(FEEDBACK_LIST_URL, {
+          headers: { Authorization: `Bearer ${adminToken}` }
+        });
+        if (!res.ok) {
+          wrap.innerHTML = `<div class="empty" style="color:#c62828;">Błąd ${res.status}</div>`;
+          return;
+        }
+        const d = await res.json();
+        const rows = Array.isArray(d.submissions) ? d.submissions : [];
+        if (!rows.length) {
+          wrap.innerHTML = '<div class="empty">Brak zapisanych odpowiedzi (albo Blob pusty).</div>';
+          return;
+        }
+        const body = rows.map((s) => {
+          const dt = s.submittedAt ? new Date(s.submittedAt).toLocaleString('pl-PL') : '—';
+          const shopifyLink = s.customerId
+            ? `<a href="https://customify-ok.myshopify.com/admin/customers/${esc(s.customerId)}" target="_blank" style="font-size:11px;">Shopify</a>`
+            : '';
+          return `<tr>
+            <td>${esc(dt)}</td>
+            <td>${esc(s.customerEmail || '—')} ${shopifyLink}</td>
+            <td style="max-width:280px;white-space:pre-wrap;font-size:12px;">${esc(s.fixImage || '—')}</td>
+            <td style="max-width:220px;white-space:pre-wrap;font-size:12px;">${esc(s.giftSearch || '—')}</td>
+            <td style="font-size:11px;word-break:break-all;">${esc(s.productUrl || '—')}</td>
+          </tr>`;
+        }).join('');
+        wrap.innerHTML = `
+          <table>
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Email / ID</th>
+                <th>Co poprawić w obrazku</th>
+                <th>Prezent (szukanie)</th>
+                <th>Strona</th>
+              </tr>
+            </thead>
+            <tbody>${body}</tbody>
+          </table>
+          <p style="font-size:11px;color:#888;margin-top:10px;">Wpisy w Blob: ${d.totalBlobs ?? '—'}. ${esc(d.note || '')}</p>`;
+      } catch (e) {
+        wrap.innerHTML = `<div class="empty" style="color:#c62828;">${esc(e.message)}</div>`;
       }
     }
 

@@ -13,7 +13,7 @@ function creditsTrackingUrl(customerId, target, type = 'credits') {
   return `${EMAIL_TRACKING_BASE}/api/email-click?type=${type}${cidPart}&url=${encodeURIComponent(target)}`;
 }
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 const PRODUCTS = [
   {
@@ -194,7 +194,7 @@ function buildLastChanceEmailHtml(customerId = null) {
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 async function sendLastChanceEmail(to, customerId = null, retryCount = 0) {
-  if (!process.env.RESEND_API_KEY) {
+  if (!process.env.RESEND_API_KEY || !resend) {
     console.warn('⚠️ [RESET-LIMITS] Brak RESEND_API_KEY - pomijam email ostatnia szansa');
     return { success: false, error: 'RESEND_API_KEY missing' };
   }
@@ -230,7 +230,7 @@ async function sendLastChanceEmail(to, customerId = null, retryCount = 0) {
 }
 
 async function sendCreditEmail(to, customerId = null, retryCount = 0) {
-  if (!process.env.RESEND_API_KEY) {
+  if (!process.env.RESEND_API_KEY || !resend) {
     console.warn('⚠️ [RESET-LIMITS] Brak RESEND_API_KEY - pomijam email');
     return { success: false, error: 'RESEND_API_KEY missing' };
   }
@@ -363,7 +363,7 @@ async function updateUsageToZero(shopDomain, accessToken, customerId, metafieldI
   console.log(`✅ [RESET-LIMITS] Reset pomyślny dla ${customerId} (typ: ${type})`);
 }
 
-module.exports = async (req, res) => {
+const handler = async (req, res) => {
   // CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -728,4 +728,9 @@ module.exports = async (req, res) => {
     return res.status(500).json({ error: error.message });
   }
 };
+
+module.exports = handler;
+module.exports.updateUsageToZero = updateUsageToZero;
+module.exports.getUsageData = getUsageData;
+module.exports.sendCreditEmail = sendCreditEmail;
 

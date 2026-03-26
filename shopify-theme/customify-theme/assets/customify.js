@@ -5588,129 +5588,95 @@ class CustomifyEmbed {
   }
 
   /**
-   * Zalogowany user przy wyczerpanym limicie: formularz → email do zespołu (api/limit-extension-request.js)
+   * Limit zalogowanego: pierwsza ściana = formularz + doładowanie; kolejne = komunikat o mailu następnego dnia.
    */
-  showLimitExtensionModal(customerInfo, errorJson = {}) {
-    const existing = document.getElementById('limitExtensionModal');
+  showLimitWallModal(customerInfo, errorJson = {}) {
+    const existing = document.getElementById('limitWallModal');
     if (existing) existing.remove();
 
-    const wallTier = errorJson.wallTier || 'unknown';
-    const used = typeof errorJson.usedCount === 'number' ? errorJson.usedCount : null;
-    const limit = typeof errorJson.totalLimit === 'number' ? errorJson.totalLimit : 4;
-    const summaryLine =
-      used != null
-        ? `Wykorzystałeś wszystkie dostępne transformacje (${used}/${limit}).`
-        : 'Wykorzystałeś wszystkie dostępne transformacje.';
+    const tier = errorJson.wallTier || 'unknown';
+    const isFirstWall = tier === 'first_wall';
 
-    const modalHTML = `
-      <div id="limitExtensionModal" style="
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.75);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 99999;
-        animation: fadeIn 0.3s ease;
-        padding: 16px;
-        box-sizing: border-box;
-      ">
-        <div style="
-          background: white;
-          padding: 36px 28px;
-          border-radius: 16px;
-          max-width: 520px;
-          width: 100%;
-          text-align: left;
-          box-shadow: 0 20px 60px rgba(0,0,0,0.4);
-          animation: slideUp 0.3s ease;
-          position: relative;
-          max-height: 90vh;
-          overflow-y: auto;
-        ">
-          <button type="button" onclick="window.customifyLimitExtensionModal.close()" style="
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            background: transparent;
-            border: none;
-            font-size: 24px;
-            color: #999;
-            cursor: pointer;
-            width: 32px;
-            height: 32px;
-            line-height: 1;
-            border-radius: 50%;
-          ">×</button>
-          <h2 style="margin: 0 0 10px; color: #333; font-size: 18px; font-weight: 600; line-height: 1.4;">
-            Limit generacji
-          </h2>
-          <p style="margin: 0 0 20px; color: #666; font-size: 15px; line-height: 1.5;">
-            ${summaryLine} Odpowiedz na poniższe pytania — rozpatrzymy wniosek i damy znać mailowo.
-          </p>
-          <form id="limitExtensionForm">
+    const introFirst =
+      'Wykorzystałeś dostępne generacje. Napisz, co możemy poprawić — w ciągu ok. 5 minut wyślemy maila i doładujemy 4 kolejne generacje. Ta możliwość jest tylko raz przy pierwszym skończeniu limitu.';
+    const introRetry =
+      errorJson.message ||
+      'Wykorzystałeś wszystkie dostępne generacje. Następnego dnia możemy zwiększyć limit i wyślemy Ci maila z informacją.';
+
+    const formBlock = isFirstWall
+      ? `
+          <form id="limitWallForm">
             <label style="display:block; font-size: 14px; font-weight: 600; color: #444; margin-bottom: 6px;">
-              Dlaczego potrzebujesz dodatkowych generacji? <span style="color:#c00">*</span>
+              Co chciałbyś poprawić w obrazku? <span style="color:#c00">*</span>
             </label>
-            <textarea name="whyNeedMore" required minlength="10" rows="3" style="
+            <textarea name="fixImage" required minlength="10" rows="3" style="
               width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px;
               font-size: 14px; margin-bottom: 14px; resize: vertical; font-family: inherit;
-            " placeholder="Np. chcę poprawić twarz / wypróbować inny styl przed zamówieniem…"></textarea>
+            " placeholder="Np. twarz, kolorystyka, tło…"></textarea>
 
             <label style="display:block; font-size: 14px; font-weight: 600; color: #444; margin-bottom: 6px;">
-              Jaki produkt lub styl chcesz dokończyć?
+              Nie ma prezentu którego szukasz? Jakiego?
             </label>
-            <textarea name="whatProduct" rows="2" style="
+            <textarea name="giftSearch" rows="2" style="
               width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px;
               font-size: 14px; margin-bottom: 14px; resize: vertical; font-family: inherit;
-            " placeholder="Opcjonalnie"></textarea>
+            " placeholder="Opcjonalnie — pomoże nam dopasować ofertę"></textarea>
 
-            <label style="display:block; font-size: 14px; font-weight: 600; color: #444; margin-bottom: 6px;">
-              Uwagi dodatkowe
-            </label>
-            <textarea name="comment" rows="2" style="
-              width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px;
-              font-size: 14px; margin-bottom: 18px; resize: vertical; font-family: inherit;
-            " placeholder="Opcjonalnie"></textarea>
-
-            <p id="limitExtensionFormError" style="display:none; color:#c00; font-size: 14px; margin: 0 0 12px;"></p>
-
+            <p id="limitWallFormError" style="display:none; color:#c00; font-size: 14px; margin: 0 0 12px;"></p>
             <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end;">
-              <button type="button" onclick="window.customifyLimitExtensionModal.close()" style="
+              <button type="button" onclick="window.customifyLimitWallModal.close()" style="
                 background: #f5f5f5; color: #666; padding: 12px 22px; border-radius: 8px; border: 2px solid #ddd;
                 font-weight: 600; font-size: 15px; cursor: pointer;
               ">Zamknij</button>
-              <button type="submit" id="limitExtensionSubmit" style="
+              <button type="submit" id="limitWallSubmit" style="
                 background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                 color: white; padding: 12px 22px; border-radius: 8px; border: none;
                 font-weight: 600; font-size: 15px; cursor: pointer;
-              ">Wyślij wniosek</button>
+              ">Wyślij i doładuj konto</button>
             </div>
-          </form>
-        </div>
-      </div>
-    `;
+          </form>`
+      : `
+          <p style="margin: 0 0 22px; color: #555; font-size: 15px; line-height: 1.55;">${introRetry.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>
+          <div style="text-align: right;">
+            <button type="button" onclick="window.customifyLimitWallModal.close()" style="
+              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              color: white; padding: 12px 22px; border-radius: 8px; border: none;
+              font-weight: 600; font-size: 15px; cursor: pointer;
+            ">Rozumiem</button>
+          </div>`;
 
-    const styleEl = document.createElement('style');
-    styleEl.textContent = `
-      @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-      @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-    `;
-    document.head.appendChild(styleEl);
+    const modalHTML = `
+      <div id="limitWallModal" style="
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.75); display: flex; align-items: center; justify-content: center;
+        z-index: 99999; padding: 16px; box-sizing: border-box;
+      ">
+        <div style="
+          background: white; padding: 32px 26px; border-radius: 16px; max-width: 520px; width: 100%;
+          text-align: left; box-shadow: 0 20px 60px rgba(0,0,0,0.4); position: relative; max-height: 90vh; overflow-y: auto;
+        ">
+          <button type="button" onclick="window.customifyLimitWallModal.close()" style="
+            position: absolute; top: 10px; right: 10px; background: transparent; border: none;
+            font-size: 24px; color: #999; cursor: pointer; width: 32px; height: 32px; line-height: 1;
+          ">×</button>
+          <h2 style="margin: 0 0 12px; color: #333; font-size: 18px; font-weight: 600;">Limit generacji</h2>
+          ${isFirstWall ? `<p style="margin: 0 0 18px; color: #666; font-size: 15px; line-height: 1.55;">${introFirst.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>` : ''}
+          ${formBlock}
+        </div>
+      </div>`;
+
     document.body.insertAdjacentHTML('beforeend', modalHTML);
 
-    const form = document.getElementById('limitExtensionForm');
-    const errEl = document.getElementById('limitExtensionFormError');
-    const submitBtn = document.getElementById('limitExtensionSubmit');
-
-    window.customifyLimitExtensionModal = {
-      close: () => {
-        document.getElementById('limitExtensionModal')?.remove();
-      },
+    window.customifyLimitWallModal = {
+      close: () => document.getElementById('limitWallModal')?.remove(),
     };
+
+    if (!isFirstWall) return;
+
+    const form = document.getElementById('limitWallForm');
+    const errEl = document.getElementById('limitWallFormError');
+    const submitBtn = document.getElementById('limitWallSubmit');
+    if (!form || !errEl || !submitBtn) return;
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -5719,50 +5685,34 @@ class CustomifyEmbed {
       const fd = new FormData(form);
       const body = {
         customerId: customerInfo.customerId,
-        customerAccessToken: customerInfo.customerAccessToken,
-        wallTier,
+        fixImage: (fd.get('fixImage') || '').trim(),
+        giftSearch: (fd.get('giftSearch') || '').trim(),
         productUrl: window.location.pathname + window.location.search,
-        answers: {
-          whyNeedMore: (fd.get('whyNeedMore') || '').trim(),
-          whatProduct: (fd.get('whatProduct') || '').trim(),
-          comment: (fd.get('comment') || '').trim(),
-        },
       };
       submitBtn.disabled = true;
       submitBtn.textContent = 'Wysyłanie…';
       try {
-        const r = await fetch('https://customify-s56o.vercel.app/api/limit-extension-request', {
+        const r = await fetch('https://customify-s56o.vercel.app/api/limit-wall-feedback', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
         });
         const data = await r.json().catch(() => ({}));
-        if (r.status === 409) {
-          errEl.textContent = data.message || 'Wniosek został już wysłany.';
-          errEl.style.display = 'block';
-          submitBtn.disabled = false;
-          submitBtn.textContent = 'Wyślij wniosek';
-          return;
-        }
         if (!r.ok) {
           errEl.textContent = data.message || data.error || 'Nie udało się wysłać. Spróbuj ponownie.';
           errEl.style.display = 'block';
           submitBtn.disabled = false;
-          submitBtn.textContent = 'Wyślij wniosek';
+          submitBtn.textContent = 'Wyślij i doładuj konto';
           return;
         }
-        window.customifyLimitExtensionModal.close();
-        this.showSuccess(
-          data.message ||
-            'Dziękujemy. Otrzymaliśmy wniosek — odpowiemy mailowo lub dodamy kredyty po weryfikacji.',
-          { html: false }
-        );
+        window.customifyLimitWallModal.close();
+        this.showSuccess(data.message || 'Dziękujemy! Konto zostało doładowane — sprawdź maila.', { html: false });
       } catch (err) {
-        console.error('❌ [LIMIT-EXT] Submit failed:', err);
+        console.error('❌ [LIMIT-WALL] Submit failed:', err);
         errEl.textContent = 'Błąd sieci. Spróbuj ponownie.';
         errEl.style.display = 'block';
         submitBtn.disabled = false;
-        submitBtn.textContent = 'Wyślij wniosek';
+        submitBtn.textContent = 'Wyślij i doładuj konto';
       }
     });
   }
@@ -8281,7 +8231,7 @@ class CustomifyEmbed {
               wallTier: errorJson.wallTier || 'unknown',
               source: 'transform_403'
             });
-            this.showLimitExtensionModal(customerInfo, errorJson);
+            this.showLimitWallModal(customerInfo, errorJson);
           }
 
           return;
