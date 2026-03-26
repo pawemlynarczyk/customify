@@ -1399,3 +1399,17 @@ Jeśli produkt ma domyślnie szkło — dodaj do warunku `product.handle == '...
 - [ ] isDlaNiejProduct()
 - [ ] getProductType()
 - [ ] npm run deploy + git push
+
+## 🚨 CRITICAL: "NOWY PRODUKT JAK NA LINKU" = KOPIA 1:1 LOGIKI WZORCA
+
+- Jeśli użytkownik mówi: **"zrób nowy produkt tak jak ten z linku"**, traktuj podany link jako **wzorzec 1:1**.
+- **NIE twórz nowej logiki** (prompt, API flow, productType, years/defaults, UI, ukrywanie stylu) bez wyraźnego polecenia.
+- Zmieniaj tylko to, co konieczne:
+  1) nowy `handle`/URL,
+  2) nazwa/teksty tylko jeśli użytkownik wyraźnie tego chce.
+- Obowiązkowo skopiuj 1:1 z produktu wzorcowego:
+  - wpis w `PRODUCT_FIELD_CONFIGS` (ten sam prompt/fields),
+  - `getProductType()` (ten sam typ),
+  - warunki ukrywania stylów w `theme.liquid`,
+  - warunki auto-hide/auto-select w `public/customify.js` (np. `isDlaNiejProduct()`), jeśli produkt wzorcowy je ma.
+- Przed deploy zadaj kontrolne pytanie wewnętrzne: **"czy nowy produkt działa identycznie jak wzorzec poza handle?"**. Jeśli nie, popraw.

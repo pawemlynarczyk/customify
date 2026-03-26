@@ -1415,6 +1415,63 @@ Premium collectible caricature statue, highly detailed, playful but luxurious, p
       { id: 'opis_charakteru', label: 'Opisz lokalizacje, styl, kolory - tekst nie pojawi się na obrazku ale decyduje o jego wyglądzie', type: 'text', placeholder: 'np. elegancko, złoto, kwiaty, uroczystość', required: false, promptKey: 'personalization' }
     ]
   },
+  'karykatura-na-40-rocznice-slubu-obraz-ze-zdjecia-na-40-lecie': {
+    title: 'Personalizacja',
+    promptTemplate: `Create a caricature figurine based on the provided photo.
+
+STYLE
+• Premium resin statue.
+• Soft cinematic studio lighting.
+• Glossy surfaces, high-end product render.
+• Warm elegant color grading.
+• Slight caricature exaggeration (bigger head, stylish proportions).
+
+FACE — CRITICAL
+• Strongly preserve the identity from the reference photo.
+• Keep facial structure, eyes, nose, mouth, beard/hairline.
+• Natural skin tones.
+• Friendly expressive smile.
+
+CUSTOMIZATION
+The character represents this profession / hobby / personality:
+"{personalization}"
+
+MANDATORY BASE THEME (non-negotiable): this is always a wedding-anniversary couple ("para na rocznicę ślubu"). Keep wedding-anniversary identity as the core of the image.
+If buyer adds extra description in CUSTOMIZATION, treat it only as secondary accents (colors, props, mood, background details) and never replace the anniversary-couple base theme.
+CRITICAL: The overall character should be cohesive — outfit, props, scene, background, podium and decorations must all reference and match the same theme. Everything should harmonize and create a unified, coherent whole.
+
+POSE
+{YEARS_SECTION}
+• Depict the couple from the photo as elegant, joyful wedding-anniversary partners ("para na rocznicę ślubu"), warm and celebratory.
+• Character(s) sitting or standing confidently on a podium styled to match the anniversary theme from CUSTOMIZATION above.
+• The podium design, shape, materials and decorations should reflect and harmonize with the overall theme.
+• Relaxed, charismatic pose.
+
+OUTFIT
+• Outfit matching the profession or interest.
+• Stylish, slightly exaggerated caricature look.
+
+SCENE
+Mini decorative environment connected with the interest or job.
+Fun but elegant.
+
+BACKGROUND
+• Colors and style of the background must be related to the person's profession or hobby.
+• The backdrop should visually connect with the character's theme, not generic studio.
+• Soft bokeh lights.
+• Subtle themed decorations.
+
+TEXT
+{NAME_SECTION}
+
+RESULT
+Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
+    fields: [
+      { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Para na rocznicę', required: false, promptKey: 'name' },
+      { id: 'rocznica', label: 'Wpisz liczbę lat rocznicy (np. 20, 30, 40) - liczba pojawi się na obrazie', type: 'text', placeholder: 'np. 20, 30, 40', required: false, promptKey: 'YEARS' },
+      { id: 'opis_charakteru', label: 'Opisz lokalizacje, styl, kolory - tekst nie pojawi się na obrazku ale decyduje o jego wyglądzie', type: 'text', placeholder: 'np. elegancko, złoto, kwiaty, uroczystość', required: false, promptKey: 'personalization' }
+    ]
+  },
   'karykatura-wedkarz-portret-ze-zdjecia-personalizowany-prezent-dla-faceta': {
     title: 'Personalizacja',
     promptTemplate: `Create a caricature figurine based on the provided photo.
@@ -2355,11 +2412,12 @@ const MLODA_PARA_SLUB_PRODUCT_HANDLE = 'karykatura-slubna-ze-zdjecia-prezent-dla
 const ROCZNICA_SLUBU_PARA_PRODUCT_HANDLE = 'karykatura-na-rocznice-slubu-prezent-na-25-30-40-50-lecie';
 /** Karykatura 50 rocznica slubu — domyślna liczba 50 w prompcie gdy pole YEARS puste. */
 const ROCZNICA_50_SLUBU_PRODUCT_HANDLE = 'karykatura-na-50-rocznice-slubu-prezent-na-50-lecie';
+const ROCZNICA_40_SLUBU_PRODUCT_HANDLE = 'karykatura-na-40-rocznice-slubu-obraz-ze-zdjecia-na-40-lecie';
 
 /** Para — duża cyfra jubileuszowa z pola formularza (dokładnie jak wpisał klient; inna liczba = inna na obrazku). */
-const COUPLE_CUSTOM_YEAR_FIELD_HANDLES = [WIESELI_STARUSZKOWIE_PRODUCT_HANDLE, PODROZNICY_PARA_PRODUCT_HANDLE, ROCZNICA_SLUBU_PARA_PRODUCT_HANDLE, ROCZNICA_50_SLUBU_PRODUCT_HANDLE];
+const COUPLE_CUSTOM_YEAR_FIELD_HANDLES = [WIESELI_STARUSZKOWIE_PRODUCT_HANDLE, PODROZNICY_PARA_PRODUCT_HANDLE, ROCZNICA_SLUBU_PARA_PRODUCT_HANDLE, ROCZNICA_50_SLUBU_PRODUCT_HANDLE, ROCZNICA_40_SLUBU_PRODUCT_HANDLE];
 /** Produkty z domyślną rocznicą 40, gdy pole YEARS puste. */
-const COUPLE_DEFAULT_40_YEAR_FIELD_HANDLES = [];
+const COUPLE_DEFAULT_40_YEAR_FIELD_HANDLES = [ROCZNICA_40_SLUBU_PRODUCT_HANDLE];
 /** Produkty z domyślną rocznicą 50, gdy pole YEARS puste (tylko 50-lecie ślubu). */
 const COUPLE_DEFAULT_50_YEAR_FIELD_HANDLES = [ROCZNICA_50_SLUBU_PRODUCT_HANDLE];
 /** Para podróżników / ogólna rocznica — gdy YEARS puste, nie dodawaj domyślnej liczby (albo inna reguła per produkt). */
@@ -2373,6 +2431,7 @@ const PERSONALIZATION_PREPEND_BASE_HANDLES = new Set([
   MLODA_PARA_SLUB_PRODUCT_HANDLE,
   ROCZNICA_SLUBU_PARA_PRODUCT_HANDLE,
   ROCZNICA_50_SLUBU_PRODUCT_HANDLE,
+  ROCZNICA_40_SLUBU_PRODUCT_HANDLE,
   'obraz-ze-zdjecia-karykatura-szefa'
 ]);
 
@@ -2405,6 +2464,7 @@ const DEFAULT_PERSONALIZATION_PER_PRODUCT = {
   'karykatura-slubna-ze-zdjecia-prezent-dla-mlodej-pary': 'Młoda para ślub',
   'karykatura-na-rocznice-slubu-prezent-na-25-30-40-50-lecie': 'Para na rocznicę ślubu, elegancka celebracja',
   'karykatura-na-50-rocznice-slubu-prezent-na-50-lecie': 'Para na rocznicę ślubu, elegancka celebracja',
+  'karykatura-na-40-rocznice-slubu-obraz-ze-zdjecia-na-40-lecie': 'Para na rocznicę ślubu, elegancka celebracja',
   'fotoobraz-strazaka-ze-zdjecia-prezent-na-35-urodziny-dla-meza': 'strażak, mundur strażacki, hełm, wąż strażacki, ogień',
   'portret-ze-zdjecia-dla-lekarza-personalizowany-plakat-na-urodziny-dla-chlopaka': 'lekarz, biały fartuch, stetoskop, medycyna',
   'prezent-ze-zdjecia-dla-budowlanca-personalizowany-obraz-dla-taty': 'budowlaniec, murarz, majster, kask, narzędzia',
@@ -3043,7 +3103,7 @@ class CustomifyEmbed {
   // 💝 Produkty "dla niej" + Biznes Woman — jeden styl (caricature-new), bez wyboru, generacja bez klikania w miniaturkę
   isDlaNiejProduct() {
     const h = this.getProductHandle();
-    return h === 'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-fitness' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-szefowa' || h === 'karykatura-rolnik-ze-zdjecia-personalizowany-prezent-dla-mezczyzny' || h === 'kulturysta-karykatura-ze-zdjecia-prezent-dla-mezczyzny' || h === 'karykatura-wedkarz-portret-ze-zdjecia-personalizowany-prezent-dla-faceta' || h === 'karykatura-pilkarza-ze-zdjecia-personalizowany-obraz-dla-chlopaka-dziadka-taty' || h === 'obraz-ze-zdjecia-karykatura-policjant-prezent-dla-faceta' || h === 'obraz-ze-zdjecia-karykatura-szefa' || h === DIAMENTOWE_GODY_PRODUCT_HANDLE || h === WIESELI_STARUSZKOWIE_PRODUCT_HANDLE || h === PODROZNICY_PARA_PRODUCT_HANDLE || h === MLODA_PARA_SLUB_PRODUCT_HANDLE || h === ROCZNICA_SLUBU_PARA_PRODUCT_HANDLE || h === ROCZNICA_50_SLUBU_PRODUCT_HANDLE || h === 'fotoobraz-strazaka-ze-zdjecia-prezent-na-35-urodziny-dla-meza' || h === 'portret-ze-zdjecia-dla-lekarza-personalizowany-plakat-na-urodziny-dla-chlopaka' || h === 'prezent-ze-zdjecia-dla-budowlanca-personalizowany-obraz-dla-taty' || h === 'prezent-z-wlasnym-zdjeciem-dla-kierowcy-tira-personalizowany-obraz' || h === 'obraz-ze-zdjecia-prezent-dla-chlopca-pilkarz' || h === 'active-woman-portret-ze-zdjecia-na-rocznice-dla-kolezanki-kobiety-druk-na-szkle' || h === 'active-woman-portret-ze-zdjecia-na-18-urodziny-dla-dziewczyny-druk-na-szkle-copy' || h === 'portret-ze-zdjecia-prezent-na-urodziny-dla-kolezanki-szefowej-salon-spa' || h === 'portret-na-18-urodziny-dla-dziewczyny-magic-z-wlasnego-zdjecia-druk-na-szkle' || h === 'obraz-ze-zdjecia-prezent-na-40-urodziny-dla-kobiety-czerwony-dywan' || h === 'portret-ze-zdjecia-na-30-rocznice-dla-nauczycielki-karykatura-na-prezent' || h === 'obraz-ze-zdjecia-biznes-woman-personalizowany-prezent' || h === 'obraz-ze-zdjecia-prezent-na-30-urodziny-dla-kobiety-biznes-woman' || h === 'obraz-ze-zdjecia-prezent-na-50-urodziny-dla-kobiety-biznes-woman' || h === 'wydruk-na-szkle-biznes-woman-prezent-na-urodziny-dla-kobiety';
+    return h === 'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-fitness' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-szefowa' || h === 'karykatura-rolnik-ze-zdjecia-personalizowany-prezent-dla-mezczyzny' || h === 'kulturysta-karykatura-ze-zdjecia-prezent-dla-mezczyzny' || h === 'karykatura-wedkarz-portret-ze-zdjecia-personalizowany-prezent-dla-faceta' || h === 'karykatura-pilkarza-ze-zdjecia-personalizowany-obraz-dla-chlopaka-dziadka-taty' || h === 'obraz-ze-zdjecia-karykatura-policjant-prezent-dla-faceta' || h === 'obraz-ze-zdjecia-karykatura-szefa' || h === DIAMENTOWE_GODY_PRODUCT_HANDLE || h === WIESELI_STARUSZKOWIE_PRODUCT_HANDLE || h === PODROZNICY_PARA_PRODUCT_HANDLE || h === MLODA_PARA_SLUB_PRODUCT_HANDLE || h === ROCZNICA_SLUBU_PARA_PRODUCT_HANDLE || h === ROCZNICA_50_SLUBU_PRODUCT_HANDLE || h === ROCZNICA_40_SLUBU_PRODUCT_HANDLE || h === 'fotoobraz-strazaka-ze-zdjecia-prezent-na-35-urodziny-dla-meza' || h === 'portret-ze-zdjecia-dla-lekarza-personalizowany-plakat-na-urodziny-dla-chlopaka' || h === 'prezent-ze-zdjecia-dla-budowlanca-personalizowany-obraz-dla-taty' || h === 'prezent-z-wlasnym-zdjeciem-dla-kierowcy-tira-personalizowany-obraz' || h === 'obraz-ze-zdjecia-prezent-dla-chlopca-pilkarz' || h === 'active-woman-portret-ze-zdjecia-na-rocznice-dla-kolezanki-kobiety-druk-na-szkle' || h === 'active-woman-portret-ze-zdjecia-na-18-urodziny-dla-dziewczyny-druk-na-szkle-copy' || h === 'portret-ze-zdjecia-prezent-na-urodziny-dla-kolezanki-szefowej-salon-spa' || h === 'portret-na-18-urodziny-dla-dziewczyny-magic-z-wlasnego-zdjecia-druk-na-szkle' || h === 'obraz-ze-zdjecia-prezent-na-40-urodziny-dla-kobiety-czerwony-dywan' || h === 'portret-ze-zdjecia-na-30-rocznice-dla-nauczycielki-karykatura-na-prezent' || h === 'obraz-ze-zdjecia-biznes-woman-personalizowany-prezent' || h === 'obraz-ze-zdjecia-prezent-na-30-urodziny-dla-kobiety-biznes-woman' || h === 'obraz-ze-zdjecia-prezent-na-50-urodziny-dla-kobiety-biznes-woman' || h === 'wydruk-na-szkle-biznes-woman-prezent-na-urodziny-dla-kobiety';
   }
 
   // 🦸 Produkt Superbohater dla chłopca — Nano Banana, ukryty wybór, pole imienia
@@ -3722,6 +3782,10 @@ class CustomifyEmbed {
     }
     if (currentUrl.includes('karykatura-na-50-rocznice-slubu-prezent-na-50-lecie')) {
       console.log('🥇 [PRODUCT-TYPE] URL = 50 rocznica slubu → productType: caricature-new');
+      return 'caricature-new';
+    }
+    if (currentUrl.includes('karykatura-na-40-rocznice-slubu-obraz-ze-zdjecia-na-40-lecie')) {
+      console.log('💎 [PRODUCT-TYPE] URL = 40 rocznica slubu → productType: caricature-new');
       return 'caricature-new';
     }
     if (currentUrl.includes('karykatura-wedkarz-portret-ze-zdjecia-personalizowany-prezent-dla-faceta')) {
@@ -5521,6 +5585,186 @@ class CustomifyEmbed {
         }).catch(err => console.log('📊 [STATS] Failed to send event:', err));
       }
     };
+  }
+
+  /**
+   * Zalogowany user przy wyczerpanym limicie: formularz → email do zespołu (api/limit-extension-request.js)
+   */
+  showLimitExtensionModal(customerInfo, errorJson = {}) {
+    const existing = document.getElementById('limitExtensionModal');
+    if (existing) existing.remove();
+
+    const wallTier = errorJson.wallTier || 'unknown';
+    const used = typeof errorJson.usedCount === 'number' ? errorJson.usedCount : null;
+    const limit = typeof errorJson.totalLimit === 'number' ? errorJson.totalLimit : 4;
+    const summaryLine =
+      used != null
+        ? `Wykorzystałeś wszystkie dostępne transformacje (${used}/${limit}).`
+        : 'Wykorzystałeś wszystkie dostępne transformacje.';
+
+    const modalHTML = `
+      <div id="limitExtensionModal" style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.75);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 99999;
+        animation: fadeIn 0.3s ease;
+        padding: 16px;
+        box-sizing: border-box;
+      ">
+        <div style="
+          background: white;
+          padding: 36px 28px;
+          border-radius: 16px;
+          max-width: 520px;
+          width: 100%;
+          text-align: left;
+          box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+          animation: slideUp 0.3s ease;
+          position: relative;
+          max-height: 90vh;
+          overflow-y: auto;
+        ">
+          <button type="button" onclick="window.customifyLimitExtensionModal.close()" style="
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: transparent;
+            border: none;
+            font-size: 24px;
+            color: #999;
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            line-height: 1;
+            border-radius: 50%;
+          ">×</button>
+          <h2 style="margin: 0 0 10px; color: #333; font-size: 18px; font-weight: 600; line-height: 1.4;">
+            Limit generacji
+          </h2>
+          <p style="margin: 0 0 20px; color: #666; font-size: 15px; line-height: 1.5;">
+            ${summaryLine} Odpowiedz na poniższe pytania — rozpatrzymy wniosek i damy znać mailowo.
+          </p>
+          <form id="limitExtensionForm">
+            <label style="display:block; font-size: 14px; font-weight: 600; color: #444; margin-bottom: 6px;">
+              Dlaczego potrzebujesz dodatkowych generacji? <span style="color:#c00">*</span>
+            </label>
+            <textarea name="whyNeedMore" required minlength="10" rows="3" style="
+              width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px;
+              font-size: 14px; margin-bottom: 14px; resize: vertical; font-family: inherit;
+            " placeholder="Np. chcę poprawić twarz / wypróbować inny styl przed zamówieniem…"></textarea>
+
+            <label style="display:block; font-size: 14px; font-weight: 600; color: #444; margin-bottom: 6px;">
+              Jaki produkt lub styl chcesz dokończyć?
+            </label>
+            <textarea name="whatProduct" rows="2" style="
+              width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px;
+              font-size: 14px; margin-bottom: 14px; resize: vertical; font-family: inherit;
+            " placeholder="Opcjonalnie"></textarea>
+
+            <label style="display:block; font-size: 14px; font-weight: 600; color: #444; margin-bottom: 6px;">
+              Uwagi dodatkowe
+            </label>
+            <textarea name="comment" rows="2" style="
+              width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px;
+              font-size: 14px; margin-bottom: 18px; resize: vertical; font-family: inherit;
+            " placeholder="Opcjonalnie"></textarea>
+
+            <p id="limitExtensionFormError" style="display:none; color:#c00; font-size: 14px; margin: 0 0 12px;"></p>
+
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end;">
+              <button type="button" onclick="window.customifyLimitExtensionModal.close()" style="
+                background: #f5f5f5; color: #666; padding: 12px 22px; border-radius: 8px; border: 2px solid #ddd;
+                font-weight: 600; font-size: 15px; cursor: pointer;
+              ">Zamknij</button>
+              <button type="submit" id="limitExtensionSubmit" style="
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white; padding: 12px 22px; border-radius: 8px; border: none;
+                font-weight: 600; font-size: 15px; cursor: pointer;
+              ">Wyślij wniosek</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    `;
+
+    const styleEl = document.createElement('style');
+    styleEl.textContent = `
+      @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+      @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    `;
+    document.head.appendChild(styleEl);
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+    const form = document.getElementById('limitExtensionForm');
+    const errEl = document.getElementById('limitExtensionFormError');
+    const submitBtn = document.getElementById('limitExtensionSubmit');
+
+    window.customifyLimitExtensionModal = {
+      close: () => {
+        document.getElementById('limitExtensionModal')?.remove();
+      },
+    };
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errEl.style.display = 'none';
+      errEl.textContent = '';
+      const fd = new FormData(form);
+      const body = {
+        customerId: customerInfo.customerId,
+        customerAccessToken: customerInfo.customerAccessToken,
+        wallTier,
+        productUrl: window.location.pathname + window.location.search,
+        answers: {
+          whyNeedMore: (fd.get('whyNeedMore') || '').trim(),
+          whatProduct: (fd.get('whatProduct') || '').trim(),
+          comment: (fd.get('comment') || '').trim(),
+        },
+      };
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Wysyłanie…';
+      try {
+        const r = await fetch('https://customify-s56o.vercel.app/api/limit-extension-request', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        const data = await r.json().catch(() => ({}));
+        if (r.status === 409) {
+          errEl.textContent = data.message || 'Wniosek został już wysłany.';
+          errEl.style.display = 'block';
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Wyślij wniosek';
+          return;
+        }
+        if (!r.ok) {
+          errEl.textContent = data.message || data.error || 'Nie udało się wysłać. Spróbuj ponownie.';
+          errEl.style.display = 'block';
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Wyślij wniosek';
+          return;
+        }
+        window.customifyLimitExtensionModal.close();
+        this.showSuccess(
+          data.message ||
+            'Dziękujemy. Otrzymaliśmy wniosek — odpowiemy mailowo lub dodamy kredyty po weryfikacji.',
+          { html: false }
+        );
+      } catch (err) {
+        console.error('❌ [LIMIT-EXT] Submit failed:', err);
+        errEl.textContent = 'Błąd sieci. Spróbuj ponownie.';
+        errEl.style.display = 'block';
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Wyślij wniosek';
+      }
+    });
   }
 
   /**
@@ -8033,12 +8277,11 @@ class CustomifyEmbed {
 
             this.showLoginModal(usedCount, totalLimit);
           } else {
-            const limitMessage = errorJson.message || 'Wykorzystałeś wszystkie dostępne transformacje.';
-            this.showError(limitMessage, 'transform');
             this.trackLimitFunnelShowLimit(customerInfo, {
               wallTier: errorJson.wallTier || 'unknown',
               source: 'transform_403'
             });
+            this.showLimitExtensionModal(customerInfo, errorJson);
           }
 
           return;
