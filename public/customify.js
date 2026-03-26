@@ -5598,7 +5598,7 @@ class CustomifyEmbed {
     const isFirstWall = tier === 'first_wall';
 
     const introFirst =
-      'Wykorzystałeś dostępne generacje. Napisz, co możemy poprawić — w ciągu ok. 5 minut wyślemy maila i doładujemy 4 kolejne generacje. Ta możliwość jest tylko raz przy pierwszym skończeniu limitu.';
+      'Wykorzystałeś dostępne generacje. Napisz, co możemy poprawić — w ciągu ok. 5 minut wyślemy maila i doładujemy 4 kolejne generacje.';
     const introRetry =
       errorJson.message ||
       'Wykorzystałeś wszystkie dostępne generacje. Następnego dnia możemy zwiększyć limit i wyślemy Ci maila z informacją.';
@@ -5659,7 +5659,7 @@ class CustomifyEmbed {
             position: absolute; top: 10px; right: 10px; background: transparent; border: none;
             font-size: 24px; color: #999; cursor: pointer; width: 32px; height: 32px; line-height: 1;
           ">×</button>
-          <h2 style="margin: 0 0 12px; color: #333; font-size: 18px; font-weight: 600;">Limit generacji</h2>
+          <h2 style="margin: 0 0 12px; color: #333; font-size: 18px; font-weight: 600;">Odbierz darmowe generacje</h2>
           ${isFirstWall ? `<p style="margin: 0 0 18px; color: #666; font-size: 15px; line-height: 1.55;">${introFirst.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>` : ''}
           ${formBlock}
         </div>
