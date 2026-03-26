@@ -5598,7 +5598,7 @@ class CustomifyEmbed {
     const isFirstWall = tier === 'first_wall';
 
     const introFirst =
-      'Wykorzystałeś dostępne generacje. Napisz, co możemy poprawić — w ciągu ok. 5 minut wyślemy maila i doładujemy 4 kolejne generacje.';
+      'Wykorzystałeś dostępne generacje. Napisz, co możemy poprawić — w ciągu ok. 5 minut dodamy Ci kolejne 4 generacje.';
     const introRetry =
       errorJson.message ||
       'Wykorzystałeś wszystkie dostępne generacje. Następnego dnia możemy zwiększyć limit i wyślemy Ci maila z informacją.';
