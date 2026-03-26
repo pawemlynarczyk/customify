@@ -4,6 +4,10 @@ const { list } = require('@vercel/blob');
 
 const ADMIN_TOKEN = process.env.ADMIN_STATS_TOKEN;
 
+function getBlobToken() {
+  return process.env.customify_READ_WRITE_TOKEN || process.env.BLOB_READ_WRITE_TOKEN || null;
+}
+
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
@@ -16,12 +20,14 @@ module.exports = async (req, res) => {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
-  const blobToken = process.env.BLOB_READ_WRITE_TOKEN;
+  const blobToken = getBlobToken();
   if (!blobToken) {
     return res.status(200).json({
       success: true,
       submissions: [],
-      note: 'BLOB_READ_WRITE_TOKEN nie skonfigurowany',
+      totalBlobs: 0,
+      note:
+        'Brak tokenu Vercel Blob (customify_READ_WRITE_TOKEN lub BLOB_READ_WRITE_TOKEN). Dodaj w Vercel — wtedy zapis i lista zadziałają.',
     });
   }
 

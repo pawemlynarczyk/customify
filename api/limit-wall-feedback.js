@@ -14,6 +14,11 @@ const {
   sendCreditEmail,
 } = require('./check-and-reset-limits');
 
+/** Zgodnie z resztą projektu (transform, upload-temp-image) — w Vercel często jest tylko customify_READ_WRITE_TOKEN */
+function getBlobToken() {
+  return process.env.customify_READ_WRITE_TOKEN || process.env.BLOB_READ_WRITE_TOKEN || null;
+}
+
 const BLOCKED_EMAILS = new Set(['angelika.pacewicz@gmail.com']);
 
 function isBlockedUser(email) {
@@ -133,18 +138,21 @@ module.exports = async (req, res) => {
       source: 'limit_wall_feedback',
     };
 
-    if (process.env.BLOB_READ_WRITE_TOKEN) {
+    const blobToken = getBlobToken();
+    if (blobToken) {
       try {
         const safeId = String(customerId).replace(/[^a-zA-Z0-9_-]/g, '');
         const fname = `customify/system/limit-wall-feedback/${Date.now()}-${safeId}.json`;
         await put(fname, JSON.stringify(payload, null, 2), {
           access: 'public',
           contentType: 'application/json',
-          token: process.env.BLOB_READ_WRITE_TOKEN,
+          token: blobToken,
         });
       } catch (blobErr) {
         console.warn('⚠️ [LIMIT-WALL-FEEDBACK] Blob:', blobErr?.message);
       }
+    } else {
+      console.warn('⚠️ [LIMIT-WALL-FEEDBACK] Brak tokenu Blob (customify_READ_WRITE_TOKEN / BLOB_READ_WRITE_TOKEN) — zestawienie w panelu będzie puste');
     }
 
     const notifyTo = process.env.LIMIT_EXTENSION_NOTIFY_EMAIL || 'biuro@lumly.pl';
