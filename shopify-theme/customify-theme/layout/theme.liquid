@@ -26,6 +26,14 @@
  >
 
  {%- render 'meta-tags' -%}
+
+ {%- comment -%} Blokada indeksowania dla produktów generowanych przy zamówieniach {%- endcomment -%}
+ {%- if template contains 'product' -%}
+ {%- if product.tags contains 'hidden-from-catalog' or product.tags contains 'customer-order' -%}
+ <meta name="robots" content="noindex, nofollow">
+ {%- endif -%}
+ {%- endif -%}
+
  {%- render 'fonts' -%}
  
  <link rel="preconnect" href="https://fonts.googleapis.com">
