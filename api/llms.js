@@ -77,10 +77,10 @@ Tak — wpisz życzenie w polu "Uwagi do zamówienia".
 **Na jakim materiale drukujecie?**
 Płótno artystyczne na drewnianej ramie lub szkło akrylowe.
 
-## Technologia
+## Kontakt
 
-- Silnik AI: Replicate, Segmind Faceswap, OpenAI GPT-Image
-- Hosting: Vercel + Shopify
-- Druk: partner w Polsce
+- Email: biuro@lumly.pl
+- URL: https://lumly.pl
+- Kraj: Polska, Kraków
 `);
 };
