@@ -11183,10 +11183,199 @@ setTimeout(disableAIProductLinks, 500);
  submitBtn.disabled = false;
  submitBtn.textContent = 'Wyślij wiadomość';
  }
- }); // Zamknij addEventListener
- } // Zamknij if (form)
- } // Zamknij if (targetElement)
- }, 500); // Czekaj 500ms na załadowanie DOM
- }
- });
+}); // Zamknij addEventListener
+} // Zamknij if (form)
+} // Zamknij if (targetElement)
+}, 500); // Czekaj 500ms na załadowanie DOM
+}
+});
+
+// ============================================================
+// SYSTEM KREDYTÓW – pobieranie pliku cyfrowego za kredyt
+// ============================================================
+(function() {
+  'use strict';
+
+  var CREDITS_API_BASE = 'https://customify-s56o.vercel.app';
+
+  var el = {};
+  var currentCredits = 0;
+  var creditsChecked = false;
+
+  function getCustomerId() {
+    return window.ShopifyCustomer && window.ShopifyCustomer.id ? window.ShopifyCustomer.id : null;
+  }
+  function getCustomerEmail() {
+    return window.ShopifyCustomer && window.ShopifyCustomer.email ? window.ShopifyCustomer.email : '';
+  }
+
+  function initCreditsUI() {
+    el.section    = document.getElementById('creditsSection');
+    el.loading    = document.getElementById('creditsLoading');
+    el.available  = document.getElementById('creditsAvailable');
+    el.empty      = document.getElementById('creditsEmpty');
+    el.notLogged  = document.getElementById('creditsNotLoggedIn');
+    el.success    = document.getElementById('creditsSuccess');
+    el.error      = document.getElementById('creditsError');
+    el.useBtn     = document.getElementById('useCreditsBtn');
+    el.balanceInfo= document.getElementById('creditsBalanceInfo');
+    el.successMsg = document.getElementById('creditsSuccessMsg');
+    el.errorMsg   = document.getElementById('creditsErrorMsg');
+
+    if (!el.section) return;
+
+    var productTypeArea = document.getElementById('productTypeArea');
+    if (productTypeArea) {
+      productTypeArea.addEventListener('click', function(e) {
+        var btn = e.target.closest('.customify-product-type-btn');
+        if (!btn) return;
+        setTimeout(function() {
+          onProductTypeChanged(btn.getAttribute('data-product-type'));
+        }, 50);
+      });
+    }
+
+    if (el.useBtn) el.useBtn.addEventListener('click', handleUseCredit);
+
+    var activBtn = document.querySelector('.customify-product-type-btn.active');
+    if (activBtn) onProductTypeChanged(activBtn.getAttribute('data-product-type'));
+
+    watchResultArea();
+  }
+
+  function onProductTypeChanged(type) {
+    if (!el.section) return;
+    if (type !== 'digital') { el.section.style.display = 'none'; return; }
+
+    var resultArea = document.getElementById('resultArea');
+    if (resultArea && resultArea.style.display === 'none') {
+      el.section.style.display = 'none';
+      return;
+    }
+
+    el.section.style.display = 'block';
+    hideAll();
+
+    var customerId = getCustomerId();
+    if (!customerId) { showState('notLogged'); return; }
+    if (creditsChecked) { showByBalance(); return; }
+    fetchCredits();
+  }
+
+  function fetchCredits() {
+    showState('loading');
+    creditsChecked = false;
+    var customerId = getCustomerId();
+
+    fetch(CREDITS_API_BASE + '/api/credits/check', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ customerId: customerId })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      currentCredits = data.credits || 0;
+      creditsChecked = true;
+      showByBalance();
+    })
+    .catch(function(err) {
+      console.error('[CREDITS] Błąd sprawdzania kredytów:', err);
+      if (el.section) el.section.style.display = 'none';
+    });
+  }
+
+  function showByBalance() {
+    if (currentCredits > 0) {
+      showState('available');
+      if (el.balanceInfo) el.balanceInfo.textContent = 'Masz ' + currentCredits + ' ' + label(currentCredits);
+    } else {
+      showState('empty');
+    }
+  }
+
+  function handleUseCredit() {
+    var inst = window.__customify;
+    if (!inst) { showError('Błąd aplikacji. Odśwież stronę.'); return; }
+
+    var imageUrl = null;
+    if (inst.cleanImageUrl && inst.cleanImageUrl.startsWith('http')) imageUrl = inst.cleanImageUrl;
+    else if (inst.transformedImage && inst.transformedImage.startsWith('http')) imageUrl = inst.transformedImage;
+
+    if (!imageUrl) { showError('Brak obrazu. Wygeneruj najpierw portret.'); return; }
+
+    var customerId = getCustomerId();
+    if (!customerId) { showError('Musisz być zalogowany.'); return; }
+
+    if (el.useBtn) { el.useBtn.disabled = true; el.useBtn.textContent = 'Wysyłam...'; }
+
+    fetch(CREDITS_API_BASE + '/api/credits/use', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ customerId: customerId, imageUrl: imageUrl, style: inst.selectedStyle || '' })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.success) {
+        currentCredits = data.creditsRemaining || 0;
+        creditsChecked = true;
+        showState('success');
+        if (el.successMsg) {
+          el.successMsg.textContent = 'Email wysłany na ' + getCustomerEmail() + '. Pozostało: ' + currentCredits + ' ' + label(currentCredits) + '.';
+        }
+      } else {
+        showError(data.error || 'Błąd podczas użycia kredytu.');
+        if (el.useBtn) { el.useBtn.disabled = false; el.useBtn.textContent = '💳 Pobierz za 1 kredyt'; }
+      }
+    })
+    .catch(function(err) {
+      console.error('[CREDITS] Błąd użycia kredytu:', err);
+      showError('Błąd połączenia. Spróbuj ponownie.');
+      if (el.useBtn) { el.useBtn.disabled = false; el.useBtn.textContent = '💳 Pobierz za 1 kredyt'; }
+    });
+  }
+
+  function watchResultArea() {
+    var resultArea = document.getElementById('resultArea');
+    if (!resultArea) { setTimeout(watchResultArea, 500); return; }
+
+    new MutationObserver(function() {
+      var isVisible = resultArea.style.display !== 'none';
+      var activeBtn = document.querySelector('.customify-product-type-btn.active');
+      var isDigital = activeBtn && activeBtn.getAttribute('data-product-type') === 'digital';
+      if (isVisible && isDigital && el.section) {
+        el.section.style.display = 'block';
+        var customerId = getCustomerId();
+        if (!creditsChecked && customerId) fetchCredits();
+        else if (creditsChecked) showByBalance();
+        else if (!customerId) showState('notLogged');
+      }
+    }).observe(resultArea, { attributes: true, attributeFilter: ['style'] });
+  }
+
+  function showState(state) {
+    hideAll();
+    var map = { loading: el.loading, available: el.available, empty: el.empty, notLogged: el.notLogged, success: el.success };
+    if (map[state]) map[state].style.display = 'block';
+  }
+  function hideAll() {
+    [el.loading, el.available, el.empty, el.notLogged, el.success, el.error].forEach(function(e) { if (e) e.style.display = 'none'; });
+  }
+  function showError(msg) {
+    hideAll();
+    if (el.error && el.errorMsg) { el.errorMsg.textContent = msg; el.error.style.display = 'block'; }
+  }
+  function label(n) {
+    if (n === 1) return 'kredyt';
+    if (n >= 2 && n <= 4) return 'kredyty';
+    return 'kredytów';
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initCreditsUI);
+  } else {
+    initCreditsUI();
+  }
+})();
 
