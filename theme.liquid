@@ -34,6 +34,95 @@
  {%- endif -%}
  {%- endif -%}
 
+ {%- comment -%} Schema.org Structured Data — SEO + LLM visibility {%- endcomment -%}
+ <script type="application/ld+json">
+ {
+ "@context": "https://schema.org",
+ "@graph": [
+ {
+ "@type": "Organization",
+ "@id": "https://lumly.pl/#organization",
+ "name": "Lumly",
+ "url": "https://lumly.pl",
+ "logo": {
+ "@type": "ImageObject",
+ "url": "https://lumly.pl/cdn/shop/files/logo.png",
+ "width": 200,
+ "height": 60
+ },
+ "description": "Lumly tworzy spersonalizowane portrety AI ze zdjęć — style Boho, Król, Koty Królewskie, Karykatura. Wgraj zdjęcie, wybierz styl, otrzymaj wyjątkowy obraz do druku.",
+ "address": {
+ "@type": "PostalAddress",
+ "addressCountry": "PL"
+ },
+ "sameAs": [
+ "https://www.instagram.com/lumly.pl",
+ "https://www.facebook.com/lumly.pl"
+ ]
+ },
+ {
+ "@type": "WebSite",
+ "@id": "https://lumly.pl/#website",
+ "url": "https://lumly.pl",
+ "name": "Lumly — Personalizowane portrety AI",
+ "description": "Zamień swoje zdjęcie w wyjątkowy obraz AI. Style: Boho, Portret Króla, Koty Królewskie, Karykatura. Druk na płótnie lub szkle.",
+ "inLanguage": "pl-PL",
+ "publisher": { "@id": "https://lumly.pl/#organization" },
+ "potentialAction": {
+ "@type": "SearchAction",
+ "target": {
+ "@type": "EntryPoint",
+ "urlTemplate": "https://lumly.pl/search?q={search_term_string}"
+ },
+ "query-input": "required name=search_term_string"
+ }
+ }
+ ]
+ }
+ </script>
+
+ {%- if template contains 'product' -%}
+ {%- unless product.tags contains 'hidden-from-catalog' or product.tags contains 'customer-order' -%}
+ <script type="application/ld+json">
+ {
+ "@context": "https://schema.org",
+ "@type": "Product",
+ "@id": "https://lumly.pl/products/{{ product.handle }}#product",
+ "name": {{ product.title | json }},
+ "description": {{ product.description | strip_html | truncatewords: 80 | json }},
+ "url": "https://lumly.pl/products/{{ product.handle }}",
+ "image": [
+ {%- for image in product.images limit: 5 -%}
+ "{{ image | image_url: width: 1200 }}"{% unless forloop.last %},{% endunless %}
+ {%- endfor -%}
+ ],
+ "brand": {
+ "@type": "Brand",
+ "name": "Lumly"
+ },
+ "offers": {
+ "@type": "AggregateOffer",
+ "priceCurrency": "PLN",
+ "lowPrice": "{{ product.price_min | money_without_currency | remove: ' ' | remove: ',' | replace: '.', '.' }}",
+ "highPrice": "{{ product.price_max | money_without_currency | remove: ' ' | remove: ',' | replace: '.', '.' }}",
+ "offerCount": {{ product.variants.size }},
+ "availability": "{% if product.available %}https://schema.org/InStock{% else %}https://schema.org/OutOfStock{% endif %}",
+ "seller": {
+ "@type": "Organization",
+ "name": "Lumly",
+ "url": "https://lumly.pl"
+ }
+ },
+ "isRelatedTo": {
+ "@type": "Service",
+ "name": "Personalizacja AI",
+ "description": "Transformacja zdjęcia użytkownika przy pomocy sztucznej inteligencji"
+ }
+ }
+ </script>
+ {%- endunless -%}
+ {%- endif -%}
+
  {%- render 'fonts' -%}
  
  <link rel="preconnect" href="https://fonts.googleapis.com">

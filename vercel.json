@@ -2,7 +2,8 @@
   "version": 2,
   "rewrites": [
     { "source": "/admin/personalization-log", "destination": "/admin/personalization-log.html" },
-    { "source": "/admin/limit-wall-users", "destination": "/admin/limit-wall-users.html" }
+    { "source": "/admin/limit-wall-users", "destination": "/admin/limit-wall-users.html" },
+    { "source": "/llms.txt", "destination": "/api/llms" }
   ],
   "functions": {
     "api/**/*.js": {

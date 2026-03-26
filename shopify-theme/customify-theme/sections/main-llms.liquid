@@ -1,0 +1,115 @@
+{% comment %}
+  Strona llms.txt dla Shopify — dostępna pod /pages/llms
+  Przeznaczona dla crawlerów AI (ChatGPT, Perplexity, Claude, Gemini)
+  Standard: https://llmstxt.org
+{% endcomment %}
+
+<style>
+  .llms-page {
+    max-width: 800px;
+    margin: 60px auto;
+    padding: 0 20px 80px;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.8;
+    color: #333;
+  }
+  .llms-page h1 { font-size: 22px; margin-bottom: 8px; }
+  .llms-page h2 { font-size: 16px; margin-top: 32px; margin-bottom: 8px; border-bottom: 1px solid #eee; padding-bottom: 4px; }
+  .llms-page blockquote { border-left: 3px solid #ccc; padding-left: 16px; margin: 12px 0; color: #555; }
+  .llms-page pre { background: #f5f5f5; padding: 16px; border-radius: 4px; overflow-x: auto; white-space: pre-wrap; }
+  .llms-page a { color: #0066cc; }
+</style>
+
+<div class="llms-page">
+  <h1>Lumly — Personalizowane portrety AI ze zdjęć</h1>
+
+  <blockquote>
+    Lumly to polski sklep internetowy (lumly.pl) oferujący spersonalizowane portrety tworzone przez sztuczną inteligencję. Klient wgrywa własne zdjęcie, wybiera styl artystyczny, a AI generuje unikalny obraz gotowy do druku.
+  </blockquote>
+
+  <h2>O firmie</h2>
+  <pre>
+Nazwa: Lumly
+URL: https://lumly.pl
+Kraj: Polska
+Język: Polski
+Kategoria: Personalizowane prezenty, Sztuka AI, Druk na płótnie
+  </pre>
+
+  <h2>Produkty</h2>
+
+  <h3>Personalizowany portret w stylu Boho</h3>
+  <pre>
+URL: https://lumly.pl/products/personalizowany-portret-w-stylu-boho
+Opis: Zamień swoje zdjęcie w piękny portret w stylu Boho.
+Style: Minimalistyczny, Realistyczny
+Cena: od 49 zł
+Rozmiary: 20×30 cm, 30×40 cm, 40×60 cm, 60×85 cm
+  </pre>
+
+  <h3>Portret Króla — personalizowany portret ze zdjęcia</h3>
+  <pre>
+URL: https://lumly.pl/products/krol-personalizowany-portret
+Opis: Zamień swoje zdjęcie w majestatyczny portret królewskiego władcy.
+Technologia: AI Faceswap nakłada twarz użytkownika na obraz króla
+Cena: od 99 zł
+  </pre>
+
+  <h3>Królewski portret Twojego Kota</h3>
+  <pre>
+URL: https://lumly.pl/products/koty-krolewskie
+Opis: Stwórz królewski portret swojego kota.
+Style: Królewski, Barokowy, Renesansowy, Wiktoriański, Wojenny, Na tronie
+Cena: od 69 zł
+  </pre>
+
+  <h3>Karykatura ze zdjęcia</h3>
+  <pre>
+URL: https://lumly.pl/products/karykatura-z-twojego-zdjecia-obraz
+Opis: Spersonalizowana karykatura stworzona przez AI. Idealny prezent urodzinowy, ślubny lub na rocznicę.
+  </pre>
+
+  <h2>Jak to działa</h2>
+  <pre>
+1. Wgraj zdjęcie (portret twarzy)
+2. Wybierz styl artystyczny
+3. Wybierz rozmiar wydruku
+4. AI generuje spersonalizowany obraz
+5. Zamów druk — dostarczamy w ciągu kilku dni roboczych
+  </pre>
+
+  <h2>Najczęściej zadawane pytania</h2>
+  <pre>
+Czy mogę wgrać zdjęcie z telefonu?
+→ Tak, obsługujemy iPhone i Android, w tym format HEIC.
+
+Jak długo trwa realizacja?
+→ Generowanie AI: kilkadziesiąt sekund. Druk i dostawa: 3–5 dni roboczych.
+
+Czy to dobry prezent?
+→ Tak — portrety Lumly są popularnym prezentem na urodziny, Dzień Matki, rocznicę i Boże Narodzenie.
+
+Jakie zdjęcie najlepiej wgrać?
+→ Portret twarzy (twarz widoczna, dobre oświetlenie). Dla kotów — wyraźne zdjęcie pyska.
+  </pre>
+
+  <h2>Technologia</h2>
+  <pre>
+Silnik AI: Replicate (modele obrazów), Segmind Faceswap, OpenAI GPT-Image
+Hosting: Vercel + Shopify
+Druk: realizowany przez partnera w Polsce
+  </pre>
+
+  <p style="margin-top: 40px; color: #999; font-size: 12px;">
+    Plik llms.txt w formacie plain text dostępny pod: 
+    <a href="https://customify-s56o.vercel.app/api/llms">customify-s56o.vercel.app/api/llms</a>
+  </p>
+</div>
+
+{% schema %}
+{
+  "name": "LLMs Info",
+  "settings": []
+}
+{% endschema %}
