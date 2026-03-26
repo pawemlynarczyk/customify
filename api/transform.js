@@ -3078,8 +3078,10 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
             try {
               const secondRefill = await kv.get(`credits-second-refilled:${customerId}`);
               const firstRefill = await kv.get(`credits-refilled:${customerId}`);
+              // Mail z crona (check-and-reset-limits) — klient już miał 1. doładowanie nawet jeśli KV credits-refilled się rozjeżdża po ręcznej edycji Shopify
+              const creditEmailSent = await kv.get(`credit-email-sent:${customerId}`);
               if (secondRefill) limitWallTier = 'after_second_refill';
-              else if (firstRefill) limitWallTier = 'after_first_refill';
+              else if (firstRefill || creditEmailSent) limitWallTier = 'after_first_refill';
               else limitWallTier = 'first_wall';
             } catch (tierErr) {
               console.warn('⚠️ [LIMIT-WALL-TIER] KV:', tierErr?.message);

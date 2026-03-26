@@ -116,11 +116,12 @@ module.exports = async (req, res) => {
 
     if (isKVConfigured()) {
       const alreadyRefilled = await kv.get(`credits-refilled:${customerId}`);
-      if (alreadyRefilled) {
+      const creditEmailSent = await kv.get(`credit-email-sent:${customerId}`);
+      if (alreadyRefilled || creditEmailSent) {
         return res.status(403).json({
           error: 'not_first_wall',
           message:
-            'Doładowanie z formularza przysługuje tylko przy pierwszym skończeniu limitu. Następnym razem — informacja mailem.',
+            'Doładowanie z formularza jest tylko przy pierwszym skończeniu limitu (bez wcześniejszego maila kredytowego z systemu). Skontaktuj się z nami, jeśli potrzebujesz pomocy.',
         });
       }
     }
