@@ -1,6 +1,7 @@
 {% comment %}
   body = sam HTML <li>… wewnątrz ul. heading = tekst nagłówka.
-  Jeden link i ten sam tekst co nagłówek → bez h4 (tylko lista).
+  Jeden link: bez h4 gdy tekst linku = nagłówek (po downcase) LUB
+  nagłówek „Dla …” a link „Prezent dla …” (ta sama resztka).
 {% endcomment %}
 {%- if body != blank -%}
   {%- assign _parts = body | split: 'class="footer-collections-link">' -%}
@@ -9,8 +10,18 @@
   {%- assign _h = heading | strip | downcase -%}
   {%- assign _f = _first | downcase -%}
   {%- assign _omit = false -%}
-  {%- if _n == 1 and _first != blank and _f == _h -%}
-    {%- assign _omit = true -%}
+  {%- if _n == 1 and _first != blank -%}
+    {%- if _f == _h -%}
+      {%- assign _omit = true -%}
+    {%- elsif _h contains 'dla ' -%}
+      {%- assign _tail = _h | remove_first: 'dla ' | strip -%}
+      {%- if _tail != blank -%}
+        {%- assign _expect = 'prezent dla ' | append: _tail -%}
+        {%- if _f == _expect -%}
+          {%- assign _omit = true -%}
+        {%- endif -%}
+      {%- endif -%}
+    {%- endif -%}
   {%- endif -%}
 <div class="footer-cat-sub">
   {%- unless _omit -%}<h4 class="footer-cat-subtitle">{{ heading }}</h4>{%- endunless -%}
