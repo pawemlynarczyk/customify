@@ -1,26 +1,28 @@
 {% comment %}
   body = sam HTML <li>… wewnątrz ul. Jeden link: bez h4 gdy to samo znaczeniowo:
-  identycznie; Dla↔Prezent dla; Dzień X↔Prezent na Dzień X; Ślub/Komunia↔prezent na ślub/komun;
+  identycznie; nagłówek „Dla …” (bez słowa „prezent”)↔link „Prezent dla …”; Dzień X↔Prezent na Dzień X; Ślub/Komunia↔prezent na ślub/komun;
   Na szkle/płótnie/plakat ↔ link zawiera frazę; Święta/Walentynki/… ↔ prezent na … + słowo z nagłówka.
 {% endcomment %}
 {%- if body != blank -%}
   {%- assign _parts = body | split: 'class="footer-collections-link">' -%}
   {%- assign _n = _parts.size | minus: 1 -%}
   {%- assign _first = _parts[1] | split: '</a>' | first | strip_html | strip -%}
-  {%- assign _h = heading | strip | downcase -%}
-  {%- assign _f = _first | downcase -%}
+  {%- assign _h = heading | strip | downcase | replace: '  ', ' ' -%}
+  {%- assign _f = _first | strip | downcase | replace: '  ', ' ' -%}
   {%- assign _omit = false -%}
   {%- if _n == 1 and _first != blank -%}
     {%- if _f == _h -%}
       {%- assign _omit = true -%}
     {%- elsif _h contains 'dla ' -%}
-      {%- assign _tail = _h | remove_first: 'dla ' | strip -%}
-      {%- if _tail != blank -%}
-        {%- assign _expect = 'prezent dla ' | append: _tail -%}
-        {%- if _f == _expect -%}
-          {%- assign _omit = true -%}
+      {%- unless _h contains 'prezent' -%}
+        {%- assign _tail = _h | remove_first: 'dla ' | strip -%}
+        {%- if _tail != blank -%}
+          {%- assign _expect = 'prezent dla ' | append: _tail -%}
+          {%- if _f == _expect -%}
+            {%- assign _omit = true -%}
+          {%- endif -%}
         {%- endif -%}
-      {%- endif -%}
+      {%- endunless -%}
     {%- elsif _h contains 'dzień' -%}
       {%- assign _expect = 'prezent na ' | append: _h -%}
       {%- if _f == _expect -%}
