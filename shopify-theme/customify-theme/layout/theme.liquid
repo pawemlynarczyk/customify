@@ -2609,9 +2609,38 @@ try {
  })();
  </script>
 
- <header class="header-main">
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.nav-dropdown-toggle').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      var navItem = btn.closest('.nav-item--has-dropdown');
+      var isOpen = navItem.classList.contains('is-open');
+      document.querySelectorAll('.nav-item--has-dropdown.is-open').forEach(function(el) {
+        el.classList.remove('is-open');
+        el.querySelector('.nav-dropdown-toggle').setAttribute('aria-expanded', 'false');
+      });
+      if (!isOpen) {
+        navItem.classList.add('is-open');
+        btn.setAttribute('aria-expanded', 'true');
+      }
+    });
+  });
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('.nav-item--has-dropdown')) {
+      document.querySelectorAll('.nav-item--has-dropdown.is-open').forEach(function(el) {
+        el.classList.remove('is-open');
+        el.querySelector('.nav-dropdown-toggle').setAttribute('aria-expanded', 'false');
+      });
+    }
+  });
+});
+</script>
+
+<header class="header-main">
  
- <div class="header-top">
+<div class="header-top">
  <div class="header-container">
  
  <div class="header-logo">
@@ -2690,21 +2719,35 @@ try {
  {% unless template == 'cart' %}
  <div class="header-bottom">
  <div class="header-container">
- <nav class="header-nav">
- {% comment %} TYLKO MENU Z SHOPIFY - main-menu-1 {% endcomment %}
- {% if linklists['main-menu-1'] and linklists['main-menu-1'].links.size > 0 %}
- {% for link in linklists['main-menu-1'].links %}
- <div class="nav-item">
- <a href="{% if link.url == '/collections/all' or link.url contains '/collections/all' %}/collections/see_also{% else %}{{ link.url }}{% endif %}" class="nav-link">{{ link.title }}</a>
- </div>
- {% if customer and (link.title == 'Produkty' or link.url == '/collections/see_also') %}
- <div class="nav-item">
- <a href="/pages/my-generations" class="nav-link">Moje Obrazy</a>
- </div>
- {% endif %}
- {% endfor %}
- {% endif %}
- </nav>
+<nav class="header-nav">
+{% comment %} MENU Z SHOPIFY - main-menu-1 z obsługą podmenu {% endcomment %}
+{% if linklists['main-menu-1'] and linklists['main-menu-1'].links.size > 0 %}
+  {% for link in linklists['main-menu-1'].links %}
+    {% assign has_children = false %}
+    {% if link.links.size > 0 %}{% assign has_children = true %}{% endif %}
+    <div class="nav-item{% if has_children %} nav-item--has-dropdown{% endif %}">
+      <a href="{% if link.url == '/collections/all' or link.url contains '/collections/all' %}/collections/see_also{% else %}{{ link.url }}{% endif %}" class="nav-link">{{ link.title }}</a>
+      {% if has_children %}
+        <button class="nav-dropdown-toggle" aria-label="Rozwiń podmenu" aria-expanded="false">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <ul class="nav-dropdown">
+          {% for childlink in link.links %}
+            <li class="nav-dropdown-item">
+              <a href="{% if childlink.url == '/collections/all' or childlink.url contains '/collections/all' %}/collections/see_also{% else %}{{ childlink.url }}{% endif %}" class="nav-dropdown-link">{{ childlink.title }}</a>
+            </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </div>
+    {% if customer and (link.title == 'Produkty' or link.url == '/collections/see_also') %}
+      <div class="nav-item">
+        <a href="/pages/my-generations" class="nav-link">Moje Obrazy</a>
+      </div>
+    {% endif %}
+  {% endfor %}
+{% endif %}
+</nav>
  </div>
  </div>
  {% endunless %}
@@ -6303,6 +6346,20 @@ opacity: 0.9;
 <div class="customify-footer-poradnik">
 <a href="/blogs/poradnik" class="customify-footer-poradnik__link">Poradnik</a>
 </div>
+
+{% comment %} KOLEKCJE W STOPCE {% endcomment %}
+{% unless template == 'cart' %}
+<div class="footer-collections-bar">
+  <div class="footer-collections-inner">
+    <span class="footer-collections-label">Kolekcje:</span>
+    {% for collection in collections %}
+      {% unless collection.handle == 'all' or collection.handle == 'see_also' or collection.handle == 'hidden' or collection.handle contains 'hidden' %}
+        <a href="{{ collection.url }}" class="footer-collections-link">{{ collection.title }}</a>
+      {% endunless %}
+    {% endfor %}
+  </div>
+</div>
+{% endunless %}
 
 {% sections 'footer-group' %}
 

@@ -3885,3 +3885,100 @@ body.template-cart [class*="cart-items"] div:has(> span.visually-hidden + span) 
  font-weight: 600;
  font-size: 0.9rem;
  }
+
+/* ============================================================
+   DROPDOWN PODMENU
+   ============================================================ */
+.nav-item--has-dropdown { position: relative; }
+.nav-dropdown-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 2px;
+  color: inherit;
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+}
+.nav-dropdown-toggle svg { transition: transform 0.2s; }
+.nav-dropdown-toggle[aria-expanded="true"] svg { transform: rotate(180deg); }
+.nav-dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  min-width: 200px;
+  background: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+  z-index: 9999;
+  list-style: none;
+  margin: 0;
+  padding: 6px 0;
+  white-space: nowrap;
+}
+@media (min-width: 769px) {
+  .nav-item--has-dropdown:hover .nav-dropdown { display: block; }
+  .nav-item--has-dropdown:hover .nav-dropdown-toggle svg { transform: rotate(180deg); }
+  .nav-dropdown-toggle { pointer-events: none; }
+}
+@media (max-width: 768px) {
+  .nav-dropdown-toggle { pointer-events: auto; }
+  .nav-item--has-dropdown.is-open .nav-dropdown {
+    display: block;
+    position: static;
+    border: none;
+    box-shadow: none;
+    border-radius: 0;
+    padding: 0 0 0 12px;
+    background: transparent;
+    min-width: 0;
+  }
+  .nav-item--has-dropdown.is-open .nav-dropdown-toggle svg { transform: rotate(180deg); }
+}
+.nav-dropdown-item { margin: 0; padding: 0; }
+.nav-dropdown-link {
+  display: block;
+  padding: 9px 18px;
+  color: #495057;
+  text-decoration: none;
+  font-size: 14px;
+  transition: background 0.15s, color 0.15s;
+}
+.nav-dropdown-link:hover { background: #f8f9fa; color: #dc3545; }
+
+/* ============================================================
+   STOPKA - KOLEKCJE
+   ============================================================ */
+.footer-collections-bar {
+  background: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+  padding: 14px 20px;
+}
+.footer-collections-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+}
+.footer-collections-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #6c757d;
+  white-space: nowrap;
+}
+.footer-collections-link {
+  font-size: 13px;
+  color: #495057;
+  text-decoration: none;
+  padding: 3px 0;
+  border-bottom: 1px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+}
+.footer-collections-link:hover {
+  color: #dc3545;
+  border-bottom-color: #dc3545;
+}
