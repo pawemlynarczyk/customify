@@ -3885,3 +3885,97 @@ body.template-cart [class*="cart-items"] div:has(> span.visually-hidden + span) 
  font-weight: 600;
  font-size: 0.9rem;
  }
+
+/* Stopka: kolekcje wg metafielda (snippet) */
+.footer-collections-bar {
+  background: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+  padding: 20px 16px 24px;
+}
+.footer-collections-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.footer-collections-heading {
+  margin: 0 0 16px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #343a40;
+  letter-spacing: 0.02em;
+}
+.footer-collections-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+@media (min-width: 900px) {
+  .footer-collections-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px 28px;
+    align-items: start;
+  }
+}
+.footer-cat-block {
+  min-width: 0;
+}
+.footer-cat-title {
+  margin: 0 0 12px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #dc3545;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.footer-cat-sub {
+  margin-bottom: 14px;
+}
+.footer-cat-sub:last-child {
+  margin-bottom: 0;
+}
+.footer-cat-subtitle {
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6c757d;
+}
+.footer-collections-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.footer-collections-list--compact .footer-collections-item {
+  margin-bottom: 4px;
+}
+.footer-collections-item {
+  break-inside: avoid;
+  margin-bottom: 6px;
+}
+.footer-collections-link {
+  font-size: 13px;
+  color: #495057;
+  text-decoration: none;
+  line-height: 1.35;
+}
+.footer-collections-link:hover {
+  color: #dc3545;
+  text-decoration: underline;
+}
+.footer-cat-uncategorized {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px dashed #dee2e6;
+}
+.footer-cat-uncategorized .footer-collections-list {
+  column-count: 2;
+  column-gap: 20px;
+}
+@media (min-width: 768px) {
+  .footer-cat-uncategorized .footer-collections-list {
+    column-count: 3;
+  }
+}
+@media (min-width: 1200px) {
+  .footer-cat-uncategorized .footer-collections-list {
+    column-count: 4;
+  }
+}
