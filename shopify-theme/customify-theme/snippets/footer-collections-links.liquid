@@ -180,9 +180,12 @@
       </div>
     </div>
 
-    <div class="footer-collections-grid footer-collections-grid--four">
+    <div class="footer-collections-grid--main">
+      <div class="footer-cat-kogo-wrap" aria-labelledby="footer-cat-osoba">
+        <h3 class="footer-cat-title" id="footer-cat-osoba">Dla kogo</h3>
+        <div class="footer-cat-kogo-wrap-inner">
       <section class="footer-cat-block" aria-labelledby="footer-sub-niej">
-        <h3 class="footer-cat-title" id="footer-sub-niej">Dla niej</h3>
+        <h4 class="footer-cat-subcat-title" id="footer-sub-niej">Dla niej</h4>
         {% render 'footer-cat-sub', body: b_on, heading: 'Dla niej' %}
         {% render 'footer-cat-sub', body: b_oz, heading: 'Dla żony' %}
         {% render 'footer-cat-sub', body: b_mama, heading: 'Prezent dla mamy' %}
@@ -196,7 +199,7 @@
         {% render 'footer-cat-sub', body: b_szefowa, heading: 'Prezent dla szefowej' %}
       </section>
       <section class="footer-cat-block" aria-labelledby="footer-sub-niego">
-        <h3 class="footer-cat-title" id="footer-sub-niego">Dla niego</h3>
+        <h4 class="footer-cat-subcat-title" id="footer-sub-niego">Dla niego</h4>
         {% render 'footer-cat-sub', body: b_oni, heading: 'Dla niego' %}
         {% render 'footer-cat-sub', body: b_brat, heading: 'Prezent dla brata' %}
         {% render 'footer-cat-sub', body: b_tata, heading: 'Prezent dla taty' %}
@@ -209,13 +212,15 @@
         {% render 'footer-cat-sub', body: b_od, heading: 'Dla dziadka' %}
       </section>
       <section class="footer-cat-block" aria-labelledby="footer-sub-para">
-        <h3 class="footer-cat-title" id="footer-sub-para">Dla pary</h3>
+        <h4 class="footer-cat-subcat-title" id="footer-sub-para">Dla pary</h4>
         {% render 'footer-cat-sub', body: b_dziadkow, heading: 'Prezent dla dziadków' %}
         {% render 'footer-cat-sub', body: b_or, heading: 'Dla rodziców' %}
         {% render 'footer-cat-sub', body: b_malz, heading: 'Prezent dla małżeństwa' %}
         {% render 'footer-cat-sub', body: b_op, heading: 'Dla pary' %}
         {% render 'footer-cat-sub', body: b_tesci, heading: 'Prezent dla teściów' %}
       </section>
+        </div>
+      </div>
       <section class="footer-cat-block" aria-labelledby="footer-cat-okazja">
         <h3 class="footer-cat-title" id="footer-cat-okazja">Na okazję</h3>
         {% render 'footer-cat-sub', body: b_ou, heading: 'Urodziny' %}
