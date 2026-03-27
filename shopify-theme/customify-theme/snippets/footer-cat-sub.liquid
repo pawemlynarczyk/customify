@@ -1,7 +1,7 @@
 {% comment %}
-  body = sam HTML <li>… wewnątrz ul. heading = tekst nagłówka.
-  Jeden link: bez h4 gdy nagłówek i link znaczą to samo (identycznie, Dla↔Prezent dla,
-  Dzień X↔Prezent na Dzień X, Ślub/Komunia↔prezent na ślub lub komun).
+  body = sam HTML <li>… wewnątrz ul. Jeden link: bez h4 gdy to samo znaczeniowo:
+  identycznie; Dla↔Prezent dla; Dzień X↔Prezent na Dzień X; Ślub/Komunia↔prezent na ślub/komun;
+  Na szkle/płótnie/plakat ↔ link zawiera frazę; Święta/Walentynki/… ↔ prezent na … + słowo z nagłówka.
 {% endcomment %}
 {%- if body != blank -%}
   {%- assign _parts = body | split: 'class="footer-collections-link">' -%}
@@ -28,6 +28,18 @@
       {%- endif -%}
     {%- elsif _h contains 'ślub' and _h contains 'komun' -%}
       {%- if _f contains 'prezent na' and (_f contains 'ślub' or _f contains 'komun') -%}
+        {%- assign _omit = true -%}
+      {%- endif -%}
+    {%- elsif _h == 'na szkle' or _h == 'na płótnie' or _h == 'plakat' -%}
+      {%- if _f contains _h -%}
+        {%- assign _omit = true -%}
+      {%- endif -%}
+    {%- elsif _h == 'święta' or _h == 'walentynki' or _h == 'urodziny' or _h == 'imieniny' or _h == 'wielkanoc' -%}
+      {%- if _f contains 'prezent na' and _f contains _h -%}
+        {%- assign _omit = true -%}
+      {%- endif -%}
+    {%- elsif _h == 'rocznica' -%}
+      {%- if _f contains 'prezent na' and _f contains 'rocznic' -%}
         {%- assign _omit = true -%}
       {%- endif -%}
     {%- endif -%}
