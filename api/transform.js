@@ -4110,8 +4110,8 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
           console.error('❌ [TRANSFORM] finalImageUrl:', finalImageUrl);
           // Kontynuuj bez zapisu - zwróć wynik do frontendu
         } else {
-          try {
-            console.log(`📤 [TRANSFORM] Wywołuję /api/save-generation-v2 z danymi:`, {
+          const trySaveGeneration = async (attempt) => {
+            console.log(`📤 [TRANSFORM] Wywołuję /api/save-generation-v2 (próba ${attempt}/2):`, {
               customerId: saveData.customerId,
               customerIdType: typeof saveData.customerId,
               email: saveData.email,
@@ -4123,19 +4123,41 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
               style: saveData.style,
               productType: saveData.productType
             });
-            
             // ⏰ Timeout 30s: save-generation-v2 nie może blokować transform (kaskada 504)
             const saveResponse = await fetchWithTimeout('https://customify-s56o.vercel.app/api/save-generation-v2', 30000, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(saveData)
             });
-            
-            console.log(`📥 [TRANSFORM] save-generation-v2 response status: ${saveResponse.status}`);
-            
-            if (saveResponse.ok) {
+            console.log(`📥 [TRANSFORM] save-generation-v2 response status (próba ${attempt}/2): ${saveResponse.status}`);
+            return saveResponse;
+          };
+
+          try {
+            let saveResponse = null;
+            let saveAttemptError = null;
+
+            // Pierwsza próba
+            try {
+              saveResponse = await trySaveGeneration(1);
+            } catch (err1) {
+              saveAttemptError = err1;
+              console.warn(`⚠️ [TRANSFORM] Błąd zapisu generacji - próba 1/2: ${err1?.message} — retry za 3s`);
+            }
+
+            // Retry jeśli pierwsza próba padła lub zwróciła błąd HTTP
+            if (!saveResponse || !saveResponse.ok) {
+              await new Promise(resolve => setTimeout(resolve, 3000));
+              try {
+                saveResponse = await trySaveGeneration(2);
+              } catch (err2) {
+                saveAttemptError = err2;
+                console.error(`⚠️ [TRANSFORM] Błąd zapisu generacji - próba 2/2: ${err2?.message}`);
+              }
+            }
+
+            if (saveResponse && saveResponse.ok) {
               const saveResult = await saveResponse.json();
-              
               // ✅ ZWRÓĆ TYLKO NIEWRAŻLIWE DANE DO KLIENTA (bez email, customerId, ip, deviceToken)
               if (saveResult.debug) {
                 saveGenerationDebug = {
@@ -4152,13 +4174,16 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
                   generationId: saveResult.generationId || null
                 };
               }
-            } else {
-              const errorText = await saveResponse.text();
-              console.error('⚠️ [TRANSFORM] Błąd zapisu generacji:', saveResponse.status);
+            } else if (saveResponse) {
+              const errorText = await saveResponse.text().catch(() => '');
+              console.error('⚠️ [TRANSFORM] Błąd zapisu generacji po 2 próbach:', saveResponse.status, errorText.substring(0, 200));
               saveGenerationDebug = { metafieldUpdateSuccess: false, metafieldUpdateError: `HTTP ${saveResponse.status}` };
+            } else {
+              console.error('⚠️ [TRANSFORM] Błąd zapisu generacji po 2 próbach (brak response):', saveAttemptError?.message);
+              saveGenerationDebug = { metafieldUpdateSuccess: false, metafieldUpdateError: saveAttemptError?.message || 'no response' };
             }
           } catch (saveError) {
-            console.error('⚠️ [TRANSFORM] Błąd zapisu generacji (nie blokuję odpowiedzi):', saveError?.message);
+            console.error('⚠️ [TRANSFORM] Nieoczekiwany błąd zapisu generacji (nie blokuję odpowiedzi):', saveError?.message);
             saveGenerationDebug = { metafieldUpdateSuccess: false, metafieldUpdateError: saveError?.message || 'unknown' };
             // Nie blokuj odpowiedzi - transformacja się udała
           }
