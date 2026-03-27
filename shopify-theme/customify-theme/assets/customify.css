@@ -2450,8 +2450,57 @@ body.template-cart .cart-items [aria-label="Usuń"] {
 
 /* Custom collection grid (tylko na stronach kolekcji) */
 .custom-collection-wrapper { max-width: 1200px; margin: 20px auto; padding: 0 20px; }
-.custom-collection-title { font-size: 1.8rem; margin: 10px 0 15px; }
-.custom-collection-description { color: #666; margin-top: 30px; margin-bottom: 0; }
+.custom-collection-title { font-size: 1.5rem; font-weight: 700; margin: 10px 0 15px; line-height: 1.25; }
+/* Opis kolekcji z admina często ma własny <h1> — Horizon robi z niego „hero”; ograniczamy tylko w tym bloku */
+.custom-collection-description {
+  color: #555;
+  margin-top: 24px;
+  margin-bottom: 0;
+  font-size: 1rem;
+  line-height: 1.65;
+  max-width: 820px;
+}
+.custom-collection-description h1,
+.custom-collection-description .h1 {
+  font-size: 1.35rem !important;
+  font-weight: 600 !important;
+  line-height: 1.35 !important;
+  margin: 0 0 0.85rem !important;
+  letter-spacing: normal !important;
+  color: #333 !important;
+}
+.custom-collection-description h2 {
+  font-size: 1.15rem !important;
+  font-weight: 600 !important;
+  line-height: 1.35 !important;
+  margin: 1.5rem 0 0.6rem !important;
+  color: #333 !important;
+}
+.custom-collection-description h3 {
+  font-size: 1.05rem !important;
+  font-weight: 600 !important;
+  margin: 1.2rem 0 0.45rem !important;
+  color: #444 !important;
+}
+.custom-collection-description p {
+  margin: 0 0 0.85rem;
+  font-size: 1rem;
+}
+.custom-collection-description ul,
+.custom-collection-description ol {
+  margin: 0 0 1rem;
+  padding-left: 1.2rem;
+}
+.custom-collection-description hr {
+  margin: 1.25rem 0;
+  border: none;
+  border-top: 1px solid #e9ecef;
+}
+@media (max-width: 768px) {
+  .custom-collection-title { font-size: 1.3rem; }
+  .custom-collection-description h1,
+  .custom-collection-description .h1 { font-size: 1.2rem !important; }
+}
 .custom-collection-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
 .custom-collection-card { display: block; border: 1px solid #e5e5e5; border-radius: 8px; overflow: hidden; background: #fff; text-decoration: none; color: inherit; transition: box-shadow .2s ease, transform .2s ease; }
 .custom-collection-card:hover { box-shadow: 0 6px 18px rgba(0,0,0,.08); transform: translateY(-2px); }
