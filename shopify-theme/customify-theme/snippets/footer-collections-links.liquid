@@ -1,11 +1,87 @@
 {% comment %}
-  Metafield: customify.footer_kategoria (tekst jednoliniowy)
-  Wartości: produkt:szklo | produkt:plotno | produkt:plakat
-            osoba:niej | osoba:zona | osoba:babcia | osoba:dziadek | osoba:niego | osoba:dziecko | osoba:rodzice | osoba:para
-            okazja:urodziny | okazja:swieta | okazja:walentynki | okazja:rocznica | okazja:imieniny | okazja:slub | okazja:komunia | okazja:dzien_matki | okazja:dzien_ojca | okazja:dzien_kobiet | okazja:wielkanoc | okazja:inne
-  Bez metafielda → sekcja „Bez kategorii” na dole.
+  Kategorie z heurystyki (handle + tytuł) — bez ręcznego ustawiania 67 kolekcji.
+  Opcjonalnie: metafield customify.footer_kategoria nadpisuje (wyjątki).
 {% endcomment %}
 {% unless template == 'cart' %}
+{%- liquid
+  assign b_ps = ''
+  assign b_pp = ''
+  assign b_pl = ''
+  assign b_on = ''
+  assign b_oz = ''
+  assign b_ob = ''
+  assign b_od = ''
+  assign b_oni = ''
+  assign b_odz = ''
+  assign b_or = ''
+  assign b_op = ''
+  assign b_ou = ''
+  assign b_os = ''
+  assign b_ow = ''
+  assign b_oro = ''
+  assign b_oi = ''
+  assign b_ok = ''
+  assign b_odm = ''
+  assign b_odo = ''
+  assign b_odk = ''
+  assign b_owi = ''
+  assign b_oi2 = ''
+-%}
+{% for collection in collections %}
+  {% assign h = collection.handle %}
+  {% unless h == 'all' or h == 'see_also' or h == 'hidden' or h contains 'hidden' %}
+    {% capture fk %}{% render 'footer-collection-category', collection: collection %}{% endcapture %}
+    {% assign fk = fk | strip %}
+    {% capture li %}<li class="footer-collections-item"><a href="{{ collection.url }}" class="footer-collections-link">{{ collection.title | escape }}</a></li>{% endcapture %}
+    {% case fk %}
+      {% when 'produkt:szklo' %}
+        {% assign b_ps = b_ps | append: li %}
+      {% when 'produkt:plotno' %}
+        {% assign b_pp = b_pp | append: li %}
+      {% when 'produkt:plakat' %}
+        {% assign b_pl = b_pl | append: li %}
+      {% when 'osoba:niej' %}
+        {% assign b_on = b_on | append: li %}
+      {% when 'osoba:zona' %}
+        {% assign b_oz = b_oz | append: li %}
+      {% when 'osoba:babcia' %}
+        {% assign b_ob = b_ob | append: li %}
+      {% when 'osoba:dziadek' %}
+        {% assign b_od = b_od | append: li %}
+      {% when 'osoba:niego' %}
+        {% assign b_oni = b_oni | append: li %}
+      {% when 'osoba:dziecko' %}
+        {% assign b_odz = b_odz | append: li %}
+      {% when 'osoba:rodzice' %}
+        {% assign b_or = b_or | append: li %}
+      {% when 'osoba:para' %}
+        {% assign b_op = b_op | append: li %}
+      {% when 'okazja:urodziny' %}
+        {% assign b_ou = b_ou | append: li %}
+      {% when 'okazja:swieta' %}
+        {% assign b_os = b_os | append: li %}
+      {% when 'okazja:walentynki' %}
+        {% assign b_ow = b_ow | append: li %}
+      {% when 'okazja:rocznica' %}
+        {% assign b_oro = b_oro | append: li %}
+      {% when 'okazja:imieniny' %}
+        {% assign b_oi = b_oi | append: li %}
+      {% when 'okazja:slub', 'okazja:komunia' %}
+        {% assign b_ok = b_ok | append: li %}
+      {% when 'okazja:dzien_matki' %}
+        {% assign b_odm = b_odm | append: li %}
+      {% when 'okazja:dzien_ojca' %}
+        {% assign b_odo = b_odo | append: li %}
+      {% when 'okazja:dzien_kobiet' %}
+        {% assign b_odk = b_odk | append: li %}
+      {% when 'okazja:wielkanoc' %}
+        {% assign b_owi = b_owi | append: li %}
+      {% when 'okazja:inne' %}
+        {% assign b_oi2 = b_oi2 | append: li %}
+    {% endcase %}
+  {% endunless %}
+{% endfor %}
+
 <nav class="footer-collections-bar" aria-label="Kolekcje produktów">
   <div class="footer-collections-inner">
 
@@ -15,112 +91,83 @@
 
       <section class="footer-cat-block" aria-labelledby="footer-cat-produkt">
         <h3 class="footer-cat-title" id="footer-cat-produkt">Rodzaj produktu</h3>
-        {% assign produkt_rows = 'szklo|Na szkle,plotno|Na płótnie,plakat|Plakat' | split: ',' %}
-        {% for row in produkt_rows %}
-          {% assign parts = row | split: '|' %}
-          {% assign slug = parts[0] | strip %}
-          {% assign label = parts[1] | strip %}
-          {% assign want = 'produkt:' | append: slug %}
-          {% capture sub_html %}
-            {% for collection in collections %}
-              {% assign h = collection.handle %}
-              {% unless h == 'all' or h == 'see_also' or h == 'hidden' or h contains 'hidden' %}
-                {% assign fk = collection.metafields.customify.footer_kategoria.value | default: collection.metafields.customify.footer_kategoria | strip %}
-                {% if fk == want %}
-                  <li class="footer-collections-item"><a href="{{ collection.url }}" class="footer-collections-link">{{ collection.title | escape }}</a></li>
-                {% endif %}
-              {% endunless %}
-            {% endfor %}
-          {% endcapture %}
-          {% assign sub_html = sub_html | strip %}
-          {% if sub_html != blank %}
-            <div class="footer-cat-sub">
-              <h4 class="footer-cat-subtitle">{{ label }}</h4>
-              <ul class="footer-collections-list footer-collections-list--compact">{{ sub_html }}</ul>
-            </div>
-          {% endif %}
-        {% endfor %}
+        {% if b_ps != blank %}
+          <div class="footer-cat-sub"><h4 class="footer-cat-subtitle">Na szkle</h4><ul class="footer-collections-list footer-collections-list--compact">{{ b_ps }}</ul></div>
+        {% endif %}
+        {% if b_pp != blank %}
+          <div class="footer-cat-sub"><h4 class="footer-cat-subtitle">Na płótnie</h4><ul class="footer-collections-list footer-collections-list--compact">{{ b_pp }}</ul></div>
+        {% endif %}
+        {% if b_pl != blank %}
+          <div class="footer-cat-sub"><h4 class="footer-cat-subtitle">Plakat</h4><ul class="footer-collections-list footer-collections-list--compact">{{ b_pl }}</ul></div>
+        {% endif %}
       </section>
 
       <section class="footer-cat-block" aria-labelledby="footer-cat-osoba">
         <h3 class="footer-cat-title" id="footer-cat-osoba">Dla kogo</h3>
-        {% assign osoba_rows = 'niej|Dla niej,zona|Dla żony,babcia|Dla babci,dziadek|Dla dziadka,niego|Dla niego,dziecko|Dla dziecka,rodzice|Dla rodziców,para|Dla pary' | split: ',' %}
-        {% for row in osoba_rows %}
-          {% assign parts = row | split: '|' %}
-          {% assign slug = parts[0] | strip %}
-          {% assign label = parts[1] | strip %}
-          {% assign want = 'osoba:' | append: slug %}
-          {% capture sub_html %}
-            {% for collection in collections %}
-              {% assign h = collection.handle %}
-              {% unless h == 'all' or h == 'see_also' or h == 'hidden' or h contains 'hidden' %}
-                {% assign fk = collection.metafields.customify.footer_kategoria.value | default: collection.metafields.customify.footer_kategoria | strip %}
-                {% if fk == want %}
-                  <li class="footer-collections-item"><a href="{{ collection.url }}" class="footer-collections-link">{{ collection.title | escape }}</a></li>
-                {% endif %}
-              {% endunless %}
-            {% endfor %}
-          {% endcapture %}
-          {% assign sub_html = sub_html | strip %}
-          {% if sub_html != blank %}
-            <div class="footer-cat-sub">
-              <h4 class="footer-cat-subtitle">{{ label }}</h4>
-              <ul class="footer-collections-list footer-collections-list--compact">{{ sub_html }}</ul>
-            </div>
-          {% endif %}
-        {% endfor %}
+        {% if b_on != blank %}
+          <div class="footer-cat-sub"><h4 class="footer-cat-subtitle">Dla niej</h4><ul class="footer-collections-list footer-collections-list--compact">{{ b_on }}</ul></div>
+        {% endif %}
+        {% if b_oz != blank %}
+          <div class="footer-cat-sub"><h4 class="footer-cat-subtitle">Dla żony</h4><ul class="footer-collections-list footer-collections-list--compact">{{ b_oz }}</ul></div>
+        {% endif %}
+        {% if b_ob != blank %}
+          <div class="footer-cat-sub"><h4 class="footer-cat-subtitle">Dla babci</h4><ul class="footer-collections-list footer-collections-list--compact">{{ b_ob }}</ul></div>
+        {% endif %}
+        {% if b_od != blank %}
+          <div class="footer-cat-sub"><h4 class="footer-cat-subtitle">Dla dziadka</h4><ul class="footer-collections-list footer-collections-list--compact">{{ b_od }}</ul></div>
+        {% endif %}
+        {% if b_oni != blank %}
+          <div class="footer-cat-sub"><h4 class="footer-cat-subtitle">Dla niego</h4><ul class="footer-collections-list footer-collections-list--compact">{{ b_oni }}</ul></div>
+        {% endif %}
+        {% if b_odz != blank %}
+          <div class="footer-cat-sub"><h4 class="footer-cat-subtitle">Dla dziecka</h4><ul class="footer-collections-list footer-collections-list--compact">{{ b_odz }}</ul></div>
+        {% endif %}
+        {% if b_or != blank %}
+          <div class="footer-cat-sub"><h4 class="footer-cat-subtitle">Dla rodziców</h4><ul class="footer-collections-list footer-collections-list--compact">{{ b_or }}</ul></div>
+        {% endif %}
+        {% if b_op != blank %}
+          <div class="footer-cat-sub"><h4 class="footer-cat-subtitle">Dla pary</h4><ul class="footer-collections-list footer-collections-list--compact">{{ b_op }}</ul></div>
+        {% endif %}
       </section>
 
       <section class="footer-cat-block" aria-labelledby="footer-cat-okazja">
         <h3 class="footer-cat-title" id="footer-cat-okazja">Na okazję</h3>
-        {% assign okazja_rows = 'urodziny|Urodziny,swieta|Święta,walentynki|Walentynki,rocznica|Rocznica,imieniny|Imieniny,slub|Ślub,komunia|Komunia,dzien_matki|Dzień Matki,dzien_ojca|Dzień Ojca,dzien_kobiet|Dzień Kobiet,wielkanoc|Wielkanoc,inne|Inne okazje' | split: ',' %}
-        {% for row in okazja_rows %}
-          {% assign parts = row | split: '|' %}
-          {% assign slug = parts[0] | strip %}
-          {% assign label = parts[1] | strip %}
-          {% assign want = 'okazja:' | append: slug %}
-          {% capture sub_html %}
-            {% for collection in collections %}
-              {% assign h = collection.handle %}
-              {% unless h == 'all' or h == 'see_also' or h == 'hidden' or h contains 'hidden' %}
-                {% assign fk = collection.metafields.customify.footer_kategoria.value | default: collection.metafields.customify.footer_kategoria | strip %}
-                {% if fk == want %}
-                  <li class="footer-collections-item"><a href="{{ collection.url }}" class="footer-collections-link">{{ collection.title | escape }}</a></li>
-                {% endif %}
-              {% endunless %}
-            {% endfor %}
-          {% endcapture %}
-          {% assign sub_html = sub_html | strip %}
-          {% if sub_html != blank %}
-            <div class="footer-cat-sub">
-              <h4 class="footer-cat-subtitle">{{ label }}</h4>
-              <ul class="footer-collections-list footer-collections-list--compact">{{ sub_html }}</ul>
-            </div>
-          {% endif %}
-        {% endfor %}
+        {% if b_ou != blank %}
+          <div class="footer-cat-sub"><h4 class="footer-cat-subtitle">Urodziny</h4><ul class="footer-collections-list footer-collections-list--compact">{{ b_ou }}</ul></div>
+        {% endif %}
+        {% if b_os != blank %}
+          <div class="footer-cat-sub"><h4 class="footer-cat-subtitle">Święta</h4><ul class="footer-collections-list footer-collections-list--compact">{{ b_os }}</ul></div>
+        {% endif %}
+        {% if b_ow != blank %}
+          <div class="footer-cat-sub"><h4 class="footer-cat-subtitle">Walentynki</h4><ul class="footer-collections-list footer-collections-list--compact">{{ b_ow }}</ul></div>
+        {% endif %}
+        {% if b_oro != blank %}
+          <div class="footer-cat-sub"><h4 class="footer-cat-subtitle">Rocznica</h4><ul class="footer-collections-list footer-collections-list--compact">{{ b_oro }}</ul></div>
+        {% endif %}
+        {% if b_oi != blank %}
+          <div class="footer-cat-sub"><h4 class="footer-cat-subtitle">Imieniny</h4><ul class="footer-collections-list footer-collections-list--compact">{{ b_oi }}</ul></div>
+        {% endif %}
+        {% if b_ok != blank %}
+          <div class="footer-cat-sub"><h4 class="footer-cat-subtitle">Ślub / Komunia</h4><ul class="footer-collections-list footer-collections-list--compact">{{ b_ok }}</ul></div>
+        {% endif %}
+        {% if b_odm != blank %}
+          <div class="footer-cat-sub"><h4 class="footer-cat-subtitle">Dzień Matki</h4><ul class="footer-collections-list footer-collections-list--compact">{{ b_odm }}</ul></div>
+        {% endif %}
+        {% if b_odo != blank %}
+          <div class="footer-cat-sub"><h4 class="footer-cat-subtitle">Dzień Ojca</h4><ul class="footer-collections-list footer-collections-list--compact">{{ b_odo }}</ul></div>
+        {% endif %}
+        {% if b_odk != blank %}
+          <div class="footer-cat-sub"><h4 class="footer-cat-subtitle">Dzień Kobiet</h4><ul class="footer-collections-list footer-collections-list--compact">{{ b_odk }}</ul></div>
+        {% endif %}
+        {% if b_owi != blank %}
+          <div class="footer-cat-sub"><h4 class="footer-cat-subtitle">Wielkanoc</h4><ul class="footer-collections-list footer-collections-list--compact">{{ b_owi }}</ul></div>
+        {% endif %}
+        {% if b_oi2 != blank %}
+          <div class="footer-cat-sub"><h4 class="footer-cat-subtitle">Inne okazje</h4><ul class="footer-collections-list footer-collections-list--compact">{{ b_oi2 }}</ul></div>
+        {% endif %}
       </section>
 
     </div>
-
-    {% capture unc_html %}
-      {% for collection in collections %}
-        {% assign h = collection.handle %}
-        {% unless h == 'all' or h == 'see_also' or h == 'hidden' or h contains 'hidden' %}
-          {% assign fk = collection.metafields.customify.footer_kategoria.value | default: collection.metafields.customify.footer_kategoria | strip %}
-          {% if fk == blank %}
-            <li class="footer-collections-item"><a href="{{ collection.url }}" class="footer-collections-link">{{ collection.title | escape }}</a></li>
-          {% endif %}
-        {% endunless %}
-      {% endfor %}
-    {% endcapture %}
-    {% assign unc_html = unc_html | strip %}
-    {% if unc_html != blank %}
-      <div class="footer-cat-uncategorized">
-        <h3 class="footer-cat-title">Bez kategorii</h3>
-        <ul class="footer-collections-list">{{ unc_html }}</ul>
-      </div>
-    {% endif %}
-
   </div>
 </nav>
 {% endunless %}

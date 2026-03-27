@@ -1,0 +1,71 @@
+{%- comment -%}
+  Wyjście: produkt:* | osoba:* | okazja:* — heurystyka z handle/tytułu; metafield customify.footer_kategoria opcjonalnie nadpisuje.
+{%- endcomment -%}
+{%- liquid
+  assign mf = collection.metafields.customify.footer_kategoria.value | default: collection.metafields.customify.footer_kategoria | strip
+  assign raw = collection.handle | append: ' ' | append: collection.title | downcase | replace: '-', ' ' | replace: '_', ' '
+  assign fk = ''
+
+  if mf != blank
+    assign fk = mf
+  endif
+
+  if fk == blank
+    if raw contains 'szklo' or raw contains 'szkle' or raw contains 'szkła' or raw contains 'na szkle'
+      assign fk = 'produkt:szklo'
+    elsif raw contains 'plotno' or raw contains 'płót' or raw contains 'plotnie' or raw contains 'plotna'
+      assign fk = 'produkt:plotno'
+    elsif raw contains 'plakat'
+      assign fk = 'produkt:plakat'
+    endif
+  endif
+
+  if fk == blank
+    if raw contains 'dla-niej' or raw contains 'dla niej' or raw contains 'dla_niej' or raw contains 'dlaniej'
+      assign fk = 'osoba:niej'
+    elsif raw contains 'dla-zony' or raw contains 'dla zony' or raw contains 'dla żony'
+      assign fk = 'osoba:zona'
+    elsif raw contains 'babci' or raw contains 'dla babci'
+      assign fk = 'osoba:babcia'
+    elsif raw contains 'dziadka' or raw contains 'dla dziadka'
+      assign fk = 'osoba:dziadek'
+    elsif raw contains 'dla-niego' or raw contains 'dla niego' or raw contains 'dla_niego'
+      assign fk = 'osoba:niego'
+    elsif raw contains 'dziecka' or raw contains 'dziecko' or raw contains 'dla dziecka'
+      assign fk = 'osoba:dziecko'
+    elsif raw contains 'rodzic' or raw contains 'dla rodzic'
+      assign fk = 'osoba:rodzice'
+    elsif raw contains 'dla pary' or raw contains 'dla-pary'
+      assign fk = 'osoba:para'
+    endif
+  endif
+
+  if fk == blank
+    if raw contains 'urodzin'
+      assign fk = 'okazja:urodziny'
+    elsif raw contains 'wielkanoc'
+      assign fk = 'okazja:wielkanoc'
+    elsif raw contains 'walentyn'
+      assign fk = 'okazja:walentynki'
+    elsif raw contains 'rocznic'
+      assign fk = 'okazja:rocznica'
+    elsif raw contains 'imienin'
+      assign fk = 'okazja:imieniny'
+    elsif raw contains 'slub' or raw contains 'ślub' or raw contains 'wesele'
+      assign fk = 'okazja:slub'
+    elsif raw contains 'komunii' or raw contains 'komunia'
+      assign fk = 'okazja:komunia'
+    elsif raw contains 'dzien matki' or raw contains 'dzien-matki'
+      assign fk = 'okazja:dzien_matki'
+    elsif raw contains 'dzien ojca' or raw contains 'dzien-ojca'
+      assign fk = 'okazja:dzien_ojca'
+    elsif raw contains 'dzien kobiet' or raw contains 'dzien-kobiet'
+      assign fk = 'okazja:dzien_kobiet'
+    elsif raw contains 'swiat' or raw contains 'świąt' or raw contains 'swieta' or raw contains 'boze narodzenie' or raw contains 'gwiazd' or raw contains 'choink'
+      assign fk = 'okazja:swieta'
+    else
+      assign fk = 'okazja:inne'
+    endif
+  endif
+-%}
+{{- fk -}}

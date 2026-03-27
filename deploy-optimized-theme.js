@@ -179,15 +179,21 @@ async function deployOptimizedTheme() {
       if (phoneCaseCartResponse.ok) console.log('✅ phone-case-cart.liquid wdrożony pomyślnie!');
     }
 
-    const footerCollectionsPath = path.join(__dirname, 'shopify-theme/customify-theme/snippets/footer-collections-links.liquid');
-    if (fs.existsSync(footerCollectionsPath)) {
-      const footerCollectionsContent = fs.readFileSync(footerCollectionsPath, 'utf8');
-      const footerCollectionsResponse = await fetch('https://customify-s56o.vercel.app/api/update-theme-simple', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ themeContent: footerCollectionsContent, fileName: 'snippets/footer-collections-links.liquid' })
-      });
-      if (footerCollectionsResponse.ok) console.log('✅ footer-collections-links.liquid wdrożony pomyślnie!');
+    const footerSnippets = [
+      'footer-collections-links.liquid',
+      'footer-collection-category.liquid'
+    ];
+    for (const name of footerSnippets) {
+      const fp = path.join(__dirname, 'shopify-theme/customify-theme/snippets', name);
+      if (fs.existsSync(fp)) {
+        const content = fs.readFileSync(fp, 'utf8');
+        const res = await fetch('https://customify-s56o.vercel.app/api/update-theme-simple', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ themeContent: content, fileName: 'snippets/' + name })
+        });
+        if (res.ok) console.log('✅', name, 'wdrożony pomyślnie!');
+      }
     }
     
     // Wdróż main-my-generations.liquid
