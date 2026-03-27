@@ -10145,6 +10145,11 @@ setInterval(fixDialogImages, 300);
  if (!inlineSlot.contains(productTypeArea)) {
  inlineSlot.appendChild(productTypeArea);
  }
+ // Przenieś selektor pakietów cyfrowych (między typem a rozmiarem)
+ var pkgSelector = document.getElementById('digitalPackageSelector');
+ if (pkgSelector && !inlineSlot.contains(pkgSelector)) {
+ inlineSlot.appendChild(pkgSelector);
+ }
  if (!inlineSlot.contains(sizeArea)) {
  inlineSlot.appendChild(sizeArea);
  }
@@ -10153,6 +10158,11 @@ setInterval(fixDialogImages, 300);
  function moveBack() {
  if (productTypeArea && productTypeArea.parentElement !== originalPlaceholder.parentElement) {
  originalPlaceholder.parentNode.insertBefore(productTypeArea, originalPlaceholder);
+ }
+ // Cofnij selektor pakietów cyfrowych
+ var pkgSelector = document.getElementById('digitalPackageSelector');
+ if (pkgSelector && pkgSelector.parentElement !== originalPlaceholder.parentElement) {
+ originalPlaceholder.parentNode.insertBefore(pkgSelector, originalPlaceholder);
  }
  if (sizeArea && sizeArea.parentElement !== originalPlaceholder.parentElement) {
  originalPlaceholder.parentNode.insertBefore(sizeArea, originalPlaceholder);
@@ -10240,6 +10250,13 @@ setInterval(fixDialogImages, 300);
  sizeArea.style.display = 'block';
  console.log('📦 [DIGITAL] Size area shown for physical product');
  }
+ }
+
+ // Pokaż/ukryj selektor pakietów cyfrowych
+ var pkgSelector = document.getElementById('digitalPackageSelector');
+ if (pkgSelector) {
+ pkgSelector.style.display = isDigital ? 'block' : 'none';
+ console.log('📦 [DIGITAL] Package selector:', isDigital ? 'shown' : 'hidden');
  }
  }
  // 🚨 ROLLBACK: END - Funkcje dla produktu cyfrowego
