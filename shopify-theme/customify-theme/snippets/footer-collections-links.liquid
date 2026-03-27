@@ -1,6 +1,8 @@
 {% comment %}
   Kategorie z heurystyki (handle + tytuł). Metafield customify.footer_kategoria opcjonalnie nadpisuje.
+  Ukryte w stopce (tytuł dokładnie jak w adminie):
 {% endcomment %}
+{%- assign footer_hidden_collection_titles = 'Obraz ze zdjęcia|Personalizowany prezent|Personalizowany prezent ze zdjęcia|Portret Pary ze zdjęcia' | split: '|' -%}
 {% unless template == 'cart' %}
 {%- liquid
   assign b_ps = ''
@@ -47,6 +49,10 @@
   assign b_oi2 = ''
 -%}
 {% for collection in collections %}
+  {% assign ct = collection.title | strip %}
+  {% if footer_hidden_collection_titles contains ct %}
+    {% continue %}
+  {% endif %}
   {% assign h = collection.handle %}
   {% unless h == 'all' or h == 'see_also' or h == 'hidden' or h contains 'hidden' %}
     {% capture fk %}{% render 'footer-collection-category', collection: collection %}{% endcapture %}
