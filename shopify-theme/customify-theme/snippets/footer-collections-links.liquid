@@ -45,6 +45,8 @@
   assign b_odm = ''
   assign b_odo = ''
   assign b_odk = ''
+  assign b_okbabci = ''
+  assign b_okdziadka = ''
   assign b_owi = ''
   assign b_oi2 = ''
 -%}
@@ -139,6 +141,10 @@
         {% assign b_odo = b_odo | append: li %}
       {% when 'okazja:dzien_kobiet' %}
         {% assign b_odk = b_odk | append: li %}
+      {% when 'okazja:dzien_babci' %}
+        {% assign b_okbabci = b_okbabci | append: li %}
+      {% when 'okazja:dzien_dziadka' %}
+        {% assign b_okdziadka = b_okdziadka | append: li %}
       {% when 'okazja:wielkanoc' %}
         {% assign b_owi = b_owi | append: li %}
       {% when 'okazja:inne' %}
@@ -285,6 +291,12 @@
         {% endif %}
         {% if b_odk != blank %}
           <div class="footer-cat-sub"><h4 class="footer-cat-subtitle">Dzień Kobiet</h4><ul class="footer-collections-list footer-collections-list--compact">{{ b_odk }}</ul></div>
+        {% endif %}
+        {% if b_okbabci != blank %}
+          <div class="footer-cat-sub"><h4 class="footer-cat-subtitle">Dzień Babci</h4><ul class="footer-collections-list footer-collections-list--compact">{{ b_okbabci }}</ul></div>
+        {% endif %}
+        {% if b_okdziadka != blank %}
+          <div class="footer-cat-sub"><h4 class="footer-cat-subtitle">Dzień Dziadka</h4><ul class="footer-collections-list footer-collections-list--compact">{{ b_okdziadka }}</ul></div>
         {% endif %}
         {% if b_owi != blank %}
           <div class="footer-cat-sub"><h4 class="footer-cat-subtitle">Wielkanoc</h4><ul class="footer-collections-list footer-collections-list--compact">{{ b_owi }}</ul></div>

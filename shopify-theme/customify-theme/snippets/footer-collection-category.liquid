@@ -20,16 +20,25 @@
     endif
   endif
 
+  # na Dzień Babci / Dziadka — okazja; musi być przed „dla babci/dziadka”
+  if fk == blank
+    if raw contains 'dzień babci' or raw contains 'dzien babci' or raw contains 'na dzień babci' or raw contains 'na dzien babci' or raw contains 'dzien-babci'
+      assign fk = 'okazja:dzien_babci'
+    elsif raw contains 'dzień dziadka' or raw contains 'dzien dziadka' or raw contains 'na dzień dziadka' or raw contains 'na dzien dziadka' or raw contains 'dzien-dziadka'
+      assign fk = 'okazja:dzien_dziadka'
+    endif
+  endif
+
   if fk == blank
     if raw contains 'dla-niej' or raw contains 'dla niej' or raw contains 'dla_niej' or raw contains 'dlaniej'
       assign fk = 'osoba:niej'
     elsif raw contains 'dla-zony' or raw contains 'dla zony' or raw contains 'dla żony'
       assign fk = 'osoba:zona'
-    elsif raw contains 'babci' or raw contains 'dla babci'
+    elsif raw contains 'dla babci' or raw contains 'dla-babci' or raw contains 'prezent dla babci'
       assign fk = 'osoba:babcia'
     elsif raw contains 'dziadkow' or raw contains 'dziadków' or raw contains 'dla dziadkow' or raw contains 'dla dziadków'
       assign fk = 'osoba:dziadkowie'
-    elsif raw contains 'dziadka' or raw contains 'dla dziadka'
+    elsif raw contains 'dla dziadka' or raw contains 'dla-dziadka'
       assign fk = 'osoba:dziadek'
     elsif raw contains 'kolegi z pracy' or raw contains 'kolegi-z-pracy'
       assign fk = 'osoba:kolega'
