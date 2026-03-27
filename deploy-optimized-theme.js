@@ -181,7 +181,8 @@ async function deployOptimizedTheme() {
 
     const footerSnippets = [
       'footer-collections-links.liquid',
-      'footer-collection-category.liquid'
+      'footer-collection-category.liquid',
+      'footer-cat-sub.liquid'
     ];
     for (const name of footerSnippets) {
       const fp = path.join(__dirname, 'shopify-theme/customify-theme/snippets', name);

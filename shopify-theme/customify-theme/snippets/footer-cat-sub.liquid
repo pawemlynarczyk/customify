@@ -1,0 +1,19 @@
+{% comment %}
+  body = sam HTML <li>… wewnątrz ul. heading = tekst nagłówka.
+  Jeden link i ten sam tekst co nagłówek → bez h4 (tylko lista).
+{% endcomment %}
+{%- if body != blank -%}
+  {%- assign _parts = body | split: 'class="footer-collections-link">' -%}
+  {%- assign _n = _parts.size | minus: 1 -%}
+  {%- assign _first = _parts[1] | split: '</a>' | first | strip_html | strip -%}
+  {%- assign _h = heading | strip | downcase -%}
+  {%- assign _f = _first | downcase -%}
+  {%- assign _omit = false -%}
+  {%- if _n == 1 and _first != blank and _f == _h -%}
+    {%- assign _omit = true -%}
+  {%- endif -%}
+<div class="footer-cat-sub">
+  {%- unless _omit -%}<h4 class="footer-cat-subtitle">{{ heading }}</h4>{%- endunless -%}
+  <ul class="footer-collections-list footer-collections-list--compact">{{ body }}</ul>
+</div>
+{%- endif -%}
