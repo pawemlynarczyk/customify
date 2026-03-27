@@ -1,7 +1,7 @@
 {% comment %}
   body = sam HTML <li>… wewnątrz ul. heading = tekst nagłówka.
-  Jeden link: bez h4 gdy tekst linku = nagłówek (po downcase) LUB
-  nagłówek „Dla …” a link „Prezent dla …” (ta sama resztka).
+  Jeden link: bez h4 gdy nagłówek i link znaczą to samo (identycznie, Dla↔Prezent dla,
+  Dzień X↔Prezent na Dzień X, Ślub/Komunia↔prezent na ślub lub komun).
 {% endcomment %}
 {%- if body != blank -%}
   {%- assign _parts = body | split: 'class="footer-collections-link">' -%}
@@ -20,6 +20,15 @@
         {%- if _f == _expect -%}
           {%- assign _omit = true -%}
         {%- endif -%}
+      {%- endif -%}
+    {%- elsif _h contains 'dzień' -%}
+      {%- assign _expect = 'prezent na ' | append: _h -%}
+      {%- if _f == _expect -%}
+        {%- assign _omit = true -%}
+      {%- endif -%}
+    {%- elsif _h contains 'ślub' and _h contains 'komun' -%}
+      {%- if _f contains 'prezent na' and (_f contains 'ślub' or _f contains 'komun') -%}
+        {%- assign _omit = true -%}
       {%- endif -%}
     {%- endif -%}
   {%- endif -%}
