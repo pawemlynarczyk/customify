@@ -4,6 +4,44 @@ const { kv } = require('@vercel/kv');
 
 const SHOP_DOMAIN = process.env.SHOPIFY_STORE_DOMAIN || 'customify-ok.myshopify.com';
 
+// Znajdź klienta po emailu lub utwórz nowe konto (dla niezalogowanych kupujących pakiety)
+async function findOrCreateCustomerByEmail(email, firstName, accessToken, shop) {
+  // 1. Szukaj po emailu
+  const searchRes = await fetch(`https://${shop}/admin/api/2024-01/customers/search.json?query=email:${encodeURIComponent(email)}&limit=1`, {
+    headers: { 'X-Shopify-Access-Token': accessToken }
+  });
+  if (searchRes.ok) {
+    const searchData = await searchRes.json();
+    if (searchData.customers && searchData.customers.length > 0) {
+      console.log(`💳 [ORDER-PAID-WEBHOOK] Found existing customer: ${searchData.customers[0].id}`);
+      return searchData.customers[0].id;
+    }
+  }
+
+  // 2. Utwórz nowe konto (bez hasła – Shopify wyśle email aktywacyjny)
+  const createRes = await fetch(`https://${shop}/admin/api/2024-01/customers.json`, {
+    method: 'POST',
+    headers: { 'X-Shopify-Access-Token': accessToken, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      customer: {
+        email,
+        first_name: firstName || '',
+        send_email_invite: true, // Shopify wyśle email "aktywuj konto"
+        verified_email: true
+      }
+    })
+  });
+
+  if (createRes.ok) {
+    const createData = await createRes.json();
+    console.log(`💳 [ORDER-PAID-WEBHOOK] Created new customer: ${createData.customer?.id} for ${email}`);
+    return createData.customer?.id;
+  }
+
+  console.error('❌ [ORDER-PAID-WEBHOOK] Failed to find or create customer for:', email);
+  return null;
+}
+
 // Mapa: etykieta wariantu → liczba kredytów
 const CREDITS_VARIANT_MAP = {
   '3': 3, '3 kredyty': 3, '3 kredyty - 89 zł': 3,
@@ -351,6 +389,20 @@ Zespół Customify
                     console.log('✅ [ORDER-PAID-WEBHOOK] Digital product marked as fulfilled');
                   } else {
                     console.error('⚠️ [ORDER-PAID-WEBHOOK] Failed to mark digital product as fulfilled');
+                  }
+
+                  // 💳 KREDYTY: Jeśli pakiet > 1 plik → dodaj pozostałe kredyty na konto
+                  const creditsToAdd = orderDetails.creditsToAdd || 0;
+                  if (creditsToAdd > 0 && order.email) {
+                    try {
+                      const customerId = await findOrCreateCustomerByEmail(order.email, order.customer?.first_name, accessToken, shop);
+                      if (customerId) {
+                        await addCreditsToCustomer(customerId, creditsToAdd);
+                        console.log(`💳 [ORDER-PAID-WEBHOOK] Added ${creditsToAdd} credits to customer ${customerId} (${order.email})`);
+                      }
+                    } catch (creditsError) {
+                      console.error('❌ [ORDER-PAID-WEBHOOK] Failed to add credits (non-fatal):', creditsError.message);
+                    }
                   }
                 } else {
                   console.error('❌ [ORDER-PAID-WEBHOOK] Missing download URL or customer email');

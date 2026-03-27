@@ -121,7 +121,8 @@ module.exports = async (req, res) => {
     frameColor, // ✅ Informacja o ramce (plakat)
     frameSurcharge, // ✅ Dopłata za ramkę (plakat)
     standType, // 🆕 Informacja o podstawce (szkło)
-    standSurcharge // 🆕 Dopłata za podstawkę (szkło)
+    standSurcharge, // 🆕 Dopłata za podstawkę (szkło)
+    digitalPackage // 🆕 Pakiet plików cyfrowych (1/3/5/10)
   } = req.body;
 
   console.log('💰 [PRODUCTS.JS] Price data received:', {
@@ -170,8 +171,10 @@ module.exports = async (req, res) => {
     
     // Dla produktu cyfrowy: ZAWSZE 49 zł, niezależnie od ceny bazowej produktu
     if (isDigitalProduct) {
-      totalPrice = 49.00; // 🚨 ROLLBACK: Stała cena produktu cyfrowego
-      console.log('💰 [PRODUCTS.JS] Digital product - using fixed price: 49.00 zł (ignoring base price)');
+      const DIGITAL_PACKAGE_PRICES = { 1: 49, 3: 89, 5: 149, 10: 199 };
+      const pkgCount = parseInt(digitalPackage, 10) || 1;
+      totalPrice = DIGITAL_PACKAGE_PRICES[pkgCount] || 49.00;
+      console.log(`💰 [PRODUCTS.JS] Digital product - package: ${pkgCount}, price: ${totalPrice} zł`);
     } else if (finalPrice && finalPrice > 0) {
       // Produkt fizyczny: użyj ceny z frontendu (już obliczonej z rozmiarem)
       totalPrice = finalPrice;
@@ -223,7 +226,9 @@ module.exports = async (req, res) => {
     let productTypeName, sizeName;
     
     if (isDigitalProduct) {
-      productTypeName = 'Plik cyfrowy do pobrania';
+      const pkgCount = parseInt(digitalPackage, 10) || 1;
+      const pkgLabel = pkgCount === 1 ? '1 plik' : pkgCount <= 4 ? `${pkgCount} pliki` : `${pkgCount} plików`;
+      productTypeName = pkgCount > 1 ? `Plik cyfrowy – pakiet ${pkgLabel}` : 'Plik cyfrowy do pobrania';
       sizeName = 'Plik do pobrania';
     } else if (productType === 'etui') {
       productTypeName = 'Etui na telefon z Twoim zdjęciem';
@@ -668,11 +673,14 @@ module.exports = async (req, res) => {
         createdAt: new Date().toISOString()
       };
 
-      // Dla produktu cyfrowego - dodaj URL do pobrania
+      // Dla produktu cyfrowego - dodaj URL do pobrania i dane pakietu
       if (isDigitalProduct) {
+        const pkgCount = parseInt(digitalPackage, 10) || 1;
         orderDetails.digitalDownloadUrl = permanentImageUrl; // URL do pliku cyfrowego (BEZ watermarku)
         orderDetails.isDigital = true;
-        console.log('📦 [PRODUCTS.JS] Digital product - download URL saved:', permanentImageUrl);
+        orderDetails.digitalPackage = pkgCount;
+        orderDetails.creditsToAdd = Math.max(0, pkgCount - 1); // Pozostałe kredyty po pierwszym pobraniu
+        console.log(`📦 [PRODUCTS.JS] Digital product - package: ${pkgCount}, creditsToAdd: ${orderDetails.creditsToAdd}, downloadUrl: ${permanentImageUrl}`);
       }
       // 🚨 ROLLBACK: END - Metafields dla produktu cyfrowego
 

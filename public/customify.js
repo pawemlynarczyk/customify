@@ -10315,6 +10315,57 @@ setInterval(fixDialogImages, 300);
  }
  }
  
+ // === PAKIETY CYFROWE ===
+ window.CustomifyDigitalPackage = window.CustomifyDigitalPackage || { count: 1, price: 49 };
+
+ var DIGITAL_PACKAGE_PRICES = { 1: 49, 3: 89, 5: 149, 10: 199 };
+
+ function isDigitalSelected() {
+ var active = productTypeArea && productTypeArea.querySelector('.customify-product-type-btn.active');
+ return active && active.getAttribute('data-product-type') === 'digital';
+ }
+
+ function setDigitalPackage(count) {
+ count = parseInt(count, 10) || 1;
+ window.CustomifyDigitalPackage.count = count;
+ window.CustomifyDigitalPackage.price = DIGITAL_PACKAGE_PRICES[count] || 49;
+
+ // Aktualizuj active na przyciskach
+ var pkgBtns = document.querySelectorAll('.digital-package-btn');
+ pkgBtns.forEach(function(btn) {
+ btn.classList.toggle('active', parseInt(btn.getAttribute('data-package'), 10) === count);
+ });
+
+ // Odśwież ceny w UI
+ if (window.__customify) {
+ window.__customify.updateProductPrice();
+ window.__customify.updateCartPrice();
+ }
+ }
+
+ function updateDigitalPackageSelector() {
+ var el = document.getElementById('digitalPackageSelector');
+ if (!el) return;
+ el.style.display = isDigitalSelected() ? 'block' : 'none';
+ }
+
+ function initDigitalPackageSelector() {
+ var el = document.getElementById('digitalPackageSelector');
+ if (!el) return;
+
+ // Obsługa kliknięcia w pakiet
+ el.addEventListener('click', function(e) {
+ var btn = e.target.closest('.digital-package-btn');
+ if (!btn) return;
+ setDigitalPackage(btn.getAttribute('data-package'));
+ });
+
+ // Ustaw domyślny (1 plik) i pokaż/ukryj
+ setDigitalPackage(1);
+ updateDigitalPackageSelector();
+ }
+ // === KONIEC PAKIETY CYFROWE ===
+
  function updateStandAvailability() {
  var enabled = isSzkloSelected();
  
@@ -10372,6 +10423,7 @@ setInterval(fixDialogImages, 300);
  updateFrameAvailability();
  updateStandAvailability();
  updateSizeAvailability();
+ initDigitalPackageSelector();
  // 🚨 ROLLBACK: START - Inicjalizacja UI produktu cyfrowego
  updateDigitalProductUI();
  // 🚨 ROLLBACK: END - Inicjalizacja UI produktu cyfrowego
@@ -10435,6 +10487,7 @@ setInterval(fixDialogImages, 300);
  updateFrameAvailability();
  updateStandAvailability(); // 🆕 Aktualizuj dostępność podstawki
  updateSizeAvailability(); // 🆕 Aktualizuj widoczność rozmiarów
+ updateDigitalPackageSelector(); // 🆕 Pakiety cyfrowe
  // 🚨 ROLLBACK: START - Aktualizuj UI produktu cyfrowego
  updateDigitalProductUI();
  // 🚨 ROLLBACK: END - Aktualizuj UI produktu cyfrowego

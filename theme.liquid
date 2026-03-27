@@ -646,12 +646,12 @@ event.preventDefault();
  try {
  const isDigitalProduct = this.selectedProductType === 'digital';
  
- // Dla produktu cyfrowego: ZAWSZE 49 zł, NIE sumuj z ceną bazową
+ // Dla produktu cyfrowego: cena zależna od pakietu
  if (isDigitalProduct) {
- const digitalProductPrice = 49.00; // 🚨 ROLLBACK: Stała cena produktu cyfrowego
+ const digitalProductPrice = (window.CustomifyDigitalPackage && window.CustomifyDigitalPackage.price) || 49.00;
  this.applyProductPriceDisplay(digitalProductPrice);
  this.schedulePriceConsistency(digitalProductPrice);
- console.log('💰 [PRICE] Digital product - fixed price: 49.00 zł (ignoring base price)');
+ console.log('💰 [PRICE] Digital product - package price:', digitalProductPrice, 'zł');
  return;
  }
  
@@ -716,14 +716,14 @@ event.preventDefault();
  try {
  const isDigitalProduct = this.selectedProductType === 'digital';
  
- // Dla produktu cyfrowego: ZAWSZE 49 zł, NIE sumuj z ceną bazową
+ // Dla produktu cyfrowego: cena zależna od pakietu
  if (isDigitalProduct) {
- const digitalProductPrice = 49.00; // 🚨 ROLLBACK: Stała cena produktu cyfrowego
+ const digitalProductPrice = (window.CustomifyDigitalPackage && window.CustomifyDigitalPackage.price) || 49.00;
  const cartPriceElement = document.getElementById('cartPriceValue');
  
  if (cartPriceElement) {
  cartPriceElement.textContent = `${digitalProductPrice.toFixed(2)} zł`;
- console.log('✅ [CART-PRICE] Digital product - fixed price: 49.00 zł (ignoring base price)');
+ console.log('✅ [CART-PRICE] Digital product - package price:', digitalProductPrice, 'zł');
  this.showCartPrice();
  } else {
  console.warn('⚠️ [CART-PRICE] Cart price element not found');
@@ -898,15 +898,14 @@ event.preventDefault();
  }
  // 🚨 ROLLBACK: END - Pomijaj rozmiar dla produktu cyfrowego i etui
 
- // 🚨 ROLLBACK: START - Cena dla produktu cyfrowego (STAŁA 49 zł, NIE sumuje się z ceną bazową)
+ // 🚨 ROLLBACK: START - Cena dla produktu cyfrowego (zależna od pakietu)
  const isDigitalProductForPrice = this.selectedProductType === 'digital';
- const digitalProductPrice = 49.00; // 🚨 ROLLBACK: Stała cena produktu cyfrowego
  
  let finalPrice;
  if (isDigitalProductForPrice) {
- // Produkt cyfrowy: ZAWSZE 49 zł, NIE zależy od ceny bazowej produktu
- finalPrice = digitalProductPrice;
- console.log('💰 [CUSTOMIFY] Digital product - using fixed price: 49.00 zł (ignoring base price)');
+ // Produkt cyfrowy: cena zależna od wybranego pakietu (1/3/5/10 plików)
+ finalPrice = (window.CustomifyDigitalPackage && window.CustomifyDigitalPackage.price) || 49.00;
+ console.log('💰 [CUSTOMIFY] Digital product - package price:', finalPrice, 'zł', '| package:', window.CustomifyDigitalPackage?.count || 1);
  } else {
  // Produkt fizyczny: cena bazowa + rozmiar + ramka + podstawka
  const basePrice = this.originalBasePrice || 49.00;
@@ -1100,7 +1099,8 @@ event.preventDefault();
  frameColor: selectedFrame, // ✅ Ramka (plakat)
  frameSurcharge: frameSurcharge, // ✅ Dopłata za ramkę
  standType: selectedStand, // 🆕 Podstawka (szkło)
- standSurcharge: standSurcharge // 🆕 Dopłata za podstawkę
+ standSurcharge: standSurcharge, // 🆕 Dopłata za podstawkę
+ digitalPackage: isDigitalProduct ? ((window.CustomifyDigitalPackage && window.CustomifyDigitalPackage.count) || 1) : null
  };
 
  console.log('🛒 [CUSTOMIFY] Creating product with data:', productData);
@@ -1217,6 +1217,10 @@ event.preventDefault();
  visibleProperties['Rozmiar'] = isDigitalProduct ? 'Plik do pobrania' : this.getSizeDimension(this.selectedSize);
  visibleProperties['Rodzaj wydruku'] = productTypeName;
  visibleProperties['Ramka'] = isDigitalProduct ? 'brak' : (this.selectedProductType === 'szklo' ? `podstawka - ${standLabelForRamka}` : `ramka - ${frameLabelForRamka}`);
+ if (isDigitalProduct) {
+ const pkgCount = (window.CustomifyDigitalPackage && window.CustomifyDigitalPackage.count) || 1;
+ visibleProperties['Pakiet plików'] = `${pkgCount} ${pkgCount === 1 ? 'plik' : pkgCount <= 4 ? 'pliki' : 'plików'}`;
+ }
  }
  // 🚨 ROLLBACK: END - Properties dla produktu cyfrowego i etui
 
@@ -2809,7 +2813,7 @@ try {
 
  {% if template contains 'collection' %}
  <div class="custom-collection-wrapper">
- <h1 class="custom-collection-title">{{ collection.title }}</h1>
+ {% comment %} Tytuł kolekcji jest w sekcji motywu (content_for_layout) — bez drugiego H1 tutaj, żeby uniknąć duplikatu. {% endcomment %}
  {% if collection.products_count > 0 %}
  {% if collection.handle == 'all' %}
  {% paginate collection.products by 1000 %}
@@ -3046,6 +3050,33 @@ Ramka: <span id="frameCurrentLabel">Brak ramki</span>
  </div>
  </div>
  </div>
+
+{% comment %} PAKIETY CYFROWE: pojawia się gdy user wybierze "Produkt cyfrowy" {% endcomment %}
+<div id="digitalPackageSelector" style="display: none; margin-bottom: 12px;">
+ <h4 style="text-align: left; font-size: 0.95rem; font-weight: 600; margin-bottom: 8px;">Ile plików cyfrowych?</h4>
+ <div class="digital-package-options">
+ <div class="digital-package-btn active" data-package="1" data-price="49">
+ <span class="pkg-count">1 plik</span>
+ <span class="pkg-price">49 zł</span>
+ </div>
+ <div class="digital-package-btn" data-package="3" data-price="89">
+ <span class="pkg-badge">POPULARNE</span>
+ <span class="pkg-count">3 pliki</span>
+ <span class="pkg-price">89 zł</span>
+ <span class="pkg-save">oszczędzasz 58 zł</span>
+ </div>
+ <div class="digital-package-btn" data-package="5" data-price="149">
+ <span class="pkg-count">5 plików</span>
+ <span class="pkg-price">149 zł</span>
+ <span class="pkg-save">oszczędzasz 96 zł</span>
+ </div>
+ <div class="digital-package-btn" data-package="10" data-price="199">
+ <span class="pkg-count">10 plików</span>
+ <span class="pkg-price">199 zł</span>
+ <span class="pkg-save">oszczędzasz 291 zł</span>
+ </div>
+ </div>
+</div>
 
 <div class="customify-size-selector{% if product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem' %} hide-for-phone-case{% endif %}" id="sizeArea" style="display: block; margin-bottom: 10px;">
 <h4 style="text-align: left;">Rozmiar (cm):</h4>
@@ -4722,10 +4753,54 @@ Dodać napis? Kliknij tutaj
  .stand-option-text {
  flex: 1;
  }
- .stand-selector.disabled {
+.stand-selector.disabled {
  opacity: 0.5;
  pointer-events: none;
- }
+}
+
+/* === PAKIETY CYFROWE === */
+.digital-package-options {
+ display: flex;
+ flex-wrap: wrap;
+ gap: 8px;
+ max-width: 450px;
+}
+.digital-package-btn {
+ position: relative;
+ display: flex;
+ flex-direction: column;
+ align-items: center;
+ justify-content: center;
+ padding: 10px 14px;
+ border: 2px solid #e0e0e0;
+ background: #fff;
+ cursor: pointer;
+ min-width: 90px;
+ text-align: center;
+ transition: border-color 0.15s, background 0.15s;
+ gap: 2px;
+}
+.digital-package-btn:hover { border-color: #999; }
+.digital-package-btn.active {
+ border-color: #1a1a1a;
+ background: #f8f8f8;
+}
+.pkg-count { font-size: 0.85rem; font-weight: 600; color: #222; }
+.pkg-price { font-size: 1rem; font-weight: 700; color: #1a1a1a; }
+.pkg-save { font-size: 0.7rem; color: #2e7d32; font-weight: 500; }
+.pkg-badge {
+ position: absolute;
+ top: -10px;
+ left: 50%;
+ transform: translateX(-50%);
+ background: #dc3545;
+ color: #fff;
+ font-size: 0.6rem;
+ font-weight: 700;
+ padding: 2px 6px;
+ white-space: nowrap;
+ letter-spacing: 0.5px;
+}
 
 {% if product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem' %}
 /* 📱 Etui - .hide-for-phone-case przeniesione do customify.css (ładowane w head, brak FOUC) */
