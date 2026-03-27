@@ -49,6 +49,7 @@
   assign b_odk = ''
   assign b_okbabci = ''
   assign b_okdziadka = ''
+  assign b_ocm = ''
   assign b_owi = ''
   assign b_oi2 = ''
 -%}
@@ -155,6 +156,8 @@
         {% assign b_okbabci = b_okbabci | append: li %}
       {% when 'okazja:dzien_dziadka' %}
         {% assign b_okdziadka = b_okdziadka | append: li %}
+      {% when 'okazja:dzien_chlopaka_mezczyzny' %}
+        {% assign b_ocm = b_ocm | append: li %}
       {% when 'okazja:wielkanoc' %}
         {% assign b_owi = b_owi | append: li %}
       {% when 'okazja:inne' %}
@@ -226,6 +229,7 @@
         {% render 'footer-cat-sub', body: b_odk, heading: 'Dzień Kobiet' %}
         {% render 'footer-cat-sub', body: b_okbabci, heading: 'Dzień Babci' %}
         {% render 'footer-cat-sub', body: b_okdziadka, heading: 'Dzień Dziadka' %}
+        {% render 'footer-cat-sub', body: b_ocm, heading: 'Dzień Chłopaka / Mężczyzny' %}
         {% render 'footer-cat-sub', body: b_owi, heading: 'Wielkanoc' %}
         {% render 'footer-cat-sub', body: b_oi2, heading: 'Inne okazje' %}
       </section>

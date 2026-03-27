@@ -26,6 +26,8 @@
       assign fk = 'okazja:dzien_babci'
     elsif raw contains 'dzień dziadka' or raw contains 'dzien dziadka' or raw contains 'na dzień dziadka' or raw contains 'na dzien dziadka' or raw contains 'dzien-dziadka'
       assign fk = 'okazja:dzien_dziadka'
+    elsif raw contains 'dzień chłopaka' or raw contains 'dzien chlopaka' or raw contains 'dzień mężczyzny' or raw contains 'dzien mezczyzny' or raw contains 'dzień mężczyzn' or raw contains 'dzien mezczyzn'
+      assign fk = 'okazja:dzien_chlopaka_mezczyzny'
     endif
   endif
 
