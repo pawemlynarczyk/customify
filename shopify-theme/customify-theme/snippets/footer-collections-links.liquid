@@ -38,6 +38,7 @@
   assign b_odz = ''
   assign b_or = ''
   assign b_op = ''
+  assign b_tesci = ''
   assign b_ou = ''
   assign b_os = ''
   assign b_ow = ''
@@ -131,6 +132,8 @@
         {% assign b_or = b_or | append: li %}
       {% when 'osoba:para' %}
         {% assign b_op = b_op | append: li %}
+      {% when 'osoba:tesci' %}
+        {% assign b_tesci = b_tesci | append: li %}
       {% when 'okazja:urodziny' %}
         {% assign b_ou = b_ou | append: li %}
       {% when 'okazja:swieta' %}
@@ -178,34 +181,48 @@
       <section class="footer-cat-block footer-cat-block--wide" aria-labelledby="footer-cat-osoba">
         <h3 class="footer-cat-title" id="footer-cat-osoba">Dla kogo</h3>
         <div class="footer-cat-dla-kogo-grid">
-        {% render 'footer-cat-sub', body: b_on, heading: 'Dla niej' %}
-        {% render 'footer-cat-sub', body: b_oz, heading: 'Dla żony' %}
-        {% render 'footer-cat-sub', body: b_ob, heading: 'Dla babci' %}
-        {% render 'footer-cat-sub', body: b_od, heading: 'Dla dziadka' %}
-        {% render 'footer-cat-sub', body: b_brat, heading: 'Prezent dla brata' %}
-        {% render 'footer-cat-sub', body: b_chlopak, heading: 'Prezent dla chłopaka' %}
-        {% render 'footer-cat-sub', body: b_chlopiec, heading: 'Prezent dla chłopca' %}
-        {% render 'footer-cat-sub', body: b_dziadkow, heading: 'Prezent dla dziadków' %}
-        {% render 'footer-cat-sub', body: b_dziewczynka, heading: 'Prezent dla dziewczynki' %}
-        {% render 'footer-cat-sub', body: b_dziewczyna, heading: 'Prezent dla dziewczyny' %}
-        {% render 'footer-cat-sub', body: b_kolega, heading: 'Prezent dla kolegi z pracy' %}
-        {% render 'footer-cat-sub', body: b_kolezanka, heading: 'Prezent dla koleżanki z pracy' %}
-        {% render 'footer-cat-sub', body: b_mama, heading: 'Prezent dla mamy' %}
-        {% render 'footer-cat-sub', body: b_malz, heading: 'Prezent dla małżeństwa' %}
-        {% render 'footer-cat-sub', body: b_milzw, heading: 'Prezent dla miłośnika zwierząt' %}
-        {% render 'footer-cat-sub', body: b_mez, heading: 'Prezent dla męża' %}
-        {% render 'footer-cat-sub', body: b_narzeczony, heading: 'Prezent dla narzeczonego' %}
-        {% render 'footer-cat-sub', body: b_narzeczona, heading: 'Prezent dla narzeczonej' %}
-        {% render 'footer-cat-sub', body: b_przyj, heading: 'Prezent dla przyjaciółki' %}
-        {% render 'footer-cat-sub', body: b_rodzen, heading: 'Prezent dla rodzeństwa' %}
-        {% render 'footer-cat-sub', body: b_siostra, heading: 'Prezent dla siostry' %}
-        {% render 'footer-cat-sub', body: b_szef, heading: 'Prezent dla szefa' %}
-        {% render 'footer-cat-sub', body: b_szefowa, heading: 'Prezent dla szefowej' %}
-        {% render 'footer-cat-sub', body: b_tata, heading: 'Prezent dla taty' %}
-        {% render 'footer-cat-sub', body: b_oni, heading: 'Dla niego' %}
-        {% render 'footer-cat-sub', body: b_odz, heading: 'Dla dziecka' %}
-        {% render 'footer-cat-sub', body: b_or, heading: 'Dla rodziców' %}
-        {% render 'footer-cat-sub', body: b_op, heading: 'Dla pary' %}
+          <div class="footer-cat-dla-kogo-col" aria-labelledby="footer-sub-niej">
+            <h4 class="footer-cat-subsection-title" id="footer-sub-niej">Dla niej</h4>
+            {% render 'footer-cat-sub', body: b_on, heading: 'Dla niej' %}
+            {% render 'footer-cat-sub', body: b_oz, heading: 'Dla żony' %}
+            {% render 'footer-cat-sub', body: b_mama, heading: 'Prezent dla mamy' %}
+            {% render 'footer-cat-sub', body: b_ob, heading: 'Dla babci' %}
+            {% render 'footer-cat-sub', body: b_kolezanka, heading: 'Prezent dla koleżanki z pracy' %}
+            {% render 'footer-cat-sub', body: b_dziewczynka, heading: 'Prezent dla dziewczynki' %}
+            {% render 'footer-cat-sub', body: b_dziewczyna, heading: 'Prezent dla dziewczyny' %}
+            {% render 'footer-cat-sub', body: b_siostra, heading: 'Prezent dla siostry' %}
+            {% render 'footer-cat-sub', body: b_narzeczona, heading: 'Prezent dla narzeczonej' %}
+            {% render 'footer-cat-sub', body: b_przyj, heading: 'Prezent dla przyjaciółki' %}
+            {% render 'footer-cat-sub', body: b_szefowa, heading: 'Prezent dla szefowej' %}
+          </div>
+          <div class="footer-cat-dla-kogo-col" aria-labelledby="footer-sub-niego">
+            <h4 class="footer-cat-subsection-title" id="footer-sub-niego">Dla niego</h4>
+            {% render 'footer-cat-sub', body: b_oni, heading: 'Dla niego' %}
+            {% render 'footer-cat-sub', body: b_brat, heading: 'Prezent dla brata' %}
+            {% render 'footer-cat-sub', body: b_tata, heading: 'Prezent dla taty' %}
+            {% render 'footer-cat-sub', body: b_mez, heading: 'Prezent dla męża' %}
+            {% render 'footer-cat-sub', body: b_chlopak, heading: 'Prezent dla chłopaka' %}
+            {% render 'footer-cat-sub', body: b_chlopiec, heading: 'Prezent dla chłopca' %}
+            {% render 'footer-cat-sub', body: b_kolega, heading: 'Prezent dla kolegi z pracy' %}
+            {% render 'footer-cat-sub', body: b_narzeczony, heading: 'Prezent dla narzeczonego' %}
+            {% render 'footer-cat-sub', body: b_szef, heading: 'Prezent dla szefa' %}
+            {% render 'footer-cat-sub', body: b_od, heading: 'Dla dziadka' %}
+          </div>
+          <div class="footer-cat-dla-kogo-col" aria-labelledby="footer-sub-para">
+            <h4 class="footer-cat-subsection-title" id="footer-sub-para">Dla pary</h4>
+            {% render 'footer-cat-sub', body: b_dziadkow, heading: 'Prezent dla dziadków' %}
+            {% render 'footer-cat-sub', body: b_or, heading: 'Dla rodziców' %}
+            {% render 'footer-cat-sub', body: b_malz, heading: 'Prezent dla małżeństwa' %}
+            {% render 'footer-cat-sub', body: b_op, heading: 'Dla pary' %}
+            {% render 'footer-cat-sub', body: b_tesci, heading: 'Prezent dla teściów' %}
+          </div>
+          {% if b_odz != blank or b_rodzen != blank or b_milzw != blank %}
+          <div class="footer-cat-dla-kogo-extra">
+            {% render 'footer-cat-sub', body: b_odz, heading: 'Dla dziecka' %}
+            {% render 'footer-cat-sub', body: b_rodzen, heading: 'Prezent dla rodzeństwa' %}
+            {% render 'footer-cat-sub', body: b_milzw, heading: 'Prezent dla miłośnika zwierząt' %}
+          </div>
+          {% endif %}
         </div>
       </section>
 

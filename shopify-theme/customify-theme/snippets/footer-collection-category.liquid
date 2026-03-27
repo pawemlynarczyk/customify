@@ -90,6 +90,8 @@
       assign fk = 'osoba:rodzice'
     elsif raw contains 'dla pary' or raw contains 'dla-pary'
       assign fk = 'osoba:para'
+    elsif raw contains 'teściów' or raw contains 'teściow' or raw contains 'tesciow' or raw contains 'teściowie' or raw contains 'dla teściów'
+      assign fk = 'osoba:tesci'
     endif
   endif
 
