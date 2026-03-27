@@ -1,9 +1,8 @@
 {% comment %}
   Kategorie z heurystyki (handle + tytuł). Metafield customify.footer_kategoria opcjonalnie nadpisuje.
-  Ukryte w stopce (tytuł dokładnie jak w adminie):
-  Krótkie „Dzień …” gdy istnieje osobna kolekcja „Prezent na Dzień …” — żeby nie dublować.
+  Ukryte w stopce (tytuł dokładnie jak w adminie): SEO / duplikaty; m.in. „Prezent dla Niej” gdy jest osobna sekcja „Dla niej”.
 {% endcomment %}
-{%- assign footer_hidden_collection_titles = 'Obraz ze zdjęcia|Personalizowany prezent|Personalizowany prezent ze zdjęcia|Portret Pary ze zdjęcia|Prezent dla Pary|Dzień Dziadka|Dzień Babci|Dzień Matki|Dzień Ojca|Dzień Kobiet' | split: '|' -%}
+{%- assign footer_hidden_collection_titles = 'Obraz ze zdjęcia|Personalizowany prezent|Personalizowany prezent ze zdjęcia|Portret Pary ze zdjęcia|Prezent dla Pary|Dzień Dziadka|Dzień Babci|Dzień Matki|Dzień Ojca|Dzień Kobiet|Personalizowany prezent dla Niej|Prezent dla Niej' | split: '|' -%}
 {%- assign footer_seen_title_norm = '' -%}
 {% unless template == 'cart' %}
 {%- liquid
