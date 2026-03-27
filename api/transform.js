@@ -3781,9 +3781,9 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
             console.warn(`⚠️ [REPLICATE] Replicate error (attempt ${attempt}) – skipping retry, using OpenAI fallback`);
             break;
           }
-          // Dla nano-banana-2: maksymalnie 2 próby na Replicate, potem Segmind
-          if (config.apiType === 'nano-banana-2' && attempt >= 2) {
-            console.warn(`⚠️ [REPLICATE] nano-banana-2 failed ${attempt} times – switching to Segmind fallback`);
+          // Dla nano-banana-2: po 1 błędzie od razu fallback na Segmind, bez retry
+          if (config.apiType === 'nano-banana-2') {
+            console.warn(`⚠️ [REPLICATE] nano-banana-2 error (attempt ${attempt}) – skipping retry, using Segmind fallback`);
             break;
           }
           if (isRetryable && attempt < maxRetries) {
