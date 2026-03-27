@@ -1,6 +1,5 @@
 {% comment %}
-  Kategorie z heurystyki (handle + tytuł) — bez ręcznego ustawiania 67 kolekcji.
-  Opcjonalnie: metafield customify.footer_kategoria nadpisuje (wyjątki).
+  Kategorie z heurystyki (handle + tytuł). Metafield customify.footer_kategoria opcjonalnie nadpisuje.
 {% endcomment %}
 {% unless template == 'cart' %}
 {%- liquid
@@ -11,6 +10,26 @@
   assign b_oz = ''
   assign b_ob = ''
   assign b_od = ''
+  assign b_brat = ''
+  assign b_chlopak = ''
+  assign b_chlopiec = ''
+  assign b_dziadkow = ''
+  assign b_dziewczynka = ''
+  assign b_dziewczyna = ''
+  assign b_kolega = ''
+  assign b_kolezanka = ''
+  assign b_mama = ''
+  assign b_malz = ''
+  assign b_milzw = ''
+  assign b_mez = ''
+  assign b_narzeczony = ''
+  assign b_narzeczona = ''
+  assign b_przyj = ''
+  assign b_rodzen = ''
+  assign b_siostra = ''
+  assign b_szef = ''
+  assign b_szefowa = ''
+  assign b_tata = ''
   assign b_oni = ''
   assign b_odz = ''
   assign b_or = ''
@@ -48,6 +67,46 @@
         {% assign b_ob = b_ob | append: li %}
       {% when 'osoba:dziadek' %}
         {% assign b_od = b_od | append: li %}
+      {% when 'osoba:brat' %}
+        {% assign b_brat = b_brat | append: li %}
+      {% when 'osoba:chlopak' %}
+        {% assign b_chlopak = b_chlopak | append: li %}
+      {% when 'osoba:chlopiec' %}
+        {% assign b_chlopiec = b_chlopiec | append: li %}
+      {% when 'osoba:dziadkowie' %}
+        {% assign b_dziadkow = b_dziadkow | append: li %}
+      {% when 'osoba:dziewczynka' %}
+        {% assign b_dziewczynka = b_dziewczynka | append: li %}
+      {% when 'osoba:dziewczyna' %}
+        {% assign b_dziewczyna = b_dziewczyna | append: li %}
+      {% when 'osoba:kolega' %}
+        {% assign b_kolega = b_kolega | append: li %}
+      {% when 'osoba:kolezanka' %}
+        {% assign b_kolezanka = b_kolezanka | append: li %}
+      {% when 'osoba:mama' %}
+        {% assign b_mama = b_mama | append: li %}
+      {% when 'osoba:malzenstwo' %}
+        {% assign b_malz = b_malz | append: li %}
+      {% when 'osoba:milosnik' %}
+        {% assign b_milzw = b_milzw | append: li %}
+      {% when 'osoba:mez' %}
+        {% assign b_mez = b_mez | append: li %}
+      {% when 'osoba:narzeczony' %}
+        {% assign b_narzeczony = b_narzeczony | append: li %}
+      {% when 'osoba:narzeczona' %}
+        {% assign b_narzeczona = b_narzeczona | append: li %}
+      {% when 'osoba:przyjaciolka' %}
+        {% assign b_przyj = b_przyj | append: li %}
+      {% when 'osoba:rodzenstwo' %}
+        {% assign b_rodzen = b_rodzen | append: li %}
+      {% when 'osoba:siostra' %}
+        {% assign b_siostra = b_siostra | append: li %}
+      {% when 'osoba:szef' %}
+        {% assign b_szef = b_szef | append: li %}
+      {% when 'osoba:szefowa' %}
+        {% assign b_szefowa = b_szefowa | append: li %}
+      {% when 'osoba:tata' %}
+        {% assign b_tata = b_tata | append: li %}
       {% when 'osoba:niego' %}
         {% assign b_oni = b_oni | append: li %}
       {% when 'osoba:dziecko' %}
@@ -102,8 +161,9 @@
         {% endif %}
       </section>
 
-      <section class="footer-cat-block" aria-labelledby="footer-cat-osoba">
+      <section class="footer-cat-block footer-cat-block--wide" aria-labelledby="footer-cat-osoba">
         <h3 class="footer-cat-title" id="footer-cat-osoba">Dla kogo</h3>
+        <div class="footer-cat-dla-kogo-grid">
         {% if b_on != blank %}
           <div class="footer-cat-sub"><h4 class="footer-cat-subtitle">Dla niej</h4><ul class="footer-collections-list footer-collections-list--compact">{{ b_on }}</ul></div>
         {% endif %}
@@ -115,6 +175,66 @@
         {% endif %}
         {% if b_od != blank %}
           <div class="footer-cat-sub"><h4 class="footer-cat-subtitle">Dla dziadka</h4><ul class="footer-collections-list footer-collections-list--compact">{{ b_od }}</ul></div>
+        {% endif %}
+        {% if b_brat != blank %}
+          <div class="footer-cat-sub"><h4 class="footer-cat-subtitle">Prezent dla brata</h4><ul class="footer-collections-list footer-collections-list--compact">{{ b_brat }}</ul></div>
+        {% endif %}
+        {% if b_chlopak != blank %}
+          <div class="footer-cat-sub"><h4 class="footer-cat-subtitle">Prezent dla chłopaka</h4><ul class="footer-collections-list footer-collections-list--compact">{{ b_chlopak }}</ul></div>
+        {% endif %}
+        {% if b_chlopiec != blank %}
+          <div class="footer-cat-sub"><h4 class="footer-cat-subtitle">Prezent dla chłopca</h4><ul class="footer-collections-list footer-collections-list--compact">{{ b_chlopiec }}</ul></div>
+        {% endif %}
+        {% if b_dziadkow != blank %}
+          <div class="footer-cat-sub"><h4 class="footer-cat-subtitle">Prezent dla dziadków</h4><ul class="footer-collections-list footer-collections-list--compact">{{ b_dziadkow }}</ul></div>
+        {% endif %}
+        {% if b_dziewczynka != blank %}
+          <div class="footer-cat-sub"><h4 class="footer-cat-subtitle">Prezent dla dziewczynki</h4><ul class="footer-collections-list footer-collections-list--compact">{{ b_dziewczynka }}</ul></div>
+        {% endif %}
+        {% if b_dziewczyna != blank %}
+          <div class="footer-cat-sub"><h4 class="footer-cat-subtitle">Prezent dla dziewczyny</h4><ul class="footer-collections-list footer-collections-list--compact">{{ b_dziewczyna }}</ul></div>
+        {% endif %}
+        {% if b_kolega != blank %}
+          <div class="footer-cat-sub"><h4 class="footer-cat-subtitle">Prezent dla kolegi z pracy</h4><ul class="footer-collections-list footer-collections-list--compact">{{ b_kolega }}</ul></div>
+        {% endif %}
+        {% if b_kolezanka != blank %}
+          <div class="footer-cat-sub"><h4 class="footer-cat-subtitle">Prezent dla koleżanki z pracy</h4><ul class="footer-collections-list footer-collections-list--compact">{{ b_kolezanka }}</ul></div>
+        {% endif %}
+        {% if b_mama != blank %}
+          <div class="footer-cat-sub"><h4 class="footer-cat-subtitle">Prezent dla mamy</h4><ul class="footer-collections-list footer-collections-list--compact">{{ b_mama }}</ul></div>
+        {% endif %}
+        {% if b_malz != blank %}
+          <div class="footer-cat-sub"><h4 class="footer-cat-subtitle">Prezent dla małżeństwa</h4><ul class="footer-collections-list footer-collections-list--compact">{{ b_malz }}</ul></div>
+        {% endif %}
+        {% if b_milzw != blank %}
+          <div class="footer-cat-sub"><h4 class="footer-cat-subtitle">Prezent dla miłośnika zwierząt</h4><ul class="footer-collections-list footer-collections-list--compact">{{ b_milzw }}</ul></div>
+        {% endif %}
+        {% if b_mez != blank %}
+          <div class="footer-cat-sub"><h4 class="footer-cat-subtitle">Prezent dla męża</h4><ul class="footer-collections-list footer-collections-list--compact">{{ b_mez }}</ul></div>
+        {% endif %}
+        {% if b_narzeczony != blank %}
+          <div class="footer-cat-sub"><h4 class="footer-cat-subtitle">Prezent dla narzeczonego</h4><ul class="footer-collections-list footer-collections-list--compact">{{ b_narzeczony }}</ul></div>
+        {% endif %}
+        {% if b_narzeczona != blank %}
+          <div class="footer-cat-sub"><h4 class="footer-cat-subtitle">Prezent dla narzeczonej</h4><ul class="footer-collections-list footer-collections-list--compact">{{ b_narzeczona }}</ul></div>
+        {% endif %}
+        {% if b_przyj != blank %}
+          <div class="footer-cat-sub"><h4 class="footer-cat-subtitle">Prezent dla przyjaciółki</h4><ul class="footer-collections-list footer-collections-list--compact">{{ b_przyj }}</ul></div>
+        {% endif %}
+        {% if b_rodzen != blank %}
+          <div class="footer-cat-sub"><h4 class="footer-cat-subtitle">Prezent dla rodzeństwa</h4><ul class="footer-collections-list footer-collections-list--compact">{{ b_rodzen }}</ul></div>
+        {% endif %}
+        {% if b_siostra != blank %}
+          <div class="footer-cat-sub"><h4 class="footer-cat-subtitle">Prezent dla siostry</h4><ul class="footer-collections-list footer-collections-list--compact">{{ b_siostra }}</ul></div>
+        {% endif %}
+        {% if b_szef != blank %}
+          <div class="footer-cat-sub"><h4 class="footer-cat-subtitle">Prezent dla szefa</h4><ul class="footer-collections-list footer-collections-list--compact">{{ b_szef }}</ul></div>
+        {% endif %}
+        {% if b_szefowa != blank %}
+          <div class="footer-cat-sub"><h4 class="footer-cat-subtitle">Prezent dla szefowej</h4><ul class="footer-collections-list footer-collections-list--compact">{{ b_szefowa }}</ul></div>
+        {% endif %}
+        {% if b_tata != blank %}
+          <div class="footer-cat-sub"><h4 class="footer-cat-subtitle">Prezent dla taty</h4><ul class="footer-collections-list footer-collections-list--compact">{{ b_tata }}</ul></div>
         {% endif %}
         {% if b_oni != blank %}
           <div class="footer-cat-sub"><h4 class="footer-cat-subtitle">Dla niego</h4><ul class="footer-collections-list footer-collections-list--compact">{{ b_oni }}</ul></div>
@@ -128,6 +248,7 @@
         {% if b_op != blank %}
           <div class="footer-cat-sub"><h4 class="footer-cat-subtitle">Dla pary</h4><ul class="footer-collections-list footer-collections-list--compact">{{ b_op }}</ul></div>
         {% endif %}
+        </div>
       </section>
 
       <section class="footer-cat-block" aria-labelledby="footer-cat-okazja">
