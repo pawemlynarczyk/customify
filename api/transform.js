@@ -4487,6 +4487,7 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
           // ✅ Dodaj do kolejki limit-reached natychmiast po osiągnięciu limitu (bez czekania na 5. próbę)
           // Kredyty można dodać tylko raz – jeśli już były doładowane, nie dodawaj do kolejki
           if (!isTest && customerId && savedTotal >= 4) {
+            const totalLimit = 4;
             try {
               const alreadyRefilled = isKVConfigured() ? await kv.get(`credits-refilled:${customerId}`) : null;
               if (alreadyRefilled) {
@@ -4538,7 +4539,6 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
                   }
                 }
               } else {
-              const totalLimit = 4; // 4 darmowe generacje TOTAL dla zalogowanych
               const key = `limit-reached:${customerId}`;
               const payload = {
                 timestamp: new Date().toISOString(),
