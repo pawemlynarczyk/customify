@@ -2488,10 +2488,24 @@ class CustomifyEmbed {
       if (typeof Sentry !== 'undefined' && Sentry.captureException) {
         Sentry.withScope(scope => {
           scope.setTag('customify_area', context || 'unknown');
-          scope.setExtra('productHandle', window.location.pathname);
-          scope.setExtra('selectedStyle', this.selectedStyle || 'none');
+          scope.setTag('customify_style', this.selectedStyle || 'none');
+          scope.setTag('customify_product', this.getProductHandle ? this.getProductHandle() : 'unknown');
+          scope.setExtra('url', window.location.href);
+          scope.setExtra('selectedSize', this.selectedSize || 'none');
+          scope.setExtra('selectedProductType', this.selectedProductType || 'none');
+          scope.setExtra('hasUploadedFile', !!this.uploadedFile);
+          scope.setExtra('hasTransformedImage', !!this.transformedImage);
+          scope.setLevel(error instanceof ReferenceError || error instanceof TypeError ? 'error' : 'warning');
           Sentry.captureException(error);
         });
+      }
+    } catch (_) {}
+  }
+
+  _sentryCrumb(category, message, data) {
+    try {
+      if (typeof Sentry !== 'undefined' && Sentry.addBreadcrumb) {
+        Sentry.addBreadcrumb({ category: 'customify.' + category, message, data, level: 'info' });
       }
     } catch (_) {}
   }
@@ -3183,6 +3197,7 @@ class CustomifyEmbed {
       this.phoneModelsData = await res.json();
     } catch (err) {
       console.error('❌ [PHONE] Nie można załadować listy modeli:', err);
+      this._reportToSentry(err, 'phone-models-load');
       slot.innerHTML = '<p class="customify-error">Nie można załadować listy modeli. Odśwież stronę.</p>';
       return;
     }
@@ -4095,6 +4110,7 @@ class CustomifyEmbed {
       return parsed;
     } catch (error) {
       console.error('❌ [GALLERY] Error loading generations:', error);
+      this._reportToSentry(error, 'getAIGenerations');
       return [];
     }
   }
@@ -5725,6 +5741,7 @@ class CustomifyEmbed {
         this.showSuccess(data.message || 'Dziękujemy! Konto zostało doładowane — sprawdź maila.', { html: false });
       } catch (err) {
         console.error('❌ [LIMIT-WALL] Submit failed:', err);
+        this._reportToSentry(err, 'limit-wall-submit');
         errEl.textContent = 'Błąd sieci. Spróbuj ponownie.';
         errEl.style.display = 'block';
         submitBtn.disabled = false;
@@ -5797,6 +5814,7 @@ class CustomifyEmbed {
         }
       } catch (error) {
         console.error('❌ [USAGE] Error fetching usage counter:', error);
+        this._reportToSentry(error, 'usage-counter');
         // Fallback - pokaż że jest zalogowany ale nie wiemy ile ma transformacji
         counterHTML = `
           <div id="usageCounter" class="usage-counter usage-counter-blue">
@@ -6943,6 +6961,7 @@ class CustomifyEmbed {
         this.openPhonePhotoCropper(file);
       } catch (error) {
         console.error('❌ [PHONE-PHOTO] Błąd ładowania watermarked:', error);
+        this._reportToSentry(error, 'phone-photo-load');
         this.showError('Nie udało się załadować obrazu do edycji. Odśwież stronę i spróbuj ponownie.', 'transform');
       }
     } else if (this.originalPhonePhotoFile) {
@@ -6955,6 +6974,7 @@ class CustomifyEmbed {
 
   handleFileSelect(file) {
     if (!file) return;
+    this._sentryCrumb('upload', 'Upload zdjęcia', { type: file.type, size: file.size });
     if (!file.type.startsWith('image/')) {
       this.showError('Proszę wybrać plik obrazu (JPG, PNG, GIF)');
       return;
@@ -7151,6 +7171,7 @@ class CustomifyEmbed {
     this.stylesArea.querySelectorAll('.customify-style-card').forEach(card => card.classList.remove('active'));
     styleCard.classList.add('active');
     this.selectedStyle = styleCard.dataset.style;
+    this._sentryCrumb('style', 'Wybrano styl: ' + this.selectedStyle);
     
     // ✅ DEBUG: Pokaż który styl został wybrany
     console.log('🎨 [STYLE-SELECT] ===== WYBÓR STYLU =====');
@@ -7300,6 +7321,7 @@ class CustomifyEmbed {
       }
     } catch (err) {
       console.error('❌ [GLFX] Błąd ładowania konfiguracji:', err);
+      this._reportToSentry(err, 'glfx-config');
       return this.getDefaultFilterConfig();
     } finally {
       this.filterConfigLoading = false;
@@ -7438,7 +7460,7 @@ class CustomifyEmbed {
         
       } catch (err) {
         console.error('❌ [GLFX] Błąd aplikowania filtra:', err);
-        // Fallback do CSS filters jeśli glfx zawiedzie
+        this._reportToSentry(err, 'glfx-apply');
         this.applyCssFilter(filterName);
       }
     };
@@ -7507,6 +7529,7 @@ class CustomifyEmbed {
     this.sizeArea.querySelectorAll('.customify-size-btn').forEach(btn => btn.classList.remove('active'));
     sizeBtn.classList.add('active');
     this.selectedSize = sizeBtn.dataset.size;
+    this._sentryCrumb('size', 'Wybrano rozmiar: ' + this.selectedSize);
     console.log('📏 [SIZE] Selected size:', this.selectedSize);
     
     // Ukryj błąd jeśli rozmiar jest poprawny
@@ -7682,6 +7705,7 @@ class CustomifyEmbed {
         }
     } catch (error) {
       console.error('❌ [CART-PRICE] Error updating cart price:', error);
+      this._reportToSentry(error, 'cart-price');
     }
   }
 
@@ -7747,6 +7771,7 @@ class CustomifyEmbed {
       
     } catch (error) {
       console.error('❌ [INIT-PRICE] Error setting initial price:', error);
+      this._reportToSentry(error, 'init-price');
     }
   }
 
@@ -7812,6 +7837,7 @@ class CustomifyEmbed {
       
     } catch (error) {
       console.error('❌ [PRICE] Error updating product price:', error);
+      this._reportToSentry(error, 'update-price');
     }
   }
 
@@ -7958,6 +7984,7 @@ class CustomifyEmbed {
       }
     } catch (error) {
       console.error('❌ [INIT] Error initializing default price:', error);
+      this._reportToSentry(error, 'init-default-price');
     }
   }
 
@@ -7965,6 +7992,7 @@ class CustomifyEmbed {
 
 
   async transformImage(retryCount = 0) {
+    this._sentryCrumb('transform', 'Start transformImage', { style: this.selectedStyle, retry: retryCount });
     // ✅ DEBUG: Sprawdź selectedStyle NAJPIERW (przed walidacją)
     console.log(`🔍🔍🔍 [TRANSFORM] START transformImage:`, {
       selectedStyle: this.selectedStyle,
@@ -8568,6 +8596,7 @@ class CustomifyEmbed {
           } catch (error) {
             console.error('❌ [WATERMARK DEBUG] Canvas error:', error);
             console.error('❌ [WATERMARK DEBUG] Error stack:', error.stack);
+            this._reportToSentry(error, 'watermark-canvas');
             reject(error);
           }
         };
@@ -8584,6 +8613,7 @@ class CustomifyEmbed {
       } catch (error) {
         console.error('❌ [WATERMARK DEBUG] Async error:', error);
         console.error('❌ [WATERMARK DEBUG] Error stack:', error.stack);
+        this._reportToSentry(error, 'watermark-async');
         reject(error);
       }
     });
@@ -8707,6 +8737,7 @@ class CustomifyEmbed {
 
   // NAPRAWIONA FUNKCJA: STWÓRZ NOWY PRODUKT Z OBRAZKIEM AI (UKRYTY W KATALOGU)
   async addToCart(retryCount = 0) {
+    this._sentryCrumb('cart', 'Start addToCart', { style: this.selectedStyle, size: this.selectedSize, retry: retryCount });
     // ✅ POKAŻ LOADING od razu - dodawanie do koszyka może trwać
     this.showLoading();
     
@@ -8874,6 +8905,7 @@ class CustomifyEmbed {
           needsBackendWatermark = true;
         } catch (err) {
           console.error('❌ [SPOTIFY] Failed to compose image:', err);
+          this._reportToSentry(err, 'spotify-compose');
           this.showError('Nie udało się przygotować obrazu. Spróbuj ponownie.', 'cart');
           this.hideLoading();
           return;
@@ -9217,6 +9249,7 @@ class CustomifyEmbed {
       }
     } catch (error) {
       console.error('❌ [CUSTOMIFY] Error hiding product:', error);
+      this._reportToSentry(error, 'hide-product');
     }
   }
 
@@ -10035,6 +10068,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   } catch (error) {
     console.error('❌ [CUSTOMIFY] Error loading selected generation:', error);
+    if (typeof Sentry !== 'undefined' && Sentry.captureException) {
+      Sentry.captureException(error, { tags: { customify_area: 'load-selected-generation' } });
+    }
   }
   
   // Initialize cart integration
@@ -10654,6 +10690,7 @@ currentUrl.includes('nauczycielki-karykatura-na-prezent');
  console.log('✅ [CUSTOMIFY CART] Watermark dodany do miniaturki');
  } catch (error) {
  console.error('❌ [CUSTOMIFY CART] Watermark error:', error);
+ if (typeof Sentry !== 'undefined' && Sentry.captureException) { Sentry.captureException(error, { tags: { customify_area: 'cart-watermark' } }); }
  reject(error);
  }
  };
