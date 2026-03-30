@@ -496,16 +496,15 @@ const handler = async (req, res) => {
       await cleanupOldVersions(blobToken, [...(statsData.versions || []), { pathname: storedPath, uploadedAt: new Date().toISOString() }]);
     };
 
-    try {
-      await Promise.race([
-        writeWithTimeout(),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('Blob write timeout')), 8000))
-      ]);
-    } catch (writeError) {
-      console.error('❌ [PRODUCT-STATS] Write failed:', writeError?.message || writeError);
-    }
+    // Zwróć odpowiedź natychmiast – nie blokuj HTTP na operacjach Blob
+    res.json({ success: true });
 
-    return res.json({ success: true });
+    // Zapis do Bloba w tle (fire & forget)
+    writeWithTimeout().catch(writeError => {
+      console.error('❌ [PRODUCT-STATS] Write failed:', writeError?.message || writeError);
+    });
+
+    return;
   }
 
   if (req.method === 'GET') {

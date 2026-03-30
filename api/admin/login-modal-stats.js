@@ -470,16 +470,15 @@ module.exports = async (req, res) => {
       console.log('✅ [LOGIN-MODAL-STATS] Write OK:', eventType);
     };
 
-    try {
-      await Promise.race([
-        writeWithTimeout(),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('Blob write timeout')), 8000))
-      ]);
-    } catch (writeError) {
-      console.error('❌ [LOGIN-MODAL-STATS] Write failed:', writeError?.message || writeError);
-    }
+    // Zwróć odpowiedź natychmiast – nie blokuj HTTP na operacjach Blob
+    res.json({ success: true, message: 'Event received', eventId });
 
-    return res.json({ success: true, message: 'Event received', eventId });
+    // Zapis do Bloba w tle (fire & forget) – Vercel kontynuuje po res.json()
+    writeWithTimeout().catch(writeError => {
+      console.error('❌ [LOGIN-MODAL-STATS] Write failed:', writeError?.message || writeError);
+    });
+
+    return;
   }
 
   // GET - pobierz statystyki
