@@ -8286,8 +8286,18 @@ class CustomifyEmbed {
                 const total = d.totalLimit || 4;
                 const usageNote = remaining > 0
                   ? ` <span style="color:#888;font-size:0.88em">Pozostało <strong>${remaining} z ${total}</strong> prób.</span>`
-                  : ` <span style="color:#c0392b;font-size:0.88em">Wykorzystano wszystkie próby (${total}/${total}).</span>`;
+                  : ` <span style="color:#c0392b;font-size:0.88em">Wykorzystano wszystkie próby (${total}/${total}). <a href="#" id="needMoreLink" style="color:#667eea;text-decoration:underline;cursor:pointer;">Potrzebujesz więcej?</a></span>`;
                 this.successMessage.innerHTML += usageNote;
+                if (remaining <= 0) {
+                  const needMoreEl = document.getElementById('needMoreLink');
+                  if (needMoreEl) {
+                    needMoreEl.addEventListener('click', (e) => {
+                      e.preventDefault();
+                      this.trackLimitFunnelShowLimit(customerInfo, { wallTier: 'first_wall', source: 'need_more_link' });
+                      this.showLimitWallModal(customerInfo, { wallTier: 'first_wall', usedCount: total, totalLimit: total });
+                    });
+                  }
+                }
               }
             }).catch(() => {});
           } else {
@@ -10145,6 +10155,11 @@ setInterval(fixDialogImages, 300);
  if (!inlineSlot.contains(productTypeArea)) {
  inlineSlot.appendChild(productTypeArea);
  }
+ // Przenieś selektor pakietów cyfrowych (między typem a rozmiarem)
+ var pkgSelector = document.getElementById('digitalPackageSelector');
+ if (pkgSelector && !inlineSlot.contains(pkgSelector)) {
+ inlineSlot.appendChild(pkgSelector);
+ }
  if (!inlineSlot.contains(sizeArea)) {
  inlineSlot.appendChild(sizeArea);
  }
@@ -10153,6 +10168,11 @@ setInterval(fixDialogImages, 300);
  function moveBack() {
  if (productTypeArea && productTypeArea.parentElement !== originalPlaceholder.parentElement) {
  originalPlaceholder.parentNode.insertBefore(productTypeArea, originalPlaceholder);
+ }
+ // Cofnij selektor pakietów cyfrowych
+ var pkgSelector = document.getElementById('digitalPackageSelector');
+ if (pkgSelector && pkgSelector.parentElement !== originalPlaceholder.parentElement) {
+ originalPlaceholder.parentNode.insertBefore(pkgSelector, originalPlaceholder);
  }
  if (sizeArea && sizeArea.parentElement !== originalPlaceholder.parentElement) {
  originalPlaceholder.parentNode.insertBefore(sizeArea, originalPlaceholder);
@@ -10241,6 +10261,13 @@ setInterval(fixDialogImages, 300);
  console.log('📦 [DIGITAL] Size area shown for physical product');
  }
  }
+
+ // Pokaż/ukryj selektor pakietów cyfrowych
+ var pkgSelector = document.getElementById('digitalPackageSelector');
+ if (pkgSelector) {
+ pkgSelector.style.display = isDigital ? 'block' : 'none';
+ console.log('📦 [DIGITAL] Package selector:', isDigital ? 'shown' : 'hidden');
+ }
  }
  // 🚨 ROLLBACK: END - Funkcje dla produktu cyfrowego
 
@@ -10315,6 +10342,57 @@ setInterval(fixDialogImages, 300);
  }
  }
  
+ // === PAKIETY CYFROWE ===
+ window.CustomifyDigitalPackage = window.CustomifyDigitalPackage || { count: 1, price: 49 };
+
+ var DIGITAL_PACKAGE_PRICES = { 1: 49, 3: 89, 5: 149, 10: 199 };
+
+ function isDigitalSelected() {
+ var active = productTypeArea && productTypeArea.querySelector('.customify-product-type-btn.active');
+ return active && active.getAttribute('data-product-type') === 'digital';
+ }
+
+ function setDigitalPackage(count) {
+ count = parseInt(count, 10) || 1;
+ window.CustomifyDigitalPackage.count = count;
+ window.CustomifyDigitalPackage.price = DIGITAL_PACKAGE_PRICES[count] || 49;
+
+ // Aktualizuj active na przyciskach
+ var pkgBtns = document.querySelectorAll('.digital-package-btn');
+ pkgBtns.forEach(function(btn) {
+ btn.classList.toggle('active', parseInt(btn.getAttribute('data-package'), 10) === count);
+ });
+
+ // Odśwież ceny w UI
+ if (window.__customify) {
+ window.__customify.updateProductPrice();
+ window.__customify.updateCartPrice();
+ }
+ }
+
+ function updateDigitalPackageSelector() {
+ var el = document.getElementById('digitalPackageSelector');
+ if (!el) return;
+ el.style.display = isDigitalSelected() ? 'block' : 'none';
+ }
+
+ function initDigitalPackageSelector() {
+ var el = document.getElementById('digitalPackageSelector');
+ if (!el) return;
+
+ // Obsługa kliknięcia w pakiet
+ el.addEventListener('click', function(e) {
+ var btn = e.target.closest('.digital-package-btn');
+ if (!btn) return;
+ setDigitalPackage(btn.getAttribute('data-package'));
+ });
+
+ // Ustaw domyślny (1 plik) i pokaż/ukryj
+ setDigitalPackage(1);
+ updateDigitalPackageSelector();
+ }
+ // === KONIEC PAKIETY CYFROWE ===
+
  function updateStandAvailability() {
  var enabled = isSzkloSelected();
  
@@ -10372,6 +10450,7 @@ setInterval(fixDialogImages, 300);
  updateFrameAvailability();
  updateStandAvailability();
  updateSizeAvailability();
+ initDigitalPackageSelector();
  // 🚨 ROLLBACK: START - Inicjalizacja UI produktu cyfrowego
  updateDigitalProductUI();
  // 🚨 ROLLBACK: END - Inicjalizacja UI produktu cyfrowego
@@ -10435,6 +10514,7 @@ setInterval(fixDialogImages, 300);
  updateFrameAvailability();
  updateStandAvailability(); // 🆕 Aktualizuj dostępność podstawki
  updateSizeAvailability(); // 🆕 Aktualizuj widoczność rozmiarów
+ updateDigitalPackageSelector(); // 🆕 Pakiety cyfrowe
  // 🚨 ROLLBACK: START - Aktualizuj UI produktu cyfrowego
  updateDigitalProductUI();
  // 🚨 ROLLBACK: END - Aktualizuj UI produktu cyfrowego
@@ -11183,10 +11263,199 @@ setTimeout(disableAIProductLinks, 500);
  submitBtn.disabled = false;
  submitBtn.textContent = 'Wyślij wiadomość';
  }
- }); // Zamknij addEventListener
- } // Zamknij if (form)
- } // Zamknij if (targetElement)
- }, 500); // Czekaj 500ms na załadowanie DOM
- }
- });
+}); // Zamknij addEventListener
+} // Zamknij if (form)
+} // Zamknij if (targetElement)
+}, 500); // Czekaj 500ms na załadowanie DOM
+}
+});
+
+// ============================================================
+// SYSTEM KREDYTÓW – pobieranie pliku cyfrowego za kredyt
+// ============================================================
+(function() {
+  'use strict';
+
+  var CREDITS_API_BASE = 'https://customify-s56o.vercel.app';
+
+  var el = {};
+  var currentCredits = 0;
+  var creditsChecked = false;
+
+  function getCustomerId() {
+    return window.ShopifyCustomer && window.ShopifyCustomer.id ? window.ShopifyCustomer.id : null;
+  }
+  function getCustomerEmail() {
+    return window.ShopifyCustomer && window.ShopifyCustomer.email ? window.ShopifyCustomer.email : '';
+  }
+
+  function initCreditsUI() {
+    el.section    = document.getElementById('creditsSection');
+    el.loading    = document.getElementById('creditsLoading');
+    el.available  = document.getElementById('creditsAvailable');
+    el.empty      = document.getElementById('creditsEmpty');
+    el.notLogged  = document.getElementById('creditsNotLoggedIn');
+    el.success    = document.getElementById('creditsSuccess');
+    el.error      = document.getElementById('creditsError');
+    el.useBtn     = document.getElementById('useCreditsBtn');
+    el.balanceInfo= document.getElementById('creditsBalanceInfo');
+    el.successMsg = document.getElementById('creditsSuccessMsg');
+    el.errorMsg   = document.getElementById('creditsErrorMsg');
+
+    if (!el.section) return;
+
+    var productTypeArea = document.getElementById('productTypeArea');
+    if (productTypeArea) {
+      productTypeArea.addEventListener('click', function(e) {
+        var btn = e.target.closest('.customify-product-type-btn');
+        if (!btn) return;
+        setTimeout(function() {
+          onProductTypeChanged(btn.getAttribute('data-product-type'));
+        }, 50);
+      });
+    }
+
+    if (el.useBtn) el.useBtn.addEventListener('click', handleUseCredit);
+
+    var activBtn = document.querySelector('.customify-product-type-btn.active');
+    if (activBtn) onProductTypeChanged(activBtn.getAttribute('data-product-type'));
+
+    watchResultArea();
+  }
+
+  function onProductTypeChanged(type) {
+    if (!el.section) return;
+    if (type !== 'digital') { el.section.style.display = 'none'; return; }
+
+    var resultArea = document.getElementById('resultArea');
+    if (resultArea && resultArea.style.display === 'none') {
+      el.section.style.display = 'none';
+      return;
+    }
+
+    el.section.style.display = 'block';
+    hideAll();
+
+    var customerId = getCustomerId();
+    if (!customerId) { showState('notLogged'); return; }
+    if (creditsChecked) { showByBalance(); return; }
+    fetchCredits();
+  }
+
+  function fetchCredits() {
+    showState('loading');
+    creditsChecked = false;
+    var customerId = getCustomerId();
+
+    fetch(CREDITS_API_BASE + '/api/credits/check', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ customerId: customerId })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      currentCredits = data.credits || 0;
+      creditsChecked = true;
+      showByBalance();
+    })
+    .catch(function(err) {
+      console.error('[CREDITS] Błąd sprawdzania kredytów:', err);
+      if (el.section) el.section.style.display = 'none';
+    });
+  }
+
+  function showByBalance() {
+    if (currentCredits > 0) {
+      showState('available');
+      if (el.balanceInfo) el.balanceInfo.textContent = 'Masz ' + currentCredits + ' ' + label(currentCredits);
+    } else {
+      showState('empty');
+    }
+  }
+
+  function handleUseCredit() {
+    var inst = window.__customify;
+    if (!inst) { showError('Błąd aplikacji. Odśwież stronę.'); return; }
+
+    var imageUrl = null;
+    if (inst.cleanImageUrl && inst.cleanImageUrl.startsWith('http')) imageUrl = inst.cleanImageUrl;
+    else if (inst.transformedImage && inst.transformedImage.startsWith('http')) imageUrl = inst.transformedImage;
+
+    if (!imageUrl) { showError('Brak obrazu. Wygeneruj najpierw portret.'); return; }
+
+    var customerId = getCustomerId();
+    if (!customerId) { showError('Musisz być zalogowany.'); return; }
+
+    if (el.useBtn) { el.useBtn.disabled = true; el.useBtn.textContent = 'Wysyłam...'; }
+
+    fetch(CREDITS_API_BASE + '/api/credits/use', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ customerId: customerId, imageUrl: imageUrl, style: inst.selectedStyle || '' })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.success) {
+        currentCredits = data.creditsRemaining || 0;
+        creditsChecked = true;
+        showState('success');
+        if (el.successMsg) {
+          el.successMsg.textContent = 'Email wysłany na ' + getCustomerEmail() + '. Pozostało: ' + currentCredits + ' ' + label(currentCredits) + '.';
+        }
+      } else {
+        showError(data.error || 'Błąd podczas użycia kredytu.');
+        if (el.useBtn) { el.useBtn.disabled = false; el.useBtn.textContent = '💳 Pobierz za 1 kredyt'; }
+      }
+    })
+    .catch(function(err) {
+      console.error('[CREDITS] Błąd użycia kredytu:', err);
+      showError('Błąd połączenia. Spróbuj ponownie.');
+      if (el.useBtn) { el.useBtn.disabled = false; el.useBtn.textContent = '💳 Pobierz za 1 kredyt'; }
+    });
+  }
+
+  function watchResultArea() {
+    var resultArea = document.getElementById('resultArea');
+    if (!resultArea) { setTimeout(watchResultArea, 500); return; }
+
+    new MutationObserver(function() {
+      var isVisible = resultArea.style.display !== 'none';
+      var activeBtn = document.querySelector('.customify-product-type-btn.active');
+      var isDigital = activeBtn && activeBtn.getAttribute('data-product-type') === 'digital';
+      if (isVisible && isDigital && el.section) {
+        el.section.style.display = 'block';
+        var customerId = getCustomerId();
+        if (!creditsChecked && customerId) fetchCredits();
+        else if (creditsChecked) showByBalance();
+        else if (!customerId) showState('notLogged');
+      }
+    }).observe(resultArea, { attributes: true, attributeFilter: ['style'] });
+  }
+
+  function showState(state) {
+    hideAll();
+    var map = { loading: el.loading, available: el.available, empty: el.empty, notLogged: el.notLogged, success: el.success };
+    if (map[state]) map[state].style.display = 'block';
+  }
+  function hideAll() {
+    [el.loading, el.available, el.empty, el.notLogged, el.success, el.error].forEach(function(e) { if (e) e.style.display = 'none'; });
+  }
+  function showError(msg) {
+    hideAll();
+    if (el.error && el.errorMsg) { el.errorMsg.textContent = msg; el.error.style.display = 'block'; }
+  }
+  function label(n) {
+    if (n === 1) return 'kredyt';
+    if (n >= 2 && n <= 4) return 'kredyty';
+    return 'kredytów';
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initCreditsUI);
+  } else {
+    initCreditsUI();
+  }
+})();
 

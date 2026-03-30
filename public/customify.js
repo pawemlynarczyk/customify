@@ -8286,8 +8286,18 @@ class CustomifyEmbed {
                 const total = d.totalLimit || 4;
                 const usageNote = remaining > 0
                   ? ` <span style="color:#888;font-size:0.88em">Pozostało <strong>${remaining} z ${total}</strong> prób.</span>`
-                  : ` <span style="color:#c0392b;font-size:0.88em">Wykorzystano wszystkie próby (${total}/${total}).</span>`;
+                  : ` <span style="color:#c0392b;font-size:0.88em">Wykorzystano wszystkie próby (${total}/${total}). <a href="#" id="needMoreLink" style="color:#667eea;text-decoration:underline;cursor:pointer;">Potrzebujesz więcej?</a></span>`;
                 this.successMessage.innerHTML += usageNote;
+                if (remaining <= 0) {
+                  const needMoreEl = document.getElementById('needMoreLink');
+                  if (needMoreEl) {
+                    needMoreEl.addEventListener('click', (e) => {
+                      e.preventDefault();
+                      this.trackLimitFunnelShowLimit(customerInfo, { wallTier: 'first_wall', source: 'need_more_link' });
+                      this.showLimitWallModal(customerInfo, { wallTier: 'first_wall', usedCount: total, totalLimit: total });
+                    });
+                  }
+                }
               }
             }).catch(() => {});
           } else {
