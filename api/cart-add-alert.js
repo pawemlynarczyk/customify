@@ -76,7 +76,7 @@ module.exports = async (req, res) => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        from: 'Customify Alerts <alerts@lumly.pl>',
+        from: 'Lumly Alerts <noreply@notification.lumly.pl>',
         to: ['biuro@onliner.one'],
         subject: `🛒 Cart add FAILED — ${style || '?'} ${size || ''} | ${userEmail || 'niezalogowany'}`,
         html

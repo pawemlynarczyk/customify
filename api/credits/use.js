@@ -231,7 +231,7 @@ async function sendDownloadEmail({ email, firstName, imageUrl, style }) {
 </html>`;
 
   const result = await resend.emails.send({
-    from: 'Lumly <no-reply@lumly.pl>',
+    from: 'Lumly <noreply@notification.lumly.pl>',
     to: email,
     subject: `Twój portret AI gotowy do pobrania – styl ${styleName} 🎨`,
     html

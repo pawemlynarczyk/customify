@@ -39,7 +39,7 @@ module.exports = async (req, res) => {
     // const resend = require('resend');
     // const resendClient = new resend.Resend(process.env.RESEND_API_KEY);
     // await resendClient.emails.send({
-    //   from: 'noreply@lumly.pl',
+    //   from: 'Lumly <noreply@notification.lumly.pl>',
     //   to: recipientEmail,
     //   subject: subject || `Kontakt ze strony: ${name}`,
     //   html: `<p><strong>Od:</strong> ${name} (${email})</p><p><strong>Wiadomość:</strong></p><p>${message}</p>`
