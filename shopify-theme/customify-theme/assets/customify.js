@@ -2859,6 +2859,7 @@ class CustomifyEmbed {
       // {YEARS_SECTION} — warunkowy blok: gdy YEARS puste = brak liczby, gdy wypełnione = postać na dużej złotej cyfrze
       if (config.promptTemplate.includes('{YEARS_SECTION}')) {
         const handle = this.getProductHandle();
+        const isDlaNiejWithYears = handle && DLA_NIEJ_WITH_YEARS.includes(handle);
         const isSzefProduct = handle === 'obraz-ze-zdjecia-karykatura-szefa';
         const isCoupleAnniversary = handle && COUPLE_ANNIVERSARY_FIELD_HANDLES.includes(handle);
         const isCoupleCustomYear = handle && COUPLE_CUSTOM_YEAR_FIELD_HANDLES.includes(handle);
