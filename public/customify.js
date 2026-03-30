@@ -2483,6 +2483,19 @@ const PRODUCT_TYPE_LABELS = {
 };
 
 class CustomifyEmbed {
+  _reportToSentry(error, context) {
+    try {
+      if (typeof Sentry !== 'undefined' && Sentry.captureException) {
+        Sentry.withScope(scope => {
+          scope.setTag('customify_area', context || 'unknown');
+          scope.setExtra('productHandle', window.location.pathname);
+          scope.setExtra('selectedStyle', this.selectedStyle || 'none');
+          Sentry.captureException(error);
+        });
+      }
+    } catch (_) {}
+  }
+
   constructor() {
     this.uploadArea = document.getElementById('uploadArea');
     this.fileInput = document.getElementById('fileInput');
@@ -3340,6 +3353,7 @@ class CustomifyEmbed {
       }
     } catch(e) {
       console.warn('⚠️ [INIT] Failed to sync initial selections from DOM:', e);
+      this._reportToSentry(e, 'init-sync');
     }
 
     if (this.isSpotifyProduct()) {
@@ -5241,6 +5255,7 @@ class CustomifyEmbed {
         return true;
       } catch (error) {
         console.error('❌ [USAGE] Błąd sprawdzania limitu:', error);
+        this._reportToSentry(error, 'checkUsageLimit');
         // ⚠️ KRYTYCZNE: Jeśli błąd, BLOKUJ (bezpieczniejsze niż pozwalanie)
         // Użytkownik może spróbować ponownie, ale nie może obejść limitu przez błąd
         this.showError(`Błąd sprawdzania limitu użycia. Spróbuj ponownie za chwilę.`, 'transform');
@@ -8009,6 +8024,7 @@ class CustomifyEmbed {
       try {
         promptAddition = this.collectCustomFieldsPrompt();
       } catch (fieldError) {
+        this._reportToSentry(fieldError, 'collectCustomFieldsPrompt');
         this.showError(fieldError.message, 'transform');
         this.hideLoading();
         return;
@@ -8383,6 +8399,9 @@ class CustomifyEmbed {
         error.message.includes('Error completing request') ||
         error.message.includes('network failure')
       );
+      if (!isNetworkError && error.name !== 'AbortError') {
+        this._reportToSentry(error, 'transformImage');
+      }
       if (retryCount < 3 && (error.name === 'AbortError' || isNetworkError)) {
         console.log(`🔄 [MOBILE] Retrying in 2 seconds... (attempt ${retryCount + 1}/3)`);
         alert(`🔄 Ponawiam próbę ${retryCount + 1}/3...`);
@@ -9102,6 +9121,7 @@ class CustomifyEmbed {
       }
     } catch (error) {
       console.error('❌ [CUSTOMIFY] Add to cart error:', error);
+      this._reportToSentry(error, 'addToCart');
       
       // ✅ RETRY LOGIC: Ponów próbę dla network errors (max 3 próby)
       // ⚠️ TYLKO jeśli produkt NIE ZOSTAŁ JESZCZE UTWORZONY — inaczej powstają duplikaty w Shopify!
