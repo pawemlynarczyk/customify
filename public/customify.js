@@ -8320,7 +8320,7 @@ class CustomifyEmbed {
         if (!this.isPhonePhotoCaseProduct || !this.isPhonePhotoCaseProduct()) {
           if (customerInfo) {
             // Zalogowany: pokaż bazowy komunikat, potem dołącz liczbę pozostałych prób
-            this.showSuccess('Obraz zapisany, jest dostępny w sekcji <a href="https://lumly.pl/pages/my-generations" target="_blank" rel="noopener">Moje obrazy</a>.', { html: true });
+            this.showSuccess('Obraz zapisany, jest dostępny w sekcji <a href="https://lumly.pl/pages/my-generations" target="_blank" rel="noopener">Moje obrazy</a>.<br><span style="font-size:0.88em;color:#555;">Jeśli na obrazku jest coś nie tak, np. napis, literówki — nasz grafik poprawi to ręcznie. Napisz przy składaniu zamówienia w polu Uwagi.</span>', { html: true });
             fetch('https://customify-s56o.vercel.app/api/check-usage', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -8346,7 +8346,7 @@ class CustomifyEmbed {
               }
             }).catch(() => {});
           } else {
-            this.showSuccess('Obraz zapisany! Możesz go zobaczyć później w sekcji Twoje obrazy - Poniżej.');
+            this.showSuccess('Obraz zapisany! Możesz go zobaczyć później w sekcji Twoje obrazy - Poniżej.<br><span style="font-size:0.88em;color:#555;">Jeśli na obrazku jest coś nie tak, np. napis, literówki — nasz grafik poprawi to ręcznie. Napisz przy składaniu zamówienia w polu Uwagi.</span>', { html: true });
           }
         }
         
