@@ -2991,13 +2991,17 @@ tags: {{ product.tags | json }}
  <div id="customify-app-container" class="customify-shopify-container">
  
 {%- assign _sd = false -%}{%- if product.handle contains 'szkle' or product.handle contains 'szklo' or product.handle contains 'akryl' or product.handle contains 'karykatura-dla-niej' or product.handle == 'obraz-ze-zdjecia-karykatura-szefa' -%}{%- assign _sd = true -%}{%- endif -%}
-<div class="customify-product-type-selector{% if product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem' %} hide-for-phone-case{% endif %}" id="productTypeArea" style="display: block; margin-bottom: 10px;">
+<div class="customify-product-type-selector{% if product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem' %} hide-for-phone-case{% endif %}" id="productTypeArea" style="{% if product.handle == 'prezent-dla-dziadkow-retusz-starych-zdjec' %}display: none;{% else %}display: block;{% endif %} margin-bottom: 10px;">
 <h4 style="text-align: left; font-size: 0.95rem; font-weight: 600;">Rodzaj wydruku:</h4>
 <div class="customify-product-type-buttons">
 {% if product.handle == 'ramka-spotify' or product.handle == 'zdjecie-na-szkle-ramka-spotify' %}
 <div class="customify-product-type-btn active" data-product-type="szklo">
 Nadruk na szkle (dodaj podstawkę)
 </div>
+{% elsif product.handle == 'prezent-dla-dziadkow-retusz-starych-zdjec' %}
+ <div class="customify-product-type-btn active" data-product-type="digital">
+ Produkt cyfrowy
+ </div>
 {% else %}
  <div class="customify-product-type-btn{% unless _sd %} active{% endunless %}" data-product-type="plakat">
  Plakat (dodaj ramkę)
@@ -3052,7 +3056,7 @@ Ramka: <span id="frameCurrentLabel">Brak ramki</span>
  </div>
 
 {% comment %} PAKIETY CYFROWE: pojawia się gdy user wybierze "Produkt cyfrowy" {% endcomment %}
-<div id="digitalPackageSelector" style="display: none; margin-bottom: 12px;">
+<div id="digitalPackageSelector" style="{% if product.handle == 'prezent-dla-dziadkow-retusz-starych-zdjec' %}display: block;{% else %}display: none;{% endif %} margin-bottom: 12px;">
  <h4 style="text-align: left; font-size: 0.95rem; font-weight: 600; margin-bottom: 8px;">Ile obrazków?</h4>
  <div class="digital-package-options">
  <div class="digital-package-btn active" data-package="1" data-price="49">
@@ -3078,7 +3082,7 @@ Ramka: <span id="frameCurrentLabel">Brak ramki</span>
  </div>
 </div>
 
-<div class="customify-size-selector{% if product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem' %} hide-for-phone-case{% endif %}" id="sizeArea" style="display: block; margin-bottom: 10px;">
+<div class="customify-size-selector{% if product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem' %} hide-for-phone-case{% endif %}" id="sizeArea" style="{% if product.handle == 'prezent-dla-dziadkow-retusz-starych-zdjec' %}display: none;{% else %}display: block;{% endif %} margin-bottom: 10px;">
 <h4 style="text-align: left;">Rozmiar (cm):</h4>
  <div class="customify-size-buttons">
  <div class="customify-size-btn" data-size="a5" data-for-szklo="true">15×21</div>
