@@ -1334,7 +1334,8 @@ POSE
 • Relaxed, charismatic pose.
 
 OUTFIT
-• Outfit matching the profession or interest.
+• When CUSTOMIZATION is empty: elegant wedding-anniversary attire — man in a dark suit or tuxedo, woman in an elegant long dress. Formal and festive.
+• When CUSTOMIZATION specifies different clothing — follow that instead.
 • Stylish, slightly exaggerated caricature look.
 
 SCENE
@@ -1391,7 +1392,8 @@ POSE
 • Relaxed, charismatic pose.
 
 OUTFIT
-• Outfit matching the profession or interest.
+• When CUSTOMIZATION is empty: elegant wedding-anniversary attire — man in a dark suit or tuxedo, woman in an elegant long dress. Formal and festive.
+• When CUSTOMIZATION specifies different clothing — follow that instead.
 • Stylish, slightly exaggerated caricature look.
 
 SCENE
@@ -1448,7 +1450,8 @@ POSE
 • Relaxed, charismatic pose.
 
 OUTFIT
-• Outfit matching the profession or interest.
+• When CUSTOMIZATION is empty: elegant wedding-anniversary attire — man in a dark suit or tuxedo, woman in an elegant long dress. Formal and festive.
+• When CUSTOMIZATION specifies different clothing — follow that instead.
 • Stylish, slightly exaggerated caricature look.
 
 SCENE
