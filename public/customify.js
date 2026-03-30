@@ -2709,7 +2709,8 @@ class CustomifyEmbed {
    * Sprawdza czy funkcja napisów jest dostępna (pilotaż na jednym produkcie)
    */
   isTextOverlayProduct() {
-    return true; // włączone globalnie na wszystkich produktach
+    if (this.isDlaNiejProduct()) return false;
+    return true;
   }
 
   isSpotifyProduct() {
