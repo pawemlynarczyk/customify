@@ -10,7 +10,7 @@ const { checkRateLimit, getClientIP } = require('../../utils/vercelRateLimiter')
 const STATS_FILE_PATH = 'customify/stats/login-modal-stats.json'; // legacy - do odczytu
 const STATS_NEW_PREFIX = 'customify/statystyki/';
 const STATS_LEGACY_PREFIX = 'customify/temp/admin-stats/';
-const MAX_STATS_VERSIONS = 5;
+const MAX_STATS_VERSIONS = 3; // Po konsolidacji zostaje 1, więc 3 to bezpieczny bufor na race conditions
 
 const defaultSummary = () => ({
   totalEntries: 0,
@@ -58,6 +58,63 @@ const ensureStatsStructure = (stats) => {
 };
 
 const cloneDeep = (obj) => JSON.parse(JSON.stringify(obj));
+
+/**
+ * Przelicza summary, byDate, byProduct od zera na podstawie tablicy eventów.
+ * Używane po mergowaniu eventów z wielu plików – eliminuje problem podwójnego liczenia.
+ */
+const recomputeStatsFromEvents = (allEvents, meta = {}) => {
+  const summary = defaultSummary();
+  const byProduct = {};
+  const byDate = {};
+
+  for (const event of allEvents) {
+    const { eventType, productUrl, timestamp } = event;
+    const dateKey = (timestamp || new Date().toISOString()).split('T')[0];
+
+    if (eventType === 'login_modal_page_entry') summary.totalEntries++;
+    if (eventType === 'ai_generation_success') summary.totalGenerations++;
+    if (eventType === 'login_modal_shown') summary.totalShown++;
+    if (eventType === 'login_modal_register_click') summary.totalRegisterClicks++;
+    if (eventType === 'login_modal_login_click') summary.totalLoginClicks++;
+    if (eventType === 'login_modal_cancel_click') summary.totalCancelClicks++;
+    if (eventType === 'login_modal_auto_redirect') summary.totalAutoRedirects++;
+    if (eventType === 'login_modal_register_success') summary.totalRegisterSuccess++;
+    if (eventType === 'login_modal_login_success') summary.totalLoginSuccess++;
+
+    if (productUrl) {
+      const productKey = getProductKeyFromUrl(productUrl);
+      if (!byProduct[productKey]) byProduct[productKey] = defaultBreakdown();
+      if (eventType === 'login_modal_page_entry') byProduct[productKey].entries++;
+      if (eventType === 'ai_generation_success') byProduct[productKey].generations++;
+      if (eventType === 'login_modal_shown') byProduct[productKey].shown++;
+      if (eventType === 'login_modal_register_click') byProduct[productKey].registerClicks++;
+      if (eventType === 'login_modal_login_click') byProduct[productKey].loginClicks++;
+      if (eventType === 'login_modal_cancel_click') byProduct[productKey].cancelClicks++;
+      if (eventType === 'login_modal_auto_redirect') byProduct[productKey].autoRedirects++;
+      if (eventType === 'login_modal_register_success') byProduct[productKey].registerSuccess++;
+      if (eventType === 'login_modal_login_success') byProduct[productKey].loginSuccess++;
+    }
+
+    if (!byDate[dateKey]) byDate[dateKey] = defaultBreakdown();
+    if (eventType === 'login_modal_page_entry') byDate[dateKey].entries++;
+    if (eventType === 'ai_generation_success') byDate[dateKey].generations++;
+    if (eventType === 'login_modal_shown') byDate[dateKey].shown++;
+    if (eventType === 'login_modal_register_click') byDate[dateKey].registerClicks++;
+    if (eventType === 'login_modal_login_click') byDate[dateKey].loginClicks++;
+    if (eventType === 'login_modal_cancel_click') byDate[dateKey].cancelClicks++;
+    if (eventType === 'login_modal_auto_redirect') byDate[dateKey].autoRedirects++;
+    if (eventType === 'login_modal_register_success') byDate[dateKey].registerSuccess++;
+    if (eventType === 'login_modal_login_success') byDate[dateKey].loginSuccess++;
+  }
+
+  const allCreatedAts = [meta.createdAt].filter(Boolean).map(d => new Date(d)).filter(d => !isNaN(d));
+  const createdAt = allCreatedAts.length > 0
+    ? allCreatedAts.reduce((min, d) => (d < min ? d : min), allCreatedAts[0]).toISOString()
+    : new Date().toISOString();
+
+  return { events: allEvents, summary, byProduct, byDate, createdAt, lastUpdated: new Date().toISOString() };
+};
 
 const normalizeProductKey = (rawKey) => {
   if (!rawKey || typeof rawKey !== 'string') return 'unknown';
@@ -248,6 +305,78 @@ const loadLatestFromPrefix = async (prefix, blobToken) => {
   }
 };
 
+/**
+ * Ładuje WSZYSTKIE pliki z prefiksu, merguje eventy (dedupl. po ID),
+ * przelicza summary/byDate/byProduct od nowa.
+ * Rozwiązuje race condition: najnowszy plik czasowo może mieć MNIEJ eventów
+ * niż starszy plik (gdy write nastąpił z pustego stanu po błędzie odczytu).
+ */
+const loadAndMergeAllFromPrefix = async (prefix, blobToken) => {
+  if (!prefix) return null;
+  try {
+    const versionList = await list({ prefix, limit: 100, token: blobToken });
+    const blobs = versionList?.blobs || [];
+    if (!blobs.length) return null;
+
+    const sorted = [...blobs].sort((a, b) => new Date(a.uploadedAt).getTime() - new Date(b.uploadedAt).getTime());
+
+    // Ładuj wszystkie pliki równolegle
+    const allStatsArray = (await Promise.all(
+      sorted.map(async (blob) => {
+        try {
+          const response = await fetch(blob.url);
+          if (!response.ok) return null;
+          return await response.json();
+        } catch (e) {
+          console.warn(`📊 [LOGIN-MODAL-STATS] Pomiń plik ${blob.pathname}:`, e?.message);
+          return null;
+        }
+      })
+    )).filter(Boolean);
+
+    if (!allStatsArray.length) return null;
+
+    // Zbierz wszystkie unikalne eventy (dedupl. po ID)
+    const eventMap = new Map();
+    let earliestCreatedAt = null;
+
+    for (const stats of allStatsArray) {
+      (stats.events || []).forEach(event => {
+        if (event?.id && !eventMap.has(event.id)) {
+          eventMap.set(event.id, event);
+        }
+      });
+      if (stats.createdAt) {
+        const d = new Date(stats.createdAt);
+        if (!isNaN(d) && (!earliestCreatedAt || d < earliestCreatedAt)) {
+          earliestCreatedAt = d;
+        }
+      }
+    }
+
+    // Sortuj eventy chronologicznie
+    const mergedEvents = [...eventMap.values()].sort(
+      (a, b) => new Date(a.timestamp || 0).getTime() - new Date(b.timestamp || 0).getTime()
+    );
+
+    // Przelicz wszystko od nowa z połączonych eventów
+    const mergedStats = recomputeStatsFromEvents(mergedEvents, {
+      createdAt: earliestCreatedAt?.toISOString()
+    });
+
+    console.log(`📊 [LOGIN-MODAL-STATS] Merged ${allStatsArray.length} pliki → ${mergedEvents.length} unikalnych eventów`);
+
+    return {
+      stats: mergedStats,
+      sourcePath: sorted[sorted.length - 1].pathname,
+      versions: sorted
+    };
+  } catch (error) {
+    console.log(`📊 [LOGIN-MODAL-STATS] Błąd merge prefix ${prefix}:`, error?.message || error);
+    return null;
+  }
+};
+
 const loadLegacyData = async (blobToken) => {
   const legacyPrefixData = await loadLatestFromPrefix(STATS_LEGACY_PREFIX, blobToken);
   if (legacyPrefixData?.stats) {
@@ -285,13 +414,15 @@ const createEmptyStats = () => ensureStatsStructure({
 });
 
 const loadStatsFile = async (blobToken, options = {}) => {
-  const { includeLegacy = true } = options;
+  const { includeLegacy = true, mergeAll = true } = options;
 
   let stats = createEmptyStats();
   let sourcePath = null;
   let versions = [];
 
-  const latestNewData = await loadLatestFromPrefix(STATS_NEW_PREFIX, blobToken);
+  // Użyj merge wszystkich plików zamiast tylko najnowszego
+  const loader = mergeAll ? loadAndMergeAllFromPrefix : loadLatestFromPrefix;
+  const latestNewData = await loader(STATS_NEW_PREFIX, blobToken);
   if (latestNewData?.stats) {
     stats = ensureStatsStructure(latestNewData.stats);
     sourcePath = latestNewData.sourcePath;
@@ -308,7 +439,19 @@ const loadStatsFile = async (blobToken, options = {}) => {
     sourcePath = legacyData.sourcePath || sourcePath;
     versions = legacyData.versions || versions;
   } else if (legacyData?.stats && !stats.migratedFromLegacy) {
-    stats = mergeStatsData(stats, legacyData.stats);
+    // Merguj legacy eventy z nowymi – przelicz od nowa żeby uniknąć podwójnego liczenia
+    const legacyEvents = legacyData.stats?.events || [];
+    const currentEvents = stats.events || [];
+    const eventMap = new Map();
+    [...currentEvents, ...legacyEvents].forEach(e => {
+      if (e?.id && !eventMap.has(e.id)) eventMap.set(e.id, e);
+    });
+    const allEvents = [...eventMap.values()].sort(
+      (a, b) => new Date(a.timestamp || 0).getTime() - new Date(b.timestamp || 0).getTime()
+    );
+    stats = recomputeStatsFromEvents(allEvents, {
+      createdAt: legacyData.stats?.createdAt || stats.createdAt
+    });
     stats.migratedFromLegacy = true;
   }
 
@@ -387,9 +530,18 @@ module.exports = async (req, res) => {
       const blobToken = getBlobToken();
       let statsData;
       try {
-        statsData = await loadStatsFile(blobToken, { includeLegacy: false });
+        // Merguj WSZYSTKIE istniejące pliki żeby nie zgubić danych przy race condition
+        statsData = await loadStatsFile(blobToken, { includeLegacy: false, mergeAll: true });
       } catch (error) {
-        statsData = { stats: createEmptyStats(), sourcePath: null, versions: [] };
+        console.warn('⚠️ [LOGIN-MODAL-STATS] loadStatsFile failed, trying direct merge:', error?.message);
+        try {
+          const directMerge = await loadAndMergeAllFromPrefix(STATS_NEW_PREFIX, blobToken);
+          statsData = directMerge
+            ? { stats: directMerge.stats, sourcePath: directMerge.sourcePath, versions: directMerge.versions || [] }
+            : { stats: createEmptyStats(), sourcePath: null, versions: [] };
+        } catch (e2) {
+          statsData = { stats: createEmptyStats(), sourcePath: null, versions: [] };
+        }
       }
       let stats = ensureStatsStructure(statsData.stats || createEmptyStats());
 
@@ -403,56 +555,19 @@ module.exports = async (req, res) => {
         timestamp: timestamp || new Date().toISOString()
       };
 
-      stats.events.push(newEvent);
-
-      if (eventType === 'login_modal_page_entry') stats.summary.totalEntries++;
-      if (eventType === 'ai_generation_success') stats.summary.totalGenerations++;
-      if (eventType === 'login_modal_shown') stats.summary.totalShown++;
-      if (eventType === 'login_modal_register_click') stats.summary.totalRegisterClicks++;
-      if (eventType === 'login_modal_login_click') stats.summary.totalLoginClicks++;
-      if (eventType === 'login_modal_cancel_click') stats.summary.totalCancelClicks++;
-      if (eventType === 'login_modal_auto_redirect') stats.summary.totalAutoRedirects++;
-      if (eventType === 'login_modal_register_success') stats.summary.totalRegisterSuccess++;
-      if (eventType === 'login_modal_login_success') stats.summary.totalLoginSuccess++;
-
-      if (productUrl) {
-        const productKey = getProductKeyFromUrl(productUrl);
-        if (!stats.byProduct[productKey]) {
-          stats.byProduct[productKey] = defaultBreakdown();
-        } else {
-          stats.byProduct[productKey] = { ...defaultBreakdown(), ...stats.byProduct[productKey] };
-        }
-        if (eventType === 'login_modal_page_entry') stats.byProduct[productKey].entries++;
-        if (eventType === 'ai_generation_success') stats.byProduct[productKey].generations++;
-        if (eventType === 'login_modal_shown') stats.byProduct[productKey].shown++;
-        if (eventType === 'login_modal_register_click') stats.byProduct[productKey].registerClicks++;
-        if (eventType === 'login_modal_login_click') stats.byProduct[productKey].loginClicks++;
-        if (eventType === 'login_modal_cancel_click') stats.byProduct[productKey].cancelClicks++;
-        if (eventType === 'login_modal_auto_redirect') stats.byProduct[productKey].autoRedirects++;
-        if (eventType === 'login_modal_register_success') stats.byProduct[productKey].registerSuccess++;
-        if (eventType === 'login_modal_login_success') stats.byProduct[productKey].loginSuccess++;
+      // Dodaj event do pełnej listy i przelicz od nowa (idempotentne)
+      const existingIds = new Set((stats.events || []).map(e => e?.id).filter(Boolean));
+      if (!existingIds.has(newEvent.id)) {
+        stats.events.push(newEvent);
       }
 
-      const dateKey = new Date().toISOString().split('T')[0];
-      if (!stats.byDate[dateKey]) {
-        stats.byDate[dateKey] = defaultBreakdown();
-      } else {
-        stats.byDate[dateKey] = { ...defaultBreakdown(), ...stats.byDate[dateKey] };
+      if (stats.events.length > 2000) {
+        stats.events = stats.events.slice(-2000);
       }
-      if (eventType === 'login_modal_page_entry') stats.byDate[dateKey].entries++;
-      if (eventType === 'ai_generation_success') stats.byDate[dateKey].generations++;
-      if (eventType === 'login_modal_shown') stats.byDate[dateKey].shown++;
-      if (eventType === 'login_modal_register_click') stats.byDate[dateKey].registerClicks++;
-      if (eventType === 'login_modal_login_click') stats.byDate[dateKey].loginClicks++;
-      if (eventType === 'login_modal_cancel_click') stats.byDate[dateKey].cancelClicks++;
-      if (eventType === 'login_modal_auto_redirect') stats.byDate[dateKey].autoRedirects++;
-      if (eventType === 'login_modal_register_success') stats.byDate[dateKey].registerSuccess++;
-      if (eventType === 'login_modal_login_success') stats.byDate[dateKey].loginSuccess++;
 
-      if (stats.events.length > 1000) {
-        stats.events = stats.events.slice(-1000);
-      }
-      stats.lastUpdated = new Date().toISOString();
+      // Przelicz summary/byDate/byProduct od nowa z wszystkich eventów
+      const recomputed = recomputeStatsFromEvents(stats.events, { createdAt: stats.createdAt });
+      Object.assign(stats, recomputed);
 
       const newStatsPath = `${STATS_NEW_PREFIX}stats-${Date.now()}.json`;
       const blob = await put(newStatsPath, JSON.stringify(stats, null, 2), {
@@ -467,7 +582,7 @@ module.exports = async (req, res) => {
         del(STATS_FILE_PATH, { token: blobToken }).catch(() => {});
       }
       await cleanupOldVersions(blobToken, [...(statsData.versions || []), { pathname: storedPath, uploadedAt: new Date().toISOString() }]);
-      console.log('✅ [LOGIN-MODAL-STATS] Write OK:', eventType);
+      console.log('✅ [LOGIN-MODAL-STATS] Write OK:', eventType, '| Total events:', stats.events.length);
     };
 
     // Zwróć odpowiedź natychmiast – nie blokuj HTTP na operacjach Blob
@@ -507,10 +622,34 @@ module.exports = async (req, res) => {
       console.log('✅ [LOGIN-MODAL-STATS] Authorization successful');
 
       let stats = createEmptyStats();
+      let loadedVersions = [];
       try {
         const blobToken = getBlobToken();
-        const { stats: loadedStats } = await loadStatsFile(blobToken);
-        stats = ensureStatsStructure(loadedStats || createEmptyStats());
+        const loadResult = await loadStatsFile(blobToken);
+        stats = ensureStatsStructure(loadResult.stats || createEmptyStats());
+        loadedVersions = loadResult.versions || [];
+
+        // Konsolidacja: jeśli jest więcej niż 1 plik → zapisz jeden skonsolidowany i usuń stare
+        if (loadedVersions.length > 1) {
+          try {
+            const consolidatedPath = `${STATS_NEW_PREFIX}stats-${Date.now()}.json`;
+            const consolidatedBlob = await put(consolidatedPath, JSON.stringify(stats, null, 2), {
+              access: 'public',
+              token: blobToken,
+              contentType: 'application/json',
+              allowOverwrite: true
+            });
+            const storedPath = consolidatedBlob.pathname || consolidatedPath;
+            // Usuń wszystkie stare pliki (zachowaj tylko skonsolidowany)
+            await cleanupOldVersions(blobToken, [
+              ...loadedVersions,
+              { pathname: storedPath, uploadedAt: new Date().toISOString() }
+            ]);
+            console.log(`📊 [LOGIN-MODAL-STATS] Skonsolidowano ${loadedVersions.length} pliki → 1 plik`);
+          } catch (consolidateErr) {
+            console.warn('⚠️ [LOGIN-MODAL-STATS] Konsolidacja nie powiodła się:', consolidateErr?.message);
+          }
+        }
       } catch (error) {
         console.log('📊 [LOGIN-MODAL-STATS] No existing stats file');
       }
