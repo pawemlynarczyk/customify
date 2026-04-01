@@ -627,7 +627,8 @@
   // ─── Social image auto-generation ─────────────────────────────────────────
   const SOCIAL_API = 'https://customify-s56o.vercel.app/api/admin/generate-social-image';
   const MAX_CONCURRENT = 3;
-  const MAX_AUTO_GENERATE = 20; // Generuj max 20 najnowszych wpisów na jedno otwarcie
+  // TEST: tylko 1 wpis na otwarcie (pierwszy wiersz po sortowaniu — domyślnie najnowszy bez socialImageUrl). Zwiększ np. do 20 po testach.
+  const MAX_AUTO_GENERATE = 1;
   let socialQueue = [];
   let socialActive = 0;
   let socialGenScheduled = false;
