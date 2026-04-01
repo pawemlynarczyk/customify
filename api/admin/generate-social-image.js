@@ -29,13 +29,35 @@ const getBlobToken = () => {
   return token;
 };
 
-// Tylko płeć (handle) + wiek wyłącznie z pola rocznica (liczba). Bez opisu/imienia.
-function detectPhotorealSubject(productHandle, rocznica) {
+// Krok 1 (fotoreal): płeć z handle + fallback z opisu (handle czesto ma formę „kierowcy” a nie „kierowca”).
+// Wiek tylko z rocznica (liczba).
+function detectPhotorealSubject(productHandle, rocznica, opis) {
   let gender = 'woman';
-  if (/para|slubna|mlodej-pary|diamentowe-gody|wesola-para|podroznikow|rocznice-slubu|zakochana|staruszkow/i.test(productHandle || '')) {
+  const h = productHandle || '';
+  if (/para|slubna|mlodej-pary|diamentowe-gody|wesola-para|podroznikow|rocznice-slubu|zakochana|staruszkow/i.test(h)) {
     gender = 'couple';
-  } else if (/dla-mezczyzny|dla-faceta|rolnik[^a]|kulturysta|wedkarz|pilkarz|policjant[^k]|szef[^o]|strazak|lekarz[^k]|kierowca|taty|dziadka|chlopaka|dla-niego/i.test(productHandle || '')) {
+  } else if (
+    /dla-mezczyzny|dla-faceta|dla-niego|dla-taty|dla-chlopaka|dla-dziadka|rolnik[^a]|kulturysta|wedkarz|pilkarz|policjant[^k]|szef[^o]|strazak|lekarz[^k]|kierowc|budowlanc|meza|mezczyzny|chlopaka|taty|dziadka/i.test(
+      h
+    )
+  ) {
+    // kierowc → „kierowca”, „kierowcy”, „kierowcow” w slugach
     gender = 'man';
+  }
+
+  if (gender !== 'couple' && opis && String(opis).trim()) {
+    const t = String(opis).toLowerCase();
+    if (
+      /\b(kierowc|kierowca|kierowcy|ciężarów|ciezarow|tira\b|ciągnik|ciezarowka|ciężarówka|naczep|trasa\s|trucker|truck)\b/i.test(
+        t
+      ) ||
+      /\b(mężczyzn|mezczyzn|facet|tata\b|dziadek|chlopak|chłopak|syna?\b|mąż|mez|dziad\b|pan\b)\b/i.test(t)
+    ) {
+      gender = 'man';
+    }
+    if (/\b(kobiet|pani\b|mama\b|babc|żona|zona|lekark|pielęgniark|kuchark)\b/i.test(t)) {
+      gender = 'woman';
+    }
   }
 
   let age = 40;
@@ -204,7 +226,7 @@ module.exports = async (req, res) => {
 
   try {
     // ── Krok 1: fotorealistyczny „zamiennik” zdjęcia użytkownika
-    const subject = detectPhotorealSubject(productHandle || '', rocznica);
+    const subject = detectPhotorealSubject(productHandle || '', rocznica, opis);
     const prompt1 = buildPhotorealisticPrompt(subject);
     console.log(`👤 [SOCIAL] Krok 1: gender=${subject.gender}, age=${subject.age} (tylko z rocznica + handle)`);
     console.log(`📝 [SOCIAL] Prompt1: ${prompt1.substring(0, 160)}...`);
