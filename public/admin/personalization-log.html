@@ -339,10 +339,7 @@
         Generuj obrazki „Social” (płatne API: każdy wpis = Nano Banana + pełny transform — kilka-kilkanaście PLN przy większej liczbie)
       </label>
       <div style="margin-top:8px;font-size:12px;color:#795548;">
-        <strong>Test:</strong> tylko <strong>jedna</strong> generacja na całą sesję tej karty przeglądarki — potem stop (do kolejnej musisz zamknąć kartę lub wyczyścić dane witryny dla tej strony). Na backendzie: <code>ENABLE_SOCIAL_GENERATE=true</code> w Vercel.
-      </div>
-      <div id="socialTestLimitMsg" style="display:none;margin-top:10px;padding:10px 12px;background:#ffebee;border-radius:8px;font-weight:700;color:#b71c1c;font-size:13px;">
-        Limit testowy wykorzystany: 1 generacja na sesję. Zamknij kartę lub usuń dane witryny (sessionStorage), żeby móc znowu włączyć test.
+        Auto-generacja działa tylko po zaznaczeniu checkboxa. Na backendzie wymagane: <code>ENABLE_SOCIAL_GENERATE=true</code> w Vercel.
       </div>
     </div>
 
@@ -502,8 +499,8 @@
       return;
     }
     const { sorted, attemptsMap } = sortEntries(entries);
-    // Kolejka social: checkbox + nie wyczerpano limitu 1/sesja
-    if (isSocialGenerateEnabled() && !isSocialTestConsumed()) {
+    // Kolejka social tylko gdy checkbox jest włączony
+    if (isSocialGenerateEnabled()) {
       scheduleSocialGeneration(sorted);
     }
 
@@ -525,17 +522,12 @@
           <a href="${e.socialImageUrl}" target="_blank"><img class="social-img" src="${e.socialImageUrl}" alt="social" loading="lazy" /></a>
           <a class="social-dl-btn" href="${e.socialImageUrl}" download="social_${e.id}.jpg">⬇ Pobierz</a>
         </div>`;
-      } else if (canGenerate && isSocialGenerateEnabled() && !isSocialTestConsumed() && socialPendingIds.has(e.id)) {
+      } else if (canGenerate && isSocialGenerateEnabled() && socialPendingIds.has(e.id)) {
         socialHtml = `<span class="social-spinner" id="social-spin-${e.id}" title="Generowanie...">⏳</span>`;
       } else if (canGenerate) {
-        let offTitle;
-        if (isSocialTestConsumed()) {
-          offTitle = 'Limit: 1 generacja na sesję — już wykorzystane (zamknij kartę lub wyczyść dane witryny)';
-        } else if (!isSocialGenerateEnabled()) {
-          offTitle = 'Wyłączone — zaznacz „Generuj obrazki Social” powyżej. W Vercel: ENABLE_SOCIAL_GENERATE=true';
-        } else {
-          offTitle = 'Kolejka: max jeden wpis; limit 1 generacji na sesję';
-        }
+        const offTitle = !isSocialGenerateEnabled()
+          ? 'Wyłączone — zaznacz „Generuj obrazki Social” powyżej. W Vercel: ENABLE_SOCIAL_GENERATE=true'
+          : 'Kolejka: max jeden wpis na odświeżenie';
         socialHtml = `<span class="social-skip" title="${esc(offTitle)}">—</span>`;
       } else {
         socialHtml = `<span class="social-skip" title="Brak danych do generacji">—</span>`;
@@ -665,7 +657,6 @@
 
   // ─── Social image auto-generation ─────────────────────────────────────────
   const SOCIAL_API = 'https://customify-s56o.vercel.app/api/admin/generate-social-image';
-  const SS_SOCIAL_TEST_USED = 'customify_social_test_one_per_session';
   const MAX_CONCURRENT = 1;
   const MAX_AUTO_GENERATE = 1;
   let socialQueue = [];
@@ -674,34 +665,12 @@
 
   function isSocialGenerateEnabled() {
     const el = document.getElementById('socialGenerateEnabled');
-    return !!(el && el.checked && !el.disabled);
-  }
-
-  function isSocialTestConsumed() {
-    return sessionStorage.getItem(SS_SOCIAL_TEST_USED) === '1';
-  }
-
-  function consumeSocialTestSlot() {
-    sessionStorage.setItem(SS_SOCIAL_TEST_USED, '1');
-    const cb = document.getElementById('socialGenerateEnabled');
-    if (cb) {
-      cb.checked = false;
-      cb.disabled = true;
-    }
-    const msg = document.getElementById('socialTestLimitMsg');
-    if (msg) msg.style.display = 'block';
+    return !!(el && el.checked);
   }
 
   function initSocialGenerationUI() {
     const cb = document.getElementById('socialGenerateEnabled');
     if (!cb) return;
-    if (isSocialTestConsumed()) {
-      cb.checked = false;
-      cb.disabled = true;
-      const msg = document.getElementById('socialTestLimitMsg');
-      if (msg) msg.style.display = 'block';
-      return;
-    }
     if (!socialUiInitDone) {
       socialUiInitDone = true;
       cb.addEventListener('change', () => {
@@ -715,7 +684,6 @@
   }
 
   function scheduleSocialGeneration(sortedEntries) {
-    if (isSocialTestConsumed()) return;
     if (socialGenerationBusy()) return;
 
     const pending = sortedEntries
@@ -746,10 +714,6 @@
   async function generateOneSocialImage(entry) {
     const spinEl = document.getElementById(`social-spin-${entry.id}`);
     if (!spinEl) return;
-    if (isSocialTestConsumed()) return;
-
-    // Jedna generacja na całą sesję — przed fetch (koszt API)
-    consumeSocialTestSlot();
 
     try {
       const res = await fetch(SOCIAL_API, {
