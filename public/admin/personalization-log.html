@@ -475,6 +475,9 @@
       return;
     }
     const { sorted, attemptsMap } = sortEntries(entries);
+    // Najpierw kolejka social (ustawia socialPendingIds), potem HTML — spinner tylko dla faktycznie generowanego wpisu
+    scheduleSocialGeneration(sorted);
+
     const rows = sorted.map(e => {
       const dt = e.timestamp ? new Date(e.timestamp).toLocaleString('pl-PL') : '—';
       const handle = e.productHandle || '—';
@@ -485,7 +488,7 @@
       const safeEmail = esc(e.email || '—');
       const attempts = attemptsMap[getUserKey(e)] || 1;
 
-      // Social image cell
+      // Social image cell — ⏳ tylko gdy ten wpis jest w kolejce / generowany; inne „do generacji” = — (nie mylić z masową generacją)
       const canGenerate = !!(e.productHandle && (e.opis || e.imie));
       let socialHtml;
       if (e.socialImageUrl) {
@@ -493,8 +496,10 @@
           <a href="${e.socialImageUrl}" target="_blank"><img class="social-img" src="${e.socialImageUrl}" alt="social" loading="lazy" /></a>
           <a class="social-dl-btn" href="${e.socialImageUrl}" download="social_${e.id}.jpg">⬇ Pobierz</a>
         </div>`;
-      } else if (canGenerate) {
+      } else if (canGenerate && socialPendingIds.has(e.id)) {
         socialHtml = `<span class="social-spinner" id="social-spin-${e.id}" title="Generowanie...">⏳</span>`;
+      } else if (canGenerate) {
+        socialHtml = `<span class="social-skip" title="W tej sesji auto-generacja tylko dla pierwszego wpisu z listy (odśwież po zakończeniu)">—</span>`;
       } else {
         socialHtml = `<span class="social-skip" title="Brak danych do generacji">—</span>`;
       }
@@ -529,9 +534,6 @@
         </thead>
         <tbody>${rows}</tbody>
       </table>`;
-
-    // Auto-generuj obrazki social dla wpisów bez nich
-    scheduleSocialGeneration(sorted);
   }
 
   function renderProductStats(counts) {
@@ -626,28 +628,32 @@
 
   // ─── Social image auto-generation ─────────────────────────────────────────
   const SOCIAL_API = 'https://customify-s56o.vercel.app/api/admin/generate-social-image';
-  const MAX_CONCURRENT = 3;
-  // TEST: tylko 1 wpis na otwarcie (pierwszy wiersz po sortowaniu — domyślnie najnowszy bez socialImageUrl). Zwiększ np. do 20 po testach.
+  const MAX_CONCURRENT = 1; // jedna generacja naraz (krok 1+2 API = długie)
   const MAX_AUTO_GENERATE = 1;
   let socialQueue = [];
   let socialActive = 0;
-  let socialGenScheduled = false;
+  /** ID wpisów faktycznie w kolejce / w locie — tylko one mają spinner ⏳ */
+  const socialPendingIds = new Set();
+
+  function socialGenerationBusy() {
+    return socialActive > 0 || socialQueue.length > 0;
+  }
 
   function scheduleSocialGeneration(sortedEntries) {
-    // Zbierz wpisy bez socialImageUrl, które mają dane do generacji — max 20
+    // Nie dokładaj kolejnych jobów dopóki trwa poprzedni (inaczej każdy renderTable = kolejna fala requestów)
+    if (socialGenerationBusy()) return;
+
     const pending = sortedEntries
       .filter(e => !e.socialImageUrl && e.productHandle && (e.opis || e.imie))
       .slice(0, MAX_AUTO_GENERATE);
     if (!pending.length) return;
 
-    // Dodaj do kolejki (unikaj duplikatów)
-    const existingIds = new Set(socialQueue.map(e => e.id));
-    pending.forEach(e => { if (!existingIds.has(e.id)) socialQueue.push(e); });
-
-    if (!socialGenScheduled) {
-      socialGenScheduled = true;
-      processSocialQueue();
-    }
+    pending.forEach(e => {
+      if (socialPendingIds.has(e.id)) return;
+      socialPendingIds.add(e.id);
+      socialQueue.push(e);
+    });
+    processSocialQueue();
   }
 
   function processSocialQueue() {
@@ -655,12 +661,10 @@
       const entry = socialQueue.shift();
       socialActive++;
       generateOneSocialImage(entry).finally(() => {
+        socialPendingIds.delete(entry.id);
         socialActive--;
         processSocialQueue();
       });
-    }
-    if (socialQueue.length === 0 && socialActive === 0) {
-      socialGenScheduled = false;
     }
   }
 
