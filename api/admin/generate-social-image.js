@@ -4,6 +4,8 @@
 // Krok 2: /api/transform — styl + productType + prompt jak na stronie produktu
 //         (public/customify.js: PRODUCT_FIELD_CONFIGS + getProductTypeFromStyle).
 // Nie używamy prawdziwych zdjęć klientów.
+//
+// Zakres social (wasze produkty): serie kobieta / mężczyzna / ślub — bez „dodaj osobę”.
 
 const { put, list } = require('@vercel/blob');
 const Replicate = require('replicate');
@@ -17,6 +19,9 @@ const ADMIN_TOKEN = process.env.ADMIN_STATS_TOKEN;
 const SEGMIND_API_KEY = process.env.SEGMIND_API_KEY;
 const BLOB_KEY_LOG = 'customify/system/stats/personalization-log.json';
 const TRANSFORM_URL = 'https://customify-s56o.vercel.app/api/transform';
+
+/** Nieobsługiwane w panelu social — multi-upload, inny pipeline niż serie k/m/ślub */
+const SOCIAL_EXCLUDED_PRODUCT_HANDLE = 'dodaj-osobe-do-zdjecia-naturalny-efekt-obraz-plakat-wydruk';
 
 const getBlobToken = () => {
   const token = process.env.customify_READ_WRITE_TOKEN || process.env.BLOB_READ_WRITE_TOKEN;
@@ -186,6 +191,12 @@ module.exports = async (req, res) => {
     return res.status(401).json({ error: 'Unauthorized' });
   }
   if (!entryId) return res.status(400).json({ error: 'Missing entryId' });
+  if ((productHandle || '') === SOCIAL_EXCLUDED_PRODUCT_HANDLE) {
+    return res.status(400).json({
+      error:
+        'Produkt „dodaj osobę” nie jest używany w socialu — tylko serie kobieta / mężczyzna / ślub.'
+    });
+  }
 
   const entry = { productHandle, rocznica, opis, imie };
 

@@ -248,10 +248,13 @@ function hasProductFieldConfig(productHandle) {
   return !!(c && c.fields && c.fields.length);
 }
 
-/** Auto-styl jak showStyles() przy pierwszym uploadzie (ukryte style) */
+/**
+ * Auto-styl jak showStyles() przy pierwszym uploadzie (ukryte style).
+ * Social: zakres biznesowy = serie kobieta / mężczyzna / ślub (+ powiązane karykatury z customify.js).
+ * Produkt „dodaj osobę” — nie używany w socialu (brak auto-stylu; patrz generate-social-image).
+ */
 function autoSelectedStyleFromHandle(productHandle) {
   const h = productHandle || '';
-  if (h === 'dodaj-osobe-do-zdjecia-naturalny-efekt-obraz-plakat-wydruk') return 'dodaj-osobe';
   const ctx = getProductFieldCtx();
   const isDlaNiej = (() => {
     const {
