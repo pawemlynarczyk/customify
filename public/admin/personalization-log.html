@@ -335,10 +335,10 @@
 
     <div class="social-cost-warning">
       <div style="font-weight:700;color:#e65100;">
-        Tryb testowy: po załadowaniu tabeli automatycznie odpalamy tylko jedną generację social (pierwszy wpis bez obrazka i z produktem).
+        Tryb testowy: po załadowaniu tabeli automatycznie odpalamy social dla <strong>do 10</strong> wpisów (pierwsze w bieżącym sortowaniu: bez obrazka social, z produktem).
       </div>
       <div style="margin-top:8px;font-size:12px;color:#795548;">
-        Celowo jeden request na odświeżenie strony. Krok AI + transform często trwa 2–5 min — nie zamykaj karty.
+        Kolejka: <strong>jedna generacja naraz</strong> (10 × po ~2–5 min może dać ~30–50 min) — nie zamykaj karty.
         <span style="display:block;margin-top:6px;">Zakres: serie <strong>kobieta</strong> / <strong>mężczyzna</strong> / <strong>ślub</strong> — produkt „dodaj osobę” w socialu jest wyłączony (400).</span>
       </div>
       <div id="socialGenStatus" style="margin-top:8px;font-size:13px;color:#1565c0;font-weight:600;"></div>
@@ -502,7 +502,7 @@
     const { sorted, attemptsMap } = sortEntries(entries);
     // Ten sam pierwszy wpis co auto-generacja — od razu spinner w HTML (socialPendingIds dopiero po schedule)
     const eligibleForSocialAuto = sorted
-      .filter(e => !e.socialImageUrl && e.productHandle)
+      .filter(e => !e.socialImageUrl && e.productHandle && e.productHandle !== SOCIAL_EXCLUDED_HANDLE)
       .slice(0, MAX_AUTO_GENERATE);
 
     const rows = sorted.map(e => {
@@ -526,7 +526,7 @@
       } else if (canGenerate && (eligibleForSocialAuto.some(p => String(p.id) === String(e.id)) || socialPendingIds.has(e.id))) {
         socialHtml = `<span class="social-spinner" id="social-spin-${e.id}" title="Generowanie...">⏳</span>`;
       } else if (canGenerate) {
-        const offTitle = 'Auto-tylko 1 wpis na to odświeżenie (test); reszta —';
+        const offTitle = 'Auto max 10 wpisów na to odświeżenie (kolejka 1 naraz); ten wiersz nie w kolejce';
         socialHtml = `<span class="social-skip" title="${esc(offTitle)}">—</span>`;
       } else {
         socialHtml = `<span class="social-skip" title="Brak danych do generacji">—</span>`;
@@ -660,7 +660,8 @@
   // ─── Social image auto-generation ─────────────────────────────────────────
   const SOCIAL_API = 'https://customify-s56o.vercel.app/api/admin/generate-social-image';
   const MAX_CONCURRENT = 1;
-  const MAX_AUTO_GENERATE = 1;
+  const MAX_AUTO_GENERATE = 10;
+  const SOCIAL_EXCLUDED_HANDLE = 'dodaj-osobe-do-zdjecia-naturalny-efekt-obraz-plakat-wydruk';
   let socialQueue = [];
   let socialActive = 0;
   const socialPendingIds = new Set();
@@ -675,7 +676,7 @@
     // ale bez enqueue B nigdy nie wystartuje — klepsydra bez żądania. Kolejka + MAX_CONCURRENT i tak ograniczają równoległość.
 
     const pending = sortedEntries
-      .filter(e => !e.socialImageUrl && e.productHandle)
+      .filter(e => !e.socialImageUrl && e.productHandle && e.productHandle !== SOCIAL_EXCLUDED_HANDLE)
       .slice(0, MAX_AUTO_GENERATE);
     if (!pending.length) return;
 
