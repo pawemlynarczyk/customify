@@ -1,15 +1,13 @@
 // api/admin/generate-social-image.js
-// Krok 1: Nano Banana 2 (Replicate) → Segmind Nano Banana 2 (fallback)
-//         fotorealistyczny "zamiennik" zdjęcia użytkownika (tylko płeć + wiek).
+// Krok 1: WYŁĄCZNIE Segmind — POST https://api.segmind.com/v1/nano-banana-2 (text-to-image, brak Replicate w tym pliku).
+//         Fotoreal „zamiennik” zdjęcia: tylko płeć + wiek w prompcie.
 // Krok 2: /api/transform — styl + productType + prompt jak na stronie produktu
 //         (public/customify.js: PRODUCT_FIELD_CONFIGS + getProductTypeFromStyle).
 // Nie używamy prawdziwych zdjęć klientów.
 //
 // Zakres social (wasze produkty): serie kobieta / mężczyzna / ślub — bez „dodaj osobę”.
 
-const crypto = require('crypto');
 const { put, list } = require('@vercel/blob');
-const Replicate = require('replicate');
 const {
   buildProductFieldPromptForHandle,
   autoSelectedStyleFromHandle
@@ -70,124 +68,24 @@ function detectPhotorealSubject(productHandle, rocznica, opis) {
   return { gender, age };
 }
 
-function pickVariant(seed, index, list) {
-  const x = Math.imul(seed + index * 2654435761, 1103515245) >>> 0;
-  return list[x % list.length];
-}
-
-const VARIANT_WOMAN_HAIR = [
-  'shoulder-length dark brown hair',
-  'short blonde pixie cut',
-  'long wavy black hair',
-  'medium-length straight auburn hair',
-  'natural curly brown hair',
-  'silver-gray hair in a neat bob',
-  'dark hair in a low ponytail',
-  'fine light-brown hair tucked behind ears'
-];
-
-const VARIANT_MAN_HAIR = [
-  'short dark hair, clean-shaven',
-  'buzz cut, light stubble',
-  'receding hairline, neat trim',
-  'thick wavy hair, short beard',
-  'salt-and-pepper short hair, no beard',
-  'black hair, neatly trimmed mustache',
-  'blond short crop, jawline stubble',
-  'medium-length hair tied back, light beard'
-];
-
-const VARIANT_FACE = [
-  'distinct oval face shape, memorable features',
-  'softer round face, warm expression',
-  'angular jaw, prominent cheekbones',
-  'narrow face, slightly asymmetric smile',
-  'wide-set eyes, subtle laugh lines',
-  'strong brow, straight nose, individual look',
-  'gentle features, slightly fuller face',
-  'high cheekbones, defined chin — not a generic model face'
-];
-
-const VARIANT_COUPLE_A = [
-  'two clearly different individuals, different face shapes',
-  'husband and wife with distinct features — not matching faces',
-  'visibly different bone structure between the two people'
-];
-
-function buildPhotorealisticPrompt({ gender, age, seed }) {
-  const diversity =
-    'IMPORTANT: this must be a UNIQUE anonymous person — not a generic stock photo or influencer look; avoid the same face as typical AI headshots. Individual bone structure and proportions. ';
+/** Krok 1 social: tylko wiek + płeć — wygląd zostawiamy modelowi. */
+function buildPhotorealisticPrompt({ gender, age }) {
+  const tech =
+    'Photorealistic photo, DSLR, soft studio light, neutral background, facing camera. Not cartoon, illustration, caricature, CGI, or anime.';
 
   if (gender === 'couple') {
-    const coupleNote = pickVariant(seed, 4, VARIANT_COUPLE_A);
-    const hairA = pickVariant(seed, 1, VARIANT_MAN_HAIR);
-    const hairB = pickVariant(seed, 2, VARIANT_WOMAN_HAIR);
-    return (
-      `Photorealistic professional portrait photograph of a natural-looking ${age}-year-old married couple, ` +
-      `husband and wife side by side, genuine subtle smiles, looking at the camera. ` +
-      `He: ${hairA}. She: ${hairB}. ${coupleNote}. ` +
-      diversity +
-      `soft diffused studio lighting, neutral blurred background, ` +
-      `sharp focus on faces, full-frame DSLR quality, natural skin texture and pores, realistic hair, ` +
-      `NOT a cartoon, NOT an illustration, NOT a caricature, NOT CGI, NOT plastic skin, NOT anime.`
-    );
+    return `Portrait of a married couple, man and woman, natural-looking adults about ${age} years old, head and shoulders. ${tech}`;
   }
   const w = gender === 'woman' ? 'woman' : 'man';
-  const hairPool = gender === 'woman' ? VARIANT_WOMAN_HAIR : VARIANT_MAN_HAIR;
-  const hair = pickVariant(seed, 1, hairPool);
-  const face = pickVariant(seed, 3, VARIANT_FACE);
-  return (
-    `Photorealistic professional headshot portrait of a natural-looking ${age}-year-old ${w}, ` +
-    `${hair}; ${face}. ` +
-    diversity +
-    `looking at the camera, shoulders and face visible, ` +
-    `soft diffused studio lighting, neutral blurred background, ` +
-    `sharp focus on eyes, full-frame DSLR quality, natural skin texture, realistic hair, ` +
-    `NOT a cartoon, NOT an illustration, NOT a caricature, NOT CGI, NOT plastic skin, NOT anime.`
-  );
-}
-
-const withTimeout = (promise, ms, label) =>
-  Promise.race([
-    promise,
-    new Promise((_, reject) =>
-      setTimeout(() => reject(new Error(`${label}: timeout ${ms / 1000}s`)), ms)
-    )
-  ]);
-
-async function callReplicateNanoBanana2(prompt) {
-  const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
-  if (!REPLICATE_API_TOKEN) throw new Error('Missing REPLICATE_API_TOKEN');
-
-  const replicate = new Replicate({ auth: REPLICATE_API_TOKEN });
-
-  console.log('🍌 [SOCIAL] Krok 1: Replicate nano-banana-2 (fotoreal, bez obrazka wejściowego)...');
-  const output = await withTimeout(
-    replicate.run('google/nano-banana-2', {
-      input: {
-        prompt,
-        image_input: [],
-        aspect_ratio: '2:3',
-        resolution: '1K',
-        output_format: 'jpg'
-      }
-    }),
-    180000,
-    'Replicate nano-banana-2'
-  );
-
-  if (!output) throw new Error('Replicate nano-banana-2: no output');
-  const imageUrl = typeof output === 'string' ? output : (Array.isArray(output) ? output[0] : null);
-  if (!imageUrl) throw new Error('Replicate nano-banana-2: unexpected output format');
-  return imageUrl;
+  return `Portrait of a natural-looking ${age}-year-old ${w}, head and shoulders. ${tech}`;
 }
 
 async function callSegmindNanoBanana2(prompt) {
   if (!SEGMIND_API_KEY) throw new Error('Missing SEGMIND_API_KEY');
 
-  console.log('🍌 [SOCIAL] Krok 1: Segmind nano-banana-2 (fallback)...');
+  console.log('🍌 [SOCIAL] Krok 1: Segmind nano-banana-2 (fotoreal, bez obrazka wejściowego)...');
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 90000);
+  const timeout = setTimeout(() => controller.abort(), 180000);
 
   let response;
   try {
@@ -283,20 +181,13 @@ module.exports = async (req, res) => {
   console.log(`🎨 [SOCIAL] Start entry ${entryId} (${productHandle})`);
 
   try {
-    // ── Krok 1: fotorealistyczny „zamiennik” zdjęcia użytkownika
+    // ── Krok 1: tylko Segmind nano-banana-2 (zero Replicate w generate-social-image)
     const subject = detectPhotorealSubject(productHandle || '', rocznica, opis);
-    const vSeed = crypto.randomInt(0, 0x100000000);
-    const prompt1 = buildPhotorealisticPrompt({ ...subject, seed: vSeed });
-    console.log(`👤 [SOCIAL] Krok 1: gender=${subject.gender}, age=${subject.age}, seed=${vSeed}`);
-    console.log(`📝 [SOCIAL] Prompt1: ${prompt1.substring(0, 200)}...`);
+    const prompt1 = buildPhotorealisticPrompt(subject);
+    console.log(`👤 [SOCIAL] Krok 1 (Segmind): gender=${subject.gender}, age=${subject.age}`);
+    console.log(`📝 [SOCIAL] Prompt1: ${prompt1}`);
 
-    let step1Source;
-    try {
-      step1Source = await callReplicateNanoBanana2(prompt1);
-    } catch (e1) {
-      console.warn(`⚠️ [SOCIAL] Replicate krok 1: ${e1.message} — Segmind`);
-      step1Source = await callSegmindNanoBanana2(prompt1);
-    }
+    const step1Source = await callSegmindNanoBanana2(prompt1);
 
     const imageDataBase64 = await urlOrDataToBase64(step1Source);
 
