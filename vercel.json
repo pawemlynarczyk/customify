@@ -26,9 +26,13 @@
     {
       "path": "/api/cron/generation-reminder-3-7d",
       "schedule": "0 19 * * *"
+    },
+    {
+      "path": "/api/cron/daily-report",
+      "schedule": "0 6 * * *"
     }
   ],
-  "buildCommand": "echo 'Force rebuild v8 - register generation-reminder cron'",
+  "buildCommand": "echo 'Force rebuild v9 - add daily-report cron'",
   "outputDirectory": "public",
   "installCommand": "echo 'Force install'",
   "cleanUrls": false,
