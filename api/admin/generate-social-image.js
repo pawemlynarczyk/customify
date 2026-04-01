@@ -272,13 +272,6 @@ module.exports = async (req, res) => {
   }
   if (!entryId) return res.status(400).json({ error: 'Missing entryId' });
 
-  // Domyślnie WYŁĄCZONE — każda generacja = 2× kosztowne API (Nano Banana + transform). Włącz świadomie w Vercel.
-  if (process.env.ENABLE_SOCIAL_GENERATE !== 'true') {
-    return res.status(403).json({
-      error: 'Generacja social wyłączona. Ustaw ENABLE_SOCIAL_GENERATE=true w Vercel (świadomie — kosztuje Replicate/Segmind + transform).'
-    });
-  }
-
   const entry = { productHandle, rocznica, opis, imie };
 
   console.log(`🎨 [SOCIAL] Start entry ${entryId} (${productHandle})`);
