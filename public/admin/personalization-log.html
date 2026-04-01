@@ -627,17 +627,16 @@
   // ─── Social image auto-generation ─────────────────────────────────────────
   const SOCIAL_API = 'https://customify-s56o.vercel.app/api/admin/generate-social-image';
   const MAX_CONCURRENT = 3;
+  const MAX_AUTO_GENERATE = 20; // Generuj max 20 najnowszych wpisów na jedno otwarcie
   let socialQueue = [];
   let socialActive = 0;
   let socialGenScheduled = false;
 
   function scheduleSocialGeneration(sortedEntries) {
-    // Zbierz wpisy bez socialImageUrl, które mają dane do generacji
-    const pending = sortedEntries.filter(e =>
-      !e.socialImageUrl &&
-      e.productHandle &&
-      (e.opis || e.imie)
-    );
+    // Zbierz wpisy bez socialImageUrl, które mają dane do generacji — max 20
+    const pending = sortedEntries
+      .filter(e => !e.socialImageUrl && e.productHandle && (e.opis || e.imie))
+      .slice(0, MAX_AUTO_GENERATE);
     if (!pending.length) return;
 
     // Dodaj do kolejki (unikaj duplikatów)
