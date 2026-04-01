@@ -338,8 +338,9 @@
         Tryb testowy: automatyczna generacja dla 1 rekordu po wejściu na stronę.
       </div>
       <div style="margin-top:8px;font-size:12px;color:#795548;">
-        Bez checkboxów. Na backendzie wymagane: <code>ENABLE_SOCIAL_GENERATE=true</code> w Vercel.
+        Jedna generacja naraz; kolejne wpisy czekają w kolejce. AI (krok 1 + transform) często trwa 2–5 min — nie zamykaj karty.
       </div>
+      <div id="socialGenStatus" style="margin-top:8px;font-size:13px;color:#1565c0;font-weight:600;"></div>
     </div>
 
     <div class="main-layout">
@@ -498,8 +499,10 @@
       return;
     }
     const { sorted, attemptsMap } = sortEntries(entries);
-    // Tryb testowy: automatycznie uruchom 1 rekord po wejściu
-    scheduleSocialGeneration(sorted);
+    // Te same wpisy co kolejka social — od razu w HTML musi być spinner (socialPendingIds wypełnia się dopiero po renderze)
+    const eligibleForSocialAuto = sorted
+      .filter(e => !e.socialImageUrl && e.productHandle)
+      .slice(0, MAX_AUTO_GENERATE);
 
     const rows = sorted.map(e => {
       const dt = e.timestamp ? new Date(e.timestamp).toLocaleString('pl-PL') : '—';
@@ -519,7 +522,7 @@
           <a href="${e.socialImageUrl}" target="_blank"><img class="social-img" src="${e.socialImageUrl}" alt="social" loading="lazy" /></a>
           <a class="social-dl-btn" href="${e.socialImageUrl}" download="social_${e.id}.jpg">⬇ Pobierz</a>
         </div>`;
-      } else if (canGenerate && socialPendingIds.has(e.id)) {
+      } else if (canGenerate && (eligibleForSocialAuto.some(p => String(p.id) === String(e.id)) || socialPendingIds.has(e.id))) {
         socialHtml = `<span class="social-spinner" id="social-spin-${e.id}" title="Generowanie...">⏳</span>`;
       } else if (canGenerate) {
         const offTitle = 'Tryb testowy: max 1 rekord na odświeżenie';
@@ -558,6 +561,9 @@
         </thead>
         <tbody>${rows}</tbody>
       </table>`;
+
+    // Po wstawieniu wierszy w DOM — dopiero wtedy spinner istnieje
+    requestAnimationFrame(() => scheduleSocialGeneration(sorted));
   }
 
   function renderProductStats(counts) {
@@ -663,12 +669,9 @@
     if (!socialUiInitDone) socialUiInitDone = true;
   }
 
-  function socialGenerationBusy() {
-    return socialActive > 0 || socialQueue.length > 0;
-  }
-
   function scheduleSocialGeneration(sortedEntries) {
-    if (socialGenerationBusy()) return;
+    // NIE sprawdzaj „busy” tutaj: gdy trwa fetch dla wpisu A, drugi render (filtr/loadData) pokazuje spinner dla B,
+    // ale bez enqueue B nigdy nie wystartuje — klepsydra bez żądania. Kolejka + MAX_CONCURRENT i tak ograniczają równoległość.
 
     const pending = sortedEntries
       .filter(e => !e.socialImageUrl && e.productHandle)
@@ -695,9 +698,39 @@
     }
   }
 
+  /** Komórka Social dla wpisu — po ponownym renderze tabeli stary spinEl może być odłączony od DOM */
+  function findSocialCell(entryId) {
+    const id = String(entryId);
+    const spin = document.getElementById(`social-spin-${id}`);
+    if (spin && document.body.contains(spin)) {
+      const cell = spin.closest('td');
+      return { cell, spinEl: spin };
+    }
+    const safeAttr = typeof CSS !== 'undefined' && CSS.escape ? CSS.escape(id) : id.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+    const tr = document.querySelector(`tr[data-entry-id="${safeAttr}"]`);
+    if (!tr) return { cell: null, spinEl: null };
+    const cell = tr.querySelector('.social-cell');
+    const spinEl = cell ? cell.querySelector('.social-spinner') : null;
+    return { cell, spinEl };
+  }
+
+  function setSocialGenStatus(msg) {
+    const el = document.getElementById('socialGenStatus');
+    if (el) el.textContent = msg || '';
+  }
+
   async function generateOneSocialImage(entry) {
-    const spinEl = document.getElementById(`social-spin-${entry.id}`);
-    if (!spinEl) return;
+    const { cell: startCell } = findSocialCell(entry.id);
+    if (!startCell) {
+      console.warn('[SOCIAL] Brak wiersza dla wpisu', entry.id);
+      return;
+    }
+
+    const SOCIAL_FETCH_MS = 300000; // 5 min (Vercel maxDuration 300s + zapas)
+    const controller = new AbortController();
+    const abortTimer = setTimeout(() => controller.abort(), SOCIAL_FETCH_MS);
+
+    setSocialGenStatus(`Generowanie social (wpis ${entry.id})… zwykle 2–5 min.`);
 
     try {
       const res = await fetch(SOCIAL_API, {
@@ -711,37 +744,49 @@
           opis: entry.opis || '',
           imie: entry.imie || '',
           token: adminToken
-        })
+        }),
+        signal: controller.signal
       });
 
-      const data = await res.json();
-      if (!res.ok || !data.socialImageUrl) throw new Error(data.error || 'Brak URL');
+      const text = await res.text();
+      let data = {};
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch {
+        throw new Error(text ? text.slice(0, 120) : 'Pusta odpowiedź');
+      }
+
+      if (!res.ok || !data.socialImageUrl) {
+        throw new Error(data.error || data.message || `HTTP ${res.status}`);
+      }
 
       const socialImageUrl = data.socialImageUrl;
-
-      // Zaktualizuj komórkę w tabeli bez przeładowania całości
-      const cell = spinEl.closest('td');
+      const { cell } = findSocialCell(entry.id);
       if (cell) {
         cell.innerHTML = `<div class="social-thumb-wrap">
-          <a href="${socialImageUrl}" target="_blank"><img class="social-img" src="${socialImageUrl}" alt="social" /></a>
-          <a class="social-dl-btn" href="${socialImageUrl}" download="social_${entry.id}.jpg">⬇ Pobierz</a>
+          <a href="${esc(socialImageUrl)}" target="_blank" rel="noopener"><img class="social-img" src="${esc(socialImageUrl)}" alt="social" /></a>
+          <a class="social-dl-btn" href="${esc(socialImageUrl)}" download="social_${entry.id}.jpg">⬇ Pobierz</a>
         </div>`;
       }
 
-      // Zaktualizuj dane lokalne
       if (currentFiltered) {
         const idx = currentFiltered.findIndex(e => String(e.id) === String(entry.id));
         if (idx !== -1) currentFiltered[idx].socialImageUrl = socialImageUrl;
       }
-
     } catch (err) {
-      console.warn(`[SOCIAL] Failed for entry ${entry.id}:`, err.message);
-      const spinEl2 = document.getElementById(`social-spin-${entry.id}`);
-      if (spinEl2) {
-        spinEl2.textContent = '❌';
-        spinEl2.title = `Błąd: ${err.message}`;
-        spinEl2.style.animation = 'none';
+      const msg = err.name === 'AbortError' ? 'Timeout 5 min — sprawdź Vercel logs / odśwież' : err.message;
+      console.warn(`[SOCIAL] Failed for entry ${entry.id}:`, msg);
+      const { cell, spinEl } = findSocialCell(entry.id);
+      if (spinEl && cell) {
+        spinEl.textContent = '❌';
+        spinEl.title = msg;
+        spinEl.style.animation = 'none';
+      } else if (cell) {
+        cell.innerHTML = `<span class="social-skip" title="${esc(msg)}">❌ błąd</span>`;
       }
+    } finally {
+      clearTimeout(abortTimer);
+      setSocialGenStatus('');
     }
   }
 </script>

@@ -159,6 +159,14 @@ function buildHandleBasedPrompt(productHandle, { imie, rocznica, opis }) {
     .join('\n');
 }
 
+const withTimeout = (promise, ms, label) =>
+  Promise.race([
+    promise,
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error(`${label}: timeout ${ms / 1000}s`)), ms)
+    )
+  ]);
+
 async function callReplicateNanoBanana2(prompt) {
   const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
   if (!REPLICATE_API_TOKEN) throw new Error('Missing REPLICATE_API_TOKEN');
@@ -166,15 +174,19 @@ async function callReplicateNanoBanana2(prompt) {
   const replicate = new Replicate({ auth: REPLICATE_API_TOKEN });
 
   console.log('🍌 [SOCIAL] Krok 1: Replicate nano-banana-2 (fotoreal, bez obrazka wejściowego)...');
-  const output = await replicate.run('google/nano-banana-2', {
-    input: {
-      prompt,
-      image_input: [],
-      aspect_ratio: '2:3',
-      resolution: '1K',
-      output_format: 'jpg'
-    }
-  });
+  const output = await withTimeout(
+    replicate.run('google/nano-banana-2', {
+      input: {
+        prompt,
+        image_input: [],
+        aspect_ratio: '2:3',
+        resolution: '1K',
+        output_format: 'jpg'
+      }
+    }),
+    180000,
+    'Replicate nano-banana-2'
+  );
 
   if (!output) throw new Error('Replicate nano-banana-2: no output');
   const imageUrl = typeof output === 'string' ? output : (Array.isArray(output) ? output[0] : null);
