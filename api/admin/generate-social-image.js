@@ -1,6 +1,8 @@
 // api/admin/generate-social-image.js
-// Krok 1: Nano Banana (Replicate) → Segmind — fotorealistyczny portret (płeć + wiek z rocznica; BEZ pól customizacji).
-// Krok 2: To zdjęcie → /api/transform jak u klienta (style + pola personalizacji z logu).
+// Krok 1: Nano Banana 2 (Replicate) → Segmind Nano Banana 2 (fallback)
+//         fotorealistyczny "zamiennik" zdjęcia użytkownika (tylko płeć + wiek).
+// Krok 2: /api/transform z konfiguracją wyliczaną z productHandle
+//         (styl/model/prompt przez handle, nie przez sam label style=caricature-new).
 // Nie używamy prawdziwych zdjęć klientów.
 
 const { put, list } = require('@vercel/blob');
@@ -55,45 +57,128 @@ function buildPhotorealisticPrompt({ gender, age }) {
   );
 }
 
-/** Customizacja jak przy zamówieniu — doklejana do promptu stylu (replaceBasePrompt: false). */
-function buildPromptAdditionFromLog(entry) {
-  const bits = [];
-  if (entry.imie) bits.push(`Name or dedication for the artwork: "${entry.imie}".`);
-  if (entry.rocznica) bits.push(`Anniversary / years / number field: "${entry.rocznica}".`);
-  if (entry.opis) bits.push(`Character, scene, profession, hobbies, mood: ${entry.opis}`);
-  if (!bits.length) return '';
-  return (
-    `BUYER CUSTOMIZATION (apply to figurine, podium, outfit, props — same intent as a real order):\n${bits.join('\n')}`
-  );
+function detectRoleFromHandle(productHandle = '') {
+  const h = productHandle.toLowerCase();
+  if (h.includes('kucharka')) return 'chef';
+  if (h.includes('lekarka') || h.includes('lekarza')) return 'doctor';
+  if (h.includes('policjantka') || h.includes('policjant')) return 'police officer';
+  if (h.includes('rolniczka') || h.includes('rolnik')) return 'farmer';
+  if (h.includes('fitness')) return 'fitness trainer';
+  if (h.includes('szefowa') || h.includes('szefa')) return 'business owner';
+  if (h.includes('podrozniczka') || h.includes('podroznik')) return 'traveler';
+  if (h.includes('kulturysta')) return 'bodybuilder';
+  if (h.includes('wedkarz')) return 'fisherman';
+  if (h.includes('pilkarz')) return 'football player';
+  if (h.includes('strazak')) return 'firefighter';
+  if (h.includes('nauczyciel')) return 'teacher';
+  return 'person';
 }
 
-function resolveStyleAndProductType({ style, productHandle }) {
-  const resolvedStyle = (style && String(style).trim()) || 'caricature-new';
-  // Większość produktów z polami customizacji = caricature-new w customify.js
-  const productType = 'caricature-new';
-  return { style: resolvedStyle, productType };
+function resolvePipelineFromProductHandle(productHandle = '', styleFromLog = null) {
+  const h = String(productHandle || '').toLowerCase();
+
+  // Trzymaj się ustawień API wynikających z handle (nie tylko z style label)
+  if (h.includes('dodaj-osobe')) {
+    return { style: 'dodaj-osobe', productType: 'dodaj_osobe', useHandlePrompt: false };
+  }
+  if (h.includes('gta')) {
+    return { style: 'gta', productType: 'gta', useHandlePrompt: false };
+  }
+
+  // Produkty custom-fields (dla niej/dla faceta/rocznice) jadą na caricature-new,
+  // ale prompt jest budowany z handle + pól (jak konfiguracja produktowa).
+  if (
+    h.includes('karykatura') ||
+    h.includes('rocznice') ||
+    h.includes('urodziny') ||
+    h.includes('dla-niej') ||
+    h.includes('dla-mezczyzny') ||
+    h.includes('dla-faceta') ||
+    h.includes('biznes-woman') ||
+    h.includes('slub')
+  ) {
+    return { style: 'caricature-new', productType: 'caricature-new', useHandlePrompt: true };
+  }
+
+  // Fallback: użyj stylu z logu jeśli jest, inaczej caricature-new
+  return {
+    style: (styleFromLog && String(styleFromLog).trim()) || 'caricature-new',
+    productType: 'caricature-new',
+    useHandlePrompt: false
+  };
 }
 
-async function callReplicateNanoBanana(prompt) {
+function buildHandleBasedPrompt(productHandle, { imie, rocznica, opis }) {
+  const h = String(productHandle || '').toLowerCase();
+  const isCouple =
+    h.includes('para') ||
+    h.includes('slub') ||
+    h.includes('rocznice') ||
+    h.includes('diamentowe-gody') ||
+    h.includes('wesola-para');
+  const gender =
+    h.includes('dla-mezczyzny') || h.includes('dla-faceta') || h.includes('chlopaka')
+      ? 'man'
+      : 'woman';
+  const role = detectRoleFromHandle(h);
+  const yearsText = rocznica ? `Years / anniversary number to include: "${rocznica}".` : '';
+  const nameText = imie ? `Exact text (dedication / name): "${imie}".` : '';
+  const themeText = opis ? `Theme details from buyer: ${opis}` : '';
+
+  if (isCouple) {
+    return [
+      'Create a premium caricature figurine scene based on the provided photo.',
+      'Keep both persons clearly recognizable and flattering.',
+      'MANDATORY BASE: wedding-anniversary couple theme, elegant celebratory mood.',
+      yearsText,
+      nameText,
+      themeText,
+      'Show expressive big heads with smaller bodies (pleasant caricature proportions).',
+      'Add coherent podium/props matching the theme.',
+      'If no text is provided, do not invent names.',
+      'High quality, clean composition.'
+    ]
+      .filter(Boolean)
+      .join('\n');
+  }
+
+  const who = gender === 'man' ? 'a man' : 'a woman';
+  return [
+    'Create a premium caricature figurine scene based on the provided photo.',
+    `Character: ${who} in profession/theme: ${role}.`,
+    'Keep facial identity recognizable and flattering.',
+    yearsText,
+    nameText,
+    themeText,
+    'Show expressive big head with smaller body (pleasant caricature proportions).',
+    'Add coherent podium/props matching the profession/theme.',
+    'If no text is provided, do not invent names.',
+    'High quality, clean composition.'
+  ]
+    .filter(Boolean)
+    .join('\n');
+}
+
+async function callReplicateNanoBanana2(prompt) {
   const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
   if (!REPLICATE_API_TOKEN) throw new Error('Missing REPLICATE_API_TOKEN');
 
   const replicate = new Replicate({ auth: REPLICATE_API_TOKEN });
 
-  console.log('🍌 [SOCIAL] Krok 1: Replicate nano-banana (fotoreal, bez obrazka wejściowego)...');
-  const output = await replicate.run('google/nano-banana', {
+  console.log('🍌 [SOCIAL] Krok 1: Replicate nano-banana-2 (fotoreal, bez obrazka wejściowego)...');
+  const output = await replicate.run('google/nano-banana-2', {
     input: {
       prompt,
       image_input: [],
       aspect_ratio: '2:3',
-      output_format: 'jpg',
-      guidance: 3.5
+      resolution: '1K',
+      output_format: 'jpg'
     }
   });
 
-  if (!output) throw new Error('Replicate nano-banana: no output');
+  if (!output) throw new Error('Replicate nano-banana-2: no output');
   const imageUrl = typeof output === 'string' ? output : (Array.isArray(output) ? output[0] : null);
-  if (!imageUrl) throw new Error('Replicate nano-banana: unexpected output format');
+  if (!imageUrl) throw new Error('Replicate nano-banana-2: unexpected output format');
   return imageUrl;
 }
 
@@ -187,6 +272,13 @@ module.exports = async (req, res) => {
   }
   if (!entryId) return res.status(400).json({ error: 'Missing entryId' });
 
+  // Domyślnie WYŁĄCZONE — każda generacja = 2× kosztowne API (Nano Banana + transform). Włącz świadomie w Vercel.
+  if (process.env.ENABLE_SOCIAL_GENERATE !== 'true') {
+    return res.status(403).json({
+      error: 'Generacja social wyłączona. Ustaw ENABLE_SOCIAL_GENERATE=true w Vercel (świadomie — kosztuje Replicate/Segmind + transform).'
+    });
+  }
+
   const entry = { productHandle, rocznica, opis, imie };
 
   console.log(`🎨 [SOCIAL] Start entry ${entryId} (${productHandle})`);
@@ -200,7 +292,7 @@ module.exports = async (req, res) => {
 
     let step1Source;
     try {
-      step1Source = await callReplicateNanoBanana(prompt1);
+      step1Source = await callReplicateNanoBanana2(prompt1);
     } catch (e1) {
       console.warn(`⚠️ [SOCIAL] Replicate krok 1: ${e1.message} — Segmind`);
       step1Source = await callSegmindNanoBanana2(prompt1);
@@ -209,8 +301,8 @@ module.exports = async (req, res) => {
     const imageDataBase64 = await urlOrDataToBase64(step1Source);
 
     // ── Krok 2: ten sam pipeline co u klienta
-    const { style, productType } = resolveStyleAndProductType({ style: styleFromLog, productHandle });
-    const promptAddition = buildPromptAdditionFromLog(entry);
+    const { style, productType, useHandlePrompt } = resolvePipelineFromProductHandle(productHandle, styleFromLog);
+    const handlePrompt = buildHandleBasedPrompt(productHandle, entry);
     const personalizationFields = {};
     if (imie) personalizationFields.imiona = imie;
     if (rocznica) personalizationFields.rocznica = rocznica;
@@ -224,8 +316,13 @@ module.exports = async (req, res) => {
       productType,
       productHandle: productHandle || null
     };
-    if (promptAddition) {
-      transformBody.promptAddition = promptAddition;
+    if (useHandlePrompt) {
+      // Dla produktów custom-fields: prompt wynikający z productHandle (nie z samego style label)
+      transformBody.promptAddition = handlePrompt;
+      transformBody.replaceBasePrompt = true;
+    } else if (handlePrompt) {
+      // Dla pozostałych: doklej kontekst z handle
+      transformBody.promptAddition = handlePrompt;
       transformBody.replaceBasePrompt = false;
     }
     if (Object.keys(personalizationFields).length > 0) {
