@@ -1,7 +1,7 @@
 // api/admin/generate-social-image.js
-// Generuje obrazek social media dla wpisu z logu personalizacji.
-// Używa Nano Banana (Replicate) → fallback Segmind Nano Banana 2.
-// NIE używa prawdziwych zdjęć klientów — tylko prompt tekstowy z danych customizacji.
+// Krok 1: Nano Banana (Replicate) → Segmind — fotorealistyczny portret (płeć + wiek z rocznica; BEZ pól customizacji).
+// Krok 2: To zdjęcie → /api/transform jak u klienta (style + pola personalizacji z logu).
+// Nie używamy prawdziwych zdjęć klientów.
 
 const { put, list } = require('@vercel/blob');
 const Replicate = require('replicate');
@@ -9,6 +9,7 @@ const Replicate = require('replicate');
 const ADMIN_TOKEN = process.env.ADMIN_STATS_TOKEN;
 const SEGMIND_API_KEY = process.env.SEGMIND_API_KEY;
 const BLOB_KEY_LOG = 'customify/system/stats/personalization-log.json';
+const TRANSFORM_URL = 'https://customify-s56o.vercel.app/api/transform';
 
 const getBlobToken = () => {
   const token = process.env.customify_READ_WRITE_TOKEN || process.env.BLOB_READ_WRITE_TOKEN;
@@ -16,104 +17,70 @@ const getBlobToken = () => {
   return token;
 };
 
-// ─── Wykrywanie osoby z productHandle + pola rocznica ───────────────────────
-
-function detectPerson(productHandle, rocznica) {
+// Tylko płeć (handle) + wiek wyłącznie z pola rocznica (liczba). Bez opisu/imienia.
+function detectPhotorealSubject(productHandle, rocznica) {
   let gender = 'woman';
-  let age = 40;
-  let occupation = '';
-
-  // Płeć
-  if (/para|slubna|mlodej-pary|diamentowe-gody|wesola-para|podroznikow|rocznice-slubu|zakochana|staruszkow/i.test(productHandle)) {
+  if (/para|slubna|mlodej-pary|diamentowe-gody|wesola-para|podroznikow|rocznice-slubu|zakochana|staruszkow/i.test(productHandle || '')) {
     gender = 'couple';
-  } else if (/dla-mezczyzny|dla-faceta|rolnik[^a]|kulturysta|wedkarz|pilkarz|policjant[^k]|szef[^o]|strazak|lekarz[^k]|kierowca|taty|dziadka|chlopaka|dla-niego/i.test(productHandle)) {
+  } else if (/dla-mezczyzny|dla-faceta|rolnik[^a]|kulturysta|wedkarz|pilkarz|policjant[^k]|szef[^o]|strazak|lekarz[^k]|kierowca|taty|dziadka|chlopaka|dla-niego/i.test(productHandle || '')) {
     gender = 'man';
   }
-  // Domyślnie kobieta (większość produktów to "dla niej")
 
-  // Wiek — priorytet: pole rocznica (bezpośredni wiek), potem keyword z handle
-  if (rocznica && /^\d+$/.test(String(rocznica).trim())) {
-    age = parseInt(String(rocznica).trim(), 10);
-  } else {
-    const ageFromHandle = productHandle.match(/(\d+)-(?:urodzin|lat)/);
-    if (ageFromHandle) {
-      age = parseInt(ageFromHandle[1], 10);
-    } else if (/60-rocznica|diamentowe-gody/i.test(productHandle)) {
-      age = 80;
-    } else if (/50-roczni|50-lecie/i.test(productHandle)) {
-      age = 70;
-    } else if (/40-roczni|40-lecie/i.test(productHandle)) {
-      age = 60;
-    } else if (/30-roczni|30-lecie/i.test(productHandle)) {
-      age = 50;
-    } else if (/25-roczni|25-lecie/i.test(productHandle)) {
-      age = 45;
-    } else if (/wesola-para|staruszkow/i.test(productHandle)) {
-      age = 75;
-    }
+  let age = 40;
+  if (rocznica != null && /^\d+$/.test(String(rocznica).trim())) {
+    const n = parseInt(String(rocznica).trim(), 10);
+    age = Math.min(95, Math.max(18, n));
   }
 
-  // Zawód / kontekst
-  if (/lekark|lekarza/.test(productHandle)) occupation = 'doctor';
-  else if (/policjantk/.test(productHandle)) occupation = 'police officer woman';
-  else if (/policjant/.test(productHandle)) occupation = 'police officer';
-  else if (/rolniczka/.test(productHandle)) occupation = 'farmer woman';
-  else if (/rolnik/.test(productHandle)) occupation = 'farmer';
-  else if (/kuchark/.test(productHandle)) occupation = 'chef, cook';
-  else if (/fitness/.test(productHandle)) occupation = 'fitness trainer, athlete';
-  else if (/szefow/.test(productHandle)) occupation = 'businesswoman, boss';
-  else if (/szef/.test(productHandle)) occupation = 'businessman, boss';
-  else if (/podrozniczk/.test(productHandle)) occupation = 'female traveler';
-  else if (/podrozni/.test(productHandle)) occupation = 'traveler';
-  else if (/wedkarz/.test(productHandle)) occupation = 'fisherman';
-  else if (/pilkarz/.test(productHandle)) occupation = 'football player';
-  else if (/strazak/.test(productHandle)) occupation = 'firefighter';
-  else if (/kulturysta/.test(productHandle)) occupation = 'bodybuilder';
-  else if (/psycholog/.test(productHandle)) occupation = 'psychologist';
-  else if (/nauczyciel/.test(productHandle)) occupation = 'teacher';
-  else if (/spa|manicure/.test(productHandle)) occupation = 'spa lover, beauty';
-  else if (/aktywna|active/.test(productHandle)) occupation = 'active, sporty';
-
-  return { gender, age, occupation };
+  return { gender, age };
 }
 
-// ─── Budowanie promptu dla Nano Banana ──────────────────────────────────────
-
-function buildPrompt(person, opisPersony) {
-  const { gender, age, occupation } = person;
-
-  let subject;
+function buildPhotorealisticPrompt({ gender, age }) {
   if (gender === 'couple') {
-    const coupleDesc = age >= 70 ? `elderly ${age}-year-old` : age >= 50 ? `middle-aged ${age}-year-old` : `${age}-year-old`;
-    subject = `a ${coupleDesc} happy married couple`;
-  } else {
-    const genderWord = gender === 'woman' ? 'woman' : 'man';
-    subject = `a ${age}-year-old ${genderWord}`;
-    if (occupation) subject += `, ${occupation}`;
+    return (
+      `Photorealistic professional portrait photograph of a natural-looking ${age}-year-old married couple, ` +
+      `husband and wife side by side, genuine subtle smiles, looking at the camera, ` +
+      `soft diffused studio lighting, neutral blurred background, ` +
+      `sharp focus on faces, full-frame DSLR quality, natural skin texture and pores, realistic hair, ` +
+      `NOT a cartoon, NOT an illustration, NOT a caricature, NOT CGI, NOT plastic skin, NOT anime.`
+    );
   }
-
-  const customTheme = opisPersony
-    ? `. Theme and context: ${opisPersony}`
-    : '';
-
+  const w = gender === 'woman' ? 'woman' : 'man';
   return (
-    `Create a colorful caricature figurine illustration of ${subject}${customTheme}. ` +
-    `The character should be fun, cartoon-like but expressive. ` +
-    `Place the character standing on a small decorative podium. ` +
-    `White or very light clean background. High quality, vibrant colors, clear composition. ` +
-    `No text, no watermarks.`
+    `Photorealistic professional headshot portrait of a natural-looking ${age}-year-old ${w}, ` +
+    `looking at the camera, shoulders and face visible, ` +
+    `soft diffused studio lighting, neutral blurred background, ` +
+    `sharp focus on eyes, full-frame DSLR quality, natural skin texture, realistic hair, ` +
+    `NOT a cartoon, NOT an illustration, NOT a caricature, NOT CGI, NOT plastic skin, NOT anime.`
   );
 }
 
-// ─── Nano Banana via Replicate ───────────────────────────────────────────────
+/** Customizacja jak przy zamówieniu — doklejana do promptu stylu (replaceBasePrompt: false). */
+function buildPromptAdditionFromLog(entry) {
+  const bits = [];
+  if (entry.imie) bits.push(`Name or dedication for the artwork: "${entry.imie}".`);
+  if (entry.rocznica) bits.push(`Anniversary / years / number field: "${entry.rocznica}".`);
+  if (entry.opis) bits.push(`Character, scene, profession, hobbies, mood: ${entry.opis}`);
+  if (!bits.length) return '';
+  return (
+    `BUYER CUSTOMIZATION (apply to figurine, podium, outfit, props — same intent as a real order):\n${bits.join('\n')}`
+  );
+}
 
-async function callReplicateNanaBanana(prompt) {
+function resolveStyleAndProductType({ style, productHandle }) {
+  const resolvedStyle = (style && String(style).trim()) || 'caricature-new';
+  // Większość produktów z polami customizacji = caricature-new w customify.js
+  const productType = 'caricature-new';
+  return { style: resolvedStyle, productType };
+}
+
+async function callReplicateNanoBanana(prompt) {
   const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
   if (!REPLICATE_API_TOKEN) throw new Error('Missing REPLICATE_API_TOKEN');
 
   const replicate = new Replicate({ auth: REPLICATE_API_TOKEN });
 
-  console.log('🍌 [SOCIAL] Calling Replicate nano-banana...');
+  console.log('🍌 [SOCIAL] Krok 1: Replicate nano-banana (fotoreal, bez obrazka wejściowego)...');
   const output = await replicate.run('google/nano-banana', {
     input: {
       prompt,
@@ -125,18 +92,15 @@ async function callReplicateNanaBanana(prompt) {
   });
 
   if (!output) throw new Error('Replicate nano-banana: no output');
-  // output jest URL-em
   const imageUrl = typeof output === 'string' ? output : (Array.isArray(output) ? output[0] : null);
   if (!imageUrl) throw new Error('Replicate nano-banana: unexpected output format');
   return imageUrl;
 }
 
-// ─── Nano Banana 2 via Segmind (fallback) ───────────────────────────────────
-
-async function callSegmindNanaBanana2(prompt) {
+async function callSegmindNanoBanana2(prompt) {
   if (!SEGMIND_API_KEY) throw new Error('Missing SEGMIND_API_KEY');
 
-  console.log('🍌 [SOCIAL] Calling Segmind nano-banana-2 (fallback)...');
+  console.log('🍌 [SOCIAL] Krok 1: Segmind nano-banana-2 (fallback)...');
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 90000);
 
@@ -175,36 +139,14 @@ async function callSegmindNanaBanana2(prompt) {
   return `data:${mime};base64,${base64}`;
 }
 
-// ─── Upload do Vercel Blob ───────────────────────────────────────────────────
-
-async function uploadToBlob(imageSourceOrUrl, entryId) {
-  const blobToken = getBlobToken();
-  const blobPath = `customify/social-images/${entryId}.jpg`;
-
-  let imageBuffer;
-  if (imageSourceOrUrl.startsWith('data:')) {
-    // base64 (z Segmind)
-    const base64Data = imageSourceOrUrl.split(',')[1];
-    imageBuffer = Buffer.from(base64Data, 'base64');
-  } else {
-    // URL (z Replicate)
-    const imgRes = await fetch(imageSourceOrUrl);
-    if (!imgRes.ok) throw new Error(`Failed to fetch image from Replicate: ${imgRes.status}`);
-    imageBuffer = Buffer.from(await imgRes.arrayBuffer());
+async function urlOrDataToBase64(imageSource) {
+  if (imageSource.startsWith('data:')) {
+    return imageSource.split(',')[1];
   }
-
-  const { url } = await put(blobPath, imageBuffer, {
-    access: 'public',
-    contentType: 'image/jpeg',
-    addRandomSuffix: false,
-    allowOverwrite: true,
-    token: blobToken
-  });
-
-  return url;
+  const imgRes = await fetch(imageSource);
+  if (!imgRes.ok) throw new Error(`Failed to fetch step-1 image: ${imgRes.status}`);
+  return Buffer.from(await imgRes.arrayBuffer()).toString('base64');
 }
-
-// ─── Odczyt/zapis logu ──────────────────────────────────────────────────────
 
 async function readLog() {
   try {
@@ -231,8 +173,6 @@ async function writeLog(entries) {
   });
 }
 
-// ─── Główny handler ──────────────────────────────────────────────────────────
-
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -240,57 +180,96 @@ module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { entryId, productHandle, rocznica, opis, imie, token: bodyToken } = req.body || {};
+  const { entryId, productHandle, rocznica, opis, imie, style: styleFromLog, token: bodyToken } = req.body || {};
   const token = req.query.token || req.headers['authorization']?.replace('Bearer ', '') || bodyToken;
   if (ADMIN_TOKEN && token !== ADMIN_TOKEN) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
   if (!entryId) return res.status(400).json({ error: 'Missing entryId' });
 
-  console.log(`🎨 [SOCIAL] Generating social image for entry ${entryId} (${productHandle})`);
+  const entry = { productHandle, rocznica, opis, imie };
+
+  console.log(`🎨 [SOCIAL] Start entry ${entryId} (${productHandle})`);
 
   try {
-    // 1. Wykryj osobę
-    const person = detectPerson(productHandle || '', rocznica || '');
-    console.log(`👤 [SOCIAL] Detected person: gender=${person.gender}, age=${person.age}, occupation=${person.occupation}`);
+    // ── Krok 1: fotorealistyczny „zamiennik” zdjęcia użytkownika
+    const subject = detectPhotorealSubject(productHandle || '', rocznica);
+    const prompt1 = buildPhotorealisticPrompt(subject);
+    console.log(`👤 [SOCIAL] Krok 1: gender=${subject.gender}, age=${subject.age} (tylko z rocznica + handle)`);
+    console.log(`📝 [SOCIAL] Prompt1: ${prompt1.substring(0, 160)}...`);
 
-    // 2. Zbuduj prompt
-    const opisPersony = [opis, imie].filter(Boolean).join(', ');
-    const prompt = buildPrompt(person, opisPersony);
-    console.log(`📝 [SOCIAL] Prompt: ${prompt.substring(0, 200)}...`);
-
-    // 3. Generuj obraz — Nano Banana (Replicate) → fallback Segmind
-    let imageSource;
+    let step1Source;
     try {
-      imageSource = await callReplicateNanaBanana(prompt);
-      console.log('✅ [SOCIAL] Replicate nano-banana succeeded');
-    } catch (replicateErr) {
-      console.warn(`⚠️ [SOCIAL] Replicate failed: ${replicateErr.message} — trying Segmind fallback`);
-      imageSource = await callSegmindNanaBanana2(prompt);
-      console.log('✅ [SOCIAL] Segmind nano-banana-2 fallback succeeded');
+      step1Source = await callReplicateNanoBanana(prompt1);
+    } catch (e1) {
+      console.warn(`⚠️ [SOCIAL] Replicate krok 1: ${e1.message} — Segmind`);
+      step1Source = await callSegmindNanoBanana2(prompt1);
     }
 
-    // 4. Uploaduj na Vercel Blob
-    const socialImageUrl = await uploadToBlob(imageSource, entryId);
-    console.log(`✅ [SOCIAL] Saved to Blob: ${socialImageUrl}`);
+    const imageDataBase64 = await urlOrDataToBase64(step1Source);
 
-    // 5. Zaktualizuj wpis w logu (bezpośrednio przez Blob, żeby uniknąć self-call HTTP)
+    // ── Krok 2: ten sam pipeline co u klienta
+    const { style, productType } = resolveStyleAndProductType({ style: styleFromLog, productHandle });
+    const promptAddition = buildPromptAdditionFromLog(entry);
+    const personalizationFields = {};
+    if (imie) personalizationFields.imiona = imie;
+    if (rocznica) personalizationFields.rocznica = rocznica;
+    if (opis) personalizationFields.opis_charakteru = opis;
+
+    console.log(`🔄 [SOCIAL] Krok 2: transform style=${style} productType=${productType}`);
+
+    const transformBody = {
+      imageData: imageDataBase64,
+      style,
+      productType,
+      productHandle: productHandle || null
+    };
+    if (promptAddition) {
+      transformBody.promptAddition = promptAddition;
+      transformBody.replaceBasePrompt = false;
+    }
+    if (Object.keys(personalizationFields).length > 0) {
+      transformBody.personalizationFields = personalizationFields;
+    }
+
+    const tfRes = await fetch(TRANSFORM_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Customify-Social-Internal': process.env.ADMIN_STATS_TOKEN || ''
+      },
+      body: JSON.stringify(transformBody)
+    });
+
+    const tfJson = await tfRes.json().catch(() => ({}));
+    if (!tfRes.ok) {
+      console.error('❌ [SOCIAL] transform failed:', tfRes.status, tfJson);
+      return res.status(502).json({
+        error: tfJson.error || tfJson.message || `Transform HTTP ${tfRes.status}`
+      });
+    }
+
+    const socialImageUrl = tfJson.transformedImage || tfJson.vercelBlobUrl || tfJson.permanentImageUrl;
+    if (!socialImageUrl) {
+      return res.status(500).json({ error: 'Transform succeeded but no image URL in response' });
+    }
+
+    console.log(`✅ [SOCIAL] Final URL: ${socialImageUrl.substring(0, 80)}...`);
+
     try {
       const entries = await readLog();
       const idx = entries.findIndex(e => String(e.id) === String(entryId));
       if (idx !== -1) {
         entries[idx].socialImageUrl = socialImageUrl;
         await writeLog(entries);
-        console.log(`✅ [SOCIAL] Log entry updated with socialImageUrl`);
       }
     } catch (logErr) {
-      console.warn(`⚠️ [SOCIAL] Failed to update log entry: ${logErr.message}`);
+      console.warn(`⚠️ [SOCIAL] Log update: ${logErr.message}`);
     }
 
     return res.status(200).json({ ok: true, socialImageUrl });
-
   } catch (err) {
-    console.error('❌ [SOCIAL] Generation failed:', err.message);
+    console.error('❌ [SOCIAL]', err.message);
     return res.status(500).json({ error: err.message });
   }
 };

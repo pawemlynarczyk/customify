@@ -1261,9 +1261,12 @@ module.exports = async (req, res) => {
   // RATE LIMITING - Sprawdź limit dla kosztownych operacji AI
   const rawIp = getClientIP(req);
   const ip = rawIp ? rawIp.split(',')[0].trim() : '';
-  console.log(`🔍 [TRANSFORM] Request from IP: ${ip || rawIp}, Method: ${req.method}`);
+  /** Panel social: drugi krok pipeline — wywołanie serwerowe z generate-social-image (ten sam token co admin) */
+  const isInternalSocial = !!(process.env.ADMIN_STATS_TOKEN &&
+    req.headers['x-customify-social-internal'] === process.env.ADMIN_STATS_TOKEN);
+  console.log(`🔍 [TRANSFORM] Request from IP: ${ip || rawIp}, Method: ${req.method}, internalSocial: ${isInternalSocial}`);
 
-  if (ip && BLOCKED_IPS.has(ip)) {
+  if (!isInternalSocial && ip && BLOCKED_IPS.has(ip)) {
     console.warn(`⛔ [TRANSFORM] IP ${ip} jest zablokowane - odrzucam żądanie`);
     return res.status(403).json({
       error: 'Access denied',
@@ -1274,7 +1277,9 @@ module.exports = async (req, res) => {
   // ✅ TWARDY LIMIT DZIENNY: 10 prób na IP w ciągu 24h (dla wszystkich - chroni przed wieloma kontami)
   // Używa Vercel KV z atomic operations (trwałe, nie resetuje się)
   // ⚠️ BIAŁA LISTA: Admin/Development IP pomijają limit
-  if (ip && WHITELISTED_IPS.has(ip)) {
+  if (isInternalSocial) {
+    console.log('🔐 [TRANSFORM] Internal social (step 2) — pomijam dzienny limit IP');
+  } else if (ip && WHITELISTED_IPS.has(ip)) {
     console.log(`✅ [TRANSFORM] IP ${ip} na białej liście - pomijam IP limit`);
   } else if (isKVConfigured()) {
     const ipLimitCheck = await checkIPLimit(ip);
@@ -1421,7 +1426,7 @@ module.exports = async (req, res) => {
     // 🧪 BYPASS: Sprawdź czy użytkownik jest na liście testowej (przed wszystkimi limitami)
     // ✅ Email używany tylko do test bypass (dla zalogowanych można sprawdzić przez customerId)
     // ⚠️ Zaktualizujemy isTest po pobraniu email z GraphQL (dla zalogowanych)
-    let isTest = isTestUser(email || null, ip);
+    let isTest = isTestUser(email || null, ip) || isInternalSocial;
     
     console.log(`🎯 [TRANSFORM] Product type: ${productType || 'not specified'}`);
     console.log(`🎯 [TRANSFORM] Style: ${style || prompt || 'not specified'}`);
@@ -4725,18 +4730,20 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
     
     // ✅ STATS: Zlicz generację AI w panelu login-modal-stats (źródło prawdy = backend, nie frontend)
     const productUrlForStats = (productHandle && String(productHandle).trim()) ? `/products/${String(productHandle).trim()}` : '/products/unknown';
-    fetch('https://customify-s56o.vercel.app/api/admin/login-modal-stats', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        eventType: 'ai_generation_success',
-        productUrl: productUrlForStats,
-        timestamp: new Date().toISOString()
-      })
-    }).catch((err) => console.warn('📊 [TRANSFORM] login-modal-stats event send failed:', err?.message || err));
+    if (!isInternalSocial) {
+      fetch('https://customify-s56o.vercel.app/api/admin/login-modal-stats', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          eventType: 'ai_generation_success',
+          productUrl: productUrlForStats,
+          timestamp: new Date().toISOString()
+        })
+      }).catch((err) => console.warn('📊 [TRANSFORM] login-modal-stats event send failed:', err?.message || err));
+    }
 
     // 📊 PERSONALIZATION LOG: Zapisz wpis PRZED res.json() żeby Vercel nie zamknął funkcji
-    if (personalizationFields && Object.keys(personalizationFields).length > 0) {
+    if (!isInternalSocial && personalizationFields && Object.keys(personalizationFields).length > 0) {
       try {
         // ⏰ Timeout 10s: nie blokuj transform na logowaniu personalizacji
         await fetchWithTimeout('https://customify-s56o.vercel.app/api/admin/personalization-log', 10000, {
