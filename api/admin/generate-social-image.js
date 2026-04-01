@@ -1,12 +1,17 @@
 // api/admin/generate-social-image.js
 // Krok 1: Nano Banana 2 (Replicate) → Segmind Nano Banana 2 (fallback)
 //         fotorealistyczny "zamiennik" zdjęcia użytkownika (tylko płeć + wiek).
-// Krok 2: /api/transform z konfiguracją wyliczaną z productHandle
-//         (styl/model/prompt przez handle, nie przez sam label style=caricature-new).
+// Krok 2: /api/transform — styl + productType + prompt jak na stronie produktu
+//         (public/customify.js: PRODUCT_FIELD_CONFIGS + getProductTypeFromStyle).
 // Nie używamy prawdziwych zdjęć klientów.
 
 const { put, list } = require('@vercel/blob');
 const Replicate = require('replicate');
+const {
+  buildProductFieldPromptForHandle,
+  autoSelectedStyleFromHandle
+} = require('../../utils/buildProductFieldPromptServer');
+const { getProductTypeFromPseudoUrl } = require('../../utils/getProductTypeFromPseudoUrl');
 
 const ADMIN_TOKEN = process.env.ADMIN_STATS_TOKEN;
 const SEGMIND_API_KEY = process.env.SEGMIND_API_KEY;
@@ -55,108 +60,6 @@ function buildPhotorealisticPrompt({ gender, age }) {
     `sharp focus on eyes, full-frame DSLR quality, natural skin texture, realistic hair, ` +
     `NOT a cartoon, NOT an illustration, NOT a caricature, NOT CGI, NOT plastic skin, NOT anime.`
   );
-}
-
-function detectRoleFromHandle(productHandle = '') {
-  const h = productHandle.toLowerCase();
-  if (h.includes('kucharka')) return 'chef';
-  if (h.includes('lekarka') || h.includes('lekarza')) return 'doctor';
-  if (h.includes('policjantka') || h.includes('policjant')) return 'police officer';
-  if (h.includes('rolniczka') || h.includes('rolnik')) return 'farmer';
-  if (h.includes('fitness')) return 'fitness trainer';
-  if (h.includes('szefowa') || h.includes('szefa')) return 'business owner';
-  if (h.includes('podrozniczka') || h.includes('podroznik')) return 'traveler';
-  if (h.includes('kulturysta')) return 'bodybuilder';
-  if (h.includes('wedkarz')) return 'fisherman';
-  if (h.includes('pilkarz')) return 'football player';
-  if (h.includes('strazak')) return 'firefighter';
-  if (h.includes('nauczyciel')) return 'teacher';
-  return 'person';
-}
-
-function resolvePipelineFromProductHandle(productHandle = '', styleFromLog = null) {
-  const h = String(productHandle || '').toLowerCase();
-
-  // Trzymaj się ustawień API wynikających z handle (nie tylko z style label)
-  if (h.includes('dodaj-osobe')) {
-    return { style: 'dodaj-osobe', productType: 'dodaj_osobe', useHandlePrompt: false };
-  }
-  if (h.includes('gta')) {
-    return { style: 'gta', productType: 'gta', useHandlePrompt: false };
-  }
-
-  // Produkty custom-fields (dla niej/dla faceta/rocznice) jadą na caricature-new,
-  // ale prompt jest budowany z handle + pól (jak konfiguracja produktowa).
-  if (
-    h.includes('karykatura') ||
-    h.includes('rocznice') ||
-    h.includes('urodziny') ||
-    h.includes('dla-niej') ||
-    h.includes('dla-mezczyzny') ||
-    h.includes('dla-faceta') ||
-    h.includes('biznes-woman') ||
-    h.includes('slub')
-  ) {
-    return { style: 'caricature-new', productType: 'caricature-new', useHandlePrompt: true };
-  }
-
-  // Fallback: użyj stylu z logu jeśli jest, inaczej caricature-new
-  return {
-    style: (styleFromLog && String(styleFromLog).trim()) || 'caricature-new',
-    productType: 'caricature-new',
-    useHandlePrompt: false
-  };
-}
-
-function buildHandleBasedPrompt(productHandle, { imie, rocznica, opis }) {
-  const h = String(productHandle || '').toLowerCase();
-  const isCouple =
-    h.includes('para') ||
-    h.includes('slub') ||
-    h.includes('rocznice') ||
-    h.includes('diamentowe-gody') ||
-    h.includes('wesola-para');
-  const gender =
-    h.includes('dla-mezczyzny') || h.includes('dla-faceta') || h.includes('chlopaka')
-      ? 'man'
-      : 'woman';
-  const role = detectRoleFromHandle(h);
-  const yearsText = rocznica ? `Years / anniversary number to include: "${rocznica}".` : '';
-  const nameText = imie ? `Exact text (dedication / name): "${imie}".` : '';
-  const themeText = opis ? `Theme details from buyer: ${opis}` : '';
-
-  if (isCouple) {
-    return [
-      'Create a premium caricature figurine scene based on the provided photo.',
-      'Keep both persons clearly recognizable and flattering.',
-      'MANDATORY BASE: wedding-anniversary couple theme, elegant celebratory mood.',
-      yearsText,
-      nameText,
-      themeText,
-      'Show expressive big heads with smaller bodies (pleasant caricature proportions).',
-      'Add coherent podium/props matching the theme.',
-      'If no text is provided, do not invent names.',
-      'High quality, clean composition.'
-    ]
-      .filter(Boolean)
-      .join('\n');
-  }
-
-  const who = gender === 'man' ? 'a man' : 'a woman';
-  return [
-    'Create a premium caricature figurine scene based on the provided photo.',
-    `Character: ${who} in profession/theme: ${role}.`,
-    'Keep facial identity recognizable and flattering.',
-    yearsText,
-    nameText,
-    themeText,
-    'Show expressive big head with smaller body (pleasant caricature proportions).',
-    'Add coherent podium/props matching the profession/theme.',
-    'If no text is provided, do not invent names.',
-    'High quality, clean composition.'
-  ]
-    .filter(Boolean)
-    .join('\n');
 }
 
 const withTimeout = (promise, ms, label) =>
@@ -305,15 +208,31 @@ module.exports = async (req, res) => {
 
     const imageDataBase64 = await urlOrDataToBase64(step1Source);
 
-    // ── Krok 2: ten sam pipeline co u klienta
-    const { style, productType, useHandlePrompt } = resolvePipelineFromProductHandle(productHandle, styleFromLog);
-    const handlePrompt = buildHandleBasedPrompt(productHandle, entry);
+    // ── Krok 2: jak przeglądarka — auto-styl (ukryte UI) albo style z wpisu logu
+    const autoStyle = autoSelectedStyleFromHandle(productHandle || '');
+    const style =
+      autoStyle || (styleFromLog && String(styleFromLog).trim()) || null;
+    if (!style) {
+      return res.status(400).json({
+        error:
+          'Brak stylu: dla tego produktu na sklepie trzeba wybrać styl (miniaturka). Wpis w logu nie ma pola `style` — wygeneruj najpierw z konta testowego albo dodaj styl ręcznie.'
+      });
+    }
+
+    const productType = getProductTypeFromPseudoUrl(productHandle || '', style);
+    const { prompt: storefrontPrompt, replaceBasePrompt } = buildProductFieldPromptForHandle(
+      productHandle || '',
+      entry
+    );
+
     const personalizationFields = {};
     if (imie) personalizationFields.imiona = imie;
     if (rocznica) personalizationFields.rocznica = rocznica;
     if (opis) personalizationFields.opis_charakteru = opis;
 
-    console.log(`🔄 [SOCIAL] Krok 2: transform style=${style} productType=${productType}`);
+    console.log(
+      `🔄 [SOCIAL] Krok 2: transform style=${style} productType=${productType} customPrompt=${storefrontPrompt ? `${storefrontPrompt.length}ch` : '—'}`
+    );
 
     const transformBody = {
       imageData: imageDataBase64,
@@ -321,14 +240,9 @@ module.exports = async (req, res) => {
       productType,
       productHandle: productHandle || null
     };
-    if (useHandlePrompt) {
-      // Dla produktów custom-fields: prompt wynikający z productHandle (nie z samego style label)
-      transformBody.promptAddition = handlePrompt;
-      transformBody.replaceBasePrompt = true;
-    } else if (handlePrompt) {
-      // Dla pozostałych: doklej kontekst z handle
-      transformBody.promptAddition = handlePrompt;
-      transformBody.replaceBasePrompt = false;
+    if (storefrontPrompt) {
+      transformBody.promptAddition = storefrontPrompt;
+      transformBody.replaceBasePrompt = replaceBasePrompt;
     }
     if (Object.keys(personalizationFields).length > 0) {
       transformBody.personalizationFields = personalizationFields;
