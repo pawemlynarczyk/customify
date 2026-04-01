@@ -69,19 +69,87 @@ function detectPhotorealSubject(productHandle, rocznica, opis) {
   return { gender, age };
 }
 
-function buildPhotorealisticPrompt({ gender, age }) {
+/** Deterministyczny hash — ten sam wpis (id + pola) ≈ ta sama „postać”; różne wpisy = różne losowanie z puli. */
+function variationSeedFromEntry(entryId, productHandle, rocznica, imie, opis) {
+  const s = `${entryId}|${productHandle || ''}|${rocznica ?? ''}|${imie ?? ''}|${opis ?? ''}`;
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
+function pickVariant(seed, index, list) {
+  const x = Math.imul(seed + index * 2654435761, 1103515245) >>> 0;
+  return list[x % list.length];
+}
+
+const VARIANT_WOMAN_HAIR = [
+  'shoulder-length dark brown hair',
+  'short blonde pixie cut',
+  'long wavy black hair',
+  'medium-length straight auburn hair',
+  'natural curly brown hair',
+  'silver-gray hair in a neat bob',
+  'dark hair in a low ponytail',
+  'fine light-brown hair tucked behind ears'
+];
+
+const VARIANT_MAN_HAIR = [
+  'short dark hair, clean-shaven',
+  'buzz cut, light stubble',
+  'receding hairline, neat trim',
+  'thick wavy hair, short beard',
+  'salt-and-pepper short hair, no beard',
+  'black hair, neatly trimmed mustache',
+  'blond short crop, jawline stubble',
+  'medium-length hair tied back, light beard'
+];
+
+const VARIANT_FACE = [
+  'distinct oval face shape, memorable features',
+  'softer round face, warm expression',
+  'angular jaw, prominent cheekbones',
+  'narrow face, slightly asymmetric smile',
+  'wide-set eyes, subtle laugh lines',
+  'strong brow, straight nose, individual look',
+  'gentle features, slightly fuller face',
+  'high cheekbones, defined chin — not a generic model face'
+];
+
+const VARIANT_COUPLE_A = [
+  'two clearly different individuals, different face shapes',
+  'husband and wife with distinct features — not matching faces',
+  'visibly different bone structure between the two people'
+];
+
+function buildPhotorealisticPrompt({ gender, age, seed }) {
+  const diversity =
+    'IMPORTANT: this must be a UNIQUE anonymous person — not a generic stock photo or influencer look; avoid the same face as typical AI headshots. Individual bone structure and proportions. ';
+
   if (gender === 'couple') {
+    const coupleNote = pickVariant(seed, 4, VARIANT_COUPLE_A);
+    const hairA = pickVariant(seed, 1, VARIANT_MAN_HAIR);
+    const hairB = pickVariant(seed, 2, VARIANT_WOMAN_HAIR);
     return (
       `Photorealistic professional portrait photograph of a natural-looking ${age}-year-old married couple, ` +
-      `husband and wife side by side, genuine subtle smiles, looking at the camera, ` +
+      `husband and wife side by side, genuine subtle smiles, looking at the camera. ` +
+      `He: ${hairA}. She: ${hairB}. ${coupleNote}. ` +
+      diversity +
       `soft diffused studio lighting, neutral blurred background, ` +
       `sharp focus on faces, full-frame DSLR quality, natural skin texture and pores, realistic hair, ` +
       `NOT a cartoon, NOT an illustration, NOT a caricature, NOT CGI, NOT plastic skin, NOT anime.`
     );
   }
   const w = gender === 'woman' ? 'woman' : 'man';
+  const hairPool = gender === 'woman' ? VARIANT_WOMAN_HAIR : VARIANT_MAN_HAIR;
+  const hair = pickVariant(seed, 1, hairPool);
+  const face = pickVariant(seed, 3, VARIANT_FACE);
   return (
     `Photorealistic professional headshot portrait of a natural-looking ${age}-year-old ${w}, ` +
+    `${hair}; ${face}. ` +
+    diversity +
     `looking at the camera, shoulders and face visible, ` +
     `soft diffused studio lighting, neutral blurred background, ` +
     `sharp focus on eyes, full-frame DSLR quality, natural skin texture, realistic hair, ` +
@@ -227,9 +295,12 @@ module.exports = async (req, res) => {
   try {
     // ── Krok 1: fotorealistyczny „zamiennik” zdjęcia użytkownika
     const subject = detectPhotorealSubject(productHandle || '', rocznica, opis);
-    const prompt1 = buildPhotorealisticPrompt(subject);
-    console.log(`👤 [SOCIAL] Krok 1: gender=${subject.gender}, age=${subject.age} (tylko z rocznica + handle)`);
-    console.log(`📝 [SOCIAL] Prompt1: ${prompt1.substring(0, 160)}...`);
+    const vSeed = variationSeedFromEntry(entryId, productHandle, rocznica, imie, opis);
+    const prompt1 = buildPhotorealisticPrompt({ ...subject, seed: vSeed });
+    console.log(
+      `👤 [SOCIAL] Krok 1: gender=${subject.gender}, age=${subject.age}, variationSeed=${vSeed} (nano-banana — różne wpisy = różne cechy twarzy/włosów)`
+    );
+    console.log(`📝 [SOCIAL] Prompt1: ${prompt1.substring(0, 200)}...`);
 
     let step1Source;
     try {
