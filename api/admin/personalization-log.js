@@ -149,5 +149,26 @@ module.exports = async (req, res) => {
     }
   }
 
+  // PATCH: aktualizuj pole socialImageUrl dla konkretnego wpisu (wywoływane z generate-social-image)
+  if (req.method === 'PATCH') {
+    const token = req.query.token || req.headers['authorization']?.replace('Bearer ', '');
+    if (ADMIN_TOKEN && token !== ADMIN_TOKEN) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    const { id, socialImageUrl } = req.body || {};
+    if (!id || !socialImageUrl) return res.status(400).json({ error: 'Missing id or socialImageUrl' });
+    try {
+      const entries = await readLog();
+      const idx = entries.findIndex(e => String(e.id) === String(id));
+      if (idx === -1) return res.status(404).json({ error: 'Entry not found' });
+      entries[idx].socialImageUrl = socialImageUrl;
+      await writeLog(entries);
+      return res.status(200).json({ ok: true });
+    } catch (err) {
+      console.error('[PERSONALIZATION-LOG] PATCH error:', err);
+      return res.status(500).json({ error: err.message });
+    }
+  }
+
   return res.status(405).json({ error: 'Method not allowed' });
 };

@@ -243,6 +243,37 @@
     }
     .thumb-img:hover { transform: scale(1.08); box-shadow: 0 2px 8px rgba(0,0,0,0.18); }
     .thumb-none { color: #ccc; font-size: 18px; }
+
+    /* SOCIAL IMAGE CELL */
+    .social-cell { width: 72px; text-align: center; }
+    .social-thumb-wrap { position: relative; display: inline-block; }
+    .social-img {
+      width: 44px;
+      height: 58px;
+      object-fit: cover;
+      border-radius: 5px;
+      border: 2px solid #7b1fa2;
+      display: block;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .social-img:hover { transform: scale(1.08); box-shadow: 0 2px 8px rgba(123,31,162,0.35); }
+    .social-dl-btn {
+      display: block;
+      margin-top: 3px;
+      font-size: 11px;
+      color: #7b1fa2;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .social-dl-btn:hover { color: #4a148c; }
+    .social-spinner {
+      font-size: 18px;
+      animation: spin 1s linear infinite;
+      display: block;
+    }
+    .social-skip { color: #ddd; font-size: 16px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
@@ -453,8 +484,24 @@
         : `<span class="thumb-none">—</span>`;
       const safeEmail = esc(e.email || '—');
       const attempts = attemptsMap[getUserKey(e)] || 1;
-      return `<tr>
+
+      // Social image cell
+      const canGenerate = !!(e.productHandle && (e.opis || e.imie));
+      let socialHtml;
+      if (e.socialImageUrl) {
+        socialHtml = `<div class="social-thumb-wrap">
+          <a href="${e.socialImageUrl}" target="_blank"><img class="social-img" src="${e.socialImageUrl}" alt="social" loading="lazy" /></a>
+          <a class="social-dl-btn" href="${e.socialImageUrl}" download="social_${e.id}.jpg">⬇ Pobierz</a>
+        </div>`;
+      } else if (canGenerate) {
+        socialHtml = `<span class="social-spinner" id="social-spin-${e.id}" title="Generowanie...">⏳</span>`;
+      } else {
+        socialHtml = `<span class="social-skip" title="Brak danych do generacji">—</span>`;
+      }
+
+      return `<tr data-entry-id="${e.id}" data-handle="${esc(e.productHandle||'')}" data-rocznica="${esc(e.rocznica||'')}" data-opis="${esc(e.opis||'')}" data-imie="${esc(e.imie||'')}">
         <td class="thumb-cell">${thumbHtml}</td>
+        <td class="social-cell">${socialHtml}</td>
         <td class="date-cell">${dt}</td>
         <td><span class="product-chip" title="${handle}">${shortHandle}</span></td>
         <td class="imie-cell">${esc(e.imie || '—')}</td>
@@ -469,7 +516,8 @@
       <table>
         <thead>
           <tr>
-            <th>Wynik</th>
+            <th>Wynik AI</th>
+            <th>📲 Social</th>
             <th style="cursor:pointer;" onclick="setSort('timestamp')">Data${sortArrow('timestamp')}</th>
             <th style="cursor:pointer;" onclick="setSort('product')">Produkt${sortArrow('product')}</th>
             <th style="cursor:pointer;" onclick="setSort('imie')">Imię / dedykacja${sortArrow('imie')}</th>
@@ -481,6 +529,9 @@
         </thead>
         <tbody>${rows}</tbody>
       </table>`;
+
+    // Auto-generuj obrazki social dla wpisów bez nich
+    scheduleSocialGeneration(sorted);
   }
 
   function renderProductStats(counts) {
@@ -571,6 +622,95 @@
 
   function esc(str) {
     return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // ─── Social image auto-generation ─────────────────────────────────────────
+  const SOCIAL_API = 'https://customify-s56o.vercel.app/api/admin/generate-social-image';
+  const MAX_CONCURRENT = 3;
+  let socialQueue = [];
+  let socialActive = 0;
+  let socialGenScheduled = false;
+
+  function scheduleSocialGeneration(sortedEntries) {
+    // Zbierz wpisy bez socialImageUrl, które mają dane do generacji
+    const pending = sortedEntries.filter(e =>
+      !e.socialImageUrl &&
+      e.productHandle &&
+      (e.opis || e.imie)
+    );
+    if (!pending.length) return;
+
+    // Dodaj do kolejki (unikaj duplikatów)
+    const existingIds = new Set(socialQueue.map(e => e.id));
+    pending.forEach(e => { if (!existingIds.has(e.id)) socialQueue.push(e); });
+
+    if (!socialGenScheduled) {
+      socialGenScheduled = true;
+      processSocialQueue();
+    }
+  }
+
+  function processSocialQueue() {
+    while (socialActive < MAX_CONCURRENT && socialQueue.length > 0) {
+      const entry = socialQueue.shift();
+      socialActive++;
+      generateOneSocialImage(entry).finally(() => {
+        socialActive--;
+        processSocialQueue();
+      });
+    }
+    if (socialQueue.length === 0 && socialActive === 0) {
+      socialGenScheduled = false;
+    }
+  }
+
+  async function generateOneSocialImage(entry) {
+    const spinEl = document.getElementById(`social-spin-${entry.id}`);
+    if (!spinEl) return; // wiersz nie jest w DOM (zmienił się filter)
+
+    try {
+      const res = await fetch(SOCIAL_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          entryId: entry.id,
+          productHandle: entry.productHandle,
+          rocznica: entry.rocznica || '',
+          opis: entry.opis || '',
+          imie: entry.imie || '',
+          token: adminToken
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.socialImageUrl) throw new Error(data.error || 'Brak URL');
+
+      const socialImageUrl = data.socialImageUrl;
+
+      // Zaktualizuj komórkę w tabeli bez przeładowania całości
+      const cell = spinEl.closest('td');
+      if (cell) {
+        cell.innerHTML = `<div class="social-thumb-wrap">
+          <a href="${socialImageUrl}" target="_blank"><img class="social-img" src="${socialImageUrl}" alt="social" /></a>
+          <a class="social-dl-btn" href="${socialImageUrl}" download="social_${entry.id}.jpg">⬇ Pobierz</a>
+        </div>`;
+      }
+
+      // Zaktualizuj dane lokalne
+      if (currentFiltered) {
+        const idx = currentFiltered.findIndex(e => String(e.id) === String(entry.id));
+        if (idx !== -1) currentFiltered[idx].socialImageUrl = socialImageUrl;
+      }
+
+    } catch (err) {
+      console.warn(`[SOCIAL] Failed for entry ${entry.id}:`, err.message);
+      const spinEl2 = document.getElementById(`social-spin-${entry.id}`);
+      if (spinEl2) {
+        spinEl2.textContent = '❌';
+        spinEl2.title = `Błąd: ${err.message}`;
+        spinEl2.style.animation = 'none';
+      }
+    }
   }
 </script>
 </body>
