@@ -267,6 +267,20 @@
       font-weight: 600;
     }
     .social-dl-btn:hover { color: #4a148c; }
+    .social-clear-btn {
+      display: block;
+      margin-top: 4px;
+      width: 100%;
+      font-size: 10px;
+      padding: 3px 4px;
+      border: 1px solid #c62828;
+      border-radius: 4px;
+      background: #ffebee;
+      color: #b71c1c;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .social-clear-btn:hover { background: #ffcdd2; }
     .social-spinner {
       font-size: 18px;
       animation: spin 1s linear infinite;
@@ -519,10 +533,7 @@
       const canGenerate = !!e.productHandle;
       let socialHtml;
       if (e.socialImageUrl) {
-        socialHtml = `<div class="social-thumb-wrap">
-          <a href="${e.socialImageUrl}" target="_blank"><img class="social-img" src="${e.socialImageUrl}" alt="social" loading="lazy" /></a>
-          <a class="social-dl-btn" href="${e.socialImageUrl}" download="social_${e.id}.jpg">⬇ Pobierz</a>
-        </div>`;
+        socialHtml = socialCellGeneratedHtml(e.socialImageUrl, e.id);
       } else if (canGenerate && (eligibleForSocialAuto.some(p => String(p.id) === String(e.id)) || socialPendingIds.has(e.id))) {
         socialHtml = `<span class="social-spinner" id="social-spin-${e.id}" title="Generowanie...">⏳</span>`;
       } else if (canGenerate) {
@@ -657,6 +668,43 @@
     return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
+  /** HTML komórki Social po wygenerowaniu — miniaturka + pobierz + wyczyść (ponów generację) */
+  function socialCellGeneratedHtml(imageUrl, entryId) {
+    const id = String(entryId);
+    return `<div class="social-thumb-wrap">
+          <a href="${esc(imageUrl)}" target="_blank" rel="noopener"><img class="social-img" src="${esc(imageUrl)}" alt="social" loading="lazy" /></a>
+          <a class="social-dl-btn" href="${esc(imageUrl)}" download="social_${id}.jpg">⬇ Pobierz</a>
+          <button type="button" class="social-clear-btn" data-clear-social="${id}">🗑 Wyczyść social</button>
+        </div>`;
+  }
+
+  async function clearSocialEntry(entryId) {
+    if (!adminToken) {
+      alert('Zaloguj się tokenem');
+      return;
+    }
+    if (!confirm('Usunąć zapisany obraz social dla tego wpisu? Po odświeżeniu trafi z powrotem do kolejki auto (max 10).')) return;
+    try {
+      const res = await fetch(API_BASE, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: adminToken, id: entryId, clearSocial: true })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+      await loadData();
+    } catch (e) {
+      alert('Błąd: ' + e.message);
+    }
+  }
+
+  document.addEventListener('click', ev => {
+    const btn = ev.target.closest('[data-clear-social]');
+    if (!btn) return;
+    ev.preventDefault();
+    clearSocialEntry(btn.getAttribute('data-clear-social'));
+  });
+
   // ─── Social image auto-generation ─────────────────────────────────────────
   const SOCIAL_API = 'https://customify-s56o.vercel.app/api/admin/generate-social-image';
   const MAX_CONCURRENT = 1;
@@ -765,10 +813,7 @@
       const socialImageUrl = data.socialImageUrl;
       const { cell } = findSocialCell(entry.id);
       if (cell) {
-        cell.innerHTML = `<div class="social-thumb-wrap">
-          <a href="${esc(socialImageUrl)}" target="_blank" rel="noopener"><img class="social-img" src="${esc(socialImageUrl)}" alt="social" /></a>
-          <a class="social-dl-btn" href="${esc(socialImageUrl)}" download="social_${entry.id}.jpg">⬇ Pobierz</a>
-        </div>`;
+        cell.innerHTML = socialCellGeneratedHtml(socialImageUrl, entry.id);
       }
 
       if (currentFiltered) {

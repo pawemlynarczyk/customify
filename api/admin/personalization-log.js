@@ -49,7 +49,7 @@ async function writeLog(entries) {
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
@@ -149,21 +149,52 @@ module.exports = async (req, res) => {
     }
   }
 
-  // PATCH: aktualizuj pole socialImageUrl dla konkretnego wpisu (wywoływane z generate-social-image)
+  // PATCH: ustaw socialImageUrl (generate-social-image) albo wyczyść (panel — ponowna generacja)
   if (req.method === 'PATCH') {
-    const token = req.query.token || req.headers['authorization']?.replace('Bearer ', '');
+    const body = req.body || {};
+    const token =
+      req.query.token ||
+      req.headers['authorization']?.replace('Bearer ', '') ||
+      body.token;
     if (ADMIN_TOKEN && token !== ADMIN_TOKEN) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
-    const { id, socialImageUrl } = req.body || {};
-    if (!id || !socialImageUrl) return res.status(400).json({ error: 'Missing id or socialImageUrl' });
+
     try {
       const entries = await readLog();
+
+      // Masowe czyszczenie: { clearSocialForIds: [id1, id2, ...] }
+      const ids = body.clearSocialForIds;
+      if (Array.isArray(ids) && ids.length > 0) {
+        const set = new Set(ids.map(String));
+        let n = 0;
+        entries.forEach(e => {
+          if (set.has(String(e.id)) && e.socialImageUrl) {
+            delete e.socialImageUrl;
+            n += 1;
+          }
+        });
+        await writeLog(entries);
+        return res.status(200).json({ ok: true, cleared: n });
+      }
+
+      const { id, socialImageUrl, clearSocial } = body;
+      if (!id) return res.status(400).json({ error: 'Missing id' });
+
       const idx = entries.findIndex(e => String(e.id) === String(id));
       if (idx === -1) return res.status(404).json({ error: 'Entry not found' });
-      entries[idx].socialImageUrl = socialImageUrl;
-      await writeLog(entries);
-      return res.status(200).json({ ok: true });
+
+      if (clearSocial === true || socialImageUrl === null) {
+        delete entries[idx].socialImageUrl;
+        await writeLog(entries);
+        return res.status(200).json({ ok: true, cleared: true });
+      }
+      if (typeof socialImageUrl === 'string' && socialImageUrl.trim()) {
+        entries[idx].socialImageUrl = socialImageUrl.trim();
+        await writeLog(entries);
+        return res.status(200).json({ ok: true });
+      }
+      return res.status(400).json({ error: 'Podaj socialImageUrl (URL) albo clearSocial: true / socialImageUrl: null' });
     } catch (err) {
       console.error('[PERSONALIZATION-LOG] PATCH error:', err);
       return res.status(500).json({ error: err.message });
