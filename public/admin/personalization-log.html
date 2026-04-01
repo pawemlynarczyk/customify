@@ -267,20 +267,6 @@
       font-weight: 600;
     }
     .social-dl-btn:hover { color: #4a148c; }
-    .social-clear-btn {
-      display: block;
-      margin-top: 4px;
-      width: 100%;
-      font-size: 10px;
-      padding: 3px 4px;
-      border: 1px solid #c62828;
-      border-radius: 4px;
-      background: #ffebee;
-      color: #b71c1c;
-      cursor: pointer;
-      font-weight: 600;
-    }
-    .social-clear-btn:hover { background: #ffcdd2; }
     .social-spinner {
       font-size: 18px;
       animation: spin 1s linear infinite;
@@ -353,6 +339,7 @@
       </div>
       <div style="margin-top:8px;font-size:12px;color:#795548;">
         Kolejka: <strong>jedna generacja naraz</strong> (10 × po ~2–5 min może dać ~30–50 min) — nie zamykaj karty.
+        <span style="display:block;margin-top:6px;">Bez duplikatów: ten sam <strong>email + imię + opis</strong> — tylko pierwszy wpis w sortowaniu idzie w auto social (kolejne próby użytkownika pomijane).</span>
         <span style="display:block;margin-top:6px;">Zakres: serie <strong>kobieta</strong> / <strong>mężczyzna</strong> / <strong>ślub</strong> — produkt „dodaj osobę” w socialu jest wyłączony (400).</span>
       </div>
       <div id="socialGenStatus" style="margin-top:8px;font-size:13px;color:#1565c0;font-weight:600;"></div>
@@ -514,10 +501,8 @@
       return;
     }
     const { sorted, attemptsMap } = sortEntries(entries);
-    // Ten sam pierwszy wpis co auto-generacja — od razu spinner w HTML (socialPendingIds dopiero po schedule)
-    const eligibleForSocialAuto = sorted
-      .filter(e => !e.socialImageUrl && e.productHandle && e.productHandle !== SOCIAL_EXCLUDED_HANDLE)
-      .slice(0, MAX_AUTO_GENERATE);
+    const dupSkippedSocialIds = getSocialAutoDupSkippedIds(sorted);
+    const eligibleForSocialAuto = selectSocialAutoQueue(sorted);
 
     const rows = sorted.map(e => {
       const dt = e.timestamp ? new Date(e.timestamp).toLocaleString('pl-PL') : '—';
@@ -537,7 +522,10 @@
       } else if (canGenerate && (eligibleForSocialAuto.some(p => String(p.id) === String(e.id)) || socialPendingIds.has(e.id))) {
         socialHtml = `<span class="social-spinner" id="social-spin-${e.id}" title="Generowanie...">⏳</span>`;
       } else if (canGenerate) {
-        const offTitle = 'Auto max 10 wpisów na to odświeżenie (kolejka 1 naraz); ten wiersz nie w kolejce';
+        let offTitle = 'Auto max 10 wpisów (bez duplikatów email+imię+opis); kolejka 1 naraz — ten wiersz nie w kolejce';
+        if (dupSkippedSocialIds.has(String(e.id))) {
+          offTitle = 'Pominięte auto social: ten sam email, imię i opis co wcześniejszy wpis (kolejna próba użytkownika).';
+        }
         socialHtml = `<span class="social-skip" title="${esc(offTitle)}">—</span>`;
       } else {
         socialHtml = `<span class="social-skip" title="Brak danych do generacji">—</span>`;
@@ -668,42 +656,14 @@
     return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
-  /** HTML komórki Social po wygenerowaniu — miniaturka + pobierz + wyczyść (ponów generację) */
+  /** HTML komórki Social po wygenerowaniu — miniaturka + pobierz */
   function socialCellGeneratedHtml(imageUrl, entryId) {
     const id = String(entryId);
     return `<div class="social-thumb-wrap">
           <a href="${esc(imageUrl)}" target="_blank" rel="noopener"><img class="social-img" src="${esc(imageUrl)}" alt="social" loading="lazy" /></a>
           <a class="social-dl-btn" href="${esc(imageUrl)}" download="social_${id}.jpg">⬇ Pobierz</a>
-          <button type="button" class="social-clear-btn" data-clear-social="${id}">🗑 Wyczyść social</button>
         </div>`;
   }
-
-  async function clearSocialEntry(entryId) {
-    if (!adminToken) {
-      alert('Zaloguj się tokenem');
-      return;
-    }
-    if (!confirm('Usunąć zapisany obraz social dla tego wpisu? Po odświeżeniu trafi z powrotem do kolejki auto (max 10).')) return;
-    try {
-      const res = await fetch(API_BASE, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: adminToken, id: entryId, clearSocial: true })
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
-      await loadData();
-    } catch (e) {
-      alert('Błąd: ' + e.message);
-    }
-  }
-
-  document.addEventListener('click', ev => {
-    const btn = ev.target.closest('[data-clear-social]');
-    if (!btn) return;
-    ev.preventDefault();
-    clearSocialEntry(btn.getAttribute('data-clear-social'));
-  });
 
   // ─── Social image auto-generation ─────────────────────────────────────────
   const SOCIAL_API = 'https://customify-s56o.vercel.app/api/admin/generate-social-image';
@@ -714,6 +674,43 @@
   let socialActive = 0;
   const socialPendingIds = new Set();
 
+  /** Klucz duplikatu: ten sam user próbował wielokrotnie z tymi samymi polami (brak emaila = bez deduplikacji). */
+  function socialAutoDedupeKey(entry) {
+    const email = (entry.email || '').toLowerCase().trim();
+    if (!email) return null;
+    const imie = (entry.imie || '').trim().toLowerCase();
+    const opis = (entry.opis || '').trim().toLowerCase();
+    return `${email}\t${imie}\t${opis}`;
+  }
+
+  function selectSocialAutoQueue(sortedEntries) {
+    const out = [];
+    const seen = new Set();
+    for (const e of sortedEntries) {
+      if (e.socialImageUrl || !e.productHandle || e.productHandle === SOCIAL_EXCLUDED_HANDLE) continue;
+      const dk = socialAutoDedupeKey(e);
+      if (dk !== null && seen.has(dk)) continue;
+      if (dk !== null) seen.add(dk);
+      out.push(e);
+      if (out.length >= MAX_AUTO_GENERATE) break;
+    }
+    return out;
+  }
+
+  /** ID wpisów pominiętych jako późniejsze duplikaty (tooltip w tabeli). */
+  function getSocialAutoDupSkippedIds(sortedEntries) {
+    const skipped = new Set();
+    const seen = new Set();
+    for (const e of sortedEntries) {
+      if (e.socialImageUrl || !e.productHandle || e.productHandle === SOCIAL_EXCLUDED_HANDLE) continue;
+      const dk = socialAutoDedupeKey(e);
+      if (dk === null) continue;
+      if (seen.has(dk)) skipped.add(String(e.id));
+      else seen.add(dk);
+    }
+    return skipped;
+  }
+
   function initSocialGenerationUI() {
     // no-op: checkbox usunięty, zostawione dla kompatybilności wywołania
     if (!socialUiInitDone) socialUiInitDone = true;
@@ -723,9 +720,7 @@
     // NIE sprawdzaj „busy” tutaj: gdy trwa fetch dla wpisu A, drugi render (filtr/loadData) pokazuje spinner dla B,
     // ale bez enqueue B nigdy nie wystartuje — klepsydra bez żądania. Kolejka + MAX_CONCURRENT i tak ograniczają równoległość.
 
-    const pending = sortedEntries
-      .filter(e => !e.socialImageUrl && e.productHandle && e.productHandle !== SOCIAL_EXCLUDED_HANDLE)
-      .slice(0, MAX_AUTO_GENERATE);
+    const pending = selectSocialAutoQueue(sortedEntries);
     if (!pending.length) return;
 
     pending.forEach(e => {
