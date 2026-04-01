@@ -274,6 +274,18 @@
     }
     .social-skip { color: #ddd; font-size: 16px; }
     @keyframes spin { to { transform: rotate(360deg); } }
+    .social-cost-warning {
+      background: #fff3e0;
+      border: 1px solid #ff9800;
+      border-radius: 10px;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      font-size: 13px;
+      color: #5d4037;
+      line-height: 1.45;
+    }
+    .social-cost-warning label { cursor: pointer; user-select: none; font-weight: 600; color: #e65100; }
+    .social-cost-warning input { margin-right: 8px; vertical-align: middle; }
   </style>
 </head>
 <body>
@@ -321,6 +333,19 @@
       <button class="btn btn-export" onclick="exportCSV()">⬇ Eksport CSV</button>
     </div>
 
+    <div class="social-cost-warning">
+      <label>
+        <input type="checkbox" id="socialGenerateEnabled" />
+        Generuj obrazki „Social” (płatne API: każdy wpis = Nano Banana + pełny transform — kilka-kilkanaście PLN przy większej liczbie)
+      </label>
+      <div style="margin-top:8px;font-size:12px;color:#795548;">
+        <strong>Test:</strong> tylko <strong>jedna</strong> generacja na całą sesję tej karty przeglądarki — potem stop (do kolejnej musisz zamknąć kartę lub wyczyścić dane witryny dla tej strony). Na backendzie: <code>ENABLE_SOCIAL_GENERATE=true</code> w Vercel.
+      </div>
+      <div id="socialTestLimitMsg" style="display:none;margin-top:10px;padding:10px 12px;background:#ffebee;border-radius:8px;font-weight:700;color:#b71c1c;font-size:13px;">
+        Limit testowy wykorzystany: 1 generacja na sesję. Zamknij kartę lub usuń dane witryny (sessionStorage), żeby móc znowu włączyć test.
+      </div>
+    </div>
+
     <div class="main-layout">
       <!-- TABLE -->
       <div class="table-wrap">
@@ -355,6 +380,7 @@
   let currentFiltered = [];
   let sortBy = 'timestamp';
   let sortOrder = 'desc';
+  let socialUiInitDone = false;
 
   function getUserKey(entry) {
     const emailKey = (entry.email || '').toLowerCase().trim();
@@ -450,6 +476,7 @@
       document.getElementById('mainSection').style.display = 'block';
 
       renderStats(data);
+      initSocialGenerationUI();
       renderTable(currentFiltered);
       renderProductStats(data.stats?.productCounts || {});
       renderWordCloud(data.stats?.topWords || []);
@@ -475,8 +502,10 @@
       return;
     }
     const { sorted, attemptsMap } = sortEntries(entries);
-    // Najpierw kolejka social (ustawia socialPendingIds), potem HTML — spinner tylko dla faktycznie generowanego wpisu
-    scheduleSocialGeneration(sorted);
+    // Kolejka social: checkbox + nie wyczerpano limitu 1/sesja
+    if (isSocialGenerateEnabled() && !isSocialTestConsumed()) {
+      scheduleSocialGeneration(sorted);
+    }
 
     const rows = sorted.map(e => {
       const dt = e.timestamp ? new Date(e.timestamp).toLocaleString('pl-PL') : '—';
@@ -496,10 +525,18 @@
           <a href="${e.socialImageUrl}" target="_blank"><img class="social-img" src="${e.socialImageUrl}" alt="social" loading="lazy" /></a>
           <a class="social-dl-btn" href="${e.socialImageUrl}" download="social_${e.id}.jpg">⬇ Pobierz</a>
         </div>`;
-      } else if (canGenerate && socialPendingIds.has(e.id)) {
+      } else if (canGenerate && isSocialGenerateEnabled() && !isSocialTestConsumed() && socialPendingIds.has(e.id)) {
         socialHtml = `<span class="social-spinner" id="social-spin-${e.id}" title="Generowanie...">⏳</span>`;
       } else if (canGenerate) {
-        socialHtml = `<span class="social-skip" title="W tej sesji auto-generacja tylko dla pierwszego wpisu z listy (odśwież po zakończeniu)">—</span>`;
+        let offTitle;
+        if (isSocialTestConsumed()) {
+          offTitle = 'Limit: 1 generacja na sesję — już wykorzystane (zamknij kartę lub wyczyść dane witryny)';
+        } else if (!isSocialGenerateEnabled()) {
+          offTitle = 'Wyłączone — zaznacz „Generuj obrazki Social” powyżej. W Vercel: ENABLE_SOCIAL_GENERATE=true';
+        } else {
+          offTitle = 'Kolejka: max jeden wpis; limit 1 generacji na sesję';
+        }
+        socialHtml = `<span class="social-skip" title="${esc(offTitle)}">—</span>`;
       } else {
         socialHtml = `<span class="social-skip" title="Brak danych do generacji">—</span>`;
       }
@@ -628,19 +665,57 @@
 
   // ─── Social image auto-generation ─────────────────────────────────────────
   const SOCIAL_API = 'https://customify-s56o.vercel.app/api/admin/generate-social-image';
-  const MAX_CONCURRENT = 1; // jedna generacja naraz (krok 1+2 API = długie)
+  const SS_SOCIAL_TEST_USED = 'customify_social_test_one_per_session';
+  const MAX_CONCURRENT = 1;
   const MAX_AUTO_GENERATE = 1;
   let socialQueue = [];
   let socialActive = 0;
-  /** ID wpisów faktycznie w kolejce / w locie — tylko one mają spinner ⏳ */
   const socialPendingIds = new Set();
+
+  function isSocialGenerateEnabled() {
+    const el = document.getElementById('socialGenerateEnabled');
+    return !!(el && el.checked && !el.disabled);
+  }
+
+  function isSocialTestConsumed() {
+    return sessionStorage.getItem(SS_SOCIAL_TEST_USED) === '1';
+  }
+
+  function consumeSocialTestSlot() {
+    sessionStorage.setItem(SS_SOCIAL_TEST_USED, '1');
+    const cb = document.getElementById('socialGenerateEnabled');
+    if (cb) {
+      cb.checked = false;
+      cb.disabled = true;
+    }
+    const msg = document.getElementById('socialTestLimitMsg');
+    if (msg) msg.style.display = 'block';
+  }
+
+  function initSocialGenerationUI() {
+    const cb = document.getElementById('socialGenerateEnabled');
+    if (!cb) return;
+    if (isSocialTestConsumed()) {
+      cb.checked = false;
+      cb.disabled = true;
+      const msg = document.getElementById('socialTestLimitMsg');
+      if (msg) msg.style.display = 'block';
+      return;
+    }
+    if (!socialUiInitDone) {
+      socialUiInitDone = true;
+      cb.addEventListener('change', () => {
+        if (currentFiltered && currentFiltered.length) renderTable(currentFiltered);
+      });
+    }
+  }
 
   function socialGenerationBusy() {
     return socialActive > 0 || socialQueue.length > 0;
   }
 
   function scheduleSocialGeneration(sortedEntries) {
-    // Nie dokładaj kolejnych jobów dopóki trwa poprzedni (inaczej każdy renderTable = kolejna fala requestów)
+    if (isSocialTestConsumed()) return;
     if (socialGenerationBusy()) return;
 
     const pending = sortedEntries
@@ -670,7 +745,11 @@
 
   async function generateOneSocialImage(entry) {
     const spinEl = document.getElementById(`social-spin-${entry.id}`);
-    if (!spinEl) return; // wiersz nie jest w DOM (zmienił się filter)
+    if (!spinEl) return;
+    if (isSocialTestConsumed()) return;
+
+    // Jedna generacja na całą sesję — przed fetch (koszt API)
+    consumeSocialTestSlot();
 
     try {
       const res = await fetch(SOCIAL_API, {
