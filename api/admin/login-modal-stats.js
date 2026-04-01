@@ -471,13 +471,14 @@ const cleanupOldVersions = async (blobToken, versions) => {
   const sorted = [...versions].sort((a, b) => new Date(a.uploadedAt).getTime() - new Date(b.uploadedAt).getTime());
   const toRemove = sorted.slice(0, Math.max(0, sorted.length - MAX_STATS_VERSIONS));
   for (const blob of toRemove) {
-    const path = blob.pathname || blob.path;
-    if (!path) continue;
+    // del() wymaga pełnego URL, nie pathname
+    const blobUrl = blob.url;
+    if (!blobUrl) continue;
     try {
-      await del(path, { token: blobToken });
-      console.log(`🧹 [LOGIN-MODAL-STATS] Usuń stary plik statystyk: ${path}`);
+      await del(blobUrl, { token: blobToken });
+      console.log(`🧹 [LOGIN-MODAL-STATS] Usuń stary plik statystyk: ${blob.pathname || blobUrl}`);
     } catch (error) {
-      console.warn(`⚠️ [LOGIN-MODAL-STATS] Nie udało się usunąć ${path}:`, error?.message || error);
+      console.warn(`⚠️ [LOGIN-MODAL-STATS] Nie udało się usunąć ${blob.pathname || blobUrl}:`, error?.message || error);
     }
   }
 };
@@ -577,11 +578,12 @@ module.exports = async (req, res) => {
         allowOverwrite: true
       });
       const storedPath = blob.pathname || newStatsPath;
+      const storedUrl = blob.url;
 
       if (statsData.sourcePath === STATS_FILE_PATH) {
         del(STATS_FILE_PATH, { token: blobToken }).catch(() => {});
       }
-      await cleanupOldVersions(blobToken, [...(statsData.versions || []), { pathname: storedPath, uploadedAt: new Date().toISOString() }]);
+      await cleanupOldVersions(blobToken, [...(statsData.versions || []), { pathname: storedPath, url: storedUrl, uploadedAt: new Date().toISOString() }]);
       console.log('✅ [LOGIN-MODAL-STATS] Write OK:', eventType, '| Total events:', stats.events.length);
     };
 
@@ -640,10 +642,11 @@ module.exports = async (req, res) => {
               allowOverwrite: true
             });
             const storedPath = consolidatedBlob.pathname || consolidatedPath;
+            const storedUrl = consolidatedBlob.url;
             // Usuń wszystkie stare pliki (zachowaj tylko skonsolidowany)
             await cleanupOldVersions(blobToken, [
               ...loadedVersions,
-              { pathname: storedPath, uploadedAt: new Date().toISOString() }
+              { pathname: storedPath, url: storedUrl, uploadedAt: new Date().toISOString() }
             ]);
             console.log(`📊 [LOGIN-MODAL-STATS] Skonsolidowano ${loadedVersions.length} pliki → 1 plik`);
           } catch (consolidateErr) {
