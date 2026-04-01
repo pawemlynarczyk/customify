@@ -7,6 +7,7 @@
 //
 // Zakres social (wasze produkty): serie kobieta / mężczyzna / ślub — bez „dodaj osobę”.
 
+const crypto = require('crypto');
 const { put, list } = require('@vercel/blob');
 const Replicate = require('replicate');
 const {
@@ -67,17 +68,6 @@ function detectPhotorealSubject(productHandle, rocznica, opis) {
   }
 
   return { gender, age };
-}
-
-/** Deterministyczny hash — ten sam wpis (id + pola) ≈ ta sama „postać”; różne wpisy = różne losowanie z puli. */
-function variationSeedFromEntry(entryId, productHandle, rocznica, imie, opis) {
-  const s = `${entryId}|${productHandle || ''}|${rocznica ?? ''}|${imie ?? ''}|${opis ?? ''}`;
-  let h = 2166136261;
-  for (let i = 0; i < s.length; i++) {
-    h ^= s.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return h >>> 0;
 }
 
 function pickVariant(seed, index, list) {
@@ -295,11 +285,9 @@ module.exports = async (req, res) => {
   try {
     // ── Krok 1: fotorealistyczny „zamiennik” zdjęcia użytkownika
     const subject = detectPhotorealSubject(productHandle || '', rocznica, opis);
-    const vSeed = variationSeedFromEntry(entryId, productHandle, rocznica, imie, opis);
+    const vSeed = crypto.randomInt(0, 0x100000000);
     const prompt1 = buildPhotorealisticPrompt({ ...subject, seed: vSeed });
-    console.log(
-      `👤 [SOCIAL] Krok 1: gender=${subject.gender}, age=${subject.age}, variationSeed=${vSeed} (nano-banana — różne wpisy = różne cechy twarzy/włosów)`
-    );
+    console.log(`👤 [SOCIAL] Krok 1: gender=${subject.gender}, age=${subject.age}, seed=${vSeed}`);
     console.log(`📝 [SOCIAL] Prompt1: ${prompt1.substring(0, 200)}...`);
 
     let step1Source;

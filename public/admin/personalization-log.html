@@ -244,8 +244,13 @@
     .thumb-img:hover { transform: scale(1.08); box-shadow: 0 2px 8px rgba(0,0,0,0.18); }
     .thumb-none { color: #ccc; font-size: 18px; }
 
-    /* SOCIAL IMAGE CELL */
-    .social-cell { width: 72px; text-align: center; }
+    /* SOCIAL IMAGE CELL — szersza kolumna + × na miniaturce (było 72px — przycisk „pod spodem” ginął) */
+    .social-cell {
+      min-width: 100px;
+      max-width: 118px;
+      text-align: center;
+      vertical-align: middle;
+    }
     .social-thumb-wrap { position: relative; display: inline-block; }
     .social-img {
       width: 44px;
@@ -267,6 +272,41 @@
       font-weight: 600;
     }
     .social-dl-btn:hover { color: #4a148c; }
+    .social-clear-x {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      z-index: 4;
+      width: 24px;
+      height: 24px;
+      padding: 0;
+      border: 2px solid #fff;
+      border-radius: 50%;
+      background: #c62828;
+      color: #fff;
+      font-size: 18px;
+      line-height: 20px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 1px 5px rgba(0,0,0,0.35);
+    }
+    .social-clear-x:hover:not(:disabled) { background: #b71c1c; }
+    .social-clear-x:disabled { opacity: 0.55; cursor: wait; }
+    .social-clear-row {
+      display: block;
+      width: 100%;
+      margin-top: 6px;
+      font-size: 11px;
+      padding: 5px 4px;
+      border: 1px solid #c62828;
+      background: #fff;
+      color: #c62828;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .social-clear-row:hover:not(:disabled) { background: #ffebee; }
+    .social-clear-row:disabled { opacity: 0.55; cursor: wait; }
     .social-spinner {
       font-size: 18px;
       animation: spin 1s linear infinite;
@@ -656,12 +696,51 @@
     return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
+  async function clearSocialEntry(entryId, btn) {
+    if (!adminToken) return;
+    if (!confirm('Usunąć wygenerowany obrazek social dla tego wpisu?')) return;
+    const prev = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = '…';
+    try {
+      const res = await fetch(API_BASE, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: entryId, clearSocial: true, token: adminToken })
+      });
+      let data = {};
+      try {
+        data = await res.json();
+      } catch (_) {}
+      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+      if (currentFiltered) {
+        const idx = currentFiltered.findIndex(e => String(e.id) === String(entryId));
+        if (idx !== -1) delete currentFiltered[idx].socialImageUrl;
+      }
+      renderTable(currentFiltered);
+    } catch (err) {
+      alert('Nie udało się usunąć: ' + err.message);
+      btn.disabled = false;
+      btn.textContent = prev;
+    }
+  }
+
+  document.addEventListener('click', e => {
+    const t = e.target.closest('[data-clear-social]');
+    if (!t || !t.dataset.entryId) return;
+    e.preventDefault();
+    clearSocialEntry(t.dataset.entryId, t);
+  });
+
   /** HTML komórki Social po wygenerowaniu — miniaturka + pobierz */
   function socialCellGeneratedHtml(imageUrl, entryId) {
     const id = String(entryId);
+    const idAttr = id.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
     return `<div class="social-thumb-wrap">
+          <button type="button" class="social-clear-x" data-clear-social data-entry-id="${idAttr}" title="Usuń obrazek social" aria-label="Usuń obrazek social">×</button>
           <a href="${esc(imageUrl)}" target="_blank" rel="noopener"><img class="social-img" src="${esc(imageUrl)}" alt="social" loading="lazy" /></a>
           <a class="social-dl-btn" href="${esc(imageUrl)}" download="social_${id}.jpg">⬇ Pobierz</a>
+          <button type="button" class="social-clear-row" data-clear-social data-entry-id="${idAttr}">Usuń obrazek</button>
         </div>`;
   }
 
