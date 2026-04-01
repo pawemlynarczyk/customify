@@ -512,7 +512,7 @@
       const attempts = attemptsMap[getUserKey(e)] || 1;
 
       // Social image cell — ⏳ tylko gdy ten wpis jest w kolejce / generowany; inne „do generacji” = — (nie mylić z masową generacją)
-      const canGenerate = !!(e.productHandle && (e.opis || e.imie));
+      const canGenerate = !!e.productHandle;
       let socialHtml;
       if (e.socialImageUrl) {
         socialHtml = `<div class="social-thumb-wrap">
@@ -671,7 +671,7 @@
     if (socialGenerationBusy()) return;
 
     const pending = sortedEntries
-      .filter(e => !e.socialImageUrl && e.productHandle && (e.opis || e.imie))
+      .filter(e => !e.socialImageUrl && e.productHandle)
       .slice(0, MAX_AUTO_GENERATE);
     if (!pending.length) return;
 
