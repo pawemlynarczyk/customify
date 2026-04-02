@@ -1,23 +1,36 @@
 // api/admin/generate-social-image.js
-// Krok 1: WYŁĄCZNIE Segmind — POST https://api.segmind.com/v1/nano-banana-2 (text-to-image, brak Replicate w tym pliku).
-//         Fotoreal „zamiennik” zdjęcia: tylko płeć + wiek w prompcie.
+// Krok 1: Replicate prunaai/flux-fast (text-to-image) — parametry jak w panelu Replicate (guidance 3.5, 1024, jpg 80, Blink of an eye).
 // Krok 2: /api/transform — styl + productType + prompt jak na stronie produktu
 //         (public/customify.js: PRODUCT_FIELD_CONFIGS + getProductTypeFromStyle).
 // Nie używamy prawdziwych zdjęć klientów.
 //
 // Zakres social (wasze produkty): serie kobieta / mężczyzna / ślub — bez „dodaj osobę”.
 
+const Replicate = require('replicate');
 const { put, list } = require('@vercel/blob');
 const {
   buildProductFieldPromptForHandle,
   autoSelectedStyleFromHandle
 } = require('../../utils/buildProductFieldPromptServer');
 const { getProductTypeFromPseudoUrl } = require('../../utils/getProductTypeFromPseudoUrl');
+const { inferPhotorealGenderFromImie } = require('../../utils/detectGenderFromImieDedykacja');
 
 const ADMIN_TOKEN = process.env.ADMIN_STATS_TOKEN;
-const SEGMIND_API_KEY = process.env.SEGMIND_API_KEY;
 const BLOB_KEY_LOG = 'customify/system/stats/personalization-log.json';
 const TRANSFORM_URL = 'https://customify-s56o.vercel.app/api/transform';
+
+const FLUX_FAST_MODEL = 'prunaai/flux-fast';
+const FLUX_FAST_SPEED_MODE = 'Blink of an eye 👁️';
+
+let replicateClient = null;
+function getReplicate() {
+  const token = process.env.REPLICATE_API_TOKEN;
+  if (!token || token === 'leave_empty_for_now') return null;
+  if (!replicateClient) {
+    replicateClient = new Replicate({ auth: token });
+  }
+  return replicateClient;
+}
 
 /** Nieobsługiwane w panelu social — multi-upload, inny pipeline niż serie k/m/ślub */
 const SOCIAL_EXCLUDED_PRODUCT_HANDLE = 'dodaj-osobe-do-zdjecia-naturalny-efekt-obraz-plakat-wydruk';
@@ -28,9 +41,23 @@ const getBlobToken = () => {
   return token;
 };
 
-// Krok 1 (fotoreal): płeć z handle + fallback z opisu (handle czesto ma formę „kierowcy” a nie „kierowca”).
-// Wiek tylko z rocznica (liczba).
-function detectPhotorealSubject(productHandle, rocznica, opis) {
+function ageFromRocznica(rocznica) {
+  let age = 40;
+  if (rocznica != null && /^\d+$/.test(String(rocznica).trim())) {
+    const n = parseInt(String(rocznica).trim(), 10);
+    age = Math.min(95, Math.max(18, n));
+  }
+  return age;
+}
+
+// Krok 1: płeć — najpierw pole „imię / dedykacja”; gdy brak wniosku, handle + opis (jak wcześniej).
+function detectPhotorealSubject(productHandle, rocznica, opis, imie) {
+  const age = ageFromRocznica(rocznica);
+  const fromImie = inferPhotorealGenderFromImie(imie);
+  if (fromImie) {
+    return { gender: fromImie, age, genderSource: 'imie' };
+  }
+
   let gender = 'woman';
   const h = productHandle || '';
   if (/para|slubna|mlodej-pary|diamentowe-gody|wesola-para|podroznikow|rocznice-slubu|zakochana|staruszkow/i.test(h)) {
@@ -40,7 +67,6 @@ function detectPhotorealSubject(productHandle, rocznica, opis) {
       h
     )
   ) {
-    // kierowc → „kierowca”, „kierowcy”, „kierowcow” w slugach
     gender = 'man';
   }
 
@@ -59,65 +85,70 @@ function detectPhotorealSubject(productHandle, rocznica, opis) {
     }
   }
 
-  let age = 40;
-  if (rocznica != null && /^\d+$/.test(String(rocznica).trim())) {
-    const n = parseInt(String(rocznica).trim(), 10);
-    age = Math.min(95, Math.max(18, n));
-  }
-
-  return { gender, age };
+  return { gender, age, genderSource: 'handle_opis' };
 }
 
-/** Krok 1 social: tylko wiek + płeć — wygląd zostawiamy modelowi. */
-function buildPhotorealisticPrompt({ gender, age }) {
-  const tech =
-    'Photorealistic photo, DSLR, soft studio light, neutral background, facing camera. Not cartoon, illustration, caricature, CGI, or anime.';
+/** Krok 1 social: wiek + płeć, styl promptu jak na screenie Replicate (social media + east european average). */
+function buildSocialStep1FluxPrompt({ gender, age }) {
+  const suffix =
+    'Photorealistic photo, neutral background, facing camera. Not cartoon, illustration, caricature, CGI, or anime.';
 
   if (gender === 'couple') {
-    return `Portrait of a married couple, man and woman, natural-looking adults about ${age} years old, head and shoulders. ${tech}`;
+    return `social media portrait of an east european married couple, man and woman, natural-looking adults about ${age} years old, average, ${suffix}`;
   }
-  const w = gender === 'woman' ? 'woman' : 'man';
-  return `Portrait of a natural-looking ${age}-year-old ${w}, head and shoulders. ${tech}`;
+  const role = gender === 'woman' ? 'woman' : 'man';
+  return `social media portrait of a ${age}-year-old east european ${role} average, ${suffix}`;
 }
 
-async function callSegmindNanoBanana2(prompt) {
-  if (!SEGMIND_API_KEY) throw new Error('Missing SEGMIND_API_KEY');
-
-  console.log('🍌 [SOCIAL] Krok 1: Segmind nano-banana-2 (fotoreal, bez obrazka wejściowego)...');
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 180000);
-
-  let response;
-  try {
-    response = await fetch('https://api.segmind.com/v1/nano-banana-2', {
-      method: 'POST',
-      headers: {
-        'x-api-key': SEGMIND_API_KEY,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        prompt,
-        image_urls: [],
-        aspect_ratio: '2:3',
-        output_format: 'jpg',
-        output_resolution: '1K',
-        safety_tolerance: 6,
-        thinking_level: 'minimal'
-      }),
-      signal: controller.signal
-    });
-  } finally {
-    clearTimeout(timeout);
+/**
+ * Replicate prunaai/flux-fast — schema Input z panelu (guidance, image_size, speed_mode, aspect_ratio, output_*).
+ * Losowy seed przy każdym wywołaniu = różniejsze twarze przy tym samym tekście promptu.
+ */
+async function callReplicateFluxFastStep1(prompt) {
+  const replicate = getReplicate();
+  if (!replicate) {
+    throw new Error('Missing REPLICATE_API_TOKEN — wymagany do kroku 1 (flux-fast)');
   }
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Segmind nano-banana-2: ${response.status} - ${errorText.substring(0, 300)}`);
+  const seed = Math.floor(Math.random() * 2147483646) + 1;
+  const input = {
+    prompt,
+    guidance: 3.5,
+    image_size: 1024,
+    speed_mode: FLUX_FAST_SPEED_MODE,
+    aspect_ratio: '2:3',
+    output_format: 'jpg',
+    output_quality: 80,
+    num_inference_steps: 28,
+    seed
+  };
+
+  console.log(`⚡ [SOCIAL] Krok 1: Replicate ${FLUX_FAST_MODEL} speed_mode=${FLUX_FAST_SPEED_MODE} seed=${seed}`);
+
+  const timeoutMs = 120000;
+  const timeoutPromise = new Promise((_, reject) => {
+    setTimeout(() => reject(new Error('Replicate flux-fast timeout (120s)')), timeoutMs);
+  });
+
+  const runPromise = replicate.run(FLUX_FAST_MODEL, { input });
+  const output = await Promise.race([runPromise, timeoutPromise]);
+
+  let imageUrl;
+  if (Array.isArray(output)) {
+    imageUrl = output[0];
+  } else if (typeof output === 'string') {
+    imageUrl = output;
+  } else if (output && output.url) {
+    imageUrl = typeof output.url === 'function' ? output.url() : output.url;
+  }
+  if (!imageUrl || typeof imageUrl !== 'string') {
+    throw new Error(`Replicate flux-fast: nieoczekiwany format output: ${typeof output}`);
   }
 
-  const contentType = response.headers.get('content-type') || '';
-  const imageBuffer = await response.arrayBuffer();
-  const base64 = Buffer.from(imageBuffer).toString('base64');
+  const imgRes = await fetch(imageUrl);
+  if (!imgRes.ok) throw new Error(`Replicate flux-fast: pobranie obrazu ${imgRes.status}`);
+  const contentType = imgRes.headers.get('content-type') || 'image/jpeg';
+  const base64 = Buffer.from(await imgRes.arrayBuffer()).toString('base64');
   const mime = contentType.includes('png') ? 'image/png' : 'image/jpeg';
   return `data:${mime};base64,${base64}`;
 }
@@ -181,13 +212,15 @@ module.exports = async (req, res) => {
   console.log(`🎨 [SOCIAL] Start entry ${entryId} (${productHandle})`);
 
   try {
-    // ── Krok 1: tylko Segmind nano-banana-2 (zero Replicate w generate-social-image)
-    const subject = detectPhotorealSubject(productHandle || '', rocznica, opis);
-    const prompt1 = buildPhotorealisticPrompt(subject);
-    console.log(`👤 [SOCIAL] Krok 1 (Segmind): gender=${subject.gender}, age=${subject.age}`);
+    // ── Krok 1: Replicate prunaai/flux-fast
+    const subject = detectPhotorealSubject(productHandle || '', rocznica, opis, imie);
+    const prompt1 = buildSocialStep1FluxPrompt(subject);
+    console.log(
+      `👤 [SOCIAL] Krok 1 (flux-fast): gender=${subject.gender}, age=${subject.age}, źródło=${subject.genderSource}`
+    );
     console.log(`📝 [SOCIAL] Prompt1: ${prompt1}`);
 
-    const step1Source = await callSegmindNanoBanana2(prompt1);
+    const step1Source = await callReplicateFluxFastStep1(prompt1);
 
     const imageDataBase64 = await urlOrDataToBase64(step1Source);
 
