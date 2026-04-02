@@ -451,8 +451,8 @@
         document.getElementById('mainContent').style.display = 'block';
         document.getElementById('logoutBtn').style.display = 'block';
         
-        // Domyślnie pokaż tylko dzisiaj (tylko jeśli user nie ustawił własnych dat)
-        setDefaultLastDaysIfEmpty(1);
+        // Domyślnie: wczoraj + dziś (tylko jeśli user nie ustawił własnych dat)
+        setDefaultLastDaysIfEmpty(2);
         loadImages(true);
       } else {
         document.getElementById('loginForm').style.display = 'block';
