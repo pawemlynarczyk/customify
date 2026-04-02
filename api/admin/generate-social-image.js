@@ -1,5 +1,5 @@
 // api/admin/generate-social-image.js
-// Krok 1: Replicate prunaai/flux-fast (text-to-image) — parametry jak w panelu Replicate (guidance 3.5, 1024, jpg 80, Blink of an eye).
+// Krok 1: Replicate black-forest-labs/flux-2-pro (text-to-image, input_images: []).
 // Krok 2: /api/transform — styl + productType + prompt jak na stronie produktu
 //         (public/customify.js: PRODUCT_FIELD_CONFIGS + getProductTypeFromStyle).
 // Nie używamy prawdziwych zdjęć klientów.
@@ -19,8 +19,7 @@ const ADMIN_TOKEN = process.env.ADMIN_STATS_TOKEN;
 const BLOB_KEY_LOG = 'customify/system/stats/personalization-log.json';
 const TRANSFORM_URL = 'https://customify-s56o.vercel.app/api/transform';
 
-const FLUX_FAST_MODEL = 'prunaai/flux-fast';
-const FLUX_FAST_SPEED_MODE = 'Blink of an eye 👁️';
+const FLUX_2_PRO_MODEL = 'black-forest-labs/flux-2-pro';
 
 let replicateClient = null;
 function getReplicate() {
@@ -101,36 +100,35 @@ function buildSocialStep1FluxPrompt({ gender, age }) {
 }
 
 /**
- * Replicate prunaai/flux-fast — schema Input z panelu (guidance, image_size, speed_mode, aspect_ratio, output_*).
- * Losowy seed przy każdym wywołaniu = różniejsze twarze przy tym samym tekście promptu.
+ * Replicate black-forest-labs/flux-2-pro — schema Input (prompt, aspect_ratio, resolution, input_images, output_*, safety_tolerance, seed).
+ * Losowy seed = różniejsze twarze przy tym samym promptcie.
  */
-async function callReplicateFluxFastStep1(prompt) {
+async function callReplicateFlux2ProStep1(prompt) {
   const replicate = getReplicate();
   if (!replicate) {
-    throw new Error('Missing REPLICATE_API_TOKEN — wymagany do kroku 1 (flux-fast)');
+    throw new Error('Missing REPLICATE_API_TOKEN — wymagany do kroku 1 (flux-2-pro)');
   }
 
   const seed = Math.floor(Math.random() * 2147483646) + 1;
   const input = {
     prompt,
-    guidance: 3.5,
-    image_size: 1024,
-    speed_mode: FLUX_FAST_SPEED_MODE,
+    input_images: [],
     aspect_ratio: '2:3',
+    resolution: '1 MP',
     output_format: 'jpg',
     output_quality: 80,
-    num_inference_steps: 28,
+    safety_tolerance: 2,
     seed
   };
 
-  console.log(`⚡ [SOCIAL] Krok 1: Replicate ${FLUX_FAST_MODEL} speed_mode=${FLUX_FAST_SPEED_MODE} seed=${seed}`);
+  console.log(`⚡ [SOCIAL] Krok 1: Replicate ${FLUX_2_PRO_MODEL} aspect=2:3 res=1MP seed=${seed}`);
 
-  const timeoutMs = 120000;
+  const timeoutMs = 240000;
   const timeoutPromise = new Promise((_, reject) => {
-    setTimeout(() => reject(new Error('Replicate flux-fast timeout (120s)')), timeoutMs);
+    setTimeout(() => reject(new Error('Replicate flux-2-pro timeout (240s)')), timeoutMs);
   });
 
-  const runPromise = replicate.run(FLUX_FAST_MODEL, { input });
+  const runPromise = replicate.run(FLUX_2_PRO_MODEL, { input });
   const output = await Promise.race([runPromise, timeoutPromise]);
 
   let imageUrl;
@@ -142,14 +140,16 @@ async function callReplicateFluxFastStep1(prompt) {
     imageUrl = typeof output.url === 'function' ? output.url() : output.url;
   }
   if (!imageUrl || typeof imageUrl !== 'string') {
-    throw new Error(`Replicate flux-fast: nieoczekiwany format output: ${typeof output}`);
+    throw new Error(`Replicate flux-2-pro: nieoczekiwany format output: ${typeof output}`);
   }
 
   const imgRes = await fetch(imageUrl);
-  if (!imgRes.ok) throw new Error(`Replicate flux-fast: pobranie obrazu ${imgRes.status}`);
+  if (!imgRes.ok) throw new Error(`Replicate flux-2-pro: pobranie obrazu ${imgRes.status}`);
   const contentType = imgRes.headers.get('content-type') || 'image/jpeg';
   const base64 = Buffer.from(await imgRes.arrayBuffer()).toString('base64');
-  const mime = contentType.includes('png') ? 'image/png' : 'image/jpeg';
+  let mime = 'image/jpeg';
+  if (contentType.includes('png')) mime = 'image/png';
+  else if (contentType.includes('webp')) mime = 'image/webp';
   return `data:${mime};base64,${base64}`;
 }
 
@@ -212,15 +212,15 @@ module.exports = async (req, res) => {
   console.log(`🎨 [SOCIAL] Start entry ${entryId} (${productHandle})`);
 
   try {
-    // ── Krok 1: Replicate prunaai/flux-fast
+    // ── Krok 1: Replicate black-forest-labs/flux-2-pro
     const subject = detectPhotorealSubject(productHandle || '', rocznica, opis, imie);
     const prompt1 = buildSocialStep1FluxPrompt(subject);
     console.log(
-      `👤 [SOCIAL] Krok 1 (flux-fast): gender=${subject.gender}, age=${subject.age}, źródło=${subject.genderSource}`
+      `👤 [SOCIAL] Krok 1 (flux-2-pro): gender=${subject.gender}, age=${subject.age}, źródło=${subject.genderSource}`
     );
     console.log(`📝 [SOCIAL] Prompt1: ${prompt1}`);
 
-    const step1Source = await callReplicateFluxFastStep1(prompt1);
+    const step1Source = await callReplicateFlux2ProStep1(prompt1);
 
     const imageDataBase64 = await urlOrDataToBase64(step1Source);
 
