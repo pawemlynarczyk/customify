@@ -6,6 +6,8 @@ const { put, list } = require('@vercel/blob');
 
 const BLOB_KEY = 'customify/system/stats/personalization-log.json';
 const MAX_ENTRIES = 2000;
+/** Ten sam user + ten sam produkt + te same pola — w tym oknie: jeden wpis (aktualizacja zamiast duplikatu) */
+const DEDUP_WINDOW_MS = 45 * 60 * 1000;
 
 // ⏰ Helper: operacje Blob z timeoutem
 async function withTimeout(promise, timeoutMs, op) {
@@ -47,6 +49,58 @@ async function writeLog(entries) {
   }), 15000, 'put log');
 }
 
+function normSig(v) {
+  return String(v || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function deviceTokenPrefixFromBody(dt) {
+  if (!dt) return '';
+  const s = String(dt);
+  return s.length >= 8 ? s.substring(0, 8) : s;
+}
+
+/** Zapisane w logu: "a1b2c3d4..." — wyciągnij 8 znaków do porównania z body */
+function deviceTokenPrefixFromStored(stored) {
+  if (!stored || typeof stored !== 'string') return '';
+  return stored.replace(/\.\.\.$/, '').substring(0, 8);
+}
+
+function personalizationSignature({
+  email,
+  customerId,
+  deviceTokenBody,
+  deviceTokenStored,
+  productHandle,
+  imie,
+  rocznica,
+  opis,
+  style
+}) {
+  const em = normSig(email);
+  const cid = customerId != null ? String(customerId).trim() : '';
+  const dev =
+    deviceTokenBody != null
+      ? deviceTokenPrefixFromBody(deviceTokenBody)
+      : deviceTokenPrefixFromStored(deviceTokenStored);
+  const userKey = em || (cid ? `cid:${cid}` : '') || (dev ? `dev:${dev}` : '') || 'unknown';
+  return [
+    userKey,
+    normSig(productHandle),
+    normSig(imie),
+    normSig(opis),
+    normSig(rocznica),
+    normSig(style)
+  ].join('\t');
+}
+
+function parseEntryTimeMs(iso) {
+  const t = new Date(iso || 0).getTime();
+  return Number.isNaN(t) ? 0 : t;
+}
+
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, OPTIONS');
@@ -74,11 +128,57 @@ module.exports = async (req, res) => {
         opis: fields.opis_charakteru || null,
         imageUrl: imageUrl || null
       };
-      entries.unshift(newEntry);
+
+      const newSig = personalizationSignature({
+        email: newEntry.email,
+        customerId: newEntry.customerId,
+        deviceTokenBody: deviceToken,
+        productHandle: newEntry.productHandle,
+        imie: newEntry.imie,
+        rocznica: newEntry.rocznica,
+        opis: newEntry.opis,
+        style: newEntry.style
+      });
+      const nowMs = Date.now();
+
+      const dupIdx = entries.findIndex(e => {
+        const es = personalizationSignature({
+          email: e.email,
+          customerId: e.customerId,
+          deviceTokenStored: e.deviceToken,
+          productHandle: e.productHandle,
+          imie: e.imie,
+          rocznica: e.rocznica,
+          opis: e.opis,
+          style: e.style
+        });
+        if (es !== newSig) return false;
+        return nowMs - parseEntryTimeMs(e.timestamp) < DEDUP_WINDOW_MS;
+      });
+
+      if (dupIdx !== -1) {
+        const prev = entries[dupIdx];
+        entries[dupIdx] = {
+          ...prev,
+          timestamp: newEntry.timestamp,
+          imageUrl: newEntry.imageUrl,
+          style: newEntry.style,
+          ip: newEntry.ip ?? prev.ip,
+          deviceToken: newEntry.deviceToken ?? prev.deviceToken
+        };
+        if (dupIdx > 0) {
+          const [updated] = entries.splice(dupIdx, 1);
+          entries.unshift(updated);
+        }
+        console.log('[PERSONALIZATION-LOG] Dedup: zaktualizowano wpis', prev.id, 'zamiast duplikatu');
+      } else {
+        entries.unshift(newEntry);
+      }
+
       // Ogranicz do MAX_ENTRIES
       if (entries.length > MAX_ENTRIES) entries.splice(MAX_ENTRIES);
       await writeLog(entries);
-      return res.status(200).json({ ok: true });
+      return res.status(200).json({ ok: true, deduped: dupIdx !== -1 });
     } catch (err) {
       console.error('[PERSONALIZATION-LOG] Write error:', err);
       return res.status(500).json({ error: err.message });
