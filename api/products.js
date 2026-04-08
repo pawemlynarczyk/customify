@@ -69,15 +69,25 @@ async function addWatermarkForSpotify(imageBuffer) {
   }
 }
 
+/** Sufiks wymiarów w SKU canvas: zawsze większa liczba pierwsza (wymóg podwykonawcy), np. 60-40 zamiast 40-60. */
+function canvasSkuDimsLargerFirst(a, b) {
+  const n1 = parseInt(String(a), 10);
+  const n2 = parseInt(String(b), 10);
+  if (!Number.isFinite(n1) || !Number.isFinite(n2)) {
+    return `${a}-${b}`;
+  }
+  return `${Math.max(n1, n2)}-${Math.min(n1, n2)}`;
+}
+
 /**
- * SKU canvas: `LB-CUSTOM-C` + wymiary jak 20-30.
- * Priorytet: `sizeLabel` (np. „20×30 cm” — ten sam format co w tytule / właściwości „Rozmiar” w koszyku), potem kod `size` (a4, …).
+ * SKU canvas: `LB-CUSTOM-C` + wymiary (większa-mniejsza).
+ * Priorytet: `sizeLabel` (np. „20×30 cm”), potem kod `size` (a4, …).
  */
 function buildCanvasVariantSku(sizeLabel, sizeKey) {
   const label = (sizeLabel || '').toString();
   const dimInLabel = label.match(/(\d+)\s*[x×]\s*(\d+)/);
   if (dimInLabel) {
-    return `LB-CUSTOM-C${dimInLabel[1]}-${dimInLabel[2]}`;
+    return `LB-CUSTOM-C${canvasSkuDimsLargerFirst(dimInLabel[1], dimInLabel[2])}`;
   }
   const key = (sizeKey || '').toString().toLowerCase().trim();
   const byKey = {
@@ -89,15 +99,16 @@ function buildCanvasVariantSku(sizeLabel, sizeKey) {
     a1: '60-90'
   };
   if (byKey[key]) {
-    return `LB-CUSTOM-C${byKey[key]}`;
+    const [w, h] = byKey[key].split('-');
+    return `LB-CUSTOM-C${canvasSkuDimsLargerFirst(w, h)}`;
   }
   const xy = key.match(/^(\d+)\s*[x×]\s*(\d+)$/i);
   if (xy) {
-    return `LB-CUSTOM-C${xy[1]}-${xy[2]}`;
+    return `LB-CUSTOM-C${canvasSkuDimsLargerFirst(xy[1], xy[2])}`;
   }
   const dash = key.match(/^(\d+)-(\d+)$/);
   if (dash) {
-    return `LB-CUSTOM-C${dash[1]}-${dash[2]}`;
+    return `LB-CUSTOM-C${canvasSkuDimsLargerFirst(dash[1], dash[2])}`;
   }
   return 'LB-CUSTOM-C';
 }
@@ -723,8 +734,7 @@ module.exports = async (req, res) => {
         shopifyImageUrl: shopifyImageUrl,  // BEZ watermarku - do realizacji
         vercelBlobUrl: vercelBlobUrl,  // BEZ watermarku - backup
         permanentImageUrl: permanentImageUrl,  // BEZ watermarku - główny URL do realizacji
-        'Link do zdjęcia:': vercelBlobUrl || permanentImageUrl,  // ✅ BEZ WATERMARKU — spójnie z właściwością linii w zamówieniu
-        _AI_Image_URL: vercelBlobUrl || permanentImageUrl,  // kompatybilność (stare skrypty / eksporty czytające JSON metafield)
+        'Link do zdjęcia:': vercelBlobUrl || permanentImageUrl,  // ✅ BEZ WATERMARKU (metafield — bez duplikatu _AI_Image_URL)
         watermarkedImageUrl: watermarkedImage || null,  // Z watermarkiem - dla referencji
         style: style,
         size: size,
