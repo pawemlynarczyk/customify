@@ -69,6 +69,31 @@ async function addWatermarkForSpotify(imageBuffer) {
   }
 }
 
+/** SKU canvas: `LB-CUSTOM-C` + wymiary jak 20-30 (bez „×”, tylko cyfry i myślnik). Nie zmienia flow — tylko string do PUT wariantu. */
+function buildCanvasVariantSku(sizeRaw) {
+  const key = (sizeRaw || '').toString().toLowerCase().trim();
+  const byKey = {
+    a5: '15-21',
+    a4: '20-30',
+    a3: '30-45',
+    a2: '40-60',
+    a0: '50-75',
+    a1: '60-90'
+  };
+  if (byKey[key]) {
+    return `LB-CUSTOM-C${byKey[key]}`;
+  }
+  const xy = key.match(/^(\d+)\s*[x×]\s*(\d+)$/i);
+  if (xy) {
+    return `LB-CUSTOM-C${xy[1]}-${xy[2]}`;
+  }
+  const dash = key.match(/^(\d+)-(\d+)$/);
+  if (dash) {
+    return `LB-CUSTOM-C${dash[1]}-${dash[2]}`;
+  }
+  return 'LB-CUSTOM-C';
+}
+
 module.exports = async (req, res) => {
   // ✅ POPRAWIONE CORS - nie można używać credentials: true z origin: *
   const origin = req.headers.origin;
@@ -265,8 +290,8 @@ module.exports = async (req, res) => {
     }
     // 🚨 ROLLBACK: END - Obsługa produktu cyfrowego w nazwach
 
-    // SKU tylko dla canvas — ten sam `LB-CUSTOM-C` na każdym wygenerowanym obrazie na płótnie; inne typy bez SKU.
-    const variantSku = !isDigitalProduct && productType === 'canvas' ? 'LB-CUSTOM-C' : null;
+    // SKU tylko dla canvas — `LB-CUSTOM-C` + rozmiar (np. a4 → LB-CUSTOM-C20-30); inne typy bez SKU.
+    const variantSku = !isDigitalProduct && productType === 'canvas' ? buildCanvasVariantSku(size) : null;
 
     // KROK 1: Utwórz produkt BEZ obrazka (najpierw potrzebujemy product ID)
     // 🚨 ROLLBACK: START - Konfiguracja produktu cyfrowego
