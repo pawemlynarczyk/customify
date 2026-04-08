@@ -9885,11 +9885,12 @@ function initCartIntegration() {
   const cartItems = document.querySelectorAll('.cart-item, .cart-items__row');
   
   cartItems.forEach(item => {
-    // Znajdź ukryte property z AI obrazkiem
-    const aiImageProperty = item.querySelector('dd[data-property="_AI_Image_URL"], .cart-items__properties dd');
+    // Ukryte property z URL obrazu (stara i nowa nazwa — zamówienie w adminie: „Link do zdjęcia:”)
+    const aiImageProperty = item.querySelector('dd[data-property="_AI_Image_URL"], dd[data-property="Link do zdjęcia:"]');
     
-    if (aiImageProperty && aiImageProperty.textContent.includes('replicate.delivery')) {
-      const imageUrl = aiImageProperty.textContent.trim();
+    const imageUrl = aiImageProperty?.textContent?.trim() || '';
+    const looksLikeHttpImageUrl = imageUrl.startsWith('http') && imageUrl.length > 24;
+    if (aiImageProperty && looksLikeHttpImageUrl) {
       
       // Ukryj surowy URL
       const propertyDiv = aiImageProperty.closest('.cart-items__properties');
@@ -10811,7 +10812,8 @@ propertyName.toLowerCase() === 'styl ai' ||
 propertyName.includes('Styl AI') ||
 propertyName.includes('styl ai') ||
 propertyName === 'Rozmiar' ||
-propertyName === 'Rodzaj wydruku') {
+propertyName === 'Rodzaj wydruku' ||
+propertyName.includes('Link do zdjęcia')) {
 dt.style.display = 'none';
 prop.style.display = 'none';
 console.log('🙈 [CUSTOMIFY CART] Ukryto property:', propertyName);

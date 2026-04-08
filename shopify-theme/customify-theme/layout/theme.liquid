@@ -173,7 +173,7 @@
  Sentry.init({
  dsn: "https://562a1a160e90a597f0236fd8c6b13301@o4510439439925248.ingest.de.sentry.io/4510439517257808",
  environment: "production",
- tracesSampleRate: 0.1,
+ tracesSampleRate: 0,
     beforeSend(event, hint) {
     if (event.exception && event.exception.values) {
     const firstException = event.exception.values[0];
@@ -216,8 +216,6 @@
     errorMessage.includes("Unexpected token '.'")
     )) { return null; }
 
-    // 🔇 B6: Shopify CDN lazy-load fail — shop-cart-sync
-    if (errorMessage.includes('Failed to fetch dynamically imported module') || errorMessage.includes('shop-cart-sync')) { return null; }
     }
 
     // ✅ Dodaj tag customify do wszystkich błędów
@@ -243,7 +241,7 @@
     Sentry.init({
     dsn: "https://562a1a160e90a597f0236fd8c6b13301@o4510439439925248.ingest.de.sentry.io/4510439517257808",
     environment: "production",
-    tracesSampleRate: 0.1,
+    tracesSampleRate: 0,
     beforeSend(event, hint) {
     if (event.exception && event.exception.values) {
     const firstException = event.exception.values[0];
@@ -286,8 +284,6 @@
     errorMessage.includes("Unexpected token '.'")
     )) { return null; }
 
-    // 🔇 B6: Shopify CDN lazy-load fail — shop-cart-sync
-    if (errorMessage.includes('Failed to fetch dynamically imported module') || errorMessage.includes('shop-cart-sync')) { return null; }
     }
 
     // ✅ Dodaj tag customify do wszystkich błędów
@@ -646,12 +642,12 @@ event.preventDefault();
  try {
  const isDigitalProduct = this.selectedProductType === 'digital';
  
- // Dla produktu cyfrowego: ZAWSZE 49 zł, NIE sumuj z ceną bazową
+ // Dla produktu cyfrowego: cena zależna od pakietu
  if (isDigitalProduct) {
- const digitalProductPrice = 49.00; // 🚨 ROLLBACK: Stała cena produktu cyfrowego
+ const digitalProductPrice = (window.CustomifyDigitalPackage && window.CustomifyDigitalPackage.price) || 49.00;
  this.applyProductPriceDisplay(digitalProductPrice);
  this.schedulePriceConsistency(digitalProductPrice);
- console.log('💰 [PRICE] Digital product - fixed price: 49.00 zł (ignoring base price)');
+ console.log('💰 [PRICE] Digital product - package price:', digitalProductPrice, 'zł');
  return;
  }
  
@@ -716,14 +712,14 @@ event.preventDefault();
  try {
  const isDigitalProduct = this.selectedProductType === 'digital';
  
- // Dla produktu cyfrowego: ZAWSZE 49 zł, NIE sumuj z ceną bazową
+ // Dla produktu cyfrowego: cena zależna od pakietu
  if (isDigitalProduct) {
- const digitalProductPrice = 49.00; // 🚨 ROLLBACK: Stała cena produktu cyfrowego
+ const digitalProductPrice = (window.CustomifyDigitalPackage && window.CustomifyDigitalPackage.price) || 49.00;
  const cartPriceElement = document.getElementById('cartPriceValue');
  
  if (cartPriceElement) {
  cartPriceElement.textContent = `${digitalProductPrice.toFixed(2)} zł`;
- console.log('✅ [CART-PRICE] Digital product - fixed price: 49.00 zł (ignoring base price)');
+ console.log('✅ [CART-PRICE] Digital product - package price:', digitalProductPrice, 'zł');
  this.showCartPrice();
  } else {
  console.warn('⚠️ [CART-PRICE] Cart price element not found');
@@ -888,7 +884,7 @@ event.preventDefault();
  console.log('🔍 [CUSTOMIFY] Checking selectedSize:', this.selectedSize);
  if (!this.selectedSize) {
  console.log('❌ [CUSTOMIFY] No selectedSize, showing error');
- this.showError('Nie wybrałeś rozmiaru');
+ this.showError('Nie wybrałeś rozmiaru', 'cart');
  this.hideCartLoading();
  return;
  }
@@ -898,15 +894,14 @@ event.preventDefault();
  }
  // 🚨 ROLLBACK: END - Pomijaj rozmiar dla produktu cyfrowego i etui
 
- // 🚨 ROLLBACK: START - Cena dla produktu cyfrowego (STAŁA 49 zł, NIE sumuje się z ceną bazową)
+ // 🚨 ROLLBACK: START - Cena dla produktu cyfrowego (zależna od pakietu)
  const isDigitalProductForPrice = this.selectedProductType === 'digital';
- const digitalProductPrice = 49.00; // 🚨 ROLLBACK: Stała cena produktu cyfrowego
  
  let finalPrice;
  if (isDigitalProductForPrice) {
- // Produkt cyfrowy: ZAWSZE 49 zł, NIE zależy od ceny bazowej produktu
- finalPrice = digitalProductPrice;
- console.log('💰 [CUSTOMIFY] Digital product - using fixed price: 49.00 zł (ignoring base price)');
+ // Produkt cyfrowy: cena zależna od wybranego pakietu (1/3/5/10 plików)
+ finalPrice = (window.CustomifyDigitalPackage && window.CustomifyDigitalPackage.price) || 49.00;
+ console.log('💰 [CUSTOMIFY] Digital product - package price:', finalPrice, 'zł', '| package:', window.CustomifyDigitalPackage?.count || 1);
  } else {
  // Produkt fizyczny: cena bazowa + rozmiar + ramka + podstawka
  const basePrice = this.originalBasePrice || 49.00;
@@ -938,12 +933,14 @@ event.preventDefault();
  });
 
  if (!this.transformedImage) {
- this.showError('Brak przekształconego obrazu');
+ this.showError('Brak przekształconego obrazu', 'cart');
+ this.hideCartLoading();
  return;
  }
 
  if (!this.selectedStyle) {
- this.showError('Wybierz styl');
+ this.showError('Wybierz styl', 'cart');
+ this.hideCartLoading();
  return;
  }
 
@@ -972,7 +969,8 @@ event.preventDefault();
 
  if (!finalPrice || finalPrice <= 0) {
  console.error('❌ [CUSTOMIFY] Invalid finalPrice:', finalPrice);
- this.showError('Błąd obliczania ceny. Spróbuj ponownie.');
+ this.showError('Błąd obliczania ceny. Spróbuj ponownie.', 'cart');
+ this.hideCartLoading();
  return;
  }
 
@@ -1100,7 +1098,8 @@ event.preventDefault();
  frameColor: selectedFrame, // ✅ Ramka (plakat)
  frameSurcharge: frameSurcharge, // ✅ Dopłata za ramkę
  standType: selectedStand, // 🆕 Podstawka (szkło)
- standSurcharge: standSurcharge // 🆕 Dopłata za podstawkę
+ standSurcharge: standSurcharge, // 🆕 Dopłata za podstawkę
+ digitalPackage: isDigitalProduct ? ((window.CustomifyDigitalPackage && window.CustomifyDigitalPackage.count) || 1) : null
  };
 
  console.log('🛒 [CUSTOMIFY] Creating product with data:', productData);
@@ -1217,6 +1216,10 @@ event.preventDefault();
  visibleProperties['Rozmiar'] = isDigitalProduct ? 'Plik do pobrania' : this.getSizeDimension(this.selectedSize);
  visibleProperties['Rodzaj wydruku'] = productTypeName;
  visibleProperties['Ramka'] = isDigitalProduct ? 'brak' : (this.selectedProductType === 'szklo' ? `podstawka - ${standLabelForRamka}` : `ramka - ${frameLabelForRamka}`);
+ if (isDigitalProduct) {
+ const pkgCount = (window.CustomifyDigitalPackage && window.CustomifyDigitalPackage.count) || 1;
+ visibleProperties['Pakiet plików'] = `${pkgCount} ${pkgCount === 1 ? 'plik' : pkgCount <= 4 ? 'pliki' : 'plików'}`;
+ }
  }
  // 🚨 ROLLBACK: END - Properties dla produktu cyfrowego i etui
 
@@ -1246,7 +1249,8 @@ event.preventDefault();
  // ❌ NIE MA FALLBACK DO watermarkedImageUrl - admin MUSI mieć obraz BEZ watermarku!
 
  if (finalAdminUrl) {
- hiddenProperties['_AI_Image_URL'] = finalAdminUrl;
+ // Etykieta w Shopify Admin (zamówienie) — ukrywana w koszyku w customify.js jak poprzednie _AI_Image_URL
+ hiddenProperties['Link do zdjęcia:'] = finalAdminUrl;
  }
 
  if (cleanImageUrl && cleanImageUrl.startsWith('http')) {
@@ -1288,7 +1292,7 @@ event.preventDefault();
  if (fullUrl.length > 2048) {
  console.error('❌ [CUSTOMIFY] URL TOO LONG:', fullUrl.length, 'chars (max 2048)');
  this.hideCartLoading();
- this.showError('URL zbyt długi - usuń niektóre właściwości lub skontaktuj się z supportem');
+ this.showError('URL zbyt długi - usuń niektóre właściwości lub skontaktuj się z supportem', 'cart');
  return;
  }
 
@@ -1363,7 +1367,7 @@ attempts: 4
 })
 }).catch(e => console.warn('⚠️ [CART-ALERT] Email send failed (nie blokuje):', e.message));
 this.hideCartLoading();
-this.showError('❌ ' + errMsg);
+this.showError('❌ ' + errMsg, 'cart');
 }
 }
 } catch (addErr) {
@@ -1378,7 +1382,7 @@ Sentry.captureMessage(`Cart add network error after 4 attempts: ${addErr.message
 });
 }
 this.hideCartLoading();
-this.showError('❌ Błąd dodawania do koszyka. Spróbuj ponownie.');
+this.showError('❌ Błąd dodawania do koszyka. Spróbuj ponownie.', 'cart');
 }
 }
 }
@@ -1399,7 +1403,7 @@ console.error('❌ [CUSTOMIFY] Cart add FAILED after all retries — produkt stw
  });
  }
  this.hideCartLoading();
- this.showError('❌ Błąd podczas tworzenia produktu: ' + (result.error || 'Nieznany błąd'));
+ this.showError('❌ Błąd podczas tworzenia produktu: ' + (result.error || 'Nieznany błąd'), 'cart');
  }
  } catch (error) {
  console.error('❌ [CUSTOMIFY] Add to cart error:', error);
@@ -1417,7 +1421,7 @@ console.error('❌ [CUSTOMIFY] Cart add FAILED after all retries — produkt stw
  errorMessage = '❌ Błąd: ' + error.message;
  }
 
- this.showError(errorMessage);
+ this.showError(errorMessage, 'cart');
  }
  };
 
@@ -2809,7 +2813,7 @@ try {
 
  {% if template contains 'collection' %}
  <div class="custom-collection-wrapper">
- <h1 class="custom-collection-title">{{ collection.title }}</h1>
+ {% comment %} Tytuł kolekcji jest w sekcji motywu (content_for_layout) — bez drugiego H1 tutaj, żeby uniknąć duplikatu. {% endcomment %}
  {% if collection.products_count > 0 %}
  {% if collection.handle == 'all' %}
  {% paginate collection.products by 1000 %}
@@ -2987,13 +2991,17 @@ tags: {{ product.tags | json }}
  <div id="customify-app-container" class="customify-shopify-container">
  
 {%- assign _sd = false -%}{%- if product.handle contains 'szkle' or product.handle contains 'szklo' or product.handle contains 'akryl' or product.handle contains 'karykatura-dla-niej' or product.handle == 'obraz-ze-zdjecia-karykatura-szefa' -%}{%- assign _sd = true -%}{%- endif -%}
-<div class="customify-product-type-selector{% if product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem' %} hide-for-phone-case{% endif %}" id="productTypeArea" style="display: block; margin-bottom: 10px;">
+<div class="customify-product-type-selector{% if product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem' %} hide-for-phone-case{% endif %}" id="productTypeArea" style="{% if product.handle == 'prezent-dla-dziadkow-retusz-starych-zdjec' %}display: none;{% else %}display: block;{% endif %} margin-bottom: 10px;">
 <h4 style="text-align: left; font-size: 0.95rem; font-weight: 600;">Rodzaj wydruku:</h4>
 <div class="customify-product-type-buttons">
 {% if product.handle == 'ramka-spotify' or product.handle == 'zdjecie-na-szkle-ramka-spotify' %}
 <div class="customify-product-type-btn active" data-product-type="szklo">
 Nadruk na szkle (dodaj podstawkę)
 </div>
+{% elsif product.handle == 'prezent-dla-dziadkow-retusz-starych-zdjec' %}
+ <div class="customify-product-type-btn active" data-product-type="digital">
+ Produkt cyfrowy
+ </div>
 {% else %}
  <div class="customify-product-type-btn{% unless _sd %} active{% endunless %}" data-product-type="plakat">
  Plakat (dodaj ramkę)
@@ -3047,7 +3055,34 @@ Ramka: <span id="frameCurrentLabel">Brak ramki</span>
  </div>
  </div>
 
-<div class="customify-size-selector{% if product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem' %} hide-for-phone-case{% endif %}" id="sizeArea" style="display: block; margin-bottom: 10px;">
+{% comment %} PAKIETY CYFROWE: pojawia się gdy user wybierze "Produkt cyfrowy" {% endcomment %}
+<div id="digitalPackageSelector" style="{% if product.handle == 'prezent-dla-dziadkow-retusz-starych-zdjec' %}display: block;{% else %}display: none;{% endif %} margin-bottom: 12px;">
+ <h4 style="text-align: left; font-size: 0.95rem; font-weight: 600; margin-bottom: 8px;">Ile obrazków?</h4>
+ <div class="digital-package-options">
+ <div class="digital-package-btn active" data-package="1" data-price="49">
+ <span class="pkg-count">1 obrazek</span>
+ <span class="pkg-price">49 zł</span>
+ </div>
+ <div class="digital-package-btn" data-package="3" data-price="89">
+ <span class="pkg-badge">POPULARNE</span>
+ <span class="pkg-count">3 obrazki</span>
+ <span class="pkg-price">89 zł</span>
+ <span class="pkg-save">oszczędzasz 58 zł</span>
+ </div>
+ <div class="digital-package-btn" data-package="5" data-price="149">
+ <span class="pkg-count">5 obrazków</span>
+ <span class="pkg-price">149 zł</span>
+ <span class="pkg-save">oszczędzasz 96 zł</span>
+ </div>
+ <div class="digital-package-btn" data-package="10" data-price="199">
+ <span class="pkg-count">10 obrazków</span>
+ <span class="pkg-price">199 zł</span>
+ <span class="pkg-save">oszczędzasz 291 zł</span>
+ </div>
+ </div>
+</div>
+
+<div class="customify-size-selector{% if product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem' %} hide-for-phone-case{% endif %}" id="sizeArea" style="{% if product.handle == 'prezent-dla-dziadkow-retusz-starych-zdjec' %}display: none;{% else %}display: block;{% endif %} margin-bottom: 10px;">
 <h4 style="text-align: left;">Rozmiar (cm):</h4>
  <div class="customify-size-buttons">
  <div class="customify-size-btn" data-size="a5" data-for-szklo="true">15×21</div>
@@ -4467,15 +4502,9 @@ Dodać napis? Kliknij tutaj
  </div>
  
  <br>
- <p><strong>Produkt cyfrowy</strong> – plik w wysokiej jakości, bez znaków wodnych, do natychmiastowego pobrania (bez wysyłki fizycznego obrazu).</p>
- 
- <ul>
- <li>Otrzymujesz plik w wysokiej rozdzielczości, bez znaków wodnych.</li>
- <li>Link do pobrania wysyłamy natychmiast po opłaceniu zamówienia – zero czekania na kuriera.</li>
- <li>Idealny do druku w domu lub fotolabie, jako tapeta na telefon/komputer albo do udostępniania w social mediach.</li>
- </ul>
- 
- <p><strong>To jest produkt cyfrowy – nie wysyłamy fizycznego obrazu.</strong></p>
+ <p><strong>Produkt cyfrowy</strong> – obrazek bez znaku wodnego, wysłany emailem po zapłacie. Brak fizycznej wysyłki.</p>
+ <p><strong>Pakiety (im więcej, tym taniej):</strong> 1 obrazek – 49 zł &nbsp;|&nbsp; 3 obrazki – 89 zł &nbsp;|&nbsp; 5 obrazków – 149 zł &nbsp;|&nbsp; 10 obrazków – 199 zł</p>
+ <p><strong>Jak to działa?</strong> Kupujesz pakiet np. 3 obrazki → pierwszy obrazek dostajesz od razu emailem → pozostałe 2 zapisują się jako kredyty na koncie → wracasz, generujesz nowy portret i klikasz "Pobierz za 1 kredyt". Kredyty nie wygasają.</p>
 
  <div class="accordion-product-visual">
  <div class="accordion-visual-item">
@@ -4722,10 +4751,59 @@ Dodać napis? Kliknij tutaj
  .stand-option-text {
  flex: 1;
  }
- .stand-selector.disabled {
+.stand-selector.disabled {
  opacity: 0.5;
  pointer-events: none;
+}
+
+/* === PAKIETY CYFROWE === */
+.digital-package-options {
+ display: grid;
+ grid-template-columns: repeat(4, 1fr);
+ gap: 8px;
+}
+@media (max-width: 600px) {
+ .digital-package-options {
+ grid-template-columns: repeat(2, 1fr);
  }
+}
+.digital-package-btn {
+ position: relative;
+ display: flex;
+ flex-direction: column;
+ align-items: center;
+ justify-content: center;
+ padding: 10px 8px;
+ border: 2px solid #e0e0e0;
+ background: #fff;
+ cursor: pointer;
+ text-align: center;
+ transition: border-color 0.15s, background 0.15s;
+ gap: 2px;
+ width: 100%;
+ box-sizing: border-box;
+}
+.digital-package-btn:hover { border-color: #999; }
+.digital-package-btn.active {
+ border-color: #1a1a1a;
+ background: #f8f8f8;
+}
+.pkg-count { font-size: 0.85rem; font-weight: 600; color: #222; }
+.pkg-price { font-size: 1rem; font-weight: 700; color: #1a1a1a; }
+.pkg-save { font-size: 0.7rem; color: #2e7d32; font-weight: 500; }
+.pkg-badge {
+ position: absolute;
+ top: -10px;
+ left: 50%;
+ transform: translateX(-50%);
+ background: #dc3545;
+ color: #fff;
+ font-size: 0.6rem;
+ font-weight: 700;
+ padding: 2px 6px;
+ white-space: nowrap;
+ letter-spacing: 0.5px;
+}
 
 {% if product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem' %}
 /* 📱 Etui - .hide-for-phone-case przeniesione do customify.css (ładowane w head, brak FOUC) */
@@ -6077,15 +6155,9 @@ opacity: 0.9;
  </div>
  
  <br>
- <p><strong>Produkt cyfrowy</strong> – plik w wysokiej jakości, bez znaków wodnych, do natychmiastowego pobrania (bez wysyłki fizycznego obrazu).</p>
- 
- <ul>
- <li>Otrzymujesz plik w wysokiej rozdzielczości, bez znaków wodnych.</li>
- <li>Link do pobrania wysyłamy natychmiast po opłaceniu zamówienia – zero czekania na kuriera.</li>
- <li>Idealny do druku w domu lub fotolabie, jako tapeta na telefon/komputer albo do udostępniania w social mediach.</li>
- </ul>
- 
- <p><strong>To jest produkt cyfrowy – nie wysyłamy fizycznego obrazu.</strong></p>
+ <p><strong>Produkt cyfrowy</strong> – obrazek bez znaku wodnego, wysłany emailem po zapłacie. Brak fizycznej wysyłki.</p>
+ <p><strong>Pakiety (im więcej, tym taniej):</strong> 1 obrazek – 49 zł &nbsp;|&nbsp; 3 obrazki – 89 zł &nbsp;|&nbsp; 5 obrazków – 149 zł &nbsp;|&nbsp; 10 obrazków – 199 zł</p>
+ <p><strong>Jak to działa?</strong> Kupujesz pakiet np. 3 obrazki → pierwszy obrazek dostajesz od razu emailem → pozostałe 2 zapisują się jako kredyty na koncie → wracasz, generujesz nowy portret i klikasz "Pobierz za 1 kredyt". Kredyty nie wygasają.</p>
 
  <div class="accordion-product-visual">
  <div class="accordion-visual-item">

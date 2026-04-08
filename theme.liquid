@@ -173,7 +173,7 @@
  Sentry.init({
  dsn: "https://562a1a160e90a597f0236fd8c6b13301@o4510439439925248.ingest.de.sentry.io/4510439517257808",
  environment: "production",
- tracesSampleRate: 0.1,
+ tracesSampleRate: 0,
     beforeSend(event, hint) {
     if (event.exception && event.exception.values) {
     const firstException = event.exception.values[0];
@@ -216,8 +216,6 @@
     errorMessage.includes("Unexpected token '.'")
     )) { return null; }
 
-    // 🔇 B6: Shopify CDN lazy-load fail — shop-cart-sync
-    if (errorMessage.includes('Failed to fetch dynamically imported module') || errorMessage.includes('shop-cart-sync')) { return null; }
     }
 
     // ✅ Dodaj tag customify do wszystkich błędów
@@ -243,7 +241,7 @@
     Sentry.init({
     dsn: "https://562a1a160e90a597f0236fd8c6b13301@o4510439439925248.ingest.de.sentry.io/4510439517257808",
     environment: "production",
-    tracesSampleRate: 0.1,
+    tracesSampleRate: 0,
     beforeSend(event, hint) {
     if (event.exception && event.exception.values) {
     const firstException = event.exception.values[0];
@@ -286,8 +284,6 @@
     errorMessage.includes("Unexpected token '.'")
     )) { return null; }
 
-    // 🔇 B6: Shopify CDN lazy-load fail — shop-cart-sync
-    if (errorMessage.includes('Failed to fetch dynamically imported module') || errorMessage.includes('shop-cart-sync')) { return null; }
     }
 
     // ✅ Dodaj tag customify do wszystkich błędów
@@ -888,7 +884,7 @@ event.preventDefault();
  console.log('🔍 [CUSTOMIFY] Checking selectedSize:', this.selectedSize);
  if (!this.selectedSize) {
  console.log('❌ [CUSTOMIFY] No selectedSize, showing error');
- this.showError('Nie wybrałeś rozmiaru');
+ this.showError('Nie wybrałeś rozmiaru', 'cart');
  this.hideCartLoading();
  return;
  }
@@ -937,12 +933,14 @@ event.preventDefault();
  });
 
  if (!this.transformedImage) {
- this.showError('Brak przekształconego obrazu');
+ this.showError('Brak przekształconego obrazu', 'cart');
+ this.hideCartLoading();
  return;
  }
 
  if (!this.selectedStyle) {
- this.showError('Wybierz styl');
+ this.showError('Wybierz styl', 'cart');
+ this.hideCartLoading();
  return;
  }
 
@@ -971,7 +969,8 @@ event.preventDefault();
 
  if (!finalPrice || finalPrice <= 0) {
  console.error('❌ [CUSTOMIFY] Invalid finalPrice:', finalPrice);
- this.showError('Błąd obliczania ceny. Spróbuj ponownie.');
+ this.showError('Błąd obliczania ceny. Spróbuj ponownie.', 'cart');
+ this.hideCartLoading();
  return;
  }
 
@@ -1250,7 +1249,8 @@ event.preventDefault();
  // ❌ NIE MA FALLBACK DO watermarkedImageUrl - admin MUSI mieć obraz BEZ watermarku!
 
  if (finalAdminUrl) {
- hiddenProperties['_AI_Image_URL'] = finalAdminUrl;
+ // Etykieta w Shopify Admin (zamówienie) — ukrywana w koszyku w customify.js jak poprzednie _AI_Image_URL
+ hiddenProperties['Link do zdjęcia:'] = finalAdminUrl;
  }
 
  if (cleanImageUrl && cleanImageUrl.startsWith('http')) {
@@ -1292,7 +1292,7 @@ event.preventDefault();
  if (fullUrl.length > 2048) {
  console.error('❌ [CUSTOMIFY] URL TOO LONG:', fullUrl.length, 'chars (max 2048)');
  this.hideCartLoading();
- this.showError('URL zbyt długi - usuń niektóre właściwości lub skontaktuj się z supportem');
+ this.showError('URL zbyt długi - usuń niektóre właściwości lub skontaktuj się z supportem', 'cart');
  return;
  }
 
@@ -1367,7 +1367,7 @@ attempts: 4
 })
 }).catch(e => console.warn('⚠️ [CART-ALERT] Email send failed (nie blokuje):', e.message));
 this.hideCartLoading();
-this.showError('❌ ' + errMsg);
+this.showError('❌ ' + errMsg, 'cart');
 }
 }
 } catch (addErr) {
@@ -1382,7 +1382,7 @@ Sentry.captureMessage(`Cart add network error after 4 attempts: ${addErr.message
 });
 }
 this.hideCartLoading();
-this.showError('❌ Błąd dodawania do koszyka. Spróbuj ponownie.');
+this.showError('❌ Błąd dodawania do koszyka. Spróbuj ponownie.', 'cart');
 }
 }
 }
@@ -1403,7 +1403,7 @@ console.error('❌ [CUSTOMIFY] Cart add FAILED after all retries — produkt stw
  });
  }
  this.hideCartLoading();
- this.showError('❌ Błąd podczas tworzenia produktu: ' + (result.error || 'Nieznany błąd'));
+ this.showError('❌ Błąd podczas tworzenia produktu: ' + (result.error || 'Nieznany błąd'), 'cart');
  }
  } catch (error) {
  console.error('❌ [CUSTOMIFY] Add to cart error:', error);
@@ -1421,7 +1421,7 @@ console.error('❌ [CUSTOMIFY] Cart add FAILED after all retries — produkt stw
  errorMessage = '❌ Błąd: ' + error.message;
  }
 
- this.showError(errorMessage);
+ this.showError(errorMessage, 'cart');
  }
  };
 

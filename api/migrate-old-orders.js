@@ -81,12 +81,14 @@ module.exports = async (req, res) => {
       details: []
     };
 
+    const AI_IMAGE_LINE_PROP_NAMES = ['_AI_Image_URL', 'Link do zdjęcia:'];
+
     for (const order of orders) {
       try {
         // Znajdź produkty Customify w zamówieniu
         const customifyItems = order.line_items.filter(item => {
           const props = item.properties || [];
-          return props.some(p => p.name === '_AI_Image_URL' || p.name === '_Order_ID');
+          return props.some(p => AI_IMAGE_LINE_PROP_NAMES.includes(p.name) || p.name === '_Order_ID');
         });
 
         if (customifyItems.length === 0) {
@@ -99,7 +101,7 @@ module.exports = async (req, res) => {
 
         for (const item of customifyItems) {
           const props = item.properties || [];
-          const imageUrlProp = props.find(p => p.name === '_AI_Image_URL');
+          const imageUrlProp = props.find(p => AI_IMAGE_LINE_PROP_NAMES.includes(p.name));
           const shopifyImageProp = props.find(p => p.name === '_AI_Image_Shopify');
           const orderIdProp = props.find(p => p.name === '_Order_ID');
 
@@ -199,7 +201,7 @@ module.exports = async (req, res) => {
 
               // Zaktualizuj properties (tylko w pamięci - później zaktualizujemy zamówienie)
               const updatedProps = item.properties.map(p => {
-                if (p.name === '_AI_Image_URL') {
+                if (AI_IMAGE_LINE_PROP_NAMES.includes(p.name)) {
                   return { ...p, value: newImageUrl };
                 }
                 return p;

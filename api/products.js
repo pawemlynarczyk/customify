@@ -697,7 +697,7 @@ module.exports = async (req, res) => {
         console.log(`✅ [PRODUCTS] Base64 uploaded to Vercel Blob: ${vercelBlobUrl.substring(0, 80)}...`);
       } catch (uploadError) {
         console.error('❌ [PRODUCTS] Failed to upload base64 to Vercel Blob:', uploadError);
-        // Fallback: użyj transformedImage (base64) - ale to nie zadziała dla _AI_Image_URL
+        // Fallback: użyj transformedImage (base64) - nie nadaje się jako URL właściwości „Link do zdjęcia:” / line item
         vercelBlobUrl = null;
       }
     } else {
@@ -723,7 +723,8 @@ module.exports = async (req, res) => {
         shopifyImageUrl: shopifyImageUrl,  // BEZ watermarku - do realizacji
         vercelBlobUrl: vercelBlobUrl,  // BEZ watermarku - backup
         permanentImageUrl: permanentImageUrl,  // BEZ watermarku - główny URL do realizacji
-        _AI_Image_URL: vercelBlobUrl || permanentImageUrl,  // ✅ BEZ WATERMARKU - dla admina w zamówieniu (główny URL)
+        'Link do zdjęcia:': vercelBlobUrl || permanentImageUrl,  // ✅ BEZ WATERMARKU — spójnie z właściwością linii w zamówieniu
+        _AI_Image_URL: vercelBlobUrl || permanentImageUrl,  // kompatybilność (stare skrypty / eksporty czytające JSON metafield)
         watermarkedImageUrl: watermarkedImage || null,  // Z watermarkiem - dla referencji
         style: style,
         size: size,
