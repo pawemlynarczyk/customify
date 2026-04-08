@@ -271,6 +271,7 @@ module.exports = async (req, res) => {
     // KROK 1: Utwórz produkt BEZ obrazka (najpierw potrzebujemy product ID)
     // 🚨 ROLLBACK: START - Konfiguracja produktu cyfrowego
     const uniqueSuffix = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    // SKU dla canvas NIE w pierwszym POST — zapis best-effort po utworzeniu (patrz niżej), żeby błąd SKU nie zatrzymał całego flow.
     const variantRow = {
           title: isDigitalProduct
             ? `${productTypeName} - ${style}`
@@ -281,9 +282,6 @@ module.exports = async (req, res) => {
           fulfillment_service: 'manual',
           requires_shipping: !isDigitalProduct // 🚨 ROLLBACK: Variant cyfrowy nie wymaga wysyłki
     };
-    if (variantSku) {
-      variantRow.sku = variantSku;
-    }
     const productData = {
       product: {
         title: (isDigitalProduct || productType === 'etui')
@@ -344,6 +342,26 @@ module.exports = async (req, res) => {
     const createdProduct = await createResponse.json();
     const product = createdProduct.product;
     const productId = product.id;
+
+    if (variantSku && product.variants && product.variants[0]?.id) {
+      const variantId = product.variants[0].id;
+      try {
+        const skuRes = await fetch(`https://${shop}/admin/api/2023-10/variants/${variantId}.json`, {
+          method: 'PUT',
+          headers: {
+            'X-Shopify-Access-Token': accessToken,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ variant: { id: variantId, sku: variantSku } })
+        });
+        if (!skuRes.ok) {
+          const skuErr = await skuRes.text();
+          console.warn('⚠️ [PRODUCTS.JS] Canvas SKU update failed — product exists, pipeline continues:', skuRes.status, skuErr.slice(0, 500));
+        }
+      } catch (skuEx) {
+        console.warn('⚠️ [PRODUCTS.JS] Canvas SKU update error — product exists, pipeline continues:', skuEx.message);
+      }
+    }
 
     // Generuj unikalny identyfikator i skrócony numer zamówienia
     const timestamp = Date.now().toString().slice(-8);
