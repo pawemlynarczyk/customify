@@ -69,9 +69,17 @@ async function addWatermarkForSpotify(imageBuffer) {
   }
 }
 
-/** SKU canvas: `LB-CUSTOM-C` + wymiary jak 20-30 (bez „×”, tylko cyfry i myślnik). Nie zmienia flow — tylko string do PUT wariantu. */
-function buildCanvasVariantSku(sizeRaw) {
-  const key = (sizeRaw || '').toString().toLowerCase().trim();
+/**
+ * SKU canvas: `LB-CUSTOM-C` + wymiary jak 20-30.
+ * Priorytet: `sizeLabel` (np. „20×30 cm” — ten sam format co w tytule / właściwości „Rozmiar” w koszyku), potem kod `size` (a4, …).
+ */
+function buildCanvasVariantSku(sizeLabel, sizeKey) {
+  const label = (sizeLabel || '').toString();
+  const dimInLabel = label.match(/(\d+)\s*[x×]\s*(\d+)/);
+  if (dimInLabel) {
+    return `LB-CUSTOM-C${dimInLabel[1]}-${dimInLabel[2]}`;
+  }
+  const key = (sizeKey || '').toString().toLowerCase().trim();
   const byKey = {
     a5: '15-21',
     a4: '20-30',
@@ -290,8 +298,8 @@ module.exports = async (req, res) => {
     }
     // 🚨 ROLLBACK: END - Obsługa produktu cyfrowego w nazwach
 
-    // SKU tylko dla canvas — `LB-CUSTOM-C` + rozmiar (np. a4 → LB-CUSTOM-C20-30); inne typy bez SKU.
-    const variantSku = !isDigitalProduct && productType === 'canvas' ? buildCanvasVariantSku(size) : null;
+    // SKU tylko dla canvas — sufiks z `sizeName` („20×30 cm”) albo z kodu `size` (a4); inne typy bez SKU.
+    const variantSku = !isDigitalProduct && productType === 'canvas' ? buildCanvasVariantSku(sizeName, size) : null;
 
     // KROK 1: Utwórz produkt BEZ obrazka (najpierw potrzebujemy product ID)
     // 🚨 ROLLBACK: START - Konfiguracja produktu cyfrowego
