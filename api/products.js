@@ -265,9 +265,25 @@ module.exports = async (req, res) => {
     }
     // 🚨 ROLLBACK: END - Obsługa produktu cyfrowego w nazwach
 
+    // SKU tylko dla canvas — ten sam `LB-CUSTOM-C` na każdym wygenerowanym obrazie na płótnie; inne typy bez SKU.
+    const variantSku = !isDigitalProduct && productType === 'canvas' ? 'LB-CUSTOM-C' : null;
+
     // KROK 1: Utwórz produkt BEZ obrazka (najpierw potrzebujemy product ID)
     // 🚨 ROLLBACK: START - Konfiguracja produktu cyfrowego
     const uniqueSuffix = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    const variantRow = {
+          title: isDigitalProduct
+            ? `${productTypeName} - ${style}`
+            : `${productTypeName} - ${sizeName}`,
+          price: totalPrice.toFixed(2), // ✅ NAPRAWIONE: Shopify przyjmuje PLN jako string (np. "79.99")
+          inventory_quantity: 100,
+          inventory_management: 'shopify',
+          fulfillment_service: 'manual',
+          requires_shipping: !isDigitalProduct // 🚨 ROLLBACK: Variant cyfrowy nie wymaga wysyłki
+    };
+    if (variantSku) {
+      variantRow.sku = variantSku;
+    }
     const productData = {
       product: {
         title: (isDigitalProduct || productType === 'etui')
@@ -302,16 +318,7 @@ module.exports = async (req, res) => {
         published: true, // ✅ MUSI być published=true żeby variant działał w koszyku
         published_scope: 'web',
         requires_shipping: !isDigitalProduct, // 🚨 ROLLBACK: Produkt cyfrowy nie wymaga wysyłki
-        variants: [{
-          title: isDigitalProduct
-            ? `${productTypeName} - ${style}`
-            : `${productTypeName} - ${sizeName}`,
-          price: totalPrice.toFixed(2), // ✅ NAPRAWIONE: Shopify przyjmuje PLN jako string (np. "79.99")
-          inventory_quantity: 100,
-          inventory_management: 'shopify',
-          fulfillment_service: 'manual',
-          requires_shipping: !isDigitalProduct // 🚨 ROLLBACK: Variant cyfrowy nie wymaga wysyłki
-        }]
+        variants: [variantRow]
       }
     };
     // 🚨 ROLLBACK: END - Konfiguracja produktu cyfrowego
