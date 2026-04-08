@@ -8973,6 +8973,33 @@ class CustomifyEmbed {
       const result = await response.json();
       console.log('🛒 [CUSTOMIFY] API response:', result);
 
+      // URL bez watermarku (jak theme.liquid) — do ukrytej właściwości „Link do zdjęcia:” na linii zamówienia
+      let cleanImageUrlForOrder = null;
+      if (result && result.success) {
+        try {
+          const debugInfo = result.saveGenerationDebug;
+          if (debugInfo && debugInfo.blobPath && debugInfo.generationId) {
+            const blobBaseUrl = 'https://vzwqqb14qtsxe2wx.public.blob.vercel-storage.com';
+            const normalizedPath = debugInfo.blobPath.startsWith('/')
+              ? debugInfo.blobPath.slice(1)
+              : debugInfo.blobPath;
+            const blobUrl = `${blobBaseUrl}/${normalizedPath}`;
+            const generationResponse = await fetch(blobUrl);
+            if (generationResponse.ok) {
+              const generationData = await generationResponse.json();
+              const generationsArray = generationData?.generations || [];
+              const matchedGeneration = generationsArray.find((gen) => gen.id === debugInfo.generationId);
+              const candidateUrl = matchedGeneration?.imageUrl || matchedGeneration?.transformedImage || null;
+              if (candidateUrl && typeof candidateUrl === 'string' && candidateUrl.startsWith('http')) {
+                cleanImageUrlForOrder = candidateUrl;
+              }
+            }
+          }
+        } catch (cleanUrlErr) {
+          console.warn('⚠️ [CUSTOMIFY] cleanImageUrlForOrder:', cleanUrlErr?.message || cleanUrlErr);
+        }
+      }
+
       if (result.success) {
         productCreated = true; // ✅ Produkt istnieje w Shopify - retry NIE może tworzyć kolejnego
         console.log('✅ [CUSTOMIFY] Product created:', result.product);
@@ -9066,38 +9093,64 @@ class CustomifyEmbed {
           
           console.log('🛒 [CUSTOMIFY CART PROPERTIES VISIBLE]:', properties);
           console.log('📝 [CUSTOMIFY NOTE ATTRIBUTES]:', noteAttributes);
-          
+
+          const truncateLineProperties = (raw) => {
+            const out = {};
+            Object.entries(raw).forEach(([key, value]) => {
+              if (value == null) return;
+              const strVal = String(value);
+              out[key] = strVal.length > 255 ? strVal.substring(0, 252) + '...' : strVal;
+              if (strVal.length > 255) {
+                console.warn('⚠️ [CUSTOMIFY] Property', key, 'truncated to 255 chars');
+              }
+            });
+            return out;
+          };
+
+          const visibleOnlyForCart = truncateLineProperties({ ...properties });
+
+          let linePropertiesForCart;
+          let adminLinePropsMerged = false;
+          try {
+            const hiddenLineProps = {};
+            if (result.orderId) {
+              hiddenLineProps['_Order ID Full'] = result.orderId;
+            }
+            let finalAdminUrlLine = null;
+            if (cleanImageUrlForOrder && cleanImageUrlForOrder.startsWith('http')) {
+              finalAdminUrlLine = cleanImageUrlForOrder;
+            } else if (result.vercelBlobUrl && result.vercelBlobUrl.startsWith('http')) {
+              finalAdminUrlLine = result.vercelBlobUrl;
+            } else if (result.permanentImageUrl && result.permanentImageUrl.startsWith('http')) {
+              finalAdminUrlLine = result.permanentImageUrl;
+            } else if (this.transformedImage && String(this.transformedImage).startsWith('http')) {
+              finalAdminUrlLine = this.transformedImage;
+            }
+            if (finalAdminUrlLine) {
+              hiddenLineProps['Link do zdjęcia:'] = finalAdminUrlLine;
+            }
+            if (cleanImageUrlForOrder && cleanImageUrlForOrder.startsWith('http')) {
+              hiddenLineProps['_AI_Image_Clean_URL'] = cleanImageUrlForOrder;
+            }
+            if (productId) {
+              hiddenLineProps['_Original Product ID'] = String(productId);
+            }
+            linePropertiesForCart = truncateLineProperties({ ...properties, ...hiddenLineProps });
+            adminLinePropsMerged = true;
+            console.log('🔒 [CUSTOMIFY] Line properties (visible + admin):', Object.keys(linePropertiesForCart));
+          } catch (propErr) {
+            console.warn('⚠️ [CUSTOMIFY] Błąd budowy pól admin — koszyk tylko z widocznymi (zamówienie możliwe):', propErr?.message || propErr);
+            linePropertiesForCart = visibleOnlyForCart;
+            adminLinePropsMerged = false;
+          }
+
           console.log('🖼️ [CUSTOMIFY] Image URLs:', {
             shopifyImageUrl: result.imageUrl,
             permanentImageUrl: result.permanentImageUrl,
             replicateImageUrl: this.transformedImage,
             orderId: result.orderId
           });
-          
-          // Buduj URL z parametrami
-          const params = new URLSearchParams();
-          params.append('id', result.variantId);
-          params.append('quantity', '1');
-          
-          // Dodaj właściwości (tylko widoczne dla klienta)
-          Object.entries(properties).forEach(([key, value]) => {
-            params.append(`properties[${key}]`, value);
-          });
-          
-          const cartUrl = `/cart/add?${params.toString()}`;
-          const fullUrl = window.location.origin + cartUrl;
-          console.log('🛒 [CUSTOMIFY] Cart URL length:', cartUrl.length, 'chars');
-          console.log('🛒 [CUSTOMIFY] Cart URL:', cartUrl.substring(0, 200), '...');
-          console.log('🛒 [CUSTOMIFY] Full URL length:', fullUrl.length, 'chars');
-          
-          // ❌ PROBLEM: URL > 2048 znaków może być zablokowany przez przeglądarkę
-          if (fullUrl.length > 2048) {
-            console.error('❌ [CUSTOMIFY] URL TOO LONG:', fullUrl.length, 'chars (max 2048)');
-            console.error('❌ [CUSTOMIFY] Properties:', properties);
-            this.showError('URL zbyt długi - usuń niektóre właściwości lub skontaktuj się z supportem', 'cart');
-            return;
-          }
-          
+
     // ✅ ZAPISZ NOTE ATTRIBUTES (linki dla admina) — timeout 8s, nie blokuje koszyka
     if (Object.keys(noteAttributes).length > 0) {
       try {
@@ -9127,7 +9180,7 @@ class CustomifyEmbed {
         const addResponse = await fetch(cartRoot + 'cart/add.js', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ items: [{ id: parseInt(result.variantId, 10), quantity: 1, properties }] })
+          body: JSON.stringify({ items: [{ id: parseInt(result.variantId, 10), quantity: 1, properties: linePropertiesForCart }] })
         });
         const addResult = await addResponse.json();
         if (addResponse.ok && addResult.items && addResult.items.length > 0) {
@@ -9143,6 +9196,25 @@ class CustomifyEmbed {
       } catch (addErr) {
         console.warn(`⚠️ [CUSTOMIFY] Cart add attempt ${cartAddAttempt + 1} error:`, addErr.message);
         cartAddAttempt++;
+      }
+    }
+    if (!cartAdded && adminLinePropsMerged) {
+      console.warn('⚠️ [CUSTOMIFY] Ostatnia próba: cart/add tylko z widocznymi właściwościami (bez linków admin)');
+      try {
+        const addResponse = await fetch(cartRoot + 'cart/add.js', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ items: [{ id: parseInt(result.variantId, 10), quantity: 1, properties: visibleOnlyForCart }] })
+        });
+        const addResult = await addResponse.json();
+        if (addResponse.ok && addResult.items && addResult.items.length > 0) {
+          cartAdded = true;
+          console.log('✅ [CUSTOMIFY] Dodano do koszyka (fallback widoczne-only)');
+          this.hideCartLoading();
+          window.location.href = cartRoot + 'cart';
+        }
+      } catch (fallbackErr) {
+        console.warn('⚠️ [CUSTOMIFY] Fallback cart add:', fallbackErr?.message || fallbackErr);
       }
     }
     if (!cartAdded) {
