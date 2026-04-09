@@ -313,6 +313,19 @@
       display: block;
     }
     .social-skip { color: #ddd; font-size: 16px; }
+    .social-gen-manual-btn {
+      font-size: 11px;
+      padding: 6px 8px;
+      border-radius: 6px;
+      border: 1px solid #7b1fa2;
+      background: #f3e5f5;
+      color: #4a148c;
+      font-weight: 600;
+      cursor: pointer;
+      max-width: 100%;
+    }
+    .social-gen-manual-btn:hover:not(:disabled) { background: #e1bee7; }
+    .social-gen-manual-btn:disabled { opacity: 0.55; cursor: wait; }
     @keyframes spin { to { transform: rotate(360deg); } }
     .social-cost-warning {
       background: #fff3e0;
@@ -374,13 +387,13 @@
     </div>
 
     <div class="social-cost-warning">
-      <div style="font-weight:700;color:#e65100;">
-        Tryb testowy: po załadowaniu tabeli automatycznie odpalamy social dla <strong>do 10</strong> wpisów (pierwsze w bieżącym sortowaniu: bez obrazka social, z produktem).
+      <div style="font-weight:700;color:#2e7d32;">
+        <strong>Social po stronie sklepu:</strong> po udanej generacji AI z polami personalizacji backend sam odpala social w tle (ok. 2–5 min) — nie trzeba wchodzić w ten panel.
       </div>
       <div style="margin-top:8px;font-size:12px;color:#795548;">
-        Kolejka: <strong>jedna generacja naraz</strong> (10 × po ~2–5 min może dać ~30–50 min) — nie zamykaj karty.
-        <span style="display:block;margin-top:6px;">Bez duplikatów: ten sam <strong>email + imię + opis</strong> — tylko pierwszy wpis w sortowaniu idzie w auto social (kolejne próby użytkownika pomijane).</span>
-        <span style="display:block;margin-top:6px;">Zakres: serie <strong>kobieta</strong> / <strong>mężczyzna</strong> / <strong>ślub</strong> — produkt „dodaj osobę” w socialu jest wyłączony (400).</span>
+        URL obrazka social trafia do tego samego wpisu w logu i zostaje na Vercel Blob (jak dotychczas). Starsze wpisy bez miniatury: przycisk <strong>Generuj social</strong> w wierszu.
+        <span style="display:block;margin-top:6px;">Ten sam <strong>email + imię + opis</strong> — drugi i kolejne wiersze oznaczamy jako pominięte (jak wcześniej).</span>
+        <span style="display:block;margin-top:6px;">Zakres: serie <strong>kobieta</strong> / <strong>mężczyzna</strong> / <strong>ślub</strong> — produkt „dodaj osobę” w socialu jest wyłączony.</span>
       </div>
       <div id="socialGenStatus" style="margin-top:8px;font-size:13px;color:#1565c0;font-weight:600;"></div>
     </div>
@@ -414,6 +427,9 @@
 
 <script>
   const API_BASE = 'https://customify-s56o.vercel.app/api/admin/personalization-log';
+  const SOCIAL_API = 'https://customify-s56o.vercel.app/api/admin/generate-social-image';
+  const SOCIAL_EXCLUDED_HANDLE = 'dodaj-osobe-do-zdjecia-naturalny-efekt-obraz-plakat-wydruk';
+  const socialPendingIds = new Set();
   let adminToken = '';
   let allData = null;
   let currentFiltered = [];
@@ -542,7 +558,6 @@
     }
     const { sorted, attemptsMap } = sortEntries(entries);
     const dupSkippedSocialIds = getSocialAutoDupSkippedIds(sorted);
-    const eligibleForSocialAuto = selectSocialAutoQueue(sorted);
 
     const rows = sorted.map(e => {
       const dt = e.timestamp ? new Date(e.timestamp).toLocaleString('pl-PL') : '—';
@@ -554,24 +569,23 @@
       const safeEmail = esc(e.email || '—');
       const attempts = attemptsMap[getUserKey(e)] || 1;
 
-      // Social image cell — ⏳ tylko gdy ten wpis jest w kolejce / generowany; inne „do generacji” = — (nie mylić z masową generacją)
       const canGenerate = !!e.productHandle;
       let socialHtml;
       if (e.socialImageUrl) {
         socialHtml = socialCellGeneratedHtml(e.socialImageUrl, e.id);
-      } else if (canGenerate && (eligibleForSocialAuto.some(p => String(p.id) === String(e.id)) || socialPendingIds.has(e.id))) {
+      } else if ((e.productHandle || '') === SOCIAL_EXCLUDED_HANDLE) {
+        socialHtml = `<span class="social-skip" title="${esc('Produkt wyłączony z generacji social')}">—</span>`;
+      } else if (socialPendingIds.has(String(e.id))) {
         socialHtml = `<span class="social-spinner" id="social-spin-${e.id}" title="Generowanie...">⏳</span>`;
+      } else if (canGenerate && dupSkippedSocialIds.has(String(e.id))) {
+        socialHtml = `<span class="social-skip" title="${esc('Pominięte: ten sam email, imię i opis co wcześniejszy wpis.')}">—</span>`;
       } else if (canGenerate) {
-        let offTitle = 'Auto max 10 wpisów (bez duplikatów email+imię+opis); kolejka 1 naraz — ten wiersz nie w kolejce';
-        if (dupSkippedSocialIds.has(String(e.id))) {
-          offTitle = 'Pominięte auto social: ten sam email, imię i opis co wcześniejszy wpis (kolejna próba użytkownika).';
-        }
-        socialHtml = `<span class="social-skip" title="${esc(offTitle)}">—</span>`;
+        socialHtml = `<button type="button" class="social-gen-manual-btn" data-social-gen-manual data-entry-id="${e.id}">Generuj social</button>`;
       } else {
         socialHtml = `<span class="social-skip" title="Brak danych do generacji">—</span>`;
       }
 
-      return `<tr data-entry-id="${e.id}" data-handle="${esc(e.productHandle||'')}" data-rocznica="${esc(e.rocznica||'')}" data-opis="${esc(e.opis||'')}" data-imie="${esc(e.imie||'')}">
+      return `<tr data-entry-id="${e.id}" data-handle="${esc(e.productHandle||'')}" data-style="${esc(e.style||'')}" data-rocznica="${esc(e.rocznica||'')}" data-opis="${esc(e.opis||'')}" data-imie="${esc(e.imie||'')}">
         <td class="thumb-cell">${thumbHtml}</td>
         <td class="social-cell">${socialHtml}</td>
         <td class="date-cell">${dt}</td>
@@ -601,9 +615,6 @@
         </thead>
         <tbody>${rows}</tbody>
       </table>`;
-
-    // Po wstawieniu wierszy w DOM — dopiero wtedy spinner istnieje
-    requestAnimationFrame(() => scheduleSocialGeneration(sorted));
   }
 
   function renderProductStats(counts) {
@@ -726,6 +737,29 @@
   }
 
   document.addEventListener('click', e => {
+    const genBtn = e.target.closest('[data-social-gen-manual]');
+    if (genBtn && genBtn.dataset.entryId && adminToken) {
+      e.preventDefault();
+      const tr = genBtn.closest('tr');
+      if (!tr) return;
+      const idRaw = genBtn.dataset.entryId;
+      if (socialPendingIds.has(idRaw)) return;
+      const entry = {
+        id: idRaw,
+        productHandle: tr.dataset.handle || '',
+        rocznica: tr.dataset.rocznica || '',
+        opis: tr.dataset.opis || '',
+        imie: tr.dataset.imie || '',
+        style: tr.dataset.style || null
+      };
+      socialPendingIds.add(idRaw);
+      renderTable(currentFiltered);
+      generateOneSocialImage(entry).finally(() => {
+        socialPendingIds.delete(idRaw);
+        renderTable(currentFiltered);
+      });
+      return;
+    }
     const t = e.target.closest('[data-clear-social]');
     if (!t || !t.dataset.entryId) return;
     e.preventDefault();
@@ -744,15 +778,7 @@
         </div>`;
   }
 
-  // ─── Social image auto-generation ─────────────────────────────────────────
-  const SOCIAL_API = 'https://customify-s56o.vercel.app/api/admin/generate-social-image';
-  const MAX_CONCURRENT = 1;
-  const MAX_AUTO_GENERATE = 10;
-  const SOCIAL_EXCLUDED_HANDLE = 'dodaj-osobe-do-zdjecia-naturalny-efekt-obraz-plakat-wydruk';
-  let socialQueue = [];
-  let socialActive = 0;
-  const socialPendingIds = new Set();
-
+  // ─── Social: ręcznie z panelu (auto idzie z backendu po generacji klienta) ─
   /** Klucz duplikatu: ten sam user próbował wielokrotnie z tymi samymi polami (brak emaila = bez deduplikacji). */
   function socialAutoDedupeKey(entry) {
     const email = (entry.email || '').toLowerCase().trim();
@@ -760,20 +786,6 @@
     const imie = (entry.imie || '').trim().toLowerCase();
     const opis = (entry.opis || '').trim().toLowerCase();
     return `${email}\t${imie}\t${opis}`;
-  }
-
-  function selectSocialAutoQueue(sortedEntries) {
-    const out = [];
-    const seen = new Set();
-    for (const e of sortedEntries) {
-      if (e.socialImageUrl || !e.productHandle || e.productHandle === SOCIAL_EXCLUDED_HANDLE) continue;
-      const dk = socialAutoDedupeKey(e);
-      if (dk !== null && seen.has(dk)) continue;
-      if (dk !== null) seen.add(dk);
-      out.push(e);
-      if (out.length >= MAX_AUTO_GENERATE) break;
-    }
-    return out;
   }
 
   /** ID wpisów pominiętych jako późniejsze duplikaty (tooltip w tabeli). */
@@ -791,35 +803,7 @@
   }
 
   function initSocialGenerationUI() {
-    // no-op: checkbox usunięty, zostawione dla kompatybilności wywołania
     if (!socialUiInitDone) socialUiInitDone = true;
-  }
-
-  function scheduleSocialGeneration(sortedEntries) {
-    // NIE sprawdzaj „busy” tutaj: gdy trwa fetch dla wpisu A, drugi render (filtr/loadData) pokazuje spinner dla B,
-    // ale bez enqueue B nigdy nie wystartuje — klepsydra bez żądania. Kolejka + MAX_CONCURRENT i tak ograniczają równoległość.
-
-    const pending = selectSocialAutoQueue(sortedEntries);
-    if (!pending.length) return;
-
-    pending.forEach(e => {
-      if (socialPendingIds.has(e.id)) return;
-      socialPendingIds.add(e.id);
-      socialQueue.push(e);
-    });
-    processSocialQueue();
-  }
-
-  function processSocialQueue() {
-    while (socialActive < MAX_CONCURRENT && socialQueue.length > 0) {
-      const entry = socialQueue.shift();
-      socialActive++;
-      generateOneSocialImage(entry).finally(() => {
-        socialPendingIds.delete(entry.id);
-        socialActive--;
-        processSocialQueue();
-      });
-    }
   }
 
   /** Komórka Social dla wpisu — po ponownym renderze tabeli stary spinEl może być odłączony od DOM */

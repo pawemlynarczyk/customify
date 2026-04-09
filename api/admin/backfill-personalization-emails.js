@@ -1,7 +1,7 @@
 // api/admin/backfill-personalization-emails.js
 // Uzupełnia brakujące emaile w personalization-log na podstawie customerId (Shopify API)
 
-const { put, list } = require('@vercel/blob');
+const { put, head } = require('@vercel/blob');
 
 const BLOB_KEY = 'customify/system/stats/personalization-log.json';
 const ADMIN_TOKEN = process.env.ADMIN_STATS_TOKEN;
@@ -21,14 +21,13 @@ function getBlobToken() {
 
 async function readLog() {
   const blobToken = getBlobToken();
-  const { blobs } = await withTimeout(
-    list({ prefix: 'customify/system/stats/personalization-log', token: blobToken }),
+  const meta = await withTimeout(
+    head(BLOB_KEY, { token: blobToken }).catch(() => null),
     10000,
-    'list personalization log blobs'
+    'head personalization log'
   );
-  if (!blobs || blobs.length === 0) return [];
-  const latest = blobs.sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt))[0];
-  const res = await withTimeout(fetch(latest.url), 10000, 'fetch personalization log');
+  if (!meta || !meta.url) return [];
+  const res = await withTimeout(fetch(meta.url), 10000, 'fetch personalization log');
   if (!res.ok) return [];
   const data = await res.json();
   return Array.isArray(data) ? data : [];

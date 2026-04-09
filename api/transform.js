@@ -4,10 +4,49 @@ const { toFile } = require('openai');
 const crypto = require('crypto');
 const { kv } = require('@vercel/kv');
 const { getClientIP } = require('../utils/vercelRateLimiter');
-const { checkIPLimit, incrementIPLimit, checkDeviceTokenLimit, incrementDeviceTokenLimit, isKVConfigured, isImageHashLimitEnabled, calculateImageHash, checkImageHashLimit, incrementImageHashLimit, checkDeviceTokenCrossAccount, addCustomerToDeviceToken } = require('../utils/vercelKVLimiter');
+const { checkIPLimit, incrementIPLimit, checkDeviceTokenLimit, incrementDeviceTokenLimit, isKVConfigured, isImageHashLimitEnabled, calculateImageHash, checkImageHashLimit, incrementImageHashLimit, checkDeviceTokenCrossAccount, addCustomerToDeviceToken, checkManualTemporaryIPBlock } = require('../utils/vercelKVLimiter');
 const Sentry = require('../utils/sentry');
 const { put } = require('@vercel/blob');
 const { trackError, trackAction, getRecentError } = require('../utils/userFlowTracker');
+const {
+  generatePersonalizationSocialCore,
+  isPersonalizationSocialExcludedProductHandle
+} = require('../utils/generatePersonalizationSocialCore');
+
+let vercelWaitUntil = null;
+try {
+  vercelWaitUntil = require('@vercel/functions').waitUntil;
+} catch (_) {
+  /* lokalnie bez Vercel — social w tle tylko jako fire-and-forget */
+}
+
+/** Opóźnienie przed startem social (ms): user już dostał odpowiedź; rozłożenie szczytu CPU/API vs transform. 0 = od razu. */
+function personalizationSocialDelayMs() {
+  const raw = process.env.PERSONALIZATION_SOCIAL_DELAY_MS;
+  if (raw === '0' || raw === '') return 0;
+  const n = parseInt(raw || '20000', 10);
+  if (Number.isNaN(n) || n < 0) return 20000;
+  return Math.min(n, 120000);
+}
+
+function schedulePersonalizationSocialInBackground(payload) {
+  const run = async () => {
+    const delayMs = personalizationSocialDelayMs();
+    if (delayMs > 0) {
+      await new Promise((r) => setTimeout(r, delayMs));
+    }
+    try {
+      await generatePersonalizationSocialCore(payload);
+    } catch (e) {
+      console.warn('📲 [TRANSFORM] Social w tle — błąd (nie blokuje klienta):', e?.message || e);
+    }
+  };
+  if (typeof vercelWaitUntil === 'function') {
+    vercelWaitUntil(run());
+  } else {
+    void run();
+  }
+}
 
 // ⏰ Helper: put() do Vercel Blob z timeoutem (zapobiega 504 gdy Blob jest wolny)
 async function blobPutWithTimeout(filename, buffer, options, timeoutMs = 20000) {
@@ -1265,6 +1304,18 @@ module.exports = async (req, res) => {
   const isInternalSocial = !!(process.env.ADMIN_STATS_TOKEN &&
     req.headers['x-customify-social-internal'] === process.env.ADMIN_STATS_TOKEN);
   console.log(`🔍 [TRANSFORM] Request from IP: ${ip || rawIp}, Method: ${req.method}, internalSocial: ${isInternalSocial}`);
+
+  // Blokada czasowa (KV) — ten sam komunikat co zwykła nieudana generacja (bez „zablokowane IP”)
+  if (!isInternalSocial && ip) {
+    try {
+      const manualBlock = await checkManualTemporaryIPBlock(ip);
+      if (manualBlock.blocked) {
+        return res.status(500).json({ error: 'AI generation failed. Please try again.' });
+      }
+    } catch (manualBlockErr) {
+      console.warn('⚠️ [TRANSFORM] checkManualTemporaryIPBlock:', manualBlockErr?.message);
+    }
+  }
 
   if (!isInternalSocial && ip && BLOCKED_IPS.has(ip)) {
     console.warn(`⛔ [TRANSFORM] IP ${ip} jest zablokowane - odrzucam żądanie`);
@@ -4746,7 +4797,7 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
     if (!isInternalSocial && personalizationFields && Object.keys(personalizationFields).length > 0) {
       try {
         // ⏰ Timeout 10s: nie blokuj transform na logowaniu personalizacji
-        await fetchWithTimeout('https://customify-s56o.vercel.app/api/admin/personalization-log', 10000, {
+        const logRes = await fetchWithTimeout('https://customify-s56o.vercel.app/api/admin/personalization-log', 10000, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -4761,6 +4812,32 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
             imageUrl: finalImageUrl || null
           })
         });
+        const logJson = await logRes.json().catch(() => ({}));
+        if (
+          logRes.ok &&
+          logJson.id != null &&
+          productHandle &&
+          !isPersonalizationSocialExcludedProductHandle(productHandle)
+        ) {
+          const rep = process.env.REPLICATE_API_TOKEN;
+          if (rep && rep !== 'leave_empty_for_now') {
+            schedulePersonalizationSocialInBackground({
+              entryId: logJson.id,
+              productHandle,
+              rocznica: personalizationFields.rocznica,
+              opis: personalizationFields.opis_charakteru,
+              imie: personalizationFields.imiona,
+              style: style || null
+            });
+            console.log(
+              '📲 [TRANSFORM] personalization social w tle, entryId=',
+              logJson.id,
+              `(start za ~${personalizationSocialDelayMs()}ms)`
+            );
+          } else {
+            console.warn('📲 [TRANSFORM] pomijam social w tle — brak REPLICATE_API_TOKEN');
+          }
+        }
         console.log('📊 [TRANSFORM] personalization-log saved OK');
       } catch (err) {
         console.warn('📊 [TRANSFORM] personalization-log save failed:', err?.message || err);

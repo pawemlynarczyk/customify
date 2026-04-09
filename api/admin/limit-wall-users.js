@@ -3,7 +3,8 @@
 
 const { kv } = require('@vercel/kv');
 const { head } = require('@vercel/blob');
-const { list } = require('@vercel/blob');
+
+const PERSONALIZATION_LOG_BLOB_KEY = 'customify/system/stats/personalization-log.json';
 
 const ADMIN_TOKEN = process.env.ADMIN_STATS_TOKEN;
 const FAST_CACHE_TTL_SECONDS = 45;
@@ -97,14 +98,13 @@ async function getPersonalizationLastDateMap() {
   const blobToken = process.env.customify_READ_WRITE_TOKEN || process.env.BLOB_READ_WRITE_TOKEN;
   if (!blobToken) return {};
   try {
-    const { blobs } = await withTimeout(
-      list({ prefix: 'customify/system/stats/personalization-log', token: blobToken }),
+    const meta = await withTimeout(
+      head(PERSONALIZATION_LOG_BLOB_KEY, { token: blobToken }).catch(() => null),
       10000,
-      'list personalization log blobs'
+      'head personalization log'
     );
-    if (!blobs || blobs.length === 0) return {};
-    const latest = blobs.sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt))[0];
-    const resp = await withTimeout(fetch(latest.url), 12000, 'fetch personalization log');
+    if (!meta || !meta.url) return {};
+    const resp = await withTimeout(fetch(meta.url), 12000, 'fetch personalization log');
     if (!resp.ok) return {};
     const entries = await resp.json();
     if (!Array.isArray(entries)) return {};

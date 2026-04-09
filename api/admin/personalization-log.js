@@ -2,7 +2,7 @@
 // GET: zwraca log wpisów personalizacji (z opcjonalnym filtrem)
 // POST: dodaje nowy wpis (wywoływane z transform.js)
 
-const { put, list } = require('@vercel/blob');
+const { put, head } = require('@vercel/blob');
 
 const BLOB_KEY = 'customify/system/stats/personalization-log.json';
 const MAX_ENTRIES = 2000;
@@ -27,12 +27,18 @@ const getBlobToken = () => {
 async function readLog() {
   try {
     const blobToken = getBlobToken();
-    const { blobs } = await withTimeout(list({ prefix: 'customify/system/stats/personalization-log', token: blobToken }), 8000, 'list blobs');
-    if (!blobs || blobs.length === 0) return [];
-    const latest = blobs.sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt))[0];
-    const res = await withTimeout(fetch(latest.url), 10000, 'fetch log');
+    // ZAWSZE kanoniczny plik — nie list()+„najnowszy”: inny blob pod tym prefiksem mógł
+    // nadpisać log przy zapisie i skasować setki socialImageUrl z JSON.
+    const meta = await withTimeout(
+      head(BLOB_KEY, { token: blobToken }).catch(() => null),
+      8000,
+      'head log'
+    );
+    if (!meta || !meta.url) return [];
+    const res = await withTimeout(fetch(meta.url), 10000, 'fetch log');
     if (!res.ok) return [];
-    return await res.json();
+    const data = await res.json();
+    return Array.isArray(data) ? data : [];
   } catch {
     return [];
   }
@@ -156,8 +162,10 @@ module.exports = async (req, res) => {
         return nowMs - parseEntryTimeMs(e.timestamp) < DEDUP_WINDOW_MS;
       });
 
+      let savedEntryId;
       if (dupIdx !== -1) {
         const prev = entries[dupIdx];
+        savedEntryId = prev.id;
         entries[dupIdx] = {
           ...prev,
           timestamp: newEntry.timestamp,
@@ -173,12 +181,13 @@ module.exports = async (req, res) => {
         console.log('[PERSONALIZATION-LOG] Dedup: zaktualizowano wpis', prev.id, 'zamiast duplikatu');
       } else {
         entries.unshift(newEntry);
+        savedEntryId = newEntry.id;
       }
 
       // Ogranicz do MAX_ENTRIES
       if (entries.length > MAX_ENTRIES) entries.splice(MAX_ENTRIES);
       await writeLog(entries);
-      return res.status(200).json({ ok: true, deduped: dupIdx !== -1 });
+      return res.status(200).json({ ok: true, deduped: dupIdx !== -1, id: savedEntryId });
     } catch (err) {
       console.error('[PERSONALIZATION-LOG] Write error:', err);
       return res.status(500).json({ error: err.message });
