@@ -5199,6 +5199,16 @@ class CustomifyEmbed {
       }
     }
 
+    // Po reuse: zsynchronizuj rozmiar z aktualnym typem wydruku (np. A5 ze szkła → A4 na plakacie)
+    try {
+      this.updateSizeAvailability();
+      this.syncActiveSizeButton();
+      this.updateProductPrice();
+      this.updateCartPrice();
+    } catch (e) {
+      console.warn('⚠️ [GALLERY] reuseGeneration price/sync:', e);
+    }
+
     // Komunikat usunięty - nie potrzebny
   }
 
