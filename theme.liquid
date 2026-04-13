@@ -216,6 +216,9 @@
     errorMessage.includes("Unexpected token '.'")
     )) { return null; }
 
+    // 🔇 B6: Shopify cart-note.js — brak performance mark (ich bug, nie nasz)
+    if (errorMessage.includes("No mark named 'cart-performance")) { return null; }
+
     }
 
     // ✅ Dodaj tag customify do wszystkich błędów
@@ -283,6 +286,9 @@
     errorMessage.includes("Unexpected identifier") ||
     errorMessage.includes("Unexpected token '.'")
     )) { return null; }
+
+    // 🔇 B6: Shopify cart-note.js — brak performance mark (ich bug, nie nasz)
+    if (errorMessage.includes("No mark named 'cart-performance")) { return null; }
 
     }
 

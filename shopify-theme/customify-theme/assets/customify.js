@@ -9346,8 +9346,9 @@ class CustomifyEmbed {
       this.compressImage(file).then(compressedFile => {
         this.convertToBase64(compressedFile, resolve, reject);
       }).catch(error => {
-        console.error('📱 [MOBILE] Compression failed:', error);
-        reject(error);
+        console.warn('📱 [MOBILE] Compression failed, using original file:', error?.message || error);
+        // Fallback: użyj oryginalnego pliku bez kompresji — nie blokuj transformacji
+        this.convertToBase64(file, resolve, reject);
       });
     });
   }
@@ -9402,9 +9403,9 @@ class CustomifyEmbed {
         }, 'image/jpeg', 0.85); // 85% jakość (optymalne dla Nano Banana)
       };
       
-      img.onerror = error => {
-        console.error('📱 [MOBILE] Image load failed:', error);
-        reject(error);
+      img.onerror = () => {
+        console.error('📱 [MOBILE] Image load failed');
+        reject(new Error('Nie udało się wczytać zdjęcia do kompresji. Spróbuj inny format (JPG/PNG).'));
       };
       
       img.src = URL.createObjectURL(file);
