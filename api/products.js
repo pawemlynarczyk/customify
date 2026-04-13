@@ -734,7 +734,7 @@ module.exports = async (req, res) => {
         shopifyImageUrl: shopifyImageUrl,  // BEZ watermarku - do realizacji
         vercelBlobUrl: vercelBlobUrl,  // BEZ watermarku - backup
         permanentImageUrl: permanentImageUrl,  // BEZ watermarku - główny URL do realizacji
-        'Link do zdjęcia:': vercelBlobUrl || permanentImageUrl,  // ✅ BEZ WATERMARKU (metafield — bez duplikatu _AI_Image_URL)
+        'Link do zdjęcia': vercelBlobUrl || permanentImageUrl,  // ✅ BEZ WATERMARKU (metafield — bez duplikatu _AI_Image_URL)
         watermarkedImageUrl: watermarkedImage || null,  // Z watermarkiem - dla referencji
         style: style,
         size: size,

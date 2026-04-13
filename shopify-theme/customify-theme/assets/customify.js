@@ -9137,7 +9137,7 @@ class CustomifyEmbed {
               finalAdminUrlLine = this.transformedImage;
             }
             if (finalAdminUrlLine) {
-              hiddenLineProps['Link do zdjęcia:'] = finalAdminUrlLine;
+              hiddenLineProps['Link do zdjęcia'] = finalAdminUrlLine;
             }
             if (cleanImageUrlForOrder && cleanImageUrlForOrder.startsWith('http')) {
               hiddenLineProps['_AI_Image_Clean_URL'] = cleanImageUrlForOrder;
@@ -9968,7 +9968,7 @@ function initCartIntegration() {
   
   cartItems.forEach(item => {
     // Ukryte property z URL obrazu (stara i nowa nazwa — zamówienie w adminie: „Link do zdjęcia:”)
-    const aiImageProperty = item.querySelector('dd[data-property="_AI_Image_URL"], dd[data-property="Link do zdjęcia:"]');
+    const aiImageProperty = item.querySelector('dd[data-property="_AI_Image_URL"], dd[data-property="Link do zdjęcia"]');
     
     const imageUrl = aiImageProperty?.textContent?.trim() || '';
     const looksLikeHttpImageUrl = imageUrl.startsWith('http') && imageUrl.length > 24;

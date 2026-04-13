@@ -81,7 +81,7 @@ module.exports = async (req, res) => {
       details: []
     };
 
-    const AI_IMAGE_LINE_PROP_NAMES = ['_AI_Image_URL', 'Link do zdjęcia:'];
+    const AI_IMAGE_LINE_PROP_NAMES = ['_AI_Image_URL', 'Link do zdjęcia:', 'Link do zdjęcia'];
 
     for (const order of orders) {
       try {
