@@ -69,18 +69,18 @@ async function addWatermarkForSpotify(imageBuffer) {
   }
 }
 
-/** Sufiks wymiarów w SKU canvas: zawsze większa liczba pierwsza (wymóg podwykonawcy), np. 60-40 zamiast 40-60. */
+/** Sufiks wymiarów w SKU canvas: zawsze mniejsza liczba pierwsza, np. 40-60 zamiast 60-40. */
 function canvasSkuDimsLargerFirst(a, b) {
   const n1 = parseInt(String(a), 10);
   const n2 = parseInt(String(b), 10);
   if (!Number.isFinite(n1) || !Number.isFinite(n2)) {
     return `${a}-${b}`;
   }
-  return `${Math.max(n1, n2)}-${Math.min(n1, n2)}`;
+  return `${Math.min(n1, n2)}-${Math.max(n1, n2)}`;
 }
 
 /**
- * SKU canvas: `LB-CUSTOM-C` + wymiary (większa-mniejsza).
+ * SKU canvas: `LB-CUSTOM-C` + wymiary (mniejsza-większa).
  * Priorytet: `sizeLabel` (np. „20×30 cm”), potem kod `size` (a4, …).
  */
 function buildCanvasVariantSku(sizeLabel, sizeKey) {
