@@ -6,6 +6,7 @@
  */
 
 const { checkRateLimit, getClientIP } = require('../utils/vercelRateLimiter');
+const { SHOPIFY_API_VERSION } = require('../utils/shopifyConfig');
 
 // 🧪 Lista emaili testowych (pomijają WSZYSTKIE limity dla testowania)
 const TEST_EMAILS = new Set([
@@ -122,7 +123,7 @@ module.exports = async (req, res) => {
       }
     `;
 
-    const metafieldResponse = await fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
+    const metafieldResponse = await fetch(`https://${shopDomain}/admin/api/${SHOPIFY_API_VERSION}/graphql.json`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

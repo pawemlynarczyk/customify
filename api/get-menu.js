@@ -2,6 +2,8 @@
  * Pobierz menu Shopify main-menu przez REST API
  */
 
+const { SHOPIFY_API_VERSION } = require('../utils/shopifyConfig');
+
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
@@ -21,7 +23,7 @@ module.exports = async (req, res) => {
     }
 
     // REST API: Pobierz wszystkie menu
-    const response = await fetch(`https://${shop}/admin/api/2024-01/menus.json`, {
+    const response = await fetch(`https://${shop}/admin/api/${SHOPIFY_API_VERSION}/menus.json`, {
       headers: {
         'X-Shopify-Access-Token': accessToken,
         'Content-Type': 'application/json'

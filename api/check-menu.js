@@ -2,6 +2,8 @@
  * Sprawdź co jest w menu Shopify main-menu
  */
 
+const { SHOPIFY_API_VERSION } = require('../utils/shopifyConfig');
+
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
@@ -43,7 +45,7 @@ module.exports = async (req, res) => {
       }
     `;
 
-    const response = await fetch(`https://${shop}/admin/api/2024-01/graphql.json`, {
+    const response = await fetch(`https://${shop}/admin/api/${SHOPIFY_API_VERSION}/graphql.json`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

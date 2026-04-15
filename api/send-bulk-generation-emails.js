@@ -5,6 +5,7 @@
  */
 
 const { Resend } = require('resend');
+const { SHOPIFY_API_VERSION } = require('../utils/shopifyConfig');
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -90,7 +91,7 @@ module.exports = async (req, res) => {
         variables = { handle: collectionHandleOrId };
       }
 
-      const response = await fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
+      const response = await fetch(`https://${shopDomain}/admin/api/${SHOPIFY_API_VERSION}/graphql.json`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

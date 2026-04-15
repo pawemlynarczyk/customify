@@ -1,3 +1,5 @@
+const { SHOPIFY_API_VERSION } = require('../utils/shopifyConfig');
+
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -19,7 +21,7 @@ module.exports = async (req, res) => {
     console.log('🔗 [SETUP-WEBHOOK] Setting up order paid webhook...');
 
     // Sprawdź czy webhook już istnieje
-    const existingWebhooks = await fetch(`https://${shop}/admin/api/2023-10/webhooks.json`, {
+    const existingWebhooks = await fetch(`https://${shop}/admin/api/${SHOPIFY_API_VERSION}/webhooks.json`, {
       headers: {
         'X-Shopify-Access-Token': accessToken,
         'Content-Type': 'application/json'
@@ -50,7 +52,7 @@ module.exports = async (req, res) => {
       }
     };
 
-    const createResponse = await fetch(`https://${shop}/admin/api/2023-10/webhooks.json`, {
+    const createResponse = await fetch(`https://${shop}/admin/api/${SHOPIFY_API_VERSION}/webhooks.json`, {
       method: 'POST',
       headers: {
         'X-Shopify-Access-Token': accessToken,

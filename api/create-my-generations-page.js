@@ -7,6 +7,8 @@
  * Tworzy stronę /pages/my-generations z template page.my-generations.json
  */
 
+const { SHOPIFY_API_VERSION } = require('../utils/shopifyConfig');
+
 module.exports = async (req, res) => {
   // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -29,7 +31,7 @@ module.exports = async (req, res) => {
     }
 
     // Sprawdź czy strona już istnieje
-    const checkResponse = await fetch(`https://${shop}/admin/api/2024-01/pages.json?handle=my-generations`, {
+    const checkResponse = await fetch(`https://${shop}/admin/api/${SHOPIFY_API_VERSION}/pages.json?handle=my-generations`, {
       method: 'GET',
       headers: {
         'X-Shopify-Access-Token': accessToken,
@@ -61,7 +63,7 @@ module.exports = async (req, res) => {
       }
     };
 
-    const createResponse = await fetch(`https://${shop}/admin/api/2024-01/pages.json`, {
+    const createResponse = await fetch(`https://${shop}/admin/api/${SHOPIFY_API_VERSION}/pages.json`, {
       method: 'POST',
       headers: {
         'X-Shopify-Access-Token': accessToken,

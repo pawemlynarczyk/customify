@@ -1,4 +1,5 @@
 const fetch = require('node-fetch');
+const { SHOPIFY_API_VERSION } = require('../utils/shopifyConfig');
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -13,7 +14,7 @@ module.exports = async (req, res) => {
     const shop = process.env.SHOP_DOMAIN || 'customify-ok.myshopify.com';
     const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
 
-    const response = await fetch(`https://${shop}/admin/api/2023-10/products/${productId}.json`, {
+    const response = await fetch(`https://${shop}/admin/api/${SHOPIFY_API_VERSION}/products/${productId}.json`, {
       headers: {
         'X-Shopify-Access-Token': accessToken,
         'Content-Type': 'application/json'

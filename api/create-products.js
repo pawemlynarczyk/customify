@@ -1,3 +1,5 @@
+const { SHOPIFY_API_VERSION } = require('../utils/shopifyConfig');
+
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -95,7 +97,7 @@ module.exports = async (req, res) => {
         }
       };
 
-      const createResponse = await fetch(`https://${shop}/admin/api/2023-10/products.json`, {
+      const createResponse = await fetch(`https://${shop}/admin/api/${SHOPIFY_API_VERSION}/products.json`, {
         method: 'POST',
         headers: {
           'X-Shopify-Access-Token': accessToken,

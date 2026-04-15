@@ -8,6 +8,8 @@
  * Endpoint: POST /api/add-script-tag
  */
 
+const { SHOPIFY_API_VERSION } = require('../utils/shopifyConfig');
+
 module.exports = async (req, res) => {
   // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -30,7 +32,7 @@ module.exports = async (req, res) => {
     }
 
     // Sprawdź czy Script Tag już istnieje
-    const checkResponse = await fetch(`https://${shop}/admin/api/2024-01/script_tags.json`, {
+    const checkResponse = await fetch(`https://${shop}/admin/api/${SHOPIFY_API_VERSION}/script_tags.json`, {
       method: 'GET',
       headers: {
         'X-Shopify-Access-Token': accessToken,
@@ -50,7 +52,7 @@ module.exports = async (req, res) => {
         // Usuń stary Script Tag jeśli display_scope jest zły
         if (existingScript.display_scope !== 'all') {
           console.log('⚠️ [SCRIPT-TAG] Stary Script Tag ma zły display_scope, usuwam...');
-          await fetch(`https://${shop}/admin/api/2024-01/script_tags/${existingScript.id}.json`, {
+          await fetch(`https://${shop}/admin/api/${SHOPIFY_API_VERSION}/script_tags/${existingScript.id}.json`, {
             method: 'DELETE',
             headers: {
               'X-Shopify-Access-Token': accessToken,
@@ -77,7 +79,7 @@ module.exports = async (req, res) => {
       }
     };
 
-    const createResponse = await fetch(`https://${shop}/admin/api/2024-01/script_tags.json`, {
+    const createResponse = await fetch(`https://${shop}/admin/api/${SHOPIFY_API_VERSION}/script_tags.json`, {
       method: 'POST',
       headers: {
         'X-Shopify-Access-Token': accessToken,

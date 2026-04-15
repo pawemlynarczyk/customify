@@ -6,6 +6,7 @@ const { kv } = require('@vercel/kv');
 const { getClientIP } = require('../utils/vercelRateLimiter');
 const { checkIPLimit, incrementIPLimit, checkDeviceTokenLimit, incrementDeviceTokenLimit, isKVConfigured, isImageHashLimitEnabled, calculateImageHash, checkImageHashLimit, incrementImageHashLimit, checkDeviceTokenCrossAccount, addCustomerToDeviceToken, checkManualTemporaryIPBlock } = require('../utils/vercelKVLimiter');
 const Sentry = require('../utils/sentry');
+const { SHOPIFY_API_VERSION } = require('../utils/shopifyConfig');
 const { put } = require('@vercel/blob');
 const { trackError, trackAction, getRecentError } = require('../utils/userFlowTracker');
 const {
@@ -2666,7 +2667,7 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
           }
         `;
 
-        const metafieldResponse = await fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
+        const metafieldResponse = await fetch(`https://${shopDomain}/admin/api/${SHOPIFY_API_VERSION}/graphql.json`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -2729,7 +2730,7 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
             }
           `;
 
-          const definitionResponse = await fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
+          const definitionResponse = await fetch(`https://${shopDomain}/admin/api/${SHOPIFY_API_VERSION}/graphql.json`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -2764,7 +2765,7 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
               }
             `;
 
-            const updateDefinitionResponse = await fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
+            const updateDefinitionResponse = await fetch(`https://${shopDomain}/admin/api/${SHOPIFY_API_VERSION}/graphql.json`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -2793,7 +2794,7 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
                 }
               `;
 
-              const deleteDefinitionResponse = await fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
+              const deleteDefinitionResponse = await fetch(`https://${shopDomain}/admin/api/${SHOPIFY_API_VERSION}/graphql.json`, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
@@ -2827,7 +2828,7 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
                 }
               `;
 
-              const createDefinitionResponse = await fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
+              const createDefinitionResponse = await fetch(`https://${shopDomain}/admin/api/${SHOPIFY_API_VERSION}/graphql.json`, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
@@ -2867,7 +2868,7 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
                 }
               }
             `;
-            const createDefinitionResponse = await fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
+            const createDefinitionResponse = await fetch(`https://${shopDomain}/admin/api/${SHOPIFY_API_VERSION}/graphql.json`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -2916,7 +2917,7 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
             }
           `;
           
-          const definitionResponse = await fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
+          const definitionResponse = await fetch(`https://${shopDomain}/admin/api/${SHOPIFY_API_VERSION}/graphql.json`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -4290,7 +4291,7 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
           }
         `;
 
-        const getResponse = await fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
+        const getResponse = await fetch(`https://${shopDomain}/admin/api/${SHOPIFY_API_VERSION}/graphql.json`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -4351,7 +4352,7 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
             }
           `;
           
-          const definitionResponse = await fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
+          const definitionResponse = await fetch(`https://${shopDomain}/admin/api/${SHOPIFY_API_VERSION}/graphql.json`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -4453,7 +4454,7 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
           }
         `;
 
-        const updateResponse = await fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
+        const updateResponse = await fetch(`https://${shopDomain}/admin/api/${SHOPIFY_API_VERSION}/graphql.json`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

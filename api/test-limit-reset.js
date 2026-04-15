@@ -6,6 +6,7 @@
  */
 
 const { kv } = require('@vercel/kv');
+const { SHOPIFY_API_VERSION } = require('../utils/shopifyConfig');
 
 module.exports = async (req, res) => {
   // CORS
@@ -92,7 +93,7 @@ module.exports = async (req, res) => {
       }
     `;
 
-    const responseBefore = await fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
+    const responseBefore = await fetch(`https://${shopDomain}/admin/api/${SHOPIFY_API_VERSION}/graphql.json`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -159,7 +160,7 @@ module.exports = async (req, res) => {
     await new Promise(resolve => setTimeout(resolve, 2000));
 
     // KROK 6: Sprawdź usage_count PO resecie
-    const responseAfter = await fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
+    const responseAfter = await fetch(`https://${shopDomain}/admin/api/${SHOPIFY_API_VERSION}/graphql.json`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

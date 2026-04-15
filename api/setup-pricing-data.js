@@ -5,6 +5,7 @@
  */
 
 const fetch = require('node-fetch');
+const { SHOPIFY_API_VERSION } = require('../utils/shopifyConfig');
 
 module.exports = async (req, res) => {
   // ✅ CORS dla wszystkich domen
@@ -102,7 +103,7 @@ module.exports = async (req, res) => {
       }
     `;
 
-    const shopResponse = await fetch(`https://${shop}/admin/api/2024-01/graphql.json`, {
+    const shopResponse = await fetch(`https://${shop}/admin/api/${SHOPIFY_API_VERSION}/graphql.json`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -153,7 +154,7 @@ module.exports = async (req, res) => {
       ]
     };
 
-    const response = await fetch(`https://${shop}/admin/api/2024-01/graphql.json`, {
+    const response = await fetch(`https://${shop}/admin/api/${SHOPIFY_API_VERSION}/graphql.json`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

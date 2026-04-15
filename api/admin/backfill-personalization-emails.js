@@ -2,6 +2,7 @@
 // Uzupełnia brakujące emaile w personalization-log na podstawie customerId (Shopify API)
 
 const { put, head } = require('@vercel/blob');
+const { SHOPIFY_API_VERSION } = require('../../utils/shopifyConfig');
 
 const BLOB_KEY = 'customify/system/stats/personalization-log.json';
 const ADMIN_TOKEN = process.env.ADMIN_STATS_TOKEN;
@@ -76,7 +77,7 @@ async function fetchCustomerEmailsByIds(customerIds) {
       ids: idsChunk.map((id) => `gid://shopify/Customer/${id}`)
     };
     const resp = await withTimeout(
-      fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
+      fetch(`https://${shopDomain}/admin/api/${SHOPIFY_API_VERSION}/graphql.json`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

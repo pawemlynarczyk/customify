@@ -7,6 +7,7 @@
  */
 
 const { kv } = require('@vercel/kv');
+const { SHOPIFY_API_VERSION } = require('../utils/shopifyConfig');
 
 function parseUsageCount(metafield) {
   if (!metafield) return { usageCount: 0, usageType: 'none' };
@@ -82,7 +83,7 @@ module.exports = async (req, res) => {
 
     const variables = { first: 100, after: cursor };
 
-    const doFetch = () => fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
+    const doFetch = () => fetch(`https://${shopDomain}/admin/api/${SHOPIFY_API_VERSION}/graphql.json`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

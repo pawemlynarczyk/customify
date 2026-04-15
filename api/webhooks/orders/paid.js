@@ -1,5 +1,6 @@
 // Poprawiona ścieżka: z api/webhooks/orders/ do utils/ trzeba 3 poziomy w górę (../../../)
 const Sentry = require('../../../utils/sentry');
+const { SHOPIFY_API_VERSION } = require('../../../utils/shopifyConfig');
 const { kv } = require('@vercel/kv');
 
 const SHOP_DOMAIN = process.env.SHOPIFY_STORE_DOMAIN || 'customify-ok.myshopify.com';
@@ -7,7 +8,7 @@ const SHOP_DOMAIN = process.env.SHOPIFY_STORE_DOMAIN || 'customify-ok.myshopify.
 // Znajdź klienta po emailu lub utwórz nowe konto (dla niezalogowanych kupujących pakiety)
 async function findOrCreateCustomerByEmail(email, firstName, accessToken, shop) {
   // 1. Szukaj po emailu
-  const searchRes = await fetch(`https://${shop}/admin/api/2024-01/customers/search.json?query=email:${encodeURIComponent(email)}&limit=1`, {
+  const searchRes = await fetch(`https://${shop}/admin/api/${SHOPIFY_API_VERSION}/customers/search.json?query=email:${encodeURIComponent(email)}&limit=1`, {
     headers: { 'X-Shopify-Access-Token': accessToken }
   });
   if (searchRes.ok) {
@@ -19,7 +20,7 @@ async function findOrCreateCustomerByEmail(email, firstName, accessToken, shop) 
   }
 
   // 2. Utwórz nowe konto (bez hasła – Shopify wyśle email aktywacyjny)
-  const createRes = await fetch(`https://${shop}/admin/api/2024-01/customers.json`, {
+  const createRes = await fetch(`https://${shop}/admin/api/${SHOPIFY_API_VERSION}/customers.json`, {
     method: 'POST',
     headers: { 'X-Shopify-Access-Token': accessToken, 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -75,7 +76,7 @@ async function addCreditsToCustomer(customerId, creditsToAdd) {
     }
   `;
 
-  const getRes = await fetch(`https://${SHOP_DOMAIN}/admin/api/2024-01/graphql.json`, {
+  const getRes = await fetch(`https://${SHOP_DOMAIN}/admin/api/${SHOPIFY_API_VERSION}/graphql.json`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'X-Shopify-Access-Token': accessToken },
     body: JSON.stringify({ query, variables: { id: `gid://shopify/Customer/${customerId}` } })
@@ -94,7 +95,7 @@ async function addCreditsToCustomer(customerId, creditsToAdd) {
     }
   `;
 
-  const setRes = await fetch(`https://${SHOP_DOMAIN}/admin/api/2024-01/graphql.json`, {
+  const setRes = await fetch(`https://${SHOP_DOMAIN}/admin/api/${SHOPIFY_API_VERSION}/graphql.json`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'X-Shopify-Access-Token': accessToken },
     body: JSON.stringify({
@@ -251,7 +252,7 @@ module.exports = async (req, res) => {
         console.log('🔒 [ORDER-PAID-WEBHOOK] Processing product:', item.product_id);
         
         // Najpierw pobierz aktualne tagi produktu i metafields
-        const getProductResponse = await fetch(`https://${shop}/admin/api/2023-10/products/${item.product_id}.json`, {
+        const getProductResponse = await fetch(`https://${shop}/admin/api/${SHOPIFY_API_VERSION}/products/${item.product_id}.json`, {
           headers: {
             'X-Shopify-Access-Token': accessToken,
             'Content-Type': 'application/json'
@@ -278,7 +279,7 @@ module.exports = async (req, res) => {
           
           try {
             // Pobierz metafields produktu (URL do pobrania)
-            const metafieldsResponse = await fetch(`https://${shop}/admin/api/2023-10/products/${item.product_id}/metafields.json`, {
+            const metafieldsResponse = await fetch(`https://${shop}/admin/api/${SHOPIFY_API_VERSION}/products/${item.product_id}/metafields.json`, {
               headers: {
                 'X-Shopify-Access-Token': accessToken,
                 'Content-Type': 'application/json'
@@ -323,7 +324,7 @@ Zespół Customify
                   };
 
                   // Shopify Customer Notification API (wysyłka e-maila)
-                  const emailResponse = await fetch(`https://${shop}/admin/api/2023-10/customers/${order.customer?.id}/send_invite.json`, {
+                  const emailResponse = await fetch(`https://${shop}/admin/api/${SHOPIFY_API_VERSION}/customers/${order.customer?.id}/send_invite.json`, {
                     method: 'POST',
                     headers: {
                       'X-Shopify-Access-Token': accessToken,
@@ -343,7 +344,7 @@ Zespół Customify
                     console.log('⚠️ [ORDER-PAID-WEBHOOK] Customer invite failed, trying order notification...');
                     
                     // Wysyłka przez Order Notification (backup)
-                    const orderNotificationResponse = await fetch(`https://${shop}/admin/api/2023-10/orders/${order.id}/send_invoice.json`, {
+                    const orderNotificationResponse = await fetch(`https://${shop}/admin/api/${SHOPIFY_API_VERSION}/orders/${order.id}/send_invoice.json`, {
                       method: 'POST',
                       headers: {
                         'X-Shopify-Access-Token': accessToken,
@@ -365,7 +366,7 @@ Zespół Customify
                   }
 
                   // Oznacz zamówienie jako zrealizowane (fulfillment)
-                  const fulfillmentResponse = await fetch(`https://${shop}/admin/api/2023-10/orders/${order.id}/fulfillments.json`, {
+                  const fulfillmentResponse = await fetch(`https://${shop}/admin/api/${SHOPIFY_API_VERSION}/orders/${order.id}/fulfillments.json`, {
                     method: 'POST',
                     headers: {
                       'X-Shopify-Access-Token': accessToken,
@@ -445,7 +446,7 @@ Zespół Customify
           }
         };
         
-        const hideResponse = await fetch(`https://${shop}/admin/api/2023-10/products/${item.product_id}.json`, {
+        const hideResponse = await fetch(`https://${shop}/admin/api/${SHOPIFY_API_VERSION}/products/${item.product_id}.json`, {
           method: 'PUT',
           headers: {
             'X-Shopify-Access-Token': accessToken,

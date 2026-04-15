@@ -5,6 +5,8 @@
  * lub fallback do tekstowego send_invite
  */
 
+const { SHOPIFY_API_VERSION } = require('../utils/shopifyConfig');
+
 module.exports = async (req, res) => {
   // CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -143,7 +145,7 @@ Zespół Lumly
     // Próbuj użyć Shopify Customer Notification API
     // ⚠️ UWAGA: send_invite może nie obsługiwać HTML - sprawdzamy
     try {
-      const emailResponse = await fetch(`https://${shop}/admin/api/2023-10/customers/${customerId}/send_invite.json`, {
+      const emailResponse = await fetch(`https://${shop}/admin/api/${SHOPIFY_API_VERSION}/customers/${customerId}/send_invite.json`, {
         method: 'POST',
         headers: {
           'X-Shopify-Access-Token': accessToken,

@@ -4,6 +4,8 @@
  * Używane do wyświetlania generacji w Shopify Admin na koncie klienta
  */
 
+const { SHOPIFY_API_VERSION } = require('../utils/shopifyConfig');
+
 module.exports = async (req, res) => {
   console.log(`📝 [UPDATE-CUSTOMER-GENERATIONS] API called - Method: ${req.method}`);
   
@@ -105,7 +107,7 @@ module.exports = async (req, res) => {
       }
     };
 
-    const response = await fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
+    const response = await fetch(`https://${shopDomain}/admin/api/${SHOPIFY_API_VERSION}/graphql.json`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

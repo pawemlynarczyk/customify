@@ -7,6 +7,7 @@
 
 const { put, list, del } = require('@vercel/blob');
 const { checkRateLimit, getClientIP } = require('../../utils/vercelRateLimiter');
+const { SHOPIFY_API_VERSION } = require('../../utils/shopifyConfig');
 
 const STATS_PREFIX = 'customify/stats/product-performance/';
 const MAX_STATS_VERSIONS = 5;
@@ -267,7 +268,7 @@ const fetchOrdersBetween = async (shopDomain, accessToken, startIso, endIso) => 
   const ordersByProduct = {};
   const allowedFinancialStatus = new Set(['paid', 'partially_paid']);
 
-  let nextUrl = `https://${shopDomain}/admin/api/2024-01/orders.json?status=any&limit=250&created_at_min=${encodeURIComponent(startIso)}&created_at_max=${encodeURIComponent(endIso)}&fields=id,created_at,financial_status,cancelled_at,line_items`;
+  let nextUrl = `https://${shopDomain}/admin/api/${SHOPIFY_API_VERSION}/orders.json?status=any&limit=250&created_at_min=${encodeURIComponent(startIso)}&created_at_max=${encodeURIComponent(endIso)}&fields=id,created_at,financial_status,cancelled_at,line_items`;
   let pageCount = 0;
 
   while (nextUrl && pageCount < ORDERS_MAX_PAGES) {
@@ -345,7 +346,7 @@ const fetchProductsByIds = async (shopDomain, accessToken, productIds) => {
       }
     `;
     const response = await fetchWithTimeout(
-      `https://${shopDomain}/admin/api/2024-01/graphql.json`,
+      `https://${shopDomain}/admin/api/${SHOPIFY_API_VERSION}/graphql.json`,
       {
         method: 'POST',
         headers: {

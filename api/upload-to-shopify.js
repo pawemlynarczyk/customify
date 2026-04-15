@@ -1,4 +1,5 @@
 const { checkRateLimit, getClientIP } = require('../utils/vercelRateLimiter');
+const { SHOPIFY_API_VERSION } = require('../utils/shopifyConfig');
 
 module.exports = async (req, res) => {
   // Set CORS headers
@@ -72,7 +73,7 @@ module.exports = async (req, res) => {
     // Upload to Shopify using Products API (more reliable permissions)
     console.log('📤 [UPLOAD-SHOPIFY] Uploading via Products API...');
     
-    const uploadResponse = await fetch(`https://${shop}/admin/api/2023-10/products.json`, {
+    const uploadResponse = await fetch(`https://${shop}/admin/api/${SHOPIFY_API_VERSION}/products.json`, {
       method: 'POST',
       headers: {
         'X-Shopify-Access-Token': accessToken,

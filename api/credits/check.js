@@ -2,6 +2,8 @@
 // Sprawdza saldo kredytów dla zalogowanego użytkownika
 // Kredyty przechowywane w Shopify Customer Metafield: namespace=customify, key=credits
 
+const { SHOPIFY_API_VERSION } = require('../../utils/shopifyConfig');
+
 const CORS_ORIGINS = [
   'https://lumly.pl',
   'https://customify-s56o.vercel.app',
@@ -38,7 +40,7 @@ async function getCustomerCredits(customerId) {
     }
   `;
 
-  const response = await fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
+  const response = await fetch(`https://${shopDomain}/admin/api/${SHOPIFY_API_VERSION}/graphql.json`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -46,7 +48,7 @@ async function getCustomerCredits(customerId) {
     },
     body: JSON.stringify({
       query,
-      variables: { id: `gid://shopify/Customer/${customerId}` }
+      variables: { id: String(customerId).startsWith('gid://') ? customerId : `gid://shopify/Customer/${customerId}` }
     })
   });
 
@@ -76,6 +78,8 @@ module.exports = async (req, res) => {
 
   try {
     const { customerId } = req.body;
+
+    console.log(`🔍 [CREDITS/CHECK] Otrzymane customerId: "${customerId}" (typ: ${typeof customerId})`);
 
     if (!customerId) {
       return res.status(400).json({

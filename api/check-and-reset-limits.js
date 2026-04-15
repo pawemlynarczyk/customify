@@ -6,6 +6,7 @@
 const { kv } = require('@vercel/kv');
 const { Resend } = require('resend');
 const { isKVConfigured } = require('../utils/vercelKVLimiter');
+const { SHOPIFY_API_VERSION } = require('../utils/shopifyConfig');
 
 const EMAIL_TRACKING_BASE = 'https://customify-s56o.vercel.app';
 function creditsTrackingUrl(customerId, target, type = 'credits') {
@@ -287,7 +288,7 @@ async function getUsageData(shopDomain, accessToken, customerId) {
     }
   `;
 
-  const resp = await fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
+  const resp = await fetch(`https://${shopDomain}/admin/api/${SHOPIFY_API_VERSION}/graphql.json`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -328,7 +329,7 @@ async function updateUsageToZero(shopDomain, accessToken, customerId, metafieldI
     }
   `;
 
-  const resp = await fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
+  const resp = await fetch(`https://${shopDomain}/admin/api/${SHOPIFY_API_VERSION}/graphql.json`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

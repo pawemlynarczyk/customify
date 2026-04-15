@@ -1,4 +1,5 @@
 const { checkRateLimit, getClientIP } = require('../utils/vercelRateLimiter');
+const { SHOPIFY_API_VERSION } = require('../utils/shopifyConfig');
 const { put } = require('@vercel/blob');
 
 // Import Sharp for watermark (optional - may not be available in all environments)
@@ -230,7 +231,7 @@ module.exports = async (req, res) => {
       if (originalProductId) {
         try {
           // Fetching base price from original product
-          const productResponse = await fetch(`https://${shop}/admin/api/2023-10/products/${originalProductId}.json`, {
+          const productResponse = await fetch(`https://${shop}/admin/api/${SHOPIFY_API_VERSION}/products/${originalProductId}.json`, {
             headers: {
               'X-Shopify-Access-Token': accessToken,
               'Content-Type': 'application/json'
@@ -365,7 +366,7 @@ module.exports = async (req, res) => {
     };
     // 🚨 ROLLBACK: END - Konfiguracja produktu cyfrowego
 
-    const createResponse = await fetch(`https://${shop}/admin/api/2023-10/products.json`, {
+    const createResponse = await fetch(`https://${shop}/admin/api/${SHOPIFY_API_VERSION}/products.json`, {
       method: 'POST',
       headers: {
         'X-Shopify-Access-Token': accessToken,
@@ -390,7 +391,7 @@ module.exports = async (req, res) => {
     if (variantSku && product.variants && product.variants[0]?.id) {
       const variantId = product.variants[0].id;
       try {
-        const skuRes = await fetch(`https://${shop}/admin/api/2023-10/variants/${variantId}.json`, {
+        const skuRes = await fetch(`https://${shop}/admin/api/${SHOPIFY_API_VERSION}/variants/${variantId}.json`, {
           method: 'PUT',
           headers: {
             'X-Shopify-Access-Token': accessToken,
@@ -648,7 +649,7 @@ module.exports = async (req, res) => {
       }
     };
 
-    const uploadResponse = await fetch(`https://${shop}/admin/api/2023-10/products/${productId}/images.json`, {
+    const uploadResponse = await fetch(`https://${shop}/admin/api/${SHOPIFY_API_VERSION}/products/${productId}/images.json`, {
       method: 'POST',
       headers: {
         'X-Shopify-Access-Token': accessToken,
@@ -762,7 +763,7 @@ module.exports = async (req, res) => {
         }
       };
 
-      const metafieldsResponse = await fetch(`https://${shop}/admin/api/2023-10/products/${productId}/metafields.json`, {
+      const metafieldsResponse = await fetch(`https://${shop}/admin/api/${SHOPIFY_API_VERSION}/products/${productId}/metafields.json`, {
         method: 'POST',
         headers: {
           'X-Shopify-Access-Token': accessToken,

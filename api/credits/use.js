@@ -4,6 +4,7 @@
 
 const { kv } = require('@vercel/kv');
 const { Resend } = require('resend');
+const { SHOPIFY_API_VERSION } = require('../../utils/shopifyConfig');
 
 const CORS_ORIGINS = [
   'https://lumly.pl',
@@ -44,7 +45,7 @@ async function getCustomerData(customerId) {
     }
   `;
 
-  const response = await fetch(`https://${SHOP_DOMAIN}/admin/api/2024-01/graphql.json`, {
+  const response = await fetch(`https://${SHOP_DOMAIN}/admin/api/${SHOPIFY_API_VERSION}/graphql.json`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -82,7 +83,7 @@ async function setCustomerCredits(customerId, newCredits, existingMetafieldId) {
         }
       }
     `;
-    const response = await fetch(`https://${SHOP_DOMAIN}/admin/api/2024-01/graphql.json`, {
+    const response = await fetch(`https://${SHOP_DOMAIN}/admin/api/${SHOPIFY_API_VERSION}/graphql.json`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -115,7 +116,7 @@ async function setCustomerCredits(customerId, newCredits, existingMetafieldId) {
         }
       }
     `;
-    const response = await fetch(`https://${SHOP_DOMAIN}/admin/api/2024-01/graphql.json`, {
+    const response = await fetch(`https://${SHOP_DOMAIN}/admin/api/${SHOPIFY_API_VERSION}/graphql.json`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

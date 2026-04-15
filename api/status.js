@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+const { SHOPIFY_API_VERSION } = require('../utils/shopifyConfig');
 
 module.exports = async (req, res) => {
   console.log('🚀 Status endpoint called:', {
@@ -48,7 +49,7 @@ module.exports = async (req, res) => {
   if (accessToken) {
     try {
       // Try to fetch shop info to verify installation
-      const response = await fetch(`https://${shop}/admin/api/2023-10/shop.json`, {
+      const response = await fetch(`https://${shop}/admin/api/${SHOPIFY_API_VERSION}/shop.json`, {
         headers: {
           'X-Shopify-Access-Token': accessToken,
           'Content-Type': 'application/json'

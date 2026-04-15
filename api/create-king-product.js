@@ -1,4 +1,5 @@
 const fetch = require('node-fetch');
+const { SHOPIFY_API_VERSION } = require('../utils/shopifyConfig');
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -62,7 +63,7 @@ module.exports = async (req, res) => {
     };
 
     // Utwórz produkt
-    const createResponse = await fetch(`https://${shop}/admin/api/2023-10/products.json`, {
+    const createResponse = await fetch(`https://${shop}/admin/api/${SHOPIFY_API_VERSION}/products.json`, {
       method: 'POST',
       headers: {
         'X-Shopify-Access-Token': accessToken,
@@ -100,7 +101,7 @@ module.exports = async (req, res) => {
       }
     };
 
-    const imageResponse = await fetch(`https://${shop}/admin/api/2023-10/products/${product.id}/images.json`, {
+    const imageResponse = await fetch(`https://${shop}/admin/api/${SHOPIFY_API_VERSION}/products/${product.id}/images.json`, {
       method: 'POST',
       headers: {
         'X-Shopify-Access-Token': accessToken,

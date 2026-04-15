@@ -1,3 +1,5 @@
+const { SHOPIFY_API_VERSION } = require('../utils/shopifyConfig');
+
 module.exports = async (req, res) => {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -26,7 +28,7 @@ module.exports = async (req, res) => {
     console.log('🔧 Updating theme:', fileName);
 
     // Get current theme
-    const themeResponse = await fetch(`https://${shop}/admin/api/2023-10/themes.json`, {
+    const themeResponse = await fetch(`https://${shop}/admin/api/${SHOPIFY_API_VERSION}/themes.json`, {
       headers: {
         'X-Shopify-Access-Token': accessToken,
         'Content-Type': 'application/json'
@@ -43,7 +45,7 @@ module.exports = async (req, res) => {
     console.log(`🎯 Using theme: ${mainTheme.name} (ID: ${mainTheme.id})`);
 
     // Update theme file
-    const updateResponse = await fetch(`https://${shop}/admin/api/2023-10/themes/${mainTheme.id}/assets.json`, {
+    const updateResponse = await fetch(`https://${shop}/admin/api/${SHOPIFY_API_VERSION}/themes/${mainTheme.id}/assets.json`, {
       method: 'PUT',
       headers: {
         'X-Shopify-Access-Token': accessToken,

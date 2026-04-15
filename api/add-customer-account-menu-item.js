@@ -7,6 +7,8 @@
  * Endpoint: POST /api/add-customer-account-menu-item
  */
 
+const { SHOPIFY_API_VERSION } = require('../utils/shopifyConfig');
+
 module.exports = async (req, res) => {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -55,7 +57,7 @@ module.exports = async (req, res) => {
       }
     };
 
-    const response = await fetch(`https://${shop}/admin/api/2024-01/graphql.json`, {
+    const response = await fetch(`https://${shop}/admin/api/${SHOPIFY_API_VERSION}/graphql.json`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

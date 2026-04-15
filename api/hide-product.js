@@ -1,3 +1,5 @@
+const { SHOPIFY_API_VERSION } = require('../utils/shopifyConfig');
+
 module.exports = async (req, res) => {
   console.log('🔒 [HIDE-PRODUCT.JS] Endpoint called');
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -48,7 +50,7 @@ module.exports = async (req, res) => {
       }
     };
 
-    const hideResponse = await fetch(`https://${shop}/admin/api/2023-10/products/${productId}.json`, {
+    const hideResponse = await fetch(`https://${shop}/admin/api/${SHOPIFY_API_VERSION}/products/${productId}.json`, {
       method: 'PUT',
       headers: {
         'X-Shopify-Access-Token': accessToken,

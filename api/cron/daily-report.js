@@ -6,6 +6,7 @@
 
 const https = require('https');
 const { Resend } = require('resend');
+const { SHOPIFY_API_VERSION } = require('../../utils/shopifyConfig');
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -72,7 +73,7 @@ async function getShopifyStats() {
   const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
   const result = await httpsGet({
     hostname: SHOPIFY_DOMAIN,
-    path: `/admin/api/2024-01/products.json?limit=250&fields=id,title,status,created_at&order=created_at+desc&created_at_min=${encodeURIComponent(since)}`,
+    path: `/admin/api/${SHOPIFY_API_VERSION}/products.json?limit=250&fields=id,title,status,created_at&order=created_at+desc&created_at_min=${encodeURIComponent(since)}`,
     headers: { 'X-Shopify-Access-Token': SHOPIFY_TOKEN }
   });
 
@@ -241,17 +242,38 @@ function buildEmailHtml({ sentry, shopify, reportDate }) {
 
 // ─── Handler ─────────────────────────────────────────────────────────────────
 
-module.exports = async function handler(req, res) {
-  // Zabezpieczenie: tylko Vercel Cron lub ręczny call z tokenem
-  const authHeader = req.headers.authorization;
-  const isVercelCron = req.headers['x-vercel-cron'] === '1' || req.headers['x-vercel-signature'];
-  const hasToken = authHeader === `Bearer ${ADMIN_STATS_TOKEN}`;
+function isVercelCronRequest(req) {
+  const vercelCronHeader = req.headers['x-vercel-cron'];
+  const vercelId = req.headers['x-vercel-id'];
+  const userAgent = req.headers['user-agent'] || '';
+  // Tak samo jak api/cron/cleanup-old-blobs.js i generation-reminder-3-7d.js:
+  // Nie polegamy na x-vercel-cron === '1' (wartość/nagłówki bywają różne); wymagamy x-vercel-id.
+  return (
+    (Boolean(vercelCronHeader) && Boolean(vercelId)) ||
+    (/vercel/i.test(userAgent) && /cron/i.test(userAgent) && Boolean(vercelId))
+  );
+}
 
-  if (!isVercelCron && !hasToken) {
+module.exports = async function handler(req, res) {
+  const authHeader = req.headers.authorization || '';
+  const cronSecret = process.env.CRON_SECRET;
+  const isCron = isVercelCronRequest(req);
+  const hasAdminToken =
+    ADMIN_STATS_TOKEN && authHeader === `Bearer ${ADMIN_STATS_TOKEN}`;
+  const hasCronSecret =
+    cronSecret && authHeader === `Bearer ${cronSecret}`;
+
+  if (!isCron && !hasAdminToken && !hasCronSecret) {
+    console.warn('📊 [DAILY-REPORT] 401 — brak cron (x-vercel-id / x-vercel-cron) ani poprawnego Bearer');
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
   console.log('📊 [DAILY-REPORT] Start raportu...');
+
+  if (!process.env.RESEND_API_KEY) {
+    console.error('❌ [DAILY-REPORT] Brak RESEND_API_KEY');
+    return res.status(500).json({ error: 'RESEND_API_KEY not configured' });
+  }
 
   try {
     const reportDate = new Date();

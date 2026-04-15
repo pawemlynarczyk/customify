@@ -8,6 +8,7 @@ const { put, head, get } = require('@vercel/blob');
 const { kv } = require('@vercel/kv');
 const { checkRateLimit, getClientIP } = require('../utils/vercelRateLimiter');
 const Sentry = require('../utils/sentry');
+const { SHOPIFY_API_VERSION } = require('../utils/shopifyConfig');
 
 // ⏰ Helper: dowolna operacja z timeoutem (zapobiega 504 gdy Blob/Shopify API jest wolne)
 async function withTimeout(promise, timeoutMs, operationName) {
@@ -562,7 +563,7 @@ async function saveGenerationHandler(req, res) {
         }
         
         // ✅ Najpierw sprawdź czy metafield już istnieje (z timeoutem 10s)
-        const checkMetafieldResponse = await withTimeout(fetch(`https://${shop}/admin/api/2023-10/customers/${customerId}/metafields.json?namespace=customify&key=generation_ready`, {
+        const checkMetafieldResponse = await withTimeout(fetch(`https://${shop}/admin/api/${SHOPIFY_API_VERSION}/customers/${customerId}/metafields.json?namespace=customify&key=generation_ready`, {
           method: 'GET',
           headers: {
             'X-Shopify-Access-Token': accessToken,
@@ -584,7 +585,7 @@ async function saveGenerationHandler(req, res) {
         // ✅ Jeśli metafield istnieje - użyj PUT (aktualizacja), jeśli nie - użyj POST (tworzenie)
         if (metafieldId) {
           // Aktualizuj istniejący metafield (z timeoutem 10s)
-          metafieldResponse = await withTimeout(fetch(`https://${shop}/admin/api/2023-10/customers/${customerId}/metafields/${metafieldId}.json`, {
+          metafieldResponse = await withTimeout(fetch(`https://${shop}/admin/api/${SHOPIFY_API_VERSION}/customers/${customerId}/metafields/${metafieldId}.json`, {
             method: 'PUT',
             headers: {
               'X-Shopify-Access-Token': accessToken,
@@ -599,7 +600,7 @@ async function saveGenerationHandler(req, res) {
           }), 10000, 'update shopify metafield PUT');
         } else {
           // Utwórz nowy metafield (z timeoutem 10s)
-          metafieldResponse = await withTimeout(fetch(`https://${shop}/admin/api/2023-10/customers/${customerId}/metafields.json`, {
+          metafieldResponse = await withTimeout(fetch(`https://${shop}/admin/api/${SHOPIFY_API_VERSION}/customers/${customerId}/metafields.json`, {
             method: 'POST',
             headers: {
               'X-Shopify-Access-Token': accessToken,
@@ -806,7 +807,7 @@ Pozdrawiamy,
 Zespół Lumly
         `.trim();
         
-        const emailResponse = await fetch(`https://${shop}/admin/api/2023-10/customers/${customerId}/send_invite.json`, {
+        const emailResponse = await fetch(`https://${shop}/admin/api/${SHOPIFY_API_VERSION}/customers/${customerId}/send_invite.json`, {
           method: 'POST',
           headers: {
             'X-Shopify-Access-Token': accessToken,
@@ -948,7 +949,7 @@ Zespół Lumly
           
           console.log(`🔍 [SAVE-GENERATION] GraphQL variables:`, JSON.stringify(variables, null, 2));
           
-          const updateResponse = await fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
+          const updateResponse = await fetch(`https://${shopDomain}/admin/api/${SHOPIFY_API_VERSION}/graphql.json`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',

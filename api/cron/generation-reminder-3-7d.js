@@ -7,6 +7,7 @@
 const { list } = require('@vercel/blob');
 const { kv } = require('@vercel/kv');
 const { Resend } = require('resend');
+const { SHOPIFY_API_VERSION } = require('../../utils/shopifyConfig');
 
 const BLOB_TOKEN = process.env.customify_READ_WRITE_TOKEN || process.env.BLOB_READ_WRITE_TOKEN;
 const PREFIX = 'customify/system/stats/generations/';
@@ -32,7 +33,7 @@ function isCustomifyLineItem(item) {
 async function getRecentCustomifyPurchases(shopDomain, accessToken, daysBack = 30) {
   const allowedStatus = new Set(['paid', 'partially_paid']);
   const createdAtMin = new Date(Date.now() - daysBack * 24 * 60 * 60 * 1000).toISOString();
-  let url = `https://${shopDomain}/admin/api/2024-01/orders.json?status=any&limit=250&created_at_min=${encodeURIComponent(createdAtMin)}`;
+  let url = `https://${shopDomain}/admin/api/${SHOPIFY_API_VERSION}/orders.json?status=any&limit=250&created_at_min=${encodeURIComponent(createdAtMin)}`;
   let pageCount = 0;
   const maxPages = 10;
   const purchasesByCustomerId = new Map();
@@ -96,7 +97,7 @@ async function getCollectionProducts(shopDomain, accessToken, collectionHandle) 
         }
       }
     `;
-    const res = await fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
+    const res = await fetch(`https://${shopDomain}/admin/api/${SHOPIFY_API_VERSION}/graphql.json`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Shopify-Access-Token': accessToken },
       body: JSON.stringify({ query, variables: { handle: collectionHandle } })
@@ -127,11 +128,13 @@ function trackingUrl(type, customerId, target) {
 
 function buildReminderEmailHtml(imageUrl, variant, products = [], customerId = null) {
   const headlines = {
+    '1d': 'Twój obraz AI jest gotowy – odbierz go teraz',
     '3d': 'Twój obraz czeka – dokończ zamówienie, zanim zniknie',
     '7d': 'Twoja generacja wciąż na Ciebie czeka',
     '14d': 'Ostatnia szansa – Twój obraz czeka na zamówienie'
   };
   const texts = {
+    '1d': 'Właśnie wygenerowaliśmy Twój projekt AI. Otwórz „Moje generacje”, zobacz podgląd i zamów wydruk, gdy będziesz gotowy.',
     '3d': 'Twój projekt z ostatniej generacji czeka w galerii. Zobacz go i dodaj do koszyka, gdy będziesz gotowy.',
     '7d': 'Nie zapomnij o swoim projekcie. Zobacz go w galerii i zamów wydruk w kilku kliknięciach.',
     '14d': 'Minęły już 2 tygodnie od Twojej ostatniej generacji. Zobacz projekt w galerii i zamów wydruk – to ostatnia szansa.'

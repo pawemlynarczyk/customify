@@ -6,6 +6,7 @@
 
 const { put, head, list, del } = require('@vercel/blob');
 const { checkRateLimit, getClientIP } = require('../../utils/vercelRateLimiter');
+const { SHOPIFY_API_VERSION } = require('../../utils/shopifyConfig');
 
 const STATS_FILE_PATH = 'customify/stats/login-modal-stats.json'; // legacy - do odczytu
 const STATS_NEW_PREFIX = 'customify/statystyki/';
@@ -253,7 +254,7 @@ const getShopifyNewCustomersToday = async () => {
   const { from, to } = getTodayBoundsWarsawUTC();
   const query = `query { customersCount(query: "created_at:>=${from} AND created_at:<${to}") { count } }`;
   try {
-    const res = await fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
+    const res = await fetch(`https://${shopDomain}/admin/api/${SHOPIFY_API_VERSION}/graphql.json`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Shopify-Access-Token': accessToken },
       body: JSON.stringify({ query })

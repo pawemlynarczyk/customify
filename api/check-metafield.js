@@ -1,4 +1,6 @@
 // Test endpoint - sprawdź czy metafield generation_ready istnieje
+const { SHOPIFY_API_VERSION } = require('../utils/shopifyConfig');
+
 module.exports = async (req, res) => {
   const customerId = '24364235915589'; // Twoje ID
   const shop = process.env.SHOP_DOMAIN || 'customify-ok.myshopify.com';
@@ -6,7 +8,7 @@ module.exports = async (req, res) => {
 
   try {
     // Pobierz wszystkie metafields dla customera
-    const response = await fetch(`https://${shop}/admin/api/2023-10/customers/${customerId}/metafields.json`, {
+    const response = await fetch(`https://${shop}/admin/api/${SHOPIFY_API_VERSION}/customers/${customerId}/metafields.json`, {
       headers: {
         'X-Shopify-Access-Token': accessToken,
         'Content-Type': 'application/json'

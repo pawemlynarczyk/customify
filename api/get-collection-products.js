@@ -4,6 +4,8 @@
  * GET: /api/get-collection-products?handle=walentynki
  */
 
+const { SHOPIFY_API_VERSION } = require('../utils/shopifyConfig');
+
 module.exports = async (req, res) => {
   // CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -95,7 +97,7 @@ module.exports = async (req, res) => {
       variables = { handle: collectionHandle };
     }
 
-    const response = await fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
+    const response = await fetch(`https://${shopDomain}/admin/api/${SHOPIFY_API_VERSION}/graphql.json`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

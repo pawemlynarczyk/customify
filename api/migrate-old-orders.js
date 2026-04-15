@@ -1,5 +1,6 @@
 const { checkRateLimit, getClientIP } = require('../utils/vercelRateLimiter');
 const { put } = require('@vercel/blob');
+const { SHOPIFY_API_VERSION } = require('../utils/shopifyConfig');
 
 module.exports = async (req, res) => {
   // Set CORS headers
@@ -43,7 +44,7 @@ module.exports = async (req, res) => {
 
     if (orderId) {
       // Pojedyncze zamówienie
-      const orderResponse = await fetch(`https://${shop}/admin/api/2023-10/orders/${orderId}.json`, {
+      const orderResponse = await fetch(`https://${shop}/admin/api/${SHOPIFY_API_VERSION}/orders/${orderId}.json`, {
         headers: {
           'X-Shopify-Access-Token': accessToken,
           'Content-Type': 'application/json'
@@ -58,7 +59,7 @@ module.exports = async (req, res) => {
       orders = [orderData.order];
     } else {
       // Wszystkie zamówienia z limitem
-      const ordersResponse = await fetch(`https://${shop}/admin/api/2023-10/orders.json?limit=${limit}&status=any`, {
+      const ordersResponse = await fetch(`https://${shop}/admin/api/${SHOPIFY_API_VERSION}/orders.json?limit=${limit}&status=any`, {
         headers: {
           'X-Shopify-Access-Token': accessToken,
           'Content-Type': 'application/json'
@@ -150,7 +151,7 @@ module.exports = async (req, res) => {
           // Metoda 2: Pobierz z produktu
           if (!imageBuffer && item.product_id) {
             try {
-              const productResponse = await fetch(`https://${shop}/admin/api/2023-10/products/${item.product_id}.json`, {
+              const productResponse = await fetch(`https://${shop}/admin/api/${SHOPIFY_API_VERSION}/products/${item.product_id}.json`, {
                 headers: {
                   'X-Shopify-Access-Token': accessToken,
                   'Content-Type': 'application/json'
@@ -246,7 +247,7 @@ module.exports = async (req, res) => {
           // Properties są tylko do odczytu dla zamówień
 
           // Dodaj metafield z nowym URL (jako backup info)
-          const metafieldResponse = await fetch(`https://${shop}/admin/api/2023-10/orders/${order.id}/metafields.json`, {
+          const metafieldResponse = await fetch(`https://${shop}/admin/api/${SHOPIFY_API_VERSION}/orders/${order.id}/metafields.json`, {
             method: 'POST',
             headers: {
               'X-Shopify-Access-Token': accessToken,

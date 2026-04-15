@@ -5,6 +5,8 @@
  * Endpoint: POST /api/update-page-settings
  */
 
+const { SHOPIFY_API_VERSION } = require('../utils/shopifyConfig');
+
 module.exports = async (req, res) => {
   // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -27,7 +29,7 @@ module.exports = async (req, res) => {
     }
 
     // Znajdź stronę "my-generations"
-    const checkResponse = await fetch(`https://${shop}/admin/api/2024-01/pages.json?handle=my-generations`, {
+    const checkResponse = await fetch(`https://${shop}/admin/api/${SHOPIFY_API_VERSION}/pages.json?handle=my-generations`, {
       method: 'GET',
       headers: {
         'X-Shopify-Access-Token': accessToken,
@@ -54,7 +56,7 @@ module.exports = async (req, res) => {
     const pageId = page.id;
 
     // Zaktualizuj stronę - upewnij się że używa template
-    const updateResponse = await fetch(`https://${shop}/admin/api/2024-01/pages/${pageId}.json`, {
+    const updateResponse = await fetch(`https://${shop}/admin/api/${SHOPIFY_API_VERSION}/pages/${pageId}.json`, {
       method: 'PUT',
       headers: {
         'X-Shopify-Access-Token': accessToken,

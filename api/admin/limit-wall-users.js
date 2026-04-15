@@ -3,6 +3,7 @@
 
 const { kv } = require('@vercel/kv');
 const { head } = require('@vercel/blob');
+const { SHOPIFY_API_VERSION } = require('../../utils/shopifyConfig');
 
 const PERSONALIZATION_LOG_BLOB_KEY = 'customify/system/stats/personalization-log.json';
 
@@ -156,7 +157,7 @@ async function fetchCustomersUsage(customerIds) {
       ids: idsChunk.map((id) => `gid://shopify/Customer/${id}`)
     };
     const resp = await withTimeout(
-      fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
+      fetch(`https://${shopDomain}/admin/api/${SHOPIFY_API_VERSION}/graphql.json`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
