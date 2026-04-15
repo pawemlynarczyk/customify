@@ -35,29 +35,12 @@ module.exports = async (req, res) => {
     );
 
     if (existingWebhook) {
-      if (existingWebhook.api_version === SHOPIFY_API_VERSION) {
-        console.log('✅ [SETUP-WEBHOOK] Webhook already exists with correct version:', existingWebhook.id);
-        return res.json({
-          success: true,
-          message: 'Webhook already exists with correct API version',
-          webhook: existingWebhook
-        });
-      }
-
-      console.log(`🔄 [SETUP-WEBHOOK] Webhook exists but has old api_version: ${existingWebhook.api_version} → deleting to recreate with ${SHOPIFY_API_VERSION}`);
-      const deleteResponse = await fetch(`https://${shop}/admin/api/${SHOPIFY_API_VERSION}/webhooks/${existingWebhook.id}.json`, {
-        method: 'DELETE',
-        headers: {
-          'X-Shopify-Access-Token': accessToken,
-          'Content-Type': 'application/json'
-        }
+      console.log('✅ [SETUP-WEBHOOK] Webhook already exists:', existingWebhook.id, '(api_version:', existingWebhook.api_version + ')');
+      return res.json({
+        success: true,
+        message: 'Webhook already exists',
+        webhook: existingWebhook
       });
-      if (!deleteResponse.ok) {
-        const errText = await deleteResponse.text();
-        console.error('❌ [SETUP-WEBHOOK] Failed to delete old webhook:', errText);
-        return res.status(500).json({ error: 'Failed to delete old webhook', details: errText });
-      }
-      console.log('🗑️ [SETUP-WEBHOOK] Old webhook deleted:', existingWebhook.id);
     }
 
     // Utwórz nowy webhook
