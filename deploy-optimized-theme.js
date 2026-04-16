@@ -15,13 +15,9 @@ async function deployOptimizedTheme() {
     
     console.log('📁 Wczytano theme.liquid:', themeContent.length, 'znaków');
     
-    // ✅ OPTYMALIZACJA: Usuń komentarze HTML (oszczędność ~2-3 KB)
-    // Zachowaj tylko komentarze Liquid ({% comment %})
     const originalSize = themeContent.length;
     themeContent = themeContent.replace(/<!--(?!\s*\{%)[\s\S]*?-->/g, '');
-    
-    // ✅ OPTYMALIZACJA: Usuń nadmiarowe białe znaki (oszczędność ~1-2 KB)
-    // Zachowaj tylko pojedyncze spacje między słowami, usuń wielokrotne spacje/taby
+    themeContent = themeContent.replace(/\{%[-\s]*comment\s*[-]?%\}[\s\S]*?\{%[-\s]*endcomment\s*[-]?%\}/g, '');
     themeContent = themeContent.replace(/[ \t]+/g, ' ');
     themeContent = themeContent.replace(/\n\s*\n\s*\n/g, '\n\n');
     

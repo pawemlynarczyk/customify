@@ -81,50 +81,10 @@
  }
  </script>
 
- {%- if template contains 'product' -%}
- {%- unless product.tags contains 'hidden-from-catalog' or product.tags contains 'customer-order' -%}
- <script type="application/ld+json">
- {
- "@context": "https://schema.org",
- "@type": "Product",
- "@id": "https://lumly.pl/products/{{ product.handle }}#product",
- "name": {{ product.title | json }},
- "description": {{ product.description | strip_html | truncatewords: 80 | json }},
- "url": "https://lumly.pl/products/{{ product.handle }}",
- "image": [
- {%- for image in product.images limit: 5 -%}
- "{{ image | image_url: width: 1200 }}"{% unless forloop.last %},{% endunless %}
- {%- endfor -%}
- ],
- "brand": {
- "@type": "Brand",
- "name": "Lumly"
- },
- "offers": {
- "@type": "AggregateOffer",
- "priceCurrency": "PLN",
- "lowPrice": "{{ product.price_min | money_without_currency | remove: ' ' | remove: ',' | replace: '.', '.' }}",
- "highPrice": "{{ product.price_max | money_without_currency | remove: ' ' | remove: ',' | replace: '.', '.' }}",
- "offerCount": {{ product.variants.size }},
- "availability": "{% if product.available %}https://schema.org/InStock{% else %}https://schema.org/OutOfStock{% endif %}",
- "seller": {
- "@type": "Organization",
- "name": "Lumly",
- "url": "https://lumly.pl"
- }
- },
- "isRelatedTo": {
- "@type": "Service",
- "name": "Personalizacja AI",
- "description": "Transformacja zdjęcia użytkownika przy pomocy sztucznej inteligencji"
- }
- }
- </script>
- {%- endunless -%}
- {%- endif -%}
-
  {%- render 'fonts' -%}
  
+ <link rel="preconnect" href="https://customify-s56o.vercel.app" crossorigin>
+ <link rel="dns-prefetch" href="https://customify-s56o.vercel.app">
  <link rel="preconnect" href="https://fonts.googleapis.com">
  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
  
@@ -6383,6 +6343,22 @@ opacity: 0.9;
 
 {% sections 'footer-group' %}
 
+<script>
+(function(){
+  if (!document.querySelector('script[src*="critical.js"]')) return;
+  var timer = setTimeout(function(){
+    var main = document.getElementById('MainContent');
+    if (main && !main.querySelector('.section-renderer-loaded') && !document.querySelector('[data-section-renderer]')) {
+      var b = document.createElement('div');
+      b.id = 'customify-reload-banner';
+      b.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:#fff3cd;border-top:2px solid #ffc107;padding:12px 16px;text-align:center;font-family:sans-serif;font-size:14px;color:#856404;z-index:999999;display:flex;align-items:center;justify-content:center;gap:12px;';
+      b.innerHTML = '<span>Strona mogła nie załadować się poprawnie.</span><button onclick="location.reload()" style="background:#ffc107;border:none;border-radius:6px;padding:8px 18px;font-weight:600;cursor:pointer;font-size:14px;">Odśwież stronę</button><button onclick="this.parentElement.remove()" style="background:none;border:none;font-size:18px;cursor:pointer;color:#856404;padding:4px 8px;">✕</button>';
+      document.body.appendChild(b);
+    }
+  }, 12000);
+  window.addEventListener('load', function(){ clearTimeout(timer); });
+})();
+</script>
 
  </body>
 </html>{% comment %} Cache bust: 1761686705 {% endcomment %}
