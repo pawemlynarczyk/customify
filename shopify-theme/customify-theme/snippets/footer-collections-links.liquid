@@ -2,7 +2,7 @@
   Kategorie z heurystyki (handle + tytuł). Metafield customify.footer_kategoria opcjonalnie nadpisuje.
   Ukryte w stopce (tytuł dokładnie jak w adminie): SEO / duplikaty; m.in. „Prezent dla Niej” gdy jest osobna sekcja „Dla niej”.
 {% endcomment %}
-{%- assign footer_hidden_collection_titles = 'Obraz ze zdjęcia|Personalizowany prezent|Personalizowany prezent ze zdjęcia|Portret Pary ze zdjęcia|Prezent dla Pary|Dzień Dziadka|Dzień Babci|Dzień Matki|Dzień Ojca|Dzień Kobiet|Personalizowany prezent dla Niej|Prezent dla Niej|Personalizowany prezent dla Pary|Dla pary|Dla Pary|Personalizowany prezent dla Niego|Prezent dla Niego|Dla niego|Dla Niego|Prezent ze zdjęcia|Portrety na Plakacie|Portret ze zdjęcia|Prezent na rocznicę' | split: '|' -%}
+{%- assign footer_hidden_collection_titles = 'Obraz ze zdjęcia|Personalizowany prezent|Personalizowany prezent ze zdjęcia|Portret Pary ze zdjęcia|Prezent dla Pary|Dzień Dziadka|Dzień Babci|Dzień Matki|Dzień Ojca|Dzień Kobiet|Personalizowany prezent dla Niej|Prezent dla Niej|Personalizowany prezent dla Pary|Dla pary|Dla Pary|Personalizowany prezent dla Niego|Prezent dla Niego|Dla niego|Dla Niego|Prezent ze zdjęcia|Portrety na Plakacie|Portret ze zdjęcia|Prezent na rocznicę|Prezent na Urodziny' | split: '|' -%}
 {%- assign footer_seen_title_norm = '' -%}
 {% unless template == 'cart' %}
 {%- liquid
@@ -162,6 +162,8 @@
         {% assign b_owi = b_owi | append: li %}
       {% when 'okazja:inne' %}
         {% assign b_oi2 = b_oi2 | append: li %}
+      {% else %}
+        {% assign b_oi2 = b_oi2 | append: li %}
     {% endcase %}
   {% endunless %}
 {% endfor %}
@@ -219,6 +221,12 @@
         {% render 'footer-cat-sub', body: b_op, heading: 'Dla pary' %}
         {% render 'footer-cat-sub', body: b_tesci, heading: 'Prezent dla teściów' %}
       </section>
+      <section class="footer-cat-block" aria-labelledby="footer-sub-wszyscy">
+        <h4 class="footer-cat-subcat-title" id="footer-sub-wszyscy">Dla wszystkich</h4>
+        {% render 'footer-cat-sub', body: b_odz, heading: 'Dla dziecka' %}
+        {% render 'footer-cat-sub', body: b_rodzen, heading: 'Prezent dla rodzeństwa' %}
+        {% render 'footer-cat-sub', body: b_milzw, heading: 'Prezent dla miłośnika zwierząt' %}
+      </section>
         </div>
       </div>
       <section class="footer-cat-block" aria-labelledby="footer-cat-okazja">
@@ -240,13 +248,6 @@
       </section>
     </div>
 
-    {% if b_odz != blank or b_rodzen != blank or b_milzw != blank %}
-    <div class="footer-cat-dla-kogo-extra">
-      {% render 'footer-cat-sub', body: b_odz, heading: 'Dla dziecka' %}
-      {% render 'footer-cat-sub', body: b_rodzen, heading: 'Prezent dla rodzeństwa' %}
-      {% render 'footer-cat-sub', body: b_milzw, heading: 'Prezent dla miłośnika zwierząt' %}
-    </div>
-    {% endif %}
   </div>
 </nav>
 {% endunless %}

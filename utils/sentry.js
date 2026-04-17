@@ -14,7 +14,8 @@ if (!Sentry && process.env.SENTRY_DSN) {
     Sentry.init({
       dsn: process.env.SENTRY_DSN,
       environment: process.env.VERCEL_ENV || 'production',
-      tracesSampleRate: 0.1, // 10% of transactions
+      // Quota: performance transactions off (biggest saver vs 10% sampling)
+      tracesSampleRate: 0,
       beforeSend(event, hint) {
         // Filtruj błędy (opcjonalnie)
         return event;

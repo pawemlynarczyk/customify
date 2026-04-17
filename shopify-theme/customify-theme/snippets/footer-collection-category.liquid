@@ -120,6 +120,14 @@
       assign fk = 'okazja:dzien_kobiet'
     elsif raw contains 'swiat' or raw contains 'świąt' or raw contains 'swieta' or raw contains 'boze narodzenie' or raw contains 'gwiazd' or raw contains 'choink'
       assign fk = 'okazja:swieta'
+    elsif raw contains 'chrzest' or raw contains 'chrztu'
+      assign fk = 'okazja:urodziny'
+    elsif raw contains 'kawalerski'
+      assign fk = 'okazja:urodziny'
+    elsif raw contains 'panieński' or raw contains 'panienski' or raw contains 'panieńsk'
+      assign fk = 'okazja:urodziny'
+    elsif raw contains 'halloween'
+      assign fk = 'okazja:urodziny'
     else
       assign fk = 'okazja:inne'
     endif

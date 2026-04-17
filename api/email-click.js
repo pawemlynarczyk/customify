@@ -3,7 +3,14 @@
 
 const { kv } = require('@vercel/kv');
 
-const VALID_TYPES = new Set(['generation', 'credits', 'reminder_3d', 'reminder_7d', 'reminder_14d']);
+const VALID_TYPES = new Set([
+  'generation',
+  'credits',
+  'reminder_1d',
+  'reminder_3d',
+  'reminder_7d',
+  'reminder_14d'
+]);
 const KV_TTL_30D = 30 * 24 * 3600;
 
 module.exports = async (req, res) => {

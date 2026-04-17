@@ -337,6 +337,19 @@ const shopifyRequest = async (endpoint, options = {}) => {
 - Do NOT ask about token values or setup
 - SHOPIFY_ACCESS_TOKEN is available in environment variables - use it directly
 
+## Sentry — dostęp API w tym workspace (NIE PYTAJ O TOKEN)
+- **ZASADA**: Przy sprawdzaniu błędów Sentry **nie pytaj użytkownika** o token ani „czy mam dostęp” — **najpierw** użyj env z dysku.
+- **Lokalne sekrety**: W root projektu jest **`.env.local`** (gitignored) z m.in. `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_DSN`. Agent ma **uruchamiać skrypt** z wczytanym env, nie prosić o wklejenie tokena.
+- **Organizacja**: `SENTRY_ORG` w `.env.local`; w kodzie fallback to **`eshop-xg`** (`api/cron/daily-report.js`).
+- **Pobranie unresolved issues (API)**:
+  ```bash
+  cd /path/to/customify && set -a && [ -f .env.local ] && . ./.env.local && set +a && node check-sentry-errors.js 7
+  ```
+  - Opcjonalnie: `node check-sentry-issue-details.js <issueId>` (wymaga tych samych zmiennych).
+- **Wynik**: JSON w `sentry-reports/sentry-errors-<data>-<dni>d.json` + podsumowanie w stdout.
+- **Dashboard**: `https://sentry.io/organizations/eshop-xg/issues/?query=is%3Aunresolved` (dopasuj org jeśli inny slug w `.env.local`).
+- **BEZPIECZEŃSTWO**: **Nigdy** nie wklejaj `SENTRY_AUTH_TOKEN` do `.cursorrules`, commitów ani odpowiedzi — tylko odwołanie do `.env.local` / `process.env`.
+
 ## 🔍 Vercel CLI - Dostęp do Logów
 - **Vercel CLI**: Zainstalowany globalnie (v48.0.2)
 - **Node**: v24.9.0

@@ -10,6 +10,7 @@ yarn-error.log*
 .env.development.local
 .env.test.local
 .env.production.local
+.env.vercel.local
 
 # Uploads (not needed for serverless)
 # uploads/*

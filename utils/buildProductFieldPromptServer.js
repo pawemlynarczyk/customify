@@ -279,6 +279,7 @@ function autoSelectedStyleFromHandle(productHandle) {
       h === 'karykatura-rolnik-ze-zdjecia-personalizowany-prezent-dla-mezczyzny' ||
       h === 'kulturysta-karykatura-ze-zdjecia-prezent-dla-mezczyzny' ||
       h === 'karykatura-wedkarz-portret-ze-zdjecia-personalizowany-prezent-dla-faceta' ||
+      h === 'karykatura-polskiego-rolnika-z-ciagnikiem-prezent-z-charakterem' ||
       h === 'karykatura-pilkarza-ze-zdjecia-personalizowany-obraz-dla-chlopaka-dziadka-taty' ||
       h === 'obraz-ze-zdjecia-karykatura-policjant-prezent-dla-faceta' ||
       h === 'obraz-ze-zdjecia-karykatura-szefa' ||

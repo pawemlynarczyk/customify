@@ -91,6 +91,9 @@ function getProductTypeFromPseudoUrl(handle, style) {
     if (currentUrl.includes('karykatura-rolnik-ze-zdjecia-personalizowany-prezent-dla-mezczyzny')) {
             return 'caricature-new';
     }
+    if (currentUrl.includes('karykatura-polskiego-rolnika-z-ciagnikiem-prezent-z-charakterem')) {
+            return 'caricature-new';
+    }
     if (currentUrl.includes('obraz-ze-zdjecia-prezent-dla-chlopca-pilkarz')) {
             return 'caricature-new';
     }

@@ -390,12 +390,49 @@ async function addCustomerToDeviceToken(deviceToken, customerId) {
 // DEVICE-TOKEN-CROSS-ACCOUNT-FEATURE: END
 // ============================================================================
 
+/** Ręczna blokada generacji AI po IP — jednorazowe okno (np. 5 dni od pierwszego żądania po wdrożeniu). Wartość w KV: timestamp końca blokady (bez auto-odnowienia). */
+const MANUAL_TEMP_IP_BLOCK_MS = 5 * 24 * 60 * 60 * 1000;
+const MANUAL_TEMP_BLOCKED_IPS = new Set(['62.40.68.30']);
+
+/**
+ * @param {string} ip
+ * @returns {Promise<{ blocked: boolean }>}
+ */
+async function checkManualTemporaryIPBlock(ip) {
+  if (!ip || !MANUAL_TEMP_BLOCKED_IPS.has(ip)) {
+    return { blocked: false };
+  }
+  if (!isKVConfigured()) {
+    console.warn('⚠️ [KV-LIMITER] Manual temp IP block: KV nieaktywne — pomijam blokadę');
+    return { blocked: false };
+  }
+  try {
+    const key = `ip:manualblock:${ip}`;
+    let endStr = await kv.get(key);
+    if (endStr == null) {
+      const endMs = Date.now() + MANUAL_TEMP_IP_BLOCK_MS;
+      await kv.set(key, String(endMs), { nx: true });
+      endStr = await kv.get(key);
+    }
+    const endMs = parseInt(String(endStr || '0'), 10);
+    const blocked = Number.isFinite(endMs) && Date.now() < endMs;
+    if (blocked) {
+      console.warn(`⛔ [KV-LIMITER] Manual temp IP block aktywny dla ${ip} (do ${new Date(endMs).toISOString()})`);
+    }
+    return { blocked };
+  } catch (error) {
+    console.error('❌ [KV-LIMITER] checkManualTemporaryIPBlock:', error);
+    return { blocked: false };
+  }
+}
+
 module.exports = {
   checkIPLimit,
   incrementIPLimit,
   checkDeviceTokenLimit,
   incrementDeviceTokenLimit,
   isKVConfigured,
+  checkManualTemporaryIPBlock,
   // IMAGE-HASH-FEATURE exports:
   isImageHashLimitEnabled,
   calculateImageHash,

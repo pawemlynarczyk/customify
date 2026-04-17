@@ -37,7 +37,10 @@
   {%- if is_generated_product -%}
     <meta name="robots" content="noindex, nofollow">
   {%- else -%}
-    {% comment %} aggregateRating JSON-LD dla głównych produktów - spójne z ocenami wyświetlanymi na stronie {% endcomment %}
+    {% comment %}
+      Disabled extra Product JSON-LD block to avoid duplicate/conflicting Product entities in GSC.
+      Canonical Product structured data remains from Shopify product section.
+      Previous block contained aggregateRating and sku.
     <script type="application/ld+json">
     {
       "@context": "https://schema.org/",
@@ -54,5 +57,6 @@
       "sku": {{ product.variants.first.sku | default: product.handle | json }}
     }
     </script>
+    {% endcomment %}
   {%- endif -%}
 {% endif %}

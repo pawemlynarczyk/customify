@@ -184,66 +184,11 @@
     <div id="loading" class="loading">Ładowanie statystyk...</div>
     
     <div id="content" style="display: none;">
-      <!-- Summary Stats -->
-      <div class="stats-grid">
-        <div class="stat-card" style="background: linear-gradient(135deg, #607D8B 0%, #455A64 100%);">
-          <div class="stat-value" id="totalEntries">0</div>
-          <div class="stat-label">Wyświetleń stron produktów</div>
-        </div>
-        <div class="stat-card" style="background: linear-gradient(135deg, #E91E63 0%, #C2185B 100%);">
-          <div class="stat-value" id="totalGenerations">0</div>
-          <div class="stat-label">Generacji AI</div>
-        </div>
-        <div class="stat-card primary">
-          <div class="stat-value" id="totalShown">0</div>
-          <div class="stat-label">Wyświetleń modala</div>
-        </div>
-        <div class="stat-card" style="background: linear-gradient(135deg, #795548 0%, #5D4037 100%);">
-          <div class="stat-value" id="entriesPerModal">-</div>
-          <div class="stat-label">Odsłon / 1 modal</div>
-        </div>
-        <div class="stat-card" style="background: linear-gradient(135deg, #009688 0%, #00796B 100%);">
-          <div class="stat-value" id="modalPercent">0%</div>
-          <div class="stat-label">Modal % odsłon</div>
-        </div>
-        <div class="stat-card success">
-          <div class="stat-value" id="totalRegisterClicks">0</div>
-          <div class="stat-label">Kliknięć w Rejestrację</div>
-        </div>
-        <div class="stat-card success">
-          <div class="stat-value" id="totalLoginClicks">0</div>
-          <div class="stat-label">Kliknięć w Logowanie</div>
-        </div>
-        <div class="stat-card warning">
-          <div class="stat-value" id="totalCancelClicks">0</div>
-          <div class="stat-label">Anulowań</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value" id="totalAutoRedirects">0</div>
-          <div class="stat-label">Auto-przekierowań</div>
-        </div>
-        <div class="stat-card primary">
-          <div class="stat-value" id="conversionRate">0%</div>
-          <div class="stat-label">Conversion Rate</div>
-        </div>
-        <div class="stat-card success" id="registerSuccessCard">
-          <div class="stat-value" id="totalRegisterSuccess">0</div>
-          <div class="stat-label">Rejestracje (nowi klienci dziś)</div>
-          <div class="stat-sublabel" id="registerSuccessSublabel" style="font-size: 12px; opacity: 0.9; margin-top: 6px;"></div>
-        </div>
-        <div class="stat-card success">
-          <div class="stat-value" id="totalLoginSuccess">0</div>
-          <div class="stat-label">Logowania zakończone</div>
-        </div>
-        <div class="stat-card primary">
-          <div class="stat-value" id="actualConversionRate">0%</div>
-          <div class="stat-label">Realny conversion</div>
-        </div>
-      </div>
-      
-      <!-- By Date -->
       <div class="section">
         <h2 class="section-title">📅 Statystyki per Data</h2>
+        <p style="font-size: 14px; color: #666; margin: -12px 0 16px;">
+          Skróty <strong>Klik. rejestr.</strong> / <strong>Klik. logow.</strong> oznaczają <strong>kliknięcia</strong> w przyciski modala. Zakończone rejestracje/logowania per dzień są w odpowiedzi API w <code>byDate[].registerSuccess</code> i <code>loginSuccess</code> (w tej tabeli ich nie widać).
+        </p>
         <table id="dateTable">
           <thead>
             <tr>
@@ -252,8 +197,8 @@
               <th>Wyświetleń modala</th>
               <th>Odsłon/modal</th>
               <th>Generacji AI</th>
-              <th>Rejestracje</th>
-              <th>Logowania</th>
+              <th>Klik. rejestr.</th>
+              <th>Klik. logow.</th>
               <th>Anulowania</th>
               <th>Auto-redirect</th>
               <th>Conversion</th>
@@ -338,36 +283,6 @@
         
         const stats = data.stats;
         
-        // Update summary
-        document.getElementById('totalEntries').textContent = stats.summary.totalEntries || 0;
-        document.getElementById('totalGenerations').textContent = stats.summary.totalGenerations || 0;
-        document.getElementById('totalShown').textContent = stats.summary.totalShown;
-        document.getElementById('entriesPerModal').textContent = stats.calculated?.entriesPerModal ?? '-';
-        document.getElementById('modalPercent').textContent = stats.calculated?.modalPercentOfEntries ?? '0%';
-        document.getElementById('totalRegisterClicks').textContent = stats.summary.totalRegisterClicks;
-        document.getElementById('totalLoginClicks').textContent = stats.summary.totalLoginClicks;
-        document.getElementById('totalCancelClicks').textContent = stats.summary.totalCancelClicks;
-        document.getElementById('totalAutoRedirects').textContent = stats.summary.totalAutoRedirects;
-        const fromEvents = stats.summary.totalRegisterSuccess || 0;
-        const fromShopifyToday = (typeof data.shopifyNewCustomersToday === 'number') ? data.shopifyNewCustomersToday : null;
-        const registerSuccessDisplay = fromShopifyToday !== null ? fromShopifyToday : fromEvents;
-        document.getElementById('totalRegisterSuccess').textContent = registerSuccessDisplay;
-        const sublabelEl = document.getElementById('registerSuccessSublabel');
-        if (sublabelEl) {
-          if (fromShopifyToday !== null) {
-            sublabelEl.textContent = fromEvents > 0 ? `Źródło: Shopify (dziś). Z powrotu z modala: ${fromEvents}` : 'Źródło: Shopify (nowi klienci dziś, czas: Europe/Warsaw)';
-            sublabelEl.style.display = '';
-          } else {
-            sublabelEl.textContent = 'Tylko z powrotu z modala (Shopify niedostępne)';
-            sublabelEl.style.display = '';
-          }
-        }
-        const registerTitle = document.getElementById('totalRegisterSuccess').closest('.stat-card');
-        if (registerTitle) registerTitle.title = 'Rejestracje = nowi klienci w Shopify z dzisiejszego dnia (czas Warszawa). „Z powrotu z modala” = tylko ci, którzy wrócili na stronę po rejestracji.';
-        document.getElementById('totalLoginSuccess').textContent = stats.summary.totalLoginSuccess || 0;
-        document.getElementById('conversionRate').textContent = stats.calculated?.conversionRate || '0%';
-        document.getElementById('actualConversionRate').textContent = stats.calculated?.actualConversionRate || stats.calculated?.conversionRate || '0%';
-        
         // Update last updated
         if (stats.lastUpdated) {
           const date = new Date(stats.lastUpdated);
@@ -443,7 +358,7 @@
             <br><strong>Rozwiązanie:</strong>
             <ol style="margin-top: 10px; padding-left: 20px;">
               <li>Sprawdź wartość ADMIN_STATS_TOKEN w Vercel Dashboard</li>
-              <li>Upewnij się że token w tym pliku (linia 258) pasuje do tokenu w Vercel</li>
+              <li>Upewnij się że token w localStorage pasuje do ADMIN_STATS_TOKEN w Vercel</li>
               <li>Lub zaktualizuj token w tym pliku na taki sam jak w Vercel</li>
             </ol>
           `;

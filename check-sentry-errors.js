@@ -5,8 +5,9 @@ const path = require('path');
 
 const SENTRY_AUTH_TOKEN = process.env.SENTRY_AUTH_TOKEN || 'YOUR_SENTRY_AUTH_TOKEN';
 const SENTRY_ORG = process.env.SENTRY_ORG || 'your-org-slug';
+const STATS_DAYS = Math.min(90, Math.max(1, parseInt(process.argv[2], 10) || 14));
 const OUTPUT_DIR = path.join(__dirname, 'sentry-reports');
-const OUTPUT_FILE = path.join(OUTPUT_DIR, `sentry-errors-${new Date().toISOString().split('T')[0]}.json`);
+const OUTPUT_FILE = path.join(OUTPUT_DIR, `sentry-errors-${new Date().toISOString().split('T')[0]}-${STATS_DAYS}d.json`);
 
 // Utwórz katalog na raporty jeśli nie istnieje
 if (!fs.existsSync(OUTPUT_DIR)) {
@@ -45,13 +46,13 @@ async function main() {
     console.log('2. Utwórz token z: event:read, org:read, project:read');
     console.log('3. export SENTRY_AUTH_TOKEN="token"');
     console.log('4. export SENTRY_ORG="org-slug"');
-    console.log('5. node check-sentry-errors.js\n');
+    console.log('5. node check-sentry-errors.js [dni]\n');
     process.exit(1);
   }
 
   try {
-    console.log(`⏳ Pobieram błędy z Sentry (${SENTRY_ORG})...`);
-    const issues = await getSentryIssues(14);
+    console.log(`⏳ Pobieram błędy z Sentry (${SENTRY_ORG}), okres: ostatnie ${STATS_DAYS} dni...`);
+    const issues = await getSentryIssues(STATS_DAYS);
     
     console.log(`✅ Znaleziono ${issues.length} błędów\n`);
     issues.sort((a, b) => b.count - a.count);
@@ -59,6 +60,7 @@ async function main() {
     // Przygotuj dane do zapisu
     const report = {
       generatedAt: new Date().toISOString(),
+      statsPeriodDays: STATS_DAYS,
       org: SENTRY_ORG,
       totalIssues: issues.length,
       totalEvents: issues.reduce((sum, i) => sum + (parseInt(i.count) || 0), 0),
