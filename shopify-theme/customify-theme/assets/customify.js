@@ -2486,18 +2486,27 @@ const PRODUCT_TYPE_LABELS = {
 };
 
 class CustomifyEmbed {
-  _reportToSentry(error, context) {
+  _reportToSentry(error, context, extra = {}) {
     try {
       if (typeof Sentry !== 'undefined' && Sentry.captureException) {
         Sentry.withScope(scope => {
           scope.setTag('customify_area', context || 'unknown');
           scope.setTag('customify_style', this.selectedStyle || 'none');
           scope.setTag('customify_product', this.getProductHandle ? this.getProductHandle() : 'unknown');
+          scope.setTag('is_online', navigator.onLine ? 'yes' : 'no');
+          const net = this._networkInfo();
+          if (net) {
+            scope.setTag('network_type', net.effectiveType || 'unknown');
+            scope.setExtra('network', net);
+          }
           scope.setExtra('url', window.location.href);
           scope.setExtra('selectedSize', this.selectedSize || 'none');
           scope.setExtra('selectedProductType', this.selectedProductType || 'none');
           scope.setExtra('hasUploadedFile', !!this.uploadedFile);
           scope.setExtra('hasTransformedImage', !!this.transformedImage);
+          if (extra) {
+            Object.entries(extra).forEach(([k, v]) => scope.setExtra(k, v));
+          }
           scope.setLevel(error instanceof ReferenceError || error instanceof TypeError ? 'error' : 'warning');
           Sentry.captureException(error);
         });
@@ -2511,6 +2520,18 @@ class CustomifyEmbed {
         Sentry.addBreadcrumb({ category: 'customify.' + category, message, data, level: 'info' });
       }
     } catch (_) {}
+  }
+
+  _isOffline() {
+    return typeof navigator.onLine === 'boolean' && !navigator.onLine;
+  }
+
+  _networkInfo() {
+    try {
+      const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+      if (conn) return { effectiveType: conn.effectiveType, downlink: conn.downlink, rtt: conn.rtt };
+    } catch (_) {}
+    return null;
   }
 
   constructor() {
@@ -8006,8 +8027,11 @@ class CustomifyEmbed {
 
 
   async transformImage(retryCount = 0) {
+    if (this._isOffline()) {
+      this.showError('Brak połączenia z internetem. Sprawdź sieć i spróbuj ponownie.', 'transform');
+      return;
+    }
     this._sentryCrumb('transform', 'Start transformImage', { style: this.selectedStyle, retry: retryCount });
-    // ✅ DEBUG: Sprawdź selectedStyle NAJPIERW (przed walidacją)
     console.log(`🔍🔍🔍 [TRANSFORM] START transformImage:`, {
       selectedStyle: this.selectedStyle,
       selectedStyleType: typeof this.selectedStyle,
@@ -8441,15 +8465,18 @@ class CustomifyEmbed {
         error.message.includes('Error completing request') ||
         error.message.includes('network failure')
       );
-      if (!isNetworkError && error.name !== 'AbortError') {
+      if (isNetworkError || error.name === 'AbortError') {
+        this._reportToSentry(error, 'transformImage_network', { retryCount, isAbort: error.name === 'AbortError' });
+      } else {
         this._reportToSentry(error, 'transformImage');
       }
       if (retryCount < 3 && (error.name === 'AbortError' || isNetworkError)) {
-        console.log(`🔄 [MOBILE] Retrying in 2 seconds... (attempt ${retryCount + 1}/3)`);
-        alert(`🔄 Ponawiam próbę ${retryCount + 1}/3...`);
+        const retryDelay = (retryCount + 1) * 2000;
+        console.log(`🔄 [MOBILE] Retrying in ${retryDelay}ms... (attempt ${retryCount + 1}/3)`);
+        this.showError(`🔄 Błąd sieci — ponawiam próbę ${retryCount + 1}/3...`, 'transform');
         setTimeout(() => {
           this.transformImage(retryCount + 1);
-        }, 2000);
+        }, retryDelay);
         return;
       }
       
@@ -8751,8 +8778,11 @@ class CustomifyEmbed {
 
   // NAPRAWIONA FUNKCJA: STWÓRZ NOWY PRODUKT Z OBRAZKIEM AI (UKRYTY W KATALOGU)
   async addToCart(retryCount = 0) {
+    if (this._isOffline()) {
+      this.showError('Brak połączenia z internetem. Sprawdź sieć i spróbuj ponownie.', 'cart');
+      return;
+    }
     this._sentryCrumb('cart', 'Start addToCart', { style: this.selectedStyle, size: this.selectedSize, retry: retryCount });
-    // ✅ POKAŻ LOADING od razu - dodawanie do koszyka może trwać
     this.showLoading();
     
     console.log('🛒 [CUSTOMIFY] addToCart called with:', {
@@ -9263,21 +9293,20 @@ class CustomifyEmbed {
       
       this.hideCartLoading();
       
-      let errorMessage = '❌ Błąd połączenia z serwerem';
+      let errorMessage = '❌ Błąd połączenia z serwerem.';
       
       if (error.name === 'AbortError') {
-        errorMessage = '❌ Przekroczono limit czasu (30 sekund). Spróbuj ponownie.';
-      } else if (error?.message && (error.message.includes('Failed to fetch') || error.message.includes('Error completing request') || error.message.includes('Load failed'))) {
-        errorMessage = '❌ Błąd sieci. Sprawdź połączenie internetowe i spróbuj ponownie.';
-      } else if (error?.message && error.message.includes('NetworkError')) {
-        errorMessage = '❌ Błąd sieci. Spróbuj ponownie za chwilę.';
+        errorMessage = '❌ Przekroczono limit czasu (30 sekund).';
+      } else if (error?.message && (error.message.includes('Failed to fetch') || error.message.includes('Error completing request') || error.message.includes('Load failed') || error.message.includes('NetworkError'))) {
+        errorMessage = '❌ Błąd sieci. Sprawdź połączenie internetowe.';
       } else if (error?.message) {
         errorMessage = '❌ Błąd: ' + error.message;
       } else if (typeof error === 'string') {
         errorMessage = '❌ Błąd: ' + error;
       }
       
-      this.showError(errorMessage, 'cart');
+      const recoveryHtml = errorMessage + ' Twój obraz jest zapisany — <a href="/pages/my-generations" style="color:#0066cc;text-decoration:underline;">znajdziesz go w Moje obrazy</a> i możesz wrócić do zamówienia.';
+      this.showErrorWithHTML(recoveryHtml, 'cart');
     }
   }
 
