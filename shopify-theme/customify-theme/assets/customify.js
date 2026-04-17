@@ -8456,7 +8456,13 @@ class CustomifyEmbed {
       }
     } catch (error) {
       console.error('📱 [MOBILE] Transform error:', error);
-      
+
+      // Blad odczytu pliku (FileReader/arrayBuffer nie umie odczytac - np. Google Photos content URI)
+      if (error?.name === 'FileReadError') {
+        this.showError(error.message, 'transform');
+        return;
+      }
+
       // Retry logic for network errors (w tym "Error completing request", "Load failed" z Sentry)
       const isNetworkError = error?.message && (
         error.message.includes('Failed to fetch') ||
@@ -9394,9 +9400,28 @@ class CustomifyEmbed {
       const base64 = result.split(',')[1];
       resolve(base64);
     };
-    reader.onerror = error => {
-      console.error('📱 [MOBILE] Base64 conversion failed:', error);
-      reject(error);
+    reader.onerror = async (event) => {
+      console.warn('📱 [MOBILE] FileReader failed, trying arrayBuffer fallback (Google Photos / content URI):', event);
+      if (typeof file.arrayBuffer === 'function') {
+        try {
+          const buffer = await file.arrayBuffer();
+          const bytes = new Uint8Array(buffer);
+          let binary = '';
+          const chunkSize = 8192;
+          for (let i = 0; i < bytes.length; i += chunkSize) {
+            binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunkSize));
+          }
+          const base64 = btoa(binary);
+          console.log('✅ [MOBILE] arrayBuffer fallback succeeded, bytes:', bytes.length);
+          resolve(base64);
+          return;
+        } catch (bufferError) {
+          console.error('📱 [MOBILE] arrayBuffer fallback also failed:', bufferError);
+        }
+      }
+      const fileErr = new Error('Nie udalo sie odczytac pliku zdjecia. Sprobuj zapisac zdjecie w formacie JPG lub PNG i wgraj ponownie.');
+      fileErr.name = 'FileReadError';
+      reject(fileErr);
     };
   }
 
