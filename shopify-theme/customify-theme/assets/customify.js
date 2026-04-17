@@ -4298,6 +4298,7 @@ class CustomifyEmbed {
       style: style,
       size: size,
       productType: productType, // ✅ DODAJ productType (boho, king, cats, etc) - dla skalowalności
+      productHandle: typeof this.getProductHandle === 'function' ? this.getProductHandle() : null, // strona produktu (Moje generacje → właściwy URL)
       thumbnail: transformedImageUrl // ✅ ZAWSZE transformedImageUrl (zachowaj oryginalną logikę)
     };
 
