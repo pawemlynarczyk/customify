@@ -52,7 +52,41 @@ async function deployOptimizedTheme() {
     const baseCssContent = fs.readFileSync(baseCssPath, 'utf8');
     
     console.log('📁 Wczytano base.css:', baseCssContent.length, 'znaków');
-    
+
+    // 🔐 KRYTYCZNE: Wdróż snippet sentry-init.liquid PRZED theme.liquid
+    // (theme.liquid go renderuje, więc musi istnieć pierwszy)
+    const sentryInitPath = path.join(__dirname, 'shopify-theme/customify-theme/snippets/sentry-init.liquid');
+    if (fs.existsSync(sentryInitPath)) {
+      const sentryInitContent = fs.readFileSync(sentryInitPath, 'utf8');
+      console.log('📁 Wczytano sentry-init.liquid:', sentryInitContent.length, 'znaków');
+      const sentryInitResponse = await fetch('https://customify-s56o.vercel.app/api/update-theme-simple', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ themeContent: sentryInitContent, fileName: 'snippets/sentry-init.liquid' })
+      });
+      if (!sentryInitResponse.ok) {
+        const error = await sentryInitResponse.text();
+        throw new Error(`HTTP ${sentryInitResponse.status} (sentry-init): ${error}`);
+      }
+      console.log('✅ sentry-init.liquid wdrożony (przed theme.liquid)');
+    }
+
+    const metaTagsPath = path.join(__dirname, 'shopify-theme/customify-theme/snippets/meta-tags.liquid');
+    if (fs.existsSync(metaTagsPath)) {
+      const metaTagsContent = fs.readFileSync(metaTagsPath, 'utf8');
+      console.log('📁 Wczytano meta-tags.liquid:', metaTagsContent.length, 'znaków');
+      const metaTagsResponse = await fetch('https://customify-s56o.vercel.app/api/update-theme-simple', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ themeContent: metaTagsContent, fileName: 'snippets/meta-tags.liquid' })
+      });
+      if (!metaTagsResponse.ok) {
+        const error = await metaTagsResponse.text();
+        throw new Error(`HTTP ${metaTagsResponse.status} (meta-tags): ${error}`);
+      }
+      console.log('✅ meta-tags.liquid wdrożony pomyślnie!');
+    }
+
     // Wdróż przez API endpoint
     const response = await fetch('https://customify-s56o.vercel.app/api/update-theme-simple', {
       method: 'POST',

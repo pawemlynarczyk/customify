@@ -10744,9 +10744,9 @@ setInterval(fixDialogImages, 300);
  }
  
  // === PAKIETY CYFROWE ===
- window.CustomifyDigitalPackage = window.CustomifyDigitalPackage || { count: 1, price: 49 };
+window.CustomifyDigitalPackage = window.CustomifyDigitalPackage || { count: 1, price: 69 };
 
- var DIGITAL_PACKAGE_PRICES = { 1: 49, 3: 89, 5: 149, 10: 199 };
+var DIGITAL_PACKAGE_PRICES = { 1: 69, 3: 89, 5: 149, 10: 199 };
 
  function isDigitalSelected() {
  var active = productTypeArea && productTypeArea.querySelector('.customify-product-type-btn.active');
@@ -10756,7 +10756,7 @@ setInterval(fixDialogImages, 300);
  function setDigitalPackage(count) {
  count = parseInt(count, 10) || 1;
  window.CustomifyDigitalPackage.count = count;
- window.CustomifyDigitalPackage.price = DIGITAL_PACKAGE_PRICES[count] || 49;
+ window.CustomifyDigitalPackage.price = DIGITAL_PACKAGE_PRICES[count] || 69;
 
  // Aktualizuj active na przyciskach
  var pkgBtns = document.querySelectorAll('.digital-package-btn');

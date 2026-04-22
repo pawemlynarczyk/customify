@@ -116,309 +116,7 @@
  <script src="https://cdn.jsdelivr.net/npm/glfx@0.0.4/glfx.min.js"></script>
  {% endif %}
 
- <script src="https://browser.sentry-cdn.com/8.40.0/bundle.min.js" crossorigin="anonymous"></script>
- <script>
- // ✅ Inicjalizuj Sentry po załadowaniu skryptu (synchronicznie)
- (function() {
- // Poczekaj aż Sentry będzie dostępny (max 5 sekund)
- let attempts = 0;
- const maxAttempts = 50; // 50 prób × 100ms = 5 sekund
- 
- function tryInit() {
- attempts++;
- 
- if (typeof Sentry !== 'undefined' && typeof Sentry.init === 'function') {
- try {
- {% if customer %}
- Sentry.init({
- dsn: "https://562a1a160e90a597f0236fd8c6b13301@o4510439439925248.ingest.de.sentry.io/4510439517257808",
- environment: "production",
- tracesSampleRate: 0,
-    beforeSend(event, hint) {
-    if (event.exception && event.exception.values) {
-    const firstException = event.exception.values[0];
-    const errorMessage = firstException?.value || '';
-    const errorType = firstException?.type || '';
-    const frames = firstException?.stacktrace?.frames || [];
-    const topFrame = frames[frames.length - 1] || {};
-    const filename = topFrame.filename || event.request?.url || '';
-
-    // ✅ FILTRUJ BŁĘDY VIEW TRANSITION (Shopify Horizon — nie nasz kod)
-    const isViewTransitionError = 
-    errorMessage.includes('view transition') ||
-    errorMessage.includes('ViewTransition') ||
-    errorMessage.includes('Skipping view transition') ||
-    errorMessage.includes('skipTransition') ||
-    errorMessage.includes('Transition was aborted') ||
-    errorMessage.includes('transition was aborted') ||
-    (errorType === 'AbortError' && errorMessage.includes('transition')) ||
-    (errorType === 'AbortError' && errorMessage.toLowerCase().includes('skip')) ||
-    (errorType === 'InvalidStateError' && errorMessage.includes('aborted'));
-    if (isViewTransitionError) { return null; }
-
-    // 🔇 B1: Horizon critical.js / paginated-list.js — processNewElements
-    if (errorMessage.includes('processNewElements')) { return null; }
-
-    // 🔇 B2: ES Modules @theme/component — stara przeglądarka lub cache
-    if (errorMessage.includes("does not start with '/'") || errorMessage.includes('@theme/')) { return null; }
-
-    // 🔇 B3: Horizon predictive-search — brak empty markup
-    if (errorMessage.includes('No empty section markup') || filename.includes('predictive-search')) { return null; }
-
-    // 🔇 B4: Horizon OverflowList — Invalid element types
-    if (errorMessage.includes('Invalid element types in') && errorMessage.includes('OverflowList')) { return null; }
-
-    // 🔇 B5: SyntaxError na starych przeglądarkach — nasze/motywu pliki JS
-    if (errorType === 'SyntaxError' && (
-    errorMessage.includes("Unexpected token '}'") ||
-    errorMessage.includes("Unexpected token ']'") ||
-    errorMessage.includes("Unexpected identifier") ||
-    errorMessage.includes("Unexpected token '.'")
-    )) { return null; }
-
-    // 🔇 B6: Shopify cart-note.js — brak performance mark (ich bug, nie nasz)
-    if (errorMessage.includes("No mark named 'cart-performance")) { return null; }
-
-    }
-
-    // ✅ Dodaj tag customify do wszystkich błędów
-    if (event.tags) {
-    event.tags.customify = 'true';
-    } else {
-    event.tags = { customify: 'true' };
-    }
-    if (event.user) {
-    event.user.id = {{ customer.id | json }};
-    event.user.email = {{ customer.email | json }};
-    }
-    return event;
-    }
-    });
-    
-    Sentry.setUser({
-    id: {{ customer.id | json }},
-    email: {{ customer.email | json }}
-    });
-    window.__customerEmail = {{ customer.email | json }};
-    {% else %}
-    Sentry.init({
-    dsn: "https://562a1a160e90a597f0236fd8c6b13301@o4510439439925248.ingest.de.sentry.io/4510439517257808",
-    environment: "production",
-    tracesSampleRate: 0,
-    beforeSend(event, hint) {
-    if (event.exception && event.exception.values) {
-    const firstException = event.exception.values[0];
-    const errorMessage = firstException?.value || '';
-    const errorType = firstException?.type || '';
-    const frames = firstException?.stacktrace?.frames || [];
-    const topFrame = frames[frames.length - 1] || {};
-    const filename = topFrame.filename || event.request?.url || '';
-
-    // ✅ FILTRUJ BŁĘDY VIEW TRANSITION (Shopify Horizon — nie nasz kod)
-    const isViewTransitionError = 
-    errorMessage.includes('view transition') ||
-    errorMessage.includes('ViewTransition') ||
-    errorMessage.includes('Skipping view transition') ||
-    errorMessage.includes('skipTransition') ||
-    errorMessage.includes('Transition was aborted') ||
-    errorMessage.includes('transition was aborted') ||
-    (errorType === 'AbortError' && errorMessage.includes('transition')) ||
-    (errorType === 'AbortError' && errorMessage.toLowerCase().includes('skip')) ||
-    (errorType === 'InvalidStateError' && errorMessage.includes('aborted'));
-    if (isViewTransitionError) { return null; }
-
-    // 🔇 B1: Horizon critical.js / paginated-list.js — processNewElements
-    if (errorMessage.includes('processNewElements')) { return null; }
-
-    // 🔇 B2: ES Modules @theme/component — stara przeglądarka lub cache
-    if (errorMessage.includes("does not start with '/'") || errorMessage.includes('@theme/')) { return null; }
-
-    // 🔇 B3: Horizon predictive-search — brak empty markup
-    if (errorMessage.includes('No empty section markup') || filename.includes('predictive-search')) { return null; }
-
-    // 🔇 B4: Horizon OverflowList — Invalid element types
-    if (errorMessage.includes('Invalid element types in') && errorMessage.includes('OverflowList')) { return null; }
-
-    // 🔇 B5: SyntaxError na starych przeglądarkach
-    if (errorType === 'SyntaxError' && (
-    errorMessage.includes("Unexpected token '}'") ||
-    errorMessage.includes("Unexpected token ']'") ||
-    errorMessage.includes("Unexpected identifier") ||
-    errorMessage.includes("Unexpected token '.'")
-    )) { return null; }
-
-    // 🔇 B6: Shopify cart-note.js — brak performance mark (ich bug, nie nasz)
-    if (errorMessage.includes("No mark named 'cart-performance")) { return null; }
-
-    }
-
-    // ✅ Dodaj tag customify do wszystkich błędów
-    if (event.tags) {
-    event.tags.customify = 'true';
-    } else {
-    event.tags = { customify: 'true' };
-    }
- return event;
- }
- });
- {% endif %}
- 
- console.log('✅ [SENTRY] Initialized successfully');
- window.__sentryInitialized = true;
- } catch (error) {
- console.error('❌ [SENTRY] Initialization error:', error);
- }
- } else if (attempts < maxAttempts) {
- // Spróbuj ponownie za 100ms
- setTimeout(tryInit, 100);
- } else {
- console.warn('⚠️ [SENTRY] Failed to load after ' + maxAttempts + ' attempts. Check Network tab for browser.sentry-cdn.com');
- }
- }
- 
- // Rozpocznij próby inicjalizacji natychmiast
- tryInit();
- })();
- </script>
-
- <script>
- (function() {
- // ✅ Przechwytuj nieobsłużone błędy JavaScript
- window.addEventListener('error', function(event) {
- const error = event.error || event;
- const errorMessage = error.message || event.message || 'Unknown error';
- const errorStack = error.stack || '';
- 
- // ✅ Sprawdź czy to błąd z motywu Shopify (aspectRatioHelper, processNewElements)
- const isThemeError = 
- errorMessage.includes('aspectRatioHelper') ||
- errorMessage.includes('processNewElements') ||
- errorMessage.includes('#aspectRatioHelper') ||
- errorStack.includes('aspectRatioHelper') ||
- errorStack.includes('processNewElements');
- 
- if (isThemeError) {
- // ✅ Zapobiegaj crashowi - loguj do Sentry ale nie przerywaj działania
- console.warn('⚠️ [THEME-ERROR-HANDLER] Przechwycono błąd z motywu Shopify:', errorMessage);
- 
- // ✅ Loguj do Sentry z pełnym kontekstem
- if (typeof Sentry !== 'undefined' && window.__sentryInitialized) {
- Sentry.withScope((scope) => {
- scope.setTag('customify', 'true');
- scope.setTag('error_type', 'theme_error');
- scope.setTag('error_source', 'shopify_theme');
- scope.setTag('theme_component', 'aspectRatioHelper');
- scope.setContext('theme_error', {
- errorMessage: errorMessage,
- errorStack: errorStack.substring(0, 1000), // Max 1000 chars
- url: window.location.href,
- userAgent: navigator.userAgent,
- timestamp: new Date().toISOString()
- });
- Sentry.captureException(error);
- });
- }
- 
- // ✅ Zapobiegaj domyślnemu zachowaniu (nie pokazuj w konsoli jako nieobsłużony błąd)
- event.preventDefault();
- return false;
- }
- 
- // ✅ Dla innych błędów - pozwól Sentry je obsłużyć normalnie
- return true;
- }, true); // useCapture = true (przechwytuj PRZED innymi handlerami)
- 
- // ✅ Przechwytuj nieobsłużone promise rejections
- window.addEventListener('unhandledrejection', function(event) {
- const error = event.reason || event;
- const errorMessage = error?.message || String(error) || 'Unknown promise rejection';
- const errorStack = error?.stack || '';
- 
- // ✅ Sprawdź czy to błąd z motywu Shopify
- const isThemeError = 
- errorMessage.includes('aspectRatioHelper') ||
- errorMessage.includes('processNewElements') ||
- errorMessage.includes('#aspectRatioHelper') ||
- errorStack.includes('aspectRatioHelper') ||
- errorStack.includes('processNewElements');
- 
- if (isThemeError) {
- console.warn('⚠️ [THEME-ERROR-HANDLER] Przechwycono promise rejection z motywu Shopify:', errorMessage);
- 
- // ✅ Loguj do Sentry
- if (typeof Sentry !== 'undefined' && window.__sentryInitialized) {
- Sentry.withScope((scope) => {
- scope.setTag('customify', 'true');
- scope.setTag('error_type', 'theme_promise_rejection');
- scope.setTag('error_source', 'shopify_theme');
- scope.setTag('theme_component', 'aspectRatioHelper');
- scope.setContext('theme_error', {
- errorMessage: errorMessage,
- errorStack: errorStack.substring(0, 1000),
- url: window.location.href,
- timestamp: new Date().toISOString()
- });
- Sentry.captureException(error);
- });
- }
- 
- // ✅ Zapobiegaj domyślnemu zachowaniu
- event.preventDefault();
- }
- });
- 
- console.log('✅ [THEME-ERROR-HANDLER] Global error handler zainstalowany');
- 
- // ✅ VIEW TRANSITION ERROR HANDLER - Ignoruj błędy animacji (nieistotne)
- // Błędy view transition to tylko animacje przejść między stronami - nie wpływają na funkcjonalność
- window.addEventListener('error', function(event) {
- const error = event.error || event;
- const errorMessage = error.message || event.message || '';
- 
- // ✅ Sprawdź czy to błąd view transition
-const isViewTransitionError = 
-errorMessage.includes('view transition') ||
-errorMessage.includes('ViewTransition') ||
-errorMessage.includes('skipTransition') ||
-errorMessage.includes('Skipping view transition') ||
-errorMessage.includes('Transition was aborted') ||
-errorMessage.includes('transition was aborted') ||
-(error.name === 'AbortError' && errorMessage.includes('transition')) ||
-(error.name === 'InvalidStateError' && errorMessage.includes('aborted'));
-
-if (isViewTransitionError) {
-// ✅ Ignoruj - to tylko animacje przejść Shopify Horizon (nie wpływają na funkcjonalność)
-console.debug('🔇 [VIEW-TRANSITION] Ignoruję błąd animacji:', errorMessage);
-event.preventDefault();
-return false; // Nie loguj do Sentry
-}
- }, true);
- 
- // ✅ VIEW TRANSITION PROMISE REJECTION HANDLER
- window.addEventListener('unhandledrejection', function(event) {
- const error = event.reason || event;
- const errorMessage = error?.message || String(error) || '';
- 
-const isViewTransitionError = 
-errorMessage.includes('view transition') ||
-errorMessage.includes('ViewTransition') ||
-errorMessage.includes('skipTransition') ||
-errorMessage.includes('Skipping view transition') ||
-errorMessage.includes('Transition was aborted') ||
-errorMessage.includes('transition was aborted') ||
-(error?.name === 'AbortError' && errorMessage.includes('transition')) ||
-(error?.name === 'InvalidStateError' && errorMessage.includes('aborted'));
-
-if (isViewTransitionError) {
-// ✅ Ignoruj - to tylko animacje przejść Shopify Horizon (nie wpływają na funkcjonalność)
-console.debug('🔇 [VIEW-TRANSITION] Ignoruję promise rejection animacji:', errorMessage);
-event.preventDefault();
-}
-});
- 
- console.log('✅ [VIEW-TRANSITION-HANDLER] View transition error handler zainstalowany');
- })();
- </script>
+ {%- render 'sentry-init' -%}
 
 <link rel="stylesheet" href="{{ 'customify.css' | asset_url }}">
 {% if product and product.handle == 'ramka-spotify' or product.handle == 'zdjecie-na-szkle-ramka-spotify' or product.handle == 'personalizowane-etui-na-telefon-z-twoim-zdjeciem' %}
@@ -610,9 +308,9 @@ event.preventDefault();
  
  // Dla produktu cyfrowego: cena zależna od pakietu
  if (isDigitalProduct) {
- const digitalProductPrice = (window.CustomifyDigitalPackage && window.CustomifyDigitalPackage.price) || 49.00;
- this.applyProductPriceDisplay(digitalProductPrice);
- this.schedulePriceConsistency(digitalProductPrice);
+		const digitalProductPrice = (window.CustomifyDigitalPackage && window.CustomifyDigitalPackage.price) || 69.00;
+		this.applyProductPriceDisplay(digitalProductPrice);
+		this.schedulePriceConsistency(digitalProductPrice);
  console.log('💰 [PRICE] Digital product - package price:', digitalProductPrice, 'zł');
  return;
  }
@@ -680,8 +378,8 @@ event.preventDefault();
  
  // Dla produktu cyfrowego: cena zależna od pakietu
  if (isDigitalProduct) {
- const digitalProductPrice = (window.CustomifyDigitalPackage && window.CustomifyDigitalPackage.price) || 49.00;
- const cartPriceElement = document.getElementById('cartPriceValue');
+const digitalProductPrice = (window.CustomifyDigitalPackage && window.CustomifyDigitalPackage.price) || 69.00;
+const cartPriceElement = document.getElementById('cartPriceValue');
  
  if (cartPriceElement) {
  cartPriceElement.textContent = `${digitalProductPrice.toFixed(2)} zł`;
@@ -866,7 +564,7 @@ event.preventDefault();
  let finalPrice;
  if (isDigitalProductForPrice) {
  // Produkt cyfrowy: cena zależna od wybranego pakietu (1/3/5/10 plików)
- finalPrice = (window.CustomifyDigitalPackage && window.CustomifyDigitalPackage.price) || 49.00;
+ finalPrice = (window.CustomifyDigitalPackage && window.CustomifyDigitalPackage.price) || 69.00;
  console.log('💰 [CUSTOMIFY] Digital product - package price:', finalPrice, 'zł', '| package:', window.CustomifyDigitalPackage?.count || 1);
  } else {
  // Produkt fizyczny: cena bazowa + rozmiar + ramka + podstawka
@@ -3022,26 +2720,26 @@ Ramka: <span id="frameCurrentLabel">Brak ramki</span>
 <div id="digitalPackageSelector" style="{% if product.handle == 'prezent-dla-dziadkow-retusz-starych-zdjec' %}display: block;{% else %}display: none;{% endif %} margin-bottom: 12px;">
  <h4 style="text-align: left; font-size: 0.95rem; font-weight: 600; margin-bottom: 8px;">Ile obrazków?</h4>
  <div class="digital-package-options">
- <div class="digital-package-btn active" data-package="1" data-price="49">
- <span class="pkg-count">1 obrazek</span>
- <span class="pkg-price">49 zł</span>
- </div>
- <div class="digital-package-btn" data-package="3" data-price="89">
- <span class="pkg-badge">POPULARNE</span>
- <span class="pkg-count">3 obrazki</span>
- <span class="pkg-price">89 zł</span>
- <span class="pkg-save">oszczędzasz 58 zł</span>
- </div>
- <div class="digital-package-btn" data-package="5" data-price="149">
- <span class="pkg-count">5 obrazków</span>
- <span class="pkg-price">149 zł</span>
- <span class="pkg-save">oszczędzasz 96 zł</span>
- </div>
- <div class="digital-package-btn" data-package="10" data-price="199">
- <span class="pkg-count">10 obrazków</span>
- <span class="pkg-price">199 zł</span>
- <span class="pkg-save">oszczędzasz 291 zł</span>
- </div>
+				<div class="digital-package-btn active" data-package="1" data-price="69">
+					<span class="pkg-count">1 obrazek</span>
+					<span class="pkg-price">69 zł</span>
+				</div>
+				<div class="digital-package-btn" data-package="3" data-price="89">
+					<span class="pkg-badge">POPULARNE</span>
+					<span class="pkg-count">3 obrazki</span>
+					<span class="pkg-price">89 zł</span>
+					<span class="pkg-save">oszczędzasz 118 zł</span>
+				</div>
+				<div class="digital-package-btn" data-package="5" data-price="149">
+					<span class="pkg-count">5 obrazków</span>
+					<span class="pkg-price">149 zł</span>
+					<span class="pkg-save">oszczędzasz 196 zł</span>
+				</div>
+				<div class="digital-package-btn" data-package="10" data-price="199">
+					<span class="pkg-count">10 obrazków</span>
+					<span class="pkg-price">199 zł</span>
+					<span class="pkg-save">oszczędzasz 491 zł</span>
+				</div>
  </div>
 </div>
 
@@ -4490,23 +4188,23 @@ Dodać napis? Kliknij tutaj
  
  <br>
  <p><strong>Produkt cyfrowy</strong> – obrazek bez znaku wodnego, wysłany emailem po zapłacie. Brak fizycznej wysyłki.</p>
- <p><strong>Pakiety (im więcej, tym taniej):</strong> 1 obrazek – 49 zł &nbsp;|&nbsp; 3 obrazki – 89 zł &nbsp;|&nbsp; 5 obrazków – 149 zł &nbsp;|&nbsp; 10 obrazków – 199 zł</p>
- <p><strong>Jak to działa?</strong> Kupujesz pakiet np. 3 obrazki → pierwszy obrazek dostajesz od razu emailem → pozostałe 2 zapisują się jako kredyty na koncie → wracasz, generujesz nowy portret i klikasz "Pobierz za 1 kredyt". Kredyty nie wygasają.</p>
+				<p><strong>Pakiety (im więcej, tym taniej):</strong> 1 obrazek – 69 zł &nbsp;|&nbsp; 3 obrazki – 89 zł &nbsp;|&nbsp; 5 obrazków – 149 zł &nbsp;|&nbsp; 10 obrazków – 199 zł</p>
+				<p><strong>Jak to działa?</strong> Kupujesz pakiet np. 3 obrazki → pierwszy obrazek dostajesz od razu emailem → pozostałe 2 zapisują się jako kredyty na koncie → wracasz, generujesz nowy portret i klikasz "Pobierz za 1 kredyt". Kredyty nie wygasają.</p>
 
- <div class="accordion-product-visual">
- <div class="accordion-visual-item">
- <img src="https://customify-s56o.vercel.app/icon_digital.png" alt="Produkt cyfrowy" class="accordion-visual-image">
- </div>
- </div>
- </div>
- </div>
+				<div class="accordion-product-visual">
+					<div class="accordion-visual-item">
+						<img src="https://customify-s56o.vercel.app/icon_digital.png" alt="Produkt cyfrowy" class="accordion-visual-image">
+					</div>
+				</div>
+			</div>
+		</div>
 
- <div class="accordion-item" data-accordion="shipping">
- <div class="accordion-header">
- <div class="accordion-title">
- <span>Wysyłka i dostawa</span>
- </div>
- <span class="accordion-icon">+</span>
+		<div class="accordion-item" data-accordion="shipping">
+			<div class="accordion-header">
+				<div class="accordion-title">
+					<span>Wysyłka i dostawa</span>
+				</div>
+				<span class="accordion-icon">+</span>
  </div>
  <div class="accordion-content">
  <ul>
@@ -6068,249 +5766,6 @@ opacity: 0.9;
       <div style="font-size: 12px; color: #777; margin-top: 2px;">Działamy od 2004 roku.</div>
     </div>
   </div>
-
-</div>
-<div style="display: none;"><!-- stare akordeony zastąpione przez trust badges -->
-
- <div class="accordion-item" data-accordion="guarantee" style="border: 2px solid #4CAF50; border-radius: 8px; margin-bottom: 12px;">
- <div class="accordion-header" style="background: #E8F5E9;">
- <div class="accordion-title">
- <span style="font-weight: 700; color: #2E7D32;">Gwarancja satysfakcji</span>
- </div>
- <span class="accordion-icon">▼</span>
- </div>
- <div class="accordion-content">
- <div style="background: #F1F8F4; padding: 16px; border-radius: 8px; margin-bottom: 12px;">
- <p style="font-size: 18px; font-weight: 600; color: #2E7D32; margin: 0 0 8px 0;">
- 100% satysfakcji lub zwrot pieniędzy
- </p>
- <p style="margin: 0; color: #555;">
- Jeśli nie jesteś zadowolony z jakości wydruku, zwrócimy 100% kosztów. Bez pytań, bez problemów.
- </p>
- </div>
- <ul style="margin: 12px 0; padding-left: 20px;">
- <li><strong>30 dni na zwrot</strong> - pełny zwrot kosztów</li>
- <li><strong>Wsparcie na biuro@lumly.pl</strong>, zawsze pomożemy rozwiązać problem</li>
- <li><strong>4.8/5 ocena klientów</strong> - ponad 5000 zadowolonych klientów</li>
- </ul>
- </div>
- </div>
-
- <div class="accordion-item" data-accordion="details">
- <div class="accordion-header">
- <div class="accordion-title">
- <span>O produkcie</span>
- </div>
- <span class="accordion-icon">▼</span>
- </div>
- <div class="accordion-content">
- <p><strong>Obraz na płótnie</strong> - wydrukowane na grubym, premium płótnie canvas z naturalną teksturą. Naciągnięte na drewnianą antyramę</p>
-
- <div class="accordion-product-visual">
- <div class="accordion-visual-item">
- <img src="https://customify-s56o.vercel.app/faq/obraz.png" alt="Obraz na płótnie" class="accordion-visual-image">
- </div>
- </div>
- 
- <br>
- <p><strong>Plakat</strong> - wydruk na papierze fotograficznym, który wysyłamy zwinięty w eleganckiej tubie. Możesz wybrać ramkę. Wówczas wydruk będzie w ramce za szkłem.</p>
-
- <div class="accordion-product-visual">
- <div class="accordion-visual-item">
- <img src="https://customify-s56o.vercel.app/faq/plakat.png" alt="Plakat" class="accordion-visual-image">
- </div>
- </div>
- 
- <br>
- <p><strong>Nadruk na szkle akrylowym</strong> - personalizowany wydruk na szkle akrylowym (bezpieczne nietłukące się). Dodaj podstawkę, by postawić go na biurku, możesz dodać podstawkę z LED, która podświetla zdjęcie i zamienia je w nastrojową lampkę nocną lub dekorację pokoju.</p>
- <p>Dostępna jest w 2 rozmiarach: <strong>A5</strong> - najpopularniejszym i większym <strong>A4</strong>.</p>
- 
- <div class="accordion-product-visual" style="margin: 15px 0;">
- <div class="accordion-visual-item">
- <img src="https://customify-s56o.vercel.app/ramki_wymiary.webp" alt="Rozmiary ramek na szkle" class="accordion-visual-image">
- </div>
- </div>
- <p>Przezroczysta pleksi nadaje zdjęciu elegancki połysk i głębię, dzięki czemu wygląda jak obraz za szkłem. Produkt jest gotowy do wręczenia jako prezent — piękny, nowoczesny i w pełni personalizowany.</p>
-
- <div class="accordion-product-visual">
- <div class="accordion-visual-item">
- <img src="https://customify-s56o.vercel.app/akryl/akryl.png" alt="Nadruk na szkle akrylowym" class="accordion-visual-image">
- </div>
- <div class="accordion-visual-item">
- <img src="https://customify-s56o.vercel.app/akryl/akryl_2.png" alt="Nadruk na szkle akrylowym z LED" class="accordion-visual-image">
- </div>
- </div>
- 
- <br>
- <p><strong>Produkt cyfrowy</strong> – obrazek bez znaku wodnego, wysłany emailem po zapłacie. Brak fizycznej wysyłki.</p>
- <p><strong>Pakiety (im więcej, tym taniej):</strong> 1 obrazek – 49 zł &nbsp;|&nbsp; 3 obrazki – 89 zł &nbsp;|&nbsp; 5 obrazków – 149 zł &nbsp;|&nbsp; 10 obrazków – 199 zł</p>
- <p><strong>Jak to działa?</strong> Kupujesz pakiet np. 3 obrazki → pierwszy obrazek dostajesz od razu emailem → pozostałe 2 zapisują się jako kredyty na koncie → wracasz, generujesz nowy portret i klikasz "Pobierz za 1 kredyt". Kredyty nie wygasają.</p>
-
- <div class="accordion-product-visual">
- <div class="accordion-visual-item">
- <img src="https://customify-s56o.vercel.app/icon_digital.png" alt="Produkt cyfrowy" class="accordion-visual-image">
- </div>
- </div>
- </div>
- </div>
-
- <div class="accordion-item" data-accordion="shipping">
- <div class="accordion-header">
- <div class="accordion-title">
- <span>Wysyłka i dostawa</span>
- </div>
- <span class="accordion-icon">▼</span>
- </div>
- <div class="accordion-content">
- <div style="background: #E3F2FD; padding: 12px; border-radius: 8px; margin-bottom: 12px;">
- <p style="margin: 0; font-weight: 600; color: #1976D2;">
- ⚡ <strong>Szybka realizacja: 3-5 dni roboczych</strong> od akceptacji projektu
- </p>
- </div>
- <ul style="margin: 12px 0; padding-left: 20px;">
- <li><strong>📦 Bezpieczne opakowanie:</strong> Karton wzmocniony + folia bąbelkowa - gwarancja bezpiecznej dostawy</li>
- <li><strong>🇵🇱 Wysyłka:</strong> InPost Paczkomaty, InPost Kurier</li>
- <li><strong>📍 Śledzenie przesyłki:</strong> Numer trackingowy wysyłany mailem - zawsze wiesz gdzie jest Twoja przesyłka</li>
- <li><strong>🚚 Darmowa dostawa:</strong> Przy zamówieniach powyżej 400 zł</li>
- <li><strong>⏰ Czas dostawy:</strong> 1-3 dni robocze (w zależności od wybranej opcji)</li>
- </ul>
- </div>
- </div>
-
- <div class="accordion-item" data-accordion="security">
- <div class="accordion-header">
- <div class="accordion-title">
- <span>🔒</span>
- <span>Bezpieczeństwo i zaufanie</span>
- </div>
- <span class="accordion-icon">▼</span>
- </div>
- <div class="accordion-content">
- <ul style="margin: 12px 0; padding-left: 20px;">
- <li><strong>🔐 Bezpieczne płatności:</strong> SSL szyfrowanie, obsługa kart, BLIK, Przelewy24</li>
- <li><strong>🛡️ Ochrona danych:</strong> Twoje zdjęcia są bezpieczne - nie udostępniamy ich osobom trzecim</li>
- <li><strong>📸 Usuwanie zdjęć:</strong> Po realizacji zamówienia możesz poprosić o usunięcie swoich zdjęć</li>
- <li><strong>✅ Certyfikaty:</strong> Działamy zgodnie z RODO i przepisami UE</li>
- <li><strong>💳 Bezpieczne płatności:</strong> Wszystkie transakcje chronione przez Shopify Payments</li>
- </ul>
- <div style="margin-top: 16px; padding: 12px; background: #F5F5F5; border-radius: 8px; text-align: center;">
- <p style="margin: 0; font-size: 14px; color: #666;">
- 🔒 <strong>Bezpieczne zakupy</strong> - Twoje dane są chronione
- </p>
- </div>
- </div>
- </div>
-
- <div class="accordion-item" data-accordion="sizes">
- <div class="accordion-header">
- <div class="accordion-title">
- <span>Dostępne rozmiary</span>
- </div>
- <span class="accordion-icon">▼</span>
- </div>
- <div class="accordion-content">
- 
- <h4 style="margin: 0 0 15px 0; font-size: 1.1rem; color: #111; border-bottom: 2px solid #1DB954; padding-bottom: 8px;">🖼️ Plakat / Obraz na płótnie</h4>
-
- <div class="accordion-product-visual">
- <div class="accordion-visual-item">
- <img src="https://customify-s56o.vercel.app/faq/wymiary.png" alt="Dostępne rozmiary" class="accordion-visual-image">
- <div class="accordion-visual-label">📏 Dostępne rozmiary</div>
- </div>
- </div>
- 
- <div class="accordion-size-grid">
- <div class="accordion-size-item">
- <div class="accordion-size-name">20 × 30 cm</div>
- <div class="accordion-size-description">Świetny do małych pokoi</div>
- </div>
- <div class="accordion-size-item">
- <div class="accordion-size-name">30 × 45 cm</div>
- <div class="accordion-size-description">Doskonały do średnich pomieszczeń</div>
- </div>
- <div class="accordion-size-item">
- <div class="accordion-size-name">40 × 60 cm</div>
- <div class="accordion-size-description">Efektowny na duże ściany w salonie</div>
- </div>
- <div class="accordion-size-item">
- <div class="accordion-size-name">50 × 75 cm</div>
- <div class="accordion-size-description">Idealny do dużych przestrzeni</div>
- </div>
- <div class="accordion-size-item">
- <div class="accordion-size-name">60 × 90 cm</div>
- <div class="accordion-size-description">Imponujący na całą ścianę</div>
- </div>
- </div>
-
- <h4 style="margin: 30px 0 15px 0; font-size: 1.1rem; color: #111; border-bottom: 2px solid #1DB954; padding-bottom: 8px;">🔲 Wydruk na szkle</h4>
- 
- <div class="accordion-product-visual">
- <div class="accordion-visual-item">
- <img src="https://customify-s56o.vercel.app/ramki_wymiary.webp" alt="Rozmiary ramek na szkle" class="accordion-visual-image">
- <div class="accordion-visual-label">📏 Rozmiary ramek na szkle</div>
- </div>
- </div>
- 
- <div class="accordion-size-grid" style="margin-top: 15px;">
- <div class="accordion-size-item">
- <div class="accordion-size-name">A5 (15 × 21 cm)</div>
- <div class="accordion-size-description">Najpopularniejszy rozmiar</div>
- </div>
- <div class="accordion-size-item">
- <div class="accordion-size-name">A4 (21 × 30 cm)</div>
- <div class="accordion-size-description">Większy, bardziej efektowny</div>
- </div>
- </div>
- </div>
- </div>
-
- <div class="accordion-item" data-accordion="howto">
- <div class="accordion-header">
- <div class="accordion-title">
- <span>💡</span>
- <span>Jak to działa?</span>
- </div>
- <span class="accordion-icon">▼</span>
- </div>
- <div class="accordion-content">
- <div class="accordion-step">
- <div class="accordion-step-number">1</div>
- <div class="accordion-step-content">
- <strong>Wgraj swoje zdjęcie</strong><br>
- JPG, PNG lub GIF do 10MB. Najlepiej w wysokiej rozdzielczości.<br>
- <em style="color: #666; font-size: 0.9em;">Nie musisz się martwić o jakość - sprawdzamy każde zdjęcie przed wydrukiem i poprawiamy je, aby było idealne!</em>
- </div>
- </div>
- <div class="accordion-step">
- <div class="accordion-step-number">2</div>
- <div class="accordion-step-content">
- <strong>Wybierz styl artystyczny</strong><br>
- Dostępne style do wyboru w zakładce powyżej.
- </div>
- </div>
- <div class="accordion-step">
- <div class="accordion-step-number">3</div>
- <div class="accordion-step-content">
- <strong>Wybierz rozmiar wydruku</strong><br>
- Wybierz idealny rozmiar dla Twojej przestrzeni.
- </div>
- </div>
- <div class="accordion-step">
- <div class="accordion-step-number">4</div>
- <div class="accordion-step-content">
- <strong>AI przekształci Twoje zdjęcie</strong><br>
- Najnowocześniejsza technologia sztucznej inteligencji w 30-60 sekund.
- </div>
- </div>
- <div class="accordion-step">
- <div class="accordion-step-number">5</div>
- <div class="accordion-step-content">
- <strong>Drukujemy i wysyłamy</strong><br>
- Każde zdjęcie jest sprawdzane i poprawiane przed wydrukiem. Wysokiej jakości nadruk, bezpiecznie zapakowany.
- </div>
- </div>
- </div>
- </div>
 
 </div>
 </div>

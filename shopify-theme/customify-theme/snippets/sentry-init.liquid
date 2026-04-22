@@ -1,0 +1,303 @@
+ <script src="https://browser.sentry-cdn.com/8.40.0/bundle.min.js" crossorigin="anonymous"></script>
+ <script>
+ // ✅ Inicjalizuj Sentry po załadowaniu skryptu (synchronicznie)
+ (function() {
+ // Poczekaj aż Sentry będzie dostępny (max 5 sekund)
+ let attempts = 0;
+ const maxAttempts = 50; // 50 prób × 100ms = 5 sekund
+ 
+ function tryInit() {
+ attempts++;
+ 
+ if (typeof Sentry !== 'undefined' && typeof Sentry.init === 'function') {
+ try {
+ {% if customer %}
+ Sentry.init({
+ dsn: "https://562a1a160e90a597f0236fd8c6b13301@o4510439439925248.ingest.de.sentry.io/4510439517257808",
+ environment: "production",
+ tracesSampleRate: 0,
+    beforeSend(event, hint) {
+    if (event.exception && event.exception.values) {
+    const firstException = event.exception.values[0];
+    const errorMessage = firstException?.value || '';
+    const errorType = firstException?.type || '';
+    const frames = firstException?.stacktrace?.frames || [];
+    const topFrame = frames[frames.length - 1] || {};
+    const filename = topFrame.filename || event.request?.url || '';
+
+    // ✅ FILTRUJ BŁĘDY VIEW TRANSITION (Shopify Horizon — nie nasz kod)
+    const isViewTransitionError = 
+    errorMessage.includes('view transition') ||
+    errorMessage.includes('ViewTransition') ||
+    errorMessage.includes('Skipping view transition') ||
+    errorMessage.includes('skipTransition') ||
+    errorMessage.includes('Transition was aborted') ||
+    errorMessage.includes('transition was aborted') ||
+    (errorType === 'AbortError' && errorMessage.includes('transition')) ||
+    (errorType === 'AbortError' && errorMessage.toLowerCase().includes('skip')) ||
+    (errorType === 'InvalidStateError' && errorMessage.includes('aborted'));
+    if (isViewTransitionError) { return null; }
+
+    // 🔇 B1: Horizon critical.js / paginated-list.js — processNewElements
+    if (errorMessage.includes('processNewElements')) { return null; }
+
+    // 🔇 B2: ES Modules @theme/component — stara przeglądarka lub cache
+    if (errorMessage.includes("does not start with '/'") || errorMessage.includes('@theme/')) { return null; }
+
+    // 🔇 B3: Horizon predictive-search — brak empty markup
+    if (errorMessage.includes('No empty section markup') || filename.includes('predictive-search')) { return null; }
+
+    // 🔇 B4: Horizon OverflowList — Invalid element types
+    if (errorMessage.includes('Invalid element types in') && errorMessage.includes('OverflowList')) { return null; }
+
+    // 🔇 B5: SyntaxError na starych przeglądarkach — nasze/motywu pliki JS
+    if (errorType === 'SyntaxError' && (
+    errorMessage.includes("Unexpected token '}'") ||
+    errorMessage.includes("Unexpected token ']'") ||
+    errorMessage.includes("Unexpected identifier") ||
+    errorMessage.includes("Unexpected token '.'")
+    )) { return null; }
+
+    // 🔇 B6: Shopify cart-note.js — brak performance mark (ich bug, nie nasz)
+    if (errorMessage.includes("No mark named 'cart-performance")) { return null; }
+
+    }
+
+    // ✅ Dodaj tag customify do wszystkich błędów
+    if (event.tags) {
+    event.tags.customify = 'true';
+    } else {
+    event.tags = { customify: 'true' };
+    }
+    if (event.user) {
+    event.user.id = {{ customer.id | json }};
+    event.user.email = {{ customer.email | json }};
+    }
+    return event;
+    }
+    });
+    
+    Sentry.setUser({
+    id: {{ customer.id | json }},
+    email: {{ customer.email | json }}
+    });
+    window.__customerEmail = {{ customer.email | json }};
+    {% else %}
+    Sentry.init({
+    dsn: "https://562a1a160e90a597f0236fd8c6b13301@o4510439439925248.ingest.de.sentry.io/4510439517257808",
+    environment: "production",
+    tracesSampleRate: 0,
+    beforeSend(event, hint) {
+    if (event.exception && event.exception.values) {
+    const firstException = event.exception.values[0];
+    const errorMessage = firstException?.value || '';
+    const errorType = firstException?.type || '';
+    const frames = firstException?.stacktrace?.frames || [];
+    const topFrame = frames[frames.length - 1] || {};
+    const filename = topFrame.filename || event.request?.url || '';
+
+    // ✅ FILTRUJ BŁĘDY VIEW TRANSITION (Shopify Horizon — nie nasz kod)
+    const isViewTransitionError = 
+    errorMessage.includes('view transition') ||
+    errorMessage.includes('ViewTransition') ||
+    errorMessage.includes('Skipping view transition') ||
+    errorMessage.includes('skipTransition') ||
+    errorMessage.includes('Transition was aborted') ||
+    errorMessage.includes('transition was aborted') ||
+    (errorType === 'AbortError' && errorMessage.includes('transition')) ||
+    (errorType === 'AbortError' && errorMessage.toLowerCase().includes('skip')) ||
+    (errorType === 'InvalidStateError' && errorMessage.includes('aborted'));
+    if (isViewTransitionError) { return null; }
+
+    // 🔇 B1: Horizon critical.js / paginated-list.js — processNewElements
+    if (errorMessage.includes('processNewElements')) { return null; }
+
+    // 🔇 B2: ES Modules @theme/component — stara przeglądarka lub cache
+    if (errorMessage.includes("does not start with '/'") || errorMessage.includes('@theme/')) { return null; }
+
+    // 🔇 B3: Horizon predictive-search — brak empty markup
+    if (errorMessage.includes('No empty section markup') || filename.includes('predictive-search')) { return null; }
+
+    // 🔇 B4: Horizon OverflowList — Invalid element types
+    if (errorMessage.includes('Invalid element types in') && errorMessage.includes('OverflowList')) { return null; }
+
+    // 🔇 B5: SyntaxError na starych przeglądarkach
+    if (errorType === 'SyntaxError' && (
+    errorMessage.includes("Unexpected token '}'") ||
+    errorMessage.includes("Unexpected token ']'") ||
+    errorMessage.includes("Unexpected identifier") ||
+    errorMessage.includes("Unexpected token '.'")
+    )) { return null; }
+
+    // 🔇 B6: Shopify cart-note.js — brak performance mark (ich bug, nie nasz)
+    if (errorMessage.includes("No mark named 'cart-performance")) { return null; }
+
+    }
+
+    // ✅ Dodaj tag customify do wszystkich błędów
+    if (event.tags) {
+    event.tags.customify = 'true';
+    } else {
+    event.tags = { customify: 'true' };
+    }
+ return event;
+ }
+ });
+ {% endif %}
+ 
+ console.log('✅ [SENTRY] Initialized successfully');
+ window.__sentryInitialized = true;
+ } catch (error) {
+ console.error('❌ [SENTRY] Initialization error:', error);
+ }
+ } else if (attempts < maxAttempts) {
+ // Spróbuj ponownie za 100ms
+ setTimeout(tryInit, 100);
+ } else {
+ console.warn('⚠️ [SENTRY] Failed to load after ' + maxAttempts + ' attempts. Check Network tab for browser.sentry-cdn.com');
+ }
+ }
+ 
+ // Rozpocznij próby inicjalizacji natychmiast
+ tryInit();
+ })();
+ </script>
+
+ <script>
+ (function() {
+ // ✅ Przechwytuj nieobsłużone błędy JavaScript
+ window.addEventListener('error', function(event) {
+ const error = event.error || event;
+ const errorMessage = error.message || event.message || 'Unknown error';
+ const errorStack = error.stack || '';
+ 
+ // ✅ Sprawdź czy to błąd z motywu Shopify (aspectRatioHelper, processNewElements)
+ const isThemeError = 
+ errorMessage.includes('aspectRatioHelper') ||
+ errorMessage.includes('processNewElements') ||
+ errorMessage.includes('#aspectRatioHelper') ||
+ errorStack.includes('aspectRatioHelper') ||
+ errorStack.includes('processNewElements');
+ 
+ if (isThemeError) {
+ // ✅ Zapobiegaj crashowi - loguj do Sentry ale nie przerywaj działania
+ console.warn('⚠️ [THEME-ERROR-HANDLER] Przechwycono błąd z motywu Shopify:', errorMessage);
+ 
+ // ✅ Loguj do Sentry z pełnym kontekstem
+ if (typeof Sentry !== 'undefined' && window.__sentryInitialized) {
+ Sentry.withScope((scope) => {
+ scope.setTag('customify', 'true');
+ scope.setTag('error_type', 'theme_error');
+ scope.setTag('error_source', 'shopify_theme');
+ scope.setTag('theme_component', 'aspectRatioHelper');
+ scope.setContext('theme_error', {
+ errorMessage: errorMessage,
+ errorStack: errorStack.substring(0, 1000), // Max 1000 chars
+ url: window.location.href,
+ userAgent: navigator.userAgent,
+ timestamp: new Date().toISOString()
+ });
+ Sentry.captureException(error);
+ });
+ }
+ 
+ // ✅ Zapobiegaj domyślnemu zachowaniu (nie pokazuj w konsoli jako nieobsłużony błąd)
+ event.preventDefault();
+ return false;
+ }
+ 
+ // ✅ Dla innych błędów - pozwól Sentry je obsłużyć normalnie
+ return true;
+ }, true); // useCapture = true (przechwytuj PRZED innymi handlerami)
+ 
+ // ✅ Przechwytuj nieobsłużone promise rejections
+ window.addEventListener('unhandledrejection', function(event) {
+ const error = event.reason || event;
+ const errorMessage = error?.message || String(error) || 'Unknown promise rejection';
+ const errorStack = error?.stack || '';
+ 
+ // ✅ Sprawdź czy to błąd z motywu Shopify
+ const isThemeError = 
+ errorMessage.includes('aspectRatioHelper') ||
+ errorMessage.includes('processNewElements') ||
+ errorMessage.includes('#aspectRatioHelper') ||
+ errorStack.includes('aspectRatioHelper') ||
+ errorStack.includes('processNewElements');
+ 
+ if (isThemeError) {
+ console.warn('⚠️ [THEME-ERROR-HANDLER] Przechwycono promise rejection z motywu Shopify:', errorMessage);
+ 
+ // ✅ Loguj do Sentry
+ if (typeof Sentry !== 'undefined' && window.__sentryInitialized) {
+ Sentry.withScope((scope) => {
+ scope.setTag('customify', 'true');
+ scope.setTag('error_type', 'theme_promise_rejection');
+ scope.setTag('error_source', 'shopify_theme');
+ scope.setTag('theme_component', 'aspectRatioHelper');
+ scope.setContext('theme_error', {
+ errorMessage: errorMessage,
+ errorStack: errorStack.substring(0, 1000),
+ url: window.location.href,
+ timestamp: new Date().toISOString()
+ });
+ Sentry.captureException(error);
+ });
+ }
+ 
+ // ✅ Zapobiegaj domyślnemu zachowaniu
+ event.preventDefault();
+ }
+ });
+ 
+ console.log('✅ [THEME-ERROR-HANDLER] Global error handler zainstalowany');
+ 
+ // ✅ VIEW TRANSITION ERROR HANDLER - Ignoruj błędy animacji (nieistotne)
+ // Błędy view transition to tylko animacje przejść między stronami - nie wpływają na funkcjonalność
+ window.addEventListener('error', function(event) {
+ const error = event.error || event;
+ const errorMessage = error.message || event.message || '';
+ 
+ // ✅ Sprawdź czy to błąd view transition
+const isViewTransitionError = 
+errorMessage.includes('view transition') ||
+errorMessage.includes('ViewTransition') ||
+errorMessage.includes('skipTransition') ||
+errorMessage.includes('Skipping view transition') ||
+errorMessage.includes('Transition was aborted') ||
+errorMessage.includes('transition was aborted') ||
+(error.name === 'AbortError' && errorMessage.includes('transition')) ||
+(error.name === 'InvalidStateError' && errorMessage.includes('aborted'));
+
+if (isViewTransitionError) {
+// ✅ Ignoruj - to tylko animacje przejść Shopify Horizon (nie wpływają na funkcjonalność)
+console.debug('🔇 [VIEW-TRANSITION] Ignoruję błąd animacji:', errorMessage);
+event.preventDefault();
+return false; // Nie loguj do Sentry
+}
+ }, true);
+ 
+ // ✅ VIEW TRANSITION PROMISE REJECTION HANDLER
+ window.addEventListener('unhandledrejection', function(event) {
+ const error = event.reason || event;
+ const errorMessage = error?.message || String(error) || '';
+ 
+const isViewTransitionError = 
+errorMessage.includes('view transition') ||
+errorMessage.includes('ViewTransition') ||
+errorMessage.includes('skipTransition') ||
+errorMessage.includes('Skipping view transition') ||
+errorMessage.includes('Transition was aborted') ||
+errorMessage.includes('transition was aborted') ||
+(error?.name === 'AbortError' && errorMessage.includes('transition')) ||
+(error?.name === 'InvalidStateError' && errorMessage.includes('aborted'));
+
+if (isViewTransitionError) {
+// ✅ Ignoruj - to tylko animacje przejść Shopify Horizon (nie wpływają na funkcjonalność)
+console.debug('🔇 [VIEW-TRANSITION] Ignoruję promise rejection animacji:', errorMessage);
+event.preventDefault();
+}
+});
+ 
+ console.log('✅ [VIEW-TRANSITION-HANDLER] View transition error handler zainstalowany');
+ })();
+ </script>
