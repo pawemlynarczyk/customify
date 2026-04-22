@@ -1,10 +1,19 @@
-# Karykatury ślubne — archiwum promptów (rollback)
+# Karykatury — archiwum promptów (rollback 1.5 ↔ 2.0)
 
-**Cel:** Przy powrocie do `openai/gpt-image-1.5` (lub odtworzeniu starego zachowania) użyj poniższych `promptTemplate` w `public/customify.js` (i zsynchronizuj `shopify-theme/customify-theme/assets/customify.js`).
+**Cel:** Mapowanie wersji promptów do modelu API. Jeśli wracamy do `gpt-image-1.5` → używamy STARYCH promptów z tego pliku. Jeśli zostajemy na `gpt-image-2` → używamy NOWYCH (aktualnie wdrożonych w repo).
 
-**Aktualny model (produkcja):** `openai/gpt-image-2` (Replicate) + pełne prompty z sekcjami: STYLE satyna/mat, FACE LIGHTING anti-glare, FACE BEAUTY, FABRICS (po OUTFIT). Zobacz `customify.js` — wpisy `PRODUCT_FIELD_CONFIGS` dla 4 handle’i ślubnych.
+## Mapa wersji ↔ model
 
-**Data wprowadzenia v2 promptów:** 2026-04-22 (commit w repo: szukaj `PROMPTS-WEDDING` / wedding GPT Image 2).
+| Wersja promptów | Model API | Cechy |
+|---|---|---|
+| **STARA** (archiwum tutaj — sekcje 1-4 i blok „Stary" niżej) | `openai/gpt-image-1.5` + `input_fidelity: "high"` | Glossy, brak anti-glare / anti-shine, brak beauty. |
+| **NOWA** (aktualnie w `public/customify.js`) | `openai/gpt-image-2` (Replicate, fallback OpenAI) | SATIN/SEMI-MATTE, FACE LIGHTING (anti-glare), FACE BEAUTY — SUBTLE, FABRICS (anti-shine), RESULT z matte finish. |
+
+**Data wdrożenia NOWEJ wersji:**
+- Karykatury ślubne (4 produkty): 2026-04-22 (pierwsza faza — sekcje 1-4 niżej)
+- Grupy 1-4 Typu A (32 produkty): 2026-04-22 (druga faza — patrz „Anti-glare / beauty / fabrics — GRUPY 1-4" na dole)
+
+**Zasada synchronizacji:** każda zmiana promptów musi być powielona w `public/customify.js` **i** `shopify-theme/customify-theme/assets/customify.js`.
 
 ---
 
@@ -144,3 +153,120 @@ Identyczny jak sekcja **2** — ten sam `promptTemplate` w repo (placeholder roc
 4. Wdróż motyw + backend.
 
 **Uwaga:** `utils/buildProductFieldPromptServer.js` ładuje `PRODUCT_FIELD_CONFIGS` z wycinka `public/customify.js` — serwer (social image, logi) musi mieć ten sam tekst.
+
+---
+
+# Anti-glare / beauty / fabrics — GRUPY 1-4 (rollback)
+
+**Data wdrożenia:** 2026-04-22
+**Zakres:** 32 produkty z grup „DLA NIEJ", „DLA NIEGO", „Lifestyle kobiety" i „Pary nie-ślubne" (Typ A — kanoniczny caricature figurine) + 1 edge case (piłkarz).
+**Nie dotyczy:** biznes-woman (inny szablon „luxury 3D business") oraz karykatur ślubnych (już zmienionych wcześniej — sekcje 1-4 na górze tego pliku).
+
+## Wersje promptów ↔ model API
+
+| Wersja promptu | Powiązany model API (`api/transform.js`) | Charakterystyka |
+|---|---|---|
+| **STARA** (bloki „Stary (przed zmianą)" poniżej) | `openai/gpt-image-1.5` + `input_fidelity: "high"` | Glossy, bez anti-glare, bez FABRICS, bez FACE BEAUTY. Dopasowana do słabszego odwzorowania twarzy modelu 1.5. |
+| **NOWA** (bloki „Nowy (po zmianie)" poniżej) | `openai/gpt-image-2` (Replicate, fallback OpenAI) | SATIN/SEMI-MATTE, FACE LIGHTING (anti-glare), FACE BEAUTY — SUBTLE, FABRICS (anti-shine), RESULT z matte finish. Dopasowana do ostrego odwzorowania twarzy modelu 2.0 (maskuje odblaski/odbicia i delikatnie wygładza skórę). |
+
+> **Zasada:** jeśli `api/transform.js` dla danego stylu wraca do `gpt-image-1.5` → użyj STAREJ wersji promptów. Jeśli zostaje na `gpt-image-2` → użyj NOWEJ.
+
+## Jak cofnąć
+
+W plikach `public/customify.js` i `shopify-theme/customify-theme/assets/customify.js` zamień **nowe** bloki (po prawej) z powrotem na **stare** (po lewej). Poniżej wszystkie 4 zmiany 1:1 — wystarczy `replace_all`.
+
+### 1) Blok STYLE
+
+**Stary (przed zmianą):**
+
+```
+STYLE
+• Premium resin statue.
+• Soft cinematic studio lighting.
+• Glossy surfaces, high-end product render.
+• Warm elegant color grading.
+• Slight caricature exaggeration (bigger head, stylish proportions).
+```
+
+**Nowy (po zmianie):**
+
+```
+STYLE
+• Premium resin-statue collectible with a SATIN / SEMI-MATTE surface — NOT mirror gloss, NOT wet plastic, NOT glassy skin.
+• High-end product render, but with controlled speculars: only soft, small edge highlights; avoid blown white hotspots and "greasy" shine.
+• Ultra-soft diffused studio lighting (large softbox look) — even, flattering, low-contrast on faces.
+• Warm elegant color grading. Natural, believable skin — not orange, not yellow, not overexposed.
+• Slight caricature exaggeration (bigger head, stylish proportions).
+```
+
+### 2) Po bloku FACE — CRITICAL
+
+**Stare (przed zmianą — nic nie było po `• Friendly expressive smile.`, od razu pusty wiersz i `CUSTOMIZATION`):**
+
+```
+• Friendly expressive smile.
+
+CUSTOMIZATION
+```
+
+**Nowe (po zmianie — dodane dwa bloki anti-glare/beauty przed `CUSTOMIZATION`):**
+
+```
+• Friendly expressive smile.
+
+FACE LIGHTING & SKIN (anti-glare)
+• Faces must look softly lit and mostly MATTE: diffuse light, smooth shadows, no streaky specular highlights across cheeks, nose bridge, or forehead.
+• No wet-skin sheen, no oily shine, no dewy spotlight glare, no mirror-like facial highlights.
+• If any highlight appears, keep it tiny, soft, and on the high points only — never a large bright patch on the face.
+
+FACE BEAUTY — SUBTLE
+• Gently reduce visible skin blemishes, uneven redness, and harsh texture while keeping natural skin (not plastic, not wax).
+• Slightly reduce under-eye darkness; do not erase real character lines.
+• Slight, natural catchlight in the eyes only (no "laser" eye reflections).
+
+CUSTOMIZATION
+```
+
+### 3) Blok OUTFIT
+
+**Stary (przed zmianą):**
+
+```
+OUTFIT
+• Outfit matching the profession or interest.
+• Stylish, slightly exaggerated caricature look.
+```
+
+**Nowy (po zmianie — dopisany blok FABRICS pod OUTFIT):**
+
+```
+OUTFIT
+• Outfit matching the profession or interest.
+• Stylish, slightly exaggerated caricature look.
+
+FABRICS & MATERIALS (anti-shine — clothing)
+• Clothing must read as MATTE fabrics: matte wool, matte cotton, matte crepe, matte suit cloth — NOT shiny silk, NOT glossy satin, NOT latex, NOT vinyl, NOT patent leather shoes with mirror shine.
+• Avoid sequins, glitter, metallic foil, rhinestones, heavy jewelry reflections unless the buyer explicitly asks for them in CUSTOMIZATION.
+• Soft diffuse highlights only on folds, no broad bright streaks across chest, shoulders, or lapels.
+• Shoes and accessories: prefer matte leather or satin-matte finish — no mirror-shine dress shoes.
+```
+
+### 4) Blok RESULT
+
+**Stary (przed zmianą):**
+
+```
+RESULT
+Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.
+```
+
+**Nowy (po zmianie):**
+
+```
+RESULT
+Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render — satin/semi-matte finish, minimal glare, flattering faces, strong likeness.
+```
+
+## Szybki rollback przez git
+
+Najszybciej: `git log --oneline | grep -i "anti-glare groups 1-4"` → znajdź commit → `git revert <sha>` → push.
