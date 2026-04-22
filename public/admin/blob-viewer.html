@@ -564,9 +564,17 @@
       const sortOrder = document.getElementById('sortOrder').value;
       
       // ⚠️ NIE FILTRUJ PO KATEGORII W API - pobierz WSZYSTKIE obrazy, filtrowanie po stronie klienta
+      // ALE daty wysyłamy do API - backend paginuje przez Vercel Blob aż znajdzie wystarczająco
+      // blobów w zakresie dat (albo upłynie budżet czasu). Bez tego user musiałby scrollować
+      // w dół żeby wymusić doładowanie kolejnych porcji.
+      const dateFromParam = document.getElementById('dateFrom').value;
+      const dateToParam = document.getElementById('dateTo').value;
       try {
         // Backend pobiera wszystkie pliki (bez limitu) i sortuje po stronie serwera
-        const url = `${API_BASE}/list-blob-images?sortBy=${sortBy}&sortOrder=${sortOrder}${currentCursor ? '&cursor=' + encodeURIComponent(currentCursor) : ''}`;
+        let url = `${API_BASE}/list-blob-images?sortBy=${sortBy}&sortOrder=${sortOrder}`;
+        if (dateFromParam) url += `&dateFrom=${encodeURIComponent(dateFromParam)}`;
+        if (dateToParam) url += `&dateTo=${encodeURIComponent(dateToParam)}`;
+        if (currentCursor) url += `&cursor=${encodeURIComponent(currentCursor)}`;
         
         const response = await fetch(url, {
           headers: {
@@ -626,15 +634,6 @@
         } else {
           // Usuń listener jeśli nie ma więcej obrazków
           window.removeEventListener('scroll', handleScroll);
-        }
-        
-        // Po RESECIE (pierwszy load / zmiana filtra) automatycznie dociągaj kolejne
-        // strony dopóki viewport się nie wypełni - dzięki temu user nie musi
-        // ręcznie scrollować w dół/górę żeby wymusić ładowanie gdy filtr po dacie
-        // odrzuca większość obrazków z paczki.
-        if (reset && data.hasMore) {
-          // wywołujemy bez await - niech leci w tle, nie blokujemy UI
-          autoFillViewport();
         }
         
       } catch (error) {
@@ -1121,69 +1120,16 @@
     let isLoadingMore = false;
     let cleanupCancelled = false;
     let cleanupInProgress = false;
-    let autoFillInProgress = false;
     
-    async function loadMore() {
+    function loadMore() {
       if (isLoadingMore || !currentCursor) return;
       
       isLoadingMore = true;
       document.getElementById('loadMoreIndicator').style.display = 'block';
       
-      try {
-        await loadImages(false);
-      } catch (e) {
-        // błąd już jest obsłużony w loadImages (pokazuje error w UI)
-      } finally {
+      loadImages(false).finally(() => {
         isLoadingMore = false;
-      }
-    }
-    
-    // Zwraca liczbę obrazków zgodnych z aktualnymi filtrami (bez ich renderowania)
-    function getCurrentFilteredCount() {
-      const category = document.getElementById('categoryFilter').value;
-      const productTypeFilter = document.getElementById('productTypeFilter')?.value;
-      
-      let list = allImages;
-      if (category !== 'all') {
-        list = list.filter(img => img.category === category);
-      }
-      if (category === 'wygenerowane' && productTypeFilter) {
-        list = list.filter(img => img.productType === productTypeFilter);
-      }
-      list = filterByDate(list);
-      return list.length;
-    }
-    
-    // Auto-dociąganie kolejnych stron po filtrze dopóki strona nie wypełni viewportu
-    // LUB nie skończą się dane. Dzięki temu user nie musi ręcznie scrollować żeby
-    // "wymusić" ładowanie gdy pierwsza paczka jest odfiltrowana do kilku obrazków.
-    async function autoFillViewport() {
-      if (autoFillInProgress) return;
-      autoFillInProgress = true;
-      
-      const MAX_AUTO_ROUNDS = 20; // hard cap żeby nie walić w API w nieskończoność
-      const MIN_FILTERED = 24;    // około 2-4 rzędy w gridzie 200px
-      
-      try {
-        let rounds = 0;
-        while (currentCursor && rounds < MAX_AUTO_ROUNDS) {
-          const filteredCount = getCurrentFilteredCount();
-          const docHeight = document.documentElement.scrollHeight;
-          const viewportHeight = window.innerHeight;
-          
-          const isScrollable = docHeight > viewportHeight * 1.5;
-          const hasEnoughFiltered = filteredCount >= MIN_FILTERED;
-          
-          if (isScrollable && hasEnoughFiltered) break;
-          
-          rounds++;
-          await loadMore();
-          // mała przerwa żeby przeglądarka zdążyła zrobić layout
-          await new Promise(r => setTimeout(r, 50));
-        }
-      } finally {
-        autoFillInProgress = false;
-      }
+      });
     }
     
     // Infinite scroll - automatyczne ładowanie przy scrollu do dołu
@@ -1234,31 +1180,23 @@
     
     // Event listeners
     document.getElementById('categoryFilter').addEventListener('change', () => {
+      // Kategoria jest filtrowana lokalnie - nie trzeba odpytywać API ponownie
       updateFilteredCount();
       displayImages();
-      // Po zmianie filtra może się okazać, że widać mało rzeczy, a w API jest więcej do pobrania
-      if (currentCursor) autoFillViewport();
     });
     const productTypeFilterEl = document.getElementById('productTypeFilter');
     if (productTypeFilterEl) {
       productTypeFilterEl.addEventListener('change', () => {
         updateFilteredCount();
         displayImages();
-        if (currentCursor) autoFillViewport();
       });
     }
     document.getElementById('sortBy').addEventListener('change', () => loadImages(true));
     document.getElementById('sortOrder').addEventListener('change', () => loadImages(true));
-    document.getElementById('dateFrom').addEventListener('change', () => {
-      updateFilteredCount();
-      displayImages();
-      if (currentCursor) autoFillViewport();
-    });
-    document.getElementById('dateTo').addEventListener('change', () => {
-      updateFilteredCount();
-      displayImages();
-      if (currentCursor) autoFillViewport();
-    });
+    // ⚠️ Daty WYSYŁANE są do API (backend filtruje przy paginacji Vercel Blob) -
+    // po zmianie zakresu musimy odpytać ponownie, nie wystarczy lokalny refiltr.
+    document.getElementById('dateFrom').addEventListener('change', () => loadImages(true));
+    document.getElementById('dateTo').addEventListener('change', () => loadImages(true));
     
     // Login jest sprawdzany w checkLogin() przy DOMContentLoaded
 

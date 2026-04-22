@@ -125,26 +125,85 @@ module.exports = async (req, res) => {
       return res.status(429).json({ error: 'Rate limit exceeded' });
     }
 
-    const { prefix, limit = 3000, cursor, sortBy = 'date', sortOrder = 'desc', category } = req.query;
+    const { prefix, limit = 3000, cursor, sortBy = 'date', sortOrder = 'desc', category, dateFrom, dateTo } = req.query;
 
-    console.log('📊 [LIST-BLOB-IMAGES] Request params:', { prefix, limit, cursor, sortBy, sortOrder, category });
+    console.log('📊 [LIST-BLOB-IMAGES] Request params:', { prefix, limit, cursor, sortBy, sortOrder, category, dateFrom, dateTo });
 
-    const MAX_PAGES_PER_REQUEST = 12;
+    // ═══════════════════════════════════════════════════════════════════════
+    // FILTR DAT PO STRONIE SERWERA
+    // ═══════════════════════════════════════════════════════════════════════
+    // Vercel Blob list() paginuje ALFABETYCZNIE po pathname, NIE po dacie.
+    // Aby panel z filtrem "dzisiaj"/"ostatnie 2 dni" szybko dał sensowne wyniki
+    // bez potrzeby ręcznego scrollowania w dół przez usera, paginujemy przez
+    // Blob API i akumulujemy TYLKO blobs w zakresie dat, aż uzbieramy TARGET_IN_RANGE
+    // ALBO upłynie TIME_BUDGET_MS (żeby uniknąć 504), ALBO skończy się cursor.
+    // ═══════════════════════════════════════════════════════════════════════
+    let dateFromMs = null;
+    let dateToMs = null;
+    // Parsujemy jako UTC i dodajemy ±24h bufor (user filtruje w lokalnej strefie,
+    // serwer Vercel w UTC - precyzyjny filtr i tak robi frontend w filterByDate()).
+    const TZ_BUFFER_MS = 24 * 3600 * 1000;
+    if (dateFrom) {
+      const d = new Date(dateFrom + 'T00:00:00Z');
+      if (!isNaN(d.getTime())) dateFromMs = d.getTime() - TZ_BUFFER_MS;
+    }
+    if (dateTo) {
+      const d = new Date(dateTo + 'T23:59:59.999Z');
+      if (!isNaN(d.getTime())) dateToMs = d.getTime() + TZ_BUFFER_MS;
+    }
+    const hasDateFilter = dateFromMs !== null || dateToMs !== null;
+
+    // Helper: czy blob mieści się w zakresie dat (na podstawie uploadedAt / timestamp w nazwie)
+    const blobInDateRange = (blob) => {
+      if (!hasDateFilter) return true;
+      let uploadedAt = blob.uploadedAt || blob.createdAt;
+      if (!uploadedAt) {
+        const m = (blob.pathname || '').match(/\d{13}/);
+        if (m) uploadedAt = new Date(parseInt(m[0])).toISOString();
+      }
+      if (!uploadedAt) return false; // bez daty – odrzucamy gdy jest filtr
+      const t = new Date(uploadedAt).getTime();
+      if (isNaN(t)) return false;
+      if (dateFromMs !== null && t < dateFromMs) return false;
+      if (dateToMs !== null && t > dateToMs) return false;
+      return true;
+    };
+
+    // Budżety: z filtrem dat paginujemy agresywniej, ale z twardym limitem czasu
     const BLOBS_PER_PAGE = 1000;
+    const MAX_PAGES_PER_REQUEST = hasDateFilter ? 60 : 12;
+    const TIME_BUDGET_MS = 15000; // <20s Vercel limit
+    const TARGET_IN_RANGE = hasDateFilter ? 300 : null;
     const maxBlobsThisRequest = Math.min(parseInt(limit, 10) || 3000, MAX_PAGES_PER_REQUEST * BLOBS_PER_PAGE);
 
     const allBlobs = [];
+    let inRangeCount = 0;
+    let scannedTotal = 0;
     let nextCursor = cursor || undefined;
     let pageCount = 0;
     let truncatedToLastN = false;
+    const startTs = Date.now();
 
     const effectivePrefix = prefix || 'customify/temp/';
-    console.log(`📊 [LIST-BLOB-IMAGES] Using prefix: "${effectivePrefix}", maxBlobsThisRequest: ${maxBlobsThisRequest}`);
+    console.log(`📊 [LIST-BLOB-IMAGES] Using prefix: "${effectivePrefix}", dateFilter: ${hasDateFilter ? `${dateFrom || '-∞'} → ${dateTo || '+∞'}` : 'none'}, maxPages: ${MAX_PAGES_PER_REQUEST}, target: ${TARGET_IN_RANGE || maxBlobsThisRequest}`);
 
     do {
-      if (allBlobs.length >= maxBlobsThisRequest) {
-        console.log(`📊 [LIST-BLOB-IMAGES] Reached limit ${maxBlobsThisRequest}, stopping pagination (anti-504)`);
+      // Stop po budżecie czasu (anti-504)
+      if (Date.now() - startTs > TIME_BUDGET_MS) {
+        console.log(`⏱️ [LIST-BLOB-IMAGES] Time budget ${TIME_BUDGET_MS}ms exceeded, stopping at page ${pageCount} (inRange: ${inRangeCount}, scanned: ${scannedTotal})`);
         break;
+      }
+      // Stop po osiągnięciu celu
+      if (hasDateFilter) {
+        if (inRangeCount >= TARGET_IN_RANGE) {
+          console.log(`🎯 [LIST-BLOB-IMAGES] Reached target ${TARGET_IN_RANGE} in-range blobs at page ${pageCount} (scanned: ${scannedTotal})`);
+          break;
+        }
+      } else {
+        if (allBlobs.length >= maxBlobsThisRequest) {
+          console.log(`📊 [LIST-BLOB-IMAGES] Reached limit ${maxBlobsThisRequest}, stopping pagination (anti-504)`);
+          break;
+        }
       }
 
       const blobsBatch = await list({
@@ -154,13 +213,25 @@ module.exports = async (req, res) => {
         token: process.env.customify_READ_WRITE_TOKEN || process.env.BLOB_READ_WRITE_TOKEN
       });
 
-      allBlobs.push(...blobsBatch.blobs);
+      scannedTotal += blobsBatch.blobs.length;
+
+      if (hasDateFilter) {
+        // Akumuluj tylko te w zakresie dat
+        for (const b of blobsBatch.blobs) {
+          if (blobInDateRange(b)) {
+            allBlobs.push(b);
+            inRangeCount++;
+          }
+        }
+      } else {
+        allBlobs.push(...blobsBatch.blobs);
+      }
       pageCount++;
       nextCursor = blobsBatch.cursor;
 
-      console.log(`📊 [LIST-BLOB-IMAGES] Page ${pageCount}: +${blobsBatch.blobs.length} blobs, total ${allBlobs.length}, hasMore: ${!!nextCursor}`);
+      console.log(`📊 [LIST-BLOB-IMAGES] Page ${pageCount}: scanned +${blobsBatch.blobs.length} (total scanned ${scannedTotal}), in-range ${inRangeCount}, hasMore: ${!!nextCursor}`);
 
-      if (allBlobs.length > maxBlobsThisRequest) {
+      if (!hasDateFilter && allBlobs.length > maxBlobsThisRequest) {
         const toDrop = allBlobs.length - maxBlobsThisRequest;
         allBlobs.splice(0, toDrop);
         truncatedToLastN = true;
