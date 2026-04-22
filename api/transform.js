@@ -9,45 +9,8 @@ const Sentry = require('../utils/sentry');
 const { SHOPIFY_API_VERSION } = require('../utils/shopifyConfig');
 const { put } = require('@vercel/blob');
 const { trackError, trackAction, getRecentError } = require('../utils/userFlowTracker');
-const {
-  generatePersonalizationSocialCore,
-  isPersonalizationSocialExcludedProductHandle
-} = require('../utils/generatePersonalizationSocialCore');
-
-let vercelWaitUntil = null;
-try {
-  vercelWaitUntil = require('@vercel/functions').waitUntil;
-} catch (_) {
-  /* lokalnie bez Vercel — social w tle tylko jako fire-and-forget */
-}
-
-/** Opóźnienie przed startem social (ms): user już dostał odpowiedź; rozłożenie szczytu CPU/API vs transform. 0 = od razu. */
-function personalizationSocialDelayMs() {
-  const raw = process.env.PERSONALIZATION_SOCIAL_DELAY_MS;
-  if (raw === '0' || raw === '') return 0;
-  const n = parseInt(raw || '20000', 10);
-  if (Number.isNaN(n) || n < 0) return 20000;
-  return Math.min(n, 120000);
-}
-
-function schedulePersonalizationSocialInBackground(payload) {
-  const run = async () => {
-    const delayMs = personalizationSocialDelayMs();
-    if (delayMs > 0) {
-      await new Promise((r) => setTimeout(r, delayMs));
-    }
-    try {
-      await generatePersonalizationSocialCore(payload);
-    } catch (e) {
-      console.warn('📲 [TRANSFORM] Social w tle — błąd (nie blokuje klienta):', e?.message || e);
-    }
-  };
-  if (typeof vercelWaitUntil === 'function') {
-    vercelWaitUntil(run());
-  } else {
-    void run();
-  }
-}
+// 🚫 Automatyczne generowanie obrazków social po generacji AI zostało wyłączone (rezygnacja).
+// Ręczne generowanie nadal działa przez api/admin/generate-social-image.js.
 
 // ⏰ Helper: put() do Vercel Blob z timeoutem (zapobiega 504 gdy Blob jest wolny)
 async function blobPutWithTimeout(filename, buffer, options, timeoutMs = 20000) {
@@ -4813,33 +4776,10 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
             imageUrl: finalImageUrl || null
           })
         });
-        const logJson = await logRes.json().catch(() => ({}));
-        if (
-          logRes.ok &&
-          logJson.id != null &&
-          productHandle &&
-          !isPersonalizationSocialExcludedProductHandle(productHandle)
-        ) {
-          const rep = process.env.REPLICATE_API_TOKEN;
-          if (rep && rep !== 'leave_empty_for_now') {
-            schedulePersonalizationSocialInBackground({
-              entryId: logJson.id,
-              productHandle,
-              rocznica: personalizationFields.rocznica,
-              opis: personalizationFields.opis_charakteru,
-              imie: personalizationFields.imiona,
-              style: style || null
-            });
-            console.log(
-              '📲 [TRANSFORM] personalization social w tle, entryId=',
-              logJson.id,
-              `(start za ~${personalizationSocialDelayMs()}ms)`
-            );
-          } else {
-            console.warn('📲 [TRANSFORM] pomijam social w tle — brak REPLICATE_API_TOKEN');
-          }
-        }
-        console.log('📊 [TRANSFORM] personalization-log saved OK');
+        // 🚫 Automatyczne generowanie obrazków social WYŁĄCZONE (rezygnacja).
+        // Wpis trafia do logu bez socialImageUrl; w razie potrzeby można wygenerować ręcznie
+        // z panelu admina (POST /api/admin/generate-social-image).
+        console.log('📊 [TRANSFORM] personalization-log saved OK (social auto-generation disabled)');
       } catch (err) {
         console.warn('📊 [TRANSFORM] personalization-log save failed:', err?.message || err);
       }
