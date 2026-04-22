@@ -1202,12 +1202,12 @@ Examples:
 • business executive → elegant suit, briefcase, skyscraper, professional atmosphere
 
 
-POSE — CRITICAL: NO podium. Character in chair, FEET ON THE DESK. This overrides any other pose instructions.
+POSE — CRITICAL: NO podium. Character in chair, FEET ON THE DESK with ANKLES CROSSED — one ankle resting on top of the other on the desktop (classic "noga za nogę" executive pose). This overrides any other pose instructions.
 {YEARS_SECTION}
-• Character SITTING in an executive chair behind the desk, FEET ON THE DESK — mandatory, non-negotiable.
+• Character SITTING in an executive chair behind the desk — feet ON the desk surface, ankles crossed (not parallel flat feet). Mandatory, non-negotiable.
 • Hands behind head — relaxed, confident "boss" pose.
 • View: full view from the side, optionally slightly from above.
-• We see the whole figure, legs on desk, chair, office.
+• We see the whole figure, crossed ankles on desk, chair, office.
 • Character looking at the camera despite side angle.
 • Relaxed, charismatic pose.
 
@@ -1433,17 +1433,26 @@ Premium collectible caricature statue, highly detailed, playful but luxurious, p
     promptTemplate: `Create a caricature figurine based on the provided photo.
 
 STYLE
-• Premium resin statue.
-• Soft cinematic studio lighting.
-• Glossy surfaces, high-end product render.
-• Warm elegant color grading.
-• Slight caricature exaggeration (bigger head, stylish proportions).
+• Premium resin-statue collectible with a SATIN / SEMI-MATTE surface — NOT mirror gloss, NOT wet plastic, NOT glassy skin.
+• High-end product render, but with controlled speculars: only soft, small edge highlights; avoid blown white hotspots and "greasy" shine.
+• Ultra-soft diffused studio lighting (large softbox look) — even, flattering, low-contrast on faces. No harsh top spotlight, no strong ring-light glare on foreheads, noses, and cheeks.
+• Warm elegant color grading. Natural, believable skin — not orange, not yellow, not overexposed.
+• Slight caricature exaggeration: minimally larger head, stylish proportions.
 
 FACE — CRITICAL
-• Strongly preserve the identity from the reference photo.
-• Keep facial structure, eyes, nose, mouth, beard/hairline.
-• Natural skin tones.
-• Friendly expressive smile.
+• Strongly preserve identity from the reference: same people, clearly recognizable (face shape, eyes, nose, mouth, hair, age, ethnicity).
+• Do NOT change facial structure. No "beauty surgery" reshaping.
+• Friendly, natural, expressive smile when appropriate for the reference.
+
+FACE LIGHTING & SKIN (anti-glare)
+• Faces must look softly lit and mostly MATTE: diffuse light, smooth shadows, no streaky specular highlights across cheeks, nose bridge, or forehead.
+• No wet-skin sheen, no oily shine, no dewy spotlight glare, no mirror-like facial highlights.
+• If any highlight appears, keep it tiny, soft, and on the high points only — never a large bright patch on the face.
+
+FACE BEAUTY — SUBTLE
+• Gently reduce visible skin blemishes, uneven redness, and harsh texture while keeping natural skin (not plastic, not wax).
+• Slightly reduce under-eye darkness; do not erase real character lines.
+• Slight, natural catchlight in the eyes only (no "laser" eye reflections).
 
 CUSTOMIZATION
 The character represents this profession / hobby / personality:
@@ -1467,6 +1476,13 @@ OUTFIT
 • Outfit matching the profession or interest.
 • Stylish, slightly exaggerated caricature look.
 
+FABRICS & MATERIALS (anti-shine — clothing)
+• Clothing must read as MATTE fabrics: matte wool, matte cotton, matte crepe, matte suit cloth — NOT shiny silk, NOT glossy satin, NOT latex, NOT vinyl, NOT patent leather shoes with mirror shine.
+• Avoid sequins, glitter, metallic foil, rhinestones, heavy jewelry reflections unless the buyer explicitly asks for them in CUSTOMIZATION.
+• If the outfit is formal (tuxedo / gown), keep it elegant but non-reflective: soft diffuse highlights only on folds, no broad bright streaks across chest, shoulders, or lapels.
+• Shoes and accessories: prefer matte leather or satin-matte finish — no mirror-shine dress shoes.
+• Tie / veil / jewelry: subtle, soft highlights only — no sparkling glare patches.
+
 SCENE
 Mini decorative environment connected with the interest or job.
 Fun but elegant.
@@ -1481,7 +1497,7 @@ TEXT
 {NAME_SECTION}
 
 RESULT
-Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
+Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render — satin/semi-matte finish, minimal glare, flattering faces, strong likeness.`,
     fields: [
       { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Młoda Para', required: false, promptKey: 'name' },
       { id: 'opis_charakteru', label: 'Opisz lokalizacje, styl, kolory - tekst nie pojawi się na obrazku ale decyduje o jego wyglądzie', type: 'text', placeholder: 'np. młoda para ślub, romantycznie, elegancko', required: false, promptKey: 'personalization' }
@@ -1492,17 +1508,26 @@ Premium collectible caricature statue, highly detailed, playful but luxurious, p
     promptTemplate: `Create a caricature figurine based on the provided photo.
 
 STYLE
-• Premium resin statue.
-• Soft cinematic studio lighting.
-• Glossy surfaces, high-end product render.
-• Warm elegant color grading.
-• Slight caricature exaggeration (bigger head, stylish proportions).
+• Premium resin-statue collectible with a SATIN / SEMI-MATTE surface — NOT mirror gloss, NOT wet plastic, NOT glassy skin.
+• High-end product render, but with controlled speculars: only soft, small edge highlights; avoid blown white hotspots and "greasy" shine.
+• Ultra-soft diffused studio lighting (large softbox look) — even, flattering, low-contrast on faces. No harsh top spotlight, no strong ring-light glare on foreheads, noses, and cheeks.
+• Warm elegant color grading. Natural, believable skin — not orange, not yellow, not overexposed.
+• Slight caricature exaggeration: minimally larger head, stylish proportions.
 
 FACE — CRITICAL
-• Strongly preserve the identity from the reference photo.
-• Keep facial structure, eyes, nose, mouth, beard/hairline.
-• Natural skin tones.
-• Friendly expressive smile.
+• Strongly preserve identity from the reference: same people, clearly recognizable (face shape, eyes, nose, mouth, hair, age, ethnicity).
+• Do NOT change facial structure. No "beauty surgery" reshaping.
+• Friendly, natural, expressive smile when appropriate for the reference.
+
+FACE LIGHTING & SKIN (anti-glare)
+• Faces must look softly lit and mostly MATTE: diffuse light, smooth shadows, no streaky specular highlights across cheeks, nose bridge, or forehead.
+• No wet-skin sheen, no oily shine, no dewy spotlight glare, no mirror-like facial highlights.
+• If any highlight appears, keep it tiny, soft, and on the high points only — never a large bright patch on the face.
+
+FACE BEAUTY — SUBTLE
+• Gently reduce visible skin blemishes, uneven redness, and harsh texture while keeping natural skin (not plastic, not wax).
+• Slightly reduce under-eye darkness; do not erase real character lines.
+• Slight, natural catchlight in the eyes only (no "laser" eye reflections).
 
 CUSTOMIZATION
 The character represents this profession / hobby / personality:
@@ -1524,6 +1549,13 @@ OUTFIT
 • When CUSTOMIZATION specifies different clothing — follow that instead.
 • Stylish, slightly exaggerated caricature look.
 
+FABRICS & MATERIALS (anti-shine — clothing)
+• Clothing must read as MATTE fabrics: matte wool, matte cotton, matte crepe, matte suit cloth — NOT shiny silk, NOT glossy satin, NOT latex, NOT vinyl, NOT patent leather shoes with mirror shine.
+• Avoid sequins, glitter, metallic foil, rhinestones, heavy jewelry reflections unless the buyer explicitly asks for them in CUSTOMIZATION.
+• If the outfit is formal (tuxedo / gown), keep it elegant but non-reflective: soft diffuse highlights only on folds, no broad bright streaks across chest, shoulders, or lapels.
+• Shoes and accessories: prefer matte leather or satin-matte finish — no mirror-shine dress shoes.
+• Tie / veil / jewelry: subtle, soft highlights only — no sparkling glare patches.
+
 SCENE
 Mini decorative environment connected with the interest or job.
 Fun but elegant.
@@ -1538,7 +1570,7 @@ TEXT
 {NAME_SECTION}
 
 RESULT
-Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
+Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render — satin/semi-matte finish, minimal glare, flattering faces, strong likeness.`,
     fields: [
       { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Para na rocznicę', required: false, promptKey: 'name' },
       { id: 'rocznica', label: 'Wpisz liczbę lat rocznicy (np. 25, 30, 40, 50) - liczba pojawi się na obrazie', type: 'text', placeholder: 'np. 25, 30, 40, 50', required: false, promptKey: 'YEARS' },
@@ -1550,17 +1582,26 @@ Premium collectible caricature statue, highly detailed, playful but luxurious, p
     promptTemplate: `Create a caricature figurine based on the provided photo.
 
 STYLE
-• Premium resin statue.
-• Soft cinematic studio lighting.
-• Glossy surfaces, high-end product render.
-• Warm elegant color grading.
-• Slight caricature exaggeration (bigger head, stylish proportions).
+• Premium resin-statue collectible with a SATIN / SEMI-MATTE surface — NOT mirror gloss, NOT wet plastic, NOT glassy skin.
+• High-end product render, but with controlled speculars: only soft, small edge highlights; avoid blown white hotspots and "greasy" shine.
+• Ultra-soft diffused studio lighting (large softbox look) — even, flattering, low-contrast on faces. No harsh top spotlight, no strong ring-light glare on foreheads, noses, and cheeks.
+• Warm elegant color grading. Natural, believable skin — not orange, not yellow, not overexposed.
+• Slight caricature exaggeration: minimally larger head, stylish proportions.
 
 FACE — CRITICAL
-• Strongly preserve the identity from the reference photo.
-• Keep facial structure, eyes, nose, mouth, beard/hairline.
-• Natural skin tones.
-• Friendly expressive smile.
+• Strongly preserve identity from the reference: same people, clearly recognizable (face shape, eyes, nose, mouth, hair, age, ethnicity).
+• Do NOT change facial structure. No "beauty surgery" reshaping.
+• Friendly, natural, expressive smile when appropriate for the reference.
+
+FACE LIGHTING & SKIN (anti-glare)
+• Faces must look softly lit and mostly MATTE: diffuse light, smooth shadows, no streaky specular highlights across cheeks, nose bridge, or forehead.
+• No wet-skin sheen, no oily shine, no dewy spotlight glare, no mirror-like facial highlights.
+• If any highlight appears, keep it tiny, soft, and on the high points only — never a large bright patch on the face.
+
+FACE BEAUTY — SUBTLE
+• Gently reduce visible skin blemishes, uneven redness, and harsh texture while keeping natural skin (not plastic, not wax).
+• Slightly reduce under-eye darkness; do not erase real character lines.
+• Slight, natural catchlight in the eyes only (no "laser" eye reflections).
 
 CUSTOMIZATION
 The character represents this profession / hobby / personality:
@@ -1582,6 +1623,13 @@ OUTFIT
 • When CUSTOMIZATION specifies different clothing — follow that instead.
 • Stylish, slightly exaggerated caricature look.
 
+FABRICS & MATERIALS (anti-shine — clothing)
+• Clothing must read as MATTE fabrics: matte wool, matte cotton, matte crepe, matte suit cloth — NOT shiny silk, NOT glossy satin, NOT latex, NOT vinyl, NOT patent leather shoes with mirror shine.
+• Avoid sequins, glitter, metallic foil, rhinestones, heavy jewelry reflections unless the buyer explicitly asks for them in CUSTOMIZATION.
+• If the outfit is formal (tuxedo / gown), keep it elegant but non-reflective: soft diffuse highlights only on folds, no broad bright streaks across chest, shoulders, or lapels.
+• Shoes and accessories: prefer matte leather or satin-matte finish — no mirror-shine dress shoes.
+• Tie / veil / jewelry: subtle, soft highlights only — no sparkling glare patches.
+
 SCENE
 Mini decorative environment connected with the interest or job.
 Fun but elegant.
@@ -1596,7 +1644,7 @@ TEXT
 {NAME_SECTION}
 
 RESULT
-Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
+Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render — satin/semi-matte finish, minimal glare, flattering faces, strong likeness.`,
     fields: [
       { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Para na rocznicę', required: false, promptKey: 'name' },
       { id: 'rocznica', label: 'Wpisz liczbę lat rocznicy (np. 25, 30, 40, 50) - liczba pojawi się na obrazie', type: 'text', placeholder: 'np. 25, 30, 40, 50', required: false, promptKey: 'YEARS' },
@@ -1608,17 +1656,26 @@ Premium collectible caricature statue, highly detailed, playful but luxurious, p
     promptTemplate: `Create a caricature figurine based on the provided photo.
 
 STYLE
-• Premium resin statue.
-• Soft cinematic studio lighting.
-• Glossy surfaces, high-end product render.
-• Warm elegant color grading.
-• Slight caricature exaggeration (bigger head, stylish proportions).
+• Premium resin-statue collectible with a SATIN / SEMI-MATTE surface — NOT mirror gloss, NOT wet plastic, NOT glassy skin.
+• High-end product render, but with controlled speculars: only soft, small edge highlights; avoid blown white hotspots and "greasy" shine.
+• Ultra-soft diffused studio lighting (large softbox look) — even, flattering, low-contrast on faces. No harsh top spotlight, no strong ring-light glare on foreheads, noses, and cheeks.
+• Warm elegant color grading. Natural, believable skin — not orange, not yellow, not overexposed.
+• Slight caricature exaggeration: minimally larger head, stylish proportions.
 
 FACE — CRITICAL
-• Strongly preserve the identity from the reference photo.
-• Keep facial structure, eyes, nose, mouth, beard/hairline.
-• Natural skin tones.
-• Friendly expressive smile.
+• Strongly preserve identity from the reference: same people, clearly recognizable (face shape, eyes, nose, mouth, hair, age, ethnicity).
+• Do NOT change facial structure. No "beauty surgery" reshaping.
+• Friendly, natural, expressive smile when appropriate for the reference.
+
+FACE LIGHTING & SKIN (anti-glare)
+• Faces must look softly lit and mostly MATTE: diffuse light, smooth shadows, no streaky specular highlights across cheeks, nose bridge, or forehead.
+• No wet-skin sheen, no oily shine, no dewy spotlight glare, no mirror-like facial highlights.
+• If any highlight appears, keep it tiny, soft, and on the high points only — never a large bright patch on the face.
+
+FACE BEAUTY — SUBTLE
+• Gently reduce visible skin blemishes, uneven redness, and harsh texture while keeping natural skin (not plastic, not wax).
+• Slightly reduce under-eye darkness; do not erase real character lines.
+• Slight, natural catchlight in the eyes only (no "laser" eye reflections).
 
 CUSTOMIZATION
 The character represents this profession / hobby / personality:
@@ -1640,6 +1697,13 @@ OUTFIT
 • When CUSTOMIZATION specifies different clothing — follow that instead.
 • Stylish, slightly exaggerated caricature look.
 
+FABRICS & MATERIALS (anti-shine — clothing)
+• Clothing must read as MATTE fabrics: matte wool, matte cotton, matte crepe, matte suit cloth — NOT shiny silk, NOT glossy satin, NOT latex, NOT vinyl, NOT patent leather shoes with mirror shine.
+• Avoid sequins, glitter, metallic foil, rhinestones, heavy jewelry reflections unless the buyer explicitly asks for them in CUSTOMIZATION.
+• If the outfit is formal (tuxedo / gown), keep it elegant but non-reflective: soft diffuse highlights only on folds, no broad bright streaks across chest, shoulders, or lapels.
+• Shoes and accessories: prefer matte leather or satin-matte finish — no mirror-shine dress shoes.
+• Tie / veil / jewelry: subtle, soft highlights only — no sparkling glare patches.
+
 SCENE
 Mini decorative environment connected with the interest or job.
 Fun but elegant.
@@ -1654,7 +1718,7 @@ TEXT
 {NAME_SECTION}
 
 RESULT
-Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render.`,
+Premium collectible caricature statue, highly detailed, playful but luxurious, product-photo quality render — satin/semi-matte finish, minimal glare, flattering faces, strong likeness.`,
     fields: [
       { id: 'imiona', label: 'Wpisz Imię, dedykację - tekst pojawi się na dole obrazka', type: 'text', placeholder: 'np. Para na rocznicę', required: false, promptKey: 'name' },
       { id: 'rocznica', label: 'Wpisz liczbę lat rocznicy (np. 20, 30, 40) - liczba pojawi się na obrazie', type: 'text', placeholder: 'np. 20, 30, 40', required: false, promptKey: 'YEARS' },
