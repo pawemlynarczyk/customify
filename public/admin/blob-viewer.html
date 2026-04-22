@@ -628,6 +628,15 @@
           window.removeEventListener('scroll', handleScroll);
         }
         
+        // Po RESECIE (pierwszy load / zmiana filtra) automatycznie dociągaj kolejne
+        // strony dopóki viewport się nie wypełni - dzięki temu user nie musi
+        // ręcznie scrollować w dół/górę żeby wymusić ładowanie gdy filtr po dacie
+        // odrzuca większość obrazków z paczki.
+        if (reset && data.hasMore) {
+          // wywołujemy bez await - niech leci w tle, nie blokujemy UI
+          autoFillViewport();
+        }
+        
       } catch (error) {
         console.error('Error loading images:', error);
         loadingEl.style.display = 'none';
@@ -1112,16 +1121,69 @@
     let isLoadingMore = false;
     let cleanupCancelled = false;
     let cleanupInProgress = false;
+    let autoFillInProgress = false;
     
-    function loadMore() {
+    async function loadMore() {
       if (isLoadingMore || !currentCursor) return;
       
       isLoadingMore = true;
       document.getElementById('loadMoreIndicator').style.display = 'block';
       
-      loadImages(false).finally(() => {
+      try {
+        await loadImages(false);
+      } catch (e) {
+        // błąd już jest obsłużony w loadImages (pokazuje error w UI)
+      } finally {
         isLoadingMore = false;
-      });
+      }
+    }
+    
+    // Zwraca liczbę obrazków zgodnych z aktualnymi filtrami (bez ich renderowania)
+    function getCurrentFilteredCount() {
+      const category = document.getElementById('categoryFilter').value;
+      const productTypeFilter = document.getElementById('productTypeFilter')?.value;
+      
+      let list = allImages;
+      if (category !== 'all') {
+        list = list.filter(img => img.category === category);
+      }
+      if (category === 'wygenerowane' && productTypeFilter) {
+        list = list.filter(img => img.productType === productTypeFilter);
+      }
+      list = filterByDate(list);
+      return list.length;
+    }
+    
+    // Auto-dociąganie kolejnych stron po filtrze dopóki strona nie wypełni viewportu
+    // LUB nie skończą się dane. Dzięki temu user nie musi ręcznie scrollować żeby
+    // "wymusić" ładowanie gdy pierwsza paczka jest odfiltrowana do kilku obrazków.
+    async function autoFillViewport() {
+      if (autoFillInProgress) return;
+      autoFillInProgress = true;
+      
+      const MAX_AUTO_ROUNDS = 20; // hard cap żeby nie walić w API w nieskończoność
+      const MIN_FILTERED = 24;    // około 2-4 rzędy w gridzie 200px
+      
+      try {
+        let rounds = 0;
+        while (currentCursor && rounds < MAX_AUTO_ROUNDS) {
+          const filteredCount = getCurrentFilteredCount();
+          const docHeight = document.documentElement.scrollHeight;
+          const viewportHeight = window.innerHeight;
+          
+          const isScrollable = docHeight > viewportHeight * 1.5;
+          const hasEnoughFiltered = filteredCount >= MIN_FILTERED;
+          
+          if (isScrollable && hasEnoughFiltered) break;
+          
+          rounds++;
+          await loadMore();
+          // mała przerwa żeby przeglądarka zdążyła zrobić layout
+          await new Promise(r => setTimeout(r, 50));
+        }
+      } finally {
+        autoFillInProgress = false;
+      }
     }
     
     // Infinite scroll - automatyczne ładowanie przy scrollu do dołu
@@ -1174,12 +1236,15 @@
     document.getElementById('categoryFilter').addEventListener('change', () => {
       updateFilteredCount();
       displayImages();
+      // Po zmianie filtra może się okazać, że widać mało rzeczy, a w API jest więcej do pobrania
+      if (currentCursor) autoFillViewport();
     });
     const productTypeFilterEl = document.getElementById('productTypeFilter');
     if (productTypeFilterEl) {
       productTypeFilterEl.addEventListener('change', () => {
         updateFilteredCount();
         displayImages();
+        if (currentCursor) autoFillViewport();
       });
     }
     document.getElementById('sortBy').addEventListener('change', () => loadImages(true));
@@ -1187,10 +1252,12 @@
     document.getElementById('dateFrom').addEventListener('change', () => {
       updateFilteredCount();
       displayImages();
+      if (currentCursor) autoFillViewport();
     });
     document.getElementById('dateTo').addEventListener('change', () => {
       updateFilteredCount();
       displayImages();
+      if (currentCursor) autoFillViewport();
     });
     
     // Login jest sprawdzany w checkLogin() przy DOMContentLoaded
