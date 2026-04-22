@@ -169,11 +169,14 @@ module.exports = async (req, res) => {
       return true;
     };
 
-    // Budżety: z filtrem dat paginujemy agresywniej, ale z twardym limitem czasu
+    // Budżety: z filtrem dat MUSIMY zeskanować wszystkie prefiksy alfabetyczne
+    // (Vercel Blob paginuje po pathname, więc najnowsze pliki mogą być w
+    // alfabetycznie późnych prefiksach jak text-overlay-*, wedding-*).
+    // Stopujemy DOPIERO gdy skończy się cursor albo upłynie budżet czasu -
+    // dzięki temu sortowanie po uploadedAt DESC faktycznie pokaże najnowsze.
     const BLOBS_PER_PAGE = 1000;
-    const MAX_PAGES_PER_REQUEST = hasDateFilter ? 60 : 12;
-    const TIME_BUDGET_MS = 15000; // <20s Vercel limit
-    const TARGET_IN_RANGE = hasDateFilter ? 300 : null;
+    const MAX_PAGES_PER_REQUEST = hasDateFilter ? 150 : 12;
+    const TIME_BUDGET_MS = hasDateFilter ? 25000 : 15000; // <30s Vercel Pro
     const maxBlobsThisRequest = Math.min(parseInt(limit, 10) || 3000, MAX_PAGES_PER_REQUEST * BLOBS_PER_PAGE);
 
     const allBlobs = [];
@@ -185,26 +188,23 @@ module.exports = async (req, res) => {
     const startTs = Date.now();
 
     const effectivePrefix = prefix || 'customify/temp/';
-    console.log(`📊 [LIST-BLOB-IMAGES] Using prefix: "${effectivePrefix}", dateFilter: ${hasDateFilter ? `${dateFrom || '-∞'} → ${dateTo || '+∞'}` : 'none'}, maxPages: ${MAX_PAGES_PER_REQUEST}, target: ${TARGET_IN_RANGE || maxBlobsThisRequest}`);
+    console.log(`📊 [LIST-BLOB-IMAGES] Using prefix: "${effectivePrefix}", dateFilter: ${hasDateFilter ? `${dateFrom || '-∞'} → ${dateTo || '+∞'}` : 'none'}, maxPages: ${MAX_PAGES_PER_REQUEST}, budget: ${TIME_BUDGET_MS}ms`);
 
     do {
-      // Stop po budżecie czasu (anti-504)
+      // Stop po budżecie czasu (anti-504/timeout)
       if (Date.now() - startTs > TIME_BUDGET_MS) {
         console.log(`⏱️ [LIST-BLOB-IMAGES] Time budget ${TIME_BUDGET_MS}ms exceeded, stopping at page ${pageCount} (inRange: ${inRangeCount}, scanned: ${scannedTotal})`);
         break;
       }
-      // Stop po osiągnięciu celu
-      if (hasDateFilter) {
-        if (inRangeCount >= TARGET_IN_RANGE) {
-          console.log(`🎯 [LIST-BLOB-IMAGES] Reached target ${TARGET_IN_RANGE} in-range blobs at page ${pageCount} (scanned: ${scannedTotal})`);
-          break;
-        }
-      } else {
-        if (allBlobs.length >= maxBlobsThisRequest) {
-          console.log(`📊 [LIST-BLOB-IMAGES] Reached limit ${maxBlobsThisRequest}, stopping pagination (anti-504)`);
-          break;
-        }
+      // Bez filtra dat - ograniczenie rozmiaru odpowiedzi
+      if (!hasDateFilter && allBlobs.length >= maxBlobsThisRequest) {
+        console.log(`📊 [LIST-BLOB-IMAGES] Reached limit ${maxBlobsThisRequest}, stopping pagination (anti-504)`);
+        break;
       }
+      // Z filtrem dat NIE przerywamy po liczbie znalezionych - musimy zeskanować
+      // wszystkie prefiksy alfabetyczne, bo najnowsze pliki mogą być w późnych
+      // (np. text-overlay-*, wedding-*). Przerywamy tylko po budżecie czasu lub
+      // gdy skończy się cursor Vercel Blob.
 
       const blobsBatch = await list({
         prefix: effectivePrefix,
