@@ -1155,10 +1155,11 @@ async function openaiGpt15Edit(imageDataUri, config) {
 }
 
 /**
- * 💍 Fallback: OpenAI Images Edit (gpt-image-2) — wedding-only, gdy Replicate openai/gpt-image-2 padnie.
+ * Fallback: OpenAI Images Edit (gpt-image-2) — gdy Replicate openai/gpt-image-2 padnie.
+ * Używane dla stylów karykaturowych (caricature-new, karykatura-prezent-szkic, olowkiem-zam-*).
  * Ten sam model (gpt-image-2) przez oficjalne API OpenAI.
  * @param {string} imageDataUri - data URI (base64) obrazu użytkownika
- * @param {object} config - styleConfig dla stylu caricature-wedding-v2 (prompt, parameters)
+ * @param {object} config - styleConfig dla stylu gpt-image-2 (prompt, parameters)
  * @returns {Promise<string>} - data URL base64 lub URL wygenerowanego obrazu
  */
 async function openaiGptImage2Edit(imageDataUri, config) {
@@ -2098,24 +2099,8 @@ module.exports = async (req, res) => {
           n: 1
         }
       },
-      // Nowy styl IMG2IMG - OpenAI GPT-Image-1.5 via Replicate (caricature, para, biznes woman)
+      // Nowy styl IMG2IMG - OpenAI GPT-Image-2 via Replicate (caricature, para, biznes woman, wedding)
       'caricature-new': {
-        model: "openai/gpt-image-1.5",
-        prompt: "Create a soft, flattering caricature while keeping the people clearly recognizable.\n\nSTYLE:\n\n• Smooth, clean colors with a soft marker-and-colored-pencil look.\n\n• Natural, balanced skin tones (no yellow or sepia filter).\n\n• Gentle outlines and soft shading with mild exaggeration of expressive features.\n\nFACE & BEAUTY:\n\n• Preserve facial structure and identity.\n\n• Slightly enhance beauty: smooth skin, reduce wrinkles or harsh details.\n\n• Keep eyes natural and expressive.\n\nBACKGROUND:\n\n• Keep the original background, but softly stylize it to match the caricature style.\n\n• Do NOT remove or replace the background.\n\nEXAGGERATION:\n\n• Larger heads and slightly smaller bodies, but still natural and flattering.\n\n• Exaggerate only smiles, eyebrows, and cheeks — no distortion of identity.\n\nRESULT:\n\nA natural-color, soft, flattering caricature with preserved background and strong likeness.",
-        productType: "caricature-new",
-        parameters: {
-          aspect_ratio: "2:3",
-          quality: "medium",
-          background: "auto",
-          output_format: "jpeg",
-          input_fidelity: "high",
-          number_of_images: 1,
-          output_compression: 90,
-          moderation: "low"
-        }
-      },
-      // 💍 Wedding-only wariant na gpt-image-2 (TYLKO 4 ślubne handle — patrz WEDDING_HANDLES poniżej)
-      'caricature-wedding-v2': {
         model: "openai/gpt-image-2",
         prompt: "Create a soft, flattering caricature while keeping the people clearly recognizable.\n\nSTYLE:\n\n• Smooth, clean colors with a soft marker-and-colored-pencil look.\n\n• Natural, balanced skin tones (no yellow or sepia filter).\n\n• Gentle outlines and soft shading with mild exaggeration of expressive features.\n\nFACE & BEAUTY:\n\n• Preserve facial structure and identity.\n\n• Slightly enhance beauty: smooth skin, reduce wrinkles or harsh details.\n\n• Keep eyes natural and expressive.\n\nBACKGROUND:\n\n• Keep the original background, but softly stylize it to match the caricature style.\n\n• Do NOT remove or replace the background.\n\nEXAGGERATION:\n\n• Larger heads and slightly smaller bodies, but still natural and flattering.\n\n• Exaggerate only smiles, eyebrows, and cheeks — no distortion of identity.\n\nRESULT:\n\nA natural-color, soft, flattering caricature with preserved background and strong likeness.",
         productType: "caricature-new",
@@ -2142,9 +2127,9 @@ module.exports = async (req, res) => {
           n: 1
         }
       },
-      // Szkic GPT-Image-1.5 TYLKO: karykatura-prezent-na-rocznice + obraz ołówkiem na zamówienie (olowkiem-zam-szkic)
+      // Szkic GPT-Image-2 TYLKO: karykatura-prezent-na-rocznice + obraz ołówkiem na zamówienie (olowkiem-zam-szkic)
       'karykatura-prezent-szkic': {
-        model: "openai/gpt-image-1.5",
+        model: "openai/gpt-image-2",
         prompt: "Create a caricature portrait based on the uploaded photo. Exaggerate facial features, make it humorous and cartoon-like while maintaining likeness. Use bold lines, and comedic proportions typical of caricature art. Make it black and white like pencil sketch",
         productType: "caricature-new",
         parameters: {
@@ -2152,7 +2137,6 @@ module.exports = async (req, res) => {
           quality: "medium",
           background: "auto",
           output_format: "jpeg",
-          input_fidelity: "high",
           number_of_images: 1,
           output_compression: 90,
           moderation: "low"
@@ -2174,7 +2158,7 @@ module.exports = async (req, res) => {
         }
       },
       'olowkiem-zam-nowoczesna': {
-        model: "openai/gpt-image-1.5",
+        model: "openai/gpt-image-2",
         prompt: "Create a soft, flattering caricature while keeping the people clearly recognizable.\n\nSTYLE:\n\n• Smooth, clean colors with a soft marker-and-colored-pencil look.\n\n• Natural, balanced skin tones (no yellow or sepia filter).\n\n• Gentle outlines and soft shading with mild exaggeration of expressive features.\n\nFACE & BEAUTY:\n\n• Preserve facial structure and identity.\n\n• Slightly enhance beauty: smooth skin, reduce wrinkles or harsh details.\n\n• Keep eyes natural and expressive.\n\nBACKGROUND:\n\n• Keep the original background, but softly stylize it to match the caricature style.\n\n• Do NOT remove or replace the background.\n\nEXAGGERATION:\n\n• Larger heads and slightly smaller bodies, but still natural and flattering.\n\n• Exaggerate only smiles, eyebrows, and cheeks — no distortion of identity.\n\nRESULT:\n\nA natural-color, soft, flattering caricature with preserved background and strong likeness.",
         productType: "caricature-new",
         parameters: {
@@ -2182,14 +2166,13 @@ module.exports = async (req, res) => {
           quality: "medium",
           background: "auto",
           output_format: "jpeg",
-          input_fidelity: "high",
           number_of_images: 1,
           output_compression: 90,
           moderation: "low"
         }
       },
       'olowkiem-zam-szkic': {
-        model: "openai/gpt-image-1.5",
+        model: "openai/gpt-image-2",
         prompt: "Create a caricature portrait based on the uploaded photo. Exaggerate facial features, make it humorous and cartoon-like while maintaining likeness. Use bold lines, and comedic proportions typical of caricature art. Make it black and white like pencil sketch",
         productType: "caricature-new",
         parameters: {
@@ -2197,7 +2180,6 @@ module.exports = async (req, res) => {
           quality: "medium",
           background: "auto",
           output_format: "jpeg",
-          input_fidelity: "high",
           number_of_images: 1,
           output_compression: 90,
           moderation: "low"
@@ -2404,19 +2386,6 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
       }
     }
     
-    // 💍 WEDDING-ONLY ROUTING: produkty ślubne lecą na gpt-image-2 (osobny styleConfig),
-    // wszystkie pozostałe produkty nadal używają caricature-new (gpt-image-1.5).
-    const WEDDING_HANDLES_V2 = [
-      'karykatura-slubna-ze-zdjecia-prezent-dla-mlodej-pary',
-      'karykatura-na-rocznice-slubu-prezent-na-25-30-40-50-lecie',
-      'karykatura-na-50-rocznice-slubu-prezent-na-50-lecie',
-      'karykatura-na-40-rocznice-slubu-obraz-ze-zdjecia-na-40-lecie'
-    ];
-    if (selectedStyle === 'caricature-new' && productHandle && WEDDING_HANDLES_V2.includes(productHandle)) {
-      console.log(`💍 [WEDDING-V2] handle="${productHandle}" → przełączam caricature-new → caricature-wedding-v2 (gpt-image-2)`);
-      selectedStyle = 'caricature-wedding-v2';
-    }
-
     // ✅ WALIDACJA: Sprawdź czy styl istnieje w config
     if (!styleConfig[selectedStyle]) {
       console.error(`❌ [STYLE-DEBUG] Styl "${selectedStyle}" nie istnieje w config!`);
@@ -3486,15 +3455,15 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
         output_quality: config.parameters?.output_quality || 95
       };
     } else if (config.model.includes('gpt-image-2')) {
-      // 💍 GPT Image 2.0 (wedding-only) — img2img via Replicate. Schema v2 NIE ma input_fidelity.
-      console.log('💍 [GPT-IMAGE-2] Uploading image to Vercel Blob Storage for img2img...');
+      // GPT Image 2.0 (karykatury) — img2img via Replicate. Schema v2 NIE ma input_fidelity.
+      console.log('🎨 [GPT-IMAGE-2] Uploading image to Vercel Blob Storage for img2img...');
       const baseUrl = 'https://customify-s56o.vercel.app';
       const uploadResponse = await fetch(`${baseUrl}/api/upload-temp-image`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           imageData: imageDataUri,
-          filename: `wedding-v2-${Date.now()}.jpg`
+          filename: `gpt-image-2-${Date.now()}.jpg`
         })
       });
 
@@ -3936,10 +3905,10 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
       }
 
       if (!output) {
-        // Fallback na OpenAI API (gpt-image-2) – ślubne produkty
+        // Fallback na OpenAI API (gpt-image-2) – style karykaturowe
         if (config.model.includes('gpt-image-2') && openai) {
           try {
-            console.log('🔄 [REPLICATE] Replicate failed – trying OpenAI gpt-image-2 Edit API fallback (wedding)');
+            console.log('🔄 [REPLICATE] Replicate failed – trying OpenAI gpt-image-2 Edit API fallback');
             imageUrl = await openaiGptImage2Edit(imageDataUri, config);
             console.log('✅ [OPENAI-FALLBACK-V2] Fallback succeeded');
           } catch (fallbackErr) {
