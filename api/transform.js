@@ -1154,6 +1154,54 @@ async function openaiGpt15Edit(imageDataUri, config) {
   throw new Error('OpenAI gpt-image-1.5 response had no b64_json or url');
 }
 
+/**
+ * 💍 Fallback: OpenAI Images Edit (gpt-image-2) — wedding-only, gdy Replicate openai/gpt-image-2 padnie.
+ * Ten sam model (gpt-image-2) przez oficjalne API OpenAI.
+ * @param {string} imageDataUri - data URI (base64) obrazu użytkownika
+ * @param {object} config - styleConfig dla stylu caricature-wedding-v2 (prompt, parameters)
+ * @returns {Promise<string>} - data URL base64 lub URL wygenerowanego obrazu
+ */
+async function openaiGptImage2Edit(imageDataUri, config) {
+  if (!openai) {
+    throw new Error('OpenAI client not initialized - cannot use fallback');
+  }
+  const mimeMatch = imageDataUri.match(/^data:(image\/(png|jpeg|jpg|webp));base64,/i);
+  const mimeType = mimeMatch ? mimeMatch[1].toLowerCase() : 'image/jpeg';
+  const extension = (mimeMatch && mimeMatch[2]) ? mimeMatch[2].toLowerCase() : 'jpg';
+  const base64Data = imageDataUri.split(',')[1] || imageDataUri;
+  const imageBuffer = Buffer.from(base64Data, 'base64');
+  const imageFile = await toFile(imageBuffer, `image.${extension}`, { type: mimeType });
+
+  const aspectRatio = config.parameters?.aspect_ratio || '2:3';
+  const sizeMap = { '2:3': '1024x1536', '3:4': '1024x1536', '1:1': '1024x1024', '3:2': '1536x1024' };
+  const size = sizeMap[aspectRatio] || config.parameters?.size || '1024x1536';
+
+  console.log('🔄 [OPENAI-FALLBACK] Using OpenAI gpt-image-2 Edit API (fallback from Replicate)');
+  const response = await openai.images.edit({
+    model: 'gpt-image-2',
+    image: imageFile,
+    prompt: config.prompt,
+    size,
+    quality: config.parameters?.quality || 'medium',
+    background: config.parameters?.background || 'auto',
+    n: config.parameters?.number_of_images || 1,
+  });
+
+  if (!response?.data?.length) {
+    throw new Error('No image returned from OpenAI gpt-image-2 Edit API');
+  }
+  const first = response.data[0];
+  if (first.b64_json) {
+    const fmt = (config.parameters?.output_format || 'jpeg').toLowerCase();
+    const mime = fmt === 'jpeg' || fmt === 'jpg' ? 'jpeg' : fmt === 'webp' ? 'webp' : 'png';
+    return `data:image/${mime};base64,${first.b64_json}`;
+  }
+  if (first.url) {
+    return first.url;
+  }
+  throw new Error('OpenAI gpt-image-2 response had no b64_json or url');
+}
+
 // Function to compress and resize images for SDXL models
 async function compressImage(imageData, maxWidth = 1152, maxHeight = 1152, quality = 85) {
   if (!sharp) {
@@ -2066,6 +2114,21 @@ module.exports = async (req, res) => {
           moderation: "low"
         }
       },
+      // 💍 Wedding-only wariant na gpt-image-2 (TYLKO 4 ślubne handle — patrz WEDDING_HANDLES poniżej)
+      'caricature-wedding-v2': {
+        model: "openai/gpt-image-2",
+        prompt: "Create a soft, flattering caricature while keeping the people clearly recognizable.\n\nSTYLE:\n\n• Smooth, clean colors with a soft marker-and-colored-pencil look.\n\n• Natural, balanced skin tones (no yellow or sepia filter).\n\n• Gentle outlines and soft shading with mild exaggeration of expressive features.\n\nFACE & BEAUTY:\n\n• Preserve facial structure and identity.\n\n• Slightly enhance beauty: smooth skin, reduce wrinkles or harsh details.\n\n• Keep eyes natural and expressive.\n\nBACKGROUND:\n\n• Keep the original background, but softly stylize it to match the caricature style.\n\n• Do NOT remove or replace the background.\n\nEXAGGERATION:\n\n• Larger heads and slightly smaller bodies, but still natural and flattering.\n\n• Exaggerate only smiles, eyebrows, and cheeks — no distortion of identity.\n\nRESULT:\n\nA natural-color, soft, flattering caricature with preserved background and strong likeness.",
+        productType: "caricature-new",
+        parameters: {
+          aspect_ratio: "2:3",
+          quality: "medium",
+          background: "auto",
+          output_format: "jpeg",
+          number_of_images: 1,
+          output_compression: 90,
+          moderation: "low"
+        }
+      },
       'karykatura-olowek': {
         model: "gpt-image-1",
         prompt: "keep faces of the persons recognizable. Generate a premium caricature portrait with exaggerated proportions:\n\nlarge expressive head, small body, elegant ink illustration style.\n\nProportions should clearly look like caricature but still artistic and refined.\n\nKeep facial likeness high. Clean white background.",
@@ -2341,6 +2404,19 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
       }
     }
     
+    // 💍 WEDDING-ONLY ROUTING: produkty ślubne lecą na gpt-image-2 (osobny styleConfig),
+    // wszystkie pozostałe produkty nadal używają caricature-new (gpt-image-1.5).
+    const WEDDING_HANDLES_V2 = [
+      'karykatura-slubna-ze-zdjecia-prezent-dla-mlodej-pary',
+      'karykatura-na-rocznice-slubu-prezent-na-25-30-40-50-lecie',
+      'karykatura-na-50-rocznice-slubu-prezent-na-50-lecie',
+      'karykatura-na-40-rocznice-slubu-obraz-ze-zdjecia-na-40-lecie'
+    ];
+    if (selectedStyle === 'caricature-new' && productHandle && WEDDING_HANDLES_V2.includes(productHandle)) {
+      console.log(`💍 [WEDDING-V2] handle="${productHandle}" → przełączam caricature-new → caricature-wedding-v2 (gpt-image-2)`);
+      selectedStyle = 'caricature-wedding-v2';
+    }
+
     // ✅ WALIDACJA: Sprawdź czy styl istnieje w config
     if (!styleConfig[selectedStyle]) {
       console.error(`❌ [STYLE-DEBUG] Styl "${selectedStyle}" nie istnieje w config!`);
@@ -3409,6 +3485,40 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
         output_format: config.parameters?.output_format || 'jpg',
         output_quality: config.parameters?.output_quality || 95
       };
+    } else if (config.model.includes('gpt-image-2')) {
+      // 💍 GPT Image 2.0 (wedding-only) — img2img via Replicate. Schema v2 NIE ma input_fidelity.
+      console.log('💍 [GPT-IMAGE-2] Uploading image to Vercel Blob Storage for img2img...');
+      const baseUrl = 'https://customify-s56o.vercel.app';
+      const uploadResponse = await fetch(`${baseUrl}/api/upload-temp-image`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageData: imageDataUri,
+          filename: `wedding-v2-${Date.now()}.jpg`
+        })
+      });
+
+      if (!uploadResponse.ok) {
+        const errorText = await uploadResponse.text();
+        console.error('❌ [GPT-IMAGE-2] Vercel Blob upload failed:', errorText);
+        throw new Error(`Vercel Blob upload failed: ${uploadResponse.status} - ${errorText}`);
+      }
+
+      const uploadResult = await uploadResponse.json();
+      const userImageUrl = uploadResult.imageUrl;
+      console.log('✅ [GPT-IMAGE-2] User image uploaded:', userImageUrl);
+
+      inputParams = {
+        prompt: config.prompt,
+        input_images: [userImageUrl],
+        aspect_ratio: config.parameters?.aspect_ratio || '2:3',
+        quality: config.parameters?.quality || 'medium',
+        background: config.parameters?.background || 'auto',
+        output_format: config.parameters?.output_format || 'jpeg',
+        number_of_images: config.parameters?.number_of_images || 1,
+        output_compression: config.parameters?.output_compression || 90,
+        moderation: config.parameters?.moderation || 'low'
+      };
     } else if (config.model.includes('gpt-image-1.5')) {
       // GPT Image 1.5 model parameters (Royal Love) - img2img with OpenAI's latest model via Replicate
       console.log('💕 [ROYAL-LOVE] Uploading image to Vercel Blob Storage for img2img...');
@@ -3796,8 +3906,8 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
               error.message.match(/E\d{4,5}/) // Błędy Replicate z kodem E (np. E8765)
             ));
 
-          // Dla gpt-image-1.5: po 1 błędzie od razu fallback na OpenAI, bez retry
-          if (config.model.includes('gpt-image-1.5') && openai) {
+          // Dla gpt-image-1.5 / gpt-image-2: po 1 błędzie od razu fallback na OpenAI, bez retry
+          if ((config.model.includes('gpt-image-1.5') || config.model.includes('gpt-image-2')) && openai) {
             console.warn(`⚠️ [REPLICATE] Replicate error (attempt ${attempt}) – skipping retry, using OpenAI fallback`);
             break;
           }
@@ -3826,8 +3936,19 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
       }
 
       if (!output) {
+        // Fallback na OpenAI API (gpt-image-2) – ślubne produkty
+        if (config.model.includes('gpt-image-2') && openai) {
+          try {
+            console.log('🔄 [REPLICATE] Replicate failed – trying OpenAI gpt-image-2 Edit API fallback (wedding)');
+            imageUrl = await openaiGptImage2Edit(imageDataUri, config);
+            console.log('✅ [OPENAI-FALLBACK-V2] Fallback succeeded');
+          } catch (fallbackErr) {
+            console.warn('⚠️ [OPENAI-FALLBACK-V2] Fallback failed:', fallbackErr?.message || fallbackErr);
+            throw lastError || new Error('Replicate prediction failed after all retries');
+          }
+        }
         // Fallback na OpenAI API (gpt-image-1.5) gdy Replicate nie działa – np. karykatura nowoczesna, Love Rose, Jak z bajki
-        if (config.model.includes('gpt-image-1.5') && openai) {
+        else if (config.model.includes('gpt-image-1.5') && openai) {
           try {
             console.log('🔄 [REPLICATE] Replicate failed – trying OpenAI gpt-image-1.5 Edit API fallback');
             imageUrl = await openaiGpt15Edit(imageDataUri, config);
