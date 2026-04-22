@@ -214,11 +214,11 @@ module.exports = async (req, res) => {
     // 🚨 ROLLBACK: START - Cena dla produktu cyfrowego (STAŁA 69 zł, NIE zależy od ceny bazowej)
     let totalPrice = 99.00; // Domyślna cena fallback
     
-    // Dla produktu cyfrowy: ZAWSZE 49 zł, niezależnie od ceny bazowej produktu
+    // Dla produktu cyfrowego: cena z pakietu (1: 69, 3: 89, 5: 149, 10: 199), niezależnie od ceny bazowej produktu
     if (isDigitalProduct) {
-      const DIGITAL_PACKAGE_PRICES = { 1: 49, 3: 89, 5: 149, 10: 199 };
+      const DIGITAL_PACKAGE_PRICES = { 1: 69, 3: 89, 5: 149, 10: 199 };
       const pkgCount = parseInt(digitalPackage, 10) || 1;
-      totalPrice = DIGITAL_PACKAGE_PRICES[pkgCount] || 49.00;
+      totalPrice = DIGITAL_PACKAGE_PRICES[pkgCount] || 69.00;
       console.log(`💰 [PRODUCTS.JS] Digital product - package: ${pkgCount}, price: ${totalPrice} zł`);
     } else if (finalPrice && finalPrice > 0) {
       // Produkt fizyczny: użyj ceny z frontendu (już obliczonej z rozmiarem)
