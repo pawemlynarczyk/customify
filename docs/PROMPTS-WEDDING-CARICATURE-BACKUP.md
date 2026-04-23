@@ -13,6 +13,19 @@
 - Karykatury ślubne (4 produkty): 2026-04-22 (pierwsza faza — sekcje 1-4 niżej)
 - Grupy 1-4 Typu A (32 produkty): 2026-04-22 (druga faza — patrz „Anti-glare / beauty / fabrics — GRUPY 1-4" na dole)
 
+## Aktualizacje operacyjne (gpt-image-2)
+
+### 2026-04-23 — limit promptu dla `replaceBasePrompt`
+- **Dla `gpt-image-2`**: zwiększony limit `promptAddition` przy `replaceBasePrompt=true` do `20000` (praktycznie bez cięcia szablonów produktowych).
+- **Dla `gpt-image-1.5` (rollback)**: pozostaje dotychczasowy limit `3500`.
+- **Powód**: przy limicie `3500` wypadały końcowe sekcje `TEXT` / `RESULT` w długich promptach, co powodowało m.in. niechciane napisy.
+
+### 2026-04-23 — reguły tekstu dla pola `personalization`
+- Pole `personalization` służy wyłącznie do opisu sceny/postaci (zawód, hobby, klimat), nie jako tekst dedykacji.
+- Frazy z `personalization` **nie mogą** być renderowane jako napis na `podium/base/plaque/sign/banner`.
+- Jeśli nie ma imienia/dedykacji, `podium/base/plaque/sign/banner` ma pozostać bez tekstu.
+- Dopuszczalne są inne naturalne teksty w scenie (np. elementy otoczenia), o ile nie są dedykacją z pola `personalization`.
+
 **Zasada synchronizacji:** każda zmiana promptów musi być powielona w `public/customify.js` **i** `shopify-theme/customify-theme/assets/customify.js`.
 
 ---

@@ -208,6 +208,17 @@ function buildPromptFromTemplate(handle, config, valuesByFieldId, ctx) {
   Object.keys(replacements).forEach(key => {
     prompt = prompt.replaceAll(`{${key}}`, replacements[key]);
   });
+  const hasPersonalizationField = (config.fields || []).some(field => field && field.promptKey === 'personalization');
+  if (hasPersonalizationField) {
+    const hasAnyNameText = !!(
+      (replacements.name && replacements.name.trim()) ||
+      (replacements.NAMES && replacements.NAMES.trim())
+    );
+    const textPolicy = hasAnyNameText
+      ? 'Render only NAME_SECTION/NAMES_SECTION text on podium/base/plaque/sign/banner. PERSONALIZATION must never be printed there.'
+      : 'If no name/dedication was provided, keep podium/base/plaque/sign/banner without any text.';
+    prompt += `\n\nTEXT RENDERING RULES (CRITICAL)\n• PERSONALIZATION describes the scene/person only (profession, hobby, vibe). It is not a dedication text.\n• Do NOT print PERSONALIZATION as text on podium/base/plaque/sign/banner.\n• Other in-scene text elements may exist naturally when consistent with the environment.\n• ${textPolicy}`;
+  }
   return prompt.trim() || null;
 }
 
