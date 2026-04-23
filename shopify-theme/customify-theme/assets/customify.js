@@ -2845,7 +2845,7 @@ Premium collectible caricature statue, highly detailed, playful but luxurious, p
 STYLE:
 • High-end 3D resin sculpture.
 • Soft cinematic studio lighting.
-• Glossy surfaces, premium finish.
+• Satin / semi-matte premium finish — soft controlled highlights, NOT wet gloss, NOT mirror shine.
 • Warm golden color grading.
 • Slight caricature exaggeration (larger heads, elegant proportions).
 • Slender, graceful body proportions — elegant and refined, NOT bulky or distorted.
@@ -2855,6 +2855,8 @@ FACE:
 • Natural skin tones.
 • Slight beautification (smooth skin, refined details).
 • Expressive, joyful smiles.
+• Skin must look softly lit and mostly MATTE — no oily sheen, no wet-skin glare, no large bright patches on forehead, cheeks, or nose.
+• Keep beautification natural — not plastic, not wax.
 
 POSE:
 • {YEARS_SECTION}
@@ -2864,6 +2866,8 @@ POSE:
 OUTFITS:
 • Glamorous evening look.
 • Elegant black and gold styling.
+• Fabrics should read as elegant MATTE or satin-matte — NOT wet-look, NOT glossy vinyl, NOT shiny latex.
+• Gold accents: soft warm glow only, no large mirror-like reflections or blown-out bright streaks.
 
 SCENE TYPE:
 The occasion is business anniversary celebration.
@@ -2891,7 +2895,7 @@ A premium 3D anniversary caricature statue, slender elegant figure, luxurious, c
 STYLE:
 • High-end 3D resin sculpture.
 • Soft cinematic studio lighting.
-• Glossy surfaces, premium finish.
+• Satin / semi-matte premium finish — soft controlled highlights, NOT wet gloss, NOT mirror shine.
 • Warm golden color grading.
 • Slight caricature exaggeration (larger heads, elegant proportions).
 • Slender, graceful body proportions — elegant and refined, NOT bulky or distorted.
@@ -2901,6 +2905,8 @@ FACE:
 • Natural skin tones.
 • Slight beautification (smooth skin, refined details).
 • Expressive, joyful smiles.
+• Skin must look softly lit and mostly MATTE — no oily sheen, no wet-skin glare, no large bright patches on forehead, cheeks, or nose.
+• Keep beautification natural — not plastic, not wax.
 
 POSE:
 • {YEARS_SECTION}
@@ -2910,6 +2916,8 @@ POSE:
 OUTFITS:
 • Glamorous evening look.
 • Elegant black and gold styling.
+• Fabrics should read as elegant MATTE or satin-matte — NOT wet-look, NOT glossy vinyl, NOT shiny latex.
+• Gold accents: soft warm glow only, no large mirror-like reflections or blown-out bright streaks.
 
 SCENE TYPE:
 The occasion is business anniversary celebration.
@@ -2937,7 +2945,7 @@ A premium 3D anniversary caricature statue, slender elegant figure, luxurious, c
 STYLE:
 • High-end 3D resin sculpture.
 • Soft cinematic studio lighting.
-• Glossy surfaces, premium finish.
+• Satin / semi-matte premium finish — soft controlled highlights, NOT wet gloss, NOT mirror shine.
 • Warm golden color grading.
 • Slight caricature exaggeration (larger heads, elegant proportions).
 • Slender, graceful body proportions — elegant and refined, NOT bulky or distorted.
@@ -2947,6 +2955,8 @@ FACE:
 • Natural skin tones.
 • Slight beautification (smooth skin, refined details).
 • Expressive, joyful smiles.
+• Skin must look softly lit and mostly MATTE — no oily sheen, no wet-skin glare, no large bright patches on forehead, cheeks, or nose.
+• Keep beautification natural — not plastic, not wax.
 
 POSE:
 • {YEARS_SECTION}
@@ -2956,6 +2966,8 @@ POSE:
 OUTFITS:
 • Glamorous evening look.
 • Elegant black and gold styling.
+• Fabrics should read as elegant MATTE or satin-matte — NOT wet-look, NOT glossy vinyl, NOT shiny latex.
+• Gold accents: soft warm glow only, no large mirror-like reflections or blown-out bright streaks.
 
 SCENE TYPE:
 The occasion is business anniversary celebration.
@@ -2983,7 +2995,7 @@ A premium 3D anniversary caricature statue, slender elegant figure, luxurious, c
 STYLE:
 • High-end 3D resin sculpture.
 • Soft cinematic studio lighting.
-• Glossy surfaces, premium finish.
+• Satin / semi-matte premium finish — soft controlled highlights, NOT wet gloss, NOT mirror shine.
 • Warm golden color grading.
 • Slight caricature exaggeration (larger heads, elegant proportions).
 • Slender, graceful body proportions — elegant and refined, NOT bulky or distorted.
@@ -2993,6 +3005,8 @@ FACE:
 • Natural skin tones.
 • Slight beautification (smooth skin, refined details).
 • Expressive, joyful smiles.
+• Skin must look softly lit and mostly MATTE — no oily sheen, no wet-skin glare, no large bright patches on forehead, cheeks, or nose.
+• Keep beautification natural — not plastic, not wax.
 
 POSE:
 • {YEARS_SECTION}
@@ -3002,6 +3016,8 @@ POSE:
 OUTFITS:
 • Glamorous evening look.
 • Elegant black and gold styling.
+• Fabrics should read as elegant MATTE or satin-matte — NOT wet-look, NOT glossy vinyl, NOT shiny latex.
+• Gold accents: soft warm glow only, no large mirror-like reflections or blown-out bright streaks.
 
 SCENE TYPE:
 The occasion is business anniversary celebration.
@@ -3031,7 +3047,7 @@ CRITICAL: Use ONLY the person(s) visible in the uploaded photo. Do NOT add any e
 STYLE:
 • High-end 3D resin sculpture.
 • Soft cinematic studio lighting.
-• Glossy surfaces, premium finish.
+• Satin / semi-matte premium finish — soft controlled highlights, NOT wet gloss, NOT mirror shine.
 • Warm golden color grading.
 • Slight caricature exaggeration (larger heads, elegant proportions).
 
@@ -3040,6 +3056,8 @@ FACE:
 • Natural skin tones.
 • Slight beautification (smooth skin, refined details).
 • Expressive, joyful smiles.
+• Skin must look softly lit and mostly MATTE — no oily sheen, no wet-skin glare, no large bright patches on forehead, cheeks, or nose.
+• Keep beautification natural — not plastic, not wax.
 
 POSE:
 • The person(s) from the photo sitting on a large metallic gold 3D number "{YEARS}".
@@ -3049,6 +3067,8 @@ POSE:
 OUTFITS:
 • Glamorous evening look.
 • Elegant black and gold styling.
+• Fabrics should read as elegant MATTE or satin-matte — NOT wet-look, NOT glossy vinyl, NOT shiny latex.
+• Gold accents: soft warm glow only, no large mirror-like reflections or blown-out bright streaks.
 
 SCENE TYPE:
 The occasion is anniversary. The decorations, props and mood: romantic lighting, subtle hearts, elegant decor.
@@ -3078,7 +3098,7 @@ CRITICAL: Use ONLY the person(s) visible in the uploaded photo. Do NOT add any e
 STYLE:
 • High-end 3D resin sculpture.
 • Soft cinematic studio lighting.
-• Glossy surfaces, premium finish.
+• Satin / semi-matte premium finish — soft controlled highlights, NOT wet gloss, NOT mirror shine.
 • Warm golden color grading.
 • Slight caricature exaggeration (larger heads, elegant proportions).
 
@@ -3087,6 +3107,8 @@ FACE:
 • Natural skin tones.
 • Slight beautification (smooth skin, refined details).
 • Expressive, joyful smiles.
+• Skin must look softly lit and mostly MATTE — no oily sheen, no wet-skin glare, no large bright patches on forehead, cheeks, or nose.
+• Keep beautification natural — not plastic, not wax.
 
 POSE:
 • The person(s) from the photo sitting on a large metallic gold 3D number "{YEARS}".
@@ -3096,6 +3118,8 @@ POSE:
 OUTFITS:
 • Glamorous evening look.
 • Elegant black and gold styling.
+• Fabrics should read as elegant MATTE or satin-matte — NOT wet-look, NOT glossy vinyl, NOT shiny latex.
+• Gold accents: soft warm glow only, no large mirror-like reflections or blown-out bright streaks.
 
 SCENE TYPE:
 The occasion is anniversary. The decorations, props and mood: romantic lighting, subtle hearts, elegant decor.

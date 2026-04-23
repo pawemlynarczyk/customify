@@ -270,3 +270,72 @@ Premium collectible caricature statue, highly detailed, playful but luxurious, p
 ## Szybki rollback przez git
 
 Najszybciej: `git log --oneline | grep -i "anti-glare groups 1-4"` → znajdź commit → `git revert <sha>` → push.
+
+---
+
+# Anti-glare Typ B — luxury 3D (biznes-woman + rocznica pary) — rollback
+
+**Data wdrożenia:** 2026-04-22
+**Model API:** `openai/gpt-image-2`
+**Zakres:** 6 produktów (4× biznes-woman, 2× rocznica pary na 50-tą)
+
+### Produkty
+
+1. `obraz-ze-zdjecia-biznes-woman-personalizowany-prezent`
+2. `wydruk-na-szkle-biznes-woman-prezent-na-urodziny-dla-kobiety`
+3. `obraz-ze-zdjecia-prezent-na-50-urodziny-dla-kobiety-biznes-woman`
+4. `obraz-ze-zdjecia-prezent-na-30-urodziny-dla-kobiety-biznes-woman`
+5. `obraz-ze-zdjecia-pary-na-50-ta-rocznice-wydruk-na-szkle`
+6. `obraz-ze-zdjecia-karykatura-na-50-ta-rocznice`
+
+### Zmiana 1: STYLE — „Glossy" → „Satin"
+
+**Stare (gpt-image-1.5):**
+```
+• Glossy surfaces, premium finish.
+```
+
+**Nowe (gpt-image-2):**
+```
+• Satin / semi-matte premium finish — soft controlled highlights, NOT wet gloss, NOT mirror shine.
+```
+
+### Zmiana 2: FACE — dopisek anti-glare skóry
+
+**Stare (gpt-image-1.5) — po „Expressive, joyful smiles." nic nie było:**
+```
+• Expressive, joyful smiles.
+
+POSE:
+```
+
+**Nowe (gpt-image-2) — 2 linie dopisane:**
+```
+• Expressive, joyful smiles.
+• Skin must look softly lit and mostly MATTE — no oily sheen, no wet-skin glare, no large bright patches on forehead, cheeks, or nose.
+• Keep beautification natural — not plastic, not wax.
+
+POSE:
+```
+
+### Zmiana 3: OUTFITS — dopisek anti-shine ubrań
+
+**Stare (gpt-image-1.5) — po „Elegant black and gold styling." nic nie było:**
+```
+• Elegant black and gold styling.
+
+SCENE TYPE:
+```
+
+**Nowe (gpt-image-2) — 2 linie dopisane:**
+```
+• Elegant black and gold styling.
+• Fabrics should read as elegant MATTE or satin-matte — NOT wet-look, NOT glossy vinyl, NOT shiny latex.
+• Gold accents: soft warm glow only, no large mirror-like reflections or blown-out bright streaks.
+
+SCENE TYPE:
+```
+
+### Rollback
+
+`git revert <sha>` na odpowiednim commicie, albo ręcznie zamień 3 bloki Nowe → Stare (`replace_all` w obu plikach `customify.js`).
