@@ -2406,8 +2406,14 @@ Set the scene in a forest during golden hour. Warm sunlight streams through the 
     const config = { ...selectedConfig, parameters: selectedConfig.parameters ? { ...selectedConfig.parameters } : undefined };
 
     // 🎛️ CUSTOM FIELDS: promptAddition — doklejany do bazy stylu LUB zastępuje cały prompt (replaceBasePrompt)
+    // gpt-image-2: nie obcinamy szablonów produktowych (utrata końcówki promptu psuła instrukcje TEXT/RESULT)
+    // gpt-image-1.5 (rollback): zostawiamy stary limit 3500 dla replaceBasePrompt
     if (promptAddition && typeof promptAddition === 'string' && promptAddition.trim()) {
-      const maxLen = replaceBasePrompt ? 3500 : 600;
+      const modelName = String(config.model || '');
+      const isGptImage2 = /gpt-image-2/i.test(modelName);
+      const maxLen = replaceBasePrompt
+        ? (isGptImage2 ? 20000 : 3500)
+        : 600;
       const sanitized = promptAddition.trim().substring(0, maxLen);
       if (replaceBasePrompt) {
         config.prompt = sanitized;
