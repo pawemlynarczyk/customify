@@ -3808,10 +3808,15 @@ class CustomifyEmbed {
           (replacements['name'] && replacements['name'].trim()) ||
           (replacements['NAMES'] && replacements['NAMES'].trim())
         );
+        const personalizationRaw = (replacements['personalization'] || '').trim();
+        const personalizationExcerpt = personalizationRaw ? personalizationRaw.replace(/\s+/g, ' ').slice(0, 180) : '';
+        const nonVerbatimRule = personalizationExcerpt
+          ? `Never render this PERSONALIZATION text verbatim as written words anywhere in the image: "${personalizationExcerpt}".`
+          : 'Never render PERSONALIZATION text verbatim as written words anywhere in the image.';
         const textPolicy = hasAnyNameText
           ? 'Render only NAME_SECTION/NAMES_SECTION text on podium/base/plaque/sign/banner. PERSONALIZATION must never be printed there.'
           : 'If no name/dedication was provided, keep podium/base/plaque/sign/banner without any text.';
-        prompt += `\n\nTEXT RENDERING RULES (CRITICAL)\n• PERSONALIZATION describes the scene/person only (profession, hobby, vibe). It is not a dedication text.\n• Do NOT print PERSONALIZATION as text on podium/base/plaque/sign/banner.\n• Other in-scene text elements may exist naturally when consistent with the environment.\n• ${textPolicy}`;
+        prompt += `\n\nTEXT RENDERING RULES (CRITICAL)\n• PERSONALIZATION describes the scene/person only (profession, hobby, vibe). It is not a dedication text.\n• Do NOT print PERSONALIZATION as text on podium/base/plaque/sign/banner.\n• ${nonVerbatimRule}\n• Single contextual words (e.g. brand/place names like "Lidl") may appear naturally in the scene, but do not reproduce PERSONALIZATION as a full phrase/sentence.\n• Other in-scene text elements may exist naturally when consistent with the environment.\n• ${textPolicy}`;
       }
       return prompt.trim() || null;
     }
