@@ -19,7 +19,7 @@ function getProductFieldCtx() {
   const startIdx = src.indexOf('const PRODUCT_FIELD_CONFIGS');
   if (startIdx === -1) throw new Error('customify.js: brak PRODUCT_FIELD_CONFIGS');
   const prelude = src.slice(startIdx, endIdx);
-  const wrapped = `(function () {\n${prelude}\nreturn {\n  PRODUCT_FIELD_CONFIGS,\n  DLA_NIEJ_WITH_YEARS,\n  COUPLE_ANNIVERSARY_FIELD_HANDLES,\n  DIAMENTOWE_GODY_PRODUCT_HANDLE,\n  COUPLE_CUSTOM_YEAR_FIELD_HANDLES,\n  COUPLE_DEFAULT_40_YEAR_FIELD_HANDLES,\n  COUPLE_DEFAULT_50_YEAR_FIELD_HANDLES,\n  COUPLE_NO_DEFAULT_YEAR_FIELD_HANDLES,\n  PERSONALIZATION_PREPEND_BASE_HANDLES,\n  DEFAULT_PERSONALIZATION_PER_PRODUCT,\n  WIESELI_STARUSZKOWIE_PRODUCT_HANDLE,\n  PODROZNICY_PARA_PRODUCT_HANDLE,\n  MLODA_PARA_SLUB_PRODUCT_HANDLE,\n  ROCZNICA_SLUBU_PARA_PRODUCT_HANDLE,\n  ROCZNICA_50_SLUBU_PRODUCT_HANDLE,\n  ROCZNICA_40_SLUBU_PRODUCT_HANDLE\n};\n})()`;
+  const wrapped = `(function () {\n${prelude}\nreturn {\n  PRODUCT_FIELD_CONFIGS,\n  DLA_NIEJ_WITH_YEARS,\n  PERSONALIZATION_CONTEXT_TEXT_POLICY_HANDLES,\n  COUPLE_ANNIVERSARY_FIELD_HANDLES,\n  DIAMENTOWE_GODY_PRODUCT_HANDLE,\n  COUPLE_CUSTOM_YEAR_FIELD_HANDLES,\n  COUPLE_DEFAULT_40_YEAR_FIELD_HANDLES,\n  COUPLE_DEFAULT_50_YEAR_FIELD_HANDLES,\n  COUPLE_NO_DEFAULT_YEAR_FIELD_HANDLES,\n  PERSONALIZATION_PREPEND_BASE_HANDLES,\n  DEFAULT_PERSONALIZATION_PER_PRODUCT,\n  WIESELI_STARUSZKOWIE_PRODUCT_HANDLE,\n  PODROZNICY_PARA_PRODUCT_HANDLE,\n  MLODA_PARA_SLUB_PRODUCT_HANDLE,\n  ROCZNICA_SLUBU_PARA_PRODUCT_HANDLE,\n  ROCZNICA_50_SLUBU_PRODUCT_HANDLE,\n  ROCZNICA_40_SLUBU_PRODUCT_HANDLE\n};\n})()`;
   const script = new vm.Script(wrapped, { filename: 'productFieldConfigSlice.js' });
   _ctx = script.runInNewContext(Object.freeze({}));
   return _ctx;
@@ -38,7 +38,7 @@ function mapLogToFieldValues(handle, log, config, ctx) {
     else if (pk === 'SCENE_DESC') value = opis;
     else if (pk === 'YEARS') value = rocznica;
     else if (pk === 'SCENE_TYPE') value = rocznica;
-    else if (pk === 'name' || pk === 'NAMES' || pk === 'NAMES_FIRST' || pk === 'NAMES_SECOND') value = imie;
+    else if (pk === 'name' || pk === 'NAMES' || pk === 'NAMES_FIRST' || pk === 'NAMES_SECOND' || pk === 'FORBES_SIGNATURE') value = imie;
     else if (pk === 'DEDICATION') value = imie;
     else if (pk === 'BANNER_TEXT' || pk === 'GTA_TEXT') value = imie;
     else if (field.id === 'imiona' || field.id === 'imie') value = imie;
@@ -64,6 +64,7 @@ function buildPromptFromTemplate(handle, config, valuesByFieldId, ctx) {
     COUPLE_DEFAULT_50_YEAR_FIELD_HANDLES,
     COUPLE_NO_DEFAULT_YEAR_FIELD_HANDLES,
     PERSONALIZATION_PREPEND_BASE_HANDLES,
+    PERSONALIZATION_CONTEXT_TEXT_POLICY_HANDLES,
     DEFAULT_PERSONALIZATION_PER_PRODUCT
   } = ctx;
 
@@ -73,6 +74,8 @@ function buildPromptFromTemplate(handle, config, valuesByFieldId, ctx) {
     let value = valuesByFieldId[field.id] != null ? String(valuesByFieldId[field.id]).trim() : '';
     if (field.promptKey === 'SCENE_TYPE' && !value) value = 'anniversary';
     if (field.promptKey === 'CHARACTER_DESC' && !value) value = 'Elegant, romantic, celebratory mood.';
+    if (field.promptKey === 'FORBES_MAIN_HEADLINE' && !value) value = 'ARCHITEKT WŁASNEGO IMPERIUM';
+    if (field.promptKey === 'FORBES_SECOND_HEADLINE' && !value) value = 'SUKCES TO STRATEGIA, NIE PRZYPADEK';
     if (field.promptKey === 'personalization') {
       if (h && PERSONALIZATION_PREPEND_BASE_HANDLES.has(h)) {
         const base =
@@ -210,6 +213,7 @@ function buildPromptFromTemplate(handle, config, valuesByFieldId, ctx) {
   });
   const hasPersonalizationField = (config.fields || []).some(field => field && field.promptKey === 'personalization');
   if (hasPersonalizationField) {
+    const useContextTextPolicy = h && PERSONALIZATION_CONTEXT_TEXT_POLICY_HANDLES && PERSONALIZATION_CONTEXT_TEXT_POLICY_HANDLES.has(h);
     const hasAnyNameText = !!(
       (replacements.name && replacements.name.trim()) ||
       (replacements.NAMES && replacements.NAMES.trim())
@@ -222,7 +226,9 @@ function buildPromptFromTemplate(handle, config, valuesByFieldId, ctx) {
     const textPolicy = hasAnyNameText
       ? 'Render only NAME_SECTION/NAMES_SECTION text on podium/base/plaque/sign/banner. PERSONALIZATION must never be printed there.'
       : 'If no name/dedication was provided, keep podium/base/plaque/sign/banner without any text.';
-    prompt += `\n\nTEXT RENDERING RULES (CRITICAL)\n• PERSONALIZATION describes the scene/person only (profession, hobby, vibe). It is not a dedication text.\n• Do NOT print PERSONALIZATION as text on podium/base/plaque/sign/banner.\n• ${nonVerbatimRule}\n• Single contextual words (e.g. brand/place names like "Lidl") may appear naturally in the scene, but do not reproduce PERSONALIZATION as a full phrase/sentence.\n• Other in-scene text elements may exist naturally when consistent with the environment.\n• ${textPolicy}`;
+    prompt += useContextTextPolicy
+      ? `\n\nTEXT RENDERING RULES (CRITICAL — profession/hobby products)\n• PERSONALIZATION describes visual context only: profession, hobby, personality, props, clothing, colors, mood, background and scene details.\n• PERSONALIZATION is not a dedication and must never be copied as readable text.\n• Do NOT render full phrases, sentences, comma-separated clauses, or direct wording from PERSONALIZATION anywhere in the image.\n• ${nonVerbatimRule}\n• You may add short contextual in-scene text only when it naturally belongs to the environment (for example a book title, label, menu item, badge, poster, sign, workplace detail). Such text must be generic or paraphrased, not a direct copy of the buyer's wording.\n• The main plaque/base/podium/banner/dedication area may contain only exact NAME_SECTION/NAMES_SECTION text.\n• ${textPolicy}`
+      : `\n\nTEXT RENDERING RULES (CRITICAL)\n• PERSONALIZATION describes the scene/person only (profession, hobby, vibe). It is not a dedication text.\n• Do NOT print PERSONALIZATION as text on podium/base/plaque/sign/banner.\n• ${nonVerbatimRule}\n• Single contextual words (e.g. brand/place names like "Lidl") may appear naturally in the scene, but do not reproduce PERSONALIZATION as a full phrase/sentence.\n• Other in-scene text elements may exist naturally when consistent with the environment.\n• ${textPolicy}`;
   }
   return prompt.trim() || null;
 }
@@ -301,6 +307,8 @@ function autoSelectedStyleFromHandle(productHandle) {
       h === 'karykatura-pilkarza-ze-zdjecia-personalizowany-obraz-dla-chlopaka-dziadka-taty' ||
       h === 'obraz-ze-zdjecia-karykatura-policjant-prezent-dla-faceta' ||
       h === 'obraz-ze-zdjecia-karykatura-szefa' ||
+      h === 'obraz-w-stylu-forbes-gold-ze-zdjecia-personalizowany-prezent-dla-mezczyzny' ||
+      h === 'plakat-w-stylu-forbes-silver-dla-mezczyzny-personalizowany-prezent-ze-zdjecia' ||
       h === DIAMENTOWE_GODY_PRODUCT_HANDLE ||
       h === WIESELI_STARUSZKOWIE_PRODUCT_HANDLE ||
       h === PODROZNICY_PARA_PRODUCT_HANDLE ||

@@ -26,6 +26,12 @@
 - Jeśli nie ma imienia/dedykacji, `podium/base/plaque/sign/banner` ma pozostać bez tekstu.
 - Dopuszczalne są inne naturalne teksty w scenie (np. elementy otoczenia), o ile nie są dedykacją z pola `personalization`.
 
+### 2026-04-30 — doprecyzowanie tekstów kontekstowych dla produktów zawód/hobby
+- Zakres: tylko pojedyncze produkty postaciowe z listy `DLA_NIEJ_WITH_YEARS` (np. strażak, wędkarz, lekarka, policjantka, rolnik, lifestyle kobiety). Produkty ślubne i rocznicowe nie są zmieniane.
+- Pole `imiona` / dedykacja pozostaje jedynym tekstem kopiowanym dokładnie 1:1 na główną tabliczkę/podium/banner.
+- Pole `personalization` może inspirować krótkie teksty kontekstowe w scenie (np. tytuł książki, etykieta, menu, odznaka, szyld), ale nie może być kopiowane dosłownie ani jako pełne frazy/zdania użytkownika.
+- Jeśli trzeba cofnąć tę poprawkę, usuń `PERSONALIZATION_CONTEXT_TEXT_POLICY_HANDLES` i przywróć poprzedni pojedynczy blok `TEXT RENDERING RULES` w `public/customify.js`, `shopify-theme/customify-theme/assets/customify.js` oraz `utils/buildProductFieldPromptServer.js`.
+
 **Zasada synchronizacji:** każda zmiana promptów musi być powielona w `public/customify.js` **i** `shopify-theme/customify-theme/assets/customify.js`.
 
 ---

@@ -3181,11 +3181,78 @@ Cinematic lighting, soft glow, ultra-detailed, painterly, semi-realistic digital
     fields: [
       { id: 'napis_gta', label: 'Możesz dodać napis, pojawi się na dole obrazka', type: 'text', placeholder: 'np. Power Couple', required: false, promptKey: 'GTA_TEXT' }
     ]
+  },
+  'obraz-w-stylu-forbes-gold-ze-zdjecia-personalizowany-prezent-dla-mezczyzny': {
+    title: 'Personalizacja',
+    promptTemplate: `Turn this image into a powerful Forbes-style magazine cover. Cool-toned corporate aesthetic. Dark charcoal or deep navy background with subtle blurred city skyline at night. Minimal, executive, authoritative.
+
+Styling: perfectly tailored black or navy suit, crisp white shirt. Clean, sharp look. Upright posture. Direct, confident eye contact. Calm, dominant expression.
+
+Lighting: controlled studio lighting, defined facial structure, matte professional finish. Ultra-detailed, photorealistic, subtle executive retouching.
+
+Add large FORBES masthead at the top in bold white typography.
+Issue date (Polish format): 16.MARZEC.2026
+
+All headlines (except FORBES) must be written in Polish and displayed in elegant metallic gold typography (brushed gold effect, subtle shine, not flashy). Arrange in clean corporate grid: 3 headlines left, 2 right.
+
+Headlines:
+{FORBES_MAIN_HEADLINE}
+{FORBES_SECOND_HEADLINE}
+WIZJA. DECYZJA. DOMINACJA.
+CZŁOWIEK, KTÓRY ZMIENIA ZASADY GRY
+WŁADZA ZAPISANA W NAZWISKU
+
+Add small refined line in subtle gold: LIDER NOWEJ ERY BIZNESU
+
+Preserve facial identity. Natural skin tones. Subtle professional retouching.
+
+Render the exact text '{FORBES_SIGNATURE}' as a clean handwritten-style signature near the bottom in metallic brushed gold tone, matching the headlines. Elegant, refined, executive.
+
+Mood: power, discipline, strategic dominance, modern empire builder with prestige.`,
+    fields: [
+      { id: 'imie_nazwisko', label: 'Imię i nazwisko (podpis na dole)', type: 'text', placeholder: 'np. MAREK SKWIERCZEK', required: true, promptKey: 'FORBES_SIGNATURE' },
+      { id: 'haslo_1', label: 'Hasło 1 (opcjonalne)', type: 'text', placeholder: 'Domyślnie: ARCHITEKT WŁASNEGO IMPERIUM', required: false, promptKey: 'FORBES_MAIN_HEADLINE' },
+      { id: 'haslo_2', label: 'Hasło 2 (opcjonalne)', type: 'text', placeholder: 'Domyślnie: SUKCES TO STRATEGIA, NIE PRZYPADEK', required: false, promptKey: 'FORBES_SECOND_HEADLINE' }
+    ]
+  },
+  'plakat-w-stylu-forbes-silver-dla-mezczyzny-personalizowany-prezent-ze-zdjecia': {
+    title: 'Personalizacja',
+    promptTemplate: `Turn this image into a powerful Forbes-style magazine cover featuring a successful male business leader. Cool-toned corporate aesthetic. Dark charcoal or deep navy background with subtle blurred city skyline at night. Minimal, executive, authoritative.
+
+Styling: perfectly tailored black or navy suit, crisp white shirt. Clean, sharp look. Upright posture. Direct, confident eye contact. Calm, dominant expression.
+
+Lighting: controlled studio lighting, defined facial structure, matte professional finish. Ultra-detailed, photorealistic, subtle executive retouching.
+
+Add large FORBES masthead at the top in bold white typography.
+Issue date (Polish format): 16.MARZEC.2026
+
+All headlines (except FORBES) must be in Polish. Arrange in clean corporate grid: 3 headlines left, 2 right.
+
+Headlines:
+{FORBES_MAIN_HEADLINE}
+{FORBES_SECOND_HEADLINE}
+WIZJA. DECYZJA. DOMINACJA.
+CZŁOWIEK, KTÓRY ZMIENIA ZASADY
+LIDER Z PASJĄ, STRATEG Z WYBORU
+
+Add small refined line: LIDER NOWEJ ERY BIZNESU
+
+Preserve facial identity. Natural skin tones. Subtle professional retouching.
+
+Render the exact text '{FORBES_SIGNATURE}' as a clean signature near the bottom, in brushed silver or muted steel tone.
+
+Mood: power, discipline, strategy, modern empire builder.`,
+    fields: [
+      { id: 'imie_nazwisko', label: 'Imię i nazwisko (podpis na dole)', type: 'text', placeholder: 'np. MAREK SKWIERCZEK', required: true, promptKey: 'FORBES_SIGNATURE' },
+      { id: 'haslo_1', label: 'Hasło 1 (opcjonalne)', type: 'text', placeholder: 'Domyślnie: ARCHITEKT WŁASNEGO IMPERIUM', required: false, promptKey: 'FORBES_MAIN_HEADLINE' },
+      { id: 'haslo_2', label: 'Hasło 2 (opcjonalne)', type: 'text', placeholder: 'Domyślnie: SUKCES TO STRATEGIA, NIE PRZYPADEK', required: false, promptKey: 'FORBES_SECOND_HEADLINE' }
+    ]
   }
 };
 
 /** Produkty "dla niej" z polem rocznica — używają innej logiki YEARS_SECTION (character zamiast woman, explicit "no numbers" gdy puste). */
 const DLA_NIEJ_WITH_YEARS = ['obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania', 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka', 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka', 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka', 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka', 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog', 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka', 'obraz-ze-zdjecia-karykatura-dla-niej-fitness', 'obraz-ze-zdjecia-karykatura-dla-niej-szefowa', 'karykatura-rolnik-ze-zdjecia-personalizowany-prezent-dla-mezczyzny', 'karykatura-polskiego-rolnika-z-ciagnikiem-prezent-z-charakterem', 'karykatura-mechanika-samochodowego-ze-zdjecia-personalizowany-prezent-dla-dziadka-taty-lub-brata', 'motocyklista-karykatura-ze-zdjecia-personalizowany-prezent-dla-niego', 'kulturysta-karykatura-ze-zdjecia-prezent-dla-mezczyzny', 'karykatura-wedkarz-portret-ze-zdjecia-personalizowany-prezent-dla-faceta', 'karykatura-pilkarza-ze-zdjecia-personalizowany-obraz-dla-chlopaka-dziadka-taty', 'obraz-ze-zdjecia-karykatura-policjant-prezent-dla-faceta', 'obraz-ze-zdjecia-karykatura-szefa', 'fotoobraz-strazaka-ze-zdjecia-prezent-na-35-urodziny-dla-meza', 'portret-ze-zdjecia-dla-lekarza-personalizowany-plakat-na-urodziny-dla-chlopaka', 'prezent-ze-zdjecia-dla-budowlanca-personalizowany-obraz-dla-taty', 'prezent-z-wlasnym-zdjeciem-dla-kierowcy-tira-personalizowany-obraz', 'obraz-ze-zdjecia-prezent-dla-chlopca-pilkarz', 'active-woman-portret-ze-zdjecia-na-rocznice-dla-kolezanki-kobiety-druk-na-szkle', 'active-woman-portret-ze-zdjecia-na-18-urodziny-dla-dziewczyny-druk-na-szkle-copy', 'portret-ze-zdjecia-prezent-na-urodziny-dla-kolezanki-szefowej-salon-spa', 'portret-na-18-urodziny-dla-dziewczyny-magic-z-wlasnego-zdjecia-druk-na-szkle', 'obraz-ze-zdjecia-prezent-na-40-urodziny-dla-kobiety-czerwony-dywan', 'portret-ze-zdjecia-na-30-rocznice-dla-nauczycielki-karykatura-na-prezent'];
+const PERSONALIZATION_CONTEXT_TEXT_POLICY_HANDLES = new Set(DLA_NIEJ_WITH_YEARS);
 
 /** Para + rocznica ślubu — YEARS jako duża cyfra w scenie (nie logika „pojedyncza postać z DLA_NIEJ_WITH_YEARS”). */
 const COUPLE_ANNIVERSARY_FIELD_HANDLES = ['karykatura-pary-na-diamentowe-gody-ze-zdjecia-60-rocznica-slubu'];
@@ -3661,6 +3728,8 @@ class CustomifyEmbed {
         let value = el ? el.value.trim() : '';
         if (field.promptKey === 'SCENE_TYPE' && !value) value = 'anniversary';
         if (field.promptKey === 'CHARACTER_DESC' && !value) value = 'Elegant, romantic, celebratory mood.';
+        if (field.promptKey === 'FORBES_MAIN_HEADLINE' && !value) value = 'ARCHITEKT WŁASNEGO IMPERIUM';
+        if (field.promptKey === 'FORBES_SECOND_HEADLINE' && !value) value = 'SUKCES TO STRATEGIA, NIE PRZYPADEK';
         if (field.promptKey === 'personalization') {
           const handle = this.getProductHandle();
           if (handle && PERSONALIZATION_PREPEND_BASE_HANDLES.has(handle)) {
@@ -3804,6 +3873,8 @@ class CustomifyEmbed {
       });
       const hasPersonalizationField = (config.fields || []).some(field => field && field.promptKey === 'personalization');
       if (hasPersonalizationField) {
+        const handle = this.getProductHandle();
+        const useContextTextPolicy = handle && PERSONALIZATION_CONTEXT_TEXT_POLICY_HANDLES.has(handle);
         const hasAnyNameText = !!(
           (replacements['name'] && replacements['name'].trim()) ||
           (replacements['NAMES'] && replacements['NAMES'].trim())
@@ -3816,7 +3887,9 @@ class CustomifyEmbed {
         const textPolicy = hasAnyNameText
           ? 'Render only NAME_SECTION/NAMES_SECTION text on podium/base/plaque/sign/banner. PERSONALIZATION must never be printed there.'
           : 'If no name/dedication was provided, keep podium/base/plaque/sign/banner without any text.';
-        prompt += `\n\nTEXT RENDERING RULES (CRITICAL)\n• PERSONALIZATION describes the scene/person only (profession, hobby, vibe). It is not a dedication text.\n• Do NOT print PERSONALIZATION as text on podium/base/plaque/sign/banner.\n• ${nonVerbatimRule}\n• Single contextual words (e.g. brand/place names like "Lidl") may appear naturally in the scene, but do not reproduce PERSONALIZATION as a full phrase/sentence.\n• Other in-scene text elements may exist naturally when consistent with the environment.\n• ${textPolicy}`;
+        prompt += useContextTextPolicy
+          ? `\n\nTEXT RENDERING RULES (CRITICAL — profession/hobby products)\n• PERSONALIZATION describes visual context only: profession, hobby, personality, props, clothing, colors, mood, background and scene details.\n• PERSONALIZATION is not a dedication and must never be copied as readable text.\n• Do NOT render full phrases, sentences, comma-separated clauses, or direct wording from PERSONALIZATION anywhere in the image.\n• ${nonVerbatimRule}\n• You may add short contextual in-scene text only when it naturally belongs to the environment (for example a book title, label, menu item, badge, poster, sign, workplace detail). Such text must be generic or paraphrased, not a direct copy of the buyer's wording.\n• The main plaque/base/podium/banner/dedication area may contain only exact NAME_SECTION/NAMES_SECTION text.\n• ${textPolicy}`
+          : `\n\nTEXT RENDERING RULES (CRITICAL)\n• PERSONALIZATION describes the scene/person only (profession, hobby, vibe). It is not a dedication text.\n• Do NOT print PERSONALIZATION as text on podium/base/plaque/sign/banner.\n• ${nonVerbatimRule}\n• Single contextual words (e.g. brand/place names like "Lidl") may appear naturally in the scene, but do not reproduce PERSONALIZATION as a full phrase/sentence.\n• Other in-scene text elements may exist naturally when consistent with the environment.\n• ${textPolicy}`;
       }
       return prompt.trim() || null;
     }
@@ -3961,7 +4034,7 @@ class CustomifyEmbed {
   // 💝 Produkty "dla niej" + Biznes Woman — jeden styl (caricature-new), bez wyboru, generacja bez klikania w miniaturkę
   isDlaNiejProduct() {
     const h = this.getProductHandle();
-    return h === 'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-fitness' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-szefowa' || h === 'karykatura-rolnik-ze-zdjecia-personalizowany-prezent-dla-mezczyzny' || h === 'karykatura-polskiego-rolnika-z-ciagnikiem-prezent-z-charakterem' || h === 'karykatura-mechanika-samochodowego-ze-zdjecia-personalizowany-prezent-dla-dziadka-taty-lub-brata' || h === 'motocyklista-karykatura-ze-zdjecia-personalizowany-prezent-dla-niego' || h === 'kulturysta-karykatura-ze-zdjecia-prezent-dla-mezczyzny' || h === 'karykatura-wedkarz-portret-ze-zdjecia-personalizowany-prezent-dla-faceta' || h === 'karykatura-pilkarza-ze-zdjecia-personalizowany-obraz-dla-chlopaka-dziadka-taty' || h === 'obraz-ze-zdjecia-karykatura-policjant-prezent-dla-faceta' || h === 'obraz-ze-zdjecia-karykatura-szefa' || h === DIAMENTOWE_GODY_PRODUCT_HANDLE || h === WIESELI_STARUSZKOWIE_PRODUCT_HANDLE || h === PODROZNICY_PARA_PRODUCT_HANDLE || h === MLODA_PARA_SLUB_PRODUCT_HANDLE || h === ROCZNICA_SLUBU_PARA_PRODUCT_HANDLE || h === ROCZNICA_50_SLUBU_PRODUCT_HANDLE || h === ROCZNICA_40_SLUBU_PRODUCT_HANDLE || h === 'fotoobraz-strazaka-ze-zdjecia-prezent-na-35-urodziny-dla-meza' || h === 'portret-ze-zdjecia-dla-lekarza-personalizowany-plakat-na-urodziny-dla-chlopaka' || h === 'prezent-ze-zdjecia-dla-budowlanca-personalizowany-obraz-dla-taty' || h === 'prezent-z-wlasnym-zdjeciem-dla-kierowcy-tira-personalizowany-obraz' || h === 'obraz-ze-zdjecia-prezent-dla-chlopca-pilkarz' || h === 'active-woman-portret-ze-zdjecia-na-rocznice-dla-kolezanki-kobiety-druk-na-szkle' || h === 'active-woman-portret-ze-zdjecia-na-18-urodziny-dla-dziewczyny-druk-na-szkle-copy' || h === 'portret-ze-zdjecia-prezent-na-urodziny-dla-kolezanki-szefowej-salon-spa' || h === 'portret-na-18-urodziny-dla-dziewczyny-magic-z-wlasnego-zdjecia-druk-na-szkle' || h === 'obraz-ze-zdjecia-prezent-na-40-urodziny-dla-kobiety-czerwony-dywan' || h === 'portret-ze-zdjecia-na-30-rocznice-dla-nauczycielki-karykatura-na-prezent' || h === 'obraz-ze-zdjecia-biznes-woman-personalizowany-prezent' || h === 'obraz-ze-zdjecia-prezent-na-30-urodziny-dla-kobiety-biznes-woman' || h === 'obraz-ze-zdjecia-prezent-na-50-urodziny-dla-kobiety-biznes-woman' || h === 'wydruk-na-szkle-biznes-woman-prezent-na-urodziny-dla-kobiety';
+    return h === 'obraz-ze-zdjecia-karykatura-dla-niej-zainteresowania' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-policjantka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-rolniczka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-lekarka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-podrozniczka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-psycholog' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-kucharka' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-fitness' || h === 'obraz-ze-zdjecia-karykatura-dla-niej-szefowa' || h === 'karykatura-rolnik-ze-zdjecia-personalizowany-prezent-dla-mezczyzny' || h === 'karykatura-polskiego-rolnika-z-ciagnikiem-prezent-z-charakterem' || h === 'karykatura-mechanika-samochodowego-ze-zdjecia-personalizowany-prezent-dla-dziadka-taty-lub-brata' || h === 'motocyklista-karykatura-ze-zdjecia-personalizowany-prezent-dla-niego' || h === 'kulturysta-karykatura-ze-zdjecia-prezent-dla-mezczyzny' || h === 'karykatura-wedkarz-portret-ze-zdjecia-personalizowany-prezent-dla-faceta' || h === 'karykatura-pilkarza-ze-zdjecia-personalizowany-obraz-dla-chlopaka-dziadka-taty' || h === 'obraz-ze-zdjecia-karykatura-policjant-prezent-dla-faceta' || h === 'obraz-ze-zdjecia-karykatura-szefa' || h === 'obraz-w-stylu-forbes-gold-ze-zdjecia-personalizowany-prezent-dla-mezczyzny' || h === 'plakat-w-stylu-forbes-silver-dla-mezczyzny-personalizowany-prezent-ze-zdjecia' || h === DIAMENTOWE_GODY_PRODUCT_HANDLE || h === WIESELI_STARUSZKOWIE_PRODUCT_HANDLE || h === PODROZNICY_PARA_PRODUCT_HANDLE || h === MLODA_PARA_SLUB_PRODUCT_HANDLE || h === ROCZNICA_SLUBU_PARA_PRODUCT_HANDLE || h === ROCZNICA_50_SLUBU_PRODUCT_HANDLE || h === ROCZNICA_40_SLUBU_PRODUCT_HANDLE || h === 'fotoobraz-strazaka-ze-zdjecia-prezent-na-35-urodziny-dla-meza' || h === 'portret-ze-zdjecia-dla-lekarza-personalizowany-plakat-na-urodziny-dla-chlopaka' || h === 'prezent-ze-zdjecia-dla-budowlanca-personalizowany-obraz-dla-taty' || h === 'prezent-z-wlasnym-zdjeciem-dla-kierowcy-tira-personalizowany-obraz' || h === 'obraz-ze-zdjecia-prezent-dla-chlopca-pilkarz' || h === 'active-woman-portret-ze-zdjecia-na-rocznice-dla-kolezanki-kobiety-druk-na-szkle' || h === 'active-woman-portret-ze-zdjecia-na-18-urodziny-dla-dziewczyny-druk-na-szkle-copy' || h === 'portret-ze-zdjecia-prezent-na-urodziny-dla-kolezanki-szefowej-salon-spa' || h === 'portret-na-18-urodziny-dla-dziewczyny-magic-z-wlasnego-zdjecia-druk-na-szkle' || h === 'obraz-ze-zdjecia-prezent-na-40-urodziny-dla-kobiety-czerwony-dywan' || h === 'portret-ze-zdjecia-na-30-rocznice-dla-nauczycielki-karykatura-na-prezent' || h === 'obraz-ze-zdjecia-biznes-woman-personalizowany-prezent' || h === 'obraz-ze-zdjecia-prezent-na-30-urodziny-dla-kobiety-biznes-woman' || h === 'obraz-ze-zdjecia-prezent-na-50-urodziny-dla-kobiety-biznes-woman' || h === 'wydruk-na-szkle-biznes-woman-prezent-na-urodziny-dla-kobiety';
   }
 
   // 🦸 Produkt Superbohater dla chłopca — Nano Banana, ukryty wybór, pole imienia
@@ -4630,6 +4703,14 @@ class CustomifyEmbed {
     }
     if (currentUrl.includes('obraz-ze-zdjecia-karykatura-szefa')) {
       console.log('👔 [PRODUCT-TYPE] URL = Karykatura szef → productType: caricature-new');
+      return 'caricature-new';
+    }
+    if (currentUrl.includes('obraz-w-stylu-forbes-gold-ze-zdjecia-personalizowany-prezent-dla-mezczyzny')) {
+      console.log('📰 [PRODUCT-TYPE] URL = Forbes Gold → productType: caricature-new');
+      return 'caricature-new';
+    }
+    if (currentUrl.includes('plakat-w-stylu-forbes-silver-dla-mezczyzny-personalizowany-prezent-ze-zdjecia')) {
+      console.log('📰 [PRODUCT-TYPE] URL = Forbes Silver → productType: caricature-new');
       return 'caricature-new';
     }
     if (currentUrl.includes('karykatura-pary-na-diamentowe-gody-ze-zdjecia-60-rocznica-slubu')) {
@@ -9151,6 +9232,25 @@ class CustomifyEmbed {
           const msg = errorJson.message || 'Zdjęcie musi pokazywać całą twarz z przodu. Użyj zdjęcia, gdzie twarz jest w pełni widoczna i nie jest ucięta.';
           this.showError(msg, 'transform');
           return;
+        }
+
+        if (response.status === 400) {
+          const backendError = (errorJson?.error || '').toString();
+          const normalizedError = backendError.toLowerCase();
+          const isModerationError =
+            normalizedError.includes('odrzucone przez system bezpieczeństwa') ||
+            normalizedError.includes('filtr bezpieczeństwa') ||
+            normalizedError.includes('nsfw') ||
+            normalizedError.includes('content detected') ||
+            normalizedError.includes('moderation');
+
+          if (isModerationError) {
+            this.showError(
+              'Zdjęcie zostało odrzucone przez filtr bezpieczeństwa. Użyj zdjęcia z wyraźną twarzą i neutralnym strojem.',
+              'transform'
+            );
+            return;
+          }
         }
 
         throw new Error(`HTTP ${response.status}: ${errorText}`);
